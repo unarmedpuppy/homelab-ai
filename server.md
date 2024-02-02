@@ -2,11 +2,16 @@
 
 - [Debian 12](https://www.debian.org/download) (Installed using [Etcher](https://etcher.balena.io/) to turn a USB drive into a bootable device)
 - local ip: `192.168.86.47` (`hostname -I`)
+- MAC address: 
 - Power mode: Performance
 - Power Saving Options: Screen blank: Never, Auto Suspend: Off
 - Power Button Behavior: Nothing
 
 `ssh unarmedpuppy@192.168.86.47 -p 4242`
+
+- Prevent suspend
+
+`sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target`
 
 # user list
 
@@ -23,11 +28,44 @@ docker group id: 994 (`stat -c '%g' /var/run/docker.sock`)
 - server-backup 2TB (backup target)
 - TBD Raid 5 array
 
+# Router configuration (Google Home)
+
+
+
+
 # Command Logs
+<details>
+<summary>Get System Info</summary>
 
 ### get local IP
 
 `Hostname I`
+
+### get MAC address
+
+`sudo apt-get install net-tools`
+
+`/sbin/ifconfig`
+
+### Inspect Memory details
+
+- Detailed information about your system's hardware, including RAM. To use it for RAM details
+    
+    `sudo dmidecode --type memory`
+
+output: 
+```
+Type: DDR4
+Manufacturer: Kingston
+Serial Number: C182B4DC
+Part Number: CBD26D4S9S8ME-8
+```
+
+</details>
+
+
+<details>
+<summary>Manage users & permissions</summary>
 
 ### Add primary user to sudoer file
 
@@ -54,6 +92,12 @@ docker group id: 994 (`stat -c '%g' /var/run/docker.sock`)
 - Testing sudo Access
 
     `sudo whoami`
+
+
+</details>
+
+<details>
+<summary>Configure SSH</summary>
 
 ### Enable & configure SSH
 
@@ -84,19 +128,45 @@ docker group id: 994 (`stat -c '%g' /var/run/docker.sock`)
 
     `sudo systemctl restart ssh`
 
-### Inspect Memory details
+### Lock down access to SSH key only
 
-- Detailed information about your system's hardware, including RAM. To use it for RAM details
-    
-    `sudo dmidecode --type memory`
+- Create SSH Key Pair (server)
 
-output: 
-```
-Type: DDR4
-Manufacturer: Kingston
-Serial Number: C182B4DC
-Part Number: CBD26D4S9S8ME-8
-```
+    `ssh-keygen -t rsa -b 4096` (passphrase same as unarmedpuppy pass)
+    - (not actually used yet)
+
+- Crease SSH key pair (client)
+
+    `ssh-keygen -t rsa -b 4096`
+    -(/c/Users/micro/.ssh/id_rsa)
+
+- Copy the Public Key to the Server
+
+    `ssh-copy-id -i /c/Users/micro/.ssh/id_rsa.pub -o 'Port=4242' unarmedpuppy@192.168.86.47`
+
+- Now able to login with key
+
+    `ssh -o 'Port=4242' 'unarmedpuppy@192.168.86.47'`
+
+- Disable Password Authentication on the Server
+
+    `sudo nano /etc/ssh/sshd_config`
+
+    ```
+    PasswordAuthentication no
+    ChallengeResponseAuthentication no
+    UsePAM no
+    ```
+
+- Reload SSH Service
+
+    `sudo systemctl reload sshd`
+
+
+</details>
+
+<details>
+<summary>Configure Docker</summary>
 
 ### Install Docker & Docker-compose
 
@@ -147,6 +217,41 @@ Part Number: CBD26D4S9S8ME-8
 
     `docker-compose --version`
 
+- Create Docker Network
+
+    `docker network create my-network`
+
+    ```
+        networks:
+      - my-network
+
+networks:
+  my-network:
+    driver: bridge
+    external: true
+    ```
+
+- inspect network
+
+  `docker network inspect my-network`
+```
+"IPAM": {
+            "Driver": "default",
+            "Options": {},
+            "Config": [
+                {
+                    "Subnet": "192.168.160.0/20",
+                    "Gateway": "192.168.160.1"
+                }
+            ]
+        },
+```
+
+</details>
+
+<details>
+<summary>Configure Backups & Storage</summary>
+
 ### Daily Backups
 
 - Install [rsnapshot](https://github.com/rsnapshot/rsnapshot)
@@ -172,10 +277,10 @@ Part Number: CBD26D4S9S8ME-8
     `sudo crontab -e`
 
     ```
-    0 */4 * * *     /usr/local/bin/rsnapshot alpha
-    00 00 * * *     /usr/local/bin/rsnapshot beta
-    00 23 * * 6     /usr/local/bin/rsnapshot gamma
-    00 22 1 * *     /usr/local/bin/rsnapshot delta
+    0 */4 * * *     /usr/bin/rsnapshot alpha
+    00 00 * * *     /usr/bin/rsnapshot beta
+    00 23 * * 6     /usr/bin/rsnapshot gamma
+    00 22 1 * *     /usr/bin/rsnapshot delta
     ```
 
      There will be six `alpha` snapshots taken each day, a `beta` rsnapshot at midnight, a `gamma` snapshot on Saturdays at 11:00pm and a `delta` rsnapshot at 10pm on the first day of each month.
@@ -214,14 +319,19 @@ Part Number: CBD26D4S9S8ME-8
 
     `sudo mount -a`
 
+</details>
+
+<details>
+<summary>Configure Home Assistant</summary>
+
 ### Home Assistant
 
 - `docker-compose.yml`
 
+</details>
 
-### Pi Hole
-
-- `docker-compose.yml`
+<details>
+<summary>Configure Plex</summary>
 
 ### Plex
 
@@ -229,8 +339,85 @@ Part Number: CBD26D4S9S8ME-8
 
 - `docker-compose.yml`
 
+
+ back up fo docker file that worked with traefik, but not in app
+```
+version: '3.3'
+
+services:
+    pms-docker:
+        image: plexinc/pms-docker
+        container_name: plex
+        #network_mode: host
+        environment:
+            - TZ=America/Chicago
+            - PLEX_CLAIM=claim-A7EhBpo7PRhsx7sDKMYh
+        volumes:
+            - ./config:/config
+            - ./transcode:/transcode
+            - /mnt/plex:/data
+        restart: unless-stopped
+        ports:
+            - '32400:32400'
+        networks:
+            - my-network
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.plex.rule=Host(`plex.server.unarmedpuppy.com`)"
+            - "traefik.http.routers.plex.entrypoints=websecure"
+            - "traefik.http.routers.plex.tls.certresolver=myresolver"
+            - "traefik.http.routers.plex.service=plex"
+            - "traefik.http.services.plex.loadbalancer.server.port=32400"
+            - "traefik.http.middlewares.plex-https-redirect.redirectscheme.scheme=https"
+            - "traefik.http.routers.plex.middlewares=plex-https-redirect"
+
+networks:
+  my-network:
+    external: true
+    driver: bridge
+```
+
+</details>
+
+<details>
+<summary>Configure Pihole</summary>
+
+### Pihole
+
+- `docker-compose.yml`
+
+</details>
+
+
+<details>
+<summary>Configure Nextcloud</summary>
+
+### Nextcloud
+
+- `docker-compose.yml`
+
+- reverse proxy (not currently working)
+https://github.com/nextcloud/all-in-one/blob/main/reverse-proxy.md
+
+</details>
+
+<details>
+<summary>Configure Cloudflare DDNS</summary>
+
+### Cloudflare DDNS
+
+- `docker-compose.yml`
+
+</details>
+
+<details>
+<summary>Configure Grafana</summary>
+
 ### Grafana
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+
+- `docker-compose.yml`
+
+                                                                                                    
 Spawning up this docker stack will provide you
 with:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 - A containerized Grafana web instance runnning on the default port TCP/3000                                                                                                                                                                                                        
@@ -239,9 +426,219 @@ with:
 - A containerized Promtail instance that can fetch various log files (bind mounted into the promtail container from your docker host server) and send them into the Loki container (e.g. /var/log/auth.log or your Traefik reverse proxy logs)                                        
 - A containerized Loki instance for storing Promtail log data, which can be defined in Grafana as datasource (just specify `http://loki:3100`). No authentication enabled per default.                                                                                                                                                                                                                                                                                                                                                                                      
 Finally, after configuring InfluxDB and Loki as datasources on Grafana, you can just import the provided `Grafana_Dashboard_Template.json` dashboard template YAML file in Grafana by browsing http://127.0.0.1:3000/dashboard/import. Your dashboard will look like the following:                                                                                                                                                                                                                                                                                         
-<img src="https://blog.lrvt.de/content/images/2022/11/image-4-1.png">                                                                                                                                                                                                                                                                                            
+<img src="https://blog.lrvt.de/content/images/2022/11/image-4-1.png">                       
+
+</details>
+
+<details>
+<summary>Configure UFW</summary>
+
+### UFW
+
+- install UFW
+
+    `sudo apt install ufw`
+
+- allow SSH
+
+    `sudo ufw allow 4242/tcp`
+
+- enable ufw
+
+    `sudo ufw enable`
+
+- Set Default Policies
+
+    `sudo ufw default deny incoming`
+    `sudo ufw default allow outgoing`
+
+- Allow specifc services
+
+    ~`sudo ufw allow 8123/tcp` (homeassistant)~ `sudo ufw delete allow 8123/tcp`
+    `sudo ufw allow 32400/tcp` (plex)
+
+    `sudo ufw default deny incoming`
+    `sudo ufw default allow outgoing`
+
+- Check Status and Rules
+
+    `sudo ufw status verbose`
+
+</details>
+
+<details>
 
 
+<details>
+<summary>Configure Reverse Proxy</summary>
+
+### Caddy
+
+- *DEPRECATED (uninstalled/down)*
+
+- Update Caddy file to match cloudflare DDNS
+
+- Update Port Forwarding on google home router
+Forward TCP port 80 (HTTP) and 443 (HTTPS) to the internal IP address of the server running Caddy. This ensures that Caddy can handle incoming requests and manage SSL certificates through Let's Encrypt.
 
 
+### Traefik
 
+- Utilizing docker network prviously set up & running named `my-network`
+
+- Create a Traefik Configuration Directory
+
+    `mkdir -p ~/server/apps/traefik/{config,logs}`
+
+- Create the Traefik Configuration File (traefik.yml):
+
+    `touch ~/server/apps/traefik/config/traefik.yml`
+
+    ```
+    api:
+      dashboard: true
+      entryPoints:
+        web:
+          address: ":80"
+        websecure:
+          address: ":443"
+
+      providers:
+        docker:
+          endpoint: "unix:///var/run/docker.sock"
+          exposedByDefault: false
+          network: my-network
+
+    certificatesResolvers:
+      myresolver:
+        acme:
+          email: traefik@jenquist.com
+          storage: acme.json
+          httpChallenge:
+            # Using httpChallenge means we're going to solve a challenge using port 80
+            entryPoint: web
+          # dnsChallenge:
+            # provider: cloudflare
+            # Delay before checking DNS propagation
+            # delayBeforeCheck: 0
+    
+    accessLog:
+      filePath: "~/server/apps/traefik/logs/access.log"
+      format: json
+
+    metrics:
+      prometheus: {}
+
+    tracing:
+      jaeger:
+        samplingType: const
+        samplingParam: 1.0
+    ```
+
+- Create an Empty acme.json File for Storing Certificates
+
+    `touch ~/server/apps/traefik/config/acme.json && chmod 600 ~/server/apps/traefik/config/acme.json`
+
+-  Docker Compose File for Traefik
+
+    ```
+version: '3.7'
+
+services:
+  traefik:
+    image: traefik:v2.11
+    container_name: traefik
+    restart: unless-stopped
+    environment:
+      - TZ=America/Chicago
+      - CF_DNS_API_TOKEN=redacted
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./config/traefik.yml:/traefik.yml:ro"
+      - "./config/acme.json:/acme.json"
+      - "./logs:/var/log/traefik"
+    networks:
+      - my-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`traefik.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.api.service=api@internal"
+      - "traefik.http.routers.api.middlewares=auth"
+      - "traefik.http.middlewares.auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.api.tls.certresolver=myresolver"
+
+networks:
+  my-network:
+    external: true
+    ```
+
+- generate new credentials using the `htpasswd` tool (part of the Apache HTTP Server package)
+
+  `sudo apt-get install apache2-utils`
+
+- generate user + password
+
+  `htpasswd -nb admin example`
+
+- example enable traefik on container
+
+```
+labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.libreddit.rule=Host(`libreddit.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.libreddit.entrypoints=web"
+      #- traefik.http.routers.libreddit.middlewares=local-ipwhitelist@file,basic-auth@file      
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    external: true
+
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homeassistant.rule=Host(`homeassistant.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.homeassistant.entrypoints=websecure"
+      - "traefik.http.routers.homeassistant.tls.certresolver=myresolver"
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    external: true
+```
+
+</details>
+
+<details>
+<summary>Configure Reverse Proxy</summary>
+### Libreddit
+
+JS snippet to snag all subs
+
+```
+var items = ''
+document.querySelectorAll('[role="menuitem"]').forEach(function (el){
+items = items + el.ariaLabel + "+"
+});
+```
+</details>
+
+
+<details>
+<summary>Game Servers</summary>
+
+### Rust
+
+[server banner (1024 x 512) ](https://i.imgur.com/FIXxuRI.jpg)
+
+</details>
+
+TODO:
+
+local DNS (pihole - do this at night)
