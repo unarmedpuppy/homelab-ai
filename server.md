@@ -13,6 +13,10 @@
 
 `sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target`
 
+- size of directory
+
+`du -sh server/apps/bedrock-viz/`
+
 # user list
 
 `root` (root)
@@ -31,6 +35,9 @@ docker group id: 994 (`stat -c '%g' /var/run/docker.sock`)
 # Router configuration (Google Home)
 
 
+# Docker
+
+[Enable TCP](https://gist.github.com/styblope/dc55e0ad2a9848f2cc3307d4819d819f)
 
 
 # Command Logs
@@ -456,6 +463,8 @@ Finally, after configuring InfluxDB and Loki as datasources on Grafana, you can 
 
     ~`sudo ufw allow 8123/tcp` (homeassistant)~ `sudo ufw delete allow 8123/tcp`
     `sudo ufw allow 32400/tcp` (plex)
+    `sudo ufw allow 19132/udp` (minecraft)
+    ~`sudo ufw allow from 172.17.0.0/16 to any port 2375 proto tcp` (docker subnet connect to docker socket over tcp)~
 
     `sudo ufw default deny incoming`
     `sudo ufw default allow outgoing`
@@ -637,8 +646,121 @@ items = items + el.ariaLabel + "+"
 
 [server banner (1024 x 512) ](https://i.imgur.com/FIXxuRI.jpg)
 
-</details>
+
 
 TODO:
 
 local DNS (pihole - do this at night)
+
+### Minecraft
+
+- Copy world from PC to server
+
+  `scp -P  4242 -r ~/Desktop/server/minecraft/gumberlund unarmedpuppy@192.168.86.47:~/server/apps/minecraft/gumberlund`
+
+
+scp -P  4242 -r ./static unarmedpuppy@192.168.86.47:~/server/apps/bedrock-viz/repo/build/static-upload
+
+- Server commands
+
+  `docker exec minecraft-bedrock-1 send-command op unarmedpupy`
+
+  unarmedpupy, xuid: 2535454866260420
+
+### Bedrock-viz 
+
+https://github.com/bedrock-viz/bedrock-viz?tab=readme-ov-file
+
+- Generate static files on PC
+
+  `bedrock-viz.exe --db C:\Users\micro\Desktop\server\minecraft\gumberlund --out ./map --html-most` (not working for my map)
+
+
+- Copy generated map from PC to server
+
+  `scp -P  4242 -r ~/Desktop/server/minecraft/map unarmedpuppy@192.168.86.47:~/server/apps/bedrock-viz/map`
+
+```
+version: '3'
+
+services:
+  bedrock-viz-http:
+    image: nginx
+    container_name: bedrock-viz-http
+    volumes:
+      - /map:/usr/share/nginx/html:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.bedrock-viz-http.rule=Host(`minecraft.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.bedrock-viz-http.entrypoints=web"
+      - "traefik.http.services.bedrock-viz-http.loadbalancer.server.port=80"
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    external: true
+```
+
+- [Try building from source](https://github.com/bedrock-viz/bedrock-viz/blob/master/docs/BUILD.md#ubuntu-tested--supported-on-ubuntu-2004-2104)
+
+```
+
+cmake: sudo apt install cmake
+
+libpng and zlib: sudo apt install libpng++-dev zlib1g-dev
+
+boost sudo apt install libboost-program-options-dev
+
+sudo apt install -y build-essential
+
+
+```
+
+`~/server/apps/bedrock-viz/repo/build$ ./bedrock-viz --db ~/server/apps/minecraft/backup-gumberlund --cfg ~/server/apps/bedrock-viz/repo/data/bedrock_viz.cfg --xml ~/server/apps/bedrock-viz/repo/data/bedrock_viz.xml --html-all`
+
+</details>
+
+<details>
+<summary>Home Page</summary>
+
+- [Docs](https://github.com/gethomepage/homepage?ref=noted.lol)
+
+```
+version: "3.3"
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    ports:
+      - 3000:3000
+    volumes:
+      - ~/server/apps/homepage/config:/app/config # Make sure your local config directory exists
+      - /var/run/docker.sock:/var/run/docker.sock:ro # optional, for docker integrations
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homepage.rule=Host(`server.unarmedpuppy.com`)"
+      - "traefik.http.routers.homepage.entrypoints=websecure"
+      - "traefik.http.routers.homepage.tls.certresolver=myresolver"
+      - "traefik.http.routers.homepage.middlewares=homepage-auth"
+      - "traefik.http.middlewares.homepage-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.homepage-auth.basicauth.realm=homepage"
+    restart: unless-stopped
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    external: true
+```
+
+- add labels to all containers:
+
+```
+      - "homepage.group=Game Servers"
+      - "homepage.name=Bedrock Viz"
+      #- homepage.icon=emby.png
+      - "homepage.href=http://minecraft.server.unarmedpuppy.com"
+      - "homepage.description=Minecraft server map"
+```
+</details>
