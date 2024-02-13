@@ -17,6 +17,10 @@
 
 `du -sh server/apps/bedrock-viz/`
 
+- Backup disk image
+
+`sudo dd if=/dev/sda of=/mnt/server-storage/test-bk.img status=progress`
+
 # user list
 
 `root` (root)
@@ -99,7 +103,7 @@ Part Number: CBD26D4S9S8ME-8
 - Testing sudo Access
 
     `sudo whoami`
-
+76.156.139.101/24
 
 </details>
 
@@ -173,6 +177,9 @@ Part Number: CBD26D4S9S8ME-8
 </details>
 
 <details>
+
+`sudo apt install parted`
+
 <summary>Configure Docker</summary>
 
 ### Install Docker & Docker-compose
@@ -464,6 +471,12 @@ Finally, after configuring InfluxDB and Loki as datasources on Grafana, you can 
     ~`sudo ufw allow 8123/tcp` (homeassistant)~ `sudo ufw delete allow 8123/tcp`
     `sudo ufw allow 32400/tcp` (plex)
     `sudo ufw allow 19132/udp` (minecraft)
+    `sudo ufw allow 28015/udp` (rust)
+    `sudo ufw allow 28015` (rust)
+    `sudo ufw allow 28016` (rust)
+    `sudo ufw allow 8080` (rust)
+    `sudo ufw allow 53/tcp` (adguard)
+    `sudo ufw allow 53/udp` (adguard)
     ~`sudo ufw allow from 172.17.0.0/16 to any port 2375 proto tcp` (docker subnet connect to docker socket over tcp)~
 
     `sudo ufw default deny incoming`
@@ -622,6 +635,86 @@ networks:
     external: true
 ```
 
+### Bypass basic auth for LAN
+
+```
+    labels:
+      - "traefik.http.routers.whoami2.rule=Host(`server.unarmedpuppy.com`) && !ClientIP(`192.168.1.1/254`)"
+      - "traefik.http.routers.whoami2.priority=99"
+      - "traefik.http.routers.whoami2.middlewares=secured2"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.localhost`)"
+      - "traefik.http.routers.whoami.priority=100"
+      - "traefik.http.routers.whoami.middlewares=secured"
+      - "traefik.http.middlewares.secured.chain.middlewares=auth"
+      - "traefik.http.middlewares.secured2.chain.middlewares="
+      - "traefik.http.middlewares.auth.basicauth.users=test1:$$apr1$$H6uskkkW$$IgXLP6ewTrSuBkTrqE8wj/"
+      #- "traefik.http.middlewares.known-ips.ipwhitelist.sourceRange=192.168.1.7,127.0.0.1/32"
+```
+
+```
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  namespace: example-namespace
+  name: example-ingressroute
+  labels:
+    app: example
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`example.com`)
+      kind: Rule
+      priority: 99
+      services:
+        - name: example-service
+          port: 3000
+    - match: Host(`server.unarmedpuppy.com`) && ! ClientIP(`192.168.1.1/254`)
+      kind: Rule
+      priority: 100
+      services:
+        - name: example-service
+          port: 3000
+      middlewares:
+        - name: basicauth-middleware
+          namespace: example-namespace
+  tls:
+    secretName: example-cert
+
+```
+
+      - "traefik.http.routers.whoami2.rule=Host(`server.unarmedpuppy.com`) && !ClientIP(`192.168.1.1/254`)"
+      - "traefik.http.routers.whoami2.priority=99"
+      - "traefik.http.routers.whoami2.middlewares=secured2"
+
+      - "traefik.http.routers.whoami.rule=Host(`whoami.localhost`)"
+      - "traefik.http.routers.whoami.priority=100"
+      - "traefik.http.routers.whoami.middlewares=secured"
+
+      - "traefik.http.middlewares.secured.chain.middlewares=auth"
+      - "traefik.http.middlewares.secured2.chain.middlewares="
+
+      - "traefik.http.middlewares.auth.basicauth.users=test1:$$apr1$$H6uskkkW$$IgXLP6ewTrSuBkTrqE8wj/"
+```
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homepage.rule=Host(`server.unarmedpuppy.com`) && ClientIP(`192.168.1.0/24`, `76.156.139.101/24`)"
+      - "traefik.http.routers.homepage.priority=99"
+      - "traefik.http.routers.homepage.entrypoints=websecure"
+      - "traefik.http.routers.homepage.middlewares=bypass"
+      - "traefik.http.routers.homepage.tls.certresolver=myresolver"
+      - "traefik.http.routers.homepage2.rule=Host(`server.unarmedpuppy.com`)"
+      - "traefik.http.routers.homepage2.priority=100"
+      - "traefik.http.routers.homepage2.entrypoints=websecure"
+      - "traefik.http.routers.homepage2.middlewares=do-auth"
+      - "traefik.http.routers.homepage2.tls.certresolver=myresolver"
+      - "traefik.http.middlewares.do-auth.chain.middlewares=homepage-auth"
+      - "traefik.http.middlewares.bypass.chain.middlewares="
+      - "traefik.http.middlewares.homepage-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.homepage-auth.basicauth.realm=homepage"
+```
+
 </details>
 
 <details>
@@ -764,3 +857,67 @@ networks:
       - "homepage.description=Minecraft server map"
 ```
 </details>
+
+
+labels:
+      - "homepage.group=Game Servers"
+      - "homepage.name=Rust Server"
+      #- homepage.icon=emby.png
+      - "homepage.href=http://rust.server.unarmedpuppy.com"
+      - "homepage.description=Rust server, UDP traffic on port 28015"
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    external: true
+
+
+
+/boot/efi
+/dev/sda2      fuseblk      1.9T  1.8T   54G  98% /mnt/plex
+/dev/sdb1      fuseblk      1.8T  120G  1.7T   7% /mnt/server-storage
+/dev/sdb2      fuseblk      2.0T   39G  1.9T   2% /mnt/server-backup
+
+
+### Adguard
+
+```
+Admin Web Interface
+Listen interface
+All interfaces
+Port
+80
+Your AdGuard Home admin web interface will be available on the following addresses:
+http://127.0.0.1
+http://192.168.160.9
+DNS server
+Listen interface
+All interfaces
+Port
+53
+You will need to configure your devices or router to use the DNS server on the following addresses:
+127.0.0.1
+192.168.160.9
+Static IP Address
+AdGuard Home is a server so it needs a static IP address to function properly. Otherwise, at some point, your router may assign a different IP address to this device.
+
+Configure your devices
+To start using AdGuard Home, you need to configure your devices to use it.
+AdGuard Home DNS server is listening on the following addresses:
+127.0.0.1
+192.168.160.9
+Router
+Windows
+macOS
+Android
+iOS
+DNS Privacy
+Router
+This setup automatically covers all devices connected to your home router, no need to configure each of them manually.
+
+Open the preferences for your router. Usually, you can access it from your browser via a URL, such as http://192.168.0.1/ or http://192.168.1.1/. You may be prompted to enter a password. If you don't remember it, you can often reset the password by pressing a button on the router itself, but be aware that if this procedure is chosen, you will probably lose the entire router configuration. If your router requires an app to set it up, please install the app on your phone or PC and use it to access the router’s settings.
+Find the DHCP/DNS settings. Look for the DNS letters next to a field which allows two or three sets of numbers, each broken into four groups of one to three digits.
+Enter your AdGuard Home server addresses there.
+On some router types, a custom DNS server cannot be set up. In that case, setting up AdGuard Home as a DHCP server may help. Otherwise, you should check the router manual on how to customize DNS servers on your specific router model.
+```
