@@ -1,0 +1,307 @@
+[2024-02-08T15:19:29.432Z] info: docker.yaml was copied to the config folder
+[2024-02-08T15:19:29.433Z] info: services.yaml was copied to the config folder
+[2024-02-08T15:19:29.434Z] info: bookmarks.yaml was copied to the config folder
+[2024-02-08T15:19:29.439Z] info: widgets.yaml was copied to the config folder
+[2024-02-08T15:19:29.440Z] info: custom.css was copied to the config folder
+[2024-02-08T15:19:29.441Z] info: custom.js was copied to the config folder
+[2024-02-08T15:19:29.465Z] info: kubernetes.yaml was copied to the config folder
+[2024-02-08T17:29:37.592Z] error: undefined
+[2024-02-08T17:29:37.638Z] error: undefined
+[2024-02-08T17:29:46.963Z] error: undefined
+[2024-02-08T17:29:46.966Z] error: undefined
+[2024-02-08T17:31:08.085Z] error: undefined
+[2024-02-08T17:31:08.124Z] error: undefined
+[2024-02-08T17:31:21.373Z] error: undefined
+[2024-02-08T17:31:21.377Z] error: undefined
+[2024-02-08T17:33:10.700Z] error: undefined
+[2024-02-08T17:33:10.751Z] error: undefined
+[2024-02-08T17:33:14.437Z] error: undefined
+[2024-02-08T17:33:14.447Z] error: undefined
+[2024-02-08T17:44:50.876Z] error: undefined
+[2024-02-08T17:44:50.879Z] error: undefined
+[2024-02-08T17:49:28.163Z] error: undefined
+[2024-02-08T17:49:28.165Z] error: undefined
+[2024-02-09T02:22:59.774Z] error: Failed to load widgets, please check widgets.yaml for errors or remove example entries.
+[2024-02-09T02:22:59.776Z] error: end of the stream or a document separator is expected (14:1)
+
+ 11 |     provider: duckduckgo
+ 12 |     target: _blank
+ 13 | 
+ 14 | widget:
+------^
+ 15 |   type: minecraft
+ 16 |   url: udp://minecraft.server.u ...
+[2024-02-09T02:23:00.110Z] error: Failed to load widgets, please check widgets.yaml for errors or remove example entries.
+[2024-02-09T02:23:00.110Z] error: end of the stream or a document separator is expected (14:1)
+
+ 11 |     provider: duckduckgo
+ 12 |     target: _blank
+ 13 | 
+ 14 | widget:
+------^
+ 15 |   type: minecraft
+ 16 |   url: udp://minecraft.server.u ...
+[2024-02-09T02:23:14.921Z] error: Failed to load widgets, please check widgets.yaml for errors or remove example entries.
+[2024-02-09T02:23:14.921Z] error: end of the stream or a document separator is expected (14:1)
+
+ 11 |     provider: duckduckgo
+ 12 |     target: _blank
+ 13 | 
+ 14 | widget:
+------^
+ 15 |   type: minecraft
+ 16 |   url: udp://minecraft.server.u ...
+[2024-02-09T02:32:52.913Z] error: Failed to load services.yaml, please check for errors
+[2024-02-09T02:32:52.914Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-09T02:32:53.196Z] error: Failed to load services.yaml, please check for errors
+[2024-02-09T02:32:53.196Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-09T02:32:53.662Z] error: Failed to load services.yaml, please check for errors
+[2024-02-09T02:32:53.662Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-09T02:41:59.691Z] error: Failed to load services.yaml, please check for errors
+[2024-02-09T02:41:59.693Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-09T02:45:14.021Z] error: Failed to load services.yaml, please check for errors
+[2024-02-09T02:45:14.022Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-09T02:45:28.603Z] error: Failed to load services.yaml, please check for errors
+[2024-02-09T02:45:28.604Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-09T02:45:29.196Z] error: Failed to load services.yaml, please check for errors
+[2024-02-09T02:45:29.196Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-09T02:49:30.713Z] error: Failed to load services.yaml, please check for errors
+[2024-02-09T02:49:30.714Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-09T02:49:31.391Z] error: Failed to load services.yaml, please check for errors
+[2024-02-09T02:49:31.391Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-09T02:52:59.826Z] error: Failed to load widgets, please check widgets.yaml for errors or remove example entries.
+[2024-02-09T02:52:59.827Z] error: bad indentation of a sequence entry (26:14)
+
+ 23 |     icon: https://avatars.githubusercontent. ...
+ 24 | 
+ 25 | - datetime
+ 26 |     text_size: md
+-------------------^
+ 27 |     format:
+ 28 |       dateStyle: short
+[2024-02-09T02:53:00.274Z] error: Failed to load services.yaml, please check for errors
+[2024-02-09T02:53:00.274Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-09T02:53:00.296Z] error: Failed to load widgets, please check widgets.yaml for errors or remove example entries.
+[2024-02-09T02:53:00.297Z] error: bad indentation of a sequence entry (26:14)
+
+ 23 |     icon: https://avatars.githubusercontent. ...
+ 24 | 
+ 25 | - datetime
+ 26 |     text_size: md
+-------------------^
+ 27 |     format:
+ 28 |       dateStyle: short
+[2024-02-09T02:53:00.669Z] error: Failed to load widgets, please check widgets.yaml for errors or remove example entries.
+[2024-02-09T02:53:00.670Z] error: bad indentation of a sequence entry (26:14)
+
+ 23 |     icon: https://avatars.githubusercontent. ...
+ 24 | 
+ 25 | - datetime
+ 26 |     text_size: md
+-------------------^
+ 27 |     format:
+ 28 |       dateStyle: short
+[2024-02-09T02:53:00.692Z] error: Failed to load services.yaml, please check for errors
+[2024-02-09T02:53:00.692Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-09T02:53:56.272Z] error: Failed to load services.yaml, please check for errors
+[2024-02-09T02:53:56.273Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-09T02:53:56.822Z] error: Failed to load services.yaml, please check for errors
+[2024-02-09T02:53:56.822Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-09T02:53:57.389Z] error: Failed to load services.yaml, please check for errors
+[2024-02-09T02:53:57.389Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-09T03:13:51.118Z] error: Failed to load services.yaml, please check for errors
+[2024-02-09T03:13:51.119Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-09T03:13:51.524Z] error: Failed to load services.yaml, please check for errors
+[2024-02-09T03:13:51.525Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-09T03:13:51.962Z] error: Failed to load services.yaml, please check for errors
+[2024-02-09T03:13:51.962Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-09T03:27:32.770Z] error: Failed to load services.yaml, please check for errors
+[2024-02-09T03:27:32.770Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-09T03:38:14.989Z] error: Failed to load services.yaml, please check for errors
+[2024-02-09T03:38:14.990Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-09T03:38:24.795Z] error: Failed to load services.yaml, please check for errors
+[2024-02-09T03:38:24.795Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-09T03:38:25.412Z] error: Failed to load services.yaml, please check for errors
+[2024-02-09T03:38:25.412Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-09T03:41:35.351Z] error: Failed to load services.yaml, please check for errors
+[2024-02-09T03:41:35.351Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-09T03:41:45.580Z] error: Failed to load services.yaml, please check for errors
+[2024-02-09T03:41:45.581Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-09T15:00:11.069Z] error: Failed to load services.yaml, please check for errors
+[2024-02-09T15:00:11.069Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-09T15:00:11.083Z] error: Failed to load services.yaml, please check for errors
+[2024-02-09T15:00:11.083Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-09T15:00:11.291Z] error: Failed to load services.yaml, please check for errors
+[2024-02-09T15:00:11.292Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T00:11:04.884Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T00:11:04.885Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T00:11:10.524Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T00:11:10.524Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T00:23:30.637Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T00:23:30.637Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T00:30:19.901Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T00:30:19.901Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T00:37:13.297Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T00:37:13.297Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T00:37:25.502Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T00:37:25.502Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T00:54:39.111Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T00:54:39.111Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T00:54:50.968Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T00:54:50.969Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T00:54:57.181Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T00:54:57.181Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T00:55:02.940Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T00:55:02.940Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T00:55:13.685Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T00:55:13.686Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T00:55:24.113Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T00:55:24.113Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T01:08:17.107Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T01:08:17.107Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T01:08:31.844Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T01:08:31.845Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T04:29:50.083Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T04:29:50.083Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T04:43:28.401Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T04:43:28.401Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T14:12:58.439Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T14:12:58.440Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T15:19:57.363Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T15:19:57.363Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T19:07:31.606Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T19:07:31.606Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T19:08:15.772Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T19:08:15.772Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T19:09:26.319Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T19:09:26.319Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T20:03:13.284Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T20:03:13.285Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T20:27:20.978Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T20:27:20.979Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T20:27:26.867Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T20:27:26.867Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T20:34:43.743Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T20:34:43.743Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T20:34:56.181Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T20:34:56.181Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T21:00:33.165Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T21:00:33.165Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-10T21:24:31.925Z] error: Failed to load services.yaml, please check for errors
+[2024-02-10T21:24:31.926Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T14:43:48.035Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T14:43:48.036Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T14:44:08.348Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T14:44:08.348Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T14:47:07.130Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T14:47:07.130Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T14:48:11.120Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T14:48:11.121Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T14:48:11.620Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T14:48:11.621Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T14:48:19.536Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T14:48:19.536Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T14:48:28.450Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T14:48:28.450Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T14:48:41.663Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T14:48:41.663Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T14:53:06.066Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T14:53:06.066Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T16:08:43.146Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T16:08:43.148Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T16:08:43.204Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T16:08:43.205Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T16:08:43.797Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T16:08:43.797Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T16:39:33.964Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T16:39:33.964Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T19:13:33.877Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T19:13:33.878Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T19:13:34.596Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T19:13:34.596Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T19:36:12.811Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T19:36:12.812Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T19:36:13.266Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T19:36:13.268Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T19:36:13.289Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T19:36:13.289Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T19:38:09.373Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T19:38:09.374Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T19:51:55.060Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T19:51:55.061Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T19:56:21.794Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T19:56:21.795Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T20:31:43.383Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T20:31:43.384Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T20:31:43.852Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T20:31:43.852Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T20:31:57.587Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T20:31:57.587Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T20:32:21.110Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T20:32:21.110Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T20:32:23.584Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T20:32:23.584Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T20:33:14.815Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T20:33:14.815Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T20:34:58.571Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T20:34:58.571Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T20:36:22.667Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T20:36:22.667Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T20:42:13.947Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T20:42:13.947Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T20:43:18.624Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T20:43:18.624Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T20:44:19.035Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T20:44:19.035Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T20:44:21.258Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T20:44:21.258Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T20:44:30.007Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T20:44:30.007Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T20:46:21.172Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T20:46:21.174Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T20:46:21.507Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T20:46:21.508Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T20:46:22.699Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T20:46:22.699Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T20:52:34.096Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T20:52:34.097Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T20:52:34.481Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T20:52:34.481Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T20:52:34.741Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T20:52:34.742Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T20:53:44.184Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T20:53:44.185Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T20:53:44.490Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T20:53:44.490Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T20:53:45.928Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T20:53:45.928Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T20:58:00.100Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T20:58:00.101Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T20:58:02.227Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T20:58:02.228Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T20:59:23.561Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T20:59:23.561Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T21:20:09.175Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T21:20:09.175Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T21:20:10.289Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T21:20:10.290Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-12T22:01:18.274Z] error: Failed to load services.yaml, please check for errors
+[2024-02-12T22:01:18.275Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-13T04:32:14.020Z] error: Failed to load services.yaml, please check for errors
+[2024-02-13T04:32:14.023Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-13T04:32:14.067Z] error: Failed to load services.yaml, please check for errors
+[2024-02-13T04:32:14.067Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-13T04:32:14.491Z] error: Failed to load services.yaml, please check for errors
+[2024-02-13T04:32:14.492Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-13T04:32:39.999Z] error: Failed to load services.yaml, please check for errors
+[2024-02-13T04:32:40.000Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-13T04:33:00.714Z] error: Failed to load services.yaml, please check for errors
+[2024-02-13T04:33:00.715Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-13T04:37:17.603Z] error: Failed to load services.yaml, please check for errors
+[2024-02-13T04:37:17.603Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-13T04:39:04.747Z] error: Failed to load services.yaml, please check for errors
+[2024-02-13T04:39:04.748Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-13T18:49:54.358Z] error: Failed to load services.yaml, please check for errors
+[2024-02-13T18:49:54.359Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
+[2024-02-13T19:31:49.215Z] error: Failed to load services.yaml, please check for errors
+[2024-02-13T19:31:49.215Z] error: TypeError: servicesGroup[Object.keys(...)[0]].map is not a function
