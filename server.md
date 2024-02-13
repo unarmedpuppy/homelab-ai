@@ -490,6 +490,8 @@ Finally, after configuring InfluxDB and Loki as datasources on Grafana, you can 
     `sudo ufw default deny incoming`
     `sudo ufw default allow outgoing`
 
+    **IMPORTANT: for external traffic (game servers) dont forget to setup the port mapping in google router**
+
 - Check Status and Rules
 
     `sudo ufw status verbose`
