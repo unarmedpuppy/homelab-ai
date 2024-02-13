@@ -34,7 +34,7 @@ services:
       - "traefik.http.routers.adguard.tls.certresolver=myresolver"
       - "homepage.group=Services"
       - "homepage.name=Adguard"
-      - "homepage.icon=./assets/icon.png"
+      - "homepage.icon=icons/icon.png"
       - "homepage.href=https://adguard.server.unarmedpuppy.com"
       - "homepage.description=Adguard Home instance"
 
