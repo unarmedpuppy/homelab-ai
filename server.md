@@ -43,6 +43,14 @@ docker group id: 994 (`stat -c '%g' /var/run/docker.sock`)
 
 [Enable TCP](https://gist.github.com/styblope/dc55e0ad2a9848f2cc3307d4819d819f)
 
+# Alias
+
+`cycle`
+
+- Runs `~/server/docker-restart.sh`
+
+- Which runs `~/server/docker-stop.sh` & `~/server/docker-start.sh`
+
 
 # Command Logs
 <details>
