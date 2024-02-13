@@ -487,8 +487,11 @@ Finally, after configuring InfluxDB and Loki as datasources on Grafana, you can 
     `sudo ufw allow 53/udp` (adguard)
     ~`sudo ufw allow from 172.17.0.0/16 to any port 2375 proto tcp` (docker subnet connect to docker socket over tcp)~
 
+
     `sudo ufw default deny incoming`
     `sudo ufw default allow outgoing`
+
+    **IMPORTANT: for external traffic (game servers) dont forget to setup the port mapping in google router**
 
 - Check Status and Rules
 
