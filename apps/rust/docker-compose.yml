@@ -6,8 +6,8 @@ services:
     environment:
       - RUST_SERVER_STARTUP_ARGUMENTS=-batchmode -load +server.secure 1
       - RUST_SERVER_IDENTITY=unarmedpuppy
-      - RUST_SERVER_SEED=42069
-      - RUST_SERVER_WORLDSIZE=1000
+      - RUST_SERVER_SEED=2147483647
+      - RUST_SERVER_WORLDSIZE=1630
       - RUST_SERVER_MAXPLAYERS=64
       - RUST_SERVER_NAME=sulfur boyz
       - RUST_SERVER_DESCRIPTION=Long live Sulfur Boyz.
