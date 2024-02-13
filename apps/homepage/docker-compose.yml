@@ -23,6 +23,11 @@ services:
       - "traefik.http.middlewares.do-auth.chain.middlewares=homepage-auth"
       - "traefik.http.middlewares.homepage-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.homepage-auth.basicauth.realm=homepage"
+      - "homepage.group=Services"
+      - "homepage.name=Homepage"
+      - "homepage.icon=./assets/icon.png"
+      - "homepage.href=https://homepage.server.unarmedpuppy.com"
+      - "homepage.description=Homepage"
     restart: unless-stopped
     networks:
       - my-network

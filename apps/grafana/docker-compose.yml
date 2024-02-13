@@ -98,6 +98,11 @@ services:
     #  - traefik.docker.network=proxy
     #  # Part for local lan services only
     #  - traefik.http.routers.grafana.middlewares=local-ipwhitelist@file
+      - "homepage.group=Analytics"
+      - "homepage.name=Grafana"
+      - "homepage.icon=./assets/icon.png"
+      - "homepage.href=http://grafana.server.unarmedpuppy.com"
+      - "homepage.description=Grafana instance"
 
 #networks:
   #monitoring_default:

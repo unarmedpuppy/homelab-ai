@@ -36,7 +36,7 @@ services:
             - "traefik.http.routers.plex.middlewares=plex-https-redirect"
             - "homepage.group=Media"
             - "homepage.name=Plex"
-            #- homepage.icon=emby.png
+            - "homepage.icon=./assets/icon.png"
             - "homepage.href=http://plex.server.unarmedpuppy.com"
             - "homepage.description=Plex server"
 networks:

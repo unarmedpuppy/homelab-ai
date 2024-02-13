@@ -17,3 +17,9 @@ services:
       - TZ=Europe/Berlin
       - DOCKER_MODS=linuxserver/mods:universal-git # Use to add mods to the container like git.
       - KEYBOARD=de-de-qwertz # Used to se the keyboard being used for input. E.g. KEYBOARD=en-us-qwerty or KEYBOARD=de-de-qwertz
+    labels:
+      - "homepage.group=Services"
+      - "homepage.name=Obsidian"
+      - "homepage.icon=./assets/icon.png"
+      - "homepage.href=http://obsidian.server.unarmedpuppy.com"
+      - "homepage.description=Minecraft server map"

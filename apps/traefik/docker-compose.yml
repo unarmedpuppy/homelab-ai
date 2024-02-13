@@ -26,6 +26,11 @@ services:
       - "traefik.http.middlewares.auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.routers.api.entrypoints=websecure"
       - "traefik.http.routers.api.tls.certresolver=myresolver"
+      - "homepage.group=Services"
+      - "homepage.name=Traefik"
+      - "homepage.icon=./assets/icon.png"
+      - "homepage.href=https://traefik.server.unarmedpuppy.com"
+      - "homepage.description=Traefik reverse proxy"
 
 networks:
   my-network:

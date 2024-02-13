@@ -63,11 +63,11 @@ services:
       - traefik.http.middlewares.limit.buffering.memResponseBodyBytes=50000000 # only necessary for enabled file uploads
     #  # Part for local lan services only
     #  #- traefik.http.routers.privatebin.middlewares=basic-auth@file,local-ipwhitelist@file,security-headers@file
-      #- "homepage.group=Docker Containers"
-      #- "homepage.name=Nextcloud"
-      #- homepage.icon=emby.png
-      #- "homepage.href=http://nextcloud.server.unarmedpuppy.com"
-      #- "homepage.description=Nextcloud instance"
+      - "homepage.group=Docker Containers"
+      - "homepage.name=Nextcloud"
+      - "homepage.icon=./assets/icon.png"
+      - "homepage.href=http://nextcloud.server.unarmedpuppy.com"
+      - "homepage.description=Nextcloud instance"
     networks:
       - my-network
 

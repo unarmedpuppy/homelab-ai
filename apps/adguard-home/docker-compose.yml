@@ -6,7 +6,7 @@ services:
     hostname: adguard
     image: adguard/adguardhome:latest
     ports:
-      - 3003:3000/tcp # only required during initial setup
+      # 3003:3000/tcp # only required during initial setup
       - 8083:80/tcp # web interface after setup
       - 53:53/tcp # dns
       - 53:53/udp # dns
@@ -32,8 +32,11 @@ services:
       - "traefik.http.middlewares.auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.routers.adguard.entrypoints=websecure"
       - "traefik.http.routers.adguard.tls.certresolver=myresolver"
-      - "traefik.http.routers.adguard-setup.rule=Host(`adguard-setup.server.unarmedpuppy.com`)"
-      - "traefik.http.services.adguard-setup.loadbalancer.server.port=3003"
+      - "homepage.group=Services"
+      - "homepage.name=Adguard"
+      - "homepage.icon=./assets/icon.png"
+      - "homepage.href=https://adguard.server.unarmedpuppy.com"
+      - "homepage.description=Adguard Home instance"
 
 networks:
   my-network:

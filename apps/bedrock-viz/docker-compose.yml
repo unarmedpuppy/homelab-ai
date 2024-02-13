@@ -15,7 +15,7 @@ services:
       - "traefik.http.services.bedrock-viz-http.loadbalancer.server.port=80"
       - "homepage.group=Game Servers"
       - "homepage.name=Bedrock Viz"
-      #- homepage.icon=emby.png
+      - "homepage.icon=./assets/icon.png"
       - "homepage.href=http://minecraft.server.unarmedpuppy.com"
       - "homepage.description=Minecraft server map"
     networks:
