@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  libreddit-web:
+    image: libreddit/libreddit
+    container_name: libreddit
+    hostname: libreddit
+    restart: unless-stopped
+    environment:
+      - LIBREDDIT_DEFAULT_THEME=dark
+      - "LIBREDDIT_DEFAULT_SUBSCRIPTIONS=30ROCK+90s_kid+AmItheAsshole+AnimalCrossing+AnimalsBeingDerps+ANormalDayInRussia+ArtefactPorn+AskReddit+askscience+assholedesign+AwardSpeechEdits+aww+barkour+Beachporn+BikiniBottomTwitter+blenderhelp+BoJackHorseman+BoneAppleTea+BoomersBeingFools+buildapcsales+BuyItForLife+camping+coastFIRE+cocktails+Cooking+coolguides+Coronavirus+crappyanimalcrossing+daddit+DadReflexes+Damnthatsinteresting+Dashcam+dataisbeautiful+DDintoGME+DIY+DIY_tech+educationalgifs+EmpireDidNothingWrong+ExpatFIRE+FellowKids+financialindependence+fixedbytheduet+FoodPorn+formula1+formuladank+FullAutoCapitalism+Futurology+gamernews+GameUpscale+gamingnews+gardening+gifs+goldrush+googlehome+hardware+HermanCainAward+HistoryPorn+HobbyDrama+homeassistant+homeautomation+HomeImprovement+HomeServer+HotPepperGrowing+houseplants+howto+HydroHommies+HyperApp+HyruleEngineering+IdiotsInCars+IndoorGarden+January6+JusticeServed+KidsAreFuckingStupid+Landlord+landscaping+LearnUselessTalents+LeopardsAteMyFace+lifehacks+LifeProTips+linux+lotrmemes+MagicMirror+magictcgcirclejerk+malefashionadvice+me_irl+microgrowery+minipc+MiniPCs+Minneapolis+Minnesota_Gardening+MNtrees+mtgcirclejerk+MurderedByWords+MushroomPorn+nathanforyou+NationalPark+NatureIsFuckingLit+natureismetal+news+nextfuckinglevel+nintendo+nodered+nonononoyes+NonPoliticalTwitter+nostalgia+Notakeonlythrow+nottheonion+oddlysatisfying+okboomer+OTMemes+OurPresident+Outdoors+pcmasterrace+photoshopbattles+place+PS4Deals+RealLifeShinies+RedditWritesSeinfeld+robots+SadHorseShow+science+selfhosted+selfreliance+Showerthoughts+SiberianCats+Simulated+singularity+slowcooking+smarthome+SpecArt+StardewValley+StartledCats+Steam+SubredditDrama+thanosdidnothingwrong+TheGreatRegression+TIHI+todayilearned+TopSecretRecipes+TOTK+ToyotaSienna+TwinCities+unpopularopinion+VoxelArt+wallpaper+watchplantsgrow+weirddalle+Whatcouldgowrong+wheresthebeef+WhyWereTheyFilming+WhyWomenLiveLonger+witcher+worldnews+YouShouldKnow+zelda+Zoomies+zwave"
+    ports:
+      - 8088:8080
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.libreddit.rule=Host(`libreddit.server.unarmedpuppy.com`)"
+      #- traefik.http.services.libreddit.loadbalancer.server.port=8080
+      - "traefik.http.routers.libreddit.entrypoints=web"
+      #- traefik.docker.network=my-network
+    #  # Part for optional traefik middlewares
+    #  - traefik.http.routers.libreddit.middlewares=local-ipwhitelist@file,basic-auth@file      
+      - "homepage.group=Media"
+      - "homepage.name=libreddit"
+      #- homepage.icon=emby.png
+      - "homepage.href=http://libreddit.server.unarmedpuppy.com"
+      - "homepage.description=Custom Reddit feed"
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    external: true

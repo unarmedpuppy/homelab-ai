@@ -1,0 +1,31 @@
+version: '3'
+services:
+  homeassistant:
+    image: homeassistant/home-assistant:stable
+    container_name: homeassistant
+    environment:
+      - TZ=America/Chicago
+    volumes:
+      - ./data/config:/config
+    ports:
+      - 8123:8123
+    #devices:
+    #  - /path/to/device:/path/to/device #optional
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homeassistant.rule=Host(`homeassistant.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.homeassistant.entrypoints=websecure"
+      - "traefik.http.routers.homeassistant.tls.certresolver=myresolver"
+      - "traefik.http.middlewares.auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "homepage.group=Services"
+      - "homepage.name=Home Assistant"
+      #- homepage.icon=emby.png
+      - "homepage.href=http://homeassistant.server.unarmedpuppy.com"
+      - "homepage.description=Home Assistant instance"
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    external: true

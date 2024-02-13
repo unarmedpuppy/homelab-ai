@@ -1,0 +1,50 @@
+version: '3.7'
+
+services:
+  rust-server:
+    image: didstopia/rust-server
+    environment:
+      - RUST_SERVER_STARTUP_ARGUMENTS=-batchmode -load +server.secure 1
+      - RUST_SERVER_IDENTITY=unarmedpuppy
+      - RUST_SERVER_SEED=42069
+      - RUST_SERVER_WORLDSIZE=1000
+      - RUST_SERVER_MAXPLAYERS=64
+      - RUST_SERVER_NAME=sulfur boyz
+      - RUST_SERVER_DESCRIPTION=Long live Sulfur Boyz.
+      - RUST_SERVER_URL=rust.server.unarmedpuppy.com
+      - RUST_SERVER_BANNER_URL=https://i.imgur.com/FIXxuRI.jpg
+      - RUST_RCON_WEB=1
+      - RUST_RCON_PORT=28016
+      - RUST_RCON_PASSWORD=hotdrops
+      - RUST_UPDATE_CHECKING=1
+      - RUST_UPDATE_BRANCH=public
+      - RUST_START_MODE=0 # 2 = Automatically start the server when the container is started
+      - PUID=1000
+      - PGID=1000
+    ports:
+      - "28015:28015/tcp"
+      - "28015:28015/udp"
+      - "28016:28016/tcp"
+      - "8080:8080"
+    volumes:
+      - ./data:/serverdata/serverfiles
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rust-server.rule=Host(`rust.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.rust-server.entrypoints=web"
+      - "traefik.http.services.rust-server.loadbalancer.server.port=28015"
+      - "traefik.http.routers.rust-server.rule=Host(`rcon-rust.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.rust-server.entrypoints=web"
+      - "traefik.http.services.rust-server.loadbalancer.server.port=8080"
+      - "homepage.group=Game Servers"
+      - "homepage.name=Rust Server"
+      #- homepage.icon=emby.png
+      - "homepage.href=http://rust.server.unarmedpuppy.com"
+      - "homepage.description=Rust server, UDP traffic on port 28015"
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    external: true

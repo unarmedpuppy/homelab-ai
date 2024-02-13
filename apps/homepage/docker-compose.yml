@@ -1,0 +1,32 @@
+version: "3.3"
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    user: root
+    environment:
+      - TZ=America/Chicago
+    ports:
+      - 3000:3000
+    volumes:
+      - ~/server/apps/homepage/config:/app/config # Make sure your local config directory exists
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homepage.rule=Host(`server.unarmedpuppy.com`) && ClientIP(`76.156.139.101`)"
+      - "traefik.http.routers.homepage.entrypoints=websecure"
+      - "traefik.http.routers.homepage.tls.certresolver=myresolver"
+      - "traefik.http.routers.homepage2.rule=Host(`server.unarmedpuppy.com`)"
+      - "traefik.http.routers.homepage2.entrypoints=websecure"
+      - "traefik.http.routers.homepage2.middlewares=do-auth"
+      - "traefik.http.routers.homepage2.tls.certresolver=myresolver"
+      - "traefik.http.middlewares.do-auth.chain.middlewares=homepage-auth"
+      - "traefik.http.middlewares.homepage-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.homepage-auth.basicauth.realm=homepage"
+    restart: unless-stopped
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    external: true

@@ -1,0 +1,32 @@
+version: '3.7'
+
+services:
+  traefik:
+    image: traefik:v2.11
+    container_name: traefik
+    restart: unless-stopped
+    environment:
+      - TZ=America/Chicago
+      - CF_DNS_API_TOKEN=UkNN8yUoQoIBJkM9AnRvvlmCy2QpjDwblqaEPJ9A
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./data/config/traefik.yml:/traefik.yml:ro"
+      - "./data/config/acme.json:/acme.json"
+      - "./data/logs:/var/log/traefik"
+    networks:
+      - my-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`traefik.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.api.service=api@internal"
+      - "traefik.http.routers.api.middlewares=auth"
+      - "traefik.http.middlewares.auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.api.tls.certresolver=myresolver"
+
+networks:
+  my-network:
+    external: true

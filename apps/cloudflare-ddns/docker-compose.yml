@@ -1,0 +1,26 @@
+version: "3"
+services:
+  cloudflare-ddns:
+    image: favonia/cloudflare-ddns:latest
+    container_name: cloudflare-ddns
+    network_mode: host
+    restart: always
+    user: 1000:1000
+    cap_drop:
+      - all
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - CF_API_TOKEN=UkNN8yUoQoIBJkM9AnRvvlmCy2QpjDwblqaEPJ9A # pls adjust
+      - DOMAINS=adguard.server.unarmedpuppy.com, setup-adguard.server.unarmedpuppy.com, rcon-rust.server.unarmedpuppy.com, server.unarmedpuppy.com, minecraft.server.unarmedpuppy.com, rust.server.unarmedpuppy.com, libreddit.server.unarmedpuppy.com, traefik.server.unarmedpuppy.com, nextcloud.server.unarmedpuppy.com, plex.server.unarmedpuppy.com, homeassistant.server.unarmedpuppy.com, rust.server.unarmedpuppy.com, minecraft.server.unarmedpuppy.com # pls adjust; a list of fully qualified domain names separated by commas
+      - PROXIED=false # instructs Cloudflare to cache webpages on your machine and hide its actual IP addresses
+      - TZ=America/Chicago
+      - PUID=1000
+      - PGID=1000
+      - IP6_PROVIDER=none # disbale IPv6
+    labels:
+      - "homepage.group=Networking"
+      - "homepage.name=Cloudflare DDNS"
+      #- homepage.icon=emby.png
+      - "homepage.description=Dynamic DNS for external traffic"

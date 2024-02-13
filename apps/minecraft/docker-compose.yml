@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  bedrock:
+    image: itzg/minecraft-bedrock-server
+    environment:
+      EULA: "TRUE"
+      GAMEMODE: survival
+      DIFFICULTY: normal
+      OPS: "2535454866260420"
+    ports:
+      - "19132:19132/udp"
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
+    labels:
+      - "homepage.group=Game Servers"
+      - "homepage.name=Minecraft Bedrock Server"
+      #- homepage.icon=emby.png
+      - "homepage.href=http://minecraft.server.unarmedpuppy.com"
+      - "homepage.description=Minecraft server, UDP traffic only on port 19132"
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    external: true
