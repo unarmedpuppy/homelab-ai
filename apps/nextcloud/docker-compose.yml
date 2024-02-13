@@ -65,7 +65,7 @@ services:
     #  #- traefik.http.routers.privatebin.middlewares=basic-auth@file,local-ipwhitelist@file,security-headers@file
       - "homepage.group=Docker Containers"
       - "homepage.name=Nextcloud"
-      - "homepage.icon=./assets/icon.png"
+      - "homepage.icon=/icons/icon.png"
       - "homepage.href=http://nextcloud.server.unarmedpuppy.com"
       - "homepage.description=Nextcloud instance"
     networks:

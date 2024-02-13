@@ -11,6 +11,7 @@ services:
     volumes:
       - ./config:/app/config # Make sure your local config directory exists
       - ./assets:/app/public/icons
+      - ./assets:/app/public/wallpaper
       - /var/run/docker.sock:/var/run/docker.sock:ro
     labels:
       - "traefik.enable=true"
@@ -26,7 +27,7 @@ services:
       - "traefik.http.middlewares.homepage-auth.basicauth.realm=homepage"
       - "homepage.group=Services"
       - "homepage.name=Homepage"
-      - "homepage.icon=./assets/icon.png"
+      - "homepage.icon=/icons/icon.png"
       - "homepage.href=https://homepage.server.unarmedpuppy.com"
       - "homepage.description=Homepage"
     restart: unless-stopped

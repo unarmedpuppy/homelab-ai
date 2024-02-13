@@ -39,7 +39,7 @@ services:
       - "traefik.http.services.rust-server.loadbalancer.server.port=8080"
       - "homepage.group=Game Servers"
       - "homepage.name=Rust Server"
-      - "homepage.icon=./assets/icon.png"
+      - "homepage.icon=/icons/icon.png"
       - "homepage.href=http://rust.server.unarmedpuppy.com"
       - "homepage.description=Rust server, UDP traffic on port 28015"
     networks:

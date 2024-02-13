@@ -28,7 +28,7 @@ services:
       - "traefik.http.routers.api.tls.certresolver=myresolver"
       - "homepage.group=Services"
       - "homepage.name=Traefik"
-      - "homepage.icon=./assets/icon.png"
+      - "homepage.icon=/icons/icon.png"
       - "homepage.href=https://traefik.server.unarmedpuppy.com"
       - "homepage.description=Traefik reverse proxy"
 

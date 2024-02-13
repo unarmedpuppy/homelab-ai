@@ -22,6 +22,6 @@ services:
     labels:
       - "homepage.group=Networking"
       - "homepage.name=Cloudflare DDNS"
-      - "homepage.icon=./assets/icon.png"
+      - "homepage.icon=/icons/icon.png"
       - "homepage.description=Dynamic DNS for external traffic"
       

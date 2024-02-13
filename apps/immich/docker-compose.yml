@@ -39,7 +39,7 @@ services:
     #  - "com.centurylinklabs.watchtower.enable=true"    
       - "homepage.group=Media"
       - "homepage.name=Immich"
-      - "homepage.icon=./assets/icon.png"
+      - "homepage.icon=/icons/icon.png"
       - "homepage.href=http://immich.server.unarmedpuppy.com"
       - "homepage.description=Immich photo server"
 

@@ -21,7 +21,7 @@ services:
     #  - traefik.http.routers.libreddit.middlewares=local-ipwhitelist@file,basic-auth@file      
       - "homepage.group=Media"
       - "homepage.name=libreddit"
-      - "homepage.icon=./assets/icon.png"
+      - "homepage.icon=/icons/icon.png"
       - "homepage.href=http://libreddit.server.unarmedpuppy.com"
       - "homepage.description=Custom Reddit feed"
     networks:

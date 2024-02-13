@@ -20,6 +20,6 @@ services:
     labels:
       - "homepage.group=Services"
       - "homepage.name=Obsidian"
-      - "homepage.icon=./assets/icon.png"
+      - "homepage.icon=/icons/icon.png"
       - "homepage.href=http://obsidian.server.unarmedpuppy.com"
       - "homepage.description=Minecraft server map"
