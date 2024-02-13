@@ -1,2 +1,5 @@
 repos/*
 apps/*
+
+!apps/*/docker.compose.yml
+!apps/traefik/config/traefik.yml
