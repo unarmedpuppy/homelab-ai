@@ -1,3 +1,4 @@
 repos/*
 
 apps/*/data/*
+!apps/homepage/data/config/*
