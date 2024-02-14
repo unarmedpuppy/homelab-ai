@@ -1,3 +1,3 @@
 #!/bin/bash
-~/server/docker-stop.sh
-~/server/docker-start.sh
+~/server/scripts/docker-stop.sh
+~/server/scripts/docker-start.sh
