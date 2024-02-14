@@ -28,7 +28,7 @@ services:
       - "28016:28016"
       - "8080:8080"
     volumes:
-      - ./data:/serverdata/serverfiles
+      - ./data:l
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
