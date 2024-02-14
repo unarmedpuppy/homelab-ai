@@ -511,7 +511,6 @@ Finally, after configuring InfluxDB and Loki as datasources on Grafana, you can 
 
 </details>
 
-<details>
 
 
 <details>
