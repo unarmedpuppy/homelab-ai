@@ -4,7 +4,7 @@ services:
   rust-server:
     image: didstopia/rust-server
     environment:
-      - RUST_SERVER_STARTUP_ARGUMENTS=-batchmode -load +server.secure 1
+      - RUST_SERVER_STARTUP_ARGUMENTS=-batchmode -load -nographics -logfile /dev/stdout +server.secure 1 +server.saveinterval 60
       - RUST_SERVER_IDENTITY=unarmedpuppy
       - RUST_SERVER_SEED=2147483647
       - RUST_SERVER_WORLDSIZE=1630
@@ -29,6 +29,8 @@ services:
       - "8080:8080"
     volumes:
       - ./data:/serverdata/serverfiles
+      - ./data/logs:/dev/stdout
+      - ./data/mods:/steamcmd/rust
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
