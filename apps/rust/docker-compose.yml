@@ -30,16 +30,19 @@ services:
     volumes:
       - ./data:/serverdata/serverfiles
     restart: unless-stopped
-    labels:
+labels:
       - "traefik.enable=true"
       - "traefik.http.routers.rust-server.rule=Host(`rust.server.unarmedpuppy.com`)"
       - "traefik.http.routers.rust-server.entrypoints=web"
+      - "traefik.http.routers.rust-server.service=rust-server"
       - "traefik.http.services.rust-server.loadbalancer.server.port=28015"
       - "traefik.http.routers.rust-rcon.rule=Host(`rcon-rust.server.unarmedpuppy.com`)"
       - "traefik.http.routers.rust-rcon.entrypoints=web"
+      - "traefik.http.routers.rust-rcon.service=rust-rcon"
       - "traefik.http.services.rust-rcon.loadbalancer.server.port=8080"
       - "traefik.http.routers.rust-rcon-ws.rule=Host(`rcon-rust.server.unarmedpuppy.com`)"
       - "traefik.http.routers.rust-rcon-ws.entrypoints=web"
+      - "traefik.http.routers.rust-rcon-ws.service=rust-rcon-ws"
       - "traefik.http.services.rust-rcon-ws.loadbalancer.server.port=28016"
       - "homepage.group=Game Servers"
       - "homepage.name=Rust Server"
