@@ -32,10 +32,7 @@ services:
       - "28017:28017" # query port for server
       - "28082:28082" # app port rust+
     volumes:
-      - ./data:/serverdata/serverfiles
       - ./data/logs:/dev/stdout
-      - ./data/logs2:/var/log/nginx
-      - ./data/steamcmd:/steamcmd
       - ./data/rust:/steamcmd/rust
     restart: unless-stopped
     labels:
