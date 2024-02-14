@@ -30,7 +30,9 @@ services:
     volumes:
       - ./data:/serverdata/serverfiles
       - ./data/logs:/dev/stdout
-      - ./data/mods:/steamcmd/rust
+      - ./data/steamcmd:/steamcmd
+      - ./data/rust:/steamcmd/rust
+      - ./data/app:/app
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
