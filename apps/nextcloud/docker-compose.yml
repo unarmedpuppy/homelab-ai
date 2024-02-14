@@ -28,4 +28,4 @@ services:
 
 networks:
   my-network:
-    external: true 
+    external: true
