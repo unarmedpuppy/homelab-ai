@@ -1,4 +1,4 @@
-# Linux Home Server
+# Linux Home Server 4
 
 - [Debian 12](https://www.debian.org/download) (Installed using [Etcher](https://etcher.balena.io/) to turn a USB drive into a bootable device)
 - local ip: `192.168.86.47` (`hostname -I`)

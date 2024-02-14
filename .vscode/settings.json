@@ -1,0 +1,12 @@
+{
+    "emeraldwalk.runonsave": {
+        "shell": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "commands": [
+            {
+                "match": ".*",
+                "isAsync": false,
+                "cmd": "~/repos/home-server/scripts/git-server-sync.sh"
+            }
+        ]
+    }
+}
