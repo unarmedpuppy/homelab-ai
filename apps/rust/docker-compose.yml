@@ -18,13 +18,14 @@ services:
       - RUST_RCON_PASSWORD=hotdrops
       - RUST_UPDATE_CHECKING=1
       - RUST_UPDATE_BRANCH=public
-      - RUST_START_MODE=0 # 2 = Automatically start the server when the container is started
+      - RUST_START_MODE=2 # 2 = Automatically start the server when the container is started
+      - RUST_OXIDE_ENABLED=1
       - PUID=1000
       - PGID=1000
     ports:
       - "28015:28015/tcp"
       - "28015:28015/udp"
-      - "28016:28016/tcp"
+      - "28016:28016"
       - "8080:8080"
     volumes:
       - ./data:/serverdata/serverfiles
@@ -34,9 +35,12 @@ services:
       - "traefik.http.routers.rust-server.rule=Host(`rust.server.unarmedpuppy.com`)"
       - "traefik.http.routers.rust-server.entrypoints=web"
       - "traefik.http.services.rust-server.loadbalancer.server.port=28015"
-      - "traefik.http.routers.rust-server.rule=Host(`rcon-rust.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.rust-server.entrypoints=web"
-      - "traefik.http.services.rust-server.loadbalancer.server.port=8080"
+      - "traefik.http.routers.rust-rcon.rule=Host(`rcon-rust.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.rust-rcon.entrypoints=web"
+      - "traefik.http.services.rust-rcon.loadbalancer.server.port=8080"
+      - "traefik.http.routers.rust-rcon-ws.rule=Host(`rcon-rust.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.rust-rcon-ws.entrypoints=web"
+      - "traefik.http.services.rust-rcon-ws.loadbalancer.server.port=28016"
       - "homepage.group=Game Servers"
       - "homepage.name=Rust Server"
       - "homepage.icon=/icons/icon.png"
