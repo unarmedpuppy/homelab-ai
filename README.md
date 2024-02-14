@@ -61,7 +61,7 @@ docker group id: 994 (`stat -c '%g' /var/run/docker.sock`)
 
 # Workspace Automations
 
-[Run on Save](https://marketplace.visualstudio.com/items?itemName=emeraldwalk.RunOnSave) enabled in this repo. The settings are found in `.vscode/settings.json`. Everytime a file is saved in this workspace, the bash script `scripts/git-server-sync.sh` will execute. This will pull & add all changed files to a new commit and push to the remore, then ssh into the home server run the same git operations. This effectively syncs any changes done in this repo locally to the server automatically. (lol [git history](https://github.com/unarmedpuppy/home-server/commits/main/))
+[Run on Save](https://marketplace.visualstudio.com/items?itemName=emeraldwalk.RunOnSave) enabled in this repo. The settings are found in `.vscode/settings.json`. Everytime a file is saved in this workspace, the bash script `scripts/git-server-sync.sh` will execute. This will pull & add all changed files to a new commit and push to the remore, then ssh into the home server run the same git operations. This effectively syncs any changes done in this repo locally to the server automatically. (lol [git history](https://github.com/unarmedpuppy/home-server/commit/518a12e52a8be8a583721c27bf34d4b4331af8f0))
 
 
 # Command Logs
