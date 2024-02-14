@@ -761,6 +761,8 @@ items = items + el.ariaLabel + "+"
 
 [server banner (1024 x 512) ](https://i.imgur.com/FIXxuRI.jpg)
 
+[rcon](http://192.168.86.47:8080/#/192.168.86.47:28016/playerlist)
+
 
 
 TODO:
