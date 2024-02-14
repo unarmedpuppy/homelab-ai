@@ -1,12 +1,16 @@
 version: '3'
 
+volumes:
+  nextcloud:
+  db:
+
 services:
   db:
     image: mariadb
-    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
-    restart: always
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW --innodb-file-per-table=1 --skip-innodb-read-only-compressed
     volumes:
-      - ./data/db:/var/lib/mysql
+      - db:/var/lib/mysql
+    restart: always
     environment:
       - MYSQL_ROOT_PASSWORD=nextcloud
       - MYSQL_PASSWORD=nextcloud
@@ -32,7 +36,7 @@ services:
     networks:
       - my-network
     volumes:
-      - ./data/nextcloud:/var/www/html
+        - nextcloud:/var/www/html
 
 networks:
   my-network:
