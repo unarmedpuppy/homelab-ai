@@ -4,7 +4,7 @@ services:
   rust-server:
     image: didstopia/rust-server
     environment:
-      - RUST_SERVER_STARTUP_ARGUMENTS=-batchmode -load -nographics -logfile /dev/stdout +server.secure 1 +server.saveinterval 60
+      - RUST_SERVER_STARTUP_ARGUMENTS=-batchmode -load -nographics +server.secure 1 +server.saveinterval 60
       - RUST_SERVER_IDENTITY=unarmedpuppy
       - RUST_SERVER_SEED=2147483647
       - RUST_SERVER_WORLDSIZE=1630
@@ -32,7 +32,6 @@ services:
       - "28017:28017" # query port for server
       - "28082:28082" # app port rust+
     volumes:
-      - ./data/logs:/dev/stdout
       - ./data/rust:/steamcmd/rust
     restart: unless-stopped
     labels:
