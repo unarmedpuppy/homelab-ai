@@ -31,6 +31,7 @@ services:
     volumes:
       - ./data:/serverdata/serverfiles
       - ./data/logs:/dev/stdout
+      - ./data/logs2:/var/log/nginx
       - ./data/steamcmd:/steamcmd
       - ./data/rust:/steamcmd/rust
       - ./data/app:/app
