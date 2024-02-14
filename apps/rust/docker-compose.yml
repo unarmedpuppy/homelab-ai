@@ -14,6 +14,7 @@ services:
       - RUST_SERVER_URL=rust.server.unarmedpuppy.com
       - RUST_SERVER_BANNER_URL=https://i.imgur.com/FIXxuRI.jpg
       - RUST_SERVER_PORT=28015
+      - RUST_SERVER_QUERY_PORT=28017
       - RUST_RCON_WEB=1
       - RUST_RCON_PORT=28016
       - RUST_RCON_PASSWORD=hotdrops
