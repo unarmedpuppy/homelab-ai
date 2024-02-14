@@ -13,6 +13,7 @@ services:
       - RUST_SERVER_DESCRIPTION=Long live Sulfur Boyz.
       - RUST_SERVER_URL=rust.server.unarmedpuppy.com
       - RUST_SERVER_BANNER_URL=https://i.imgur.com/FIXxuRI.jpg
+      - RUST_SERVER_PORT=28015
       - RUST_RCON_WEB=1
       - RUST_RCON_PORT=28016
       - RUST_RCON_PASSWORD=hotdrops
@@ -23,11 +24,13 @@ services:
       - PUID=1000
       - PGID=1000
     ports:
-      - "28015:28015/tcp"
-      - "28015:28015/udp"
-      - "28016:28016"
-      - "8080:8080"
-      - "28082:28082"
+      - "8080:8080" # web rcon port
+      - "28015:28015/tcp" # ?
+      - "28015:28015/udp" # game port
+      - "28016:28016/tcp" # rcon port
+      - "28016:28016/udp" # rcon port
+      - "28016:28016" # query port for server
+      - "28082:28082" # app port rust+
     volumes:
       - ./data:/serverdata/serverfiles
       - ./data/logs:/dev/stdout
