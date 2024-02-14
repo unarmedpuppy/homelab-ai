@@ -2,17 +2,27 @@ version: '3'
 
 services:
   nextcloud:
-    image: nextcloud
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.nextcloud.rule=Host(`nextcloud.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.nextcloud.entrypoints=websecure"
-      - "traefik.http.routers.nextcloud.tls.certresolver=myresolver"
-      - "traefik.http.services.nextcloud.loadbalancer.server.port=80"
-    networks:
-      - my-network
-    volumes:
-      - ./data/nextcloud:/var/www/html
+      image: nextcloud
+      restart: always
+      ports:
+        - 8888:80
+      links:
+        - db
+      environment:
+        - MYSQL_PASSWORD=pass
+        - MYSQL_DATABASE=nextcloud
+        - MYSQL_USER=nextcloud
+        - MYSQL_HOST=db
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.nextcloud.rule=Host(`nextcloud.server.unarmedpuppy.com`)"
+        - "traefik.http.routers.nextcloud.entrypoints=websecure"
+        - "traefik.http.routers.nextcloud.tls.certresolver=myresolver"
+        - "traefik.http.services.nextcloud.loadbalancer.server.port=8888"
+      networks:
+        - my-network
+      volumes:
+        - ./data/nextcloud:/var/www/html
 
   db:
     image: mariadb
