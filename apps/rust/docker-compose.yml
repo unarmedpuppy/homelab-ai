@@ -29,7 +29,7 @@ services:
       - "28015:28015/udp" # game port
       - "28016:28016/tcp" # rcon port
       - "28016:28016/udp" # rcon port
-      - "28016:28016" # query port for server
+      - "28017:28017" # query port for server
       - "28082:28082" # app port rust+
     volumes:
       - ./data:/serverdata/serverfiles
