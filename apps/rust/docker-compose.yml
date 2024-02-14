@@ -21,8 +21,8 @@ services:
       - RUST_UPDATE_BRANCH=public
       - RUST_START_MODE=2 # 2 = Automatically start the server when the container is started
       - RUST_OXIDE_ENABLED=1
-      #- PUID=1000
-      #- PGID=1000
+      - PUID=1000
+      - PGID=1000
     ports:
       - "8080:8080" # web rcon port
       - "28015:28015/tcp" # ?
