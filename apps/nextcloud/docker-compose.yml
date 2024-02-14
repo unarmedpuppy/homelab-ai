@@ -17,7 +17,7 @@ services:
     image: nextcloud
     restart: always
     ports:
-      - 8888:80
+      - 80:80
     links:
       - db
     environment:
@@ -30,7 +30,7 @@ services:
       - "traefik.http.routers.nextcloud.rule=Host(`nextcloud.server.unarmedpuppy.com`)"
       - "traefik.http.routers.nextcloud.entrypoints=websecure"
       - "traefik.http.routers.nextcloud.tls.certresolver=myresolver"
-      - "traefik.http.services.nextcloud.loadbalancer.server.port=8888"
+      - "traefik.http.services.nextcloud.loadbalancer.server.port=80"
     networks:
       - my-network
     volumes:
