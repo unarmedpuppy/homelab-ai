@@ -22,6 +22,7 @@ services:
       - RUST_UPDATE_BRANCH=public
       - RUST_START_MODE=2 # 2 = Automatically start the server when the container is started
       - RUST_OXIDE_ENABLED=1
+      - RUST_APP_PORT=28082
       - PUID=1000
       - PGID=1000
     ports:
