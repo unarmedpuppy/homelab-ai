@@ -29,6 +29,8 @@ services:
       - MYSQL_DATABASE=nextcloud
       - MYSQL_USER=nextcloud
       - MYSQL_HOST=db
+    ports:
+      - 8004:80
     labels:
       #- "traefik.enable=true"
       #- "traefik.http.routers.nextcloud.rule=Host(`nextcloud.server.unarmedpuppy.com`)"
@@ -47,7 +49,7 @@ services:
       - traefik.http.routers.nextcloud-secure.tls=true
       - traefik.http.routers.nextcloud-secure.entrypoints=web-secure
       # if you have multiple ports exposed on the service, specify port in the web-secure service
-      - traefik.http.services.nextcloud-secure.loadbalancer.server.port=80
+      - traefik.http.services.nextcloud-secure.loadbalancer.server.port=8004
     networks:
       - my-network
     volumes:
