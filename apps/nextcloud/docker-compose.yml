@@ -47,8 +47,12 @@ services:
       - traefik.http.middlewares.nextcloud_redirectregex.redirectregex.permanent=true
       #- traefik.http.middlewares.nextcloud_redirectregex.redirectregex.regex=https://(.*)/.well-known/(?:card|cal)dav
       #- traefik.http.middlewares.nextcloud_redirectregex.redirectregex.replacement=https://$${1}/remote.php/dav
-      - traefik.http.middlewares.nextcloud_redirectregex.replacepathregex.regex=^/.well-known/ca(l|rd)dav
-      - traefik.http.middlewares.nextcloud_redirectregex.replacepathregex.replacement=/remote.php/dav/
+
+      - traefik.http.middlewares.nextcloud_redirectregex.redirectregex.regex=https://(.*)/.well-known/(?:card|cal)dav
+      - traefik.http.middlewares.nextcloud_redirectregex.redirectregex.replacement=https://$${1}/remote.php/dav
+
+      #- traefik.http.middlewares.nextcloud_redirectregex.replacepathregex.regex=^/.well-known/ca(l|rd)dav
+      #- traefik.http.middlewares.nextcloud_redirectregex.replacepathregex.replacement=/remote.php/dav/
       - traefik.http.routers.nextcloud-secure.middlewares=nextcloud_redirectregex
       - traefik.http.routers.nextcloud-secure.rule=Host(`nextcloud.server.unarmedpuppy.com`)
       - traefik.http.routers.nextcloud-secure.tls.certresolver=myresolver
