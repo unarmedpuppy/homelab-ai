@@ -29,14 +29,12 @@ services:
       - MYSQL_DATABASE=nextcloud
       - MYSQL_USER=nextcloud
       - MYSQL_HOST=db
-    ports:
-      - 8004:80
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.nextcloud.rule=Host(`nextcloud.server.unarmedpuppy.com`)"
       - "traefik.http.routers.nextcloud.entrypoints=websecure"
       - "traefik.http.routers.nextcloud.tls.certresolver=myresolver"
-      - "traefik.http.services.nextcloud.loadbalancer.server.port=8004"
+      - "traefik.http.services.nextcloud.loadbalancer.server.port=80"
       # "traefik.http.middlewares.nextcloud.redirectscheme.scheme=https"
 
       #- traefik.enable=true
