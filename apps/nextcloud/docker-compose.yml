@@ -37,6 +37,14 @@ services:
       #- "traefik.http.services.nextcloud.loadbalancer.server.port=80"
 
       - traefik.enable=true
+      
+      - traefik.http.routers.nextcloud.middlewares=nextcloud_redirectregex
+      - traefik.http.middlewares.nextcloud_redirectregex.redirectregex.permanent=true
+      - traefik.http.middlewares.nextcloud_redirectregex.redirectregex.regex=https://(.*)/.well-known/(?:card|cal)dav
+      - traefik.http.middlewares.nextcloud_redirectregex.redirectregex.replacement=https://$${1}/remote.php/dav
+
+      - traefik.docker.network=my-network
+
       - traefik.http.middlewares.mywebserver-redirect-web-secure.redirectscheme.scheme=https
       - traefik.http.routers.nextcloud.middlewares=mywebserver-redirect-web-secure
       - traefik.http.routers.nextcloud.rule=Host(`nextcloud.server.unarmedpuppy.com`)
@@ -48,11 +56,7 @@ services:
       # if you have multiple ports exposed on the service, specify port in the web-secure service
       #- traefik.http.services.nextcloud-secure.loadbalancer.server.port=8004
 
-      - traefik.http.routers.nextcloud.middlewares=nextcloud_redirectregex
-      - traefik.http.middlewares.nextcloud_redirectregex.redirectregex.permanent=true
-      - traefik.http.middlewares.nextcloud_redirectregex.redirectregex.regex=https://(.*)/.well-known/(?:card|cal)dav
-      - traefik.http.middlewares.nextcloud_redirectregex.redirectregex.replacement=https://$${1}/remote.php/dav 
-      - traefik.docker.network=my-network
+      
       #- traefik.http.middlewares.nextcloud_redirectregex.replacepathregex.regex=^/.well-known/ca(l|rd)dav
       #- traefik.http.middlewares.nextcloud_redirectregex.replacepathregex.replacement=/remote.php/dav/
     networks:
