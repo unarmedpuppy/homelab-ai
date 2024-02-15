@@ -6,7 +6,7 @@ services:
     environment:
       - RUST_SERVER_STARTUP_ARGUMENTS=-batchmode -load -nographics +server.secure 1 +server.saveinterval 60 +decay.delay_override 2880 +decay.duration_override 2880
       - RUST_SERVER_IDENTITY=unarmedpuppy
-      #- RUST_SERVER_SEED=174932776
+      #- RUST_SERVER_SEED=174932776 #SMALL
       #- RUST_SERVER_WORLDSIZE=1000
       - RUST_SERVER_SEED=1473311375
       - RUST_SERVER_WORLDSIZE=3000
