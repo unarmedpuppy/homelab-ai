@@ -32,24 +32,24 @@ services:
     ports:
       - 8004:80
     labels:
-      #- "traefik.enable=true"
-      #- "traefik.http.routers.nextcloud.rule=Host(`nextcloud.server.unarmedpuppy.com`)"
-      #- "traefik.http.routers.nextcloud.entrypoints=websecure"
-      #- "traefik.http.routers.nextcloud.tls.certresolver=myresolver"
-      #- "traefik.http.services.nextcloud.loadbalancer.server.port=80"
-      #- "traefik.http.middlewares.nextcloud.redirectscheme.scheme=https"
+      - "traefik.enable=true"
+      - "traefik.http.routers.nextcloud.rule=Host(`nextcloud.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.nextcloud.entrypoints=websecure"
+      - "traefik.http.routers.nextcloud.tls.certresolver=myresolver"
+      - "traefik.http.services.nextcloud.loadbalancer.server.port=8004"
+      - "traefik.http.middlewares.nextcloud.redirectscheme.scheme=https"
 
-      - traefik.enable=true
-      - traefik.http.middlewares.mywebserver-redirect-web-secure.redirectscheme.scheme=https
-      - traefik.http.routers.nextcloud.middlewares=mywebserver-redirect-web-secure
-      - traefik.http.routers.nextcloud.rule=Host(`nextcloud.server.unarmedpuppy.com`)
-      - traefik.http.routers.nextcloud.entrypoints=web
-      - traefik.http.routers.nextcloud-secure.rule=Host(`nextcloud.server.unarmedpuppy.com`)
-      - traefik.http.routers.nextcloud-secure.tls.certresolver=myresolver
-      - traefik.http.routers.nextcloud-secure.tls=true
-      - traefik.http.routers.nextcloud-secure.entrypoints=web-secure
+      #- traefik.enable=true
+      #- traefik.http.middlewares.mywebserver-redirect-web-secure.redirectscheme.scheme=https
+      #- traefik.http.routers.nextcloud.middlewares=mywebserver-redirect-web-secure
+      #- traefik.http.routers.nextcloud.rule=Host(`nextcloud.server.unarmedpuppy.com`)
+      #- traefik.http.routers.nextcloud.entrypoints=web
+      #- traefik.http.routers.nextcloud-secure.rule=Host(`nextcloud.server.unarmedpuppy.com`)
+      #- traefik.http.routers.nextcloud-secure.tls.certresolver=myresolver
+      #- traefik.http.routers.nextcloud-secure.tls=true
+      #- traefik.http.routers.nextcloud-secure.entrypoints=web-secure
       # if you have multiple ports exposed on the service, specify port in the web-secure service
-      - traefik.http.services.nextcloud-secure.loadbalancer.server.port=8004
+      #- traefik.http.services.nextcloud-secure.loadbalancer.server.port=8004
     networks:
       - my-network
     volumes:
