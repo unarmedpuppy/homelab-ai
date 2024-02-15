@@ -4,12 +4,14 @@ services:
   rust-server:
     image: didstopia/rust-server
     environment:
-      - RUST_SERVER_STARTUP_ARGUMENTS=-batchmode -load -nographics +server.secure 1 +server.saveinterval 60
+      - RUST_SERVER_STARTUP_ARGUMENTS=-batchmode -load -nographics +server.secure 1 +server.saveinterval 60 +decay.delay_override 2880 +decay.duration_override 2880
       - RUST_SERVER_IDENTITY=unarmedpuppy
-      - RUST_SERVER_SEED=174932776
-      - RUST_SERVER_WORLDSIZE=1000
-      - RUST_SERVER_MAXPLAYERS=32
-      - RUST_SERVER_NAME=[US] Sulfur Boyz - Tiny Map
+      #- RUST_SERVER_SEED=174932776
+      #- RUST_SERVER_WORLDSIZE=1000
+      - RUST_SERVER_SEED=1473311375
+      - RUST_SERVER_WORLDSIZE=3000
+      - RUST_SERVER_MAXPLAYERS=64
+      - RUST_SERVER_NAME=[US] Sulfur Boyz - Practice Girl Map
       - RUST_SERVER_DESCRIPTION=It's been 84 years. Long live Sulfur Boyz.
       - RUST_SERVER_URL=https://discord.gg/wtCph8rQ
       - RUST_SERVER_BANNER_URL=https://i.imgur.com/FIXxuRI.jpg
