@@ -1,8 +1,5 @@
 version: "2"
 
-volumes:
-  grafana:
-
 services:
 
   loki:
@@ -119,6 +116,9 @@ services:
       - "homepage.href=http://grafana.server.unarmedpuppy.com"
       - "homepage.description=Grafana instance"
 
+volumes:
+  grafana:
+  
 networks:
   monitoring_default:
     external: true
