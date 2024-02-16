@@ -50,7 +50,7 @@ services:
   telegraf:
     image: telegraf:latest
     restart: unless-stopped
-    user: telegraf:$(stat -c '%g' /var/run/docker.sock) # see: https://www.influxdata.com/blog/docker-run-telegraf-as-non-root/
+    user: telegraf:994 # see: https://www.influxdata.com/blog/docker-run-telegraf-as-non-root/
     container_name: telegraf
     hostname: telegraf
     dns:
