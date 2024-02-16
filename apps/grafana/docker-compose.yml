@@ -100,7 +100,6 @@ services:
       - traefik.http.routers.grafana-insecure.rule=Host(`grafana.server.unarmedpuppy.com`)
       - traefik.http.routers.grafana-insecure.entrypoints=web
       # https
-      - traefik.http.routers.grafana-secure.middlewares=nextcloud_redirectregex
       - traefik.http.routers.grafana-secure.rule=Host(`grafana.server.unarmedpuppy.com`)
       - traefik.http.routers.grafana-secure.tls.certresolver=myresolver
       - traefik.http.routers.grafana-secure.tls=true
