@@ -77,7 +77,7 @@ services:
   grafana:
     container_name: grafana
     hostname: grafana
-    user: 1000:1000
+    user: ${UID}:${GID}
     depends_on:
       - influxdb
       - loki
