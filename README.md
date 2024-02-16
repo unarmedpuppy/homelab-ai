@@ -338,6 +338,7 @@ networks:
     `sudo mkdir /mnt/plex`
     `sudo mkdir /mnt/server-backup`
     `sudo mkdir /mnt/server-storage`
+    `sudo mkdir /mnt/archive`
 
 - Edit /etc/fstab
 
