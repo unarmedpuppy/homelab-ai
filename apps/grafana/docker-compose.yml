@@ -58,7 +58,7 @@ services:
     depends_on:
       - influxdb
     volumes:
-      - ./data/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro # place telegraf.conf
+      - ./data/telegraf:/etc/telegraf # place telegraf.conf
       - /:/hostfs:ro
       - /etc:/hostfs/etc:ro
       - /proc:/hostfs/proc:ro
