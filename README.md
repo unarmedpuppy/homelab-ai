@@ -253,7 +253,8 @@ Part Number: CBD26D4S9S8ME-8
 
 - Create Docker Network
 
-    `docker network create my-network`
+    `docker network create my-network`  - general use
+    `docker network create monitoring_default` - grafana services
 
     ```
         networks:
