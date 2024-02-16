@@ -83,8 +83,8 @@ services:
       - promtail
     image: grafana/grafana:latest
     restart: unless-stopped
-    #environment:
-    #  - GF_SERVER_ROOT_URL=https://grafana.example.com # optional
+    environment:
+      - GF_SERVER_ROOT_URL=https://grafana.server.unarmedpuppy.com # optional
     volumes:
       - ./volume-data/grafana:/var/lib/grafana
     ports:
