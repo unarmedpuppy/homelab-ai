@@ -33,6 +33,7 @@ services:
 
   influxdb:
     image: influxdb:1.8.10
+    user: 1000:1000
     container_name: influxdb
     hostname: influxdb
     restart: unless-stopped
