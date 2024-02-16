@@ -7,7 +7,7 @@ services:
     hostname: loki
     container_name: loki
     volumes:
-      - grafana/loki:/etc/loki # place loki-config.yml
+      - grafana_loki:/etc/loki # place loki-config.yml
     ports:
       - "127.0.0.1:3100:3100"
     restart: unless-stopped
@@ -24,7 +24,7 @@ services:
     hostname: promtail
     volumes:
       - /var/log:/var/log:ro # let promtail access the docker host's log files
-      - grafana/promtail:/etc/promtail # place promtail-config.yml
+      - grafana_promtail:/etc/promtail # place promtail-config.yml
       #- ${DOCKER_VOLUME_STORAGE:-/mnt/docker-volumes}/traefik/logs:/var/log/traefik # let promtail access your traefik reverse logs
     restart: unless-stopped
     command: -config.file=/etc/promtail/promtail-config.yml
@@ -37,9 +37,9 @@ services:
     hostname: influxdb
     restart: unless-stopped
     volumes:
-      - grafana/influxdb/data:/var/lib/influxdb
-      - grafana/influxdb/influxdb.conf:/etc/influxdb/influxdb.conf:ro # place infuxdb.conf
-      - grafana/influxdb/init:/docker-entrypoint-initdb.d # place create-database.iql for database init
+      - grafana_influxdb/data:/var/lib/influxdb
+      - grafana_influxdb/influxdb.conf:/etc/influxdb/influxdb.conf:ro # place infuxdb.conf
+      - grafana_influxdb/init:/docker-entrypoint-initdb.d # place create-database.iql for database init
     environment:
       - INFLUXDB_ADMIN_USER=admin
       - INFLUXDB_ADMIN_PASSWORD=SuperDuperAdminPW
@@ -58,7 +58,7 @@ services:
     depends_on:
       - influxdb
     volumes:
-      - grafana/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro # place telegraf.conf
+      - grafana_telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro # place telegraf.conf
       - /:/hostfs:ro
       - /etc:/hostfs/etc:ro
       - /proc:/hostfs/proc:ro
@@ -86,7 +86,7 @@ services:
     environment:
       - GF_SERVER_ROOT_URL=https://grafana.server.unarmedpuppy.com # optional
     volumes:
-      - grafana/grafana:/var/lib/grafana
+      - grafana:/var/lib/grafana
     ports:
       - 3010:3000
     networks:
@@ -117,8 +117,12 @@ services:
       - "homepage.description=Grafana instance"
 
 volumes:
+  grafana_loki:
+  grafana_promtail:
+  grafana_influxdb:
+  grafana_telegraf:
   grafana:
-  
+
 networks:
   monitoring_default:
     external: true
