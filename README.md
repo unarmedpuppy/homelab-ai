@@ -345,9 +345,11 @@ networks:
 
 - Add the Mount Entry
 
-    `UUID=264A52274A51F3D1  /mnt/plex  ntfs  defaults  0  2`
-    `UUID=CC6AD5676AD54EB8  /mnt/server-backup  ntfs  defaults  0  2`
-    `UUID=0812C2CF12C2C0C4  /mnt/server-storage  ntfs  defaults  0  2`
+    `UUID=264A52274A51F3D1  /mnt/plex  ntfs  defaults,nofail  0  0`
+    `UUID=CC6AD5676AD54EB8  /mnt/server-backup  ntfs  defaults,nofail  0  0`
+    `UUID=0812C2CF12C2C0C4  /mnt/server-storage  ntfs  defaults,nofail  0  0`
+    `UUID=BA30D6F430D6B69B  /mnt/archive  ntfs  defaults,nofail  0  0`
+
 
 - Test the Mount
 
