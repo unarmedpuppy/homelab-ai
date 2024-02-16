@@ -37,9 +37,9 @@ services:
     hostname: influxdb
     restart: unless-stopped
     volumes:
-      - grafana_influxdb/data:/var/lib/influxdb
-      - grafana_influxdb/influxdb.conf:/etc/influxdb/influxdb.conf:ro # place infuxdb.conf
-      - grafana_influxdb/init:/docker-entrypoint-initdb.d # place create-database.iql for database init
+      - grafana_influxdb:/var/lib/influxdb
+      - grafana_influxdb:/etc/influxdb/influxdb.conf:ro # place infuxdb.conf
+      - grafana_influxdb:/docker-entrypoint-initdb.d # place create-database.iql for database init
     environment:
       - INFLUXDB_ADMIN_USER=admin
       - INFLUXDB_ADMIN_PASSWORD=SuperDuperAdminPW
