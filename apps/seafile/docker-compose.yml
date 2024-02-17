@@ -35,7 +35,6 @@ services:
       - SEAFILE_SERVER_HOSTNAME=seafile.server.unarmedpuppy.com # Specifies your host name if https is enabled.
     labels:
       - traefik.enable=true
-      - traefik.docker.network=my-network
 
       - traefik.http.middlewares.mywebserver-redirect-web-secure.redirectscheme.scheme=https
       - traefik.http.routers.seafile.middlewares=mywebserver-redirect-web-secure
