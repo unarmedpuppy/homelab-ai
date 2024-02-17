@@ -31,7 +31,7 @@ services:
       - TIME_ZONE=Etc/UTC  # Optional, default is UTC. Should be uncomment and set to your local time zone.
       - SEAFILE_ADMIN_EMAIL=seafile@jenquist.com # Specifies Seafile admin user, default is 'me@example.com'.
       - SEAFILE_ADMIN_PASSWORD=MySecureLoginPassword # Specifies Seafile admin password, default is 'asecret'.
-      - SEAFILE_SERVER_LETSENCRYPT=false   # Whether to use https or not.
+      - SEAFILE_SERVER_LETSENCRYPT=true   # Whether to use https or not.
       - SEAFILE_SERVER_HOSTNAME=seafile.server.unarmedpuppy.com # Specifies your host name if https is enabled.
     labels:
       - traefik.enable=true
