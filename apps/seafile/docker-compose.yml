@@ -33,6 +33,19 @@ services:
       - SEAFILE_ADMIN_PASSWORD=MySecureLoginPassword # Specifies Seafile admin password, default is 'asecret'.
       - SEAFILE_SERVER_LETSENCRYPT=false   # Whether to use https or not.
       - SEAFILE_SERVER_HOSTNAME=seafile.server.unarmedpuppy.com # Specifies your host name if https is enabled.
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=my-network
+
+      - traefik.http.middlewares.mywebserver-redirect-web-secure.redirectscheme.scheme=https
+      - traefik.http.routers.seafile.middlewares=mywebserver-redirect-web-secure
+      - traefik.http.routers.seafile.rule=Host(`seafile.server.unarmedpuppy.com`)
+      - traefik.http.routers.seafile.entrypoints=web
+
+      - traefik.http.routers.seafile-secure.rule=Host(`seafile.server.unarmedpuppy.com`)
+      - traefik.http.routers.seafile-secure.tls.certresolver=myresolver
+      - traefik.http.routers.seafile-secure.tls=true
+      - traefik.http.routers.seafile-secure.entrypoints=websecure
     depends_on:
       - db
       - memcached
