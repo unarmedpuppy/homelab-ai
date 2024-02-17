@@ -41,11 +41,14 @@ services:
       - traefik.http.routers.seafile.middlewares=mywebserver-redirect-web-secure
       - traefik.http.routers.seafile.rule=Host(`seafile.server.unarmedpuppy.com`)
       - traefik.http.routers.seafile.entrypoints=web
+      - traefik.http.services.seafile.loadbalancer.server.port=7780
 
       - traefik.http.routers.seafile-secure.rule=Host(`seafile.server.unarmedpuppy.com`)
       - traefik.http.routers.seafile-secure.tls.certresolver=myresolver
       - traefik.http.routers.seafile-secure.tls=true
       - traefik.http.routers.seafile-secure.entrypoints=websecure
+      - traefik.http.services.seafile-secure.loadbalancer.server.port=7443
+
     depends_on:
       - db
       - memcached
