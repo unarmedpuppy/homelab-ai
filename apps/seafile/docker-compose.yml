@@ -9,12 +9,16 @@ services:
     restart: unless-stopped
     volumes:
       - ./data/seafile/db:/var/lib/mysql  # Requested, specifies the path to MySQL data persistent store.
+    networks:
+      - my-network
 
   memcached:
     image: memcached:1.6
     container_name: seafile-memcached
     entrypoint: memcached -m 256
     restart: unless-stopped
+    networks:
+      - my-network
 
   seafile:
     image: seafileltd/seafile-mc:latest
@@ -45,6 +49,9 @@ services:
       - traefik.http.routers.seafile-secure.tls.certresolver=myresolver
       - traefik.http.routers.seafile-secure.tls=true
       - traefik.http.routers.seafile-secure.entrypoints=websecure
+
+    networks:
+      - my-network
 
     depends_on:
       - db
