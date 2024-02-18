@@ -24,7 +24,7 @@ services:
       #- "7780:80" # HTTP
       - "7443:443"  # HTTPS
     volumes:
-      - ./data/seafile/data:/shared   # Requested, specifies the path to Seafile data persistent store.
+      - ${/mnt/server-storage:./data/seafile}/seafile:/shared   # Requested, specifies the path to Seafile data persistent store.
     environment:
       - DB_HOST=db
       - DB_ROOT_PASSWD=db_dev  # Requested, the value shuold be root's password of MySQL service.
