@@ -35,6 +35,20 @@ CPU Model: Intel(R) Celeron(R) G4900T CPU @ 2.90GHz Cores: 2 Memory: 64008 MB
 
 # Motherboard
 
+Base Board Information
+        Manufacturer: Elo Touch Solutions
+        Product Name: Coffeelake
+        Version: EloPOS Pack
+        Serial Number: To be filled by O.E.M.
+        Asset Tag: Default string
+        Features:
+                Board is a hosting board
+                Board is replaceable
+        Location In Chassis: Default string
+        Chassis Handle: 0x0003
+        Type: Motherboard
+        Contained Object Handles: 0
+
 # RAM
 
 # External Storage
