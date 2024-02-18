@@ -29,6 +29,14 @@
 
 docker group id: 994 (`stat -c '%g' /var/run/docker.sock`)
 
+# CPU
+
+CPU Model: Intel(R) Celeron(R) G4900T CPU @ 2.90GHz Cores: 2 Memory: 64008 MB
+
+# Motherboard
+
+# RAM
+
 # External Storage
 
 - PLEX 2TB (media contenxt)
@@ -36,9 +44,6 @@ docker group id: 994 (`stat -c '%g' /var/run/docker.sock`)
 - server-backup 2TB (backup target)
 - TBD Raid 5 array
 
-# CPU
-
-CPU Model: Intel(R) Celeron(R) G4900T CPU @ 2.90GHz Cores: 2 Memory: 64008 MB
 
 # Router configuration (Google Home)
 
