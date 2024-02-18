@@ -33,6 +33,8 @@ docker group id: 994 (`stat -c '%g' /var/run/docker.sock`)
 
 CPU Model: Intel(R) Celeron(R) G4900T CPU @ 2.90GHz Cores: 2 Memory: 64008 MB
 
+upgrade: Intel Xeon E-2288G
+
 # Motherboard
 
 Base Board Information
