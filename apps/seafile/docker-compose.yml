@@ -50,6 +50,8 @@ services:
       - traefik.http.routers.seafile-secure.tls=true
       - traefik.http.routers.seafile-secure.entrypoints=websecure
 
+      - traefik.http.services.seafile-secure.loadbalancer.server.port=7443
+
     networks:
       - my-network
 
