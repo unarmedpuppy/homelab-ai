@@ -362,10 +362,8 @@ networks:
 
 - Create a Mount Point
 
-    `sudo mkdir /mnt/plex`
-    `sudo mkdir /mnt/server-backup`
     `sudo mkdir /mnt/server-storage`
-    `sudo mkdir /mnt/archive`
+    `sudo mkdir /mnt/server-cloud`
 
 - Edit /etc/fstab
 
