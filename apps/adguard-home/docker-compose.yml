@@ -25,12 +25,12 @@ services:
     networks:
       - my-network
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.adguard.rule=Host(`adguard.server.unarmedpuppy.com`)"
-      - "traefik.http.services.adguard.loadbalancer.server.port=8083"
-      - "traefik.http.routers.adguard.middlewares=auth"
-      - "traefik.http.middlewares.auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
-      - "traefik.http.routers.adguard.entrypoints=web"
+      #- "traefik.enable=true"
+      #- "traefik.http.routers.adguard.rule=Host(`adguard.server.unarmedpuppy.com`)"
+      #- "traefik.http.services.adguard.loadbalancer.server.port=8083"
+      #- "traefik.http.routers.adguard.middlewares=auth"
+      #- "traefik.http.middlewares.auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      #- "traefik.http.routers.adguard.entrypoints=web"
       #- "traefik.http.routers.adguard.tls.certresolver=myresolver"
       - "homepage.group=Services"
       - "homepage.name=Adguard"
