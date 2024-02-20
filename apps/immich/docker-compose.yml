@@ -48,7 +48,7 @@ services:
     image: altran1502/immich-server:release
     command: [ "start.sh", "microservices" ]
     volumes:
-      - ${UPLOAD_LOCATION}:/usr/src/app/upload
+      - /mnt/server-storage/family-media-sync/immich-photo-uploads:/usr/src/app/upload
       - /etc/localtime:/etc/localtime:ro
     env_file:
       - .env
