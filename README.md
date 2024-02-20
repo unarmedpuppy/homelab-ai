@@ -55,10 +55,11 @@ Base Board Information
 
 # External Storage
 
-- PLEX 2TB (media contenxt)
-- server-storage 2TB (misc)
-- server-backup 2TB (backup target)
-- TBD Raid 5 array
+- Internal SSD 1TB
+- server-storage 4TB (used for syncing media & photo content from Seafile - inteneded to be ephemeral)
+- archive 8TB (Seafile sync server, server backups - intended to be a backup of Jenquist cloud & serve as a syncing source for other devices, including server-storage)
+
+- Jenquist Cloud (8TB Raid 1 - remote/not mounted to system) Source of truth for all files synced to this server
 
 
 # Router configuration (Google Home)
