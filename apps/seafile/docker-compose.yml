@@ -42,19 +42,19 @@ services:
       #- SEAFILE_SERVER_LETSENCRYPT=false   # Whether to use https or not.
       #- SEAFILE_SERVER_HOSTNAME=seafile.server.unarmedpuppy.com # Specifies your host name if https is enabled.
     labels:
-      - traefik.enable=true
+      #- traefik.enable=true
 
       #- traefik.http.middlewares.mywebserver-redirect-web-secure.redirectscheme.scheme=https
       #- traefik.http.routers.seafile.middlewares=mywebserver-redirect-web-secure
       #- traefik.http.routers.seafile.rule=Host(`seafile.server.unarmedpuppy.com`)
       #- traefik.http.routers.seafile.entrypoints=web
 
-      - traefik.http.routers.seafile-secure.rule=Host(`seafile.server.unarmedpuppy.com`)
-      - traefik.http.routers.seafile-secure.tls.certresolver=myresolver
-      - traefik.http.routers.seafile-secure.tls=true
-      - traefik.http.routers.seafile-secure.entrypoints=websecure
+      #- traefik.http.routers.seafile-secure.rule=Host(`seafile.server.unarmedpuppy.com`)
+      #- traefik.http.routers.seafile-secure.tls.certresolver=myresolver
+      #- traefik.http.routers.seafile-secure.tls=true
+      #- traefik.http.routers.seafile-secure.entrypoints=websecure
 
-      - traefik.http.services.seafile-secure.loadbalancer.server.port=7443
+      #- traefik.http.services.seafile-secure.loadbalancer.server.port=7443
 
     networks:
       - my-network
