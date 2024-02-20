@@ -322,7 +322,7 @@ networks:
 
     `sudo nano /etc/rsnapshot.conf`
 
-    Backing up to external drive, /mnt/server-backup 
+    Backing up to external drive, /mnt/archive
 
 - Testing rsnapshot
 
