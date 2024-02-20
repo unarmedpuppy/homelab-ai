@@ -56,7 +56,7 @@ Base Board Information
 # External Storage
 
 - Internal SSD 1TB
-- server-storage 4TB (used for syncing media & photo content from Seafile - inteneded to be ephemeral)
+- server-storage 4TB (used for syncing media & photo content to/from Seafile - inteneded to be ephemeral)
 - archive 8TB (Seafile sync server, server backups - intended to be a backup of Jenquist cloud & serve as a syncing source for other devices, including server-storage)
 
 - Jenquist Cloud (8TB Raid 1 - remote/not mounted to system) Source of truth for all files synced to this server
