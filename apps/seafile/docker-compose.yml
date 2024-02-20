@@ -41,7 +41,7 @@ services:
       - SEAFILE_ADMIN_PASSWORD=MySecureLoginPassword # Specifies Seafile admin password, default is 'asecret'.
       #- SEAFILE_SERVER_LETSENCRYPT=false   # Whether to use https or not.
       #- SEAFILE_SERVER_HOSTNAME=seafile.server.unarmedpuppy.com # Specifies your host name if https is enabled.
-    labels:
+    #labels:
       #- traefik.enable=true
 
       #- traefik.http.middlewares.mywebserver-redirect-web-secure.redirectscheme.scheme=https
