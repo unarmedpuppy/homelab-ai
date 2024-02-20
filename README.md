@@ -971,3 +971,13 @@ Find the DHCP/DNS settings. Look for the DNS letters next to a field which allow
 Enter your AdGuard Home server addresses there.
 On some router types, a custom DNS server cannot be set up. In that case, setting up AdGuard Home as a DHCP server may help. Otherwise, you should check the router manual on how to customize DNS servers on your specific router model.
 ```
+
+
+# Seafile
+ installed seafile cli
+
+ mkdir ~/seafile-client
+
+ seaf-cli init -d ~/seafile-client
+
+ seaf-cli start
