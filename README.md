@@ -90,6 +90,9 @@ Lynis
 
 [Enable TCP](https://gist.github.com/styblope/dc55e0ad2a9848f2cc3307d4819d819f)
 
+Properly prune old images
+`docker rmi $(docker images -a -q)`
+
 # Aliases
 
 `cycle`
