@@ -13,3 +13,4 @@ docker-compose -f ~/server/apps/libreddit/docker-compose.yml down
 docker-compose -f ~/server/apps/plex/docker-compose.yml down
 #docker-compose -f ~/server/apps/rust/docker-compose.yml down
 docker-compose -f ~/server/apps/traefik/docker-compose.yml down
+docker-compose -f ~/server/apps/seafile/docker-compose.yml down
