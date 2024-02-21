@@ -72,6 +72,19 @@ Base Board Information
 
 # Router configuration (Google Home)
 
+# system logging
+
+view logs
+
+`journalctl`
+
+limit journal
+`sudo journalctl --vacuum-size=100M`
+
+# malware check
+
+Lynis
+
 
 # Docker
 
