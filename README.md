@@ -21,6 +21,14 @@
 
 `sudo dd if=/dev/sda of=/mnt/server-storage/test-bk.img status=progress`
 
+- disk usage visualization
+
+`sudo apt install ncdu`
+
+`sudo ncdu /`
+
+`sudo du -sh * | sort -hr | head -n10`
+
 # user list
 
 `root` (root)
