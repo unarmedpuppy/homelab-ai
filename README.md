@@ -351,7 +351,7 @@ networks:
 
     `sudo apt-get install rsnapshot`
 
-- Configure rsnapshot
+- Configure rsnapshot  
 
     `sudo nano /etc/rsnapshot.conf`
 
