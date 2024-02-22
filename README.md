@@ -1024,3 +1024,8 @@ On some router types, a custom DNS server cannot be set up. In that case, settin
 `cd seafile-server-latest`
 
  `./seaf-fsck.sh`
+
+run as non-root:
+
+ sudo groupadd --gid 8000 seafile
+sudo useradd --home-dir /home/seafile --create-home --uid 8000 --gid 8000 --shell /bin/sh --skel /dev/null seafile
