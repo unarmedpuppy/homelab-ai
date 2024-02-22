@@ -7,6 +7,8 @@ services:
       - ./data/postgresql:/var/lib/postgresql/data
     env_file:
       - ./data/.env
+    networks:
+      - default
 
   web_recipes:
     restart: always
@@ -20,6 +22,8 @@ services:
       - ./data/mediafiles:/opt/recipes/mediafiles
     depends_on:
       - db_recipes
+    networks:
+      - default
 
   nginx_recipes:
     image: nginx:mainline-alpine
@@ -40,3 +44,11 @@ services:
       - "traefik.http.routers.recipes.rule=Host(`recipes.server.unarmedpuppy.com`)"
       - "traefik.http.routers.recipes.entrypoints=web_secure" # your https endpoint
       - "traefik.http.routers.recipes.tls.certresolver=my_resolver" # your cert resolver
+    networks:
+      - default
+      - traefik
+
+networks:
+  default:
+  traefik: # This is your external traefik network
+    external: true
