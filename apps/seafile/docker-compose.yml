@@ -34,7 +34,7 @@ services:
     volumes:
       - /mnt/server-cloud/seafile:/shared   # Requested, specifies the path to Seafile data persistent store.
     environment:
-      - NON_ROOT=true
+      #- NON_ROOT=true
       - DB_HOST=db
       - DB_ROOT_PASSWD=seafile  # Requested, the value shuold be root's password of MySQL service.
       - TIME_ZONE=America/Chicago  # Optional, default is UTC. Should be uncomment and set to your local time zone.
