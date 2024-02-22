@@ -349,7 +349,7 @@ networks:
 
 - Install [rsnapshot](https://github.com/rsnapshot/rsnapshot)
 
-    `sudo apt-get install rsnapshot`   
+    `sudo apt-get install rsnapshot`
 
 - Configure rsnapshot
 
