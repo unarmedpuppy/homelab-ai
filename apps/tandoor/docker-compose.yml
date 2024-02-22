@@ -33,5 +33,5 @@ services:
     volumes:
       # Do not make this a bind mount, see https://docs.tandoor.dev/install/docker/#volumes-vs-bind-mounts
       - ./data/nginx_config:/etc/nginx/conf.d:ro
-      - staticfiles:/static:ro
+      - ./data/staticfiles:/static:ro
       - ./data/mediafiles:/media:ro
