@@ -1,2 +1,4 @@
 REM starting rsync...
 "rsync -avzh -e 'ssh -p 4242' -P --stats . 'unarmedpuppy@192.168.86.47:/mnt/server-cloud/jenquist-archive'"
+
+"rsync -avzh -e 'ssh -p 4242' -P --stats . 'unarmedpuppy@192.168.86.47:/mnt/server-cloud/jenquist-archive'"
