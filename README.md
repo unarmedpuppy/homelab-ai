@@ -387,7 +387,7 @@ networks:
     ```                       
     
    /dev/sdc1: LABEL="server-storage" BLOCK_SIZE="512" UUID="0812C2CF12C2C0C4" TYPE="ntfs" PARTUUID="fdd7fd2f-7826-3e4d-8fdc-c6188fd9e803"
-    /dev/sdf1: UUID="1bf18f29-3035-4ea6-afec-c66b9140eb23" BLOCK_SIZE="4096" TYPE="ext4" PARTLABEL="primary" PARTUUID="ad7e95f0-61ec-4921-8630-d93cd6200055"
+    /dev/sda1: BLOCK_SIZE="512" UUID="5970408A4427DC74" TYPE="ntfs" PARTLABEL="primary" PARTUUID="b70b7eb2-4271-4967-825e-09d927251310"
     ```
 
 - Create a Mount Point
@@ -402,7 +402,7 @@ networks:
 - Add the Mount Entry
 
     `UUID=0812C2CF12C2C0C4  /mnt/server-storage  ntfs  defaults,nofail  0  0`
-    `UUID=1bf18f29-3035-4ea6-afec-c66b9140eb23  /mnt/server-cloud  ntfs  defaults,nofail  0  0`
+    `UUID=5970408A4427DC74  /mnt/server-cloud  ntfs  defaults,nofail  0  0`
 
 
 - Test the Mount
