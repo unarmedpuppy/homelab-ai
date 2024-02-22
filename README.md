@@ -384,12 +384,10 @@ networks:
 
     `sudo blkid`
     
-    ```
-    /dev/sdb2: LABEL="PLEX" BLOCK_SIZE="512" UUID="264A52274A51F3D1" TYPE="ntfs" PARTLABEL="Basic data partition" PARTUUID="52305598-83f9-4b21-9ef2-caed906b4391"                          
+    ```                       
     
-    /dev/sdc2: LABEL="server-backup" BLOCK_SIZE="512" UUID="CC6AD5676AD54EB8" TYPE="ntfs" PARTLABEL="Basic data partition" PARTUUID="1d989182-929a-4703-a291-75d18fecc25d"                               
-    
-    /dev/sdc1: LABEL="server-storage" BLOCK_SIZE="512" UUID="0812C2CF12C2C0C4" TYPE="ntfs" PARTLABEL="Basic data partition" PARTUUID="80f6f63e-d935-4851-9549-59a101365094"
+   /dev/sdc1: LABEL="server-storage" BLOCK_SIZE="512" UUID="0812C2CF12C2C0C4" TYPE="ntfs" PARTUUID="fdd7fd2f-7826-3e4d-8fdc-c6188fd9e803"
+    /dev/sdf1: UUID="1bf18f29-3035-4ea6-afec-c66b9140eb23" BLOCK_SIZE="4096" TYPE="ext4" PARTLABEL="primary" PARTUUID="ad7e95f0-61ec-4921-8630-d93cd6200055"
     ```
 
 - Create a Mount Point
