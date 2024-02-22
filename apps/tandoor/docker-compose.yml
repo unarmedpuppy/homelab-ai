@@ -30,6 +30,8 @@ services:
     restart: always
     env_file:
       - ./data/.env
+    ports:
+      - 8200:80
     depends_on:
       - web_recipes
     volumes:
@@ -40,15 +42,15 @@ services:
     labels: # traefik example labels
       - "traefik.enable=true"
       - "traefik.http.routers.recipes.rule=Host(`recipes.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.recipes.entrypoints=web_secure" # your https endpoint
-      - "traefik.http.routers.recipes.tls.certresolver=my_resolver" # your cert resolver
+      - "traefik.http.routers.recipes.entrypoints=websecure" # your https endpoint
+      - "traefik.http.routers.recipes.tls.certresolver=myresolver" # your cert resolver
     networks:
       - default
-      - traefik
+      - my-network
 
 networks:
   default:
-  traefik: # This is your external traefik network
+  my-network: # This is your external traefik network
     external: true
 
 volumes:
