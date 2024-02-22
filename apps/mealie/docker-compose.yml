@@ -21,13 +21,13 @@ services:
       - "traefik.enable=true"
       # HTTPS redirect
       - traefik.http.middlewares.mywebserver-redirect-web-secure.redirectscheme.scheme=https
-      - traefik.http.routers.recipes-redirect.middlewares=mywebserver-redirect-web-secure
-      - traefik.http.routers.recipes-redirect.rule=Host(`recipes.server.unarmedpuppy.com`)
-      - traefik.http.routers.recipes-redirect.entrypoints=web
+      - traefik.http.routers.recipes2-redirect.middlewares=mywebserver-redirect-web-secure
+      - traefik.http.routers.recipes2-redirect.rule=Host(`recipes2.server.unarmedpuppy.com`)
+      - traefik.http.routers.recipes2-redirect.entrypoints=web
       # Main HTTPS router
-      - "traefik.http.routers.recipes.rule=Host(`recipes.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.recipes.entrypoints=websecure" # your https endpoint
-      - "traefik.http.routers.recipes.tls.certresolver=myresolver" # your cert resolver
+      - "traefik.http.routers.recipes2.rule=Host(`recipes2.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.recipes2.entrypoints=websecure" # your https endpoint
+      - "traefik.http.routers.recipes2.tls.certresolver=myresolver" # your cert resolver
 
     #  # Part for optional traefik middlewares
     #  - traefik.http.routers.mealie.middlewares=local-ipwhitelist@file,basic-auth@file      
