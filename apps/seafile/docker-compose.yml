@@ -14,7 +14,7 @@ services:
     volumes:
       - ./data/seafile/db:/var/lib/mysql  # Requested, specifies the path to MySQL data persistent store.
     networks:
-      - my-network
+      - default
 
   memcached:
     image: memcached:1.6
@@ -22,7 +22,7 @@ services:
     entrypoint: memcached -m 256
     restart: unless-stopped
     networks:
-      - my-network
+      - default
 
   seafile:
     image: seafileltd/seafile-mc:latest
@@ -58,6 +58,7 @@ services:
       #- traefik.http.services.seafile-secure.loadbalancer.server.port=7443
 
     networks:
+      - default
       - my-network
 
     depends_on:
@@ -65,5 +66,6 @@ services:
       - memcached
 
 networks:
+  default:
   my-network:
     external: true
