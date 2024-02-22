@@ -12,7 +12,7 @@ services:
       - MYSQL_USER=seafile
     restart: unless-stopped
     volumes:
-      - ./data/seafile/db:/var/lib/mysql  # Requested, specifies the path to MySQL data persistent store.
+      - /mnt/server-cloud/seafile/db:/var/lib/mysql  # Requested, specifies the path to MySQL data persistent store.
     networks:
       - default
 
