@@ -35,3 +35,8 @@ services:
       - ./data/nginx_config:/etc/nginx/conf.d:ro
       - ./data/staticfiles:/static:ro
       - ./data/mediafiles:/media:ro
+    labels: # traefik example labels
+      - "traefik.enable=true"
+      - "traefik.http.routers.recipes.rule=Host(`recipes.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.recipes.entrypoints=web_secure" # your https endpoint
+      - "traefik.http.routers.recipes.tls.certresolver=my_resolver" # your cert resolver
