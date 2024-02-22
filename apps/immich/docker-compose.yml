@@ -23,7 +23,7 @@ services:
       - immich-database
     restart: unless-stopped
     networks:
-      - immich
+      - my-network
     labels:
     #  - traefik.enable=false
     #  - traefik.http.routers.immich.rule=Host(`immich.example.com`)
@@ -61,7 +61,7 @@ services:
     #labels:
     #  - "com.centurylinklabs.watchtower.enable=true"
     networks:
-      - immich 
+      - my-network 
 
   immich-machine-learning:
     image: altran1502/immich-machine-learning:release
@@ -77,7 +77,7 @@ services:
     #labels:
     #  - "com.centurylinklabs.watchtower.enable=true"
     networks:
-      - immich
+      - my-network
 
   immich-redis:
     container_name: immich-redis
@@ -86,7 +86,7 @@ services:
     #labels:
     #  - "com.centurylinklabs.watchtower.enable=true"
     networks:
-      - immich
+      - my-network
 
   immich-database:
     container_name: immich-database
@@ -104,11 +104,11 @@ services:
     #labels:
     #  - "com.centurylinklabs.watchtower.enable=true"
     networks:
-      - immich
+      - my-network
     
 volumes:
   model-cache:
 
 networks:
-  immich:
+  my-network:
     external: true
