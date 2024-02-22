@@ -52,7 +52,7 @@ services:
       - "homepage.name=Tandoor - Recipes"
       - "homepage.icon=/icons/icon.png"
       - "homepage.href=https://recipes.server.unarmedpuppy.com"
-      - "homepage.description=Home Assistant instance"
+      - "homepage.description=Recipes, meal planning & shopping list"
     networks:
       - default
       - my-network
