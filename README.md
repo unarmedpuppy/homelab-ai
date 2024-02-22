@@ -39,9 +39,14 @@ docker group id: 994 (`stat -c '%g' /var/run/docker.sock`)
 
 # CPU
 
-CPU Model: Intel(R) Celeron(R) G4900T CPU @ 2.90GHz Cores: 2 Memory: 64008 MB
+original CPU:
 
-upgrade: Intel Xeon E-2288G
+`CPU Model: Intel(R) Celeron(R) G4900T CPU @ 2.90GHz Cores: 2 Memory: 64008 MB`
+
+upgrade: 
+
+`Intel Core i7 6th Gen - Core i7-6700K 8M Skylake Quad-Core 4.0 GHz LGA 1151 91W BX80662I76700K Desktop Processor Intel HD Graphics 530 OEM`
+
 
 # Motherboard
 
