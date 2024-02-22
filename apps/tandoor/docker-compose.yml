@@ -16,9 +16,9 @@ services:
     env_file:
       - ./data/.env
     volumes:
-      - ./data/staticfiles:/opt/recipes/staticfiles
+      - staticfiles:/opt/recipes/staticfiles
       # Do not make this a bind mount, see https://docs.tandoor.dev/install/docker/#volumes-vs-bind-mounts
-      - ./data/nginx_config:/opt/recipes/nginx/conf.d
+      - nginx_config:/opt/recipes/nginx/conf.d
       - ./data/mediafiles:/opt/recipes/mediafiles
     depends_on:
       - db_recipes
@@ -36,8 +36,8 @@ services:
       - web_recipes
     volumes:
       # Do not make this a bind mount, see https://docs.tandoor.dev/install/docker/#volumes-vs-bind-mounts
-      - ./data/nginx_config:/etc/nginx/conf.d:ro
-      - ./data/staticfiles:/static:ro
+      - nginx_config:/etc/nginx/conf.d:ro
+      - staticfiles:/static:ro
       - ./data/mediafiles:/media:ro
     labels: # traefik example labels
       - "traefik.enable=true"
@@ -52,3 +52,7 @@ networks:
   default:
   traefik: # This is your external traefik network
     external: true
+
+volumes:
+  nginx_config:
+  staticfiles:
