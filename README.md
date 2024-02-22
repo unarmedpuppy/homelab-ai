@@ -402,7 +402,7 @@ networks:
 - Add the Mount Entry
 
     `UUID=0812C2CF12C2C0C4  /mnt/server-storage  ntfs  defaults,nofail  0  0`
-    `UUID=BA30D6F430D6B69B  /mnt/server-cloud  ntfs  defaults,nofail  0  0`
+    `UUID=1bf18f29-3035-4ea6-afec-c66b9140eb23  /mnt/server-cloud  ntfs  defaults,nofail  0  0`
 
 
 - Test the Mount
