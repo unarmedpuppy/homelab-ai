@@ -14,7 +14,7 @@ services:
     env_file:
       - ./data/.env
     volumes:
-      - staticfiles:/opt/recipes/staticfiles
+      - ./data/staticfiles:/opt/recipes/staticfiles
       # Do not make this a bind mount, see https://docs.tandoor.dev/install/docker/#volumes-vs-bind-mounts
       - ./data/nginx_config:/opt/recipes/nginx/conf.d
       - ./data/mediafiles:/opt/recipes/mediafiles
