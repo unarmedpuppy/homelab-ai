@@ -39,6 +39,12 @@ services:
       - ./data/mediafiles:/media:ro
     labels:
       - "traefik.enable=true"
+      # HTTPS redirect
+      - traefik.http.middlewares.mywebserver-redirect-web-secure.redirectscheme.scheme=https
+      - traefik.http.routers.recipes-redirect.middlewares=mywebserver-redirect-web-secure
+      - traefik.http.routers.recipes-redirect.rule=Host(`recipes.server.unarmedpuppy.com`)
+      - traefik.http.routers.recipes-redirect.entrypoints=web
+      # Main HTTPS router
       - "traefik.http.routers.recipes.rule=Host(`recipes.server.unarmedpuppy.com`)"
       - "traefik.http.routers.recipes.entrypoints=websecure" # your https endpoint
       - "traefik.http.routers.recipes.tls.certresolver=myresolver" # your cert resolver
