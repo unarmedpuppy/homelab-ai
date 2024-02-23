@@ -398,7 +398,7 @@ networks:
     ```                       
     
    /dev/sdc1: LABEL="server-storage" BLOCK_SIZE="512" UUID="0812C2CF12C2C0C4" TYPE="ntfs" PARTUUID="fdd7fd2f-7826-3e4d-8fdc-c6188fd9e803"
-    /dev/sda1: BLOCK_SIZE="512" UUID="5970408A4427DC74" TYPE="ntfs" PARTLABEL="primary" PARTUUID="b70b7eb2-4271-4967-825e-09d927251310"
+   /dev/sdd1: LABEL="server-cloud" BLOCK_SIZE="512" UUID="F030A88630A8557E" TYPE="ntfs" PARTLABEL="Basic data partition" PARTUUID="251de2dc-2189-4bc8-9b4a-ce0c1fb9d645"
     ```
 
 - Create a Mount Point
