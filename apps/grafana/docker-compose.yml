@@ -14,7 +14,7 @@ services:
     user: 1000:1000
     command: -config.file=/etc/loki/loki-config.yml  
     networks:
-      - my-network
+      - default
 
   promtail:
     image: grafana/promtail:latest
@@ -29,7 +29,7 @@ services:
     restart: unless-stopped
     command: -config.file=/etc/promtail/promtail-config.yml
     networks:
-      - my-network
+      - default
 
   influxdb:
     image: influxdb:1.8.10
@@ -45,7 +45,7 @@ services:
       - INFLUXDB_ADMIN_USER=admin
       - INFLUXDB_ADMIN_PASSWORD=SuperDuperAdminPW
     networks:
-      - monitoring_default
+      - default
 
   telegraf:
     image: telegraf:latest
@@ -72,7 +72,7 @@ services:
       - HOST_SYS=/hostfs/sys
       - HOST_MOUNT_PREFIX=/hostfs
     networks:
-      - my-network
+      - default
 
   grafana:
     container_name: grafana
@@ -91,6 +91,7 @@ services:
     ports:
       - 3010:3000
     networks:
+      - default
       - my-network
     labels:
       - traefik.enable=true
