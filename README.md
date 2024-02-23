@@ -37,6 +37,12 @@
 
 docker group id: 994 (`stat -c '%g' /var/run/docker.sock`)
 
+# BIOS
+
+BIOS version: MC123IOE.100
+
+ME FW Version: 12/0.41.1435
+
 # CPU
 
 original CPU:
@@ -381,7 +387,7 @@ networks:
     00 22 1 * *     /usr/bin/rsnapshot delta
     ```
 
-     There will be six `alpha` snapshots taken each day, a `beta` rsnapshot at midnight, a `gamma` snapshot on Saturdays at 11:00pm and a `delta` rsnapshot at 10pm on the first day of each month.
+     There will be 0 `alpha` snapshots taken each day, 1 `beta` rsnapshot at midnight, 1 `gamma` snapshot on Saturdays at 11:00pm and 0 `delta` rsnapshot at 10pm on the first day of each month.
 
 ### Persist mounted external hard drives
 
