@@ -14,7 +14,7 @@ services:
     user: 1000:1000
     command: -config.file=/etc/loki/loki-config.yml  
     networks:
-      - monitoring_default
+      - my-network
 
   promtail:
     image: grafana/promtail:latest
@@ -29,7 +29,7 @@ services:
     restart: unless-stopped
     command: -config.file=/etc/promtail/promtail-config.yml
     networks:
-      - monitoring_default
+      - my-network
 
   influxdb:
     image: influxdb:1.8.10
@@ -72,7 +72,7 @@ services:
       - HOST_SYS=/hostfs/sys
       - HOST_MOUNT_PREFIX=/hostfs
     networks:
-      - monitoring_default
+      - my-network
 
   grafana:
     container_name: grafana
@@ -91,7 +91,7 @@ services:
     ports:
       - 3010:3000
     networks:
-      - monitoring_default
+      - my-network
     labels:
       - traefik.enable=true
       - traefik.docker.network=my-network
@@ -117,5 +117,5 @@ services:
       - "homepage.description=Grafana instance"
 
 networks:
-  monitoring_default:
+  my-network:
     external: true
