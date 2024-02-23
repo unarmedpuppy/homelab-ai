@@ -535,6 +535,10 @@ interogate influxbd:
 
 `docker exec -it influxdb influx -username <username> -password <password>`
 
+`USE telegraf`
+
+`SHOW MEASUREMENTS`
+
 </details>
 
 <details>
