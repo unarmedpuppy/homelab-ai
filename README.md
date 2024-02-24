@@ -134,6 +134,52 @@ view reclaimable memory:
 
 
 # Command Logs
+
+<deatils>
+<summary>RAID 5 management</summary>
+how to configure and manage raid 5 array of 4 hard drives linux debian
+
+Copilot
+To configure and manage a RAID 5 array of 4 hard drives on Debian, you can use the mdadm utility12. Here are the steps:
+
+Install mdadm: Update your package list and install mdadm1:
+sudo apt update
+sudo apt install mdadm
+
+Create the RAID 5 array: Use the mdadm --create command to create a RAID 5 array123. For example, if your hard drives are /dev/sdb, /dev/sdc, /dev/sdd, and /dev/sde, you can create a RAID 5 array with these drives like this123:
+sudo mdadm --create --verbose /dev/md0 --level=5 --raid-devices=4 /dev/sdb /dev/sdc /dev/sdd /dev/sde
+
+Verify the RAID 5 array: You can check the status of your RAID 5 array with the cat /proc/mdstat command12.
+Please note that all data on the hard drives will be lost when you create the RAID 5 array12. Make sure to backup any important data before proceeding12. Also, a RAID 5 array can only withstand the failure of one drive. If more than one drive fails, all data on the array will be lost2.
+
+Learn more
+1
+
+digitalocean.com
+2
+
+golinuxcloud.com
+3
+
+makeuseof.com
++1 more
+You
+if one of the drives fails, how do i replace it in the array?
+Copilot
+If one of the drives in your RAID 5 array fails, you can replace it using the mdadm utility12. Here are the steps:
+
+Identify the failed drive: You can use the cat /proc/mdstat command to check the status of your RAID array12. If a drive has failed, instead of the string [UUU], you will see something like [U_U]12.
+Mark the failed drive as failed and remove it from the array: Use the mdadm --manage --fail command to mark the failed drive as failed, and the mdadm --manage --remove command to remove it from the array12. For example, if /dev/sdb is the failed drive in your RAID array /dev/md0, you can do12:
+sudo mdadm --manage /dev/md0 --fail /dev/sdb
+sudo mdadm --manage /dev/md0 --remove /dev/sdb
+
+Physically replace the failed drive: After you’ve removed the failed drive from the array, you can physically remove it from your system and replace it with a new one12.
+Add the new drive to the array: Once you’ve installed the new drive, you can add it to the RAID array with the mdadm --manage --add command12. For example, if /dev/sdc is your new drive, you can do12:
+sudo mdadm --manage /dev/md0 --add /dev/sdc
+
+Monitor the rebuild process: After you’ve added the new drive to the array, the RAID software will start rebuilding the array12. You can monitor this process with the cat /proc/mdstat command12.
+Please note that these steps assume that your RAID array and drives might have different names12. Replace /dev/md0, /dev/sdb, and /dev/sdc with your actual RAID array name and drive names1
+</details>
 <details>
 <summary>Get System Info</summary>
 
