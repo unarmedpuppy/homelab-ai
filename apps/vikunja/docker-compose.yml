@@ -14,7 +14,7 @@ services:
     ports:
       - 3456:3456
     volumes:
-      - vikunja/files:/app/vikunja/files
+      - vikunja:/app/vikunja/files
     depends_on:
       db:
         condition: service_healthy
@@ -28,7 +28,7 @@ services:
       MYSQL_PASSWORD: telling-headset-resile-mobster
       MYSQL_DATABASE: vikunja-puppy
     volumes:
-      - vikunja/db:/var/lib/mysql
+      - vikunja-db:/var/lib/mysql
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h localhost -u $$MYSQL_USER --password=$$MYSQL_PASSWORD"]
@@ -37,3 +37,4 @@ services:
 
 volumes:
   vikunja:
+  vikunja-db:
