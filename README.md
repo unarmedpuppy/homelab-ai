@@ -114,7 +114,7 @@ view reclaimable memory:
 
 # Cron jobs
 
-Prune dokcer images once a week
+Prune dockr images once a week
 
 `0 5 * * 1 docker system prune -a -f` 
 
