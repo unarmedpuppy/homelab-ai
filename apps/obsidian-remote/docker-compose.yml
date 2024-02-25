@@ -24,4 +24,4 @@ services:
       - "homepage.href=http://obsidian.server.unarmedpuppy.com"
       - "homepage.description=Obsidian"
 volumes:
-  obsidian: 
+  obsidian:
