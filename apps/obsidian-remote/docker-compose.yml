@@ -5,7 +5,7 @@ services:
     container_name: obsidian-remote
     restart: unless-stopped
     ports:
-      - 8080:8080 # Obsidian Web Interface
+      - 8009:8080 # Obsidian Web Interface
       #- 27123:27123 # Local REST API Plugin HTTP Server Port
       #- 27124:27124 # Local REST API Plugin HTTPS Server Port
     volumes:
@@ -22,4 +22,4 @@ services:
       - "homepage.name=Obsidian"
       - "homepage.icon=/icons/icon.png"
       - "homepage.href=http://obsidian.server.unarmedpuppy.com"
-      - "homepage.description=Minecraft server map"
+      - "homepage.description=Obsidian"
