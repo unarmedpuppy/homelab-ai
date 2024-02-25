@@ -14,9 +14,9 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/Berlin
+      - TZ=America/Chicago
       - DOCKER_MODS=linuxserver/mods:universal-git # Use to add mods to the container like git.
-      - KEYBOARD=de-de-qwertz # Used to se the keyboard being used for input. E.g. KEYBOARD=en-us-qwerty or KEYBOARD=de-de-qwertz
+      - KEYBOARD=en-us-qwerty # Used to se the keyboard being used for input. E.g. KEYBOARD=en-us-qwerty or KEYBOARD=de-de-qwertz
     labels:
       - "homepage.group=Services"
       - "homepage.name=Obsidian"
