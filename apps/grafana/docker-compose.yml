@@ -108,7 +108,7 @@ services:
       - traefik.http.routers.grafana-secure.tls=true
       - traefik.http.routers.grafana-secure.entrypoints=websecure
       # specify port
-      - traefik.http.services.grafana.loadbalancer.server.port=3010
+      #- traefik.http.services.grafana.loadbalancer.server.port=3010
       
     #  # Part for local lan services only
     #  - traefik.http.routers.grafana.middlewares=local-ipwhitelist@file
