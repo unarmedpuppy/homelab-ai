@@ -112,6 +112,12 @@ Properly prune old images
 view reclaimable memory:
 `docker system df`
 
+# Cron jobs
+
+Prune dokcer images once a week
+
+`0 5 * * 1 docker system prune -a -f` 
+
 # Aliases
 
 `cycle`
