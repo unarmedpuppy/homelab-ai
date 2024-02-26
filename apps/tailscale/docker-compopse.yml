@@ -12,4 +12,4 @@ services:
     command: ["tailscaled"]
 
 volumes:
-  tailscale-volume: 
+  tailscale-volume:
