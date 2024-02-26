@@ -14,4 +14,4 @@ services:
       - TS_AUTHKEY=tskey-auth-kq8ZZz6CNTRL-ySrwZtner83AryykCZxJ93xgnNVne8Vf
 
 volumes:
-  tailscale-volume: 
+  tailscale-volume:
