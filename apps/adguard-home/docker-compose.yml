@@ -32,7 +32,7 @@ services:
       #- "traefik.http.middlewares.auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       #- "traefik.http.routers.adguard.entrypoints=web"
       #- "traefik.http.routers.adguard.tls.certresolver=myresolver"
-      - "homepage.group=Apps"
+      - "homepage.group=Services"
       - "homepage.name=Adguard"
       - "homepage.icon=/icons/icon.png"
       - "homepage.href=http://192.168.86.47:8083"
