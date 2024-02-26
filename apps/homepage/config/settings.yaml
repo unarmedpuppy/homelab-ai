@@ -3,6 +3,7 @@
 # https://gethomepage.dev/latest/configs/settings
 
 title: unarmedpuppy's Home Server
+background: /images/background-1.webp
 
 providers:
   openweathermap: openweathermapapikey
