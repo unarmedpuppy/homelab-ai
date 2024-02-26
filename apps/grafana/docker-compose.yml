@@ -112,11 +112,11 @@ services:
       
     #  # Part for local lan services only
     #  - traefik.http.routers.grafana.middlewares=local-ipwhitelist@file
-      - "homepage.group=Services"
+      - "homepage.group=Apps"
       - "homepage.name=Grafana"
       - "homepage.icon=/icons/icon.png"
       - "homepage.href=http://192.168.86.47:3010"
-      - "homepage.description=Grafana instance"
+      - "homepage.description=Home Server telemetry & status"
 
 networks:
   my-network:
