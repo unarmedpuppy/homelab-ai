@@ -36,7 +36,7 @@ services:
       - "homepage.name=Adguard"
       - "homepage.icon=/icons/icon.png"
       - "homepage.href=http://192.168.86.47:8083"
-      - "homepage.description=Adguard Home instance"
+      - "homepage.description=Local DNS & Ad blocking"
 
 networks:
   my-network:
