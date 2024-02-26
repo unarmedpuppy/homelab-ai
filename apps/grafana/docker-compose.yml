@@ -113,7 +113,7 @@ services:
     #  # Part for local lan services only
     #  - traefik.http.routers.grafana.middlewares=local-ipwhitelist@file
       - "homepage.group=Analytics"
-      - "homepage.name=Grafana"
+      - "homepage.group=Services"
       - "homepage.icon=/icons/icon.png"
       - "homepage.href=http://grafana.server.unarmedpuppy.com"
       - "homepage.description=Grafana instance"
