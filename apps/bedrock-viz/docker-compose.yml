@@ -16,7 +16,7 @@ services:
       - "homepage.group=Apps"
       - "homepage.name=Bedrock Viz"
       - "homepage.icon=/icons/icon.png"
-      - "homepage.href=http://minecraft.server.unarmedpuppy.com"
+      - "homepage.href=http://192.168.86.47:8081"
       - "homepage.description=Visualization of Minecraft Server map"
     networks:
       - my-network
