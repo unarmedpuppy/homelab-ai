@@ -11,7 +11,7 @@ services:
       - tailscale-volume:/var/lib/tailscale
     command: ["tailscaled"]
     environment:
-      = TS_AUTHKEY=tskey-auth-kq8ZZz6CNTRL-ySrwZtner83AryykCZxJ93xgnNVne8Vf
+      - TS_AUTHKEY=tskey-auth-kq8ZZz6CNTRL-ySrwZtner83AryykCZxJ93xgnNVne8Vf
 
 volumes:
   tailscale-volume:
