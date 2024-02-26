@@ -38,7 +38,7 @@ services:
             - "homepage.name=Plex"
             - "homepage.icon=/icons/icon.png"
             - "homepage.href=http://plex.server.unarmedpuppy.com"
-            - "homepage.description=Plex server"
+            - "homepage.description=Movies & TV shows"
 networks:
   my-network:
     external: true
