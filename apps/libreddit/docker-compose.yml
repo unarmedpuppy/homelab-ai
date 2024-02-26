@@ -19,7 +19,7 @@ services:
       #- traefik.docker.network=my-network
     #  # Part for optional traefik middlewares
     #  - traefik.http.routers.libreddit.middlewares=local-ipwhitelist@file,basic-auth@file      
-      - "homepage.group=Media"
+      - "homepage.group=Apps"
       - "homepage.name=libreddit"
       - "homepage.icon=/icons/icon.png"
       - "homepage.href=http://192.168.86.47:8088"
