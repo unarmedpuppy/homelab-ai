@@ -6,5 +6,5 @@ my-docker:
   host: dockerproxy
   port: 2375
 
-#my-docker:
-  #socket: /var/run/docker.sock
+my-docker:
+  socket: /var/run/docker.sock
