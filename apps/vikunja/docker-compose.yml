@@ -20,6 +20,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     labels:
+      - "homepage.group=Services"
       - "homepage.name=Vikunja"
       - "homepage.icon=/icons/icon.png"
       - "homepage.href=http://192.168.86.47:3456/"
