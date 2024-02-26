@@ -13,6 +13,11 @@ services:
       - db
     volumes:
       - freshrss-data:/var/www/FreshRSS/data
+    labels:
+      - "homepage.group=Apps"
+      - "homepage.name=FreshRSS"
+      - "homepage.icon=/icons/icon.png"
+      - "homepage.description=RSS reader"
 
   db:
     image: postgres:latest
