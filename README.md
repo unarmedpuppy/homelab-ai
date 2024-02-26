@@ -626,7 +626,7 @@ interogate influxbd:
     `sudo ufw allow 8080` (rust)
     `sudo ufw allow 53/tcp` (adguard)
     `sudo ufw allow 53/udp` (adguard)
-    `sudo ufw allow 51820/udp` (wireguard)
+    `sudo ufw allow 51820/udp` (wireguard) 
     ~`sudo ufw allow from 172.17.0.0/16 to any port 2375 proto tcp` (docker subnet connect to docker socket over tcp)~
 
 
