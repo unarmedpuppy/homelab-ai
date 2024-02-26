@@ -8,7 +8,7 @@ services:
   freshrss:
     image: freshrss/freshrss:latest
     ports:
-      - 8080:80
+      - 8005:80
     depends_on:
       - db
     volumes:
