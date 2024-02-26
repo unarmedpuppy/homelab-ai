@@ -1105,7 +1105,6 @@ sudo useradd --home-dir /home/seafile --create-home --uid 8000 --gid 8000 --shel
 
 
 # Tailscale
-`docker exec tailscale-tailscale-1 tailsca
-le up`
+`docker exec tailscale-tailscale-1 tailscale up`
 
 `docker exec tailscale-tailscale-1 tailscale set --advertise-exit-node`
