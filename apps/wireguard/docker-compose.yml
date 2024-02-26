@@ -13,7 +13,7 @@ services:
        - TZ=America/Chicago
        - SERVERURL=vpn.example.com #optional 
        - SERVERPORT=51820 #optional 
-       - PEERS=1 #optional 
+       - PEERS=shuaPhone,shuaIpad,abbyPhone,abbyIpad 
        - LOG_CONFS=true
        - PEERDNS=auto #optional 
        - INTERNAL_SUBNET=10.13.13.0 #optional 
