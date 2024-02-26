@@ -16,9 +16,9 @@ services:
     volumes:
       - freshrss-db-volume:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: ${DB_BASE:-freshrss}
-      POSTGRES_USER: ${DB_USER:-freshrss}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-freshrss}
+      POSTGRES_DB: freshrss
+      POSTGRES_USER: freshrss
+      POSTGRES_PASSWORD: freshrss
     command:
       # Examples of PostgreSQL tuning.
       # https://wiki.postgresql.org/wiki/Tuning_Your_PostgreSQL_Server
