@@ -30,7 +30,7 @@ services:
       - "homepage.name=Traefik"
       - "homepage.icon=/icons/icon.png"
       - "homepage.href=https://traefik.server.unarmedpuppy.com"
-      - "homepage.description=Traefik reverse proxy"
+      - "homepage.description=Reverse proxy for exposing services to the internet"
 
 networks:
   my-network:
