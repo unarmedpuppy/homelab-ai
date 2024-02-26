@@ -1,0 +1,17 @@
+version: '3.1'
+
+services:
+  tailscale:
+    image: tailscale/tailscale:latest
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    volumes:
+      - /dev/net/tun:/dev/net/tun
+      - tailscale-volume:/var/lib/tailscale
+    command: ["tailscaled"]
+    environment:
+      - TS_AUTHKEY=tskey-auth-kq8ZZz6CNTRL-ySrwZtner83AryykCZxJ93xgnNVne8Vf
+
+volumes:
+  tailscale-volume: 
