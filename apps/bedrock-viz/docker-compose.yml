@@ -9,10 +9,10 @@ services:
     volumes:
       - ~/server/apps/bedrock-viz/data/repo/build/output:/usr/share/nginx/html:ro
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.bedrock-viz-http.rule=Host(`minecraft.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.bedrock-viz-http.entrypoints=web"
-      - "traefik.http.services.bedrock-viz-http.loadbalancer.server.port=80"
+      #- "traefik.enable=true"
+      #- "traefik.http.routers.bedrock-viz-http.rule=Host(`minecraft.server.unarmedpuppy.com`)"
+      #- "traefik.http.routers.bedrock-viz-http.entrypoints=web"
+      #- "traefik.http.services.bedrock-viz-http.loadbalancer.server.port=80"
       - "homepage.group=Apps"
       - "homepage.name=Bedrock Viz"
       - "homepage.icon=/icons/icon.png"
