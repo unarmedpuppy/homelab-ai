@@ -35,7 +35,7 @@ services:
       - "traefik.http.routers.recipes.entrypoints=websecure" # your https endpoint
       - "traefik.http.routers.recipes.tls.certresolver=myresolver" # your cert resolver
       - "homepage.group=Services"
-      - "homepage.name=Mealie - Recipes"
+      - "homepage.name=Mealie"
       - "homepage.icon=/icons/icon.png"
       - "homepage.href=https://recipes.server.unarmedpuppy.com"
       - "homepage.description=Recipes, meal planning & shopping list"
