@@ -24,7 +24,7 @@ services:
     ports:
       - 3000:3000
     volumes:
-      - ./config2:/app/config # Make sure your local config directory exists
+      - ./config:/app/config # Make sure your local config directory exists
       - ./assets/icons:/app/public/icons
       - ./assets/wallpaper:/app/public/wallpaper
       - ./assets/images:/app/public/images
