@@ -5,7 +5,7 @@
 - Services:
     - Bitcoin:
         widget:
-          icon: si-bitcoin
+          icon: si-bitcoin.png
           type: coinmarketcap
           currency: USD # Optional
           symbols: [BTC]
