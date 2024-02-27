@@ -31,7 +31,7 @@
     - Metrics:
         widget:
           type: grafana
-          url: http://grafana
-          username: username
-          password: password
+          url: grafana
+          username: homepage
+          password: homepage
 
