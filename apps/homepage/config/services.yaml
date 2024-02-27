@@ -28,4 +28,10 @@
           symbols: [BTC]
           defaultinterval: 1h # Optional
           key: db738ebc-9dcc-488e-91b9-cdbbd0e9b2fb
+    - Metrics:
+        widget:
+          type: grafana
+          url: http://grafana
+          username: username
+          password: password
 
