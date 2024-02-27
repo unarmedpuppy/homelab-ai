@@ -22,7 +22,7 @@ services:
       - PUID=1000
       - PGID=1000
     ports:
-      - 4000:3000
+      - 3000:3000
     volumes:
       - ./config2:/app/config # Make sure your local config directory exists
       - ./assets/icons:/app/public/icons
