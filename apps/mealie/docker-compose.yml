@@ -39,7 +39,7 @@ services:
       - "traefik.http.routers.recipes-local.entrypoints=web"
       - "homepage.group=Apps"
       - "homepage.name=Mealie"
-      - "homepage.icon=/icons/icon.png"
+      - "homepage.icon=si-cookiecutter"
       - "homepage.href=https://recipes.server.unarmedpuppy.com"
       - "homepage.description=Recipes, meal planning & shopping list"
 
