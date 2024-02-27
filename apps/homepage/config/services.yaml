@@ -2,25 +2,7 @@
 # For configuration options and examples, please see:
 # https://gethomepage.dev/latest/configs/services
 
-- Game Servers:
-    - Minecraft:
-        icon: plex.png
-        href: http://minecraft.server.unarmedpuppy.com
-        description: Play Minecraft.
-        server: localhost
-        container: bedrock-minecraft-1
-        widget:
-          type: minecraft
-          url: udp://minecraft.server.unarmedpuppy.com:19132
-    - Rust:
-        icon: plex.png
-        href: http://rust.server.unarmedpuppy.com
-        description: Play Rust.
-        server: localhost
-        container: rust-rust-server-1
-        widget:
-          type: rust
-          url: udp://rust.server.unarmedpuppy.com:28015
+- Services:
     - Bitcoin:
         widget:
           type: coinmarketcap
@@ -28,10 +10,10 @@
           symbols: [BTC]
           defaultinterval: 1h # Optional
           key: db738ebc-9dcc-488e-91b9-cdbbd0e9b2fb
-    - Metrics:
-        widget:
-          type: grafana
-          url: http://192.168.86.47:3010/
-          username: homepage
-          password: homepage
+    #- Metrics:
+        #widget:
+          #type: grafana
+          #url: http://192.168.86.47:3010/
+          #username: homepage
+          #password: homepage
 
