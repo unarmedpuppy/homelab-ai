@@ -36,7 +36,7 @@ services:
             - "traefik.http.routers.plex.middlewares=plex-https-redirect"
             - "homepage.group=Apps"
             - "homepage.name=Plex"
-            - "homepage.icon=/icons/icon.png"
+            - "homepage.icon=si-plex"
             - "homepage.href=http://plex.server.unarmedpuppy.com"
             - "homepage.description=Movies & TV shows"
 networks:
