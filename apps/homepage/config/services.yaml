@@ -12,10 +12,10 @@
       type: minecraft
       url: udp://minecraft.server.unarmedpuppy.com:19132
 
-- CoinMarketCap:
-    widget:
-      type: coinmarketcap
-      currency: USD # Optional
-      symbols: [BTC]
-      defaultinterval: 1h # Optional
-      key: db738ebc-9dcc-488e-91b9-cdbbd0e9b2fb
+#- CoinMarketCap:
+    #widget:
+      #type: coinmarketcap
+      #currency: USD # Optional
+      #symbols: [BTC]
+      #defaultinterval: 1h # Optional
+      #key: db738ebc-9dcc-488e-91b9-cdbbd0e9b2fb
