@@ -10,11 +10,7 @@ services:
       - /dev/net/tun:/dev/net/tun
       - tailscale-volume:/var/lib/tailscale
     command: ["tailscaled"]
-    labels:
-      - "homepage.group=Services"
-      - "homepage.name=Tailscale"
-      - "homepage.icon=si-wireguard"
-      - "homepage.description=VPN"
+
 
 volumes:
   tailscale-volume:
