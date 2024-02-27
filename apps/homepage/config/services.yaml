@@ -2,20 +2,20 @@
 # For configuration options and examples, please see:
 # https://gethomepage.dev/latest/configs/services
 
-#- Minecraft:
-    #icon: plex.png
-    #href: http://minecraft.server.unarmedpuppy.com
-    #description: Play Minecraft.
-    #server: localhost
-    #container: bedrock-minecraft-1
-    #widget:
-      #type: minecraft
-      #url: udp://minecraft.server.unarmedpuppy.com:19132
+- Minecraft:
+    icon: plex.png
+    href: http://minecraft.server.unarmedpuppy.com
+    description: Play Minecraft.
+    server: localhost
+    container: bedrock-minecraft-1
+    widget:
+      type: minecraft
+      url: udp://minecraft.server.unarmedpuppy.com:19132
 
-#- CoinMarketCap:
-    #widget:
-      #type: coinmarketcap
-      #currency: USD # Optional
-      #symbols: [BTC]
-      #defaultinterval: 1h # Optional
-      #key: db738ebc-9dcc-488e-91b9-cdbbd0e9b2fb
+- CoinMarketCap:
+    widget:
+      type: coinmarketcap
+      currency: USD # Optional
+      symbols: [BTC]
+      defaultinterval: 1h # Optional
+      key: db738ebc-9dcc-488e-91b9-cdbbd0e9b2fb
