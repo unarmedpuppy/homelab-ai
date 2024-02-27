@@ -6,6 +6,7 @@
     - Gmail:
         - abbr: GM
           href: https://mail.google.com/mail/u/0/#inbox
+          icon: si-gmail
     - Youtube:
         - abbr: YT
           href: https://youtube.com
