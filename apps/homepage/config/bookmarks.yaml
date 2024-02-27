@@ -42,3 +42,4 @@
     - "TCGPlayer":
         - abbr: TP
           href: "https://tcgplayer.com2"
+          icon: si-sketch
