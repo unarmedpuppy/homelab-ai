@@ -15,7 +15,7 @@ services:
     labels:
       - "homepage.group=Game Servers"
       - "homepage.name=Minecraft Bedrock Server"
-      - "homepage.icon=/icons/icon.png"
+      - "homepage.icon=si-minecraft"
       - "homepage.href=http://minecraft.server.unarmedpuppy.com"
       - "homepage.description=Minecraft server, UDP traffic only on port 19132"
     networks:
