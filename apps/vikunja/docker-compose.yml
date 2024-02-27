@@ -25,7 +25,7 @@ services:
       - "traefik.http.routers.vikunja-local.entrypoints=web"
       - "homepage.group=Apps"
       - "homepage.name=Vikunja"
-      - "homepage.icon=/icons/icon.png"
+      - "homepage.icon=si-todoist"
       - "homepage.href=http://192.168.86.47:3456/"
       - "homepage.description=Projects, To-Do lists & Kanban"
   db:
