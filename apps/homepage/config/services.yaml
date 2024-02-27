@@ -2,7 +2,7 @@
 # For configuration options and examples, please see:
 # https://gethomepage.dev/latest/configs/services
 
-- Group:
+- Game Servers:
     - Minecraft:
         icon: plex.png
         href: http://minecraft.server.unarmedpuppy.com
