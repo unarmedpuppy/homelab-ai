@@ -21,11 +21,11 @@
         widget:
           type: rust
           url: udp://rust.server.unarmedpuppy.com:28015
+    - CoinMarketCap:
+        widget:
+          type: coinmarketcap
+          currency: USD # Optional
+          symbols: [BTC]
+          defaultinterval: 1h # Optional
+          key: db738ebc-9dcc-488e-91b9-cdbbd0e9b2fb
 
-#- CoinMarketCap:
-    #widget:
-      #type: coinmarketcap
-      #currency: USD # Optional
-      #symbols: [BTC]
-      #defaultinterval: 1h # Optional
-      #key: db738ebc-9dcc-488e-91b9-cdbbd0e9b2fb
