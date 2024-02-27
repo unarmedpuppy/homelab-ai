@@ -37,6 +37,7 @@
     - "Cube Cobra":
         - abbr: CC
           href: "https://cubecobra.com/cube/list/playmats-are-strong-v2"
+          icon: si-nintendogamecube
     - "TCGPlayer":
         - abbr: TP
           href: "https://tcgplayer.com2"
