@@ -23,5 +23,5 @@ services:
       - "homepage.group=Services"
       - "homepage.name=Cloudflare DDNS"
       - "homepage.icon=si-cloudflare"
-      - "homepage.description=Dynamis DNS"
+      - "homepage.description=Dynamic DNS updating"
       
