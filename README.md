@@ -1101,3 +1101,10 @@ run as non-root:
 
  sudo groupadd --gid 8000 seafile
 sudo useradd --home-dir /home/seafile --create-home --uid 8000 --gid 8000 --shell /bin/sh --skel /dev/null seafile
+
+
+
+# Tailscale
+`docker exec tailscale-tailscale-1 tailscale up`
+
+`docker exec tailscale-tailscale-1 tailscale set --advertise-exit-node`

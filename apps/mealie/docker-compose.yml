@@ -34,6 +34,9 @@ services:
       - "traefik.http.routers.recipes.rule=Host(`recipes.server.unarmedpuppy.com`)"
       - "traefik.http.routers.recipes.entrypoints=websecure" # your https endpoint
       - "traefik.http.routers.recipes.tls.certresolver=myresolver" # your cert resolver
+      #local DNS
+      - "traefik.http.routers.recipes-local.rule=Host(`recipes.local.unarmedpuppy.com`)"
+      - "traefik.http.routers.recipes-local.entrypoints=web"
       - "homepage.group=Apps"
       - "homepage.name=Mealie"
       - "homepage.icon=/icons/icon.png"

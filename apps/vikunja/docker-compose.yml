@@ -20,6 +20,9 @@ services:
         condition: service_healthy
     restart: unless-stopped
     labels:
+      #local DNS
+      - "traefik.http.routers.vikunja-local.rule=Host(`vikunja.local.unarmedpuppy.com`) || Host(192.168.86.47)"
+      - "traefik.http.routers.vikunja-local.entrypoints=web"
       - "homepage.group=Apps"
       - "homepage.name=Vikunja"
       - "homepage.icon=/icons/icon.png"
