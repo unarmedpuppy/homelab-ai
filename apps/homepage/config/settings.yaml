@@ -1,7 +1,7 @@
 
 title: unarmedpuppy's Home Server
 color: violet
-cardBlur: sm
+cardBlur: md
 background:
   image: /images/Cyber-Punk-Neon-Moonlit-Sea-AI-Generated-4K-Wallpaper.jpg
   #blur: sm # sm, "", md, xl... see https://tailwindcss.com/docs/backdrop-blur
