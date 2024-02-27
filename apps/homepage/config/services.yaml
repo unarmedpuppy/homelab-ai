@@ -12,6 +12,15 @@
         widget:
           type: minecraft
           url: udp://minecraft.server.unarmedpuppy.com:19132
+    - Rust:
+        icon: plex.png
+        href: http://rust.server.unarmedpuppy.com
+        description: Play Rust.
+        server: localhost
+        container: rust-rust-server-1
+        widget:
+          type: rust
+          url: udp://rust.server.unarmedpuppy.com:28015
 
 #- CoinMarketCap:
     #widget:
