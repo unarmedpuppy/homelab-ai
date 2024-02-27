@@ -19,4 +19,9 @@ services:
       - PUID=1000
       - PGID=1000
       - IP6_PROVIDER=none # disbale IPv6
+    labels:
+      - "homepage.group=Services"
+      - "homepage.name=Cloudflare DDNS"
+      - "homepage.icon=si-cloudflare"
+      - "homepage.description=Local DNS & Ad blocking"
       
