@@ -54,7 +54,7 @@ services:
       - "traefik.http.services.rust-rcon-ws.loadbalancer.server.port=28016"
       - "homepage.group=Game Servers"
       - "homepage.name=Rust Server"
-      - "homepage.icon=/icons/icon.png"
+      - "homepage.icon=si-rust"
       - "homepage.href=http://rust.server.unarmedpuppy.com"
       - "homepage.description=Rust server, UDP traffic on port 28015"
     networks:
