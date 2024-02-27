@@ -12,10 +12,11 @@ services:
     command: ["tailscaled"]
     environment:
       - TS_AUTHKEY=tskey-auth-kq8ZZz6CNTRL-ySrwZtner83AryykCZxJ93xgnNVne8Vf
+    labels:
+      - "homepage.group=Services"
+      - "homepage.name=Tailscale"
+      - "homepage.icon=si-wireguard"
+      - "homepage.description=VPN"
 
 volumes:
-<<<<<<< HEAD
-  tailscale-volume: 
-=======
   tailscale-volume:
->>>>>>> 160364332635faff837e41f5f39ec49fbb20caab
