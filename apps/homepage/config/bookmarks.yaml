@@ -10,6 +10,7 @@
     - Youtube:
         - abbr: YT
           href: https://youtube.com
+          icon: si-youtube
     - Github:
         - abbr: GH
           href: https://github.com/unarmedpuppy
