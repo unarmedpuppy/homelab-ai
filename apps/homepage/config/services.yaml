@@ -21,7 +21,7 @@
         widget:
           type: rust
           url: udp://rust.server.unarmedpuppy.com:28015
-    - CoinMarketCap:
+    - Bitcoin:
         widget:
           type: coinmarketcap
           currency: USD # Optional
