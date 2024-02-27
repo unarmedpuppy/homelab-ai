@@ -6,7 +6,7 @@ background:
   image: /images/Cyber-Punk-Neon-Moonlit-Sea-AI-Generated-4K-Wallpaper.jpg
   #blur: sm # sm, "", md, xl... see https://tailwindcss.com/docs/backdrop-blur
   #saturate: 50 # 0, 50, 100... see https://tailwindcss.com/docs/backdrop-saturate
-  brightness: 40 # 0, 50, 75... see https://tailwindcss.com/docs/backdrop-brightness
+  brightness: 50 # 0, 50, 75... see https://tailwindcss.com/docs/backdrop-brightness
   opacity: 50 # 0-100
 layout:
   Apps:
