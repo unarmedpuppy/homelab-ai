@@ -2098,7 +2098,12 @@ function initDimension() {
     */
     
     if (map === null) {
-        console.log('map calcs first')
+        console.log('new')
+        console.log(dimensionInfo[globalDimensionId].playerPosX + Math.floor(Math.abs(dimensionInfo[globalDimensionId].worldWidth) / 2),
+        dimensionInfo[globalDimensionId].playerPosY + Math.floor(Math.abs(dimensionInfo[globalDimensionId].worldHeight) / 2))
+        console.log('old')
+        console.log(dimensionInfo[globalDimensionId].playerPosX + Math.floor(dimensionInfo[globalDimensionId].worldWidth / 2)
+        ,dimensionInfo[globalDimensionId].playerPosY + Math.floor(dimensionInfo[globalDimensionId].worldHeight / 2))
         measureControl = new MeasureControl();
         map = new ol.Map({
             controls: ol.control.defaults({
@@ -2117,8 +2122,8 @@ function initDimension() {
             view: new ol.View({
                 projection: projection,
                 center: [
-                    dimensionInfo[globalDimensionId].playerPosX + Math.floor(Math.abs(dimensionInfo[globalDimensionId].worldWidth) / 2),
-                    dimensionInfo[globalDimensionId].playerPosY + Math.floor(Math.abs(dimensionInfo[globalDimensionId].worldHeight) / 2)
+                    dimensionInfo[globalDimensionId].playerPosX + Math.floor(dimensionInfo[globalDimensionId].worldWidth / 2)
+                   ,dimensionInfo[globalDimensionId].playerPosY + Math.floor(dimensionInfo[globalDimensionId].worldHeight / 2)
                 ],
                 resolution: 1
             })
