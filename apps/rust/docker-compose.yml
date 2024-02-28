@@ -52,7 +52,7 @@ services:
       - "traefik.http.routers.rust-rcon-ws.entrypoints=web"
       - "traefik.http.routers.rust-rcon-ws.service=rust-rcon-ws"
       - "traefik.http.services.rust-rcon-ws.loadbalancer.server.port=28016"
-      - "homepage.group=Game Servers"
+      - "homepage.group=Gaming"
       - "homepage.name=Rust Server"
       - "homepage.icon=si-rust"
       - "homepage.href=http://rust.server.unarmedpuppy.com"
