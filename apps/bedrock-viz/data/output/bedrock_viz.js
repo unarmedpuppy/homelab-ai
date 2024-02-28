@@ -2115,11 +2115,10 @@ function initDimension() {
             target: 'map',
             view: new ol.View({
                 projection: projection,
-                // center: [
-                //     dimensionInfo[globalDimensionId].playerPosX + Math.floor(dimensionInfo[globalDimensionId].worldWidth / 2)
-                //    ,dimensionInfo[globalDimensionId].playerPosY + Math.floor(dimensionInfo[globalDimensionId].worldHeight / 2)
-                // ],
-                center: [0 ,0], //unarmedpuppy
+                center: [
+                    dimensionInfo[globalDimensionId].playerPosX + Math.floor(Math.abs(dimensionInfo[globalDimensionId].worldWidth) / 2),
+                    dimensionInfo[globalDimensionId].playerPosY + Math.floor(Math.abs(dimensionInfo[globalDimensionId].worldHeight) / 2)
+                ],
                 resolution: 1
             })
         });
@@ -2129,11 +2128,10 @@ function initDimension() {
         console.log(dimensionInfo[globalDimensionId].playerPosY + Math.floor(dimensionInfo[globalDimensionId].worldHeight / 2))
         var view = new ol.View({
             projection: projection,
-            // center: [
-            //     dimensionInfo[globalDimensionId].playerPosX + Math.floor(dimensionInfo[globalDimensionId].worldWidth / 2)
-            //    ,dimensionInfo[globalDimensionId].playerPosY + Math.floor(dimensionInfo[globalDimensionId].worldHeight / 2)
-            // ],
-            center: [0 ,0], //unarmedpuppy
+            center: [
+                dimensionInfo[globalDimensionId].playerPosX + Math.floor(Math.abs(dimensionInfo[globalDimensionId].worldWidth) / 2),
+                dimensionInfo[globalDimensionId].playerPosY + Math.floor(Math.abs(dimensionInfo[globalDimensionId].worldHeight) / 2)
+            ],
         resolution: 1
         });
         map.setView(view);
