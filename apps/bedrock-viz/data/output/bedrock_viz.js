@@ -2098,6 +2098,7 @@ function initDimension() {
     */
     
     if (map === null) {
+        console.log('map calcs first')
         measureControl = new MeasureControl();
         map = new ol.Map({
             controls: ol.control.defaults({
