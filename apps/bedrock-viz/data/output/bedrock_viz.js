@@ -2124,6 +2124,9 @@ function initDimension() {
             })
         });
     } else {
+        console.log('map calcs')
+        console.log(dimensionInfo[globalDimensionId].playerPosX + Math.floor(dimensionInfo[globalDimensionId].worldWidth / 2))
+        console.log(dimensionInfo[globalDimensionId].playerPosY + Math.floor(dimensionInfo[globalDimensionId].worldHeight / 2))
         var view = new ol.View({
             projection: projection,
             // center: [
