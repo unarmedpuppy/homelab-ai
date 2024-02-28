@@ -4,7 +4,6 @@
 - resources:
     cpu: true
     memory: true
-    expanded: true
     disk: /
 
 - search:
