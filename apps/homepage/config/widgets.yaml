@@ -1,10 +1,15 @@
 ---
 # For configuration options and examples, please see:
 # https://gethomepage.dev/latest/configs/service-widgets
+-resources:
+    label: system
+    cpu: true
+    cputemp: true
+    uptime: true
+    memory: true
 
 - resources:
-    cpu: true
-    memory: true
+    label: storage
     disk:
       - /
       - /mnt/server-cloud
