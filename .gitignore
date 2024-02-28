@@ -1,5 +1,6 @@
 repos/*
 
 apps/*/data/*
+!apps/bedrock-viz/data/output/bedrock_viz.js
 apps/homepage/config/logs/*
 apps/homepage/config/logs/homepage.log
