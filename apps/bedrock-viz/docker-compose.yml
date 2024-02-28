@@ -7,7 +7,7 @@ services:
     ports:
       - 8081:80
     volumes:
-      - ~/server/apps/bedrock-viz/data/repo/build/output:/usr/share/nginx/html:ro
+      - ~/server/apps/bedrock-viz/data/output:/usr/share/nginx/html:ro
     labels:
       #- "traefik.enable=true"
       #- "traefik.http.routers.bedrock-viz-http.rule=Host(`minecraft.server.unarmedpuppy.com`)"
