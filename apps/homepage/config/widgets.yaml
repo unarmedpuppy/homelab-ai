@@ -7,13 +7,7 @@
     cputemp: true
     uptime: true
     memory: true
-
-- resources:
-    label: storage
-    disk:
-      - /
-      - /mnt/server-cloud
-      - /mnt/server-storage
+    disk: /
 
 - search:
     provider: duckduckgo
