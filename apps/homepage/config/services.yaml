@@ -3,7 +3,7 @@
 # https://gethomepage.dev/latest/configs/services
 
 - Services:
-    - Bitcoin:
+    - Coins:
         widget:
           icon: si-bitcoin
           type: coinmarketcap
