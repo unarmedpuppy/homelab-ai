@@ -11,14 +11,20 @@
         - abbr: GM
           href: https://mail.google.com/mail/u/0/#inbox
           icon: si-gmail
-    - Youtube:
-        - abbr: YT
-          href: https://youtube.com
-          icon: si-youtube
     - Github:
         - abbr: GH
           href: https://github.com/unarmedpuppy
           icon: si-github
+
+- Media:
+  - Reddit:
+      - abbr: rd
+        href: https://www.reddit.com/
+        icon: si-reddit
+  - Youtube:
+      - abbr: YT
+        href: https://youtube.com
+        icon: si-youtube
 
 - Finance:
     - "Financial Planning":
