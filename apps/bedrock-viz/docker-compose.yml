@@ -22,7 +22,7 @@ services:
       - "homepage.group=Gaming"
       - "homepage.name=Bedrock Viz"
       - "homepage.icon=si-maplibre"
-      - "homepage.href=http://192.168.86.47:8081"
+      - "homepage.href=https://gumberlund.server.unarmedpuppy.com"
       - "homepage.description=Visualization of Minecraft Server map"
     networks:
       - my-network
