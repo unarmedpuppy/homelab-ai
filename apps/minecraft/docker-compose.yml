@@ -13,7 +13,7 @@ services:
       - ./data:/data
     restart: unless-stopped
     labels:
-      - "homepage.group=Game Servers"
+      - "homepage.group=Gaming"
       - "homepage.name=Minecraft Bedrock Server"
       - "homepage.icon=si-minecraft"
       - "homepage.href=http://minecraft.server.unarmedpuppy.com"
