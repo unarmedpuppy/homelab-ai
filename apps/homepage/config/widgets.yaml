@@ -5,7 +5,10 @@
 - resources:
     cpu: true
     memory: true
-    disk: /
+    disk:
+      - /
+      - /mnt/server-cloud
+      - /mnt/server-storage
 
 - search:
     provider: duckduckgo
