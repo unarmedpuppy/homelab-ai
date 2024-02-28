@@ -18,8 +18,8 @@
     units: imperial
     cache: 5 # Time in minutes to cache API responses, to stay within limits
 
-#- logo:
-    #icon: https://avatars.githubusercontent.com/u/1477193?v=4
+- logo:
+    icon: https://avatars.githubusercontent.com/u/1477193?v=4
 
 - datetime:
     text_size: sm
