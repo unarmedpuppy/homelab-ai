@@ -25,6 +25,10 @@
       - abbr: YT
         href: https://youtube.com
         icon: si-youtube
+  - Twitter:
+      - abbr:
+        href: https://twitter.com/unarmedpuppy
+        icon: si-twitter
 
 - Finance:
     - "Financial Planning":
