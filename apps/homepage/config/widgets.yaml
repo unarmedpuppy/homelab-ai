@@ -5,7 +5,7 @@
 - resources:
     cpu: true
     memory: true
-    disk: /
+    disk: /dev/nvme0n1p2
 
 - search:
     provider: duckduckgo
