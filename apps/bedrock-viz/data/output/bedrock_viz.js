@@ -2115,10 +2115,11 @@ function initDimension() {
             target: 'map',
             view: new ol.View({
                 projection: projection,
-                center: [
-                    dimensionInfo[globalDimensionId].playerPosX + Math.floor(dimensionInfo[globalDimensionId].worldWidth / 2)
-                   ,dimensionInfo[globalDimensionId].playerPosY + Math.floor(dimensionInfo[globalDimensionId].worldHeight / 2)
-                ],
+                // center: [
+                //     dimensionInfo[globalDimensionId].playerPosX + Math.floor(dimensionInfo[globalDimensionId].worldWidth / 2)
+                //    ,dimensionInfo[globalDimensionId].playerPosY + Math.floor(dimensionInfo[globalDimensionId].worldHeight / 2)
+                // ],
+                center: [0 ,0], //unarmedpuppy
                 resolution: 1
             })
         });
@@ -2129,7 +2130,7 @@ function initDimension() {
             //     dimensionInfo[globalDimensionId].playerPosX + Math.floor(dimensionInfo[globalDimensionId].worldWidth / 2)
             //    ,dimensionInfo[globalDimensionId].playerPosY + Math.floor(dimensionInfo[globalDimensionId].worldHeight / 2)
             // ],
-            center: [0 ,0],
+            center: [0 ,0], //unarmedpuppy
         resolution: 1
         });
         map.setView(view);
