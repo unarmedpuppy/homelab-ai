@@ -2125,10 +2125,11 @@ function initDimension() {
     } else {
         var view = new ol.View({
             projection: projection,
-            center: [
-                dimensionInfo[globalDimensionId].playerPosX + Math.floor(dimensionInfo[globalDimensionId].worldWidth / 2)
-               ,dimensionInfo[globalDimensionId].playerPosY + Math.floor(dimensionInfo[globalDimensionId].worldHeight / 2)
-            ],
+            // center: [
+            //     dimensionInfo[globalDimensionId].playerPosX + Math.floor(dimensionInfo[globalDimensionId].worldWidth / 2)
+            //    ,dimensionInfo[globalDimensionId].playerPosY + Math.floor(dimensionInfo[globalDimensionId].worldHeight / 2)
+            // ],
+            center: [0 ,0],
         resolution: 1
         });
         map.setView(view);
