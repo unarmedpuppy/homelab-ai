@@ -10,6 +10,12 @@ services:
     ports:
       - 8006:8080
     command: python3 run.py
+    labels:
+      - "homepage.group=Apps"
+      - "homepage.name=Stable Diffusion"
+      - "homepage.icon=si-sega"
+      - "homepage.href=http://192.168.86.47:8006"
+      - "homepage.description=Generate AI Images"
 
 volumes:
   stablediffusion:
