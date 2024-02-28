@@ -6,6 +6,7 @@
     cputemp: true
     uptime: true
     memory: true
+    expanded: true
     disk: /
 
 - search:
