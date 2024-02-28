@@ -19,7 +19,7 @@
     cache: 5 # Time in minutes to cache API responses, to stay within limits
 
 - logo:
-    icon: si-bitcoin
+    icon: si-debian
 
 - datetime:
     text_size: sm
