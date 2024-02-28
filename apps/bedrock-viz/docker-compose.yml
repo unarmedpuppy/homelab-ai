@@ -9,10 +9,16 @@ services:
     volumes:
       - ~/server/apps/bedrock-viz/data/output:/usr/share/nginx/html:ro
     labels:
-      #- "traefik.enable=true"
-      #- "traefik.http.routers.bedrock-viz-http.rule=Host(`minecraft.server.unarmedpuppy.com`)"
-      #- "traefik.http.routers.bedrock-viz-http.entrypoints=web"
-      #- "traefik.http.services.bedrock-viz-http.loadbalancer.server.port=80"
+      - "traefik.enable=true"
+      # HTTPS redirect
+      - traefik.http.middlewares.mywebserver-redirect-web-secure.redirectscheme.scheme=https
+      - traefik.http.routers.gumberlund-redirect.middlewares=mywebserver-redirect-web-secure
+      - traefik.http.routers.gumberlund-redirect.rule=Host(`gumberlund.server.unarmedpuppy.com`)
+      - traefik.http.routers.gumberlund-redirect.entrypoints=web
+      # Main HTTPS router
+      - "traefik.http.routers.gumberlund.rule=Host(`gumberlund.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.gumberlund.entrypoints=websecure" # your https endpoint
+      - "traefik.http.routers.gumberlund.tls.certresolver=myresolver" # your cert resolver
       - "homepage.group=Gaming"
       - "homepage.name=Bedrock Viz"
       - "homepage.icon=si-maplibre"
