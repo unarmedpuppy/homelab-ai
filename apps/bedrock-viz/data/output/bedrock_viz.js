@@ -2122,8 +2122,8 @@ function initDimension() {
             view: new ol.View({
                 projection: projection,
                 center: [
-                    dimensionInfo[globalDimensionId].playerPosX + Math.floor(dimensionInfo[globalDimensionId].worldWidth / 100)
-                   ,dimensionInfo[globalDimensionId].playerPosY + Math.floor(dimensionInfo[globalDimensionId].worldHeight / 120)
+                    dimensionInfo[globalDimensionId].playerPosX + Math.floor(dimensionInfo[globalDimensionId].worldWidth / 125)
+                   ,dimensionInfo[globalDimensionId].playerPosY + Math.floor(dimensionInfo[globalDimensionId].worldHeight / 150)
                 ],
                 resolution: 1
             })
