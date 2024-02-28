@@ -37,7 +37,7 @@ services:
             - "homepage.group=Apps"
             - "homepage.name=Plex"
             - "homepage.icon=si-plex"
-            - "homepage.href=http://plex.server.unarmedpuppy.com"
+            - "homepage.href=https://plex.server.unarmedpuppy.com"
             - "homepage.description=Movies & TV shows"
 networks:
   my-network:
