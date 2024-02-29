@@ -23,7 +23,7 @@ services:
       - "homepage.name=Home Assistant"
       - "homepage.icon=si-homeassistant"
       - "homepage.href=https://homeassistant.server.unarmedpuppy.com"
-      - "homepage.description=Smart home & automations"
+      - "homepage.description=Smart home devices & automations"
     networks:
       - my-network
 
