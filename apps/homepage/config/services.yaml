@@ -9,7 +9,7 @@
           type: coinmarketcap
           currency: USD # Optional
           symbols: [BTC]
-          defaultinterval: 1h # Optional
+          defaultinterval: 5m # Optional
           key: db738ebc-9dcc-488e-91b9-cdbbd0e9b2fb
     #- Metrics:
         #widget:
