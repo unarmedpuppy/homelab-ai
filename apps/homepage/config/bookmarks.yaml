@@ -43,6 +43,10 @@
         - abbr: FN
           href: "https://docs.google.com/document/d/1-7RTeNd1_w6WRK_4vquTFGjK2-lD_Ta0_fnDVmKruRc"
           icon: si-fireship
+    - "BCU":
+        - abbr: BU
+          href: "https://www.bcu.org/"
+          icon: si-bricks
 
 - MTG:
     - "Moxfield":
