@@ -80,6 +80,27 @@ Base Board Information
 
 - Jenquist Archive (8TB Raid 1 - remote/not mounted to system) Source of truth for all files synced to this server
 
+# Fan speed
+- Install lm-sensors
+
+`sudo apt update && sudo apt install lm-sensors`
+
+- Detect sensors and determine modules to load:
+
+`sudo sensors-detect`
+
+- Run sensors to confirm whether the sensors are working fine
+
+`sensors`
+
+- get fancontrol
+
+`sudo apt-get install fancontrol`
+
+- Configure fancontrol using pwmconfig
+
+`sudo pwmconfig`
+
 
 # Router configuration (Google Home)
 
