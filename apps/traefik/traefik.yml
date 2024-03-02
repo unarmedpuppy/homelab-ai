@@ -109,7 +109,7 @@ providers:
 certificatesResolvers:
   myresolver:
     acme:
-      email: example@example.com  # the email address used for ssl certificate registration
+      email: admin@unarmedpuppy.com  # the email address used for ssl certificate registration
       storage: /etc/traefik/acme.json
       dnsChallenge:
         provider: cloudflare
