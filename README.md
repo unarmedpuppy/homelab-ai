@@ -56,21 +56,9 @@ upgrade:
 
 # Motherboard
 
-Base Board Information
-        Manufacturer: Elo Touch Solutions
-        Product Name: Coffeelake
-        Version: EloPOS Pack
-        Serial Number: To be filled by O.E.M.
-        Asset Tag: Default string
-        Features:
-                Board is a hosting board
-                Board is replaceable
-        Location In Chassis: Default string
-        Chassis Handle: 0x0003
-        Type: Motherboard
-        Contained Object Handles: 0
-
 # RAM
+
+32gb
 
 # External Storage
 
@@ -78,7 +66,7 @@ Base Board Information
 - server-storage 4TB (used for syncing media & photo content to/from Seafile - inteneded to be ephemeral)
 - server-cloud 8TB (Seafile sync server, server backups - intended to be a backup of Jenquist cloud & serve as a syncing source for other devices, including server-storage)
 
-- Jenquist Archive (8TB Raid 1 - remote/not mounted to system) Source of truth for all files synced to this server
+- Jenquist Cloud (Raid TBD)
 
 # Fan speed
 - Install lm-sensors
