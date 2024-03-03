@@ -8,3 +8,9 @@ services:
       - "8020:8081"
     volumes:
       - ./data:/downloads
+    labels:
+      - "homepage.group=Apps"
+      - "homepage.name=MeTube"
+      - "homepage.icon=si-aldinord"
+      - "homepage.href=http://192.168.86.47:8020"
+      - "homepage.description=Download & Save Youtube videos"
