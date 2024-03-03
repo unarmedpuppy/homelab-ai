@@ -101,6 +101,9 @@ Base Board Information
 
 `sudo pwmconfig`
 
+Do you want to set up its configuration file now (y)? y
+What should be the path to your fancontrol config file (/etc/fancontrol)
+
 
 # Router configuration (Google Home)
 
@@ -492,6 +495,17 @@ networks:
 - Test the Mount
 
     `sudo mount -a`
+
+### ZFS - RAID
+
+Install ZFS packages:
+sudo apt install linux-headers-amd64 zfsutils-linux zfs-dkms zfs-zed -y
+
+Load the ZFS module:
+sudo modprobe zfs
+
+Check the ZFS version:
+zfs version
 
 </details>
 
