@@ -11,6 +11,6 @@ services:
     labels:
       - "homepage.group=Apps"
       - "homepage.name=MyTube"
-      - "homepage.icon=si-youtube"
+      - "homepage.icon=si-youtubekids"
       - "homepage.href=http://192.168.86.47:8020"
       - "homepage.description=Download & Save Youtube videos"
