@@ -499,13 +499,16 @@ networks:
 ### ZFS - RAID
 
 Install ZFS packages:
-sudo apt install linux-headers-amd64 zfsutils-linux zfs-dkms zfs-zed -y
+
+`sudo apt install linux-headers-amd64 zfsutils-linux zfs-dkms zfs-zed -y`
 
 Load the ZFS module:
-sudo modprobe zfs
 
-Check the ZFS version:
-zfs version
+`sudo modprobe zfs`
+
+- Check the ZFS version:
+
+`zfs version`
 
 </details>
 
