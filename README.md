@@ -638,6 +638,8 @@ curl -1sLf \
 sudo apt update
 sudo apt install coolercontrol
 
+sudo coolercontrol-liqctld
+
 
 <summary>Configure Grafana</summary>
 
