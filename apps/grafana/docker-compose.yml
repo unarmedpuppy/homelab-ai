@@ -88,7 +88,6 @@ services:
     command:
       - --web.enable-lifecycle
       - --config.file=/etc/prometheus/prometheus.yml
-      - --web.config.file=/etc/prometheus/web.yml # Add this line
     networks:
       - my-network
 
