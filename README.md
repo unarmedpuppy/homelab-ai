@@ -486,6 +486,28 @@ networks:
 
 ### ZFS - RAID
 
+Add or enable contrib repo to /etc/apt/sources.list using sed command:
+sed -r -i'.BAK' 's/^deb(.*)$/deb\1 contrib/g' /etc/apt/sources.list
+
+Here is how it looks when contrib is appended to each line:
+deb http://deb.debian.org/debian bookworm main non-free non-free-firmware contrib
+deb http://deb.debian.org/debian bookworm-updates main non-free non-free-firmware contrib
+deb http://deb.debian.org/debian-security/ bookworm-security main non-free non-free-firmware contrib
+Update apt repo database, type:
+apt update
+Install zfs package on a Debian Linux 12:
+apt install linux-headers-amd64 zfsutils-linux zfs-dkms zfs-zed
+
+Are you using a cloud server with cloud Linux kernel? Try:
+apt install linux-headers-cloud-amd64 zfsutils-linux zfs-dkms zfs-zed
+Test it by running zfs version command:
+modprobe zfs #<--load the module
+zfs version
+
+Outputs:
+zfs-2.1.11-1
+zfs-kmod-2.1.11-1
+
 Install ZFS packages:
 
 `sudo apt install linux-headers-amd64 zfsutils-linux zfs-dkms zfs-zed -y`
@@ -497,6 +519,22 @@ Load the ZFS module:
 - Check the ZFS version:
 
 `zfs version`
+
+`sudo zpool create jenquist-cloud raidz1 /dev/sda /dev/sdb /dev/sdc /dev/sdd`
+
+`sudo zfs create jenquist-cloud/archive`
+
+  pool: jenquist-cloud
+ state: ONLINE
+config:
+
+        NAME            STATE     READ WRITE CKSUM
+        jenquist-cloud  ONLINE       0     0     0
+          raidz1-0      ONLINE       0     0     0
+            sda         ONLINE       0     0     0
+            sdb         ONLINE       0     0     0
+            sdc         ONLINE       0     0     0
+            sdd         ONLINE       0     0     0
 
 </details>
 
@@ -590,6 +628,17 @@ https://github.com/nextcloud/all-in-one/blob/main/reverse-proxy.md
 </details>
 
 <details>
+
+fans:
+Coolero:
+
+curl -1sLf \
+  'https://dl.cloudsmith.io/public/coolercontrol/coolercontrol/setup.deb.sh' \
+  | sudo -E bash
+sudo apt update
+sudo apt install coolercontrol
+
+
 <summary>Configure Grafana</summary>
 
 ### Grafana
