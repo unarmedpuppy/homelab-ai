@@ -640,6 +640,15 @@ sudo apt install coolercontrol
 
 sudo coolercontrol-liqctld
 
+weird thing i did to add fans to `sensors` output:
+
+git clone https://github.com/a1wong/it87.git
+
+cd it87
+sudo make clean
+sudo make && make install
+sudo modprobe it87 ignore_resource_conflict=1 force_id=0x8622
+
 
 <summary>Configure Grafana</summary>
 
