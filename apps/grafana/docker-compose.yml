@@ -82,10 +82,13 @@ services:
     image: prom/prometheus:v2.21.0
     container_name: prometheus
     ports:
-      - "9090:9090" # Expose Prometheus on port 9090
+      - "9090:9090"
     volumes:
-      - ./data/prometheus:/etc/prometheus # Place prometheus.yml
-    command: --web.enable-lifecycle --config.file=/etc/prometheus/prometheus.yml
+      - ./data/prometheus:/etc/prometheus
+    command:
+      - --web.enable-lifecycle
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.config.file=/etc/prometheus/web.yml # Add this line
     networks:
       - my-network
 
