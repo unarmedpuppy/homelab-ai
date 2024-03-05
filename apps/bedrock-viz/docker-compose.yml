@@ -4,6 +4,7 @@ services:
   bedrock-viz-http:
     image: nginx
     container_name: bedrock-viz-http
+    restart: unless-stopped
     ports:
       - 8081:80
     volumes:
