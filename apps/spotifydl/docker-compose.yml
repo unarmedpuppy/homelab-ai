@@ -4,8 +4,6 @@ services:
     image: spotdl/spotify-downloader
     container_name: spotifydl
     restart: unless-stopped
-    ports:
-      - "8019:8800"
     volumes:
       - ./data:/downloads
     labels:
