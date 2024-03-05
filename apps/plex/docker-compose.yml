@@ -11,7 +11,7 @@ services:
         volumes:
             - ./data/config:/config
             - ./data/transcode:/transcode
-            - /jenquist-cloud/archive:/data
+            - /jenquist-cloud/archive/personal-media:/data
         restart: unless-stopped
         ports:
           - "32400:32400/tcp"
