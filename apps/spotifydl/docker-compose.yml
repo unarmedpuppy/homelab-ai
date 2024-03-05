@@ -10,7 +10,7 @@ services:
       - TZ=America/Chicago
       - UMASK=002
     ports:
-      - 8019:8800
+      - 8800:8800
     volumes:
       - /data:/music #must use the :/music for config to work.
     #network_mode: host
