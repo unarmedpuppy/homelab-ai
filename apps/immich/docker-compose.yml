@@ -87,7 +87,7 @@ services:
       POSTGRES_DB: ${DB_DATABASE_NAME}
       PG_DATA: /var/lib/postgresql/data
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - im-pgdata:/var/lib/postgresql/data
     restart: unless-stopped
     #labels:
     #  - "com.centurylinklabs.watchtower.enable=true"
@@ -96,7 +96,7 @@ services:
     
 volumes:
   model-cache:
-  pgdata:
+  im-pgdata:
 
 networks:
   my-network:
