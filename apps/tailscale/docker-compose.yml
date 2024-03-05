@@ -10,6 +10,7 @@ services:
       - /dev/net/tun:/dev/net/tun
       - tailscale-volume:/var/lib/tailscale
     command: ["tailscaled"]
+    restart: unless-stopped
     environment:
       - TS_AUTHKEY=tskey-auth-kq8ZZz6CNTRL-ySrwZtner83AryykCZxJ93xgnNVne8Vf
     labels:
