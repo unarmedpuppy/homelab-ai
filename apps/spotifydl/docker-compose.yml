@@ -12,12 +12,12 @@ services:
     ports:
       - 8800:8800
     volumes:
-      - ./data/crunkydumpers:/music #must use the :/music for config to work.
+      - ./data:/music #must use the :/music for config to work.
     #network_mode: host
     restart: unless-stopped
     labels:
       - "homepage.group=Apps"
       - "homepage.name=SpotifyDL"
       - "homepage.icon=si-spotify"
-      - "homepage.href=http://192.168.86.47:8019"
+      - "homepage.href=http://192.168.86.47:8800"
       - "homepage.description=Download & Save Spotify content"
