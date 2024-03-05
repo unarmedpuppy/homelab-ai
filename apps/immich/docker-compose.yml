@@ -39,7 +39,7 @@ services:
     volumes:
       - ${UPLOAD_LOCATION}:/usr/src/app/upload
       - /etc/localtime:/etc/localtime:ro
-      - /mnt/server-cloud/photo-archive:/mnt/server-cloud/photo-archive:ro
+      - /jenquist-cloud/archive/personal-media:/jenquist-cloud/archive/personal-media:ro
     env_file:
       - .env
     environment:
