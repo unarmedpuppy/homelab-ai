@@ -1,0 +1,1 @@
+https://spotdl.readthedocs.io/en/latest/installation/#docker-compose
