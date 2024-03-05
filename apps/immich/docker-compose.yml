@@ -30,7 +30,7 @@ services:
       - "homepage.name=Immich"
       - "homepage.icon=si-googlephotos"
       - "homepage.href=http://192.168.86.47:2283"
-      - "homepage.description=Immich photo server"
+      - "homepage.description=Family photos & videos"
 
   immich-microservices:
     container_name: immich-microservices
