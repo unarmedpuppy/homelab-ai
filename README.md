@@ -1194,3 +1194,6 @@ sudo useradd --home-dir /home/seafile --create-home --uid 8000 --gid 8000 --shel
 `docker exec tailscale-tailscale-1 tailscale up`
 
 `docker exec tailscale-tailscale-1 tailscale set --advertise-exit-node`
+
+### Spotify down
+https://spotdl.readthedocs.io/en/latest/installation/#docker-compose
