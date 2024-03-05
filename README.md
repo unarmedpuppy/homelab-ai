@@ -1189,13 +1189,3 @@ run as non-root:
 sudo useradd --home-dir /home/seafile --create-home --uid 8000 --gid 8000 --shell /bin/sh --skel /dev/null seafile
 
 
-
-# Tailscale
-`docker exec tailscale-tailscale-1 tailscale up`
-
-`docker exec tailscale-tailscale-1 tailscale set --advertise-exit-node`
-
-### Spotify down
-https://spotdl.readthedocs.io/en/latest/installation/#docker-compose
-
-docker-compose run --rm spotdl download https://open.spotify.com/playlist/2mUsnbS1zfGWQEWkYzNrRG?si=3f369d0e71d74425
