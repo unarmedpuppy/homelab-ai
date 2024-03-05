@@ -13,7 +13,7 @@ services:
       - 8019:8800
     volumes:
       - /data:/music #must use the :/music for config to work.
-    network_mode: host
+    #network_mode: host
     restart: unless-stopped
     labels:
       - "homepage.group=Apps"
