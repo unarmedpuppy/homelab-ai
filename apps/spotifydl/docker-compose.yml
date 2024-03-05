@@ -10,7 +10,7 @@ services:
       - ./data:/downloads
     labels:
       - "homepage.group=Apps"
-      - "homepage.name=MyTube"
-      - "homepage.icon=si-youtubekids"
+      - "homepage.name=SpotifyDL"
+      - "homepage.icon=si-spotify"
       - "homepage.href=http://192.168.86.47:8020"
-      - "homepage.description=Download & Save Youtube videos"
+      - "homepage.description=Download & Save Spotify content"
