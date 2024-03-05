@@ -10,7 +10,7 @@ services:
     volumes:
       - ${UPLOAD_LOCATION}:/usr/src/app/upload
       - /etc/localtime:/etc/localtime:ro
-      - /jenquist-cloud/archive/personal-media:/jenquist-cloud/archive/personal-media:ro
+      - ${EXTERNAL_PATH}:/usr/src/app/external
     env_file:
       - .env
     environment:
@@ -37,7 +37,7 @@ services:
     volumes:
       - ${UPLOAD_LOCATION}:/usr/src/app/upload
       - /etc/localtime:/etc/localtime:ro
-      - /jenquist-cloud/archive/personal-media:/jenquist-cloud/archive/personal-media:ro
+      - ${EXTERNAL_PATH}:/usr/src/app/external
     env_file:
       - .env
     environment:
