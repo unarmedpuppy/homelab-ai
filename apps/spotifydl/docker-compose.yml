@@ -1,16 +1,23 @@
 version: "3"
 services:
-  metube:
+  spotdl:
+    container_name: spotdl
     image: spotdl/spotify-downloader
-    container_name: spotifydl
-    restart: unless-stopped
+    command: web --host 0.0.0.0 --web-use-output-dir
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Chicago
+      - UMASK=002
     ports:
-      - "8019:8800"
+      - 8019:8800
     volumes:
-      - ./data:/downloads
+      - /data:/music #must use the :/music for config to work.
+    network_mode: host
+    restart: unless-stopped
     labels:
       - "homepage.group=Apps"
-      - "homepage.name=MyTube"
-      - "homepage.icon=si-youtubekids"
-      - "homepage.href=http://192.168.86.47:8020"
-      - "homepage.description=Download & Save Youtube videos"
+      - "homepage.name=SpotifyDL"
+      - "homepage.icon=si-spotify"
+      - "homepage.href=http://192.168.86.47:8019"
+      - "homepage.description=Download & Save Spotify content"
