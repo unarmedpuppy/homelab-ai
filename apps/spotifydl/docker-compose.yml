@@ -2,7 +2,7 @@ version: "3"
 services:
   metube:
     image: spotdl/spotify-downloader
-    container_name: spotifydl
+    container_name: spotdl
     restart: unless-stopped
     volumes:
       - ./data:/downloads
