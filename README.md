@@ -1162,3 +1162,30 @@ Enter your AdGuard Home server addresses there.
 On some router types, a custom DNS server cannot be set up. In that case, setting up AdGuard Home as a DHCP server may help. Otherwise, you should check the router manual on how to customize DNS servers on your specific router model.
 ```
 
+Sensor temp:
+I decided to go a bit further:
+
+Let's assume the temperature reported by BIOS is accurate.
+
+First I let my computer idle for couple of hours. Then I run sensors, quickly rebooted and check the CPU temperature from BIOS.
+
+sensors_min = 26.9
+bios_min = 47
+Then I run mprime torture test to heat up my machine. After a couple of hours, I run sensors, quickly rebooted and checked CPU temperature from BIOS.
+
+sensors_max = 52.5
+bios_max = 54 + 3 = 57 (I added a couple of degrees due to CPU cooling down a bit)
+With these figures I made the following equation:
+
+real_temp = bios_min + ((sensors_temp - sensors_min) * (bios_max - bios_min)) / (sensors_max - sensors_min)
+With the values I got from the above mentioned test, the equation is reduced to following:
+
+real_temp = (sensors_temp / 2.56) + 36.4921875
+I put the equation to configuration file /etc/sensors.d/k10temp.conf:
+
+chip "k10temp-*"
+
+   label temp1 "CPU Temp"
+
+   compute  temp1  (@/2.56)+36.4921875, (@-36.4921875)*2.56
+It's not exactly accurate, but close enough for me.
