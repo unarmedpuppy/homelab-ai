@@ -1189,3 +1189,17 @@ chip "k10temp-*"
 
    compute  temp1  (@/2.56)+36.4921875, (@-36.4921875)*2.56
 It's not exactly accurate, but close enough for me.
+
+
+## stress test
+
+sudo apt install stress
+stress --cpu 8
+
+# cloud flare tunnel
+
+curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb && 
+
+sudo dpkg -i cloudflared.deb && 
+
+sudo cloudflared service install eyJhIjoiYjk2OWY3ZmQ5MzlkYTZmOTQ0NDUyNzc0Nzg2YzViZjUiLCJ0IjoiMDQ4YmZiMjAtZjA2NC00NzU2LWJmZWEtYjM1NTg3MjQ5MzZkIiwicyI6Ik5HWTFNbU0zWWpndE9XSm1aQzAwTVRreExXSTRPREF0WkRZeVpqZ3lNalpoWldFeCJ9
