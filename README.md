@@ -124,6 +124,10 @@ Properly prune old images
 view reclaimable memory:
 `docker system df`
 
+prune unused docker volumes:
+
+`docker volume prune`
+
 # Cron jobs
 
 Prune dockr images once a week
