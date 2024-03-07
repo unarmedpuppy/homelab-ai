@@ -130,6 +130,10 @@ Prune dockr images once a week
 
 `0 5 * * 1 docker system prune -a -f` 
 
+Restart machine nightly
+
+`15 5 * * * /sbin/reboot`
+
 # Aliases
 
 `cycle`
