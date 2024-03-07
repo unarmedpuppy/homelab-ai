@@ -138,6 +138,10 @@ Restart machine nightly
 
 `15 5 * * * /sbin/reboot`
 
+Backup rust player data on the first wednesday of each month:
+
+`0 0 1-7 * * [ "$(date +\%u)" = "3" ] && ~/server/scripts/backup-rust.sh`
+
 # Aliases
 
 `cycle`
