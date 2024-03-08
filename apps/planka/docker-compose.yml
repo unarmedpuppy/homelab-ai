@@ -5,15 +5,15 @@ services:
     image: ghcr.io/plankanban/planka:latest
     restart: on-failure
     volumes:
-      - user-avatars:/app/public/user-avatars
-      - project-background-images:/app/public/project-background-images
-      - attachments:/app/private/attachments
+      - planka-user-avatars:/app/public/user-avatars
+      - planka-project-background-images:/app/public/project-background-images
+      - planka-attachments:/app/private/attachments
     ports:
-      - 3000:1337
+      - 3005:1337
     environment:
-      - BASE_URL=http://localhost:3000
+      - BASE_URL=http://localhost:3005
       - DATABASE_URL=postgresql://postgres@postgres/planka
-      - SECRET_KEY=notsecretkey
+      - SECRET_KEY=notsecretkeyireallydontcare2
 
       # - TRUST_PROXY=0
       # - TOKEN_EXPIRES_IN=365 # In days
@@ -51,7 +51,7 @@ services:
     image: postgres:14-alpine
     restart: on-failure
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - planka-db-data:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=planka
       - POSTGRES_HOST_AUTH_METHOD=trust
@@ -62,7 +62,7 @@ services:
       retries: 5
 
 volumes:
-  user-avatars:
-  project-background-images:
-  attachments:
-  db-data:
+  planka-user-avatars:
+  planka-project-background-images:
+  planka-attachments:
+  planka-db-data:
