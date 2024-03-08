@@ -55,7 +55,7 @@ services:
 
   postgres:
     image: postgres:14-alpine
-    restart: on-failure
+    restart: unless-stopped
     volumes:
       - planka-db-data:/var/lib/postgresql/data
     environment:
