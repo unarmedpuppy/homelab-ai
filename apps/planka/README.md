@@ -1,0 +1,1 @@
+https://docs.planka.cloud/docs/installation/docker/production_version
