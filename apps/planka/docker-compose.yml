@@ -43,6 +43,12 @@ services:
       # - OIDC_IGNORE_USERNAME=true
       # - OIDC_IGNORE_ROLES=true
       # - OIDC_ENFORCED=true
+    labels:
+      - "homepage.group=Apps"
+      - "homepage.name=Planka"
+      - "homepage.icon=si-todoist"
+      - "homepage.href=http://192.168.86.47:3005/"
+      - "homepage.description=Projects, To-Do lists & Kanban"
     depends_on:
       postgres:
         condition: service_healthy
