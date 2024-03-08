@@ -3,7 +3,7 @@ version: '3'
 services:
   planka:
     image: ghcr.io/plankanban/planka:latest
-    restart: on-failure
+    restart: unless-stopped
     volumes:
       - planka-user-avatars:/app/public/user-avatars
       - planka-project-background-images:/app/public/project-background-images
