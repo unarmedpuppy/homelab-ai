@@ -11,7 +11,7 @@ services:
     ports:
       - 3006:1337
     environment:
-      - BASE_URL=http://192.168.86.47/:3006
+      - BASE_URL=http://192.168.86.47:3006
       - DATABASE_URL=postgresql://postgres@postgres/planka
       - SECRET_KEY=notsecretkeyireallydontcare2
 
