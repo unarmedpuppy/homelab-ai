@@ -9,7 +9,7 @@ services:
       #- RUST_SERVER_SEED=174932776 #SMALL
       #- RUST_SERVER_WORLDSIZE=1000
       - RUST_SERVER_SEED=1473311375
-      - RUST_SERVER_WORLDSIZE=3000
+      - RUST_SERVER_WORLDSIZE=2000
       - RUST_SERVER_MAXPLAYERS=64
       - RUST_SERVER_NAME=[US] Sulfur Boyz - Practice Girl Map v2.0
       - RUST_SERVER_DESCRIPTION=It's been 84 years. Long live Sulfur Boyz.
