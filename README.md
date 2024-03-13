@@ -130,7 +130,7 @@ prune unused docker volumes:
 
 # Cron jobs
 
-(see backups)
+(see backups schedule)
 
 Prune dockr images once a week
 
