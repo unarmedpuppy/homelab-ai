@@ -1215,3 +1215,9 @@ curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/relea
 sudo dpkg -i cloudflared.deb && 
 
 sudo cloudflared service install eyJhIjoiYjk2OWY3ZmQ5MzlkYTZmOTQ0NDUyNzc0Nzg2YzViZjUiLCJ0IjoiMDQ4YmZiMjAtZjA2NC00NzU2LWJmZWEtYjM1NTg3MjQ5MzZkIiwicyI6Ik5HWTFNbU0zWWpndE9XSm1aQzAwTVRreExXSTRPREF0WkRZeVpqZ3lNalpoWldFeCJ9
+
+### install Node
+
+`curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -`
+
+`sudo apt-get install -y nodejs`
