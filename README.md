@@ -1218,6 +1218,10 @@ sudo cloudflared service install eyJhIjoiYjk2OWY3ZmQ5MzlkYTZmOTQ0NDUyNzc0Nzg2YzV
 
 ### install Node
 
-`curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -`
+`curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -`
 
 `sudo apt-get install -y nodejs`
+
+### Immich CLI
+
+`sudo npm i -g @immich/cli`
