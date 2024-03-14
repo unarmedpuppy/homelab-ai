@@ -46,7 +46,7 @@
     - "Fidelity":
         - abbr: FI
           href: "https://digital.fidelity.com/ftgw/digital/trader-dashboard/"
-          icon: si-bricks
+          icon: si-socialblade
     - "Vanguard":
         - abbr: VA
           href: "https://logon.vanguard.com/logon"
