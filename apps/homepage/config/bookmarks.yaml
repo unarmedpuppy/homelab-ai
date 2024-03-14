@@ -43,6 +43,14 @@
         - abbr: FN
           href: "https://docs.google.com/document/d/1-7RTeNd1_w6WRK_4vquTFGjK2-lD_Ta0_fnDVmKruRc"
           icon: si-fireship
+    - "Fidelity":
+        - abbr: FI
+          href: "https://digital.fidelity.com/ftgw/digital/trader-dashboard/"
+          icon: si-bricks
+    - "Vanguard":
+        - abbr: VA
+          href: "https://logon.vanguard.com/logon"
+          icon: si-vectorlogozone
     - "BCU":
         - abbr: BU
           href: "https://www.bcu.org/"
