@@ -126,7 +126,7 @@ view reclaimable memory:
 
 prune unused docker volumes:
 
-`docker volume prune`
+` n`
 
 # Cron jobs
 
