@@ -551,6 +551,10 @@ config:
             sdc         ONLINE       0     0     0
             sdd         ONLINE       0     0     0
 
+
+sudo zfs load-key -a
+sudo zfs mount -a
+
 </details>
 
 <details>
