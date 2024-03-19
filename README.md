@@ -29,6 +29,12 @@
 
 `sudo du -sh * | sort -hr | head -n10`
 
+# access edgeroute via ssh
+
+`ssh unarmedpuppy@172.16.30.1`
+
+password in 1password
+
 # user list
 
 `root` (root)
