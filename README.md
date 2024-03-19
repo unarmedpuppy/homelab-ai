@@ -1147,6 +1147,8 @@ networks:
 
 ### Adguard
 
+previous dns: 172.16.30.1
+
 ```
 Admin Web Interface
 Listen interface
