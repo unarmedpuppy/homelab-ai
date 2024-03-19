@@ -1,13 +1,13 @@
 # Linux Home Server
 
 - [Debian 12](https://www.debian.org/download) (Installed using [Etcher](https://etcher.balena.io/) to turn a USB drive into a bootable device)
-- local ip: `192.168.86.47` (`hostname -I`)
-- MAC address: 
+- local ip: `172.16.30.45` (`hostname -I`)
+- MAC address: 74:56:3c:e1:8b:3a
 - Power mode: Performance
 - Power Saving Options: Screen blank: Never, Auto Suspend: Off
 - Power Button Behavior: Nothing
 
-`ssh unarmedpuppy@192.168.86.47 -p 4242`
+`ssh unarmedpuppy@172.16.30.45 -p 4242`
 
 - Prevent suspend
 
@@ -321,11 +321,11 @@ Part Number: CBD26D4S9S8ME-8
 
 - Copy the Public Key to the Server
 
-    `ssh-copy-id -i /c/Users/micro/.ssh/id_rsa.pub -o 'Port=4242' unarmedpuppy@192.168.86.47`
+    `ssh-copy-id -i /c/Users/micro/.ssh/id_rsa.pub -o 'Port=4242' unarmedpuppy@172.16.30.45`
 
 - Now able to login with key
 
-    `ssh -o 'Port=4242' 'unarmedpuppy@192.168.86.47'`
+    `ssh -o 'Port=4242' 'unarmedpuppy@172.16.30.45'`
 
 - Disable Password Authentication on the Server
 
@@ -996,7 +996,7 @@ items = items + el.ariaLabel + "+"
 
 [server banner (1024 x 512) ](https://i.imgur.com/FIXxuRI.jpg)
 
-[rcon](http://192.168.86.47:8080/#/192.168.86.47:28016/playerlist)
+[rcon](http://172.16.30.45:8080/#/172.16.30.45:28016/playerlist)
 
 
 
@@ -1008,10 +1008,10 @@ local DNS (pihole - do this at night)
 
 - Copy world from PC to server
 
-  `scp -P  4242 -r ~/Desktop/server/minecraft/gumberlund unarmedpuppy@192.168.86.47:~/server/apps/minecraft/gumberlund`
+  `scp -P  4242 -r ~/Desktop/server/minecraft/gumberlund unarmedpuppy@172.16.30.45:~/server/apps/minecraft/gumberlund`
 
 
-scp -P  4242 -r ./static unarmedpuppy@192.168.86.47:~/server/apps/bedrock-viz/repo/build/static-upload
+scp -P  4242 -r ./static unarmedpuppy@172.16.30.45:~/server/apps/bedrock-viz/repo/build/static-upload
 
 - Server commands
 
@@ -1030,7 +1030,7 @@ https://github.com/bedrock-viz/bedrock-viz?tab=readme-ov-file
 
 - Copy generated map from PC to server
 
-  `scp -P  4242 -r ~/Desktop/server/minecraft/map unarmedpuppy@192.168.86.47:~/server/apps/bedrock-viz/map`
+  `scp -P  4242 -r ~/Desktop/server/minecraft/map unarmedpuppy@172.16.30.45:~/server/apps/bedrock-viz/map`
 
 ```
 version: '3'
