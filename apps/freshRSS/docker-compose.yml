@@ -19,7 +19,7 @@ services:
       - "homepage.name=FreshRSS"
       - "homepage.icon=si-rss"
       - "homepage.description=RSS reader"
-      - "homepage.href=http://192.168.86.47:8005"
+      - "homepage.href=http://172.16.30.45:8005"
 
   db:
     image: postgres:latest

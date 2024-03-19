@@ -35,7 +35,7 @@ services:
       - "homepage.group=Services"
       - "homepage.name=Adguard"
       - "homepage.icon=si-adguard"
-      - "homepage.href=http://192.168.86.47:8083"
+      - "homepage.href=http://172.16.30.45:8083"
       - "homepage.description=Local DNS & Ad blocking"
 
 networks:

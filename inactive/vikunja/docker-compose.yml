@@ -21,12 +21,12 @@ services:
     restart: unless-stopped
     labels:
       #local DNS
-      - "traefik.http.routers.vikunja-local.rule=Host(`vikunja.local.unarmedpuppy.com`) || Host(192.168.86.47)"
+      - "traefik.http.routers.vikunja-local.rule=Host(`vikunja.local.unarmedpuppy.com`) || Host(172.16.30.45)"
       - "traefik.http.routers.vikunja-local.entrypoints=web"
       - "homepage.group=Apps"
       - "homepage.name=Vikunja"
       - "homepage.icon=si-todoist"
-      - "homepage.href=http://192.168.86.47:3456/"
+      - "homepage.href=http://172.16.30.45:3456/"
       - "homepage.description=Projects, To-Do lists & Kanban"
   db:
     image: mariadb:10

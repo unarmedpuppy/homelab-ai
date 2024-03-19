@@ -17,7 +17,7 @@ services:
        - LOG_CONFS=true
        - PEERDNS=auto #optional 
        - INTERNAL_SUBNET=10.13.13.0 #optional 
-       - ALLOWEDIPS=192.168.86.47/32 
+       - ALLOWEDIPS=172.16.30.45/32 
      volumes: 
        - wireguard:/config 
        - /usr/src:/usr/src # location of kernel headers 

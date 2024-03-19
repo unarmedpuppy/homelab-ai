@@ -8,8 +8,8 @@
 
  seaf-cli start
 
- seaf-cli download -l "6e64c8a4-dac9-40a2-bf17-730b740d902b" -s  "http://192.168.86.47:7780/" -d "/mnt/server-storage/entertainment-sync" -u "seafile@jenquist.com" -p "MySecureLoginPassword"
- seaf-cli download -l "c8a506c3-ee92-4301-8dbc-ac3336dea4ec" -s  "http://192.168.86.47:7780/" -d "/mnt/server-storage/family-media-sync" -u "seafile@jenquist.com" -p "MySecureLoginPassword"
+ seaf-cli download -l "6e64c8a4-dac9-40a2-bf17-730b740d902b" -s  "http://172.16.30.45:7780/" -d "/mnt/server-storage/entertainment-sync" -u "seafile@jenquist.com" -p "MySecureLoginPassword"
+ seaf-cli download -l "c8a506c3-ee92-4301-8dbc-ac3336dea4ec" -s  "http://172.16.30.45:7780/" -d "/mnt/server-storage/family-media-sync" -u "seafile@jenquist.com" -p "MySecureLoginPassword"
 
  check library integrity:
 
