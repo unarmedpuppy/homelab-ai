@@ -19,5 +19,5 @@ services:
       - "homepage.group=Apps"
       - "homepage.name=SpotifyDL"
       - "homepage.icon=si-spotify"
-      - "homepage.href=http://172.16.30.45:8800"
+      - "homepage.href=http://192.168.86.47:8800"
       - "homepage.description=Download & Save Spotify content"

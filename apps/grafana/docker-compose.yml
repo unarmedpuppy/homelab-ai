@@ -130,7 +130,7 @@ services:
       - "homepage.group=Services"
       - "homepage.name=Grafana"
       - "homepage.icon=si-grafana"
-      - "homepage.href=http://172.16.30.45:3010/d/sF7d-FHZz122/server?orgId=1&refresh=15m"
+      - "homepage.href=http://192.168.86.47:3010/d/sF7d-FHZz122/server?orgId=1&refresh=15m"
       - "homepage.description=Home Server telemetry & metrics"
 
 networks:

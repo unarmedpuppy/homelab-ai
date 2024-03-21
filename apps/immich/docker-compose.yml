@@ -27,7 +27,7 @@ services:
       - "homepage.group=Apps"
       - "homepage.name=Immich"
       - "homepage.icon=si-googlephotos"
-      - "homepage.href=http://172.16.30.45:2283"
+      - "homepage.href=http://192.168.86.47:2283"
       - "homepage.description=Family photos & videos"
 
   immich-microservices:
