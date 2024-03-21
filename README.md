@@ -1241,9 +1241,3 @@ sudo cloudflared service install eyJhIjoiYjk2OWY3ZmQ5MzlkYTZmOTQ0NDUyNzc0Nzg2YzV
 
 `sudo npm i -g @immich/cli`
 
-
-
-172.16.30.0/24
-172.16.30.38
-172.16.30.243
-172.16.30.1
