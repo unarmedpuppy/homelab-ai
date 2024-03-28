@@ -1,7 +1,9 @@
 version: '3.8'
 services:
   grist:
-    image: gristlabs/grist
+    build:
+      context: . # Assumes Dockerfile is in the same directory as this docker-compose.yml
+      dockerfile: Dockerfile # Specifies the name of the Dockerfile
     ports:
       - "8484:8484" # Change 8484:8484 to desired PORT:PORT to change port
     volumes:
