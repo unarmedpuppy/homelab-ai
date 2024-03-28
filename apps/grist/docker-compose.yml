@@ -12,8 +12,8 @@ services:
     stdin_open: true
     tty: true
     labels:
-      - "homepage.group=Apps"
+      - "homepage.group=Services"
       - "homepage.name=Grist"
       - "homepage.icon=si-googlesheets"
       - "homepage.href=http://192.168.86.47:8484"
-      - "homepage.description=Spreadsheets"
+      - "homepage.description=Spreadsheets Core"
