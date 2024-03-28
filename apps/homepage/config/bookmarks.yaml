@@ -55,6 +55,10 @@
         - abbr: BU
           href: "https://www.bcu.org/"
           icon: si-bricks
+    - "BTC stats":
+        - abbr: BT
+          href: "https://newhedge.io/terminal/bitcoin"
+          icon: si-bitcoin
 
 - MTG:
     - "Moxfield":
