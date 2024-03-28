@@ -7,7 +7,7 @@ services:
     ports:
       - "8484:8484" # Change 8484:8484 to desired PORT:PORT to change port
     volumes:
-      - "./persist:/persist" # Map local persist directory to container's /persist
+      - "grist:/persist" # Map local persist directory to container's /persist
     environment:
       PORT: "8484" # Set PORT variable if you need to change Grist's running port
       GRIST_SANDBOX_FLAVOR: "gvisor" # Optional: Enable gVisor sandboxing
@@ -16,6 +16,7 @@ services:
     stdin_open: true
     tty: true
     restart: unless-stopped
+    volumes:
     labels:
       - "homepage.group=Services"
       - "homepage.name=Grist"
