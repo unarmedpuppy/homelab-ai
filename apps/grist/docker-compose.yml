@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  grist:
+    image: gristlabs/grist
+    ports:
+      - "8484:8484" # Change 8484:8484 to desired PORT:PORT to change port
+    volumes:
+      - "./persist:/persist" # Map local persist directory to container's /persist
+    environment:
+      PORT: "8484" # Set PORT variable if you need to change Grist's running port
+      GRIST_SANDBOX_FLAVOR: "gvisor" # Optional: Enable gVisor sandboxing
+    stdin_open: true
+    tty: true
+    labels:
+      - "homepage.group=Apps"
+      - "homepage.name=Grist"
+      - "homepage.icon=si-googlesheets"
+      - "homepage.href=http://192.168.86.47:8484"
+      - "homepage.description=Spreadsheets"
