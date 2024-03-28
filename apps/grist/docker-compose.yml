@@ -9,8 +9,10 @@ services:
     environment:
       PORT: "8484" # Set PORT variable if you need to change Grist's running port
       GRIST_SANDBOX_FLAVOR: "gvisor" # Optional: Enable gVisor sandboxing
+      TZ: "America/Chicago"
     stdin_open: true
     tty: true
+    restart: unless-stopped
     labels:
       - "homepage.group=Services"
       - "homepage.name=Grist"
