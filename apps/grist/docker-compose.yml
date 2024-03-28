@@ -16,7 +16,6 @@ services:
     stdin_open: true
     tty: true
     restart: unless-stopped
-    volumes:
     labels:
       - "homepage.group=Services"
       - "homepage.name=Grist"
