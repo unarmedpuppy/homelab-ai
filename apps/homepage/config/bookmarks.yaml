@@ -16,6 +16,21 @@
           href: https://github.com/unarmedpuppy
           icon: si-github
 
+- AI Tools:
+    - Loudly:
+        - abbr: LD
+          href: https://www.loudly.com/
+          icon: si-musicbrainz
+    - Suno:
+        - abbr: SU
+          href: https://app.suno.ai/create/
+          icon: si-neteasecloudmusic
+    - Midjourney:
+        - abbr: MI
+          href: https://www.midjourney.com/home
+          icon: si-immer
+
+
 - Media:
   - Reddit:
       - abbr: rd
