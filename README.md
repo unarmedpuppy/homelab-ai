@@ -988,8 +988,8 @@ JS snippet to snag all subs
 
 ```
 var items = ''
-document.querySelectorAll('[role="menuitem"]').forEach(function (el){
-items = items + el.ariaLabel + "+"
+document.querySelectorAll('left-nav-community-item').forEach(function (el){
+items = items + el.getAttribute('prefixedname'); + "+"
 });
 ```
 </details>
