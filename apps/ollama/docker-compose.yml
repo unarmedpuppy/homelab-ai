@@ -18,7 +18,7 @@ services:
     labels:   
       - "homepage.group=Apps"
       - "homepage.name=ollama"
-      - "homepage.icon=si-openai"
+      - "homepage.icon=si-meta"
       - "homepage.href=http://192.168.86.47:8042"
       - "homepage.description=Ollama UI"
       
