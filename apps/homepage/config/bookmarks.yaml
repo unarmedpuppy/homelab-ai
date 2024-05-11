@@ -15,6 +15,10 @@
         - abbr: GH
           href: https://github.com/unarmedpuppy
           icon: si-github
+    - WZRanked:
+        - abbr: WZ
+          href: https://www.wzranked.com/wz2/meta
+          icon: si-cod
 
 - AI Tools:
     - Loudly:
@@ -24,7 +28,7 @@
     - Suno:
         - abbr: SU
           href: https://app.suno.ai/create/
-          icon: si-neteasecloudmusic
+          icon: si-neteasecloudmusicdon
     - Midjourney:
         - abbr: MI
           href: https://www.midjourney.com/home
