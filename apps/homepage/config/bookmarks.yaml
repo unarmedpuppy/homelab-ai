@@ -28,7 +28,7 @@
     - Suno:
         - abbr: SU
           href: https://app.suno.ai/create/
-          icon: si-neteasecloudmusicdon
+          icon: si-neteasecloudmusic
     - Midjourney:
         - abbr: MI
           href: https://midjourney.com/home
