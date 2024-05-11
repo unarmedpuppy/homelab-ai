@@ -3,10 +3,6 @@
 # https://gethomepage.dev/latest/configs/bookmarks
 
 - Utility:
-    - ChatGPT:
-        - abbr: GP
-          href: https://chat.openai.com/
-          icon: si-openai
     - Gmail:
         - abbr: GM
           href: https://mail.google.com/mail/u/0/#inbox
@@ -21,9 +17,13 @@
           icon: si-mcafee
 
 - AI Tools:
+    - ChatGPT:
+        - abbr: GP
+          href: https://chat.openai.com/
+          icon: si-openai
     - Loudly:
         - abbr: LD
-          href: https://www.loudly.com/
+          href: https://loudly.com/
           icon: si-musicbrainz
     - Suno:
         - abbr: SU
@@ -31,7 +31,7 @@
           icon: si-neteasecloudmusicdon
     - Midjourney:
         - abbr: MI
-          href: https://www.midjourney.com/home
+          href: https://midjourney.com/home
           icon: si-immer
 
 
@@ -72,7 +72,7 @@
           icon: si-vectorlogozone
     - "BCU":
         - abbr: BU
-          href: "https://www.bcu.org/"
+          href: "https://bcu.org/"
           icon: si-bricks
     - "BTC stats":
         - abbr: BT
@@ -82,7 +82,7 @@
 - MTG:
     - "Moxfield":
         - abbr: MX
-          href: "https://www.moxfield.com/users/unarmedpuppy"
+          href: "https://moxfield.com/users/unarmedpuppy"
           icon: si-steamdeck
     - "Cube Cobra":
         - abbr: CC
