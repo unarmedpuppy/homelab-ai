@@ -78,6 +78,10 @@
         - abbr: BT
           href: "https://newhedge.io/terminal/bitcoin"
           icon: si-bitcoin
+    - "GME Exit Strategy":
+        - abbr: GME
+          href: "https://www.tradingview.com/chart/aEJ06HQM/?symbol=NYSE%3AGME"
+          icon: si-gamestop
 
 - MTG:
     - "Moxfield":
