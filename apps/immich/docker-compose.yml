@@ -6,7 +6,6 @@ services:
   immich-server:
     container_name: immich-server
     image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
-    command: [ "start.sh", "immich" ]
     volumes:
       - ${UPLOAD_LOCATION}:/usr/src/app/upload
       - /etc/localtime:/etc/localtime:ro
@@ -29,27 +28,6 @@ services:
       - "homepage.icon=si-googlephotos"
       - "homepage.href=http://192.168.86.47:2283"
       - "homepage.description=Family photos & videos"
-
-  immich-microservices:
-    container_name: immich-microservices
-    image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
-    command: [ "start.sh", "microservices" ]
-    volumes:
-      - ${UPLOAD_LOCATION}:/usr/src/app/upload
-      - /etc/localtime:/etc/localtime:ro
-      - ${EXTERNAL_PATH}:/usr/src/app/external
-    env_file:
-      - .env
-    environment:
-      - NODE_ENV=production
-    depends_on:
-      - immich-redis
-      - immich-database
-    restart: unless-stopped
-    #labels:
-    #  - "com.centurylinklabs.watchtower.enable=true"
-    networks:
-      - my-network 
 
   immich-machine-learning:
     image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}
