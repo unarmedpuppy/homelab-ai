@@ -14,13 +14,15 @@ services:
       - my-network
     labels:
       - "traefik.enable=true"
+      # HTTPS redirect
+      - traefik.http.middlewares.mywebserver-redirect-web-secure.redirectscheme.scheme=https
+      - traefik.http.routers.vaultwarden-redirect.middlewares=mywebserver-redirect-web-secure
+      - traefik.http.routers.vaultwarden-redirect.rule=Host(`vaultwarden.server.unarmedpuppy.com`)
+      - traefik.http.routers.vaultwarden-redirect.entrypoints=web
+      # Main HTTPS router
       - "traefik.http.routers.vaultwarden.rule=Host(`vaultwarden.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.vaultwarden.entrypoints=websecure"
-      - "traefik.http.routers.vaultwarden.tls.certresolver=myresolver"
-      - "traefik.http.routers.vaultwarden.service=vaultwarden"
-      - "traefik.http.services.vaultwarden.loadbalancer.server.port=11001"
-      - "traefik.http.middlewares.vaultwarden-https-redirect.redirectscheme.scheme=https"
-      - "traefik.http.routers.vaultwarden.middlewares=vaultwarden-https-redirect"
+      - "traefik.http.routers.vaultwarden.entrypoints=websecure" # your https endpoint
+      - "traefik.http.routers.vaultwarden.tls.certresolver=myresolver" # your cert resolver
       - "homepage.group=Apps"
       - "homepage.name=Vaultwarden"
       - "homepage.icon=si-1password"
