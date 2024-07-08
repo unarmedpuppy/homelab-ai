@@ -12,4 +12,4 @@ services:
       - 11001:80 # you can replace the 11001 with your preferred port
 
 volumes:
-  - vaultwarden:
+  vaultwarden:
