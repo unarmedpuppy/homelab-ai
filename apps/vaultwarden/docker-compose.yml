@@ -10,6 +10,8 @@ services:
       - vaultwarden:/data
     ports:
       - 11001:80 # you can replace the 11001 with your preferred port
+    networks:
+      - my-network
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.vaultwarden.rule=Host(`vaultwarden.server.unarmedpuppy.com`)"
