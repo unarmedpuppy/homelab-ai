@@ -10,6 +10,11 @@ services:
       - vaultwarden:/data
     ports:
       - 11001:80 # you can replace the 11001 with your preferred port
+    labels:
+      - "homepage.group=Apps"
+      - "homepage.name=Vaultwarden"
+      - "homepage.icon=si-1password"
+      - "homepage.description=passwords"
 
 volumes:
   vaultwarden:
