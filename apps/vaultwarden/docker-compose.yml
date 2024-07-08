@@ -26,7 +26,7 @@ services:
       - "homepage.group=Apps"
       - "homepage.name=Vaultwarden"
       - "homepage.icon=si-1password"
-      - "homepage.description=passwords"
+      - "homepage.description=passwords test"
       - "homepage.href=https://vaultwarden.server.unarmedpuppy.com"
 
 volumes:
