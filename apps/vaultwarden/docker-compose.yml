@@ -27,3 +27,7 @@ services:
 
 volumes:
   vaultwarden:
+
+networks:
+  my-network:
+    external: true
