@@ -23,7 +23,7 @@ services:
       - "homepage.name=Vaultwarden"
       - "homepage.icon=si-1password"
       - "homepage.description=passwords"
-      - "homepage.href=http://192.168.86.47:11001"
+      - "homepage.href=https://vaultwarden.server.unarmedpuppy.com"
 
 volumes:
   vaultwarden:
