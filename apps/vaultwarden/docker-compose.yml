@@ -11,6 +11,14 @@ services:
     ports:
       - 11001:80 # you can replace the 11001 with your preferred port
     labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.vaultwarden.rule=Host(`vaultwarden.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.vaultwarden.entrypoints=websecure"
+      - "traefik.http.routers.vaultwarden.tls.certresolver=myresolver"
+      - "traefik.http.routers.vaultwarden.service=vaultwarden"
+      - "traefik.http.services.vaultwarden.loadbalancer.server.port=11001"
+      - "traefik.http.middlewares.vaultwarden-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.vaultwarden.middlewares=vaultwarden-https-redirect"
       - "homepage.group=Apps"
       - "homepage.name=Vaultwarden"
       - "homepage.icon=si-1password"
