@@ -13,7 +13,7 @@ services:
       - no-new-privileges:true
     environment:
       - CF_API_TOKEN=UkNN8yUoQoIBJkM9AnRvvlmCy2QpjDwblqaEPJ9A # pls adjust
-      - DOMAINS=gumberlund.server.unarmedpuppy.com, wireguard.server.unarmedpuppy.com, recipes.server.unarmedpuppy.com, seafile.server.unarmedpuppy.com, grafana.server.unarmedpuppy.com, adguard.server.unarmedpuppy.com, setup-adguard.server.unarmedpuppy.com, rcon-rust.server.unarmedpuppy.com, server.unarmedpuppy.com, minecraft.server.unarmedpuppy.com, rust.server.unarmedpuppy.com, libreddit.server.unarmedpuppy.com, traefik.server.unarmedpuppy.com, nextcloud.server.unarmedpuppy.com, plex.server.unarmedpuppy.com, homeassistant.server.unarmedpuppy.com, rust.server.unarmedpuppy.com, minecraft.server.unarmedpuppy.com, vaultwarden.server.unarmedpuppy.com, # pls adjust; a list of fully qualified domain names separated by commas
+      - DOMAINS=vaultwarden.server.unarmedpuppy.com, # pls adjust; a list of fully qualified domain names separated by commas
       - PROXIED=false # instructs Cloudflare to cache webpages on your machine and hide its actual IP addresses
       - TZ=America/Chicago
       - PUID=1000
