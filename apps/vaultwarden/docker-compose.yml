@@ -9,7 +9,7 @@ services:
       - SMTP_HOST=smtp.gmail.com
       - SMTP_FROM=dangerbahn@gmail.com
       - SMTP_PORT=587
-      - SMTP_SSL=true
+      - SMTP_SECURITY=true
       - SMTP_USERNAME=dangerbahn@gmail.com
       - SMTP_PASSWORD=${SMTPPASS}
       - SMTP_AUTH_MECHANISM=Plain
