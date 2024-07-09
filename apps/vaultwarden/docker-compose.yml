@@ -7,11 +7,11 @@ services:
       - DOMAIN=https://vaultwarden.server.unarmedpuppy.com  # required when using a reverse proxy; your domain; vaultwarden needs to know it's https to work properly with attachments
       - SIGNUPS_ALLOWED=true # Deactivate this with "false" after you have created your account so that no strangers can register
       - SMTP_HOST=smtp.gmail.com
-      - SMTP_FROM=your-email@gmail.com
+      - SMTP_FROM=dangerbahn@gmail.com
       - SMTP_PORT=587
       - SMTP_SSL=true
-      - SMTP_USERNAME=your-email@gmail.com
-      - SMTP_PASSWORD=
+      - SMTP_USERNAME=dangerbahn@gmail.com
+      - SMTP_PASSWORD=${SMTPPASS}
       - SMTP_AUTH_MECHANISM=Plain
     volumes:
       - vaultwarden:/data
