@@ -4,8 +4,8 @@ services:
     container_name: vaultwarden
     restart: always
     environment:
-      - DOMAIN=https://vaultwarden.server.unarmedpuppy.com  # required when using a reverse proxy; your domain; vaultwarden needs to know it's https to work properly with attachments
-      - SIGNUPS_ALLOWED=true # Deactivate this with "false" after you have created your account so that no strangers can register
+      DOMAIN: "https://vaultwarden.server.unarmedpuppy.com"  # required when using a reverse proxy; your domain; vaultwarden needs to know it's https to work properly with attachments
+      SIGNUPS_ALLOWED: "true" # Deactivate this with "false" after you have created your account so that no strangers can register
     volumes:
       - vaultwarden:/data
     ports:
