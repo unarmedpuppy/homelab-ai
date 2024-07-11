@@ -52,6 +52,10 @@
       - abbr:
         href: https://twitter.com/unarmedpuppy
         icon: si-twitter
+  - Torrent:
+      - abbr: TR
+        href: https://www.bit-hdtv.com/index.php
+        icon: si-netflix
 
 - Finance:
     - "Financial Planning":
