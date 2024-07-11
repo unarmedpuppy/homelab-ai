@@ -15,6 +15,10 @@
         - abbr: WZ
           href: https://wzranked.com/wz2/meta
           icon: si-mcafee
+    - Shipping Labels: 
+        - abbr: SL
+          href: https://www.paypal.com/signin?returnUri=https%3A%2F%2Fwww.paypal.com%2Fshiplabel%2Fcreate%2F
+          icon: si-paypal
 
 - AI Tools:
     - ChatGPT:
