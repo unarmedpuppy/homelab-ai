@@ -5,9 +5,12 @@ services:
     container_name: jellyfin
     network_mode: 'host'
     volumes:
-      - /path/to/config:/config
-      - /path/to/cache:/cache
+      - jellyfinconf:/config
+      - jellyfincache:/cache
       - type: bind
-        source: /path/to/media
+        source: ${ZFS_PATH}
         target: /media
     restart: 'unless-stopped'
+volumes:
+  jellyfinconf:
+  jellyfincache:
