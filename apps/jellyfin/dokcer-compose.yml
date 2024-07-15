@@ -1,0 +1,13 @@
+version: '3.5'
+services:
+  jellyfin:
+    build: .
+    container_name: jellyfin
+    network_mode: 'host'
+    volumes:
+      - /path/to/config:/config
+      - /path/to/cache:/cache
+      - type: bind
+        source: /path/to/media
+        target: /media
+    restart: 'unless-stopped'
