@@ -1,7 +1,9 @@
 version: '3.5'
 services:
   jellyfin:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: jellyfin
     network_mode: 'host'
     volumes:
