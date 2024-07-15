@@ -2,11 +2,8 @@ version: '3.5'
 services:
   jellyfin:
     user: "${UID}:${GID}"
-    build:
-      context: .
-      dockerfile: Dockerfile
+    command: ["/bin/bash", "./entrypoint.sh"]
     container_name: jellyfin
-    network_mode: 'host'
     volumes:
       - jellyfinconf:/config
       - jellyfincache:/cache
@@ -14,6 +11,13 @@ services:
         source: ${ZFS_PATH}
         target: /media
     restart: 'unless-stopped'
+    networks:
+      - my-network
+
 volumes:
   jellyfinconf:
   jellyfincache:
+
+networks:
+  my-network:
+    external: true
