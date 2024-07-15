@@ -1,6 +1,7 @@
 version: '3.5'
 services:
   jellyfin:
+    user: "${UID}:${GID}"
     build:
       context: .
       dockerfile: Dockerfile
