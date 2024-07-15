@@ -1,6 +1,7 @@
 version: '3.5'
 services:
   jellyfin:
+    image: jellyfin/jellyfin
     user: "${UID}:${GID}"
     command: ["/bin/bash", "./entrypoint.sh"]
     container_name: jellyfin
