@@ -3,7 +3,7 @@ services:
   jellyfin:
     image: jellyfin/jellyfin
     user: "${UID}:${GID}"
-    command: ["/bin/bash", "./entrypoint.sh"]
+    command: ["/bin/bash", "entrypoint.sh"]
     container_name: jellyfin
     volumes:
       - jellyfinconf:/config
