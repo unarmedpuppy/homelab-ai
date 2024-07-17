@@ -25,10 +25,10 @@
         - abbr: GP
           href: https://chat.openai.com/
           icon: si-openai
-    - Loudly:
-        - abbr: LD
-          href: https://loudly.com/
-          icon: si-musicbrainz
+    - Claude:
+        - abbr: CL
+          href: https://claude.ai/chat
+          icon: si-anthropic
     - Suno:
         - abbr: SU
           href: https://app.suno.ai/create/
