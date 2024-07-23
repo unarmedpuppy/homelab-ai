@@ -57,11 +57,15 @@
         href: https://www.bit-hdtv.com/index.php
         icon: si-netflix
 
-- Finance:
+- Docs:
     - "Financial Planning":
         - abbr: FP
           href: "https://docs.google.com/spreadsheets/d/1A_-Npqi3ySqCCo7laftVPe6KR82eKKkT07XSdF2SgOs"
           icon: si-fi
+    - "Trade Log":
+        - abbr: LG
+          href: "https://docs.google.com/spreadsheets/d/1UOGmYQQYIL5YH8OUJ-kY9hY1INU4o_q5WWpWfXooulw/edit?gid=885168961#gid=885168961"
+          icon: si-talenthouse
     - "Hobby Finance":
         - abbr: HF
           href: "https://docs.google.com/spreadsheets/d/1_jzIuvvti7Oh7N9frw9rFa04OvkpSURW2NWMv5iAiD8"
@@ -70,6 +74,8 @@
         - abbr: FN
           href: "https://docs.google.com/document/d/1-7RTeNd1_w6WRK_4vquTFGjK2-lD_Ta0_fnDVmKruRc"
           icon: si-fireship
+
+- Finance:
     - "Fidelity":
         - abbr: FI
           href: "https://digital.fidelity.com/ftgw/digital/trader-dashboard/"
@@ -108,3 +114,7 @@
         - abbr: TP
           href: "https://tcgplayer.com"
           icon: si-sketch
+    - "EDHREC":
+        - abbr: ER
+          href: "https://edhrec.com/"
+          icon: si-anydesk
