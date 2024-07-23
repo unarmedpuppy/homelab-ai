@@ -1241,3 +1241,720 @@ sudo cloudflared service install eyJhIjoiYjk2OWY3ZmQ5MzlkYTZmOTQ0NDUyNzc0Nzg2YzV
 
 `sudo npm i -g @immich/cli`
 
+
+
+summary from claude
+
+Certainly! I'll provide a detailed documentation based on the markdown notes you've shared. I'll organize the information, clean up the formatting, and add helpful comments to explain each group of code snippets.
+
+# Home Server Documentation
+
+## System Overview
+
+- Operating System: Debian 12
+- Installation Method: Used Etcher to create bootable USB drive
+- Local IP: 192.168.86.47
+- MAC Address: 74:56:3c:e1:8b:3a
+- Power Settings:
+  - Mode: Performance
+  - Screen Blank: Never
+  - Auto Suspend: Off
+  - Power Button Behavior: Nothing
+
+## SSH Configuration
+
+SSH access is configured on a non-standard port for enhanced security:
+
+```bash
+ssh unarmedpuppy@192.168.86.47 -p 4242
+```
+
+## System Management
+
+### Prevent System Suspend
+
+To ensure the server remains active:
+
+```bash
+sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
+```
+
+### Disk Usage Analysis
+
+Check the size of a specific directory:
+
+```bash
+du -sh server/apps/bedrock-viz/
+```
+
+Visualize disk usage:
+
+```bash
+sudo apt install ncdu
+sudo ncdu /
+```
+
+List top 10 largest directories:
+
+```bash
+sudo du -sh * | sort -hr | head -n10
+```
+
+### Backup System
+
+Create a full disk image backup:
+
+```bash
+sudo dd if=/dev/sda of=/mnt/server-storage/test-bk.img status=progress
+```
+
+## Network Configuration
+
+### EdgeRouter Access
+
+Access the EdgeRouter via SSH:
+
+```bash
+ssh unarmedpuppy@172.16.30.1
+```
+
+Note: Password stored in 1password
+
+## User Management
+
+- Root user: `root`
+- Primary user: `unarmedpuppy` (added to sudoers file)
+- Docker group ID: 994 (obtained using `stat -c '%g' /var/run/docker.sock`)
+
+## Hardware Information
+
+### BIOS
+
+- BIOS Version: MC123IOE.100
+- ME FW Version: 12/0.41.1435
+
+### CPU
+
+Original CPU:
+- Model: Intel(R) Celeron(R) G4900T CPU @ 2.90GHz
+- Cores: 2
+- Memory: 64008 MB
+
+Upgraded CPU:
+- Model: Intel Core i7-6700K
+- Cores: 4 (8 threads)
+- Clock Speed: 4.0 GHz
+- Socket: LGA 1151
+- TDP: 91W
+- Integrated Graphics: Intel HD Graphics 530
+
+### RAM
+
+32GB installed
+
+### Storage Configuration
+
+- Internal SSD: 1TB
+- server-storage: 4TB (used for syncing media & photo content to/from Seafile - intended to be ephemeral)
+- server-cloud: 8TB (Seafile sync server, server backups - intended to be a backup of Jenquist cloud & serve as a syncing source for other devices, including server-storage)
+- Jenquist Cloud: RAID configuration to be determined
+
+## System Monitoring
+
+### Fan Speed Monitoring
+
+Install and configure lm-sensors:
+
+```bash
+sudo apt update && sudo apt install lm-sensors
+sudo sensors-detect
+sensors
+```
+
+Install and configure fancontrol:
+
+```bash
+sudo apt-get install fancontrol
+sudo pwmconfig
+```
+
+### System Logging
+
+View system logs:
+
+```bash
+journalctl
+```
+
+Limit journal size:
+
+```bash
+sudo journalctl --vacuum-size=100M
+```
+
+### Malware Check
+
+Install and run Lynis:
+
+```bash
+sudo apt install lynis
+sudo lynis audit system
+```
+
+## Docker Configuration
+
+Enable TCP for Docker:
+
+[Docker TCP Configuration Guide](https://gist.github.com/styblope/dc55e0ad2a9848f2cc3307d4819d819f)
+
+Clean up Docker resources:
+
+```bash
+docker rmi $(docker images -a -q)
+docker system prune -a -f
+```
+
+View reclaimable memory:
+
+```bash
+docker system df
+```
+
+Prune unused Docker volumes:
+
+```bash
+docker volume prune
+```
+
+## Scheduled Tasks (Cron Jobs)
+
+```
+# Prune Docker images weekly
+0 5 * * 1 docker system prune -a -f
+
+# Restart machine nightly
+15 5 * * * /sbin/reboot
+
+# Backup Rust player data on the first Wednesday of each month
+0 0 1-7 * * [ "$(date +\%u)" = "3" ] && ~/server/scripts/backup-rust.sh
+```
+
+## Custom Aliases
+
+- `cycle`: Runs `~/server/docker-restart.sh` (stops and starts Docker containers)
+- `server`: Runs `connect-server.sh`
+- `sync`: Performs Git pull, add, commit & push operations
+
+## Workspace Automations
+
+The [Run on Save](https://marketplace.visualstudio.com/items?itemName=emeraldwalk.RunOnSave) extension is enabled in this repository. Settings are in `.vscode/settings.json`. When a file is saved, the `scripts/git-server-sync.sh` script executes, syncing changes to the server automatically.
+
+## RAID 5 Configuration
+
+To configure and manage a RAID 5 array of 4 hard drives on Debian:
+
+1. Install mdadm:
+   ```bash
+   sudo apt update
+   sudo apt install mdadm
+   ```
+
+2. Create the RAID 5 array:
+   ```bash
+   sudo mdadm --create --verbose /dev/md0 --level=5 --raid-devices=4 /dev/sdb /dev/sdc /dev/sdd /dev/sde
+   ```
+
+3. Verify the RAID 5 array:
+   ```bash
+   cat /proc/mdstat
+   ```
+
+Note: All data on the hard drives will be lost when creating the RAID 5 array. Backup important data before proceeding.
+
+### Replacing a Failed Drive in RAID 5
+
+1. Identify the failed drive:
+   ```bash
+   cat /proc/mdstat
+   ```
+
+2. Mark the failed drive as failed and remove it from the array:
+   ```bash
+   sudo mdadm --manage /dev/md0 --fail /dev/sdb
+   sudo mdadm --manage /dev/md0 --remove /dev/sdb
+   ```
+
+3. Physically replace the failed drive.
+
+4. Add the new drive to the array:
+   ```bash
+   sudo mdadm --manage /dev/md0 --add /dev/sdc
+   ```
+
+5. Monitor the rebuild process:
+   ```bash
+   cat /proc/mdstat
+   ```
+
+## System Information Commands
+
+- Get local IP: `hostname -I`
+- Get MAC address:
+  ```bash
+  sudo apt-get install net-tools
+  /sbin/ifconfig
+  ```
+- Inspect RAM details:
+  ```bash
+  sudo dmidecode --type memory
+  ```
+
+## User and Permission Management
+
+Add primary user to sudoers file:
+
+```bash
+su -
+apt-get install sudo
+adduser unarmedpuppy sudo
+getent group sudo
+su - unarmedpuppy
+sudo whoami
+```
+
+## SSH Configuration
+
+Enable and configure SSH:
+
+```bash
+sudo apt-get update
+sudo apt-get install openssh-server
+sudo systemctl status ssh
+sudo systemctl enable ssh
+```
+
+Edit SSH configuration:
+
+```bash
+sudo nano /etc/ssh/sshd_config
+```
+
+Disable root login and change the SSH port:
+
+```
+PermitRootLogin no
+Port 4242
+```
+
+Restart SSH service:
+
+```bash
+sudo systemctl restart ssh
+```
+
+### Lock down SSH to key-only access
+
+1. Create SSH key pair on the server:
+   ```bash
+   ssh-keygen -t rsa -b 4096
+   ```
+
+2. Create SSH key pair on the client:
+   ```bash
+   ssh-keygen -t rsa -b 4096
+   ```
+
+3. Copy the public key to the server:
+   ```bash
+   ssh-copy-id -i /c/Users/micro/.ssh/id_rsa.pub -o 'Port=4242' unarmedpuppy@192.168.86.47
+   ```
+
+4. Disable password authentication:
+   Edit `/etc/ssh/sshd_config`:
+   ```
+   PasswordAuthentication no
+   ChallengeResponseAuthentication no
+   UsePAM no
+   ```
+
+5. Reload SSH service:
+   ```bash
+   sudo systemctl reload sshd
+   ```
+
+## Docker Installation and Configuration
+
+1. Install required packages:
+   ```bash
+   sudo apt-get install apt-transport-https ca-certificates curl gnupg2 software-properties-common
+   ```
+
+2. Add Docker's official GPG key:
+   ```bash
+   curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+   ```
+
+3. Set up the Docker repository:
+   ```bash
+   sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
+   ```
+
+4. Install Docker CE:
+   ```bash
+   sudo apt-get update
+   sudo apt-get install docker-ce docker-ce-cli containerd.io
+   ```
+
+5. Verify Docker installation:
+   ```bash
+   sudo systemctl status docker
+   sudo docker run hello-world
+   ```
+
+6. Add user to the Docker group:
+   ```bash
+   sudo usermod -aG docker unarmedpuppy
+   ```
+
+7. Configure Docker to start on boot:
+   ```bash
+   sudo systemctl enable docker
+   ```
+
+8. Install Docker Compose:
+   ```bash
+   sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.4/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
+   sudo chmod +x /usr/local/bin/docker-compose
+   ```
+
+9. Create Docker network:
+   ```bash
+   docker network create my-network
+   docker network create monitoring_default
+   ```
+
+## Backup and Storage Configuration
+
+### Daily Backups with rsnapshot
+
+1. Install rsnapshot:
+   ```bash
+   sudo apt-get install rsnapshot
+   ```
+
+2. Configure rsnapshot:
+   ```bash
+   sudo nano /etc/rsnapshot.conf
+   ```
+
+3. Test rsnapshot configuration:
+   ```bash
+   sudo rsnapshot configtest
+   ```
+
+4. Run rsnapshot manually:
+   ```bash
+   sudo rsnapshot alpha
+   ```
+
+5. Automate rsnapshot backups (edit crontab):
+   ```bash
+   sudo crontab -e
+   ```
+   Add the following lines:
+   ```
+   0 */4 * * *     /usr/bin/rsnapshot alpha
+   00 00 * * *     /usr/bin/rsnapshot beta
+   00 23 * * 6     /usr/bin/rsnapshot gamma
+   00 22 1 * *     /usr/bin/rsnapshot delta
+   ```
+
+### Persist Mounted External Hard Drives
+
+1. Identify the drives:
+   ```bash
+   sudo blkid
+   ```
+
+2. Create mount points:
+   ```bash
+   sudo mkdir /mnt/server-storage
+   sudo mkdir /mnt/server-cloud
+   ```
+
+3. Edit /etc/fstab:
+   ```bash
+   sudo nano /etc/fstab
+   ```
+   Add the following lines:
+   ```
+   UUID=0812C2CF12C2C0C4  /mnt/server-storage  ntfs  defaults,nofail  0  0
+   UUID=5970408A4427DC74  /mnt/server-cloud  ntfs  defaults,nofail  0  0
+   ```
+
+4. Test the mount:
+   ```bash
+   sudo mount -a
+   ```
+
+### ZFS RAID Configuration
+
+1. Add contrib repository:
+   ```bash
+   sed -r -i'.BAK' 's/^deb(.*)$/deb\1 contrib/g' /etc/apt/sources.list
+   ```
+
+2. Install ZFS packages:
+   ```bash
+   sudo apt install linux-headers-amd64 zfsutils-linux zfs-dkms zfs-zed -y
+   ```
+
+3. Load the ZFS module:
+   ```bash
+   sudo modprobe zfs
+   ```
+
+4. Create ZFS pool:
+   ```bash
+   sudo zpool create jenquist-cloud raidz1 /dev/sda /dev/sdb /dev/sdc /dev/sdd
+   ```
+
+5. Create ZFS filesystem:
+   ```bash
+   sudo zfs create jenquist-cloud/archive
+   ```
+
+6. Load ZFS key and mount filesystems:
+   ```bash
+   sudo zfs load-key -a
+   sudo zfs mount -a
+   ```
+
+## Firewall Configuration (UFW)
+
+1. Install UFW:
+   ```bash
+   sudo apt install ufw
+   ```
+
+2. Allow SSH:
+   ```bash
+   sudo ufw allow 4242/tcp
+   ```
+
+3. Enable UFW:
+   ```bash
+   sudo ufw enable
+   ```
+
+4. Set default policies:
+   ```bash
+   sudo ufw default deny incoming
+   sudo ufw default allow outgoing
+   ```
+
+5. Allow specific services:
+   ```bash
+   sudo ufw allow 32400/tcp  # Plex
+   sudo ufw allow 19132/udp  # Minecraft
+   sudo ufw allow 28015/udp  # Rust
+   sudo ufw allow 28015      # Rust
+   sudo ufw allow 28016      # Rust
+   sudo ufw allow 8080       # Rust
+   sudo ufw allow 53/tcp     # AdGuard
+   sudo ufw allow 53/udp     # AdGuard
+   sudo ufw allow 51820/udp  # WireGuard
+   ```
+
+6. Check status and rules:
+   ```bash
+   sudo ufw status verbose
+   ```
+
+## Reverse Proxy Configuration (Traefik)
+
+1. Create Traefik configuration directory:
+   ```bash
+   mkdir -p ~/server/apps/traefik/{config,logs}
+   ```
+
+2. Create Traefik configuration file (traefik.yml):
+   ```bash
+   touch ~/server/apps/traefik/config/traefik.yml
+   ```
+
+3. Create empty acme.json file for storing certificates:
+   ```bash
+   touch ~/server/apps/traefik/config/acme.json && chmod 600 ~/server/apps/traefik/config/acme.json
+   ```
+
+4. Create Docker Compose file for Traefik (docker-compose.yml).
+
+5. Generate credentials for Traefik dashboard:
+   ```bash
+   sudo apt-get install apache2-utils
+   htpasswd -nb admin example
+   ```
+
+6. Add Traefik labels to other containers for reverse proxy functionality.
+
+## Game Servers
+
+### Rust Server
+
+- [Server banner (1024 x 512)](https://i.imgur.com/FIXxuRI.jpg)
+- [RCON access](http://192.168.86.47:8080/#/192.168.86.47:28016/playerlist)
+
+### Minecraft Server
+
+- Copy world from PC to server:
+  ```bash
+  scp -P 4242 -r ~/Desktop/server/minecraft/gumberlund unarmedpuppy@192.168.86.47:~/server/apps/minecraft/gumberlund
+  ```
+
+- Server commands:
+  ```bash
+  docker exec minecraft-bedrock-1 send-command op unarmedpupy
+  ```
+
+### Bedrock-viz (Minecraft Map Visualization)
+
+- Generate static files on PC:
+  ```bash
+  bedrock-viz.exe --db C:\Users\micro\Desktop\server\minecraft\gumberlund --out ./map --html-most
+  ```
+
+- Copy generated map from PC to server:
+  ```bash
+  scp -P 4242 -r ~/Desktop/server/minecraft/map unarmedpuppy@192.168.86.47:~/server/apps/bedrock-viz/map
+  ```
+
+## Additional Services
+
+### AdGuard Home
+
+Previous DNS: 172.16.30.1
+
+Configuration details:
+- Admin Web Interface: http://127.0.0.1 or http://192.168.160.9 (Port 80)
+- DNS Server: 127.0.0.1 or 192.168.160.9 (Port 53)
+
+### Cloudflare Tunnel
+
+Install Cloudflare tunnel:
+
+```bash
+curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb && 
+sudo dpkg -i cloudflared.deb && 
+sudo cloudflared service install eyJhIjoiYjk2OWY3ZmQ5MzlkYTZmOTQ0NDUyNzc0Nzg2YzViZjUiLCJ0IjoiMDQ4YmZiMjAtZjA2NC00NzU2LWJmZWEtYjM1NTg3MjQ5MzZkIiwicyI6Ik5HWTFNbU0zWWpndE9XSm1aQzAwTVRreExXSTRPREF0WkRZeVpqZ3lNalpoWldFeCJ9
+```
+
+This command downloads the Cloudflare tunnel debian package, installs it, and sets up the service with a specific configuration token.
+
+## Node.js Installation
+
+Install Node.js version 20.x:
+
+```bash
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+
+## Immich CLI Installation
+
+Install the Immich CLI globally:
+
+```bash
+sudo npm i -g @immich/cli
+```
+
+## Home Page Configuration
+
+Set up a homepage for easy access to various services:
+
+```yaml
+version: "3.3"
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    ports:
+      - 3000:3000
+    volumes:
+      - ~/server/apps/homepage/config:/app/config
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homepage.rule=Host(`server.unarmedpuppy.com`)"
+      - "traefik.http.routers.homepage.entrypoints=websecure"
+      - "traefik.http.routers.homepage.tls.certresolver=myresolver"
+      - "traefik.http.routers.homepage.middlewares=homepage-auth"
+      - "traefik.http.middlewares.homepage-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.homepage-auth.basicauth.realm=homepage"
+    restart: unless-stopped
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    external: true
+```
+
+To add services to the homepage, add the following labels to their respective containers:
+
+```yaml
+labels:
+  - "homepage.group=Game Servers"
+  - "homepage.name=Bedrock Viz"
+  - "homepage.href=http://minecraft.server.unarmedpuppy.com"
+  - "homepage.description=Minecraft server map"
+```
+
+## System Stress Testing
+
+Install the stress tool for system stress testing:
+
+```bash
+sudo apt install stress
+```
+
+Run a stress test (e.g., stressing 8 CPU cores):
+
+```bash
+stress --cpu 8
+```
+
+## File System Information
+
+Current file system layout:
+
+```
+/boot/efi
+/dev/sda2      fuseblk      1.9T  1.8T   54G  98% /mnt/plex
+/dev/sdb1      fuseblk      1.8T  120G  1.7T   7% /mnt/server-storage
+/dev/sdb2      fuseblk      2.0T   39G  1.9T   2% /mnt/server-backup
+```
+
+## Temperature Sensor Configuration
+
+To get more accurate CPU temperature readings, you can add a custom configuration for the k10temp sensor. Create or edit the file `/etc/sensors.d/k10temp.conf`:
+
+```
+chip "k10temp-*"
+   label temp1 "CPU Temp"
+   compute  temp1  (@/2.56)+36.4921875, (@-36.4921875)*2.56
+```
+
+This configuration applies a custom formula to adjust the reported temperature based on observed discrepancies between sensor readings and BIOS readings.
+
+## Additional Notes
+
+- The server uses a custom domain: `server.unarmedpuppy.com`
+- Various services (like Plex, Minecraft, Rust) are configured to use specific ports and are accessible through the reverse proxy (Traefik)
+- Basic authentication is set up for certain services to enhance security
+- Docker containers are organized using custom networks for better isolation and management
+- Regular backups and system maintenance tasks are scheduled using cron jobs
+- The server configuration is version-controlled, with automatic syncing between the local development environment and the server
+
+This documentation provides a comprehensive overview of the home server setup, including system configuration, installed services, networking setup, and maintenance procedures. Regular updates to this documentation are recommended as the server configuration evolves.
+
