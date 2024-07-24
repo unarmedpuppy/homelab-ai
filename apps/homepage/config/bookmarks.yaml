@@ -101,7 +101,7 @@
     - "Stock Screener":
         - abbr: SK
           href: "https://research2.fidelity.com/pi/stock-screener#results"
-          icon: si-screen
+          icon: si-openstreetmap
     - "Trading View":
         - abbr: GME
           href: "https://www.tradingview.com/chart/aEJ06HQM/?symbol=NYSE%3AGME"
