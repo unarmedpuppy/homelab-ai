@@ -76,7 +76,7 @@
           icon: si-fireship
 
 - Finance:
-    - "Fidelityr":
+    - "Fidelity":
         - abbr: FI
           href: "https://digital.fidelity.com/ftgw/digital/portfolio/summary"
           icon: si-socialblade
