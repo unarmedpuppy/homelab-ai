@@ -1,0 +1,33 @@
+services:
+  mongo:
+    image: mongo:4.4.18
+    container_name: mongo
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=tradenote
+      - MONGO_INITDB_ROOT_PASSWORD=tradenote
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - tradenote-network
+
+  tradenote:
+    image: eleventrading/tradenote
+    container_name: tradenote_app
+    environment:
+      - MONGO_URI=mongodb://tradenote:tradenote@mongo:27017/tradenote?authSource=admin
+      - TRADENOTE_DATABASE=tradenote
+      - APP_ID=unarmedpuppy
+      - MASTER_KEY=unarmedpuppy42
+      - TRADENOTE_PORT=8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongo
+    networks:
+      - tradenote-network
+
+networks:
+  tradenote-network:
+
+volumes:
+  mongo_data:
