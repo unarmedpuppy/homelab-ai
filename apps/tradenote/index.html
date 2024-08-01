@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="mean">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -43,38 +43,30 @@
                     if (columns.length > 1) {
                         const runDate = columns[headers.indexOf('Run Date')] || '';
                         const symbol = columns[headers.indexOf('Symbol')] || '';
-                        const action = columns[headers.indexOf('Action')] || '';
                         const quantity = columns[headers.indexOf('Quantity')] || '0';
                         const price = columns[headers.indexOf('Price ($)')] || '0';
-                        const commission = columns[headers.indexOf('Commission ($)')] || '0';
+                        const netProceeds = columns[headers.indexOf('Amount ($)')] || '0';
 
-                        // Mapping Side
-                        let side = '';
-                        if (action.includes('BOUGHT')) {
-                            side = action.includes('OPENING') ? 'B' : 'BC';
-                        } else if (action.includes('SOLD')) {
-                            side = action.includes('OPENING') ? 'SS' : 'S';
-                        }
+                        // Placeholder values for unmapped columns
+                        const account = '';
+                        const tradeDate = '';
+                        const currency = '';
+                        const type = '';
+                        const side = '';
+                        const execTime = '';
+                        const comm = '';
+                        const sec = '';
+                        const taf = '';
+                        const nscc = '';
+                        const nasdaq = '';
+                        const ecnRemove = '';
+                        const ecnAdd = '';
+                        const grossProceeds = '';
+                        const clrBroker = '';
+                        const liq = '';
+                        const note = '';
 
-                        // Calculate Gross Proceeds and Net Proceeds
-                        const grossProceeds = (side === 'S' || side === 'SS') ? parseFloat(price) * parseFloat(quantity) : -parseFloat(price) * parseFloat(quantity);
-                        const netProceeds = grossProceeds - parseFloat(commission);
-
-                        // Mapping other fields
-                        const account = 'XY000001'; // Placeholder
-                        const settlementDate = runDate;
-                        const currency = 'USD';
-                        const type = '3'; // Assuming all are type 3
-                        const execTime = '00:00:00'; // Placeholder
-                        const sec = '0';
-                        const taf = '0';
-                        const nscc = '0';
-                        const nasdaq = '0';
-                        const ecnRemove = '0';
-                        const ecnAdd = '0';
-                        const clrBroker = 'SIM';
-
-                        output += `${account},${runDate},${settlementDate},${currency},${type},${side},${symbol},${quantity},${price},${execTime},${commission},${sec},${taf},${nscc},${nasdaq},${ecnRemove},${ecnAdd},${grossProceeds.toFixed(2)},${netProceeds.toFixed(2)},${clrBroker},,\n`;
+                        output += `${account},${tradeDate},${runDate},${currency},${type},${side},${symbol},${quantity},${price},${execTime},${comm},${sec},${taf},${nscc},${nasdaq},${ecnRemove},${ecnAdd},${grossProceeds},${netProceeds},${clrBroker},${liq},${note}\n`;
                     }
                 }
 
