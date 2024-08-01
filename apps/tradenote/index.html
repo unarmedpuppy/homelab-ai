@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Converter: Format A to Format B</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        #output {
+            white-space: pre-wrap;
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>CSV Converter: Format A to Format B</h1>
+    <input type="file" id="csvFile" accept=".csv">
+    <button onclick="convertCSV()">Convert</button>
+    <h2>Output:</h2>
+    <div id="output"></div>
+
+    <script>
+        function convertCSV() {
+            const file = document.getElementById('csvFile').files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                const csv = event.target.result;
+                const lines = csv.split('\n');
+                const headers = lines[0].split(',');
+
+                let output = 'Account,T/D,S/D,Currency,Type,Side,Symbol,Qty,Price,Exec Time,Comm,SEC,TAF,NSCC,Nasdaq,ECN Remove,ECN Add,Gross Proceeds,Net Proceeds,Clr Broker,Liq,Note\n';
+
+                for (let i = 1; i < lines.length; i++) {
+                    const columns = lines[i].split(',');
+                    if (columns.length > 1) {
+                        const runDate = columns[headers.indexOf('Run Date')] || '';
+                        const symbol = columns[headers.indexOf('Symbol')] || '';
+                        const action = columns[headers.indexOf('Action')] || '';
+                        const quantity = columns[headers.indexOf('Quantity')] || '0';
+                        const price = columns[headers.indexOf('Price ($)')] || '0';
+                        const commission = columns[headers.indexOf('Commission ($)')] || '0';
+
+                        // Mapping Side
+                        let side = '';
+                        if (action.includes('BOUGHT')) {
+                            side = action.includes('OPENING') ? 'B' : 'BC';
+                        } else if (action.includes('SOLD')) {
+                            side = action.includes('OPENING') ? 'SS' : 'S';
+                        }
+
+                        // Calculate Gross Proceeds and Net Proceeds
+                        const grossProceeds = (side === 'S' || side === 'SS') ? parseFloat(price) * parseFloat(quantity) : -parseFloat(price) * parseFloat(quantity);
+                        const netProceeds = grossProceeds - parseFloat(commission);
+
+                        // Mapping other fields
+                        const account = 'XY000001'; // Placeholder
+                        const settlementDate = runDate;
+                        const currency = 'USD';
+                        const type = '3'; // Assuming all are type 3
+                        const execTime = '00:00:00'; // Placeholder
+                        const sec = '0';
+                        const taf = '0';
+                        const nscc = '0';
+                        const nasdaq = '0';
+                        const ecnRemove = '0';
+                        const ecnAdd = '0';
+                        const clrBroker = 'SIM';
+
+                        output += `${account},${runDate},${settlementDate},${currency},${type},${side},${symbol},${quantity},${price},${execTime},${commission},${sec},${taf},${nscc},${nasdaq},${ecnRemove},${ecnAdd},${grossProceeds.toFixed(2)},${netProceeds.toFixed(2)},${clrBroker},,\n`;
+                    }
+                }
+
+                document.getElementById('output').textContent = output;
+            };
+
+            reader.readAsText(file);
+        }
+    </script>
+</body>
+</html>
