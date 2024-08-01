@@ -8,7 +8,7 @@ services:
     volumes:
       - mongo_data:/data/db
     networks:
-      - tradenote-network
+      - my-network
 
   tradenote:
     image: eleventrading/tradenote
@@ -24,10 +24,11 @@ services:
     depends_on:
       - mongo
     networks:
-      - tradenote-network
+      - my-network
 
 networks:
-  tradenote-network:
+  my-network:
+    external: true
 
 volumes:
   mongo_data:
