@@ -1,0 +1,63 @@
+networks:
+  default:
+    name: linuxserver
+    external: true
+
+services:
+
+  paperless-ngx:
+    container_name: paperless-ngx
+    restart: always
+    depends_on:
+      - gotenberg
+      - tika
+      - redis
+    environment:
+      - PAPERLESS_CONSUMER_POLLING=0
+      - PAPERLESS_SECRET_KEY=$PAPERLESS_SECRET_KEY
+      - USERMAP_UID=$USERMAP_UID
+      - USERMAP_GID=$USERMAP_GID
+      - PAPERLESS_TIME_ZONE=$PAPERLESS_TIME_ZONE
+      - TZ=$TZ
+      - PAPERLESS_OCR_LANGUAGE=spa #English is always included along what you add here
+      - PAPERLESS_URL=https://paperless.yourdomain.com
+      - PAPERLESS_TIKA_ENABLED=true
+      - PAPERLESS_TIKA_ENDPOINT=http://tika:9998
+      - PAPERLESS_TIKA_GOTENBERG_ENDPOINT=http://gotenberg:3000
+      - PAPERLESS_FILENAME_FORMAT={original_name}
+      - PAPERLESS_REDIS=redis://redis:6379
+    image: ghcr.io/paperless-ngx/paperless-ngx
+    ports:
+      - 8000:8000
+    volumes:
+      - ./data-paperless-ngx/data:/usr/src/paperless/data
+      - ./data-paperless-ngx/consume:/usr/src/paperless/consume
+      - ./data-paperless-ngx/export:/usr/src/paperless/export
+      - ./data-paperless-ngx/media:/usr/src/paperless/media
+
+  gotenberg:
+    image: docker.io/gotenberg/gotenberg:7
+    restart: always
+    container_name: gotenberg
+    # The gotenberg chromium route is used to convert .eml files. We do not
+    # want to allow external content like tracking pixels or even javascript.
+    command:
+      - gotenberg
+      - --chromium-disable-javascript=true
+      - --chromium-allow-list=file:///tmp/.*
+      - --api-timeout=60s
+
+  tika:
+    image: ghcr.io/paperless-ngx/tika:latest
+    restart: always
+    container_name: tika
+    
+  redis:
+    image: docker.io/library/redis:7
+    restart: always
+    container_name: redis
+    volumes:
+      - redis:/data
+
+volumes:
+  redis:
