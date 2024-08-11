@@ -98,9 +98,9 @@
         - abbr: FI
           href: "https://digital.fidelity.com/ftgw/digital/trader-dashboard/"
           icon: si-socialblade
-    - "Stock Screener":
-        - abbr: SK
-          href: "https://research2.fidelity.com/pi/stock-screener#results"
+    - "Option Strat":
+        - abbr: OS
+          href: "https://optionstrat.com/saved"
           icon: si-openstreetmap
     - "Trading View":
         - abbr: GME
