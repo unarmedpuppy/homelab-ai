@@ -132,3 +132,17 @@
         - abbr: ER
           href: "https://edhrec.com/"
           icon: si-anydesk
+
+- Tech:
+    - "Refcards":
+        - abbr: MX
+          href: "https://dzone.com/refcardz"
+          icon: si-steamdeck
+    - "Radar":
+        - abbr: CC
+          href: "https://www.thoughtworks.com/radar"
+          icon: si-nintendogamecube
+    - "InfoQ":
+        - abbr: TP
+          href: "https://www.infoq.com/"
+          icon: si-sketch
