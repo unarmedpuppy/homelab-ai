@@ -111,7 +111,7 @@
           href: "https://unusualwhales.com/live-options-flow/free?exclude_deep_itm=true&intraday_only=true&issue_types[]=Common%20Stock&limit=50&max_dte=35&min_premium=10000&min_size=100&newer_than=1717650000000&older_than=1719291540000&order=Prem&ticker_symbol=GME&watchlist_name=GME%2035DTE"
           icon: si-docker
     - "Tradezella":
-        - abbr: TR
+        - abbr: TZ
           href: "https://app.tradezella.com/"
           icon: si-vuejs
 
