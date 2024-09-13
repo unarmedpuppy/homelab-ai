@@ -94,10 +94,6 @@
           icon: si-bitcoin
   
 - Trading:
-    - "Fidelity Trader":
-        - abbr: FI
-          href: "https://digital.fidelity.com/ftgw/digital/trader-dashboard/"
-          icon: si-socialblade
     - "Option Strat":
         - abbr: OS
           href: "https://optionstrat.com/saved"
@@ -113,7 +109,7 @@
     - "Tradezella":
         - abbr: TZ
           href: "https://app.tradezella.com/"
-          icon: si-vuejs
+          icon: si-socialblade
 
 - MTG:
     - "Moxfield":
