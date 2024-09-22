@@ -11,6 +11,8 @@ services:
       - type: bind
         source: ${ZFS_PATH}
         target: /media
+    ports:
+      - "8096:8096"
     restart: 'unless-stopped'
     networks:
       - my-network
