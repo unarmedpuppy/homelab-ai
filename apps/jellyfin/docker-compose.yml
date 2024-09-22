@@ -19,7 +19,11 @@ services:
     restart: 'unless-stopped'
     networks:
       - my-network
-
+    labels:
+      - "homepage.group=Services"
+      - "homepage.name=Cache"
+      - "homepage.icon=si-redhat"
+      - "homepage.description=Manage cache and resources"
 volumes:
   jellyfinconf:
   jellyfincache:
