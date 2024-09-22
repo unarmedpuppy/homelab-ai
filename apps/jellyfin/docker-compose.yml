@@ -12,7 +12,7 @@ services:
         source: ${ZFS_PATH}
         target: /media
       - type: bind
-        source: /jenquist-cloud/archive
+        source: /jenquist-cloud
         target: /jenquist-cloud
     ports:
       - "8096:8096"
