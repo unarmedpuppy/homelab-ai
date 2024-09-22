@@ -23,6 +23,7 @@ services:
       - "homepage.group=Services"
       - "homepage.name=Cache"
       - "homepage.icon=si-redhat"
+      - "homepage.href=https://http://192.168.86.47:8096"
       - "homepage.description=Manage cache and resources"
 volumes:
   jellyfinconf:
