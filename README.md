@@ -1958,3 +1958,6 @@ This configuration applies a custom formula to adjust the reported temperature b
 
 This documentation provides a comprehensive overview of the home server setup, including system configuration, installed services, networking setup, and maintenance procedures. Regular updates to this documentation are recommended as the server configuration evolves.
 
+
+
+https://github.com/dani-garcia/vaultwarden/issues/5069
