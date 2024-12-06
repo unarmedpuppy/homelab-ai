@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   bedrock:
-    image: itzg/minecraft-bedrock-server:2024.11.0
+    image: itzg/minecraft-bedrock-server:latest
     environment:
       EULA: "TRUE"
       GAMEMODE: survival
