@@ -5,7 +5,7 @@ services:
     restart: always
     environment:
       - DOMAIN=https://vaultwarden.server.unarmedpuppy.com  # required when using a reverse proxy; your domain; vaultwarden needs to know it's https to work properly with attachments
-      - SIGNUPS_ALLOWED=false # Deactivate this with "false" after you have created your account so that no strangers can register
+      - SIGNUPS_ALLOWED=true # Deactivate this with "false" after you have created your account so that no strangers can register
       # - SMTP_HOST=smtp.gmail.com
       # - SMTP_FROM=dangerbahn@gmail.com
       # - SMTP_PORT=587
