@@ -7,7 +7,6 @@ services:
       GAMEMODE: survival
       DIFFICULTY: normal
       OPS: "2535454866260420"
-      VERSION: "LATEST"
     ports:
       - "19132:19132/udp"
     volumes:
