@@ -99,8 +99,8 @@
           href: "https://optionstrat.com/saved"
           icon: si-openstreetmap
     - "Trading View":
-        - abbr: GME
-          href: "https://www.tradingview.com/chart/aEJ06HQM/?symbol=NYSE%3AGME"
+        - abbr: TV
+          href: "https://www.tradingview.com"
           icon: si-gamejolt
     - "Unusual Whales":
         - abbr: UNS
