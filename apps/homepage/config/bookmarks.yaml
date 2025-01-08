@@ -94,6 +94,10 @@
           icon: si-bricks
   
 - Trading:
+    - "Journal":
+        - abbr: JR
+          href: "https://www.tradesviz.com/home/"
+          icon: si-journal
     - "Option Strat":
         - abbr: OS
           href: "https://optionstrat.com/saved"
