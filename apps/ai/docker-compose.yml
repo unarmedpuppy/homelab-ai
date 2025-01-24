@@ -35,7 +35,7 @@ services:
       - ./loras:/loras  # Lora models
       - ./models:/models  # Custom models
     environment:
-      - CLI_ARGS=--listen --api --model deepseek-ai/deepseek-moe-16b --backend text-generation-inference
+      - CLI_ARGS=--listen --api --model deepseek-ai/DeepSeek-R1 --backend text-generation-inference
     depends_on:
       - deepseek-model
     deploy:
