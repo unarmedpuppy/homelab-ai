@@ -10,7 +10,7 @@ services:
     environment:
       - MODEL_ID=deepseek-ai/DeepSeek-R1
       - QUANTIZE=gptq  # Enables quantization for better performance
-      - HUGGING_FACE_HUB_TOKEN=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
+      - HUGGING_FACE_HUB_TOKEN=/data/token  # Point to token file inside container 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
     deploy:
       resources:
         reservations:
@@ -20,6 +20,7 @@ services:
               capabilities: [gpu]
     volumes:
       - ./models:/models  # Store downloaded models
+      - ./data:/data  # Mount the token file
 
   textgen:
     image: atinoda/text-generation-webui:latest
