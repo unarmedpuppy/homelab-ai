@@ -6,7 +6,7 @@ services:
     container_name: deepseek-model
     restart: unless-stopped
     ports:
-      - "8042:8000"
+      - "8000:8000"
     environment:
       - MODEL_ID=deepseek-ai/deepseek-moe-16b
       - QUANTIZE=gptq
@@ -18,18 +18,23 @@ services:
               count: all
               capabilities: [gpu]
 
-  text-gen-ui:
-    image: oobabooga/text-generation-webui
-    container_name: text-gen-ui
+  ollama:
+      image: ollama/ollama
+      container_name: ollama
+      restart: unless-stopped
+      ports:
+        - "11434:11434"
+      volumes:
+        - ollama-data:/root/.ollama
+
+  ollama-ui:
+    image: ghcr.io/ollama-webui/ollama-webui:latest
+    container_name: ollama-ui
     restart: unless-stopped
     ports:
-      - "7860:7860"
+      - "3000:3000"
     depends_on:
-      - deepseek-model
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+      - ollama
+
+  volumes:
+    ollama-data:
