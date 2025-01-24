@@ -37,4 +37,4 @@ services:
       - ollama
 
 volumes:
-  ollama-data:
+   ollama-data:
