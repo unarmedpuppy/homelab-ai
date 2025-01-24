@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  deepseek-model:
+    image: ghcr.io/huggingface/text-generation-inference:latest
+    container_name: deepseek-model
+    restart: unless-stopped
+    ports:
+      - "8042:8000"
+    environment:
+      - MODEL_ID=deepseek-ai/deepseek-moe-16b
+      - QUANTIZE=gptq
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  text-gen-ui:
+    image: oobabooga/text-generation-webui
+    container_name: text-gen-ui
+    restart: unless-stopped
+    ports:
+      - "7860:7860"
+    depends_on:
+      - deepseek-model
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
