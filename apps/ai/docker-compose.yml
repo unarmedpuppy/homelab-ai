@@ -44,6 +44,14 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
+    labels:
+      - "homepage.group=Apps"
+      - "homepage.name=AI"
+      - "homepage.icon=si-openai"
+      - "homepage.href=http://192.168.86.47:7860/"
+      - "homepage.description=LLM"
+    networks:
+      - my-network
 
 networks:
   my-network:
