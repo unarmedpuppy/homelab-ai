@@ -8,7 +8,7 @@ services:
     ports:
       - "8042:8000"  # Model API exposed on port 8000
     environment:
-      - MODEL_ID=deepseek-ai/deepseek-moe-16b
+      - MODEL_ID=deepseek-ai/DeepSeek-R1
       - QUANTIZE=gptq  # Enables quantization for better performance
       - HUGGING_FACE_HUB_TOKEN=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
     deploy:
