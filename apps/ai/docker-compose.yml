@@ -36,5 +36,5 @@ services:
     depends_on:
       - ollama
 
-  volumes:
-    ollama-data:
+volumes:
+  ollama-data:
