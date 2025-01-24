@@ -6,10 +6,10 @@ services:
     container_name: deepseek-model
     restart: unless-stopped
     ports:
-      - "8042:8000"
+      - "8042:8000"  # Model API exposed on port 8000
     environment:
       - MODEL_ID=deepseek-ai/deepseek-moe-16b
-      - QUANTIZE=gptq
+      - QUANTIZE=gptq  # Enables quantization for better performance
     deploy:
       resources:
         reservations:
@@ -17,13 +17,24 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
+    volumes:
+      - ./models:/models  # Store downloaded models
 
-  text-gen-ui:
-    image: oobabooga/text-generation-webui
-    container_name: text-gen-ui
+  textgen:
+    image: atinoda/text-generation-webui:latest
+    container_name: textgen-webui
     restart: unless-stopped
     ports:
-      - "7860:7860"
+      - "7860:7860"  # WebUI Port
+    volumes:
+      - ./data:/data  # Model storage
+      - ./characters:/characters  # Character presets
+      - ./extensions:/extensions  # Extensions directory
+      - ./presets:/presets  # Chat presets
+      - ./loras:/loras  # Lora models
+      - ./models:/models  # Custom models
+    environment:
+      - CLI_ARGS=--listen --api --model deepseek-ai/deepseek-moe-16b --backend text-generation-inference
     depends_on:
       - deepseek-model
     deploy:
