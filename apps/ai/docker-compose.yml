@@ -6,7 +6,7 @@ services:
     container_name: deepseek-model
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "8042:8000"
     environment:
       - MODEL_ID=deepseek-ai/deepseek-moe-16b
       - QUANTIZE=gptq
@@ -32,7 +32,7 @@ services:
     container_name: ollama-ui
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3042:3000"
     depends_on:
       - ollama
 
