@@ -44,3 +44,7 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
+
+networks:
+  my-network:
+    external: true
