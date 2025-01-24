@@ -10,6 +10,7 @@ services:
     environment:
       - MODEL_ID=deepseek-ai/deepseek-moe-16b
       - QUANTIZE=gptq  # Enables quantization for better performance
+      - HUGGING_FACE_HUB_TOKEN=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
     deploy:
       resources:
         reservations:
