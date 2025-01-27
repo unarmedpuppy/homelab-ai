@@ -1,60 +1,59 @@
 version: '3.8'
-
 services:
-  deepseek-model:
-    image: ghcr.io/huggingface/text-generation-inference:latest
-    container_name: deepseek-model
-    restart: unless-stopped
+  app:
+    build: .
     ports:
-      - "8042:8000"  # Model API exposed on port 8000
-    environment:
-      - MODEL_ID=deepseek-ai/DeepSeek-R1
-      - QUANTIZE=gptq  # Enables quantization for better performance
-      - HUGGING_FACE_HUB_TOKEN=/data/token  # Point to token file inside container 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
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+      - 8000:8000
+      - 5678:5678
     volumes:
-      - ./models:/models  # Store downloaded models
-      - ./data:/data  # Mount the token file
-
-  textgen:
-    image: atinoda/text-generation-webui:latest
-    container_name: textgen-webui
-    restart: unless-stopped
-    ports:
-      - "7860:7860"  # WebUI Port
-    volumes:
-      - ./data:/data  # Model storage
-      - ./characters:/characters  # Character presets
-      - ./extensions:/extensions  # Extensions directory
-      - ./presets:/presets  # Chat presets
-      - ./loras:/loras  # Lora models
-      - ./models:/models  # Custom models
-    environment:
-      - CLI_ARGS=--listen --api --model deepseek-ai/DeepSeek-R1 --backend text-generation-inference
+      - .:/code
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+    restart: always
     depends_on:
-      - deepseek-model
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
-    labels:
-      - "homepage.group=Apps"
-      - "homepage.name=AI"
-      - "homepage.icon=si-openai"
-      - "homepage.href=http://192.168.86.47:7860/"
-      - "homepage.description=LLM"
+      - ollama
+      - ollama-webui
     networks:
-      - my-network
+      - ollama-docker
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - 7869:11434
+    volumes:
+      - .:/code
+      - ./ollama/ollama:/root/.ollama
+    container_name: ollama
+    pull_policy: always
+    tty: true
+    restart: always
+    environment:
+      - OLLAMA_KEEP_ALIVE=24h
+      - OLLAMA_HOST=0.0.0.0
+    networks:
+      - ollama-docker
+
+  ollama-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: ollama-webui
+    volumes:
+      - ./ollama/ollama-webui:/app/backend/data
+    depends_on:
+      - ollama
+    ports:
+      - 8080:8080
+    environment: # https://docs.openwebui.com/getting-started/env-configuration#default_models
+      - OLLAMA_BASE_URLS=http://host.docker.internal:7869 #comma separated ollama hosts
+      - ENV=dev
+      - WEBUI_AUTH=False
+      - WEBUI_NAME=valiantlynx AI
+      - WEBUI_URL=http://localhost:8080
+      - WEBUI_SECRET_KEY=t0p-s3cr3t
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    restart: unless-stopped
+    networks:
+      - ollama-docker
 
 networks:
-  my-network:
-    external: true
+  ollama-docker:
+    external: false
