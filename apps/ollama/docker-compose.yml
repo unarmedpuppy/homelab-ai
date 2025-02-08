@@ -2,13 +2,15 @@ version: '3.8'
 
 services:
   app:
-    build: .
+    image: python:3.9-slim
+    container_name: app
     ports:
-      - 8042:8000
-      - 5678:5678
+      - "8042:8000"
+      - "5678:5678"
     volumes:
       - .:/code
-    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+    working_dir: /code
+    command: bash -c "pip install -r requirements.txt && uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload"
     restart: always
     depends_on:
       - ollama
@@ -23,15 +25,15 @@ services:
       - "homepage.description=Ollama UI"
       
   ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
     volumes:
       - ./ollama/ollama:/root/.ollama
-    container_name: ollama
-    pull_policy: always
+    ports:
+      - "11434:11434"
     tty: true
     restart: unless-stopped
-    image: ollama/ollama:latest
-    ports:
-      - 11434:11434
+    pull_policy: always
     networks:
       - ollama-docker
     deploy:
@@ -50,7 +52,7 @@ services:
     depends_on:
       - ollama
     ports:
-      - 8080:8080
+      - "8080:8080"
     environment:
       - '/ollama/api=http://ollama:11434/api'
     extra_hosts:
@@ -61,4 +63,4 @@ services:
 
 networks:
   ollama-docker:
-    external: false
+    driver: bridge
