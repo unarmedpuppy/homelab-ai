@@ -1,66 +1,27 @@
 version: '3.8'
-
 services:
-  app:
-    image: python:3.9-slim
-    container_name: app
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
     ports:
-      - "8042:8000"
-      - "5678:5678"
+      - "11434:11434"
     volumes:
-      - .:/code
-    working_dir: /code
-    command: bash -c "pip install -r requirements.txt && uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload"
-    restart: always
+      - ./ollama/ollama:/root/.ollama
+    restart: unless-stopped
+
+  ollama-webui:
+    image: ghcr.io/ollama-webui/ollama-webui:main
+    container_name: ollama-webui
+    ports:
+      - "8042:8080"
+    environment:
+      - '/ollama/api=http://ollama:11434/api'
     depends_on:
       - ollama
-      - ollama-webui
-    networks:
-      - ollama-docker
+    restart: unless-stopped
     labels:   
       - "homepage.group=Apps"
       - "homepage.name=ollama"
       - "homepage.icon=si-meta"
       - "homepage.href=http://192.168.86.47:8042"
       - "homepage.description=Ollama UI"
-      
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama
-    volumes:
-      - ./ollama/ollama:/root/.ollama
-    ports:
-      - "11434:11434"
-    tty: true
-    restart: unless-stopped
-    pull_policy: always
-    networks:
-      - ollama-docker
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-
-  ollama-webui:
-    image: ghcr.io/ollama-webui/ollama-webui:main
-    container_name: ollama-webui
-    volumes:
-      - ./ollama/ollama-webui:/app/backend/data
-    depends_on:
-      - ollama
-    ports:
-      - "8080:8080"
-    environment:
-      - '/ollama/api=http://ollama:11434/api'
-    extra_hosts:
-      - host.docker.internal:host-gateway
-    restart: unless-stopped
-    networks:
-      - ollama-docker
-
-networks:
-  ollama-docker:
-    driver: bridge
