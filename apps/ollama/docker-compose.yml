@@ -8,6 +8,8 @@ services:
     volumes:
       - ./ollama/ollama:/root/.ollama
     restart: unless-stopped
+    networks:
+       - my-network
 
   ollama-webui:
     image: ghcr.io/ollama-webui/ollama-webui:main
@@ -19,6 +21,8 @@ services:
     depends_on:
       - ollama
     restart: unless-stopped
+    networks:
+       - my-network
     labels:   
       - "homepage.group=Apps"
       - "homepage.name=ollama"
