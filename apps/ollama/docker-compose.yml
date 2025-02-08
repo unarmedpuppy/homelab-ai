@@ -31,4 +31,4 @@ services:
       - "homepage.description=Ollama UI"
 networks:
   my-network:
-    external: false
+    external: true
