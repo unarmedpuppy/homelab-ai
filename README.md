@@ -1961,3 +1961,44 @@ This documentation provides a comprehensive overview of the home server setup, i
 
 
 https://github.com/dani-garcia/vaultwarden/issues/5069
+
+
+AI
+
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID) \
+    && curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
+    && curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.list | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+
+    curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+sudo apt update
+
+
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo tee /etc/apt/keyrings/docker.gpg > /dev/null
+
+echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo tee /etc/apt/keyrings/nvidia-container-toolkit.gpg > /dev/null
+
+echo "deb [signed-by=/etc/apt/keyrings/nvidia-container-toolkit.gpg] https://nvidia.github.io/libnvidia-container/stable/deb/amd64 /" | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list > /dev/null
+
+sudo apt install -y nvidia-container-toolkit
+
+sudo systemctl restart docker
+
+docker run --rm --gpus all nvidia/cuda:12.2.0-runtime-ubuntu22.04 nvidia-smi
+
+sudo apt update
+sudo apt install -y software-properties-common
+sudo add-apt-repository contrib
+sudo add-apt-repository non-free
+sudo add-apt-repository non-free-firmware
+sudo apt update
+
+sudo apt install -y nvidia-driver nvidia-smi firmware-misc-nonfree
+
+
+resize FS to storage 
+sudo resize2fs /dev/nvme0n1p2
