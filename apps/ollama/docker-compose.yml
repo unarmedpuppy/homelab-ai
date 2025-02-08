@@ -25,3 +25,6 @@ services:
       - "homepage.icon=si-meta"
       - "homepage.href=http://192.168.86.47:8042"
       - "homepage.description=Ollama UI"
+networks:
+  my-network:
+    external: false
