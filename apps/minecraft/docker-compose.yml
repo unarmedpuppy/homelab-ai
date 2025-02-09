@@ -16,7 +16,7 @@ services:
     tty: true
     labels:
       - "homepage.group=Gaming"
-      - "homepage.name=Minecraft Bedrock Server"
+      - "homepage.name=Minecraft Bedrock Server "
       - "homepage.icon=si-minecraft"
       - "homepage.href=http://minecraft.server.unarmedpuppy.com"
       - "homepage.description=Minecraft server, UDP traffic only on port 19132"
