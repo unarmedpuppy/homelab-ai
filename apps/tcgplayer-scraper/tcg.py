@@ -87,6 +87,7 @@ def get_tcgplayer_price(url):
 
 def save_prices_to_db(csv_file, db_name='tcgplayer_pricesv2.db'):
     print("Starting to process CSV file...")
+    today = datetime.date.today().strftime("%Y-%m-%d")
     
     try:
         df = pd.read_csv(csv_file)
