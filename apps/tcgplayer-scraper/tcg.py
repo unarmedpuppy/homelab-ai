@@ -86,20 +86,6 @@ def get_tcgplayer_price(url):
     return title, price, image_url
 
 def save_prices_to_db(csv_file, db_name='tcgplayer_pricesv2.db'):
-    print("Checking last update date...")
-    today = datetime.date.today().strftime("%Y-%m-%d")
-    
-    conn = sqlite3.connect(db_name)
-    cursor = conn.cursor()
-    
-    cursor.execute("SELECT MAX(date) FROM prices")
-    last_update = cursor.fetchone()[0]
-    
-    if last_update == today:
-        print("Prices already updated today. Skipping update.")
-        conn.close()
-        return
-    
     print("Starting to process CSV file...")
     
     try:
