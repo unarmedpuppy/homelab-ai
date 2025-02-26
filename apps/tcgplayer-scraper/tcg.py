@@ -7,6 +7,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
 import os
 
 app = Flask(__name__)
@@ -45,7 +46,7 @@ def get_tcgplayer_price(url):
     options.binary_location = os.getenv("CHROME_BIN", "/usr/bin/chromium")
     
     try:
-        service = Service(os.getenv("CHROMEDRIVER_BIN", "/usr/bin/chromedriver"))  # Use system-installed chromedriver
+        service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=options)
         driver.set_page_load_timeout(15)  # Prevent hanging if page is slow
     except Exception as e:
