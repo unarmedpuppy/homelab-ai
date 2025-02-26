@@ -33,10 +33,10 @@ services:
     - "traefik.http.routers.recipes-local.rule=Host(`mtg.local.unarmedpuppy.com`)"
     - "traefik.http.routers.recipes-local.entrypoints=web"
     - "homepage.group=Apps"
-    - "homepage.name=Vaultwarden"
-    - "homepage.icon=si-1password"
-    - "homepage.description=passwords"
-    - "homepage.href=https://vaultwarden.server.unarmedpuppy.com"
+    - "homepage.name=MTG"
+    - "homepage.icon=si-codemagic"
+    - "homepage.description=TCGPlayer scraper"
+    - "homepage.href=https://mtg.server.unarmedpuppy.com"
 
 volumes:
   sqlite_data:
