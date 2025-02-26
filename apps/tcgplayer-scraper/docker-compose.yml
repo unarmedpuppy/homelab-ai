@@ -4,7 +4,7 @@ services:
   web:
     build: .
     ports:
-      - "5000:5111"
+      - "5111:5000"
     volumes:
       - .:/app
     environment:

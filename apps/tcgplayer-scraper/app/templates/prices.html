@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCGPlayer Market Tracker</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #ffffff;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #2c3e50;
+            color: white;
+        }
+
+        tr:hover {
+            background: #f1f1f1;
+        }
+
+        img {
+            max-width: 80px;
+            border-radius: 5px;
+        }
+
+        a {
+            text-decoration: none;
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .gain {
+            color: green;
+            font-weight: bold;
+        }
+
+        .loss {
+            color: red;
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>TCGPlayer Market Tracker</h1>
+        <table>
+            <tr>
+                <th>Date</th>
+                <th>Product</th>
+                <th>Market Price</th>
+                <th>Purchase Date</th>
+                <th>Cost Basis</th>
+                <th>% Change</th>
+                <th>Image</th>
+                <th>Link</th>
+            </tr>
+            {% set total_market_value = 0 %}
+            {% set total_cost_basis = 0 %}
+            {% for row in data %}
+            {% set market_price = row[2] | float if row[2] != "Price not found" else 0 %}
+            {% set cost_basis = row[6] | float if row[6] != "Unknown" else 0 %}
+            {% set total_market_value = total_market_value + market_price %}
+            {% set total_cost_basis = total_cost_basis + cost_basis %}
+            {% if cost_basis > 0 %}
+                {% set percentage_change = ((market_price - cost_basis) / cost_basis) * 100 %}
+            {% else %}
+                {% set percentage_change = 0 %}
+            {% endif %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                <td>${{ "%.2f"|format(market_price) }}</td>
+                <td>{{ row[5] }}</td>
+                <td>${{ "%.2f"|format(cost_basis) }}</td>
+                <td class="{% if percentage_change >= 0 %}gain{% else %}loss{% endif %}">
+                    {{ "%.2f"|format(percentage_change) }}%
+                </td>
+                <td><img src="{{ row[3] }}" alt="Product Image"></td>
+                <td><a href="{{ row[4] }}" target="_blank">View Product</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+        <div class="footer">
+            Total Market Value: ${{ "%.2f"|format(total_market_value) }} <br>
+            Total Cost Basis: ${{ "%.2f"|format(total_cost_basis) }}
+        </div>
+    </div>
+</body>
+</html>
