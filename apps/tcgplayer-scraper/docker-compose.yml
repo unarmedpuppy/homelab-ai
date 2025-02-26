@@ -12,31 +12,32 @@ services:
       - PYTHONUNBUFFERED=1
     depends_on:
       - db
+    networks:
+      - my-network
+    labels:
+      - "traefik.enable=true"
+      # HTTPS redirect
+      - traefik.http.middlewares.mywebserver-redirect-web-secure.redirectscheme.scheme=https
+      - traefik.http.routers.recipes-redirect.middlewares=mywebserver-redirect-web-secure
+      - traefik.http.routers.recipes-redirect.rule=Host(`mtg.server.unarmedpuppy.com`)
+      - traefik.http.routers.recipes-redirect.entrypoints=web
+      # Main HTTPS router
+      - "traefik.http.routers.recipes.rule=Host(`mtg.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.recipes.entrypoints=websecure" # your https endpoint
+      - "traefik.http.routers.recipes.tls.certresolver=myresolver" # your cert resolver
+      #local DNS
+      - "traefik.http.routers.recipes-local.rule=Host(`mtg.local.unarmedpuppy.com`)"
+      - "traefik.http.routers.recipes-local.entrypoints=web"
+      - "homepage.group=Apps"
+      - "homepage.name=MTG"
+      - "homepage.icon=si-codemagic"
+      - "homepage.description=TCGPlayer scraper"
+      - "homepage.href=https://mtg.server.unarmedpuppy.com"
 
   db:
     image: "nouchka/sqlite3"
     volumes:
       - sqlite_data:/data
-  
-  labels:
-    - "traefik.enable=true"
-    # HTTPS redirect
-    - traefik.http.middlewares.mywebserver-redirect-web-secure.redirectscheme.scheme=https
-    - traefik.http.routers.recipes-redirect.middlewares=mywebserver-redirect-web-secure
-    - traefik.http.routers.recipes-redirect.rule=Host(`mtg.server.unarmedpuppy.com`)
-    - traefik.http.routers.recipes-redirect.entrypoints=web
-    # Main HTTPS router
-    - "traefik.http.routers.recipes.rule=Host(`mtg.server.unarmedpuppy.com`)"
-    - "traefik.http.routers.recipes.entrypoints=websecure" # your https endpoint
-    - "traefik.http.routers.recipes.tls.certresolver=myresolver" # your cert resolver
-    #local DNS
-    - "traefik.http.routers.recipes-local.rule=Host(`mtg.local.unarmedpuppy.com`)"
-    - "traefik.http.routers.recipes-local.entrypoints=web"
-    - "homepage.group=Apps"
-    - "homepage.name=MTG"
-    - "homepage.icon=si-codemagic"
-    - "homepage.description=TCGPlayer scraper"
-    - "homepage.href=https://mtg.server.unarmedpuppy.com"
 
 volumes:
   sqlite_data:
