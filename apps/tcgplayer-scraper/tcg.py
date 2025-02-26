@@ -41,7 +41,7 @@ import subprocess
 
 def get_chromium_version():
     try:
-        version = subprocess.check_output(["chromium", "--version"]).decode("utf-8").strip()
+        version = subprocess.check_output(["google-chrome", "--version"]).decode("utf-8").strip()
         version_number = version.split(" ")[1].split(".")[0]  # Extract major version (e.g., "133" from "Chromium 133.0.6943.126")
         print(f"Detected Chromium version: {version_number}")
         return version_number
