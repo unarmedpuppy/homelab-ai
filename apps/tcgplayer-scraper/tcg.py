@@ -12,7 +12,7 @@ import os
 
 app = Flask(__name__)
 
-def initialize_database(db_name='tcgplayer_pricesv1.db'):
+def initialize_database(db_name='tcgplayer_pricesv2.db'):
     print("Initializing database...")
     try:
         conn = sqlite3.connect(db_name)
@@ -85,7 +85,7 @@ def get_tcgplayer_price(url):
     print(f"Fetched: {title} - {price} - {image_url}")
     return title, price, image_url
 
-def save_prices_to_db(csv_file, db_name='tcgplayer_pricesv1.db'):
+def save_prices_to_db(csv_file, db_name='tcgplayer_pricesv2.db'):
     print("Checking last update date...")
     today = datetime.date.today().strftime("%Y-%m-%d")
     
@@ -143,7 +143,7 @@ def save_prices_to_db(csv_file, db_name='tcgplayer_pricesv1.db'):
 def display_prices():
     print("Fetching latest prices for display...")
     initialize_database()
-    conn = sqlite3.connect('tcgplayer_pricesv1.db')
+    conn = sqlite3.connect('tcgplayer_pricesv2.db')
     cursor = conn.cursor()
     cursor.execute("""
         SELECT date, product_title, market_price, image_url, url, purchase_date, cost_basis 
