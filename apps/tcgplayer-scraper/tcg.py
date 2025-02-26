@@ -7,7 +7,6 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
 import os
 
 app = Flask(__name__)
@@ -42,9 +41,11 @@ def get_tcgplayer_price(url):
     options.add_argument("--headless")
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.binary_location = os.getenv("CHROME_BIN", "/usr/bin/chromium")
     
     try:
-        service = Service(ChromeDriverManager().install())
+        service = Service(os.getenv("CHROMEDRIVER_BIN", "/usr/bin/chromedriver"))  # Use system-installed chromedriver
         driver = webdriver.Chrome(service=service, options=options)
         driver.set_page_load_timeout(15)  # Prevent hanging if page is slow
     except Exception as e:
@@ -115,7 +116,6 @@ def save_prices_to_db(csv_file, db_name='tcgplayer_pricesv6.db'):
         url = row['url'] if isinstance(row['url'], str) and row['url'].startswith('http') else None  # Ensure valid URLs
         purchase_date = row.get('date purchased', "Unknown")
         
-        # Debug: Print the raw cost basis value from CSV
         raw_cost_basis = row.get('cost basis', "0.00")
         print(f"Raw cost basis for ID {product_id}: {raw_cost_basis}")
         
