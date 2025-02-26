@@ -89,13 +89,13 @@
         <h1>TCGPlayer Market Tracker</h1>
         <table>
             <tr>
+                <th>Image</th>
                 <th>Date</th>
                 <th>Product</th>
                 <th>Market Price</th>
                 <th>Purchase Date</th>
                 <th>Cost Basis</th>
                 <th>% Change</th>
-                <th>Image</th>
                 <th>Link</th>
             </tr>
             {% set total_market_value = 0 %}
@@ -111,6 +111,7 @@
                 {% set percentage_change = 0 %}
             {% endif %}
             <tr>
+                <td><img src="{{ row[3] }}" alt="Product Image"></td>
                 <td>{{ row[0] }}</td>
                 <td>{{ row[1] }}</td>
                 <td>${{ "%.2f"|format(market_price) }}</td>
@@ -119,7 +120,6 @@
                 <td class="{% if percentage_change >= 0 %}gain{% else %}loss{% endif %}">
                     {{ "%.2f"|format(percentage_change) }}%
                 </td>
-                <td><img src="{{ row[3] }}" alt="Product Image"></td>
                 <td><a href="{{ row[4] }}" target="_blank">View Product</a></td>
             </tr>
             {% endfor %}
