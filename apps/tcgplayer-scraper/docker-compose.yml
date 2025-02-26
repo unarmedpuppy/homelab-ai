@@ -40,3 +40,7 @@ services:
 
 volumes:
   sqlite_data:
+
+networks:
+  my-network:
+    external: true
