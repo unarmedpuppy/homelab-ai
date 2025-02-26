@@ -9,8 +9,6 @@ RUN apt-get update && apt-get install -y \
     wget \
     unzip \
     curl \
-    chromium \
-    chromium-driver \
     libglib2.0-0 \
     libnss3 \
     libx11-xcb1 \
@@ -27,24 +25,29 @@ RUN apt-get update && apt-get install -y \
     libpangocairo-1.0-0 \
     libpangoft2-1.0-0
 
-# Ensure permissions
-RUN chmod +x /usr/bin/chromedriver
+# Install specific version of Chromium (v114)
+RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+    dpkg -i google-chrome-stable_current_amd64.deb || apt-get -fy install && \
+    rm google-chrome-stable_current_amd64.deb
 
-# Install the correct ChromeDriver version that matches Chromium
-RUN CHROMIUM_VERSION=$(chromium --version | awk '{print $2}' | cut -d'.' -f1) && \
-    wget -q -O /tmp/chromedriver.zip https://chromedriver.storage.googleapis.com/$CHROMIUM_VERSION/chromedriver_linux64.zip && \
+# Install ChromeDriver v114 manually
+RUN wget -q -O /tmp/chromedriver.zip https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_linux64.zip && \
     unzip /tmp/chromedriver.zip -d /usr/bin/ && \
-    rm /tmp/chromedriver.zip
-
-COPY . /app
-RUN pip install --no-cache-dir -r requirements.txt
+    rm /tmp/chromedriver.zip && \
+    chmod +x /usr/bin/chromedriver
 
 # Set environment variables
-ENV CHROME_BIN=/usr/bin/chromium
+ENV CHROME_BIN=/usr/bin/google-chrome
 ENV CHROMEDRIVER_BIN=/usr/bin/chromedriver
+
+# Copy application files
+COPY . /app
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
 # Expose Flask's default port
 EXPOSE 5000
 
-# Command to start the Flask app
-CMD ["python", "script.py"]
+# Start the application
+CMD ["python", "tcg.py"]
