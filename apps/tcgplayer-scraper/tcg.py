@@ -36,6 +36,18 @@ def initialize_database(db_name='tcgplayer_pricesv2.db'):
     except Exception as e:
         print(f"Error initializing database: {e}")
 
+import subprocess
+
+def get_chromium_version():
+    try:
+        version = subprocess.check_output(["chromium", "--version"]).decode("utf-8").strip()
+        version_number = version.split(" ")[1].split(".")[0]  # Extract major version (e.g., "133" from "Chromium 133.0.6943.126")
+        print(f"Detected Chromium version: {version_number}")
+        return version_number
+    except Exception as e:
+        print(f"Error detecting Chromium version: {e}")
+        return None
+
 def get_tcgplayer_price(url):
     print(f"Fetching price data from: {url}")
     options = Options()
@@ -46,7 +58,11 @@ def get_tcgplayer_price(url):
     options.binary_location = os.getenv("CHROME_BIN", "/usr/bin/chromium")
     
     try:
-        service = Service(ChromeDriverManager().install())
+        chromium_version = get_chromium_version()
+        if chromium_version:
+            service = Service(ChromeDriverManager(version=chromium_version, chrome_type=ChromeType.CHROMIUM).install())
+        else:
+            service = Service(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
         driver = webdriver.Chrome(service=service, options=options)
         driver.set_page_load_timeout(15)  # Prevent hanging if page is slow
     except Exception as e:
