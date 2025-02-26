@@ -32,7 +32,7 @@ services:
       - "homepage.name=MTG"
       - "homepage.icon=si-codemagic"
       - "homepage.description=TCGPlayer scraper"
-      - "homepage.href=http://mtg.server.unarmedpuppy.com"
+      - "homepage.href=https://mtg.server.unarmedpuppy.com"
 
   db:
     image: "nouchka/sqlite3"
