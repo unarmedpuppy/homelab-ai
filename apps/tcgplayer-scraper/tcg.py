@@ -8,8 +8,9 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
-
 import os
+import threading
+import subprocess
 
 app = Flask(__name__)
 
@@ -37,18 +38,6 @@ def initialize_database(db_name='tcgplayer_pricesv2.db'):
     except Exception as e:
         print(f"Error initializing database: {e}")
 
-import subprocess
-
-def get_chromium_version():
-    try:
-        version = subprocess.check_output(["google-chrome", "--version"]).decode("utf-8").strip()
-        version_number = version.split(" ")[1].split(".")[0]  # Extract major version (e.g., "133" from "Chromium 133.0.6943.126")
-        print(f"Detected Chromium version: {version_number}")
-        return version_number
-    except Exception as e:
-        print(f"Error detecting Chromium version: {e}")
-        return None
-
 def get_tcgplayer_price(url):
     print(f"Fetching price data from: {url}")
     options = Options()
@@ -56,14 +45,10 @@ def get_tcgplayer_price(url):
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-    options.binary_location = os.getenv("CHROME_BIN", "/usr/bin/chromium")
+    options.binary_location = os.getenv("CHROME_BIN", "/usr/bin/google-chrome")
     
     try:
-        chromium_version = get_chromium_version()
-        if chromium_version:
-            service = Service(ChromeDriverManager().install())
-        else:
-            service = Service(ChromeDriverManager().install())
+        service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=options)
         driver.set_page_load_timeout(15)  # Prevent hanging if page is slow
     except Exception as e:
@@ -162,17 +147,15 @@ def display_prices():
     print("Data fetched successfully.")
     return render_template('prices.html', data=data)
 
+def start_price_update():
+    csv_file = os.path.join(os.path.dirname(__file__), "export.csv")
+    save_prices_to_db(csv_file)
+
 if __name__ == "__main__":
     print("Script execution started...")
     initialize_database()
-    csv_file = os.path.join(os.path.dirname(__file__), "export.csv")
     
-    if not os.path.exists(csv_file):
-        print(f"Error: {csv_file} not found. Please ensure the file is in the same directory.")
-        exit(1)
-    
-    print(f"Looking for CSV file at: {csv_file}")
-    save_prices_to_db(csv_file)
+    threading.Thread(target=start_price_update, daemon=True).start()
     
     print("Starting Flask application...")
     try:
