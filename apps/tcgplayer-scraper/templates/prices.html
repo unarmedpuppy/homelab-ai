@@ -21,7 +21,6 @@
             background: #ffffff;
             border-radius: 10px;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            overflow-x: auto;
         }
 
         h1 {
@@ -30,50 +29,52 @@
             margin-bottom: 20px;
         }
 
-        .table-wrapper {
-            width: 100%;
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-            background: #ffffff;
-            min-width: 700px;
-            display: table;
-        }
-
-        th, td {
+        /* Grid Layout for Product Cards */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
             padding: 10px;
+            justify-content: center;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px;
             text-align: left;
-            border-bottom: 1px solid #ddd;
-            font-size: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.2s ease-in-out;
         }
 
-        th {
-            background: #2c3e50;
-            color: white;
+        .product-card:hover {
+            transform: scale(1.03);
         }
 
-        tr:hover {
-            background: #f1f1f1;
-        }
-
-        img {
-            max-width: 80px;
+        .product-card img {
+            max-width: 120px;
             height: auto;
             border-radius: 5px;
+            margin-bottom: 10px;
         }
 
-        a {
-            text-decoration: none;
-            color: #3498db;
-            font-weight: bold;
+        .product-details {
+            width: 100%;
         }
 
-        a:hover {
-            text-decoration: underline;
+        .product-details h2 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        .product-details p {
+            font-size: 0.9rem;
+            margin: 5px 0;
         }
 
         .gain {
@@ -86,6 +87,16 @@
             font-weight: bold;
         }
 
+        a {
+            text-decoration: none;
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
         .footer {
             margin-top: 20px;
             font-size: 1rem;
@@ -93,45 +104,13 @@
             font-weight: bold;
         }
 
-        /* Mobile-Friendly Product Card View */
         @media (max-width: 768px) {
-            .table-wrapper {
-                display: none;
-            }
-
-            .product-card {
-                background: white;
-                border-radius: 10px;
-                box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-                padding: 15px;
-                margin: 15px auto;
-                max-width: 95%;
-                text-align: left;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
+            h1 {
+                font-size: 1.8rem;
             }
 
             .product-card img {
-                max-width: 120px;
-                height: auto;
-                border-radius: 5px;
-                margin-bottom: 10px;
-            }
-
-            .product-details {
-                width: 100%;
-            }
-
-            .product-details h2 {
-                font-size: 1.2rem;
-                margin-bottom: 10px;
-                color: #2c3e50;
-            }
-
-            .product-details p {
-                font-size: 0.9rem;
-                margin: 5px 0;
+                max-width: 100px;
             }
 
             .footer {
@@ -139,10 +118,17 @@
             }
         }
 
-        /* Ensure max width locks on large screens */
-        @media (min-width: 1100px) {
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+
             .container {
-                max-width: 1100px;
+                padding: 10px;
+            }
+
+            .product-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             }
         }
     </style>
@@ -151,69 +137,38 @@
     <div class="container">
         <h1>TCGPlayer Market Tracker</h1>
 
-        <!-- Desktop Table View -->
-        <div class="table-wrapper">
-            <table>
-                <tr>
-                    <th>Image</th>
-                    <th>Date</th>
-                    <th>Product</th>
-                    <th>Market Price</th>
-                    <th>Purchase Date</th>
-                    <th>Cost Basis</th>
-                    <th>% Change</th>
-                    <th>Link</th>
-                </tr>
+        <!-- Product Cards Grid -->
+        <div class="product-grid">
+            {% set ns = namespace(total_market_value=0, total_cost_basis=0) %}
+            {% for row in data %}
+            {% set market_price = row[2] | float if row[2] != "Price not found" else 0 %}
+            {% set cost_basis = row[6] | float if row[6] != "Unknown" else 0 %}
 
-                {% set ns = namespace(total_market_value=0, total_cost_basis=0) %}
+            {% set ns.total_market_value = ns.total_market_value + market_price %}
+            {% set ns.total_cost_basis = ns.total_cost_basis + cost_basis %}
 
-                {% for row in data %}
-                {% set market_price = row[2] | float if row[2] != "Price not found" else 0 %}
-                {% set cost_basis = row[6] | float if row[6] != "Unknown" else 0 %}
+            {% if cost_basis > 0 %}
+                {% set percentage_change = ((market_price - cost_basis) / cost_basis) * 100 %}
+            {% else %}
+                {% set percentage_change = 0 %}
+            {% endif %}
 
-                {% set ns.total_market_value = ns.total_market_value + market_price %}
-                {% set ns.total_cost_basis = ns.total_cost_basis + cost_basis %}
-
-                {% if cost_basis > 0 %}
-                    {% set percentage_change = ((market_price - cost_basis) / cost_basis) * 100 %}
-                {% else %}
-                    {% set percentage_change = 0 %}
-                {% endif %}
-
-                <tr>
-                    <td><img src="{{ row[3] }}" alt="Product Image"></td>
-                    <td>{{ row[0] }}</td>
-                    <td>{{ row[1] }}</td>
-                    <td>${{ "%.2f"|format(market_price) }}</td>
-                    <td>{{ row[5] }}</td>
-                    <td>${{ "%.2f"|format(cost_basis) }}</td>
-                    <td class="{% if percentage_change >= 0 %}gain{% else %}loss{% endif %}">
-                        {{ "%.2f"|format(percentage_change) }}%
-                    </td>
-                    <td><a href="{{ row[4] }}" target="_blank">View Product</a></td>
-                </tr>
-                {% endfor %}
-            </table>
-        </div>
-
-        <!-- Mobile Card View -->
-        {% for row in data %}
-        <div class="product-card">
-            <img src="{{ row[3] }}" alt="Product Image">
-            <div class="product-details">
-                <h2>{{ row[1] }}</h2>
-                <p><strong>Date:</strong> {{ row[0] }}</p>
-                <p><strong>Market Price:</strong> ${{ "%.2f"|format(row[2] | float) }}</p>
-                <p><strong>Purchase Date:</strong> {{ row[5] }}</p>
-                <p><strong>Cost Basis:</strong> ${{ "%.2f"|format(row[6] | float) }}</p>
-                {% set percentage_change = ((row[2] | float - row[6] | float) / row[6] | float) * 100 if row[6] | float > 0 else 0 %}
-                <p class="{% if percentage_change >= 0 %}gain{% else %}loss{% endif %}">
-                    <strong>% Change:</strong> {{ "%.2f"|format(percentage_change) }}%
-                </p>
-                <p><a href="{{ row[4] }}" target="_blank">View Product</a></p>
+            <div class="product-card">
+                <img src="{{ row[3] }}" alt="Product Image">
+                <div class="product-details">
+                    <h2>{{ row[1] }}</h2>
+                    <p><strong>Date:</strong> {{ row[0] }}</p>
+                    <p><strong>Market Price:</strong> ${{ "%.2f"|format(market_price) }}</p>
+                    <p><strong>Purchase Date:</strong> {{ row[5] }}</p>
+                    <p><strong>Cost Basis:</strong> ${{ "%.2f"|format(cost_basis) }}</p>
+                    <p class="{% if percentage_change >= 0 %}gain{% else %}loss{% endif %}">
+                        <strong>% Change:</strong> {{ "%.2f"|format(percentage_change) }}%
+                    </p>
+                    <p><a href="{{ row[4] }}" target="_blank">View Product</a></p>
+                </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
 
         <div class="footer">
             Total Market Value: ${{ "%.2f"|format(ns.total_market_value) }} <br>
