@@ -18,16 +18,13 @@ services:
       - "traefik.enable=true"
       # HTTPS redirect
       - traefik.http.middlewares.mywebserver-redirect-web-secure.redirectscheme.scheme=https
-      - traefik.http.routers.recipes-redirect.middlewares=mywebserver-redirect-web-secure
-      - traefik.http.routers.recipes-redirect.rule=Host(`tcg.server.unarmedpuppy.com`)
-      - traefik.http.routers.recipes-redirect.entrypoints=web
+      - traefik.http.routers.tcg-redirect.middlewares=mywebserver-redirect-web-secure
+      - traefik.http.routers.tcg-redirect.rule=Host(`tcg.local.unarmedpuppy.com`)
+      - traefik.http.routers.tcg-redirect.entrypoints=web
       # Main HTTPS router
-      - "traefik.http.routers.recipes.rule=Host(`tcg.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.recipes.entrypoints=websecure" # your https endpoint
-      - "traefik.http.routers.recipes.tls.certresolver=myresolver" # your cert resolver
-      #local DNS
-      - "traefik.http.routers.recipes-local.rule=Host(`tcg.local.unarmedpuppy.com`)"
-      - "traefik.http.routers.recipes-local.entrypoints=web"
+      - "traefik.http.routers.tcg.rule=Host(`tcg.local.unarmedpuppy.com`)"
+      - "traefik.http.routers.tcg.entrypoints=websecure" # your https endpoint
+      - "traefik.http.routers.tcg.tls.certresolver=myresolver" # your cert resolver
       - "homepage.group=Apps"
       - "homepage.name=MTG"
       - "homepage.icon=si-codemagic"
