@@ -1,4 +1,4 @@
-# Use Python as base image
+# Use an official Python image
 FROM python:3.9
 
 # Set working directory
@@ -10,13 +10,28 @@ RUN apt-get update && apt-get install -y \
     unzip \
     curl \
     chromium \
-    chromium-driver
+    chromium-driver \
+    libglib2.0-0 \
+    libnss3 \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxcursor1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxi6 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libpangocairo-1.0-0 \
+    libpangoft2-1.0-0
 
-# Ensure Chromedriver has correct permissions
+# Ensure permissions
 RUN chmod +x /usr/bin/chromedriver
 
 # Install Python dependencies
-COPY . /app
+COPY app/ /app
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Set environment variables for Selenium
