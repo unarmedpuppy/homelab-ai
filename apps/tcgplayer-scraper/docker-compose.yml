@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5111"
+    volumes:
+      - .:/app
+    environment:
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - db
+
+  db:
+    image: "nouchka/sqlite3"
+    volumes:
+      - sqlite_data:/data
+
+volumes:
+  sqlite_data:
