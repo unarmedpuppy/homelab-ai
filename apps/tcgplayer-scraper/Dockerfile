@@ -10,7 +10,6 @@ RUN apt-get update && apt-get install -y \
     unzip \
     curl \
     chromium \
-    chromium-browser \
     chromium-driver
 
 # Ensure Chromedriver has correct permissions
