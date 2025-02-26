@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
 # Install Python dependencies
 COPY app/ /app
 RUN pip install --no-cache-dir -r requirements.txt
+RUN chmod +x /usr/bin/chromedriver
 
 # Set environment variables for Selenium & Chrome
 ENV CHROME_BIN=/usr/bin/chromium
