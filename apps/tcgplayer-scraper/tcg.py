@@ -8,7 +8,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.core.utils import ChromeType
+
 import os
 
 app = Flask(__name__)
@@ -61,9 +61,9 @@ def get_tcgplayer_price(url):
     try:
         chromium_version = get_chromium_version()
         if chromium_version:
-            service = Service(ChromeDriverManager(version=chromium_version, chrome_type=ChromeType.CHROMIUM).install())
+            service = Service(ChromeDriverManager(version=chromium_version).install())
         else:
-            service = Service(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
+            service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=options)
         driver.set_page_load_timeout(15)  # Prevent hanging if page is slow
     except Exception as e:
