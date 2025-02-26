@@ -1,7 +1,6 @@
-# Use Python as base image
 FROM python:3.9
 
-# Set the working directory inside the container
+# Set working directory
 WORKDIR /app
 
 # Install dependencies
@@ -23,5 +22,5 @@ ENV CHROMEDRIVER_BIN=/usr/bin/chromedriver
 # Expose Flask's default port
 EXPOSE 5000
 
-# Command to start the Flask app
+# Run Flask app
 CMD ["python", "tcg.py"]
