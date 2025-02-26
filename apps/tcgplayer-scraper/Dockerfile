@@ -31,7 +31,7 @@ RUN apt-get update && apt-get install -y \
 RUN chmod +x /usr/bin/chromedriver
 
 # Install Python dependencies
-COPY app/ /app
+COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Set environment variables for Selenium
