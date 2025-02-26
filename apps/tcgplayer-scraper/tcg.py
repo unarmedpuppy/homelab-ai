@@ -61,7 +61,7 @@ def get_tcgplayer_price(url):
     try:
         chromium_version = get_chromium_version()
         if chromium_version:
-            service = Service(ChromeDriverManager(version=chromium_version).install())
+            service = Service(ChromeDriverManager().install())
         else:
             service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=options)
