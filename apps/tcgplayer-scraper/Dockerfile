@@ -1,4 +1,4 @@
-# Use an official Python image
+# Use Python as base image
 FROM python:3.9
 
 # Set working directory
@@ -30,11 +30,16 @@ RUN apt-get update && apt-get install -y \
 # Ensure permissions
 RUN chmod +x /usr/bin/chromedriver
 
-# Install Python dependencies
+# Install the correct ChromeDriver version that matches Chromium
+RUN CHROMIUM_VERSION=$(chromium --version | awk '{print $2}' | cut -d'.' -f1) && \
+    wget -q -O /tmp/chromedriver.zip https://chromedriver.storage.googleapis.com/$CHROMIUM_VERSION/chromedriver_linux64.zip && \
+    unzip /tmp/chromedriver.zip -d /usr/bin/ && \
+    rm /tmp/chromedriver.zip
+
 COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Set environment variables for Selenium
+# Set environment variables
 ENV CHROME_BIN=/usr/bin/chromium
 ENV CHROMEDRIVER_BIN=/usr/bin/chromedriver
 
@@ -42,4 +47,4 @@ ENV CHROMEDRIVER_BIN=/usr/bin/chromedriver
 EXPOSE 5000
 
 # Command to start the Flask app
-CMD ["python", "tcg.py"]
+CMD ["python", "script.py"]
