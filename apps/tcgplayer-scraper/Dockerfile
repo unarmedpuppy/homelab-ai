@@ -1,17 +1,27 @@
 # Use Python as base image
 FROM python:3.9
 
-# Set the working directory
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copy the application files
-COPY . /app
-
 # Install dependencies
+RUN apt-get update && apt-get install -y \
+    wget \
+    unzip \
+    curl \
+    chromium \
+    chromium-driver
+
+# Install Python dependencies
+COPY app/ /app
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose the Flask app port
+# Set environment variables for Selenium & Chrome
+ENV CHROME_BIN=/usr/bin/chromium
+ENV CHROMEDRIVER_BIN=/usr/bin/chromedriver
+
+# Expose Flask's default port
 EXPOSE 5000
 
-# Command to run the Flask app
+# Command to start the Flask app
 CMD ["python", "tcg.py"]
