@@ -94,7 +94,6 @@ services:
       -c max_wal_size=2GB
       -c shared_buffers=512MB
       -c wal_compression=on
-    restart: always
     networks:
       - my-network
     
