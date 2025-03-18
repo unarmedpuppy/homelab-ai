@@ -38,25 +38,6 @@
           href: https://midjourney.com/home
           icon: si-immer
 
-
-- Media:
-  - Reddit:
-      - abbr: rd
-        href: https://reddit.com/user/nameofundefined/
-        icon: si-reddit
-  - Youtube:
-      - abbr: YT
-        href: https://youtube.com
-        icon: si-youtube
-  - Twitter:
-      - abbr:
-        href: https://twitter.com/unarmedpuppy
-        icon: si-twitter
-  - Torrent:
-      - abbr: TR
-        href: https://www.bit-hdtv.com/index.php
-        icon: si-netflix
-
 - Docs:
     - "Financial Planning":
         - abbr: FP
