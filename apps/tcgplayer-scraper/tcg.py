@@ -64,21 +64,21 @@ def get_tcgplayer_price(url):
         return "Unknown", 0.00, "Image not found"
     
     try:
-        title = driver.find_element(By.CSS_SELECTOR, "h1[data-testid='lblProductDetailsProductName']").text.strip()
+        title = driver.find_element(By.CSS_SELECTOR, "h1[class*='product-details__name']").text.strip()
     except Exception as e:
         print(f"Error fetching title: {e}")
         title = "Unknown"
     
     try:
-        price_text = driver.find_element(By.CLASS_NAME, "spotlight__price").text.strip()
+        price_text = driver.find_element(By.CSS_SELECTOR, "div[class*='product-details__price'] span[class*='price']").text.strip()
         price = float(price_text.replace("$", "").replace(",", ""))
     except Exception as e:
         print(f"Error fetching price: {e}")
         price = 0.00
     
     try:
-        image_element = driver.find_element(By.CLASS_NAME, "lazy-image__wrapper")
-        image_url = image_element.find_element(By.TAG_NAME, "img").get_attribute("src")
+        image_element = driver.find_element(By.CSS_SELECTOR, "div[class*='product-details__image'] img")
+        image_url = image_element.get_attribute("src")
     except Exception as e:
         print(f"Error fetching image: {e}")
         image_url = "Image not found"
