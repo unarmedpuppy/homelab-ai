@@ -58,33 +58,86 @@ def get_tcgplayer_price(url):
     try:
         driver.get(url)
         time.sleep(5)  # Allow time for JavaScript to load
+        
+        # Debug: Print page source to see structure
+        print("Page source:", driver.page_source[:1000])  # Print first 1000 chars for debugging
+        
     except Exception as e:
         print(f"Error loading page: {e}")
         driver.quit()
         return "Unknown", 0.00, "Image not found"
     
     try:
-        title = driver.find_element(By.CSS_SELECTOR, "h1[class*='product-details__name']").text.strip()
+        # Try multiple possible selectors for title
+        title_selectors = [
+            "h1[class*='product-details__name']",
+            "h1[class*='product-title']",
+            "h1[class*='product-name']",
+            "h1[class*='product__name']"
+        ]
+        title = "Unknown"
+        for selector in title_selectors:
+            try:
+                title = driver.find_element(By.CSS_SELECTOR, selector).text.strip()
+                if title and title != "Unknown":
+                    break
+            except:
+                continue
+        print(f"Found title: {title}")
     except Exception as e:
         print(f"Error fetching title: {e}")
         title = "Unknown"
     
     try:
-        price_text = driver.find_element(By.CSS_SELECTOR, "div[class*='product-details__price'] span[class*='price']").text.strip()
-        price = float(price_text.replace("$", "").replace(",", ""))
+        # Try multiple possible selectors for price
+        price_selectors = [
+            "div[class*='product-details__price'] span[class*='price']",
+            "div[class*='price'] span[class*='amount']",
+            "div[class*='product-price'] span[class*='price']",
+            "div[class*='market-price'] span[class*='price']",
+            "div[class*='price__amount']"
+        ]
+        price = 0.00
+        for selector in price_selectors:
+            try:
+                price_element = driver.find_element(By.CSS_SELECTOR, selector)
+                price_text = price_element.text.strip()
+                print(f"Found price text: {price_text}")
+                if price_text and price_text != "$0.00":
+                    price = float(price_text.replace("$", "").replace(",", ""))
+                    break
+            except:
+                continue
+        print(f"Final price: {price}")
     except Exception as e:
         print(f"Error fetching price: {e}")
         price = 0.00
     
     try:
-        image_element = driver.find_element(By.CSS_SELECTOR, "div[class*='product-details__image'] img")
-        image_url = image_element.get_attribute("src")
+        # Try multiple possible selectors for image
+        image_selectors = [
+            "div[class*='product-details__image'] img",
+            "div[class*='product-image'] img",
+            "div[class*='product__image'] img",
+            "img[class*='product-image']",
+            "img[class*='product__image']"
+        ]
+        image_url = "Image not found"
+        for selector in image_selectors:
+            try:
+                image_element = driver.find_element(By.CSS_SELECTOR, selector)
+                image_url = image_element.get_attribute("src")
+                if image_url and image_url != "Image not found":
+                    break
+            except:
+                continue
+        print(f"Found image URL: {image_url}")
     except Exception as e:
         print(f"Error fetching image: {e}")
         image_url = "Image not found"
     
     driver.quit()
-    print(f"Fetched: {title} - {price} - {image_url}")
+    print(f"Final results - Title: {title}, Price: {price}, Image: {image_url}")
     return title, price, image_url
 
 def save_prices_to_db(csv_file, db_name='tcgplayer_pricesv2.db'):
