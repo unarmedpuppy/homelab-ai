@@ -68,7 +68,7 @@ def get_tcgplayer_price(url):
         return "Unknown", 0.00, "Image not found"
     
     try:
-        # Try multiple possible selectors for title
+        # Try multiple possible selectors for title test
         title_selectors = [
             "h1[class*='product-details__name']",
             "h1[class*='product-title']",
