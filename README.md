@@ -3,7 +3,7 @@
 - [Debian 12](https://www.debian.org/download) (Installed using [Etcher](https://etcher.balena.io/) to turn a USB drive into a bootable device)
 - local ip: `192.168.86.47` (`hostname -I`)
 - MAC address: 74:56:3c:e1:8b:3a
-- Power mode: Performance
+- Power mode: Performance2
 - Power Saving Options: Screen blank: Never, Auto Suspend: Off
 - Power Button Behavior: Nothing
 
