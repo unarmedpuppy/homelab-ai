@@ -212,6 +212,6 @@ if __name__ == "__main__":
     
     print("Starting Flask application...")
     try:
-        app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=False)
+        app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=True)
     except Exception as e:
         print(f"Flask failed to start: {e}")

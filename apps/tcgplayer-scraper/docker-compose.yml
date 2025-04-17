@@ -9,7 +9,7 @@ services:
       - .:/app
     restart: unless-stopped
     environment:
-      - FLASK_ENV=production
+      - FLASK_ENV=development
       - PYTHONUNBUFFERED=1
     depends_on:
       - db
