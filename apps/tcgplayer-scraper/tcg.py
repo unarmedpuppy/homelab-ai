@@ -114,7 +114,8 @@ def get_tcgplayer_price(url):
         price = 0.00
     
     try:
-        # Try multiple possible selectors for image 2
+        # Try multiple possible selectors for image 2ls
+        
         image_selectors = [
             "div[class*='product-details__image'] img",
             "div[class*='product-image'] img",
