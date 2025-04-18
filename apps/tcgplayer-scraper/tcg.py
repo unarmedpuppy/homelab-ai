@@ -2,7 +2,7 @@ import time
 import datetime
 import sqlite3
 import pandas as pd
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
@@ -183,7 +183,11 @@ def save_prices_to_db(csv_file, db_name='tcgplayer_pricesv2.db'):
     print("Finished processing CSV file.")
 
 @app.route('/')
-def display_prices():
+def dashboard():
+    return render_template('dashboard.html')
+
+@app.route('/sealed-products')
+def sealed_products():
     print("Fetching latest prices for display...")
     initialize_database()
     conn = sqlite3.connect('tcgplayer_pricesv2.db')
@@ -200,6 +204,10 @@ def display_prices():
     conn.close()
     print("Data fetched successfully.")
     return render_template('prices.html', data=data)
+
+@app.route('/decks')
+def decks():
+    return render_template('decks.html')
 
 def start_price_update():
     csv_file = os.path.join(os.path.dirname(__file__), "export.csv")
