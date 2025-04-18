@@ -1,21 +1,22 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Dashboard</h1>
 <div class="dashboard-content">
     <div class="welcome-message">
         <h2>Welcome to TCGPlayer Market Tracker</h2>
-        <p>Track your TCG investments and manage your collection with ease.</p>
+        <p class="subtitle">Track your TCG investments and manage your collection with ease.</p>
     </div>
     
     <div class="quick-links">
         <h3>Quick Links</h3>
         <div class="link-grid">
             <a href="{{ url_for('sealed_products') }}" class="quick-link">
+                <div class="quick-link-icon">📦</div>
                 <h4>Sealed Products</h4>
                 <p>View and track your sealed product investments</p>
             </a>
             <a href="{{ url_for('decks') }}" class="quick-link">
+                <div class="quick-link-icon">🃏</div>
                 <h4>Decks</h4>
                 <p>Manage and track your deck collections</p>
             </a>
@@ -31,15 +32,33 @@
     .welcome-message {
         text-align: center;
         margin-bottom: 40px;
+        padding: 20px;
+        background: var(--bg-tertiary);
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
 
     .welcome-message h2 {
-        color: #2c3e50;
+        color: var(--text-primary);
         margin-bottom: 10px;
+        font-size: 2.2rem;
+    }
+
+    .subtitle {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+        margin: 0;
     }
 
     .quick-links {
         margin-top: 30px;
+    }
+
+    .quick-links h3 {
+        color: var(--text-primary);
+        font-size: 1.8rem;
+        margin-bottom: 20px;
+        text-align: center;
     }
 
     .link-grid {
@@ -50,28 +69,62 @@
     }
 
     .quick-link {
-        background: #f8f9fa;
-        padding: 20px;
-        border-radius: 10px;
+        background: var(--bg-tertiary);
+        padding: 25px;
+        border-radius: 12px;
         text-decoration: none;
-        color: #2c3e50;
-        transition: transform 0.2s, box-shadow 0.2s;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        color: var(--text-primary);
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
     }
 
     .quick-link:hover {
         transform: translateY(-5px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        background: var(--accent-primary);
+    }
+
+    .quick-link-icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
     }
 
     .quick-link h4 {
         margin-bottom: 10px;
-        color: #3498db;
+        color: var(--text-primary);
+        font-size: 1.4rem;
     }
 
     .quick-link p {
-        color: #666;
+        color: var(--text-secondary);
         margin: 0;
+        font-size: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .welcome-message {
+            padding: 15px;
+        }
+
+        .welcome-message h2 {
+            font-size: 1.8rem;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+        }
+
+        .quick-links h3 {
+            font-size: 1.5rem;
+        }
+
+        .quick-link {
+            padding: 20px;
+        }
     }
 </style>
 {% endblock %} 
