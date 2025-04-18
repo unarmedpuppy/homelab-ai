@@ -95,7 +95,8 @@ def get_tcgplayer_price(url):
             "div[class*='price'] span[class*='amount']",
             "div[class*='product-price'] span[class*='price']",
             "div[class*='market-price'] span[class*='price']",
-            "div[class*='price__amount']"
+            "div[class*='price__amount']",
+            "div[class*='spotlight__price']"
         ]
         price = 0.00
         for selector in price_selectors:
