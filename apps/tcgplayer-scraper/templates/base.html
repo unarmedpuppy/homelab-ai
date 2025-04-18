@@ -5,18 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TCGPlayer Market Tracker</title>
     <style>
+        :root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-tertiary: #3d3d3d;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --accent-primary: #3498db;
+            --accent-secondary: #2980b9;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+        }
+
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #f5f7fa;
+            background-color: var(--bg-primary);
             margin: 0;
             padding: 0;
-            color: #333;
+            color: var(--text-primary);
+            min-height: 100vh;
         }
 
         .nav-container {
-            background-color: #2c3e50;
+            background-color: var(--bg-secondary);
             padding: 1rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
         .nav-menu {
@@ -27,28 +43,64 @@
         }
 
         .nav-link {
-            color: #ecf0f1;
+            color: var(--text-secondary);
             text-decoration: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            transition: background-color 0.2s;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            letter-spacing: 0.5px;
         }
 
         .nav-link:hover {
-            background-color: #34495e;
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            transform: translateY(-2px);
         }
 
         .nav-link.active {
-            background-color: #3498db;
+            background-color: var(--accent-primary);
+            color: var(--text-primary);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
         }
 
         .content-container {
             max-width: 1100px;
             margin: 20px auto;
-            padding: 15px;
-            background: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            color: var(--text-primary);
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .nav-link {
+                width: 100%;
+                text-align: center;
+            }
+
+            .content-container {
+                margin: 10px;
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
         }
     </style>
     {% block extra_css %}{% endblock %}
