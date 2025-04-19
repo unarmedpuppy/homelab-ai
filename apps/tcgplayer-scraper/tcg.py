@@ -41,7 +41,7 @@ def initialize_database(db_name='tcgplayer_pricesv2.db'):
 def get_tcgplayer_price(url):
     print(f"\n=== Starting price fetch for URL: {url} ===")
     options = Options()
-    options.add_argument("--headless")
+    # options.add_argument("--headless")  # Comment this line out
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
