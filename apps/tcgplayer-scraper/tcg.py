@@ -14,7 +14,7 @@ import subprocess
 
 app = Flask(__name__)
 
-def initialize_database(db_name='tcgplayer_pricesv2.db'):
+def initialize_database(db_name='tcgplayer_pricesv3.db'):
     print("Initializing database....")
     try:
         conn = sqlite3.connect(db_name)
