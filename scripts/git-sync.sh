@@ -1,5 +1,5 @@
 #!/bin/bash
-cd ~/server
+cd ~/repos/personal/home-server
 git add --all
 git commit -m "syncing..."
 git pull

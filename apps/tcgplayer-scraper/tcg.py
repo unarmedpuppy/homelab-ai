@@ -2,7 +2,7 @@ import time
 import datetime
 import sqlite3
 import pandas as pd
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
@@ -14,8 +14,8 @@ import subprocess
 
 app = Flask(__name__)
 
-def initialize_database(db_name='tcgplayer_pricesv2.db'):
-    print("Initializing database...")
+def initialize_database(db_name='tcgplayer_pricesv3.db'):
+    print("Initializing database....")
     try:
         conn = sqlite3.connect(db_name)
         cursor = conn.cursor()
@@ -39,52 +39,154 @@ def initialize_database(db_name='tcgplayer_pricesv2.db'):
         print(f"Error initializing database: {e}")
 
 def get_tcgplayer_price(url):
-    print(f"Fetching price data from: {url}")
+    print(f"\n=== Starting price fetch for URL: {url} ===")
     options = Options()
-    options.add_argument("--headless")
+    # options.add_argument("--headless")  # Comment this line out
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--window-size=1920,1080")  # Set a larger window size
+    options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
     options.binary_location = os.getenv("CHROME_BIN", "/usr/bin/google-chrome")
+    options.add_argument("--disable-blink-features=AutomationControlled")
+    options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    options.add_experimental_option('useAutomationExtension', False)
     
+    driver = None
     try:
+        print("Initializing Chrome WebDriver...")
         service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=options)
-        driver.set_page_load_timeout(15)  # Prevent hanging if page is slow
+        driver.set_page_load_timeout(30)  # Increased timeout
+        print("WebDriver initialized successfully")
     except Exception as e:
         print(f"Error initializing Selenium: {e}")
         return "Unknown", 0.00, "Image not found"
     
     try:
+        print(f"Loading URL: {url}")
         driver.get(url)
-        time.sleep(5)  # Allow time for JavaScript to load
+        time.sleep(10)  # Increased wait time for JavaScript to load
+        
+        # Save page source for debugging
+        with open('debug_page_source.html', 'w', encoding='utf-8') as f:
+            f.write(driver.page_source)
+        print("Page source saved to debug_page_source.html")
+        
+        # Take a screenshot for debugging
+        driver.save_screenshot('debug_screenshot.png')
+        print("Screenshot saved to debug_screenshot.png")
+        
     except Exception as e:
         print(f"Error loading page: {e}")
-        driver.quit()
+        if driver:
+            driver.quit()
         return "Unknown", 0.00, "Image not found"
     
     try:
-        title = driver.find_element(By.CSS_SELECTOR, "h1[data-testid='lblProductDetailsProductName']").text.strip()
+        print("\nAttempting to find title...")
+        # Try multiple possible selectors for title
+        title_selectors = [
+            "h1[class*='product-details__name']",
+            "h1[class*='product-title']",
+            "h1[class*='product-name']",
+            "h1[class*='product__name']",
+            "h1[class*='ProductDetails__name']",
+            "h1[class*='ProductDetails__title']"
+        ]
+        title = "Unknown"
+        for selector in title_selectors:
+            try:
+                print(f"Trying title selector: {selector}")
+                elements = driver.find_elements(By.CSS_SELECTOR, selector)
+                if elements:
+                    title = elements[0].text.strip()
+                    print(f"Found title: {title}")
+                    break
+            except Exception as e:
+                print(f"Error with selector {selector}: {e}")
+                continue
+        if title == "Unknown":
+            print("Warning: Could not find title with any selector")
     except Exception as e:
         print(f"Error fetching title: {e}")
         title = "Unknown"
     
     try:
-        price_text = driver.find_element(By.CLASS_NAME, "spotlight__price").text.strip()
-        price = float(price_text.replace("$", "").replace(",", ""))
+        print("\nAttempting to find price...")
+        # Try multiple possible selectors for price
+        price_selectors = [
+            "div[class*='product-details__price'] span[class*='price']",
+            "div[class*='price'] span[class*='amount']",
+            "div[class*='product-price'] span[class*='price']",
+            "div[class*='market-price'] span[class*='price']",
+            "div[class*='price__amount']",
+            "div[class*='spotlight__price']",
+            "div[class*='ProductDetails__price']",
+            "span[class*='ProductDetails__price']",
+            "div[class*='MarketPrice']",
+            "span[class*='MarketPrice']"
+        ]
+        price = 0.00
+        for selector in price_selectors:
+            try:
+                print(f"Trying price selector: {selector}")
+                elements = driver.find_elements(By.CSS_SELECTOR, selector)
+                if elements:
+                    price_text = elements[0].text.strip()
+                    print(f"Found price text: {price_text}")
+                    if price_text and price_text != "$0.00":
+                        price = float(price_text.replace("$", "").replace(",", ""))
+                        print(f"Parsed price: {price}")
+                        break
+            except Exception as e:
+                print(f"Error with selector {selector}: {e}")
+                continue
+        if price == 0.00:
+            print("Warning: Could not find price with any selector")
     except Exception as e:
         print(f"Error fetching price: {e}")
         price = 0.00
     
     try:
-        image_element = driver.find_element(By.CLASS_NAME, "lazy-image__wrapper")
-        image_url = image_element.find_element(By.TAG_NAME, "img").get_attribute("src")
+        print("\nAttempting to find image...")
+        # Try multiple possible selectors for image
+        image_selectors = [
+            "div[class*='product-details__image'] img",
+            "div[class*='product-image'] img",
+            "div[class*='product__image'] img",
+            "img[class*='product-image']",
+            "img[class*='product__image']",
+            "div[class*='ProductDetails__image'] img",
+            "img[class*='ProductDetails__image']"
+        ]
+        image_url = "Image not found"
+        for selector in image_selectors:
+            try:
+                print(f"Trying image selector: {selector}")
+                elements = driver.find_elements(By.CSS_SELECTOR, selector)
+                if elements:
+                    image_url = elements[0].get_attribute("src")
+                    print(f"Found image URL: {image_url}")
+                    break
+            except Exception as e:
+                print(f"Error with selector {selector}: {e}")
+                continue
+        if image_url == "Image not found":
+            print("Warning: Could not find image with any selector")
     except Exception as e:
         print(f"Error fetching image: {e}")
         image_url = "Image not found"
     
-    driver.quit()
-    print(f"Fetched: {title} - {price} - {image_url}")
+    if driver:
+        driver.quit()
+    
+    print(f"\n=== Final results for {url} ===")
+    print(f"Title: {title}")
+    print(f"Price: {price}")
+    print(f"Image URL: {image_url}")
+    print("================================\n")
+    
     return title, price, image_url
 
 def save_prices_to_db(csv_file, db_name='tcgplayer_pricesv2.db'):
@@ -129,7 +231,11 @@ def save_prices_to_db(csv_file, db_name='tcgplayer_pricesv2.db'):
     print("Finished processing CSV file.")
 
 @app.route('/')
-def display_prices():
+def dashboard():
+    return render_template('dashboard.html')
+
+@app.route('/sealed-products')
+def sealed_products():
     print("Fetching latest prices for display...")
     initialize_database()
     conn = sqlite3.connect('tcgplayer_pricesv2.db')
@@ -147,6 +253,10 @@ def display_prices():
     print("Data fetched successfully.")
     return render_template('prices.html', data=data)
 
+@app.route('/decks')
+def decks():
+    return render_template('decks.html')
+
 def start_price_update():
     csv_file = os.path.join(os.path.dirname(__file__), "export.csv")
     save_prices_to_db(csv_file)
@@ -159,6 +269,6 @@ if __name__ == "__main__":
     
     print("Starting Flask application...")
     try:
-        app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=False)
+        app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=True)
     except Exception as e:
         print(f"Flask failed to start: {e}")

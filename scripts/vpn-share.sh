@@ -1,0 +1,1 @@
+sshuttle -r z00195z@192.168.86.39 10.0.0.0/8 --dns --to-vpn --ssh-cmd 'ssh -i ~/.ssh/id_rsa'
