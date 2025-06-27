@@ -2002,3 +2002,6 @@ sudo apt install -y nvidia-driver nvidia-smi firmware-misc-nonfree
 
 resize FS to storage 
 sudo resize2fs /dev/nvme0n1p2
+
+
+https://developers.yubico.com/SSH/Securing_SSH_with_FIDO2.html
