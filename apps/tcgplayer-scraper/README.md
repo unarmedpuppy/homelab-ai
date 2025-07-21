@@ -1,4 +1,4 @@
-# TCGPlayer Price Scraper
+# TCGPlayer Price Scraper v2
 
 A Flask web application that scrapes pricing data from TCGPlayer.com and tracks price history over time.
 
