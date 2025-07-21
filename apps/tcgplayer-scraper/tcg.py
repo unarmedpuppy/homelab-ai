@@ -2,19 +2,26 @@ import time
 import datetime
 import sqlite3
 import pandas as pd
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 import os
 import threading
 import subprocess
+import re
+import json
 
 app = Flask(__name__)
 
-def initialize_database(db_name='tcgplayer_pricesv3.db'):
+# Use consistent database name
+DB_NAME = 'tcgplayer_prices.db'
+
+def initialize_database(db_name=DB_NAME):
     print("Initializing database....")
     try:
         conn = sqlite3.connect(db_name)
@@ -38,15 +45,42 @@ def initialize_database(db_name='tcgplayer_pricesv3.db'):
     except Exception as e:
         print(f"Error initializing database: {e}")
 
+def extract_price_from_text(price_text):
+    """Extract numeric price from various text formats"""
+    if not price_text:
+        return 0.00
+    
+    # Remove common currency symbols and formatting
+    cleaned = re.sub(r'[^\d.,]', '', price_text)
+    
+    # Handle different decimal separators
+    if ',' in cleaned and '.' in cleaned:
+        # Format like "1,234.56"
+        cleaned = cleaned.replace(',', '')
+    elif ',' in cleaned and '.' not in cleaned:
+        # Format like "1,234" or "1,234,56"
+        parts = cleaned.split(',')
+        if len(parts) > 2:
+            # European format: "1,234,56" -> "1234.56"
+            cleaned = ''.join(parts[:-1]) + '.' + parts[-1]
+        else:
+            # US format: "1,234" -> "1234"
+            cleaned = cleaned.replace(',', '')
+    
+    try:
+        return float(cleaned)
+    except ValueError:
+        return 0.00
+
 def get_tcgplayer_price(url):
     print(f"\n=== Starting price fetch for URL: {url} ===")
     options = Options()
-    # options.add_argument("--headless")  # Comment this line out
+    options.add_argument("--headless")  # Run in headless mode for production
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--window-size=1920,1080")  # Set a larger window size
-    options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+    options.add_argument("--window-size=1920,1080")
+    options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
     options.binary_location = os.getenv("CHROME_BIN", "/usr/bin/google-chrome")
     options.add_argument("--disable-blink-features=AutomationControlled")
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
@@ -57,7 +91,7 @@ def get_tcgplayer_price(url):
         print("Initializing Chrome WebDriver...")
         service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=options)
-        driver.set_page_load_timeout(30)  # Increased timeout
+        driver.set_page_load_timeout(30)
         print("WebDriver initialized successfully")
     except Exception as e:
         print(f"Error initializing Selenium: {e}")
@@ -66,7 +100,9 @@ def get_tcgplayer_price(url):
     try:
         print(f"Loading URL: {url}")
         driver.get(url)
-        time.sleep(10)  # Increased wait time for JavaScript to load
+        
+        # Wait for page to load with explicit wait
+        wait = WebDriverWait(driver, 15)
         
         # Save page source for debugging
         with open('debug_page_source.html', 'w', encoding='utf-8') as f:
@@ -85,14 +121,18 @@ def get_tcgplayer_price(url):
     
     try:
         print("\nAttempting to find title...")
-        # Try multiple possible selectors for title
+        # Updated title selectors for current TCGPlayer site
         title_selectors = [
             "h1[class*='product-details__name']",
             "h1[class*='product-title']",
             "h1[class*='product-name']",
             "h1[class*='product__name']",
             "h1[class*='ProductDetails__name']",
-            "h1[class*='ProductDetails__title']"
+            "h1[class*='ProductDetails__title']",
+            "h1[class*='spotlight__title']",
+            "h1[class*='ProductTitle']",
+            "h1[class*='product-title']",
+            "h1",  # Fallback to any h1
         ]
         title = "Unknown"
         for selector in title_selectors:
@@ -101,8 +141,9 @@ def get_tcgplayer_price(url):
                 elements = driver.find_elements(By.CSS_SELECTOR, selector)
                 if elements:
                     title = elements[0].text.strip()
-                    print(f"Found title: {title}")
-                    break
+                    if title:  # Make sure we got actual text
+                        print(f"Found title: {title}")
+                        break
             except Exception as e:
                 print(f"Error with selector {selector}: {e}")
                 continue
@@ -114,18 +155,23 @@ def get_tcgplayer_price(url):
     
     try:
         print("\nAttempting to find price...")
-        # Try multiple possible selectors for price
+        # Updated price selectors with spotlight__price as priority
         price_selectors = [
+            "div[class*='spotlight__price']",  # Priority selector as mentioned
+            "div[class*='spotlight__price'] span",
+            "div[class*='spotlight__price'] div",
             "div[class*='product-details__price'] span[class*='price']",
             "div[class*='price'] span[class*='amount']",
             "div[class*='product-price'] span[class*='price']",
             "div[class*='market-price'] span[class*='price']",
             "div[class*='price__amount']",
-            "div[class*='spotlight__price']",
             "div[class*='ProductDetails__price']",
             "span[class*='ProductDetails__price']",
             "div[class*='MarketPrice']",
-            "span[class*='MarketPrice']"
+            "span[class*='MarketPrice']",
+            "div[class*='price']",
+            "span[class*='spotlight__price']",
+            "[class*='spotlight__price']",  # Very broad fallback
         ]
         price = 0.00
         for selector in price_selectors:
@@ -133,11 +179,16 @@ def get_tcgplayer_price(url):
                 print(f"Trying price selector: {selector}")
                 elements = driver.find_elements(By.CSS_SELECTOR, selector)
                 if elements:
-                    price_text = elements[0].text.strip()
-                    print(f"Found price text: {price_text}")
-                    if price_text and price_text != "$0.00":
-                        price = float(price_text.replace("$", "").replace(",", ""))
-                        print(f"Parsed price: {price}")
+                    for element in elements:
+                        price_text = element.text.strip()
+                        print(f"Found price text: {price_text}")
+                        if price_text and price_text != "$0.00" and price_text != "0.00":
+                            extracted_price = extract_price_from_text(price_text)
+                            if extracted_price > 0:
+                                price = extracted_price
+                                print(f"Parsed price: {price}")
+                                break
+                    if price > 0:
                         break
             except Exception as e:
                 print(f"Error with selector {selector}: {e}")
@@ -150,7 +201,7 @@ def get_tcgplayer_price(url):
     
     try:
         print("\nAttempting to find image...")
-        # Try multiple possible selectors for image
+        # Updated image selectors
         image_selectors = [
             "div[class*='product-details__image'] img",
             "div[class*='product-image'] img",
@@ -158,7 +209,10 @@ def get_tcgplayer_price(url):
             "img[class*='product-image']",
             "img[class*='product__image']",
             "div[class*='ProductDetails__image'] img",
-            "img[class*='ProductDetails__image']"
+            "img[class*='ProductDetails__image']",
+            "div[class*='spotlight__image'] img",
+            "img[class*='spotlight__image']",
+            "img[class*='product']",  # Broad fallback
         ]
         image_url = "Image not found"
         for selector in image_selectors:
@@ -167,8 +221,9 @@ def get_tcgplayer_price(url):
                 elements = driver.find_elements(By.CSS_SELECTOR, selector)
                 if elements:
                     image_url = elements[0].get_attribute("src")
-                    print(f"Found image URL: {image_url}")
-                    break
+                    if image_url and image_url != "data:image/svg+xml;base64,":
+                        print(f"Found image URL: {image_url}")
+                        break
             except Exception as e:
                 print(f"Error with selector {selector}: {e}")
                 continue
@@ -189,7 +244,7 @@ def get_tcgplayer_price(url):
     
     return title, price, image_url
 
-def save_prices_to_db(csv_file, db_name='tcgplayer_pricesv2.db'):
+def save_prices_to_db(csv_file, db_name=DB_NAME):
     print("Starting to process CSV file...")
     today = datetime.date.today().strftime("%Y-%m-%d")
     
@@ -203,32 +258,44 @@ def save_prices_to_db(csv_file, db_name='tcgplayer_pricesv2.db'):
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
     
+    processed_count = 0
     for _, row in df.iterrows():
         product_id = row['id']
-        url = row['url'] if isinstance(row['url'], str) and row['url'].startswith('http') else None  # Ensure valid URLs
+        
+        # Handle missing URLs - skip entries without valid URLs
+        url = row.get('url', '')
+        if not url or not isinstance(url, str) or not url.startswith('http'):
+            print(f"Skipping ID {product_id}: No valid URL found")
+            continue
+            
         purchase_date = row.get('date purchased', "Unknown")
         
         raw_cost_basis = row.get('cost basis', "0.00")
         print(f"Raw cost basis for ID {product_id}: {raw_cost_basis}")
         
         try:
-            cost_basis = float(str(raw_cost_basis).replace("$", "").replace(",", ""))
+            cost_basis = extract_price_from_text(str(raw_cost_basis))
         except:
             cost_basis = 0.00
         
         print(f"Processed cost basis for ID {product_id}: {cost_basis}")
         
-        if url:
-            title, price, image_url = get_tcgplayer_price(url)
-            cursor.execute('''
-                INSERT OR REPLACE INTO prices (id, date, product_title, market_price, image_url, url, purchase_date, cost_basis)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (product_id, today, title, price, image_url, url, purchase_date, cost_basis))
-            print(f"Updated in DB: {title} - {price} - {cost_basis} on {today}")
+        print(f"Processing URL for ID {product_id}: {url}")
+        title, price, image_url = get_tcgplayer_price(url)
+        
+        cursor.execute('''
+            INSERT OR REPLACE INTO prices (id, date, product_title, market_price, image_url, url, purchase_date, cost_basis)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (product_id, today, title, price, image_url, url, purchase_date, cost_basis))
+        print(f"Updated in DB: {title} - {price} - {cost_basis} on {today}")
+        processed_count += 1
+        
+        # Add a small delay between requests to be respectful
+        time.sleep(2)
     
     conn.commit()
     conn.close()
-    print("Finished processing CSV file.")
+    print(f"Finished processing CSV file. Processed {processed_count} items.")
 
 @app.route('/')
 def dashboard():
@@ -238,7 +305,7 @@ def dashboard():
 def sealed_products():
     print("Fetching latest prices for display...")
     initialize_database()
-    conn = sqlite3.connect('tcgplayer_pricesv2.db')
+    conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     cursor.execute("""
         SELECT date, product_title, market_price, image_url, url, purchase_date, cost_basis 
@@ -257,6 +324,52 @@ def sealed_products():
 def decks():
     return render_template('decks.html')
 
+@app.route('/update-prices')
+def update_prices():
+    """Manual trigger for price updates"""
+    try:
+        csv_file = os.path.join(os.path.dirname(__file__), "export.csv")
+        save_prices_to_db(csv_file)
+        return jsonify({"status": "success", "message": "Price update completed successfully"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Price update failed: {str(e)}"})
+
+@app.route('/api/prices')
+def api_prices():
+    """API endpoint to get current prices"""
+    try:
+        initialize_database()
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, date, product_title, market_price, image_url, url, purchase_date, cost_basis 
+            FROM prices 
+            WHERE (id, date) IN (
+                SELECT id, MAX(date) FROM prices GROUP BY id
+            ) 
+            ORDER BY id ASC
+        """)
+        data = cursor.fetchall()
+        conn.close()
+        
+        # Convert to list of dictionaries for JSON response
+        prices = []
+        for row in data:
+            prices.append({
+                'id': row[0],
+                'date': row[1],
+                'product_title': row[2],
+                'market_price': row[3],
+                'image_url': row[4],
+                'url': row[5],
+                'purchase_date': row[6],
+                'cost_basis': row[7]
+            })
+        
+        return jsonify({"status": "success", "data": prices})
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Failed to fetch prices: {str(e)}"})
+
 def start_price_update():
     csv_file = os.path.join(os.path.dirname(__file__), "export.csv")
     save_prices_to_db(csv_file)
@@ -265,10 +378,11 @@ if __name__ == "__main__":
     print("Script execution started...")
     initialize_database()
     
+    # Start price update in background thread
     threading.Thread(target=start_price_update, daemon=True).start()
     
     print("Starting Flask application...")
     try:
-        app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=True)
+        app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=False)  # Disable reloader to avoid duplicate threads
     except Exception as e:
         print(f"Flask failed to start: {e}")
