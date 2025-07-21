@@ -1,45 +1,23 @@
 version: '3.8'
 
 services:
-  web:
+  tcgplayer-scraper:
     build: .
+    container_name: tcgplayer-scraper
     ports:
-      - "5111:5000"
+      - "5000:5000"
     volumes:
-      - .:/app
-    restart: unless-stopped
+      - ./data:/app/data
+      - ./export.csv:/app/export.csv:ro
+      - ./templates:/app/templates:ro
+      - ./assets:/app/assets:ro
     environment:
-      - FLASK_ENV=development
-      - PYTHONUNBUFFERED=1
-    depends_on:
-      - db
-    networks:
-      - my-network
-    labels:
-      - "traefik.enable=true"
-      # HTTPS redirect
-      - traefik.http.middlewares.mywebserver-redirect-web-secure.redirectscheme.scheme=https
-      - traefik.http.routers.tcg-redirect.middlewares=mywebserver-redirect-web-secure
-      - traefik.http.routers.tcg-redirect.rule=Host(`tcg.server.unarmedpuppy.com`)
-      - traefik.http.routers.tcg-redirect.entrypoints=web
-      # Main HTTPS router
-      - "traefik.http.routers.tcg.rule=Host(`tcg.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.tcg.entrypoints=websecure" # your https endpoint
-      - "traefik.http.routers.tcg.tls.certresolver=myresolver" # your cert resolver
-      - "homepage.group=Apps"
-      - "homepage.name=MTG"
-      - "homepage.icon=si-codemagic"
-      - "homepage.description=TCGPlayer scraper"
-      - "homepage.href=https://tcg.server.unarmedpuppy.com"
-
-  db:
-    image: "nouchka/sqlite3"
-    volumes:
-      - sqlite_data:/data
-
-volumes:
-  sqlite_data:
-
-networks:
-  my-network:
-    external: true
+      - FLASK_ENV=production
+      - CHROME_BIN=/usr/bin/google-chrome-stable
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

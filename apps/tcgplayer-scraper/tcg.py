@@ -19,7 +19,7 @@ import json
 app = Flask(__name__)
 
 # Use consistent database name
-DB_NAME = 'tcgplayer_prices.db'
+DB_NAME = 'data/tcgplayer_prices.db'
 
 def initialize_database(db_name=DB_NAME):
     print("Initializing database....")
@@ -81,7 +81,14 @@ def get_tcgplayer_price(url):
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--window-size=1920,1080")
     options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-    options.binary_location = os.getenv("CHROME_BIN", "/usr/bin/google-chrome")
+    # Set Chrome binary location based on OS
+    if os.name == 'posix' and os.uname().sysname == 'Darwin':  # macOS
+        chrome_path = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+    else:
+        # Docker/Linux environment
+        chrome_path = os.getenv("CHROME_BIN", "/usr/bin/google-chrome-stable")
+    
+    options.binary_location = chrome_path
     options.add_argument("--disable-blink-features=AutomationControlled")
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option('useAutomationExtension', False)
@@ -102,7 +109,25 @@ def get_tcgplayer_price(url):
         driver.get(url)
         
         # Wait for page to load with explicit wait
-        wait = WebDriverWait(driver, 15)
+        wait = WebDriverWait(driver, 20)
+        
+        # Wait for the app to load (look for the main app div)
+        try:
+            wait.until(EC.presence_of_element_located((By.ID, "app")))
+            print("App container loaded")
+        except:
+            print("App container not found, continuing anyway")
+        
+        # Wait a bit more for JavaScript to render content
+        time.sleep(5)
+        
+        # Try to wait for any content to appear
+        try:
+            wait.until(lambda driver: len(driver.find_elements(By.TAG_NAME, "h1")) > 0 or 
+                                     len(driver.find_elements(By.CSS_SELECTOR, "[class*='price']")) > 0)
+            print("Content appears to be loaded")
+        except:
+            print("No content found after waiting, continuing anyway")
         
         # Save page source for debugging
         with open('debug_page_source.html', 'w', encoding='utf-8') as f:
@@ -123,6 +148,7 @@ def get_tcgplayer_price(url):
         print("\nAttempting to find title...")
         # Updated title selectors for current TCGPlayer site
         title_selectors = [
+            "h1.product-details__name",  # Primary selector as mentioned
             "h1[class*='product-details__name']",
             "h1[class*='product-title']",
             "h1[class*='product-name']",
@@ -131,7 +157,8 @@ def get_tcgplayer_price(url):
             "h1[class*='ProductDetails__title']",
             "h1[class*='spotlight__title']",
             "h1[class*='ProductTitle']",
-            "h1[class*='product-title']",
+            "[data-testid*='product-title']",
+            "[class*='product-title']",
             "h1",  # Fallback to any h1
         ]
         title = "Unknown"
@@ -160,6 +187,9 @@ def get_tcgplayer_price(url):
             "div[class*='spotlight__price']",  # Priority selector as mentioned
             "div[class*='spotlight__price'] span",
             "div[class*='spotlight__price'] div",
+            "[data-testid*='price']",
+            "[class*='market-price']",
+            "[class*='price']",
             "div[class*='product-details__price'] span[class*='price']",
             "div[class*='price'] span[class*='amount']",
             "div[class*='product-price'] span[class*='price']",
@@ -203,6 +233,8 @@ def get_tcgplayer_price(url):
         print("\nAttempting to find image...")
         # Updated image selectors
         image_selectors = [
+            ".lazy-image__wrapper img",  # Primary selector as mentioned
+            "div[class*='lazy-image__wrapper'] img",
             "div[class*='product-details__image'] img",
             "div[class*='product-image'] img",
             "div[class*='product__image'] img",
@@ -244,13 +276,19 @@ def get_tcgplayer_price(url):
     
     return title, price, image_url
 
-def save_prices_to_db(csv_file, db_name=DB_NAME):
+def save_prices_to_db(csv_file, db_name=DB_NAME, limit=None):
     print("Starting to process CSV file...")
     today = datetime.date.today().strftime("%Y-%m-%d")
     
     try:
         df = pd.read_csv(csv_file)
         print(f"Loaded {len(df)} rows from CSV file.")
+        
+        # Apply limit if specified
+        if limit:
+            df = df.head(limit)
+            print(f"Limited to first {limit} items for testing.")
+            
     except Exception as e:
         print(f"Error reading CSV file: {e}")
         return
