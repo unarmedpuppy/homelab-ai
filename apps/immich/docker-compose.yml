@@ -15,7 +15,7 @@ services:
     environment:
       - NODE_ENV=production
     ports:
-      - '2283:3001'
+      - '2283:2283'
     depends_on:
       - immich-redis
       - immich-database
