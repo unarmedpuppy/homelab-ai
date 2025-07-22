@@ -24,6 +24,12 @@ DB_NAME = 'data/tcgplayer_prices.db'
 def initialize_database(db_name=DB_NAME):
     print("Initializing database....")
     try:
+        # Ensure data directory exists
+        data_dir = os.path.dirname(db_name)
+        if data_dir and not os.path.exists(data_dir):
+            os.makedirs(data_dir)
+            print(f"Created data directory: {data_dir}")
+        
         conn = sqlite3.connect(db_name)
         cursor = conn.cursor()
         cursor.execute('''
@@ -93,6 +99,10 @@ def get_tcgplayer_price(url):
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option('useAutomationExtension', False)
     
+    # Additional options for Docker environment
+    options.add_argument("--disable-extensions")
+    options.add_argument("--disable-plugins")
+    
     driver = None
     try:
         print("Initializing Chrome WebDriver...")
@@ -109,7 +119,7 @@ def get_tcgplayer_price(url):
         driver.get(url)
         
         # Wait for page to load with explicit wait
-        wait = WebDriverWait(driver, 20)
+        wait = WebDriverWait(driver, 30)
         
         # Wait for the app to load (look for the main app div)
         try:
@@ -118,16 +128,20 @@ def get_tcgplayer_price(url):
         except:
             print("App container not found, continuing anyway")
         
-        # Wait a bit more for JavaScript to render content
-        time.sleep(5)
+        # Wait longer for JavaScript to render content
+        time.sleep(10)
         
-        # Try to wait for any content to appear
+        # Try to wait for any content to appear - be more specific
         try:
-            wait.until(lambda driver: len(driver.find_elements(By.TAG_NAME, "h1")) > 0 or 
-                                     len(driver.find_elements(By.CSS_SELECTOR, "[class*='price']")) > 0)
+            wait.until(lambda driver: len(driver.find_elements(By.CSS_SELECTOR, "h1.product-details__name")) > 0 or 
+                                     len(driver.find_elements(By.CSS_SELECTOR, "[class*='market-price']")) > 0 or
+                                     len(driver.find_elements(By.CSS_SELECTOR, ".lazy-image__wrapper")) > 0)
             print("Content appears to be loaded")
         except:
-            print("No content found after waiting, continuing anyway")
+            print("No specific content found after waiting, continuing anyway")
+            
+        # Additional wait for dynamic content
+        time.sleep(3)
         
         # Save page source for debugging
         with open('debug_page_source.html', 'w', encoding='utf-8') as f:
@@ -137,6 +151,19 @@ def get_tcgplayer_price(url):
         # Take a screenshot for debugging
         driver.save_screenshot('debug_screenshot.png')
         print("Screenshot saved to debug_screenshot.png")
+        
+        # Debug: Check what elements are actually present
+        print(f"Debug: Found {len(driver.find_elements(By.TAG_NAME, 'h1'))} h1 elements")
+        print(f"Debug: Found {len(driver.find_elements(By.CSS_SELECTOR, '[class*=\"price\"]'))} price elements")
+        print(f"Debug: Found {len(driver.find_elements(By.CSS_SELECTOR, '[class*=\"image\"]'))} image elements")
+        print(f"Debug: Found {len(driver.find_elements(By.CSS_SELECTOR, '.lazy-image__wrapper'))} lazy-image__wrapper elements")
+        
+        # Debug: Print first few h1 elements if any exist
+        h1_elements = driver.find_elements(By.TAG_NAME, 'h1')
+        if h1_elements:
+            print("Debug: First few h1 elements:")
+            for i, h1 in enumerate(h1_elements[:3]):
+                print(f"  {i+1}: '{h1.text}' (class: {h1.get_attribute('class')})")
         
     except Exception as e:
         print(f"Error loading page: {e}")
