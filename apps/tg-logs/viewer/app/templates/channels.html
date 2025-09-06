@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Telegram Channels</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; }
+    header { display:flex; gap:12px; align-items: center; margin-bottom: 24px; }
+    .channel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+    .channel-card { 
+      border: 1px solid #ddd; 
+      border-radius: 8px; 
+      padding: 16px; 
+      background: #fafafa;
+      transition: box-shadow 0.2s;
+    }
+    .channel-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .channel-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .channel-username { color: #666; font-size: 14px; margin-bottom: 8px; }
+    .channel-description { color: #555; font-size: 14px; margin-bottom: 12px; }
+    .channel-stats { display: flex; gap: 16px; font-size: 12px; color: #666; }
+    .channel-link { 
+      display: inline-block; 
+      background: #007bff; 
+      color: white; 
+      text-decoration: none; 
+      padding: 8px 16px; 
+      border-radius: 4px; 
+      font-size: 14px;
+    }
+    .channel-link:hover { background: #0056b3; }
+    .empty-state { text-align: center; padding: 48px; color: #666; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📢 Telegram Channels</h1>
+    <a href="/messages" class="channel-link">View All Messages</a>
+  </header>
+
+  {% if channels %}
+    <div class="channel-grid">
+      {% for channel in channels %}
+      <div class="channel-card">
+        <div class="channel-title">{{ channel.title }}</div>
+        {% if channel.username %}
+          <div class="channel-username">@{{ channel.username }}</div>
+        {% endif %}
+        {% if channel.description %}
+          <div class="channel-description">{{ channel.description[:100] }}{% if channel.description|length > 100 %}...{% endif %}</div>
+        {% endif %}
+        <div class="channel-stats">
+          <span>📨 {{ channel.message_count }} messages</span>
+          <span>🖼️ {{ channel.media_count }} media</span>
+        </div>
+        <a href="/messages?channel_id={{ channel.id }}" class="channel-link">View Messages</a>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h2>No channels found</h2>
+      <p>Run the scraper to populate channels and messages.</p>
+    </div>
+  {% endif %}
+</body>
+</html>

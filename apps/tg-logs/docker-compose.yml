@@ -1,0 +1,20 @@
+services:
+  tg-logs:
+    build: .
+    container_name: tg-logs
+    env_file: .env
+    volumes:
+      - ./data:/app/data        # media, DB, and session persist here
+    restart: unless-stopped
+    tty: true
+  tg-viewer:
+    build:
+      context: ./viewer
+    container_name: tg-viewer
+    ports:
+      - "8050:8080"
+    volumes:
+      - ./data:/app/data:ro
+    environment:
+      - DB_PATH=/app/data/messages.sqlite
+    restart: unless-stopped
