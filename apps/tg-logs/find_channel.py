@@ -27,7 +27,9 @@ print()
 
 async def find_channels():
     """Find all channels and groups you have access to"""
-    async with TelegramClient("temp_session", API_ID, API_HASH) as client:
+    # Use the same session as the scraper
+    SESSION_NAME = os.environ.get("SESSION_NAME", "scraper")
+    async with TelegramClient(f"{SESSION_NAME}.session", API_ID, API_HASH) as client:
         print("🔍 Searching for channels and groups...")
         print("=" * 60)
         

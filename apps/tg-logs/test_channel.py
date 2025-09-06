@@ -81,7 +81,9 @@ async def test_channel(client, channel_identifier):
 
 async def test_all_channels():
     """Test access to all configured channels"""
-    async with TelegramClient("test_session", API_ID, API_HASH) as client:
+    # Use the same session as the scraper
+    SESSION_NAME = os.environ.get("SESSION_NAME", "scraper")
+    async with TelegramClient(f"{SESSION_NAME}.session", API_ID, API_HASH) as client:
         print(f"🚀 Testing access to {len(CHANNELS)} channels")
         print()
         
