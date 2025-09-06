@@ -25,6 +25,7 @@ for var in required_vars:
 API_ID = int(os.environ["API_ID"])
 API_HASH = os.environ["API_HASH"]
 SESSION_NAME = os.environ.get("SESSION_NAME", "scraper")
+PHONE_NUMBER = os.environ.get("PHONE_NUMBER", "")
 
 # Parse channels from environment variable
 CHANNELS_STR = os.environ.get("CHANNELS", "")
@@ -131,6 +132,40 @@ def is_image_document(doc):
         return False
     return doc.mime_type.startswith("image/")
 
+async def authenticate_client(client):
+    """Handle authentication with phone number and verification code"""
+    if not await client.is_user_authorized():
+        logger.info("Not authenticated. Starting authentication process...")
+        
+        # Use phone number from environment or prompt
+        phone = PHONE_NUMBER
+        if not phone:
+            phone = input("Please enter your phone number (with country code, e.g., +1234567890): ")
+        
+        logger.info(f"Using phone number: {phone}")
+        
+        try:
+            await client.send_code_request(phone)
+            logger.info("Verification code sent to your phone")
+            
+            # Get verification code from user
+            code = input("Please enter the verification code: ")
+            
+            try:
+                await client.sign_in(phone, code)
+                logger.info("Successfully authenticated!")
+            except SessionPasswordNeededError:
+                logger.info("Two-factor authentication is enabled")
+                password = input("Please enter your 2FA password: ")
+                await client.sign_in(password=password)
+                logger.info("Successfully authenticated with 2FA!")
+                
+        except Exception as e:
+            logger.error(f"Authentication failed: {e}")
+            raise
+    else:
+        logger.info("Already authenticated")
+
 async def scrape_channel(client, channel_identifier):
     """Scrape a single channel"""
     try:
@@ -215,6 +250,9 @@ async def run():
         async with TelegramClient(str(SESSION_PATH), API_ID, API_HASH) as client:
             logger.info("Connected to Telegram")
             
+            # Handle authentication
+            await authenticate_client(client)
+            
             total_messages = 0
             total_media = 0
             
@@ -229,8 +267,6 @@ async def run():
 
             logger.info(f"Scraping completed. Total: {total_messages} messages, {total_media} media files")
 
-    except SessionPasswordNeededError:
-        logger.error("Two-factor authentication is enabled. Please provide the password.")
     except Exception as e:
         logger.error(f"Fatal error: {e}")
     finally:

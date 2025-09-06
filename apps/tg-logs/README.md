@@ -32,6 +32,7 @@ A Docker-based Telegram channel scraper with web viewer interface.
    ```bash
    API_ID=your_api_id_here
    API_HASH=your_api_hash_here
+   PHONE_NUMBER=+1234567890
    CHANNELS=@channel1,@channel2,-1001234567890
    SESSION_NAME=scraper
    ```
@@ -93,9 +94,11 @@ Open your browser to `http://localhost:8050` to view the scraped messages.
 ### First Run
 
 On first run, you'll need to authenticate with Telegram:
-1. The scraper will prompt for your phone number
-2. Enter the verification code sent to your phone
-3. If 2FA is enabled, enter your password
+1. **Phone Number**: Set `PHONE_NUMBER` in your `.env` file (e.g., `+1234567890`)
+2. **Verification Code**: Enter the code sent to your phone when prompted
+3. **2FA Password**: If 2FA is enabled, enter your password when prompted
+
+**Note**: The phone number in `.env` should include the country code with a `+` sign (e.g., `+1234567890` for US numbers).
 
 ### Scraping
 
