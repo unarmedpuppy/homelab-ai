@@ -46,13 +46,15 @@ All configuration is managed through the `.env` file. This file contains:
 
 ## Access
 
-### Local Access
-- **URL**: http://${SERVER_IP}:${N8N_PORT} (configured in .env)
-- **Port**: 5678 (configurable via N8N_PORT in .env)
-
-### External Access (via Traefik)
+### Primary Access (Recommended)
 - **URL**: https://n8n.${DOMAIN} (configured in .env)
 - **SSL**: Automatically handled by Traefik with Let's Encrypt
+- **Security**: Full HTTPS with secure cookies enabled
+
+### Local Access (Development)
+- **URL**: http://${SERVER_IP}:${N8N_PORT} (configured in .env)
+- **Port**: 5678 (configurable via N8N_PORT in .env)
+- **Note**: For local development only - use HTTPS for production
 
 ## Usage
 
@@ -69,7 +71,8 @@ All configuration is managed through the `.env` file. This file contains:
    ```
 
 3. **Access the web interface**:
-   - Open http://192.168.86.47:5678 in your browser
+   - **Recommended**: Open https://n8n.${DOMAIN} in your browser (HTTPS)
+   - **Development**: Open http://${SERVER_IP}:${N8N_PORT} for local testing
    - Login with the default credentials (admin/changeme123)
    - Change the password immediately!
 

@@ -30,14 +30,22 @@ services:
       - my-network
     labels:
       - "traefik.enable=true"
+      # HTTP to HTTPS redirect
+      - "traefik.http.routers.n8n-http.rule=Host(`n8n.${DOMAIN}`)"
+      - "traefik.http.routers.n8n-http.entrypoints=web"
+      - "traefik.http.routers.n8n-http.middlewares=redirect-to-https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      # HTTPS configuration
       - "traefik.http.routers.n8n.rule=Host(`n8n.${DOMAIN}`)"
       - "traefik.http.routers.n8n.entrypoints=websecure"
       - "traefik.http.routers.n8n.tls.certresolver=myresolver"
+      - "traefik.http.routers.n8n.tls=true"
       - "traefik.http.services.n8n.loadbalancer.server.port=${N8N_PORT}"
+      # Homepage integration
       - "homepage.group=Automation"
       - "homepage.name=n8n"
       - "homepage.icon=si-n8n"
-      - "homepage.href=http://${SERVER_IP}:${N8N_PORT}"
+      - "homepage.href=https://n8n.${DOMAIN}"
       - "homepage.description=Workflow automation platform"
 
 volumes:
