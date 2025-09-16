@@ -11,8 +11,9 @@ All configuration is managed through the `.env` file. This file contains:
 - **Timezone settings**: `TZ` and `GENERIC_TIMEZONE`
 - **n8n server settings**: `N8N_HOST`, `N8N_PORT`, `N8N_PROTOCOL`
 - **Authentication**: `N8N_BASIC_AUTH_*` variables
-- **Database**: `DB_TYPE` and `DB_SQLITE_DATABASE`
-- **Security**: `N8N_ENCRYPTION_KEY` (change this!)
+- **Database**: `DB_TYPE`, `DB_SQLITE_DATABASE`, and `DB_SQLITE_POOL_SIZE`
+- **Security & Performance**: `N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS`, `N8N_RUNNERS_ENABLED`, `N8N_BLOCK_ENV_ACCESS_IN_NODE`
+- **Encryption**: `N8N_ENCRYPTION_KEY` (change this!)
 - **Server info**: `SERVER_IP` and `DOMAIN` for Traefik/Homepage integration
 
 ### Initial Setup
