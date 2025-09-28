@@ -101,13 +101,9 @@
         - abbr: MX
           href: "https://moxfield.com/users/unarmedpuppy"
           icon: si-steamdeck
-    - "Cube Cobra":
-        - abbr: CC
-          href: "https://cubecobra.com/cube/list/playmats-are-strong-v2"
-          icon: si-nintendogamecube
     - "TCGPlayer":
         - abbr: TP
-          href: "https://tcgplayer.com"
+          href: "https://www.tcgplayer.com/search/product/all?seller=a355824b&view=grid&productLineName=product&setName=all"
           icon: si-sketch
     - "EDHREC":
         - abbr: ER
