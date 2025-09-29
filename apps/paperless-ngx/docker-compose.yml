@@ -82,3 +82,7 @@ volumes:
   media:
   pgdata:
   redisdata:
+
+networks:
+  my-network:
+    external: true
