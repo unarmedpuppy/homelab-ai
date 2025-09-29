@@ -72,9 +72,9 @@ services:
       - "traefik.http.routers.paperless.tls=true"
       - "traefik.http.services.paperless.loadbalancer.server.port=${paperless_PORT}"
       # Homepage integration
-      - "homepage.group=Automation"
+      - "homepage.group=Apps"
       - "homepage.name=paperless"
-      - "homepage.icon=si-paperless"
+      - "homepage.icon=si-paper"
       - "homepage.href=https://paperless.${DOMAIN}"
       - "homepage.description=Workflow automation platform"
 volumes:
