@@ -1,63 +1,84 @@
-networks:
-  default:
-    name: linuxserver
-    external: true
-
+# Docker Compose file for running paperless from the Docker Hub.
+# This file contains everything paperless needs to run.
+# Paperless supports amd64, arm and arm64 hardware.
+#
+# All compose files of paperless configure paperless in the following way:
+#
+# - Paperless is (re)started on system boot, if it was running before shutdown.
+# - Docker volumes for storing data are managed by Docker.
+# - Folders for importing and exporting files are created in the same directory
+#   as this file and mounted to the correct folders inside the container.
+# - Paperless listens on port 8000.
+#
+# In addition to that, this Docker Compose file adds the following optional
+# configurations:
+#
+# - Instead of SQLite (default), PostgreSQL is used as the database server.
+#
+# To install and update paperless with this file, do the following:
+#
+# - Copy this file as 'docker-compose.yml' and the files 'docker-compose.env'
+#   and '.env' into a folder.
+# - Run 'docker compose pull'.
+# - Run 'docker compose up -d'.
+#
+# For more extensive installation and update instructions, refer to the
+# documentation.
 services:
-
-  paperless-ngx:
-    container_name: paperless-ngx
-    restart: always
-    depends_on:
-      - gotenberg
-      - tika
-      - redis
+  broker:
+    image: docker.io/library/redis:8
+    restart: unless-stopped
+    volumes:
+      - redisdata:/data
+  db:
+    image: docker.io/library/postgres:17
+    restart: unless-stopped
+    volumes:
+      - pgdata:/var/lib/postgresql/data
     environment:
-      - PAPERLESS_CONSUMER_POLLING=0
-      - PAPERLESS_SECRET_KEY=$PAPERLESS_SECRET_KEY
-      - USERMAP_UID=$USERMAP_UID
-      - USERMAP_GID=$USERMAP_GID
-      - PAPERLESS_TIME_ZONE=$PAPERLESS_TIME_ZONE
-      - TZ=$TZ
-      - PAPERLESS_OCR_LANGUAGE=spa #English is always included along what you add here
-      - PAPERLESS_URL=https://paperless.yourdomain.com
-      - PAPERLESS_TIKA_ENABLED=true
-      - PAPERLESS_TIKA_ENDPOINT=http://tika:9998
-      - PAPERLESS_TIKA_GOTENBERG_ENDPOINT=http://gotenberg:3000
-      - PAPERLESS_FILENAME_FORMAT={original_name}
-      - PAPERLESS_REDIS=redis://redis:6379
-    image: ghcr.io/paperless-ngx/paperless-ngx
+      POSTGRES_DB: paperless
+      POSTGRES_USER: paperless
+      POSTGRES_PASSWORD: paperless
+  webserver:
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    restart: unless-stopped
+    depends_on:
+      - db
+      - broker
     ports:
-      - 8000:8000
+      - "8200:8000"
     volumes:
-      - ./data-paperless-ngx/data:/usr/src/paperless/data
-      - ./data-paperless-ngx/consume:/usr/src/paperless/consume
-      - ./data-paperless-ngx/export:/usr/src/paperless/export
-      - ./data-paperless-ngx/media:/usr/src/paperless/media
-
-  gotenberg:
-    image: docker.io/gotenberg/gotenberg:7
-    restart: always
-    container_name: gotenberg
-    # The gotenberg chromium route is used to convert .eml files. We do not
-    # want to allow external content like tracking pixels or even javascript.
-    command:
-      - gotenberg
-      - --chromium-disable-javascript=true
-      - --chromium-allow-list=file:///tmp/.*
-      - --api-timeout=60s
-
-  tika:
-    image: ghcr.io/paperless-ngx/tika:latest
-    restart: always
-    container_name: tika
-    
-  redis:
-    image: docker.io/library/redis:7
-    restart: always
-    container_name: redis
-    volumes:
-      - redis:/data
-
+      - data:/usr/src/paperless/data
+      - media:/usr/src/paperless/media
+      - ./export:/usr/src/paperless/export
+      - ./consume:/usr/src/paperless/consume
+    env_file: .env
+    environment:
+      PAPERLESS_REDIS: redis://broker:6379
+      PAPERLESS_DBHOST: db
+    networks:
+      - my-network
+    labels:
+      - "traefik.enable=true"
+      # HTTP to HTTPS redirect
+      - "traefik.http.routers.paperless-http.rule=Host(`paperless.${DOMAIN}`)"
+      - "traefik.http.routers.paperless-http.entrypoints=web"
+      - "traefik.http.routers.paperless-http.middlewares=redirect-to-https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      # HTTPS configuration
+      - "traefik.http.routers.paperless.rule=Host(`paperless.${DOMAIN}`)"
+      - "traefik.http.routers.paperless.entrypoints=websecure"
+      - "traefik.http.routers.paperless.tls.certresolver=myresolver"
+      - "traefik.http.routers.paperless.tls=true"
+      - "traefik.http.services.paperless.loadbalancer.server.port=${paperless_PORT}"
+      # Homepage integration
+      - "homepage.group=Automation"
+      - "homepage.name=paperless"
+      - "homepage.icon=si-paperless"
+      - "homepage.href=https://paperless.${DOMAIN}"
+      - "homepage.description=Workflow automation platform"
 volumes:
-  redis:
+  data:
+  media:
+  pgdata:
+  redisdata:
