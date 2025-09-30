@@ -28,11 +28,13 @@ services:
   broker:
     image: docker.io/library/redis:8
     restart: unless-stopped
+    networks: [my-network]
     volumes:
       - redisdata:/data
   db:
     image: docker.io/library/postgres:17
     restart: unless-stopped
+    networks: [my-network]
     volumes:
       - pgdata:/var/lib/postgresql/data
     environment:
@@ -56,8 +58,7 @@ services:
     environment:
       PAPERLESS_REDIS: redis://broker:6379
       PAPERLESS_DBHOST: db
-    networks:
-      - my-network
+    networks: [my-network]
     labels:
       - "traefik.enable=true"
       # HTTP to HTTPS redirect
