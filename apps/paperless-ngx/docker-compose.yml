@@ -46,7 +46,7 @@ services:
       - db
       - broker
     ports:
-      - "8200:8000"
+      - "${PAPERLESS_PORT}:8000"
     volumes:
       - data:/usr/src/paperless/data
       - media:/usr/src/paperless/media
@@ -70,7 +70,7 @@ services:
       - "traefik.http.routers.paperless.entrypoints=websecure"
       - "traefik.http.routers.paperless.tls.certresolver=myresolver"
       - "traefik.http.routers.paperless.tls=true"
-      - "traefik.http.services.paperless.loadbalancer.server.port=${paperless_PORT}"
+      - "traefik.http.services.paperless.loadbalancer.server.port=${PAPERLESS_PORT}"
       # Homepage integration
       - "homepage.group=Apps"
       - "homepage.name=paperless"
