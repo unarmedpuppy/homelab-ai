@@ -5,7 +5,7 @@ name: immich
 services:
   immich-server:
     container_name: immich-server
-    image: ghcr.io/immich-app/immich-server:v1.90.0
+    image: ghcr.io/immich-app/immich-server:v2.0.0
     volumes:
       - ${UPLOAD_LOCATION}:/usr/src/app/upload
       - /etc/localtime:/etc/localtime:ro
@@ -44,7 +44,7 @@ services:
       - "homepage.description=Family photos & videos"
 
   immich-machine-learning:
-    image: ghcr.io/immich-app/immich-machine-learning:v1.90.0
+    image: ghcr.io/immich-app/immich-machine-learning:v2.0.0
     container_name: immich-ml
     volumes:
       - ${UPLOAD_LOCATION}:/usr/src/app/upload
@@ -74,15 +74,18 @@ services:
 
   immich-database:
     container_name: immich-database
-    image: postgres:14-alpine
+    image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0
     env_file:
       - .env
     environment:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_DB: ${DB_DATABASE_NAME}
+      PG_DATA: /var/lib/postgresql/data
+      POSTGRES_INITDB_ARGS: '--data-checksums'
     volumes:
       - im-pgdata:/var/lib/postgresql/data
+    shm_size: 128mb
     restart: always
     healthcheck:
       test: pg_isready --dbname="${POSTGRES_DB}" --username="${POSTGRES_USER}"
@@ -97,6 +100,8 @@ services:
       -c max_wal_size=2GB
       -c shared_buffers=512MB
       -c wal_compression=on
+      -c shared_preload_libraries=vectorchord.so
+      -c 'search_path="$$user", public, vectorchord'
     networks:
       - my-network
     
