@@ -100,6 +100,8 @@ services:
       -c max_wal_size=2GB
       -c shared_buffers=512MB
       -c wal_compression=on
+      -c shared_preload_libraries=vchord.so
+      -c 'search_path="$$user", public, vectorchord'
     networks:
       - my-network
     
