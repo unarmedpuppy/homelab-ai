@@ -40,6 +40,28 @@ def get_data_manager():
     
     return data_manager
 
+@router.get("/")
+async def get_market_data_info():
+    """Get information about available market data endpoints"""
+    return {
+        "service": "Market Data API",
+        "version": "1.0.0",
+        "endpoints": {
+            "health": "/api/market-data/health",
+            "providers": "/api/market-data/providers", 
+            "quote": "/api/market-data/quote/{symbol}",
+            "historical": "/api/market-data/historical/{symbol}",
+            "search": "/api/market-data/search?query={query}",
+            "multiple_quotes": "/api/market-data/quotes?symbols={symbol1,symbol2,...}"
+        },
+        "examples": {
+            "get_quote": "/api/market-data/quote/AAPL",
+            "get_historical": "/api/market-data/historical/AAPL?days=30",
+            "search_symbols": "/api/market-data/search?query=AAPL",
+            "multiple_quotes": "/api/market-data/quotes?symbols=AAPL,MSFT,GOOGL"
+        }
+    }
+
 @router.get("/quote/{symbol}", response_model=MarketDataResponse)
 async def get_quote(symbol: str):
     """Get current quote for a symbol"""
