@@ -5,13 +5,11 @@ Basic API Endpoints
 Simple API endpoints for quotes and historical data.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Query
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, HTTPException, Query
 from typing import List, Optional
 from datetime import datetime, timedelta
 import logging
 
-from ...data.database import get_db_session
 from ...data.providers.market_data import DataProviderManager, DataProviderType
 from ...api.schemas.trading import MarketDataResponse
 from ...config.settings import settings
