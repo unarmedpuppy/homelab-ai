@@ -2,18 +2,41 @@ version: "3.9"
 services:
   bot:
     build: .
-    image: ibkr-sma-bot:latest
-    container_name: ibkr-sma-bot
+    image: trading-bot:latest
+    container_name: trading-bot
     environment:
-      BOT_DB_URL: sqlite:////data/bot.db
-      TWS_HOST: host.docker.internal
-      TWS_PORT: 7497
-      TWS_CLIENT_ID: 9
+      # Database
+      DATABASE_URL: sqlite:////data/trading_bot.db
+      
+      # Data Provider API Keys
+      ALPHA_VANTAGE_API_KEY: ${ALPHA_VANTAGE_API_KEY:-}
+      POLYGON_API_KEY: ${POLYGON_API_KEY:-}
       UW_API_KEY: ${UW_API_KEY:-}
+      
+      # Interactive Brokers
+      IBKR_HOST: host.docker.internal
+      IBKR_PORT: 7497
+      IBKR_CLIENT_ID: 9
+      
+      # API Configuration
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+      API_DEBUG: false
+      
+      # Logging
+      LOG_LEVEL: INFO
+      ENVIRONMENT: production
     ports:
       - "8000:8000"
     volumes:
       - ./data:/data
+      - ./logs:/app/logs
     restart: unless-stopped
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
