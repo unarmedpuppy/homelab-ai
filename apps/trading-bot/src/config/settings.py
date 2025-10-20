@@ -6,7 +6,8 @@ Centralized configuration management using Pydantic settings.
 Supports environment-specific configurations and validation.
 """
 
-from pydantic import BaseSettings, Field, validator
+from pydantic_settings import BaseSettings
+from pydantic import Field, validator
 from typing import Optional, List
 import os
 from pathlib import Path
