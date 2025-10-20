@@ -1,0 +1,19 @@
+version: "3.9"
+services:
+  bot:
+    build: .
+    image: ibkr-sma-bot:latest
+    container_name: ibkr-sma-bot
+    environment:
+      BOT_DB_URL: sqlite:////data/bot.db
+      TWS_HOST: host.docker.internal
+      TWS_PORT: 7497
+      TWS_CLIENT_ID: 9
+      UW_API_KEY: ${UW_API_KEY:-}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

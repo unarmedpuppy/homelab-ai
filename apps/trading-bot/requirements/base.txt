@@ -1,0 +1,44 @@
+# Base requirements for Trading Bot
+# =================================
+
+# Web Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+
+# Database
+sqlalchemy==2.0.23
+alembic==1.12.1
+
+# Data Processing
+pandas==2.1.3
+numpy==1.25.2
+
+# Financial Data
+yfinance==0.2.28
+ib-insync==0.9.86
+
+# Validation & Serialization
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Utilities
+python-dotenv==1.0.0
+structlog==23.2.0
+tenacity==8.2.3
+
+# HTTP Client
+httpx==0.25.2
+aiohttp==3.9.1
+
+# Background Tasks
+celery==5.3.4
+redis==5.0.1
+
+# Monitoring & Metrics
+prometheus-client==0.19.0
+
+# Testing (optional)
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+httpx==0.25.2

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Bot - Market Data Test</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .price-up { color: #10b981; }
+        .price-down { color: #ef4444; }
+        .price-neutral { color: #6b7280; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <nav class="bg-blue-600 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-white text-xl font-bold">Trading Bot - Market Data Test</h1>
+                </div>
+                <div class="flex items-center">
+                    <span id="connection-status" class="text-white px-3 py-1 bg-green-500 rounded-full text-sm">
+                        <span id="status-indicator">●</span> Connected
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Test Controls -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Test Controls</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Single Quote Test -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Single Quote Test</label>
+                    <div class="flex space-x-2">
+                        <input type="text" id="single-symbol" placeholder="AAPL" 
+                               class="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button id="get-single-quote" 
+                                class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                            Get Quote
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Multiple Quotes Test -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Multiple Quotes Test</label>
+                    <div class="flex space-x-2">
+                        <input type="text" id="multiple-symbols" placeholder="AAPL,MSFT,NVDA" 
+                               class="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button id="get-multiple-quotes" 
+                                class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">
+                            Get Quotes
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Historical Data Test -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Historical Data Test</label>
+                    <div class="flex space-x-2">
+                        <input type="text" id="historical-symbol" placeholder="AAPL" 
+                               class="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button id="get-historical" 
+                                class="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600">
+                            Get History
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Health Check -->
+            <div class="mt-4">
+                <button id="health-check" 
+                        class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">
+                    Health Check
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Display -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Single Quote Result -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Single Quote Result</h3>
+                <div id="single-quote-result" class="text-gray-500">
+                    No data yet. Enter a symbol and click "Get Quote".
+                </div>
+            </div>
+
+            <!-- Multiple Quotes Result -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Multiple Quotes Result</h3>
+                <div id="multiple-quotes-result" class="text-gray-500">
+                    No data yet. Enter symbols and click "Get Quotes".
+                </div>
+            </div>
+
+            <!-- Historical Data Result -->
+            <div class="bg-white rounded-lg shadow-md p-6 lg:col-span-2">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Historical Data Result</h3>
+                <div id="historical-result" class="text-gray-500">
+                    No data yet. Enter a symbol and click "Get History".
+                </div>
+            </div>
+
+            <!-- Health Check Result -->
+            <div class="bg-white rounded-lg shadow-md p-6 lg:col-span-2">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Health Check Result</h3>
+                <div id="health-result" class="text-gray-500">
+                    No data yet. Click "Health Check".
+                </div>
+            </div>
+        </div>
+
+        <!-- Log Display -->
+        <div class="mt-6 bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Activity Log</h3>
+            <div id="activity-log" class="bg-gray-50 rounded-md p-4 h-64 overflow-y-auto font-mono text-sm">
+                <div class="text-gray-500">Ready to test market data endpoints...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class MarketDataTester {
+            constructor() {
+                this.baseUrl = window.location.origin;
+                this.logContainer = document.getElementById('activity-log');
+                this.setupEventListeners();
+                this.log('Market Data Tester initialized');
+            }
+
+            setupEventListeners() {
+                document.getElementById('get-single-quote').addEventListener('click', () => {
+                    this.testSingleQuote();
+                });
+
+                document.getElementById('get-multiple-quotes').addEventListener('click', () => {
+                    this.testMultipleQuotes();
+                });
+
+                document.getElementById('get-historical').addEventListener('click', () => {
+                    this.testHistoricalData();
+                });
+
+                document.getElementById('health-check').addEventListener('click', () => {
+                    this.testHealthCheck();
+                });
+            }
+
+            log(message) {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                logEntry.innerHTML = `<span class="text-gray-400">[${timestamp}]</span> ${message}`;
+                this.logContainer.appendChild(logEntry);
+                this.logContainer.scrollTop = this.logContainer.scrollHeight;
+            }
+
+            async testSingleQuote() {
+                const symbol = document.getElementById('single-symbol').value.trim().toUpperCase();
+                if (!symbol) {
+                    this.log('❌ Please enter a symbol for single quote test');
+                    return;
+                }
+
+                this.log(`🔍 Testing single quote for ${symbol}...`);
+                
+                try {
+                    const response = await fetch(`${this.baseUrl}/api/market-data/quote/${symbol}`);
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        this.displaySingleQuote(data);
+                        this.log(`✅ Single quote test successful for ${symbol}: $${data.price}`);
+                    } else {
+                        this.log(`❌ Single quote test failed: ${data.detail}`);
+                    }
+                } catch (error) {
+                    this.log(`❌ Single quote test error: ${error.message}`);
+                }
+            }
+
+            async testMultipleQuotes() {
+                const symbols = document.getElementById('multiple-symbols').value.trim();
+                if (!symbols) {
+                    this.log('❌ Please enter symbols for multiple quotes test');
+                    return;
+                }
+
+                this.log(`🔍 Testing multiple quotes for ${symbols}...`);
+                
+                try {
+                    const response = await fetch(`${this.baseUrl}/api/market-data/quotes?symbols=${symbols}`);
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        this.displayMultipleQuotes(data);
+                        this.log(`✅ Multiple quotes test successful: ${data.length} quotes`);
+                    } else {
+                        this.log(`❌ Multiple quotes test failed: ${data.detail}`);
+                    }
+                } catch (error) {
+                    this.log(`❌ Multiple quotes test error: ${error.message}`);
+                }
+            }
+
+            async testHistoricalData() {
+                const symbol = document.getElementById('historical-symbol').value.trim().toUpperCase();
+                if (!symbol) {
+                    this.log('❌ Please enter a symbol for historical data test');
+                    return;
+                }
+
+                this.log(`🔍 Testing historical data for ${symbol}...`);
+                
+                try {
+                    const response = await fetch(`${this.baseUrl}/api/market-data/historical/${symbol}?days=30&interval=1d`);
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        this.displayHistoricalData(data);
+                        this.log(`✅ Historical data test successful for ${symbol}: ${data.count} bars`);
+                    } else {
+                        this.log(`❌ Historical data test failed: ${data.detail}`);
+                    }
+                } catch (error) {
+                    this.log(`❌ Historical data test error: ${error.message}`);
+                }
+            }
+
+            async testHealthCheck() {
+                this.log('🔍 Testing health check...');
+                
+                try {
+                    const response = await fetch(`${this.baseUrl}/api/market-data/health`);
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        this.displayHealthCheck(data);
+                        this.log(`✅ Health check successful: ${data.status}`);
+                    } else {
+                        this.log(`❌ Health check failed: ${data.error}`);
+                    }
+                } catch (error) {
+                    this.log(`❌ Health check error: ${error.message}`);
+                }
+            }
+
+            displaySingleQuote(data) {
+                const container = document.getElementById('single-quote-result');
+                const changeClass = data.change >= 0 ? 'price-up' : 'price-down';
+                
+                container.innerHTML = `
+                    <div class="space-y-2">
+                        <div class="text-2xl font-bold">${data.symbol}</div>
+                        <div class="text-3xl font-bold ${changeClass}">$${data.price.toFixed(2)}</div>
+                        <div class="text-lg ${changeClass}">
+                            ${data.change >= 0 ? '+' : ''}${data.change.toFixed(2)} 
+                            (${data.change_pct >= 0 ? '+' : ''}${(data.change_pct * 100).toFixed(2)}%)
+                        </div>
+                        <div class="text-sm text-gray-500">Volume: ${data.volume.toLocaleString()}</div>
+                        <div class="text-sm text-gray-500">Updated: ${new Date(data.timestamp).toLocaleString()}</div>
+                    </div>
+                `;
+            }
+
+            displayMultipleQuotes(data) {
+                const container = document.getElementById('multiple-quotes-result');
+                
+                if (data.length === 0) {
+                    container.innerHTML = '<div class="text-gray-500">No quotes returned</div>';
+                    return;
+                }
+
+                const quotesHtml = data.map(quote => {
+                    const changeClass = quote.change >= 0 ? 'price-up' : 'price-down';
+                    return `
+                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-md">
+                            <div>
+                                <div class="font-semibold">${quote.symbol}</div>
+                                <div class="text-sm text-gray-500">Volume: ${quote.volume.toLocaleString()}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-lg font-bold ${changeClass}">$${quote.price.toFixed(2)}</div>
+                                <div class="text-sm ${changeClass}">
+                                    ${quote.change >= 0 ? '+' : ''}${quote.change.toFixed(2)}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                container.innerHTML = `<div class="space-y-2">${quotesHtml}</div>`;
+            }
+
+            displayHistoricalData(data) {
+                const container = document.getElementById('historical-result');
+                
+                if (data.count === 0) {
+                    container.innerHTML = '<div class="text-gray-500">No historical data returned</div>';
+                    return;
+                }
+
+                // Show summary and first few bars
+                const summary = `
+                    <div class="mb-4 p-4 bg-blue-50 rounded-md">
+                        <div class="font-semibold">${data.symbol} - ${data.interval} Data</div>
+                        <div class="text-sm text-gray-600">
+                            ${data.count} bars from ${new Date(data.start_date).toLocaleDateString()} 
+                            to ${new Date(data.end_date).toLocaleDateString()}
+                        </div>
+                    </div>
+                `;
+
+                const recentBars = data.data.slice(-5).map(bar => `
+                    <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                        <div class="text-sm">${new Date(bar.timestamp).toLocaleDateString()}</div>
+                        <div class="text-sm">O: $${bar.open.toFixed(2)}</div>
+                        <div class="text-sm">H: $${bar.high.toFixed(2)}</div>
+                        <div class="text-sm">L: $${bar.low.toFixed(2)}</div>
+                        <div class="text-sm font-semibold">C: $${bar.close.toFixed(2)}</div>
+                        <div class="text-sm">V: ${bar.volume.toLocaleString()}</div>
+                    </div>
+                `).join('');
+
+                container.innerHTML = summary + `<div class="space-y-1">${recentBars}</div>`;
+            }
+
+            displayHealthCheck(data) {
+                const container = document.getElementById('health-result');
+                const statusClass = data.status === 'healthy' ? 'text-green-600' : 'text-red-600';
+                
+                container.innerHTML = `
+                    <div class="space-y-2">
+                        <div class="text-lg font-semibold ${statusClass}">Status: ${data.status.toUpperCase()}</div>
+                        <div class="text-sm text-gray-600">Timestamp: ${new Date(data.timestamp).toLocaleString()}</div>
+                        <div class="text-sm text-gray-600">Providers: ${data.providers}</div>
+                        ${data.test_symbol ? `
+                            <div class="text-sm text-gray-600">
+                                Test Symbol: ${data.test_symbol} - $${data.test_price?.toFixed(2) || 'N/A'}
+                            </div>
+                        ` : ''}
+                        ${data.error ? `<div class="text-sm text-red-600">Error: ${data.error}</div>` : ''}
+                    </div>
+                `;
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new MarketDataTester();
+        });
+    </script>
+</body>
+</html>
