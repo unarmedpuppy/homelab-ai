@@ -6,7 +6,7 @@ services:
     ports:
       - "8067:8000"
     environment:
-      - WINDOWS_AI_HOST=${WINDOWS_AI_HOST:-172.27.192.1}  # Your Windows machine IP
+      - WINDOWS_AI_HOST=${WINDOWS_AI_HOST:-192.168.86.63}  # Your Windows machine IP
       - WINDOWS_AI_PORT=${WINDOWS_AI_PORT:-8000}            # Manager port on Windows
       - TIMEOUT=${TIMEOUT:-300}                             # Request timeout in seconds
     volumes:
