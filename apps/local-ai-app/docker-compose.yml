@@ -4,7 +4,7 @@ services:
     container_name: local-ai-app
     restart: unless-stopped
     ports:
-      - "8001:8000"
+      - "8067:8000"
     environment:
       - WINDOWS_AI_HOST=${WINDOWS_AI_HOST:-172.27.192.1}  # Your Windows machine IP
       - WINDOWS_AI_PORT=${WINDOWS_AI_PORT:-8000}            # Manager port on Windows
@@ -20,10 +20,29 @@ services:
       - my-network
     labels:
       - "traefik.enable=true"
+      # HTTPS redirect
+      - traefik.http.middlewares.local-ai-redirect-web-secure.redirectscheme.scheme=https
+      - traefik.http.routers.local-ai-redirect.middlewares=local-ai-redirect-web-secure
+      - traefik.http.routers.local-ai-redirect.rule=Host(`local-ai.server.unarmedpuppy.com`)
+      - traefik.http.routers.local-ai-redirect.entrypoints=web
+      # Main HTTPS router with auth
       - "traefik.http.routers.local-ai.rule=Host(`local-ai.server.unarmedpuppy.com`)"
       - "traefik.http.routers.local-ai.entrypoints=websecure"
+      - "traefik.http.routers.local-ai.middlewares=local-ai-auth"
       - "traefik.http.routers.local-ai.tls.certresolver=myresolver"
       - "traefik.http.services.local-ai.loadbalancer.server.port=8000"
+      # Auth middleware
+      - "traefik.http.middlewares.local-ai-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.local-ai-auth.basicauth.realm=Local AI Chat"
+      # Local DNS (no auth for local access)
+      - "traefik.http.routers.local-ai-local.rule=Host(`local-ai.local.unarmedpuppy.com`)"
+      - "traefik.http.routers.local-ai-local.entrypoints=web"
+      # Homepage labels
+      - "homepage.group=AI & ML"
+      - "homepage.name=Local AI Chat"
+      - "homepage.icon=si-openai"
+      - "homepage.href=https://local-ai.server.unarmedpuppy.com"
+      - "homepage.description=ChatGPT-like interface for local LLM models"
 
 networks:
   my-network:

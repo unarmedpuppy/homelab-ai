@@ -16,7 +16,8 @@ services:
       - ./cache:/root/.cache/hf
     working_dir: /app
     command: >
-      bash -lc "pip install fastapi uvicorn requests &&
+      bash -lc "apt-get update && apt-get install -y docker.io &&
+                pip install fastapi uvicorn requests &&
                 uvicorn manager:app --host 0.0.0.0 --port 8000"
     networks:
       - my-network

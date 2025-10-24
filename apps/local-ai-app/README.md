@@ -1,6 +1,14 @@
 # Local AI App
 
-This service acts as a proxy to call local AI models running on your Windows machine from your remote server.
+This service acts as a proxy to call local AI models running on your Windows machine from your remote server. It provides a ChatGPT-like web interface and OpenAI-compatible API endpoints.
+
+## Homepage Integration
+
+The service is configured with homepage labels for easy access:
+- **Group**: AI & ML
+- **Name**: Local AI Chat  
+- **Icon**: OpenAI icon
+- **Description**: ChatGPT-like interface for local LLM models
 
 ## Setup
 
@@ -45,11 +53,27 @@ Deploy this proxy service to your remote server:
    docker compose up -d
    ```
 
+The service will be available on:
+- **External port**: 8067 (mapped to internal port 8000)
+- **HTTPS**: `https://local-ai.server.unarmedpuppy.com` (with basic auth)
+- **Local**: `http://local-ai.local.unarmedpuppy.com` (no auth required)
+
+### Authentication
+
+The service is protected with basic authentication when accessed via HTTPS:
+- **Username**: `unarmedpuppy`
+- **Password**: Same as your other services
+- **Realm**: `Local AI Chat`
+
+Local access via `local-ai.local.unarmedpuppy.com` bypasses authentication for convenience.
+
 ## Usage
 
 ### Web Chat Interface
 
-Access the ChatGPT-like interface at: `http://local-ai.server.unarmedpuppy.com`
+Access the ChatGPT-like interface at: `https://local-ai.server.unarmedpuppy.com`
+
+**Note**: You'll need to authenticate with your username and password when accessing via HTTPS.
 
 Features:
 - Modern, responsive chat interface
@@ -87,7 +111,7 @@ Features:
 ### Example Usage
 
 **Web Interface:**
-Simply visit `http://local-ai.server.unarmedpuppy.com` in your browser to use the chat interface.
+Simply visit `https://local-ai.server.unarmedpuppy.com` in your browser to use the chat interface. You'll be prompted for authentication.
 
 **New Features:**
 - **Image Upload**: Click the 📷 button to upload images for multimodal prompting (works with Qwen Image Edit model)

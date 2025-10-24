@@ -6,7 +6,7 @@
 echo "Testing Local AI App..."
 
 # Get the service URL (adjust if using different domain)
-SERVICE_URL="http://localhost:8001"
+SERVICE_URL="http://localhost:8067"
 if [ ! -z "$1" ]; then
     SERVICE_URL="$1"
 fi
