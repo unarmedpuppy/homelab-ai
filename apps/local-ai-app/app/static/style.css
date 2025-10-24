@@ -1,0 +1,68 @@
+/* Additional styles for Local AI Chat Interface */
+
+/* Custom scrollbar */
+.messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.messages::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+
+.messages::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 3px;
+}
+
+.messages::-webkit-scrollbar-thumb:hover {
+    background: #666;
+}
+
+/* Smooth transitions */
+.message {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Focus styles */
+.input-field:focus {
+    box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.2);
+}
+
+/* Button hover effects */
+.send-button, .clear-button {
+    transition: all 0.2s ease;
+}
+
+/* Mobile optimizations */
+@media (max-width: 480px) {
+    .header {
+        padding: 0.75rem;
+    }
+    
+    .header h1 {
+        font-size: 1.25rem;
+    }
+    
+    .messages {
+        padding: 0.75rem;
+    }
+    
+    .input-container {
+        padding: 0.75rem;
+    }
+    
+    .message {
+        max-width: 100%;
+    }
+}

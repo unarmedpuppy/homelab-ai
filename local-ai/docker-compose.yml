@@ -1,0 +1,26 @@
+services:
+  # Manager service for on-demand model starting/stopping
+  manager:
+    image: python:3.11-slim
+    container_name: vllm-manager
+    restart: unless-stopped
+    ports: 
+      - "8000:8000"
+    environment:
+      - IDLE_TIMEOUT=600     # seconds to auto-stop when idle
+      - START_TIMEOUT=180    # seconds to wait for model load
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./manager:/app
+      - ./models:/models
+      - ./cache:/root/.cache/hf
+    working_dir: /app
+    command: >
+      bash -lc "pip install fastapi uvicorn requests &&
+                uvicorn manager:app --host 0.0.0.0 --port 8000"
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    external: true
