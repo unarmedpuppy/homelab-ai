@@ -35,8 +35,8 @@ def docker_stop(name: str):
     except Exception as e:
         print(f"Warning: Failed to stop container {name}: {e}")
 
-def wait_ready(port: int, timeout: int) -> bool:
-    url = f"http://127.0.0.1:{port}/v1/models"
+def wait_ready(container: str, timeout: int) -> bool:
+    url = f"http://{container}:8000/v1/models"
     end = time.time() + timeout
     while time.time() < end:
         try:
@@ -73,11 +73,11 @@ async def chat(req: Request):
             docker_start(m["container"])
         except subprocess.CalledProcessError as e:
             return JSONResponse({"error": f"start failed: {e}"}, status_code=500)
-        if not wait_ready(m["port"], START_TIMEOUT):
+        if not wait_ready(m["container"], START_TIMEOUT):
             return JSONResponse({"error": "backend not ready"}, status_code=503)
 
     # forward to selected vLLM backend
-    url = f"http://127.0.0.1:{m['port']}/v1/chat/completions"
+    url = f"http://{m['container']}:8000/v1/chat/completions"
     try:
         r = requests.post(url, json=body, timeout=None)
         last_used[model] = time.time()
