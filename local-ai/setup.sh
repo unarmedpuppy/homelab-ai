@@ -12,8 +12,9 @@ mkdir -p models cache
 echo "Creating Llama 3.1 8B container..."
 docker create --name vllm-llama3-8b --gpus all -p 8001:8000 \
   -v $(pwd)/models:/models -v $(pwd)/cache:/root/.cache/hf \
-  vllm/vllm-openai:latest \
-  --model meta-llama/Meta-Llama-3.1-8B-Instruct \
+  -e HF_TOKEN=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 \
+  vllm/vllm-openai:v0.6.3 \
+  --model meta-llama/Llama-3.1-8B-Instruct \
   --served-model-name llama3-8b \
   --download-dir /models --dtype auto \
   --max-model-len 8192 --gpu-memory-utilization 0.90
@@ -21,7 +22,8 @@ docker create --name vllm-llama3-8b --gpus all -p 8001:8000 \
 echo "Creating Qwen 2.5 14B AWQ container..."
 docker create --name vllm-qwen14b-awq --gpus all -p 8002:8000 \
   -v $(pwd)/models:/models -v $(pwd)/cache:/root/.cache/hf \
-  vllm/vllm-openai:latest \
+  -e HF_TOKEN=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 \
+  vllm/vllm-openai:v0.6.3 \
   --model Qwen/Qwen2.5-14B-Instruct-AWQ \
   --served-model-name qwen2.5-14b-awq \
   --download-dir /models --dtype auto \
@@ -30,16 +32,18 @@ docker create --name vllm-qwen14b-awq --gpus all -p 8002:8000 \
 echo "Creating DeepSeek Coder V2 Lite container..."
 docker create --name vllm-coder7b --gpus all -p 8003:8000 \
   -v $(pwd)/models:/models -v $(pwd)/cache:/root/.cache/hf \
-  vllm/vllm-openai:latest \
+  -e HF_TOKEN=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 \
+  vllm/vllm-openai:v0.6.3 \
   --model deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct \
-  --served-model-name deepseek-coder-7b \
+  --served-model-name deepseek-coder \
   --download-dir /models --dtype auto \
   --max-model-len 8192 --gpu-memory-utilization 0.90
 
 echo "Creating Qwen Image Edit container..."
 docker create --name vllm-qwen-image --gpus all -p 8004:8000 \
   -v $(pwd)/models:/models -v $(pwd)/cache:/root/.cache/hf \
-  vllm/vllm-openai:latest \
+  -e HF_TOKEN=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 \
+  vllm/vllm-openai:v0.6.3 \
   --model Qwen/Qwen-Image-Edit-2509 \
   --served-model-name qwen-image-edit \
   --download-dir /models --dtype auto \
