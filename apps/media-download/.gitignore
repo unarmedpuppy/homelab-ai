@@ -1,0 +1,27 @@
+# Configuration files with sensitive data
+wireguard/config/
+nzbhydra2/config/
+jackett/config/
+nzbget/config/
+qbittorrent/config/
+sabnzbd/config/
+sonarr/config/
+radarr/config/
+lidarr/config/
+bazarr/config/
+readarr/config/
+
+# Downloaded content
+downloads/
+media/
+
+# Environment files
+.env
+
+# Backup files
+*.tar.gz
+backups/
+
+# Logs
+*.log
+
