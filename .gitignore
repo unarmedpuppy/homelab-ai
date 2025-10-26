@@ -5,5 +5,5 @@ apps/*/data/*
 apps/homepage/config/logs/*
 apps/homepage/config/logs/homepage.log
 apps/*/.env
-local-ai/models/*
+local-ai/models/**/*
 local-ai/manager/__pycache__/*
