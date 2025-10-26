@@ -1,0 +1,33 @@
+# Sonarr Configuration Guide
+# Access at http://localhost:8989 when services are running
+#
+# STEP 1: Add Indexers
+# 1. Go to Settings > Indexers
+# 2. Click "Add indexer" > "NZBHydra2"
+# 3. Fill in:
+#    - Name: NZBHydra2
+#    - Host: nzbhydra2
+#    - Port: 5076
+#    - Use HTTPS: NO
+#    - API Key: (Get this from NZBHydra2 web UI > Config > API)
+# 4. Click "Test" and then "Save"
+#
+# STEP 2: Add Download Clients
+# 1. Go to Settings > Download Clients
+# 2. Click "Add client" > "NZBGet"
+# 3. Fill in:
+#    - Name: NZBGet
+#    - Host: nzbget
+#    - Port: 6789
+#    - Username: (leave empty or use default)
+#    - Password: (leave empty or use default)
+# 4. Click "Test" and then "Save"
+#
+# STEP 3: Set Root Folders
+# 1. Go to Settings > Media Management > Root Folders
+# 2. Click "Add root folder"
+# 3. Browse to: /tv
+# 4. Click "OK"
+#
+# DONE! Now you can add TV shows and they'll auto-download.
+

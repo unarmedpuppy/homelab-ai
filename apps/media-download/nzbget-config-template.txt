@@ -1,0 +1,54 @@
+# NZBGet Configuration Template for Frugal Usenet
+# Your actual credentials will be configured when containers start
+# You can edit this file: apps/media-download/nzbget/config/nzbget.conf
+
+# SERVER 1 - Primary (US East Coast - Priority 0)
+Server1.Host=news.frugalusenet.com
+Server1.Port=563
+Server1.Username=unarmedpuppy
+Server1.Password=nemesazi
+Server1.Encryption=yes
+Server1.Connections=60
+Server1.Retention=1100
+Server1.Level=0
+
+# SERVER 2 - Backup (EU - Priority 1)  
+Server2.Host=eunews.frugalusenet.com
+Server2.Port=563
+Server2.Username=unarmedpuppy
+Server2.Password=nemesazi
+Server2.Encryption=yes
+Server2.Connections=30
+Server2.Retention=1100
+Server2.Level=1
+
+# SERVER 3 - Bonus (EU-Netherlands - Priority 2)
+Server3.Host=bonus.frugalusenet.com
+Server3.Port=563
+Server3.Username=unarmedpuppy
+Server3.Password=nemesazi
+Server3.Encryption=yes
+Server3.Connections=50
+Server3.Retention=3000
+Server3.Level=2
+
+# Download directory
+OutputMode=group
+MainDir=/downloads
+DestDir=/downloads/completed
+InterDir=/downloads/intermediate
+
+# Par2 repair settings
+ParRepair=yes
+ParBuffer=128
+DirectWrite=yes
+WriteBuffer=1024
+
+# Security
+ArticleCache=0
+CleanupDisk=yes
+DeleteCleanupDisk=no
+
+# Speed limits (uncomment and adjust if needed)
+#  ConnectionSpeed=0
+

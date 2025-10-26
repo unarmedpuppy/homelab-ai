@@ -1,0 +1,15 @@
+# NZBHydra2 Configuration Guide
+# Access at http://localhost:5076 when services are running
+# 
+# To add NZBGeek:
+# 1. Go to Settings > Search engines > Generic Newsbinznab newznab
+# 2. Click "Add new"
+# 3. Fill in:
+#    - Name: NZBGeek
+#    - Host: https://api.nzbgeek.info
+#    - API key: 7yQsz0trEPLqtTGtyi91DMJ8NYnzCMmn
+#    - Type: nzb
+# 4. Click "Test" and then "Save"
+#
+# After adding, you'll get an API key from NZBHydra2 to use in Sonarr/Radarr
+
