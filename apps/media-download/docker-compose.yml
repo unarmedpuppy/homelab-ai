@@ -1,22 +1,20 @@
 version: "3.8"
 
 services:
-  # VPN Gateway with Kill Switch (Gluetun)
-  gluetun:
-    image: qmcgaw/gluetun:latest
-    container_name: media-download-gluetun
+  # VPN Gateway with Kill Switch (WireGuard client)
+  wireguard:
+    image: lscr.io/linuxserver/wireguard:latest
+    container_name: media-download-wireguard
     cap_add:
       - NET_ADMIN
+      - SYS_MODULE
     environment:
-      - VPN_TYPE=wireguard
-      - WIREGUARD_PRIVATE_KEY=${PROTONVPN_PRIVATE_KEY}
-      - WIREGUARD_ADDRESSES=10.2.0.2/32
-      - WIREGUARD_PUBLIC_KEY=36G8+pInNcPK9F1TpHglWs9Pk5uJOY9o8SCNrCBgvHE=
-      - WIREGUARD_ENDPOINT_IP=89.222.96.158
-      - WIREGUARD_ENDPOINT_PORT=51820
-      - KILL_SWITCH=on
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ:-America/Chicago}
     volumes:
-      - ./gluetun:/gluetun
+      - ./wireguard/config:/config
+      - /lib/modules:/lib/modules:ro
     ports:
       - "8880:8080"  # qBittorrent web UI (routed through VPN)
       - "6789:6789"  # NZBGet web UI (routed through VPN)
@@ -25,7 +23,7 @@ services:
       - net.ipv4.conf.all.src_valid_mark=1
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8000/v1/openvpn/status"]
+      test: ["CMD", "wg", "show", "wg0"]
       interval: 60s
       timeout: 10s
       retries: 3
@@ -90,13 +88,13 @@ services:
     volumes:
       - ./nzbget/config:/config
       - ${DOWNLOAD_PATH:-./downloads/nzb}:/downloads
-    network_mode: "service:gluetun"  # Kill switch: routes all traffic through VPN
+    network_mode: "service:wireguard"  # Kill switch: routes all traffic through VPN
     depends_on:
-      gluetun:
+      wireguard:
         condition: service_healthy
     restart: unless-stopped
     # Note: NZBGet is behind VPN and accessed by Sonarr/Radarr/Lidarr only
-    # Web UI exists but requires direct container access via: docker exec -it media-download-gluetun w3m http://localhost:6789
+    # Web UI exists but requires direct container access via: docker exec -it media-download-wireguard w3m http://localhost:6789
 
   # Torrent Download Client
   qbittorrent:
@@ -110,9 +108,9 @@ services:
     volumes:
       - ./qbittorrent/config:/config
       - ${DOWNLOAD_PATH:-./downloads/torrents}:/downloads
-    network_mode: "service:gluetun"  # Kill switch: routes all traffic through VPN
+    network_mode: "service:wireguard"  # Kill switch: routes all traffic through VPN
     depends_on:
-      gluetun:
+      wireguard:
         condition: service_healthy
     restart: unless-stopped
     # Note: qBittorrent is behind VPN and accessed by automation services only
@@ -260,9 +258,9 @@ services:
     volumes:
       - ./sabnzbd/config:/config
       - ${DOWNLOAD_PATH:-./downloads}/sabnzbd:/downloads
-    network_mode: "service:gluetun"  # Kill switch: routes all traffic through VPN
+    network_mode: "service:wireguard"  # Kill switch: routes all traffic through VPN
     depends_on:
-      gluetun:
+      wireguard:
         condition: service_healthy
     restart: unless-stopped
     profiles:
