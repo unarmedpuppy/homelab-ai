@@ -12,7 +12,6 @@ services:
     environment:
       - VPN_SERVICE_PROVIDER=custom
       - OPENVPN_CUSTOM_CONFIG=/openvpn/client.ovpn
-      - SERVER_COUNTRIES=Switzerland
       - KILL_SWITCH=on
       - KILL_SWITCH_ACTIVATE=on
       - TZ=${TZ:-America/Chicago}
