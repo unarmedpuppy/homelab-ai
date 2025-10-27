@@ -55,6 +55,11 @@ services:
     restart: unless-stopped
     networks:
       - media-download-network
+    labels:
+      - "homepage.group=Media Download"
+      - "homepage.name=NZBHydra2"
+      - "homepage.href=http://localhost:5076"
+      - "homepage.icon=nzbhydra2.svg"
     # NOT on VPN - only searches, doesn't download
 
   # Torrent Indexer
@@ -72,6 +77,11 @@ services:
     restart: unless-stopped
     networks:
       - media-download-network
+    labels:
+      - "homepage.group=Media Download"
+      - "homepage.name=Jackett"
+      - "homepage.href=http://localhost:9117"
+      - "homepage.icon=jackett.svg"
     # NOT on VPN - only searches, doesn't download
 
   # Usenet Download Client
@@ -90,6 +100,11 @@ services:
       wireguard:
         condition: service_healthy
     restart: unless-stopped
+    labels:
+      - "homepage.group=Media Download"
+      - "homepage.name=NZBGet"
+      - "homepage.href=http://localhost:6789"
+      - "homepage.icon=nzbget.svg"
     # Note: Web UI accessible via WireGuard container at http://localhost:6789
 
   # Torrent Download Client
@@ -109,6 +124,11 @@ services:
       wireguard:
         condition: service_healthy
     restart: unless-stopped
+    labels:
+      - "homepage.group=Media Download"
+      - "homepage.name=qBittorrent"
+      - "homepage.href=http://localhost:8880"
+      - "homepage.icon=qbittorrent.svg"
 
   # TV Shows Automation
   sonarr:
@@ -127,6 +147,11 @@ services:
     restart: unless-stopped
     networks:
       - media-download-network
+    labels:
+      - "homepage.group=Media Download"
+      - "homepage.name=Sonarr"
+      - "homepage.href=http://localhost:8989"
+      - "homepage.icon=sonarr.svg"
     depends_on:
       - nzbhydra2
       - jackett
@@ -148,6 +173,11 @@ services:
     restart: unless-stopped
     networks:
       - media-download-network
+    labels:
+      - "homepage.group=Media Download"
+      - "homepage.name=Radarr"
+      - "homepage.href=http://localhost:7878"
+      - "homepage.icon=radarr.svg"
     depends_on:
       - nzbhydra2
       - jackett
@@ -169,6 +199,11 @@ services:
     restart: unless-stopped
     networks:
       - media-download-network
+    labels:
+      - "homepage.group=Media Download"
+      - "homepage.name=Lidarr"
+      - "homepage.href=http://localhost:8686"
+      - "homepage.icon=lidarr.svg"
     depends_on:
       - nzbhydra2
       - jackett
@@ -189,6 +224,11 @@ services:
     restart: unless-stopped
     networks:
       - media-download-network
+    labels:
+      - "homepage.group=Media Download"
+      - "homepage.name=Bazarr"
+      - "homepage.href=http://localhost:6767"
+      - "homepage.icon=bazarr.svg"
     depends_on:
       - sonarr
       - radarr
@@ -216,6 +256,11 @@ services:
       - jackett
     profiles:
       - optional
+    labels:
+      - "homepage.group=Media Download"
+      - "homepage.name=Readarr"
+      - "homepage.href=http://localhost:8787"
+      - "homepage.icon=readarr.svg"
 
   # Usenet Downloader (Alternative)
   sabnzbd:
@@ -235,6 +280,11 @@ services:
     restart: unless-stopped
     profiles:
       - alternative
+    labels:
+      - "homepage.group=Media Download"
+      - "homepage.name=SABnzbd"
+      - "homepage.href=http://localhost:8079"
+      - "homepage.icon=sabnzbd.svg"
     # Note: Web UI accessible via WireGuard container at http://localhost:8079
 
 networks:
