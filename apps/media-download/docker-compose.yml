@@ -1,21 +1,20 @@
 version: "3.8"
 
 services:
-  # VPN Gateway with Kill Switch (manual WireGuard client config)
-  wireguard:
-    image: lscr.io/linuxserver/wireguard:latest
-    container_name: media-download-wireguard
-    network_mode: host
+  # VPN Gateway with Kill Switch (Gluetun)
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: media-download-gluetun
     cap_add:
       - NET_ADMIN
-      - SYS_MODULE
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=${TZ:-America/Chicago}
+      - VPN_SERVICE_PROVIDER=protonvpn
+      - OPENVPN_USER=${PROTONVPN_USER}
+      - OPENVPN_PASSWORD=${PROTONVPN_PASSWORD}
+      - SERVER_COUNTRIES=Switzerland
+      - KILL_SWITCH=on
     volumes:
-      - ./wireguard/config:/config
-      - /lib/modules:/lib/modules:ro
+      - ./gluetun:/gluetun
     ports:
       - "8880:8080"  # qBittorrent web UI (routed through VPN)
       - "6789:6789"  # NZBGet web UI (routed through VPN)
@@ -24,7 +23,7 @@ services:
       - net.ipv4.conf.all.src_valid_mark=1
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wg", "show", "wg0"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8000/v1/openvpn/status"]
       interval: 60s
       timeout: 10s
       retries: 3
@@ -89,13 +88,13 @@ services:
     volumes:
       - ./nzbget/config:/config
       - ${DOWNLOAD_PATH:-./downloads/nzb}:/downloads
-    network_mode: "service:wireguard"  # Kill switch: routes all traffic through VPN
+    network_mode: "service:gluetun"  # Kill switch: routes all traffic through VPN
     depends_on:
-      wireguard:
+      gluetun:
         condition: service_healthy
     restart: unless-stopped
     # Note: NZBGet is behind VPN and accessed by Sonarr/Radarr/Lidarr only
-    # Web UI exists but requires direct container access via: docker exec -it media-download-wireguard w3m http://localhost:6789
+    # Web UI exists but requires direct container access via: docker exec -it media-download-gluetun w3m http://localhost:6789
 
   # Torrent Download Client
   qbittorrent:
@@ -109,9 +108,9 @@ services:
     volumes:
       - ./qbittorrent/config:/config
       - ${DOWNLOAD_PATH:-./downloads/torrents}:/downloads
-    network_mode: "service:wireguard"  # Kill switch: routes all traffic through VPN
+    network_mode: "service:gluetun"  # Kill switch: routes all traffic through VPN
     depends_on:
-      wireguard:
+      gluetun:
         condition: service_healthy
     restart: unless-stopped
     # Note: qBittorrent is behind VPN and accessed by automation services only
@@ -259,9 +258,9 @@ services:
     volumes:
       - ./sabnzbd/config:/config
       - ${DOWNLOAD_PATH:-./downloads}/sabnzbd:/downloads
-    network_mode: "service:wireguard"  # Kill switch: routes all traffic through VPN
+    network_mode: "service:gluetun"  # Kill switch: routes all traffic through VPN
     depends_on:
-      wireguard:
+      gluetun:
         condition: service_healthy
     restart: unless-stopped
     profiles:
