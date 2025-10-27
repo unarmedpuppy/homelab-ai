@@ -11,9 +11,12 @@ services:
       - /dev/net/tun:/dev/net/tun
     environment:
       - VPN_SERVICE_PROVIDER=protonvpn
-      - OPENVPN_USER=${PROTONVPN_USER}
-      - OPENVPN_PASSWORD=${PROTONVPN_PASSWORD}
-      - SERVER_COUNTRIES=Switzerland
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY=${PROTONVPN_PRIVATE_KEY}
+      - WIREGUARD_ADDRESSES=10.2.0.2/32
+      - WIREGUARD_PUBLIC_KEY=36G8+pInNcPK9F1TpHglWs9Pk5uJOY9o8SCNrCBgvHE=
+      - WIREGUARD_ENDPOINT_IP=89.222.96.158
+      - WIREGUARD_ENDPOINT_PORT=51820
       - KILL_SWITCH=on
       - KILL_SWITCH_ACTIVATE=on
       - TZ=${TZ:-America/Chicago}
