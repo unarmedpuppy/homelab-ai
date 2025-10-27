@@ -10,9 +10,8 @@ services:
     devices:
       - /dev/net/tun:/dev/net/tun
     environment:
-      - VPN_SERVICE_PROVIDER=protonvpn
-      - OPENVPN_USER=dangerbahn@gmail.com
-      - OPENVPN_PASSWORD=Eb5nOJKEnAqF@MIF
+      - VPN_SERVICE_PROVIDER=custom
+      - OPENVPN_CUSTOM_CONFIG=/openvpn/client.ovpn
       - SERVER_COUNTRIES=Switzerland
       - KILL_SWITCH=on
       - KILL_SWITCH_ACTIVATE=on
