@@ -282,5 +282,5 @@ services:
 networks:
   media-download-network:
     driver: bridge
-    internal: true  # Prevents containers from accessing host network directly
+    # internal: true removed - UI containers need to be accessible from host
 
