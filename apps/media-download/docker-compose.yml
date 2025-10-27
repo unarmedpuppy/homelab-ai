@@ -58,7 +58,7 @@ services:
     labels:
       - "homepage.group=Media Download"
       - "homepage.name=NZBHydra2"
-      - "homepage.href=http://localhost:5076"
+      - "homepage.href=http://192.168.86.47:5076"
       - "homepage.icon=nzbhydra2.svg"
     # NOT on VPN - only searches, doesn't download
 
@@ -80,7 +80,7 @@ services:
     labels:
       - "homepage.group=Media Download"
       - "homepage.name=Jackett"
-      - "homepage.href=http://localhost:9117"
+      - "homepage.href=http://192.168.86.47:9117"
       - "homepage.icon=jackett.svg"
     # NOT on VPN - only searches, doesn't download
 
@@ -103,7 +103,7 @@ services:
     labels:
       - "homepage.group=Media Download"
       - "homepage.name=NZBGet"
-      - "homepage.href=http://localhost:6789"
+      - "homepage.href=http://192.168.86.47:6789"
       - "homepage.icon=nzbget.svg"
     # Note: Web UI accessible via WireGuard container at http://localhost:6789
 
@@ -127,7 +127,7 @@ services:
     labels:
       - "homepage.group=Media Download"
       - "homepage.name=qBittorrent"
-      - "homepage.href=http://localhost:8880"
+      - "homepage.href=http://192.168.86.47:8880"
       - "homepage.icon=qbittorrent.svg"
 
   # TV Shows Automation
@@ -150,7 +150,7 @@ services:
     labels:
       - "homepage.group=Media Download"
       - "homepage.name=Sonarr"
-      - "homepage.href=http://localhost:8989"
+      - "homepage.href=http://192.168.86.47:8989"
       - "homepage.icon=sonarr.svg"
     depends_on:
       - nzbhydra2
@@ -176,7 +176,7 @@ services:
     labels:
       - "homepage.group=Media Download"
       - "homepage.name=Radarr"
-      - "homepage.href=http://localhost:7878"
+      - "homepage.href=http://192.168.86.47:7878"
       - "homepage.icon=radarr.svg"
     depends_on:
       - nzbhydra2
@@ -202,7 +202,7 @@ services:
     labels:
       - "homepage.group=Media Download"
       - "homepage.name=Lidarr"
-      - "homepage.href=http://localhost:8686"
+      - "homepage.href=http://192.168.86.47:8686"
       - "homepage.icon=lidarr.svg"
     depends_on:
       - nzbhydra2
@@ -227,7 +227,7 @@ services:
     labels:
       - "homepage.group=Media Download"
       - "homepage.name=Bazarr"
-      - "homepage.href=http://localhost:6767"
+      - "homepage.href=http://192.168.86.47:6767"
       - "homepage.icon=bazarr.svg"
     depends_on:
       - sonarr
@@ -259,7 +259,7 @@ services:
     labels:
       - "homepage.group=Media Download"
       - "homepage.name=Readarr"
-      - "homepage.href=http://localhost:8787"
+      - "homepage.href=http://192.168.86.47:8787"
       - "homepage.icon=readarr.svg"
 
   # Usenet Downloader (Alternative)
@@ -283,7 +283,7 @@ services:
     labels:
       - "homepage.group=Media Download"
       - "homepage.name=SABnzbd"
-      - "homepage.href=http://localhost:8079"
+      - "homepage.href=http://192.168.86.47:8079"
       - "homepage.icon=sabnzbd.svg"
     # Note: Web UI accessible via WireGuard container at http://localhost:8079
 
