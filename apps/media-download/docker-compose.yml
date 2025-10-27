@@ -1,31 +1,7 @@
 version: "3.8"
 
 services:
-  # VPN Gateway with Kill Switch (Simple WireGuard client)
-  wireguard:
-    image: gaudefroy/wireguard-docker:latest
-    container_name: media-download-wireguard
-    cap_add:
-      - NET_ADMIN
-      - SYS_MODULE
-    network_mode: host
-    volumes:
-      - ./wireguard/config/wg_confs:/etc/wireguard:ro
-    environment:
-      - WG0=wg0
-    ports:
-      - "8880:8080"  # qBittorrent web UI (routed through VPN)
-      - "6789:6789"  # NZBGet web UI (routed through VPN)
-      - "8079:8080"  # SABnzbd web UI (alternative, routed through VPN)
-    sysctls:
-      - net.ipv4.conf.all.src_valid_mark=1
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wg", "show", "wg0"]
-      interval: 60s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
+  # NOTE: VPN temporarily disabled for testing - will add back
 
   # Usenet Indexer & Aggregator
   nzbhydra2:
@@ -86,13 +62,11 @@ services:
     volumes:
       - ./nzbget/config:/config
       - ${DOWNLOAD_PATH:-./downloads/nzb}:/downloads
-    network_mode: "service:wireguard"  # Kill switch: routes all traffic through VPN
-    depends_on:
-      wireguard:
-        condition: service_healthy
+    networks:
+      - media-download-network
+    ports:
+      - "6789:6789"
     restart: unless-stopped
-    # Note: NZBGet is behind VPN and accessed by Sonarr/Radarr/Lidarr only
-    # Web UI exists but requires direct container access via: docker exec -it media-download-wireguard w3m http://localhost:6789
 
   # Torrent Download Client
   qbittorrent:
@@ -106,10 +80,10 @@ services:
     volumes:
       - ./qbittorrent/config:/config
       - ${DOWNLOAD_PATH:-./downloads/torrents}:/downloads
-    network_mode: "service:wireguard"  # Kill switch: routes all traffic through VPN
-    depends_on:
-      wireguard:
-        condition: service_healthy
+    networks:
+      - media-download-network
+    ports:
+      - "8880:8080"
     restart: unless-stopped
     # Note: qBittorrent is behind VPN and accessed by automation services only
 
@@ -256,10 +230,10 @@ services:
     volumes:
       - ./sabnzbd/config:/config
       - ${DOWNLOAD_PATH:-./downloads}/sabnzbd:/downloads
-    network_mode: "service:wireguard"  # Kill switch: routes all traffic through VPN
-    depends_on:
-      wireguard:
-        condition: service_healthy
+    networks:
+      - media-download-network
+    ports:
+      - "8079:8080"
     restart: unless-stopped
     profiles:
       - alternative
@@ -268,7 +242,6 @@ services:
       - "homepage.name=SABnzbd"
       - "homepage.href=http://192.168.86.47:8079"
       - "homepage.icon=sabnzbd.svg"
-    # Note: Web UI accessible via WireGuard container at http://localhost:8079
 
 networks:
   media-download-network:
