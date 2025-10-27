@@ -1,20 +1,18 @@
 version: "3.8"
 
 services:
-  # VPN Gateway with Kill Switch (WireGuard client)
+  # VPN Gateway with Kill Switch (Simple WireGuard client)
   wireguard:
-    image: lscr.io/linuxserver/wireguard:latest
+    image: gaudefroy/wireguard-docker:latest
     container_name: media-download-wireguard
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=${TZ:-America/Chicago}
+    network_mode: host
     volumes:
-      - ./wireguard/config:/config
-      - /lib/modules:/lib/modules:ro
+      - ./wireguard/config/wg_confs:/etc/wireguard:ro
+    environment:
+      - WG0=wg0
     ports:
       - "8880:8080"  # qBittorrent web UI (routed through VPN)
       - "6789:6789"  # NZBGet web UI (routed through VPN)
