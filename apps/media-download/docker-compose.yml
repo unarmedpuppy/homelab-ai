@@ -12,8 +12,6 @@ services:
     environment:
       - VPN_SERVICE_PROVIDER=custom
       - OPENVPN_CUSTOM_CONFIG=/openvpn/client.ovpn
-      - OPENVPN_USER=PryJEElaIFjWkChL+b:21
-      - OPENVPN_PASSWORD=Eb5nOJKEnAqF@MIF
       - KILL_SWITCH=on
       - KILL_SWITCH_ACTIVATE=on
       - TZ=${TZ:-America/Chicago}
