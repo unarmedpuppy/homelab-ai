@@ -12,8 +12,6 @@ services:
     environment:
       - VPN_SERVICE_PROVIDER=custom
       - OPENVPN_CONFIG=/gluetun/client.ovpn
-      - OPENVPN_USER=OPENVPN_USERNAME
-      - OPENVPN_PASSWORD=OPENVPN_PASSWORD
       - KILL_SWITCH=on
       - KILL_SWITCH_ACTIVATE=on
       - TZ=${TZ:-America/Chicago}
