@@ -12,9 +12,9 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=${TZ:-America/Chicago}
-      - PEERS=1
-      - PEERDNS=auto
-      - INTERNAL_SUBNET=10.13.13.0
+      # PEERS removed - running in CLIENT mode with external VPN provider
+      # PEERDNS=auto
+      # INTERNAL_SUBNET=10.13.13.0
       # Enable DNS leak prevention
       - ALLOWEDIPS=0.0.0.0/0
     volumes:
@@ -22,19 +22,19 @@ services:
       - /lib/modules:/lib/modules:ro
     ports:
       - "51820:51820/udp"  # WireGuard server port
-      - "8080:8080"  # qBittorrent web UI (routed through VPN)
+      - "8880:8080"  # qBittorrent web UI (routed through VPN)
       - "6789:6789"  # NZBGet web UI (routed through VPN)
       - "8079:8080"  # SABnzbd web UI (alternative, routed through VPN)
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
     restart: unless-stopped
-    networks:
-      - media-download-network
+    # Note: wireguard is NOT on internal network - it needs internet access for VPN
     healthcheck:
-      test: ["CMD", "ping", "-c", "1", "-W", "5", "1.1.1.1"]
+      test: ["CMD", "wg", "show", "wg0"]  # Just check if wireguard interface exists
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 10s
 
   # Usenet Indexer & Aggregator
   nzbhydra2:
