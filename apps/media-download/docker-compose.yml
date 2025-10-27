@@ -1,7 +1,36 @@
 version: "3.8"
 
 services:
-  # NOTE: VPN temporarily disabled for testing - will add back
+  # VPN Gateway with Kill Switch - Gluetun connects to ProtonVPN
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: media-download-gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      - VPN_SERVICE_PROVIDER=protonvpn
+      - OPENVPN_USER=${PROTONVPN_USER}
+      - OPENVPN_PASSWORD=${PROTONVPN_PASSWORD}
+      - SERVER_COUNTRIES=Switzerland
+      - KILL_SWITCH=on
+      - KILL_SWITCH_ACTIVATE=on
+      - TZ=${TZ:-America/Chicago}
+    volumes:
+      - ./gluetun:/gluetun
+    networks:
+      - media-download-network
+    ports:
+      - "8880:8080"  # qBittorrent web UI (routed through VPN)
+      - "6789:6789"  # NZBGet web UI (routed through VPN)
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8000/v1/openvpn/status"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   # Usenet Indexer & Aggregator
   nzbhydra2:
@@ -62,10 +91,10 @@ services:
     volumes:
       - ./nzbget/config:/config
       - ${DOWNLOAD_PATH:-./downloads/nzb}:/downloads
-    networks:
-      - media-download-network
-    ports:
-      - "6789:6789"
+    network_mode: "service:gluetun"  # Kill switch: routes all traffic through VPN
+    depends_on:
+      gluetun:
+        condition: service_healthy
     restart: unless-stopped
 
   # Torrent Download Client
@@ -80,10 +109,10 @@ services:
     volumes:
       - ./qbittorrent/config:/config
       - ${DOWNLOAD_PATH:-./downloads/torrents}:/downloads
-    networks:
-      - media-download-network
-    ports:
-      - "8880:8080"
+    network_mode: "service:gluetun"  # Kill switch: routes all traffic through VPN
+    depends_on:
+      gluetun:
+        condition: service_healthy
     restart: unless-stopped
     # Note: qBittorrent is behind VPN and accessed by automation services only
 
