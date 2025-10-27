@@ -39,6 +39,48 @@ The issue is that when using `network_mode: service:wireguard`, the WireGuard co
 
 ---
 
+## Research Findings
+
+### Can This Be Done in Docker?
+
+**Yes, but it's tricky.** Here's what I found:
+
+1. **Linuxserver WireGuard is primarily for server mode** - Most examples use it to HOST a VPN server, not connect to one
+2. **Docker networking complicates client mode** - The `network_mode: service:wireguard` approach works for SERVER containers, not client connections
+3. **Most working examples use**: 
+   - Gluetun (pre-configured VPN clients)
+   - Gluetun-wireguard (separate WireGuard implementation)
+   - Installing WireGuard directly on host OS
+
+### Why Our Setup Isn't Working
+
+The linuxserver/wireguard container in **client mode** with an external config:
+- ✅ Creates WireGuard interface 
+- ✅ Establishes handshake with ProtonVPN
+- ✅ Sets up routing rules in WireGuard table 51820
+- ❌ **BUT**: The actual routing in Docker's network namespace doesn't work
+- ❌ Traffic goes through eth0 (Docker bridge) instead of wg0 (VPN interface)
+
+### Possible Root Causes
+
+1. **Docker network namespace isolation** - VPN routing works at host level, but Docker containers have their own network namespace
+2. **iptables/firewall rules** - The nftables rules might not be applying correctly in Docker context  
+3. **Missing capabilities** - May need additional Docker capabilities beyond NET_ADMIN and SYS_MODULE
+
+### What the Internet Says
+
+From web searches:
+- **Most people using linuxserver/wireguard** are running it as a **VPN SERVER**, not client
+- **For VPN clients in Docker**, people typically use:
+  - `qmcgaw/gluetun` with VPN provider credentials (most common)
+  - `dperson/openvpn-client` for OpenVPN specifically
+  - Installing VPN client on host and using iptables rules
+- **Direct WireGuard config files in Docker** are uncommon because Docker's networking makes client mode routing difficult
+
+**Key Finding:** The linuxserver/wireguard image works GREAT for hosting VPN servers, but **client mode routing in Docker is problematic** due to network namespace isolation.
+
+---
+
 ## Options to Fix This (Without Abandoning WireGuard)
 
 ### Option 1: Fix Docker Networking for WireGuard Client
