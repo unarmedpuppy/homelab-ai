@@ -9,7 +9,7 @@ services:
     cap_add:
       - NET_ADMIN
     environment:
-      - PROTONVPN_SERVER=89.222.96.158  # Your ProtonVPN server IP from config
+      - PROTONVPN_SERVER=CH#699  # Your ProtonVPN server name from config
       - DEBUG=0
       - KILL_SWITCH=1
       - TZ=${TZ:-America/Chicago}
