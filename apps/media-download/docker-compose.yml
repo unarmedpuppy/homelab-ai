@@ -1,7 +1,7 @@
 version: "3.8"
 
 services:
-  # VPN Gateway with Kill Switch - Gluetun uses OpenVPN config
+  # VPN Gateway with Kill Switch - Gluetun with ProtonVPN
   gluetun:
     image: qmcgaw/gluetun:latest
     container_name: media-download-gluetun
@@ -10,8 +10,10 @@ services:
     devices:
       - /dev/net/tun:/dev/net/tun
     environment:
-      - VPN_SERVICE_PROVIDER=custom
-      - OPENVPN_CUSTOM_CONFIG=/openvpn/client.ovpn
+      - VPN_SERVICE_PROVIDER=protonvpn
+      - OPENVPN_USER=dangerbahn@gmail.com
+      - OPENVPN_PASSWORD=Eb5nOJKEnAqF@MIF
+      - SERVER_COUNTRIES=Switzerland
       - KILL_SWITCH=on
       - KILL_SWITCH_ACTIVATE=on
       - TZ=${TZ:-America/Chicago}
