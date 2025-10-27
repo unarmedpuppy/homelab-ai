@@ -15,7 +15,6 @@ services:
       - WIREGUARD_PUBLIC_KEY=36G8+pInNcPK9F1TpHglWs9Pk5uJOY9o8SCNrCBgvHE=
       - WIREGUARD_ENDPOINT_IP=89.222.96.158
       - WIREGUARD_ENDPOINT_PORT=51820
-      - SERVER_COUNTRIES=Switzerland
       - KILL_SWITCH=on
     volumes:
       - ./gluetun:/gluetun
