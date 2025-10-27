@@ -28,7 +28,9 @@ services:
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
     restart: unless-stopped
-    # Note: wireguard is NOT on internal network - it needs internet access for VPN
+    networks:
+      - media-download_default
+      - media-download-network
     healthcheck:
       test: ["CMD", "wg", "show", "wg0"]  # Just check if wireguard interface exists
       interval: 30s
