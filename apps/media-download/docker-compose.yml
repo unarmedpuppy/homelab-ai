@@ -29,7 +29,6 @@ services:
       - net.ipv4.conf.all.src_valid_mark=1
     restart: unless-stopped
     networks:
-      - media-download_default
       - media-download-network
     healthcheck:
       test: ["CMD", "wg", "show", "wg0"]  # Just check if wireguard interface exists
