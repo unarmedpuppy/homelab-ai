@@ -133,7 +133,7 @@ services:
       - TZ=${TZ:-America/Chicago}
     volumes:
       - ./sonarr/config:/config
-      - ${MEDIA_PATH:-./media}/tv:/tv
+      - ${MEDIA_PATH:-/jenquist-cloud/archive/entertainment-media/tv}:/tv
       - ${DOWNLOAD_PATH:-./downloads}:/downloads
     ports:
       - "8989:8989"
@@ -159,7 +159,7 @@ services:
       - TZ=${TZ:-America/Chicago}
     volumes:
       - ./radarr/config:/config
-      - ${MEDIA_PATH:-./media}/movies:/movies
+      - ${MEDIA_PATH:-/jenquist-cloud/archive/entertainment-media/movies}:/movies
       - ${DOWNLOAD_PATH:-./downloads}:/downloads
     ports:
       - "7878:7878"
@@ -185,7 +185,7 @@ services:
       - TZ=${TZ:-America/Chicago}
     volumes:
       - ./lidarr/config:/config
-      - ${MEDIA_PATH:-./media}/music:/music
+      - ${MEDIA_PATH:-/jenquist-cloud/archive/entertainment-media/Music}:/music
       - ${DOWNLOAD_PATH:-./downloads}:/downloads
     ports:
       - "8686:8686"
@@ -211,7 +211,7 @@ services:
       - TZ=${TZ:-America/Chicago}
     volumes:
       - ./bazarr/config:/config
-      - ${MEDIA_PATH:-./media}:/media
+      - ${MEDIA_PATH:-/jenquist-cloud/archive/entertainment-media}:/media
     ports:
       - "6767:6767"
     restart: unless-stopped
@@ -237,7 +237,7 @@ services:
       - TZ=${TZ:-America/Chicago}
     volumes:
       - ./readarr/config:/config
-      - ${MEDIA_PATH:-./media}/books:/books
+      - ${MEDIA_PATH:-/jenquist-cloud/archive/books}:/books
       - ${DOWNLOAD_PATH:-./downloads}:/downloads
     ports:
       - "8787:8787"
