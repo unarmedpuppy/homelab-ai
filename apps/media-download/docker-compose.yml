@@ -24,12 +24,6 @@ services:
       - "8880:8080"  # qBittorrent web UI (routed through VPN)
       - "6789:6789"  # NZBGet web UI (routed through VPN)
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8000/v1/openvpn/status"]
-      interval: 1m
-      timeout: 10s
-      retries: 5
-      start_period: 2m
 
   # Usenet Indexer & Aggregator
   nzbhydra2:
@@ -92,8 +86,7 @@ services:
       - ${DOWNLOAD_PATH:-./downloads/nzb}:/downloads
     network_mode: "service:gluetun"  # Kill switch: routes all traffic through VPN
     depends_on:
-      gluetun:
-        condition: service_healthy
+      - gluetun
     restart: unless-stopped
 
   # Torrent Download Client
@@ -110,8 +103,7 @@ services:
       - ${DOWNLOAD_PATH:-./downloads/torrents}:/downloads
     network_mode: "service:gluetun"  # Kill switch: routes all traffic through VPN
     depends_on:
-      gluetun:
-        condition: service_healthy
+      - gluetun
     restart: unless-stopped
     # Note: qBittorrent is behind VPN and accessed by automation services only
 
