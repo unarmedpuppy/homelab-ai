@@ -38,12 +38,23 @@ sed -i.bak "s|UNLOCK_USER=.*|UNLOCK_USER=$UNLOCK_USER|" .env
 # Generate password hash
 echo ""
 echo "🔑 Setting up unlock service password..."
+echo ""
+echo "This password protects access to the unlock web interface."
+echo "You will use this + your username to access the UI."
+echo "This is SEPARATE from your ZFS encryption password."
+echo ""
 echo "Enter a password for the unlock service:"
 PASSWORD=$(echo -n "$(read -s PASSWORD; echo $PASSWORD)")
 
 if [ -z "$PASSWORD" ]; then
     echo "❌ Password cannot be empty"
     exit 1
+fi
+
+# Check if werkzeug is installed, install if not
+if ! python3 -c "import werkzeug" 2>/dev/null; then
+    echo "📦 Installing werkzeug..."
+    pip3 install --user werkzeug
 fi
 
 # Generate hash
@@ -62,8 +73,12 @@ echo "   docker-compose -f docker-compose-unlock.yml up -d"
 echo ""
 echo "2. Access the UI at: http://YOUR_SERVER_IP:8889"
 echo ""
-echo "3. Your credentials are:"
+echo "3. Your unlock service credentials are:"
 echo "   Username: $UNLOCK_USER"
 echo "   Password: (the one you just entered)"
+echo ""
+echo "4. When unlocking ZFS in the UI:"
+echo "   - Use the above credentials to access the UI"
+echo "   - Then enter your EXISTING ZFS encryption password to decrypt the dataset"
 echo ""
 

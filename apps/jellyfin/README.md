@@ -56,11 +56,10 @@ You should see the unlock interface, which will also appear in your Homepage und
 ### Unlocking and Starting Jellyfin
 
 1. Open the unlock service UI
-2. Enter your credentials:
-   - **Username**: The `UNLOCK_USER` from your .env file
-   - **Unlock Service Password**: The password you used to generate the hash
-   - **ZFS Encryption Password**: Your ZFS encryption key password
-3. Click "Unlock & Mount" to decrypt and mount the ZFS dataset
+2. In the UI, you'll see three input fields:
+   - **Username** & **Unlock Service Password**: The credentials you set during setup (these protect access to the unlock interface)
+   - **ZFS Encryption Password**: Your existing ZFS dataset encryption key password (the password you use with `zfs load-key`)
+3. Enter all three credentials and click "Unlock & Mount" to decrypt and mount the ZFS dataset
 4. Click "Start Jellyfin" to start the Jellyfin container
 5. Access Jellyfin at `http://YOUR_SERVER_IP:8096`
 
