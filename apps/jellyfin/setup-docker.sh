@@ -1,13 +1,10 @@
 #!/bin/bash
-# This script is deprecated - use setup-docker.sh instead
-echo "⚠️  This script requires Python on the host system."
-echo "Use ./setup-docker.sh instead (requires only Docker)."
-exit 1
+# Docker-based setup script for Jellyfin ZFS encryption unlock service
 
 set -e
 
-echo "🔒 Jellyfin ZFS Unlock Service Setup"
-echo "===================================="
+echo "🔒 Jellyfin ZFS Unlock Service Setup (Docker)"
+echo "=================================================="
 echo ""
 
 # Check if .env exists
@@ -38,7 +35,7 @@ if [ -z "$UNLOCK_USER" ]; then
 fi
 sed -i.bak "s|UNLOCK_USER=.*|UNLOCK_USER=$UNLOCK_USER|" .env
 
-# Generate password hash
+# Generate password hash using Docker
 echo ""
 echo "🔑 Setting up unlock service password..."
 echo ""
@@ -54,14 +51,10 @@ if [ -z "$PASSWORD" ]; then
     exit 1
 fi
 
-# Check if werkzeug is installed, install if not
-if ! python3 -c "import werkzeug" 2>/dev/null; then
-    echo "📦 Installing werkzeug..."
-    pip3 install --user werkzeug
-fi
+# Generate hash using Docker container
+echo "📦 Generating password hash..."
+HASH=$(docker run --rm -i python:3.11-slim sh -c "pip install --quiet werkzeug && python -c \"from werkzeug.security import generate_password_hash; print(generate_password_hash('$PASSWORD'))\"")
 
-# Generate hash
-HASH=$(python3 -c "from werkzeug.security import generate_password_hash; print(generate_password_hash('$PASSWORD'))")
 sed -i.bak "s|UNLOCK_PASSWORD_HASH=.*|UNLOCK_PASSWORD_HASH=$HASH|" .env
 
 # Clean up backup file

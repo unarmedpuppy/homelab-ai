@@ -12,29 +12,24 @@ The solution consists of two components:
 
 ### 1. Set up environment variables
 
-Create a `.env` file in the `apps/jellyfin` directory:
-
+**Option A: Use the setup script (requires Docker):**
 ```bash
-# Your ZFS dataset path
-ZFS_PATH=/tank/media
-
-# Username for the unlock service
-UNLOCK_USER=admin
-
-# Password hash for the unlock service (generate with Python)
-# Run: python3 -c "from werkzeug.security import generate_password_hash; print(generate_password_hash('your-password'))"
-UNLOCK_PASSWORD_HASH=pbkdf2:sha256:600000$...
+cd apps/jellyfin
+./setup-docker.sh
 ```
 
-### 2. Generate password hash
+**Option B: Create a `.env` file manually in the `apps/jellyfin` directory:**
 
-Run this command to generate a secure password hash:
+If creating manually, copy `env.template` to `.env` and edit:
 
 ```bash
-python3 -c "from werkzeug.security import generate_password_hash; print(generate_password_hash('your-secure-password'))"
+cp env.template .env
+# Edit .env with your values
 ```
 
-Copy the output and add it to your `.env` file as `UNLOCK_PASSWORD_HASH`.
+For `UNLOCK_PASSWORD_HASH`, you can:
+- Leave it empty to use the default password "changeme" (not recommended for production)
+- Generate it with Docker: `docker run --rm -i python:3.11-slim sh -c "pip install --quiet werkzeug && python -c \"from werkzeug.security import generate_password_hash; print(generate_password_hash('your-password'))\""`
 
 ### 3. Start the unlock service
 
