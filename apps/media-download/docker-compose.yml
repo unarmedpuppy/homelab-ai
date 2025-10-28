@@ -273,14 +273,14 @@ services:
       - ./calibre/config:/config
       - ./calibre/library:/books
     ports:
-      - "8083:8080"
+      - "8085:8080"
     restart: unless-stopped
     networks:
       - media-download-network
     labels:
       - "homepage.group=Media Download"
       - "homepage.name=Calibre"
-      - "homepage.href=http://192.168.86.47:8083"
+      - "homepage.href=http://192.168.86.47:8085"
       - "homepage.icon=calibre.svg"
 
   # Calibre Web Interface
