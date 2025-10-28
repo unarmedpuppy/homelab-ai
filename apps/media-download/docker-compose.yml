@@ -285,13 +285,12 @@ services:
 
   # Calibre Web Interface
   calibre-web:
-    image: lscr.io/linuxserver/calibre-web:latest
+    image: ghcr.io/linuxserver/calibre-web:latest
     container_name: media-download-calibre-web
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=${TZ:-America/Chicago}
-      - DOCKER_MODS=linuxserver/mods:universal-calibre
     volumes:
       - ./calibre-web/config:/config
       - ./calibre/library:/books
