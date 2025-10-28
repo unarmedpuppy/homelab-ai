@@ -235,7 +235,7 @@ services:
       - sonarr
       - radarr
 
-  # Books Automation (optional)
+  # Books Automation
   readarr:
     image: lscr.io/linuxserver/readarr:develop
     container_name: media-download-readarr
@@ -245,7 +245,7 @@ services:
       - TZ=${TZ:-America/Chicago}
     volumes:
       - ./readarr/config:/config
-      - ${MEDIA_PATH:-/jenquist-cloud/archive/books}:/books
+      - ./calibre/library:/books
       - ${DOWNLOAD_PATH:-./downloads}:/downloads
     ports:
       - "8787:8787"
@@ -255,13 +255,58 @@ services:
     depends_on:
       - nzbhydra2
       - jackett
-    profiles:
-      - optional
     labels:
       - "homepage.group=Media Download"
       - "homepage.name=Readarr"
       - "homepage.href=http://192.168.86.47:8787"
       - "homepage.icon=readarr.svg"
+
+  # Book Library Management
+  calibre:
+    image: lscr.io/linuxserver/calibre:latest
+    container_name: media-download-calibre
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ:-America/Chicago}
+    volumes:
+      - ./calibre/config:/config
+      - ./calibre/library:/books
+    ports:
+      - "8083:8080"
+    restart: unless-stopped
+    networks:
+      - media-download-network
+    labels:
+      - "homepage.group=Media Download"
+      - "homepage.name=Calibre"
+      - "homepage.href=http://192.168.86.47:8083"
+      - "homepage.icon=calibre.svg"
+
+  # Calibre Web Interface
+  calibre-web:
+    image: lscr.io/linuxserver/calibre-web:latest
+    container_name: media-download-calibre-web
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ:-America/Chicago}
+      - DOCKER_MODS=linuxserver/mods:universal-calibre
+    volumes:
+      - ./calibre-web/config:/config
+      - ./calibre/library:/books
+    ports:
+      - "8084:8083"
+    restart: unless-stopped
+    networks:
+      - media-download-network
+    depends_on:
+      - calibre
+    labels:
+      - "homepage.group=Media Download"
+      - "homepage.name=Calibre-Web"
+      - "homepage.href=http://192.168.86.47:8084"
+      - "homepage.icon=calibre.svg"
 
   # Usenet Downloader (Alternative)
   sabnzbd:
