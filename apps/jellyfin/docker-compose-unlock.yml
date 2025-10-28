@@ -15,6 +15,15 @@ services:
       - ${ZFS_PATH}:${ZFS_PATH}:shared
       - ./unlock-ui.html:/app/unlock-ui.html:ro
       - /dev/zfs:/dev/zfs
+      # Mount host's ZFS binaries (adjust path for your system)
+      - /usr/sbin/zfs:/usr/sbin/zfs:ro
+      - /usr/sbin/zpool:/usr/sbin/zpool:ro
+      - /lib64/libzfs.so.6:/lib64/libzfs.so.6:ro
+      - /lib64/libzpool.so.5:/lib64/libzpool.so.5:ro
+      - /lib64/libnvpair.so.3:/lib64/libnvpair.so.3:ro
+      - /lib64/libuutil.so.3:/lib64/libuutil.so.3:ro
+      - /lib64/libzfs_core.so.3:/lib64/libzfs_core.so.3:ro
+      - /lib64/libzutil.so.3:/lib64/libzutil.so.3:ro
     ports:
       - "8889:8888"
     restart: 'unless-stopped'
