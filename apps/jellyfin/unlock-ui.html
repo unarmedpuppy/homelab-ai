@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jellyfin Unlock</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }
+        .container {
+            background: #2a2a2a;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #8e44ad;
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+        .status.mounted { background: #27ae60; color: white; }
+        .status.unmounted { background: #e74c3c; color: white; }
+        .status.running { background: #3498db; color: white; }
+        .status.stopped { background: #95a5a6; color: white; }
+        .form-group {
+            margin: 20px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        input[type="password"], input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+        button {
+            background: #8e44ad;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            margin: 5px 5px 5px 0;
+        }
+        button:hover {
+            background: #9b59b6;
+        }
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+        button.danger {
+            background: #e74c3c;
+        }
+        button.danger:hover {
+            background: #c0392b;
+        }
+        .message {
+            margin: 15px 0;
+            padding: 12px;
+            border-radius: 5px;
+            display: none;
+        }
+        .message.success {
+            background: #27ae60;
+            color: white;
+            display: block;
+        }
+        .message.error {
+            background: #e74c3c;
+            color: white;
+            display: block;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 ZFS Authenticator</h1>
+        
+        <div id="statusContainer"></div>
+        <div id="message" class="message"></div>
+        
+        <form id="unlockForm">
+            <div class="form-group">
+                <label for="authUser">Username:</label>
+                <input type="text" id="authUser" required value="admin">
+            </div>
+            <div class="form-group">
+                <label for="authPassword">Unlock Service Password:</label>
+                <input type="password" id="authPassword" required placeholder="Enter unlock service password">
+            </div>
+            <div class="form-group">
+                <label for="zfsPassword">ZFS Encryption Password:</label>
+                <input type="password" id="zfsPassword" placeholder="Enter ZFS encryption password (when unlocking)">
+            </div>
+            <div class="actions">
+                <button type="button" onclick="loadStatus()">Refresh Status</button>
+                <button type="button" onclick="unlockZFS()" id="unlockBtn">Unlock & Mount</button>
+                <button type="button" onclick="startJellyfin()" id="startBtn">Start Jellyfin</button>
+                <button type="button" onclick="stopJellyfin()" id="stopBtn">Stop Jellyfin</button>
+                <button type="button" onclick="unmountZFS()" id="unmountBtn" class="danger">Unmount & Lock</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const API_BASE = 'http://' + window.location.host;
+        
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            const authUser = document.getElementById('authUser').value;
+            const authPassword = document.getElementById('authPassword').value;
+            
+            const headers = {
+                'Authorization': 'Basic ' + btoa(authUser + ':' + authPassword),
+                'Content-Type': 'application/json'
+            };
+            
+            const options = {
+                method: method,
+                headers: headers
+            };
+            
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+            
+            try {
+                const response = await fetch(API_BASE + endpoint, options);
+                const data = await response.json();
+                return { ok: response.ok, data };
+            } catch (error) {
+                return { ok: false, error: error.message };
+            }
+        }
+        
+        function showMessage(text, type) {
+            const msgDiv = document.getElementById('message');
+            msgDiv.textContent = text;
+            msgDiv.className = 'message ' + type;
+            setTimeout(() => {
+                msgDiv.className = 'message';
+            }, 5000);
+        }
+        
+        async function loadStatus() {
+            const result = await apiCall('/status');
+            if (result.error) {
+                showMessage('Error loading status: ' + result.error, 'error');
+                return;
+            }
+            
+            const { zfs_mounted, jellyfin_running } = result.data;
+            const statusDiv = document.getElementById('statusContainer');
+            
+            statusDiv.innerHTML = `
+                <div class="status ${zfs_mounted ? 'mounted' : 'unmounted'}">
+                    ZFS: ${zfs_mounted ? '✅ Mounted' : '❌ Unmounted'}
+                </div>
+                <div class="status ${jellyfin_running ? 'running' : 'stopped'}">
+                    Jellyfin: ${jellyfin_running ? '▶️ Running' : '⏸️ Stopped'}
+                </div>
+            `;
+            
+            // Update button states
+            document.getElementById('unlockBtn').disabled = zfs_mounted;
+            document.getElementById('startBtn').disabled = !zfs_mounted || jellyfin_running;
+            document.getElementById('stopBtn').disabled = !jellyfin_running;
+            document.getElementById('unmountBtn').disabled = !zfs_mounted;
+        }
+        
+        async function unlockZFS() {
+            const zfsPassword = document.getElementById('zfsPassword').value;
+            if (!zfsPassword) {
+                showMessage('Please enter ZFS encryption password', 'error');
+                return;
+            }
+            
+            const result = await apiCall('/unlock', 'POST', { password: zfsPassword });
+            if (result.ok && result.data.success) {
+                showMessage('ZFS unlocked successfully!', 'success');
+                document.getElementById('zfsPassword').value = '';
+                loadStatus();
+            } else {
+                showMessage('Failed to unlock: ' + (result.data.error || result.error), 'error');
+            }
+        }
+        
+        async function startJellyfin() {
+            const result = await apiCall('/start', 'POST');
+            if (result.ok && result.data.success) {
+                showMessage('Jellyfin started successfully!', 'success');
+                loadStatus();
+            } else {
+                showMessage('Failed to start: ' + (result.data.error || result.error), 'error');
+            }
+        }
+        
+        async function stopJellyfin() {
+            const result = await apiCall('/stop', 'POST');
+            if (result.ok && result.data.success) {
+                showMessage('Jellyfin stopped successfully!', 'success');
+                loadStatus();
+            } else {
+                showMessage('Failed to stop: ' + (result.data.error || result.error), 'error');
+            }
+        }
+        
+        async function unmountZFS() {
+            if (!confirm('This will stop Jellyfin and unmount the ZFS dataset. Continue?')) {
+                return;
+            }
+            
+            const result = await apiCall('/unmount', 'POST');
+            if (result.ok && result.data.success) {
+                showMessage('ZFS unmounted successfully!', 'success');
+                loadStatus();
+            } else {
+                showMessage('Failed to unmount: ' + (result.data.error || result.error), 'error');
+            }
+        }
+        
+        // Load status on page load
+        loadStatus();
+        
+        // Auto-refresh status every 10 seconds
+        setInterval(loadStatus, 10000);
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,30 @@
+version: '3.5'
+services:
+  jellyfin-unlock:
+    build:
+      context: .
+      dockerfile: Dockerfile.unlock
+    container_name: jellyfin-unlock
+    environment:
+      - ZFS_PATH=${ZFS_PATH}
+      - UNLOCK_USER=${UNLOCK_USER:-admin}
+      - UNLOCK_PASSWORD_HASH=${UNLOCK_PASSWORD_HASH}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${ZFS_PATH}:${ZFS_PATH}:shared
+      - ./unlock-ui.html:/app/unlock-ui.html:ro
+    ports:
+      - "8889:8888"
+    restart: 'unless-stopped'
+    networks:
+      - my-network
+    labels:
+      - "homepage.group=Services"
+      - "homepage.name=ZFS Authenticator"
+      - "homepage.icon=si-redhat"
+      - "homepage.href=http://192.168.86.47:8889"
+
+networks:
+  my-network:
+    external: true
+

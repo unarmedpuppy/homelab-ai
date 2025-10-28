@@ -1,19 +1,15 @@
 #!/bin/bash
 
-echo "attempting to mount ZFS..."
-source .env
+echo "Checking if ZFS dataset is mounted..."
 
-# Load the ZFS key and mount the dataset
-echo "$ZFS_KEY" | zfs load-key -a
-zfs mount -a
+# The ZFS dataset should be mounted at /media in the container
+if ! mountpoint -q "/media"; then
+  echo "ERROR: ZFS dataset is not mounted at /media."
+  echo "Please use the unlock service to mount it first."
+  exit 1
+fi
 
-# Wait until the ZFS dataset is mounted
-until mountpoint -q "$ZFS_PATH"; do
-  echo "Waiting for ZFS dataset to be mounted..."
-  sleep 1
-done
-
-echo "ZFS dataset mounted. Starting the application..."
+echo "ZFS dataset is mounted. Starting Jellyfin..."
 
 # Execute the CMD
 exec "$@"

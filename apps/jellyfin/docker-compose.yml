@@ -5,6 +5,8 @@ services:
     user: "${UID}:${GID}"
     command: ["/bin/bash", "entrypoint.sh"]
     container_name: jellyfin
+    environment:
+      - ZFS_PATH=${ZFS_PATH}
     volumes:
       - jellyfinconf:/config
       - jellyfincache:/cache
@@ -16,7 +18,7 @@ services:
         target: /jenquist-cloud
     ports:
       - "8096:8096"
-    restart: 'unless-stopped'
+    restart: 'no'
     networks:
       - my-network
     labels:
