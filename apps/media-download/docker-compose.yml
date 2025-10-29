@@ -245,7 +245,7 @@ services:
       - TZ=${TZ:-America/Chicago}
     volumes:
       - ./readarr/config:/config
-      - ./calibre/library:/books
+      - ${MEDIA_PATH:-/jenquist-cloud/archive/entertainment-media}/books:/books
       - ${DOWNLOAD_PATH:-./downloads}:/downloads
     ports:
       - "8787:8787"
@@ -271,7 +271,7 @@ services:
       - TZ=${TZ:-America/Chicago}
     volumes:
       - ./calibre/config:/config
-      - ./calibre/library:/books
+      - ${MEDIA_PATH:-/jenquist-cloud/archive/entertainment-media}/books:/books
     ports:
       - "8085:8080"
     restart: unless-stopped
@@ -293,7 +293,7 @@ services:
       - TZ=${TZ:-America/Chicago}
     volumes:
       - ./calibre-web/config:/config
-      - ./calibre/library:/books
+      - ${MEDIA_PATH:-/jenquist-cloud/archive/entertainment-media}/books:/books
     ports:
       - "8084:8083"
     restart: unless-stopped
