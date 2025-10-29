@@ -271,7 +271,7 @@ services:
       - TZ=${TZ:-America/Chicago}
     volumes:
       - ./calibre/config:/config
-      - ${MEDIA_PATH:-/jenquist-cloud逍克/entertainment-media}/books:/books
+      - ${MEDIA_PATH:-/jenquist-cloud/archive/entertainment-media}/books:/books
     ports:
       - "8085:8080"
     restart: unless-stopped
