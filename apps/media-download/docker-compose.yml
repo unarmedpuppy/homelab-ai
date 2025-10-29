@@ -261,15 +261,17 @@ services:
       - "homepage.href=http://192.168.86.47:8787"
       - "homepage.icon=readarr.svg"
 
-  # Book Library Management (Content Server in HTTP mode)
+  # Book Library Management (for book editing - optional, use Calibre-Web for reading)
   calibre:
-    image: intensify/docker-calibre:latestnc
+    image: lscr.io/linuxserver/calibre:latest
     container_name: media-download-calibre
     environment:
+      - PUID=1000
+      - PGID=1000
       - TZ=${TZ:-America/Chicago}
-      - LIB_PATH=/books
     volumes:
-      - ${MEDIA_PATH:-/jenquist-cloud/archive/entertainment-media}/books:/books
+      - ./calibre/config:/config
+      - ${MEDIA_PATH:-/jenquist-cloud逍克/entertainment-media}/books:/books
     ports:
       - "8085:8080"
     restart: unless-stopped
