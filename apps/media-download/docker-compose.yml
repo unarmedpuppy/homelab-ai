@@ -237,7 +237,7 @@ services:
 
   # Books Automation
   readarr:
-    image: lscr.io/linuxserver/readarr:latest
+    image: readarr/readarr:develop
     container_name: media-download-readarr
     environment:
       - PUID=1000
