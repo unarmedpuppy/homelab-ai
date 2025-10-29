@@ -237,7 +237,7 @@ services:
 
   # Books Automation
   readarr:
-    image: readarr/readarr:develop
+    image: ghcr.io/hotio/readarr:latest
     container_name: media-download-readarr
     environment:
       - PUID=1000
