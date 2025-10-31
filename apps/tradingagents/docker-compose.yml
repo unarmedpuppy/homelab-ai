@@ -4,14 +4,13 @@ services:
       context: .
       dockerfile: Dockerfile
     image: tradingagents:local
+    env_file:
+      - ./env/.env
     environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - ALPHA_VANTAGE_API_KEY=${ALPHA_VANTAGE_API_KEY}
       - TERM=xterm-256color
     working_dir: /workspace/TradingAgents
     volumes:
       - ./data:/workspace/TradingAgents/.cache
-      - ./env/.env:/workspace/TradingAgents/.env:ro
     stdin_open: true
     tty: true
     profiles: ["cli"]
@@ -21,9 +20,9 @@ services:
       context: .
       dockerfile: Dockerfile
     image: tradingagents:local
+    env_file:
+      - ./env/.env
     environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - ALPHA_VANTAGE_API_KEY=${ALPHA_VANTAGE_API_KEY}
       - TICKER=${TICKER:-NVDA}
       - DATE=${DATE:-2024-05-10}
     working_dir: /workspace/TradingAgents
