@@ -1,0 +1,306 @@
+{
+  "$schema": "https://json.schemastore.org/schema.json",
+  "description": "Configuration for AI agents working with the home-server repository. This file provides context about the server setup, repository structure, and how to interact with the server.",
+  
+  "server": {
+    "connection": {
+      "description": "The home server is accessed via SSH using the connect-server.sh script",
+      "script_path": "scripts/connect-server.sh",
+      "usage": "bash scripts/connect-server.sh '<command>'",
+      "ssh_details": {
+        "host": "192.168.86.47",
+        "port": 4242,
+        "user": "unarmedpuppy",
+        "full_command": "ssh unarmedpuppy@192.168.86.47 -p 4242"
+      },
+      "examples": [
+        "bash scripts/connect-server.sh 'ls -la'",
+        "bash scripts/connect-server.sh 'docker ps'",
+        "bash scripts/connect-server.sh 'cd ~/server/apps/media-download && docker-compose ps'"
+      ]
+    },
+    "hostname": "home-server",
+    "local_ip": "192.168.86.47",
+    "os": "Debian 12",
+    "user": {
+      "primary": "unarmedpuppy",
+      "group": "docker (GID: 994)"
+    },
+    "storage": {
+      "description": "Storage paths on the server",
+      "zfs_pool": "/jenquist-cloud",
+      "zfs_archive": "/jenquist-cloud/archive",
+      "media_root": "/jenquist-cloud/archive/entertainment-media",
+      "books_path": "/jenquist-cloud/archive/entertainment-media/books",
+      "mount_points": {
+        "/mnt/server-storage": "4TB - ephemeral media/photos sync",
+        "/mnt/server-cloud": "8TB - Seafile sync, backups",
+        "/jenquist-cloud": "ZFS RAID (raidz1) - primary archive storage"
+      }
+    }
+  },
+
+  "repository_structure": {
+    "description": "Organization of the home-server repository",
+    "root": "/Users/joshuajenquist/repos/personal/home-server",
+    "directories": {
+      "apps/": {
+        "description": "Each subdirectory contains a Docker Compose application",
+        "pattern": "Each app has its own docker-compose.yml and optional config/ directory",
+        "examples": [
+          "apps/media-download/ - Media automation stack (Sonarr, Radarr, Lidarr, etc.)",
+          "apps/traefik/ - Reverse proxy",
+          "apps/homepage/ - Service dashboard",
+          "apps/plex/ - Media server",
+          "apps/jellyfin/ - Alternative media server"
+        ]
+      },
+      "scripts/": {
+        "description": "Utility scripts for server management",
+        "key_scripts": {
+          "connect-server.sh": "SSH connection wrapper: ssh unarmedpuppy@192.168.86.47 -p 4242",
+          "git-server-sync.sh": "Syncs local changes to server via git",
+          "docker-start.sh": "Starts all docker containers",
+          "docker-stop.sh": "Stops all docker containers",
+          "docker-restart.sh": "Restarts all docker containers"
+        }
+      },
+      "inactive/": {
+        "description": "Archived/unused applications - reference only"
+      },
+      "local-ai/": {
+        "description": "Local AI services (not on remote server)"
+      },
+      "network/": {
+        "description": "Network configuration files"
+      }
+    }
+  },
+
+  "docker_compose_patterns": {
+    "description": "Common patterns used across docker-compose.yml files",
+    "environment_variables": {
+      "description": "Apps often use env.template files - copy to .env and fill values",
+      "common_vars": [
+        "TZ=America/Chicago",
+        "PUID=1000",
+        "PGID=1000",
+        "MEDIA_PATH - path to media files",
+        "DOWNLOAD_PATH - path to downloads"
+      ]
+    },
+    "networks": {
+      "my-network": {
+        "description": "External bridge network for inter-service communication",
+        "usage": "Most services use this network for Traefik routing",
+        "creation": "docker network create my-network"
+      },
+      "service-specific": {
+        "description": "Some apps use internal networks (e.g., media-download-network)"
+      }
+    },
+    "volume_patterns": {
+      "config": "./<service>/config:/config",
+      "data": "./<service>/data:/data",
+      "media": "${MEDIA_PATH}:/media or /books or /tv, etc.",
+      "downloads": "${DOWNLOAD_PATH}:/downloads"
+    },
+    "labels": {
+      "homepage": {
+        "description": "Labels for Homepage integration",
+        "example": [
+          "homepage.group=Media Download",
+          "homepage.name=Sonarr",
+          "homepage.href=http://192.168.86.47:8989",
+          "homepage.icon=sonarr.svg"
+        ]
+      },
+      "traefik": {
+        "description": "Labels for Traefik reverse proxy",
+        "example": [
+          "traefik.enable=true",
+          "traefik.http.routers.service.rule=Host(`service.server.unarmedpuppy.com`)",
+          "traefik.http.routers.service.entrypoints=websecure",
+          "traefik.http.routers.service.tls.certresolver=myresolver"
+        ]
+      }
+    },
+    "network_mode": {
+      "service:gluetun": {
+        "description": "Routes all traffic through VPN (kill switch)",
+        "usage": "Used by download clients (NZBGet, qBittorrent) in media-download stack",
+        "note": "Services using network_mode cannot join other networks"
+      }
+    }
+  },
+
+  "key_applications": {
+    "media-download": {
+      "location": "apps/media-download/",
+      "description": "Complete media automation stack with VPN protection",
+      "services": [
+        "gluetun - VPN gateway (ProtonVPN via OpenVPN)",
+        "nzbget - Usenet download client",
+        "qbittorrent - Torrent download client",
+        "sonarr - TV show automation",
+        "radarr - Movie automation",
+        "lidarr - Music automation",
+        "readarr - Book automation",
+        "nzbhydra2 - Usenet indexer aggregator",
+        "jackett - Torrent indexer proxy",
+        "overseerr - Media request management",
+        "calibre - Book management",
+        "calibre-web - Web interface for Calibre"
+      ],
+      "network": "media-download-network (internal) + VPN routing",
+      "vpn": {
+        "provider": "ProtonVPN",
+        "type": "OpenVPN",
+        "config_path": "apps/media-download/openvpn/client.ovpn",
+        "credentials_path": "apps/media-download/openvpn/credentials.txt",
+        "kill_switch": "Enabled via network_mode: service:gluetun"
+      },
+      "important_paths": {
+        "media": "/jenquist-cloud/archive/entertainment-media",
+        "downloads": "./downloads (relative to docker-compose.yml)",
+        "config": "./<service>/config (relative to docker-compose.yml)"
+      }
+    },
+    "traefik": {
+      "location": "apps/traefik/",
+      "description": "Reverse proxy with automatic HTTPS",
+      "config_file": "apps/traefik/traefik.yml",
+      "domain": "server.unarmedpuppy.com",
+      "port": "80 (HTTP), 443 (HTTPS)"
+    },
+    "homepage": {
+      "location": "apps/homepage/",
+      "description": "Service dashboard - discovers services via Docker labels",
+      "port": "3000",
+      "access": "http://server.unarmedpuppy.com (via Traefik)"
+    }
+  },
+
+  "common_commands": {
+    "server_access": {
+      "connect": "bash scripts/connect-server.sh '<command>'",
+      "interactive": "ssh unarmedpuppy@192.168.86.47 -p 4242"
+    },
+    "docker_management": {
+      "start_all": "bash scripts/connect-server.sh 'cd ~/server && docker-compose -f apps/*/docker-compose.yml up -d'",
+      "start_app": "bash scripts/connect-server.sh 'cd ~/server/apps/<app> && docker-compose up -d'",
+      "view_logs": "bash scripts/connect-server.sh 'cd ~/server/apps/<app> && docker-compose logs -f'",
+      "restart_service": "bash scripts/connect-server.sh 'cd ~/server/apps/<app> && docker-compose restart <service>'"
+    },
+    "file_operations": {
+      "copy_to_server": "scp -P 4242 <local_file> unarmedpuppy@192.168.86.47:<remote_path>",
+      "copy_from_server": "scp -P 4242 unarmedpuppy@192.168.86.47:<remote_path> <local_file>",
+      "sync_repo": "git add -A && git commit -m 'message' && git push && bash scripts/git-server-sync.sh"
+    }
+  },
+
+  "path_mappings": {
+    "description": "Understanding path mappings between local repo and server",
+    "local_repo": "/Users/joshuajenquist/repos/personal/home-server",
+    "server_repo": "~/server (usually /home/unarmedpuppy/server)",
+    "docker_compose_context": {
+      "description": "Paths in docker-compose.yml are relative to the docker-compose.yml file location",
+      "example": "apps/media-download/docker-compose.yml uses ./downloads which is apps/media-download/downloads/"
+    },
+    "absolute_paths": {
+      "description": "Some paths use environment variables that expand to absolute paths on server",
+      "example": "${MEDIA_PATH} expands to /jenquist-cloud/archive/entertainment-media"
+    }
+  },
+
+  "environment_variables": {
+    "description": "Common environment variables used across apps",
+    "server_side": {
+      "TZ": "America/Chicago",
+      "PUID": "1000 (unarmedpuppy user)",
+      "PGID": "1000 (unarmedpuppy group)",
+      "MEDIA_PATH": "/jenquist-cloud/archive/entertainment-media",
+      "DOWNLOAD_PATH": "Usually ./downloads relative to docker-compose.yml"
+    },
+    "templates": {
+      "description": "Many apps have env.template files - these should be copied to .env and filled in",
+      "location_pattern": "apps/<app>/env.template -> apps/<app>/.env"
+    }
+  },
+
+  "important_notes": {
+    "file_syncing": {
+      "description": "This repo uses Run on Save extension to auto-sync to server via git",
+      "script": "scripts/git-server-sync.sh",
+      "note": "Changes are automatically committed and pushed, then pulled on server"
+    },
+    "vpn_routing": {
+      "description": "Download clients in media-download stack route through VPN",
+      "implementation": "network_mode: service:gluetun ensures kill switch",
+      "verification": "Check gluetun logs to confirm VPN connection"
+    },
+    "service_dependencies": {
+      "description": "Some services depend on others - check depends_on in docker-compose.yml",
+      "example": "Overseerr depends on Sonarr and Radarr"
+    },
+    "port_access": {
+      "description": "Services are accessible via local IP on specific ports",
+      "example": "http://192.168.86.47:8989 for Sonarr",
+      "reverse_proxy": "Many services also accessible via Traefik at server.unarmedpuppy.com"
+    }
+  },
+
+  "troubleshooting": {
+    "common_issues": {
+      "service_wont_start": {
+        "steps": [
+          "Check docker-compose logs: docker-compose logs <service>",
+          "Verify environment variables in .env file",
+          "Check port conflicts: netstat -tulpn | grep <port>",
+          "Verify network connectivity for dependent services"
+        ]
+      },
+      "vpn_not_working": {
+        "steps": [
+          "Check gluetun logs: docker-compose logs gluetun",
+          "Verify OpenVPN config file exists and is valid",
+          "Check credentials in openvpn/credentials.txt",
+          "Verify kill switch isn't blocking connections"
+        ]
+      },
+      "file_permissions": {
+        "description": "Services run as PUID/PGID - ensure directories are owned by 1000:1000",
+        "fix": "sudo chown -R 1000:1000 <directory>"
+      },
+      "path_mapping_issues": {
+        "description": "Remote path mappings needed when services communicate across containers",
+        "example": "Sonarr needs to map /downloads/completed/tv to container path"
+      }
+    }
+  },
+
+  "best_practices": {
+    "when_adding_services": [
+      "Create app directory under apps/",
+      "Add docker-compose.yml in app directory",
+      "Create env.template if environment variables needed",
+      "Add homepage labels for dashboard integration",
+      "Add Traefik labels if exposing via reverse proxy",
+      "Document in README.md if complex setup required"
+    ],
+    "when_modifying_services": [
+      "Test changes in development first",
+      "Backup config directories before major changes",
+      "Check service dependencies before restarting",
+      "Verify VPN routing still works for download services",
+      "Update documentation if paths or structure changes"
+    ],
+    "when_connecting_to_server": [
+      "Always use connect-server.sh wrapper script",
+      "Commands run in context of remote server, not local",
+      "Paths in commands are server paths, not local repo paths",
+      "Use absolute paths when in doubt"
+    ]
+  }
+}
+
