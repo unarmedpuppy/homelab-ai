@@ -15,6 +15,13 @@ services:
       - KILL_SWITCH=on
       - KILL_SWITCH_ACTIVATE=on
       - TZ=${TZ:-America/Chicago}
+      # DNS Configuration - Use plain DNS (UDP) instead of DoT for better reliability
+      # All DNS queries still go through VPN, maintaining privacy and preventing leaks
+      - DNS_PLAINTEXT_ADDRESS=1.1.1.1,1.0.0.1,9.9.9.9,149.112.112.112
+      - DOT=off
+      # Unblock specific domains that may be flagged by malicious DNS blocking
+      # DNS queries still encrypted through VPN - no DNS/IP leaks possible
+      - UNBLOCK=news.usenetserver.com,news-us.usenetserver.com,news-eu.usenetserver.com
     volumes:
       - ./gluetun:/gluetun
       - ./openvpn:/openvpn
