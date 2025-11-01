@@ -33,28 +33,28 @@
     "name": "Kids - Movies",
     "enabled": true,
     "type": "movie",
-    "lastScan": 1762004100128
+    "lastScan": 1762004400118
    },
    {
     "id": "7",
     "name": "Movies",
     "enabled": true,
     "type": "movie",
-    "lastScan": 1762004100134
+    "lastScan": 1762004404162
    },
    {
     "id": "10",
     "name": "Kids - TV Shows",
     "enabled": true,
     "type": "show",
-    "lastScan": 1762004100286
+    "lastScan": 1762004404170
    },
    {
     "id": "11",
     "name": "TV Shows",
     "enabled": true,
     "type": "show",
-    "lastScan": 1762004100307
+    "lastScan": 1762004404177
    }
   ],
   "machineId": "729a51d297023e91740d3a5baf2a7b0559844192"
