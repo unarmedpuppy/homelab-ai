@@ -17,6 +17,8 @@ services:
       - TZ=${TZ:-America/Chicago}
       # DNS Configuration - Use plain DNS (UDP) instead of DoT for better reliability
       # All DNS queries still go through VPN, maintaining privacy and preventing leaks
+      # DNS_ADDRESS accepts only a single IP address (use first DNS server)
+      - DNS_ADDRESS=1.1.1.1
       - DOT=off
       # Unblock specific domains that may be flagged by malicious DNS blocking
       # DNS queries still encrypted through VPN - no DNS/IP leaks possible
