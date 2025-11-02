@@ -58,6 +58,7 @@ trading-bot/
 - Python 3.11+
 - Docker & Docker Compose
 - Interactive Brokers TWS/Gateway (for live trading)
+  - See [IBKR Connection Guide](docs/IBKR_CONNECTION.md) for setup instructions
 - PostgreSQL (or use SQLite for development)
 
 ### Installation
@@ -75,11 +76,18 @@ cp .env.example .env
 docker-compose -f docker/docker-compose.yml up -d
 ```
 
-3. **Local development**:
+Or **Local development**:
 ```bash
 pip install -r requirements/development.txt
 uvicorn src.api.main:app --reload
 ```
+
+3. **Set up IBKR connection** (for live trading):
+```bash
+# Test your IBKR connection
+python scripts/test_ibkr_connection.py
+```
+See the [IBKR Connection Guide](docs/IBKR_CONNECTION.md) for detailed setup instructions.
 
 ### Configuration
 
@@ -123,6 +131,34 @@ Features:
 ### API Endpoints
 
 #### Trading
+
+**IBKR Connection Management**:
+```bash
+# Check connection status
+GET /api/trading/ibkr/status
+
+# Connect to IBKR
+POST /api/trading/ibkr/connect
+{
+  "host": "127.0.0.1",  // Optional
+  "port": 7497,         // Optional
+  "client_id": 9        // Optional
+}
+
+# Test connection with diagnostics
+POST /api/trading/ibkr/test
+
+# Get account summary
+GET /api/trading/ibkr/account
+
+# Get current positions
+GET /api/trading/ibkr/positions
+
+# Disconnect
+POST /api/trading/ibkr/disconnect
+```
+
+**Trading Operations**:
 ```bash
 # Generate trading signal
 POST /api/trading/signal
@@ -149,6 +185,8 @@ GET /api/trading/positions
 # Get recent trades
 GET /api/trading/trades?symbol=AAPL&limit=50
 ```
+
+See [IBKR Connection Guide](docs/IBKR_CONNECTION.md) for detailed connection setup.
 
 #### Backtesting
 ```bash
@@ -252,7 +290,7 @@ pytest tests/e2e/          # End-to-end tests
 - API health: `GET /health`
 - Database connectivity
 - Redis connectivity
-- IBKR connection status
+- IBKR connection status: `GET /api/trading/ibkr/status`
 
 ### Metrics (Prometheus)
 - Trade execution metrics
@@ -305,6 +343,12 @@ docker-compose -f docker/docker-compose.yml --profile monitoring up -d
 ## 📚 Documentation
 
 - **API Documentation**: Available at `/docs` (Swagger UI)
+- **IBKR Connection Guide**: See [docs/IBKR_CONNECTION.md](docs/IBKR_CONNECTION.md) - Complete setup and troubleshooting guide
+- **Strategy Architecture**: See [docs/STRATEGY_ARCHITECTURE.md](docs/STRATEGY_ARCHITECTURE.md) - Modular strategy system design
+- **Strategy Implementation Plan**: See [docs/STRATEGY_IMPLEMENTATION_PLAN.md](docs/STRATEGY_IMPLEMENTATION_PLAN.md) - Step-by-step implementation guide
+- **Sentiment Integration Checklist**: See [docs/SENTIMENT_INTEGRATION_CHECKLIST.md](docs/SENTIMENT_INTEGRATION_CHECKLIST.md) - **Master checklist for sentiment data source integration** ⭐
+- **Agent Workflow Guide**: See [docs/AGENT_WORKFLOW_SENTIMENT.md](docs/AGENT_WORKFLOW_SENTIMENT.md) - **For agents working on sentiment integrations** 👥
+- **Twitter Sentiment Strategy**: See [docs/TWITTER_SENTIMENT_STRATEGY.md](docs/TWITTER_SENTIMENT_STRATEGY.md) - Twitter/X integration strategy and plan
 - **Architecture Guide**: See `ARCHITECTURE.md`
 - **Development Guide**: See `docs/DEVELOPMENT.md`
 - **Deployment Guide**: See `docs/DEPLOYMENT.md`

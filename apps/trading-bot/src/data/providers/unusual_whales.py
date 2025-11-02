@@ -10,7 +10,7 @@ import aiohttp
 import logging
 from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 import json
 
@@ -43,6 +43,13 @@ class OptionsFlow:
     timestamp: datetime
     unusual: bool
     sentiment_score: float  # -1 to 1
+    # Enhanced fields
+    is_sweep: bool = False
+    is_block: bool = False
+    pattern_type: Optional[str] = None  # "sweep", "block", "spread", etc.
+    sweep_strength: float = 0.0  # 0.0 to 1.0
+    open_interest: Optional[int] = None
+    implied_volatility: Optional[float] = None
 
 @dataclass
 class MarketTide:

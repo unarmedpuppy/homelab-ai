@@ -5,7 +5,7 @@ Database Models
 SQLAlchemy models for the trading bot database.
 """
 
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, ForeignKey, Enum, JSON, Index
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -174,17 +174,91 @@ class OptionsFlow(Base):
     __tablename__ = "options_flow"
     
     id = Column(Integer, primary_key=True)
-    symbol = Column(String(20), nullable=False)
+    symbol = Column(String(20), nullable=False, index=True)
     strike = Column(Float, nullable=False)
-    expiry = Column(DateTime, nullable=False)
+    expiry = Column(DateTime, nullable=False, index=True)
     option_type = Column(String(10), nullable=False)  # call, put
     volume = Column(Integer, nullable=False)
     premium = Column(Float, nullable=False)
     direction = Column(String(20), nullable=False)  # bullish, bearish
     unusual = Column(Boolean, default=False)
     sentiment_score = Column(Float)
-    timestamp = Column(DateTime, server_default=func.now())
+    timestamp = Column(DateTime, server_default=func.now(), index=True)
     provider = Column(String(50), default="unusual_whales")
+    
+    # Enhanced fields for pattern detection
+    is_sweep = Column(Boolean, default=False, index=True)
+    is_block = Column(Boolean, default=False, index=True)
+    pattern_type = Column(String(50))  # "sweep", "block", "spread", etc.
+    sweep_strength = Column(Float)  # 0.0 to 1.0
+    open_interest = Column(Integer)
+    implied_volatility = Column(Float)
+    
+    # Indexes for common queries
+    __table_args__ = (
+        Index('idx_options_flow_symbol_timestamp', 'symbol', 'timestamp'),
+        Index('idx_options_flow_patterns', 'symbol', 'pattern_type', 'timestamp'),
+    )
+
+class OptionsChainSnapshot(Base):
+    """Options chain snapshot for analysis"""
+    __tablename__ = "options_chain_snapshots"
+    
+    id = Column(Integer, primary_key=True)
+    symbol = Column(String(20), nullable=False, index=True)
+    snapshot_time = Column(DateTime, nullable=False, server_default=func.now(), index=True)
+    
+    # Chain-wide metrics
+    max_pain = Column(Float)  # Max pain strike price
+    total_call_volume = Column(Integer, default=0)
+    total_put_volume = Column(Integer, default=0)
+    total_call_oi = Column(Integer, default=0)
+    total_put_oi = Column(Integer, default=0)
+    gamma_exposure = Column(Float)  # Total GEX
+    put_call_ratio_volume = Column(Float)
+    put_call_ratio_premium = Column(Float)
+    put_call_ratio_oi = Column(Float)
+    
+    # Strike concentration (JSON field for flexibility)
+    strike_concentration = Column(JSON)  # {strike: {call_oi, put_oi, volume}}
+    
+    # Metadata
+    underlying_price = Column(Float)
+    snapshot_data = Column(JSON)  # Full snapshot data if needed
+    
+    __table_args__ = (
+        Index('idx_chain_snapshot_symbol_time', 'symbol', 'snapshot_time'),
+    )
+
+
+class OptionsPattern(Base):
+    """Detected options flow patterns (sweeps, blocks, spreads)"""
+    __tablename__ = "options_patterns"
+    
+    id = Column(Integer, primary_key=True)
+    symbol = Column(String(20), nullable=False, index=True)
+    pattern_type = Column(String(50), nullable=False, index=True)  # "sweep", "block", "spread", etc.
+    detected_at = Column(DateTime, nullable=False, server_default=func.now(), index=True)
+    
+    # Pattern details
+    strength = Column(Float)  # 0.0 to 1.0
+    direction = Column(String(20))  # "bullish", "bearish", "neutral"
+    total_premium = Column(Float)
+    total_volume = Column(Integer)
+    strike_count = Column(Integer)  # Number of strikes involved
+    
+    # Pattern metadata
+    flows = Column(JSON)  # Array of flow IDs or flow details
+    pattern_data = Column(JSON)  # Additional pattern-specific data
+    
+    # Timestamps
+    expiry_date = Column(DateTime)  # Target expiry if applicable
+    
+    __table_args__ = (
+        Index('idx_pattern_symbol_type_time', 'symbol', 'pattern_type', 'detected_at'),
+        Index('idx_pattern_strength', 'symbol', 'strength', 'detected_at'),
+    )
+
 
 # Backtesting Models
 class Backtest(Base):
@@ -356,3 +430,243 @@ class PerformanceMetrics(Base):
     
     # Relationships
     account = relationship("Account")
+
+# Sentiment Data Models
+class Tweet(Base):
+    """Twitter tweet data model"""
+    __tablename__ = "tweets"
+    
+    id = Column(Integer, primary_key=True)
+    tweet_id = Column(String(50), unique=True, nullable=False, index=True)  # Twitter tweet ID
+    text = Column(Text, nullable=False)
+    author_id = Column(String(50), nullable=False, index=True)
+    author_username = Column(String(100), nullable=False)
+    created_at = Column(DateTime, nullable=False, index=True)
+    like_count = Column(Integer, default=0)
+    retweet_count = Column(Integer, default=0)
+    reply_count = Column(Integer, default=0)
+    quote_count = Column(Integer, default=0)
+    is_retweet = Column(Boolean, default=False)
+    is_quote = Column(Boolean, default=False)
+    is_reply = Column(Boolean, default=False)
+    language = Column(String(10))
+    symbols_mentioned = Column(Text)  # JSON array of symbols
+    raw_data = Column(Text)  # JSON raw API response
+    stored_at = Column(DateTime, server_default=func.now())
+    
+    # Relationships
+    sentiments = relationship("TweetSentiment", back_populates="tweet")
+    
+    # Indexes for efficient queries
+    __table_args__ = (
+        {"mysql_engine": "InnoDB"},
+    )
+
+class TweetSentiment(Base):
+    """Sentiment analysis result for a tweet"""
+    __tablename__ = "tweet_sentiments"
+    
+    id = Column(Integer, primary_key=True)
+    tweet_id = Column(Integer, ForeignKey("tweets.id"), nullable=False, index=True)
+    symbol = Column(String(20), nullable=False, index=True)
+    sentiment_score = Column(Float, nullable=False)  # -1.0 to 1.0
+    confidence = Column(Float, nullable=False)  # 0.0 to 1.0
+    sentiment_level = Column(String(20), nullable=False)  # very_bearish, bearish, neutral, bullish, very_bullish
+    vader_compound = Column(Float)
+    vader_pos = Column(Float)
+    vader_neu = Column(Float)
+    vader_neg = Column(Float)
+    engagement_score = Column(Float, default=0.0)
+    influencer_weight = Column(Float, default=1.0)
+    weighted_score = Column(Float, default=0.0)
+    analyzed_at = Column(DateTime, server_default=func.now(), index=True)
+    
+    # Relationships
+    tweet = relationship("Tweet", back_populates="sentiments")
+    
+    # Composite index for symbol + timestamp queries
+    __table_args__ = (
+        {"mysql_engine": "InnoDB"},
+    )
+
+class SymbolSentiment(Base):
+    """Aggregated sentiment for a symbol over time"""
+    __tablename__ = "symbol_sentiments"
+    
+    id = Column(Integer, primary_key=True)
+    symbol = Column(String(20), nullable=False, index=True)
+    timestamp = Column(DateTime, nullable=False, index=True)
+    mention_count = Column(Integer, nullable=False, default=0)
+    average_sentiment = Column(Float, nullable=False)  # -1.0 to 1.0
+    weighted_sentiment = Column(Float, nullable=False)  # -1.0 to 1.0
+    influencer_sentiment = Column(Float)
+    engagement_score = Column(Float, default=0.0)
+    sentiment_level = Column(String(20), nullable=False)  # very_bearish, bearish, neutral, bullish, very_bullish
+    confidence = Column(Float, default=0.0)
+    volume_trend = Column(String(20), default="stable")  # up, down, stable
+    tweet_ids = Column(Text)  # JSON array of tweet IDs used in aggregation
+    aggregated_at = Column(DateTime, server_default=func.now())
+    
+    # Composite index for symbol + timestamp queries
+    __table_args__ = (
+        {"mysql_engine": "InnoDB"},
+    )
+
+class Influencer(Base):
+    """Twitter influencer/trader account"""
+    __tablename__ = "influencers"
+    
+    id = Column(Integer, primary_key=True)
+    user_id = Column(String(50), unique=True, nullable=False, index=True)  # Twitter user ID
+    username = Column(String(100), unique=True, nullable=False, index=True)
+    display_name = Column(String(200))
+    follower_count = Column(Integer, default=0)
+    following_count = Column(Integer, default=0)
+    tweet_count = Column(Integer, default=0)
+    is_verified = Column(Boolean, default=False)
+    is_protected = Column(Boolean, default=False)
+    category = Column(String(50), default="unknown")  # trader, analyst, news, education, etc.
+    weight_multiplier = Column(Float, default=1.5)
+    is_active = Column(Boolean, default=True, index=True)
+    added_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    
+    __table_args__ = (
+        {"mysql_engine": "InnoDB"},
+    )
+
+# Reddit Sentiment Data Models
+class RedditPost(Base):
+    """Reddit post/comment data model"""
+    __tablename__ = "reddit_posts"
+    
+    id = Column(Integer, primary_key=True)
+    post_id = Column(String(50), unique=True, nullable=False, index=True)  # Reddit post/comment ID
+    text = Column(Text, nullable=False)
+    author = Column(String(100), nullable=False, index=True)
+    created_at = Column(DateTime, nullable=False, index=True)
+    score = Column(Integer, default=0)
+    upvote_ratio = Column(Float, default=1.0)
+    num_comments = Column(Integer, default=0)
+    subreddit = Column(String(100), nullable=False, index=True)
+    is_post = Column(Boolean, default=True)  # True for post, False for comment
+    parent_id = Column(String(50))  # Parent post/comment ID if this is a comment
+    symbols_mentioned = Column(Text)  # JSON array of symbols
+    raw_data = Column(Text)  # JSON raw API response
+    stored_at = Column(DateTime, server_default=func.now())
+    
+    # Relationships
+    sentiments = relationship("RedditSentiment", back_populates="post")
+    
+    # Indexes for efficient queries
+    __table_args__ = (
+        {"mysql_engine": "InnoDB"},
+    )
+
+class RedditSentiment(Base):
+    """Sentiment analysis result for a Reddit post/comment"""
+    __tablename__ = "reddit_sentiments"
+    
+    id = Column(Integer, primary_key=True)
+    post_id = Column(Integer, ForeignKey("reddit_posts.id"), nullable=False, index=True)
+    symbol = Column(String(20), nullable=False, index=True)
+    sentiment_score = Column(Float, nullable=False)  # -1.0 to 1.0
+    confidence = Column(Float, nullable=False)  # 0.0 to 1.0
+    sentiment_level = Column(String(20), nullable=False)  # very_bearish, bearish, neutral, bullish, very_bullish
+    vader_compound = Column(Float)
+    vader_pos = Column(Float)
+    vader_neu = Column(Float)
+    vader_neg = Column(Float)
+    engagement_score = Column(Float, default=0.0)
+    weighted_score = Column(Float, default=0.0)
+    analyzed_at = Column(DateTime, server_default=func.now(), index=True)
+    
+    # Relationships
+    post = relationship("RedditPost", back_populates="sentiments")
+    
+    # Composite index for symbol + timestamp queries
+    __table_args__ = (
+        {"mysql_engine": "InnoDB"},
+    )
+
+# Aggregated Sentiment Models (cross-source aggregation)
+class AggregatedSentiment(Base):
+    """Aggregated sentiment across multiple sources (Twitter, Reddit, News, etc.)"""
+    __tablename__ = "aggregated_sentiments"
+    
+    id = Column(Integer, primary_key=True)
+    symbol = Column(String(20), nullable=False, index=True)
+    timestamp = Column(DateTime, nullable=False, index=True)
+    unified_sentiment = Column(Float, nullable=False)  # -1.0 to 1.0
+    confidence = Column(Float, nullable=False)  # 0.0 to 1.0
+    sentiment_level = Column(String(20), nullable=False)  # very_bearish, bearish, neutral, bullish, very_bullish
+    source_count = Column(Integer, nullable=False, default=0)  # Number of sources used
+    provider_count = Column(Integer, nullable=False, default=0)  # Number of providers used
+    total_mention_count = Column(Integer, nullable=False, default=0)
+    divergence_detected = Column(Boolean, default=False)
+    divergence_score = Column(Float, default=0.0)  # 0.0 to 1.0
+    volume_trend = Column(String(20), default="stable")  # up, down, stable
+    
+    # Source-specific sentiment scores
+    twitter_sentiment = Column(Float)  # -1.0 to 1.0
+    reddit_sentiment = Column(Float)  # -1.0 to 1.0
+    news_sentiment = Column(Float)  # -1.0 to 1.0
+    options_flow_sentiment = Column(Float)  # -1.0 to 1.0
+    
+    # Source breakdown (JSON): {"twitter": 45.2, "reddit": 32.1, ...}
+    source_breakdown = Column(Text)  # JSON dict of source -> contribution percentage
+    
+    # Providers used (JSON array): ["twitter", "reddit", "news"]
+    providers_used = Column(Text)  # JSON array
+    
+    aggregated_at = Column(DateTime, server_default=func.now())
+    
+    # Composite indexes for efficient queries
+    __table_args__ = (
+        Index('idx_aggregated_sentiment_symbol_timestamp', 'symbol', 'timestamp'),
+        {"mysql_engine": "InnoDB"},
+    )
+
+# Confluence Models
+class ConfluenceScore(Base):
+    """Confluence score combining technical indicators, sentiment, and options flow"""
+    __tablename__ = "confluence_scores"
+    
+    id = Column(Integer, primary_key=True)
+    symbol = Column(String(20), nullable=False, index=True)
+    timestamp = Column(DateTime, nullable=False, index=True)
+    confluence_score = Column(Float, nullable=False)  # 0.0 to 1.0 (confluence strength)
+    directional_bias = Column(Float, nullable=False)  # -1.0 to 1.0 (bullish/bearish)
+    confluence_level = Column(String(20), nullable=False)  # very_low, low, moderate, high, very_high
+    confidence = Column(Float, nullable=False, default=0.0)  # 0.0 to 1.0
+    
+    # Component scores (raw values before weighting)
+    technical_score = Column(Float)  # -1.0 to 1.0
+    sentiment_score = Column(Float)  # -1.0 to 1.0
+    options_flow_score = Column(Float)  # -1.0 to 1.0
+    
+    # Component contributions (weighted contributions to final score)
+    technical_contribution = Column(Float)  # 0.0 to 1.0
+    sentiment_contribution = Column(Float)  # 0.0 to 1.0
+    options_flow_contribution = Column(Float)  # 0.0 to 1.0
+    
+    # Technical breakdown (JSON): {"rsi_score": 0.5, "sma_trend_score": 0.3, ...}
+    technical_breakdown = Column(Text)  # JSON dict
+    
+    # Components used (JSON array): ["technical", "sentiment", "options_flow"]
+    components_used = Column(Text)  # JSON array
+    
+    # Threshold checks
+    meets_minimum_threshold = Column(Boolean, default=False, index=True)
+    meets_high_threshold = Column(Boolean, default=False, index=True)
+    
+    volume_trend = Column(String(20), default="stable")  # up, down, stable
+    
+    calculated_at = Column(DateTime, server_default=func.now())
+    
+    # Composite indexes for efficient queries
+    __table_args__ = (
+        Index('idx_confluence_symbol_timestamp', 'symbol', 'timestamp'),
+        Index('idx_confluence_meets_thresholds', 'meets_minimum_threshold', 'meets_high_threshold'),
+        {"mysql_engine": "InnoDB"},
+    )

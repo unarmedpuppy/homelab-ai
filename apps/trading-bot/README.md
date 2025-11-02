@@ -40,14 +40,32 @@ python ibkr_uw_sma_bot.py screen --universe "AAPL,MSFT,NVDA"
 python ibkr_uw_sma_bot.py backtest --csv ./AAPL_30m.csv --symbol AAPL   --entry-sma-threshold 0.005 --exit-sma20-extension 0.03 --tp 0.20 --qty 10
 
 # Live loop (requires IB TWS/Gateway + market data perms)
-export TWS_HOST=127.0.0.1 TWS_PORT=7497 TWS_CLIENT_ID=9 UW_API_KEY=...
+# First, test your IBKR connection:
+python scripts/test_ibkr_connection.py
+
+# Then run live trading:
+export IBKR_HOST=127.0.0.1 IBKR_PORT=7497 IBKR_CLIENT_ID=9 UW_API_KEY=...
 python ibkr_uw_sma_bot.py live --symbol AAPL
 ```
 
 ## Environment
 - `BOT_DB_URL` – SQLAlchemy URL (default `sqlite:///./bot.db` in container => `/data/bot.db`).
-- `TWS_HOST`, `TWS_PORT`, `TWS_CLIENT_ID` – IB connection.
+- `IBKR_HOST`, `IBKR_PORT`, `IBKR_CLIENT_ID` – IB connection (see [IBKR Connection Guide](docs/IBKR_CONNECTION.md)).
 - `UW_API_KEY` – Unusual Whales key (optional).
+
+## IBKR Connection Setup
+
+Before using live trading, you need to set up the Interactive Brokers connection:
+
+1. **Install TWS or IB Gateway** from Interactive Brokers
+2. **Enable API connections** in TWS/Gateway settings
+3. **Configure environment variables** (see `env.template`)
+4. **Test the connection**:
+   ```bash
+   python scripts/test_ibkr_connection.py
+   ```
+
+For detailed setup instructions, see the [IBKR Connection Guide](docs/IBKR_CONNECTION.md).
 
 ## Constraints & Logic (as requested)
 - **Entry** when price within `entry_sma_threshold` (default **0.5%**) of SMA20/200 AND:

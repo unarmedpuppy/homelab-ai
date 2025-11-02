@@ -3,8 +3,35 @@ Core Trading Strategy Implementation
 ====================================
 
 Clean, testable trading strategy with proper separation of concerns.
+
+NOTE: This module maintains backward compatibility. New strategies should use
+the modular strategy system in src.core.strategy.*
 """
 
+# Import from new modular structure for backward compatibility
+from .strategy.base import (
+    BaseStrategy,
+    TradingSignal,
+    Position,
+    SignalType,
+    ExitReason,
+    TechnicalIndicators
+)
+from .strategy.levels import PriceLevel, LevelType
+
+# Re-export for backward compatibility
+__all__ = [
+    'BaseStrategy',
+    'TradingSignal',
+    'Position',
+    'SignalType',
+    'ExitReason',
+    'TechnicalIndicators',
+    'PriceLevel',
+    'LevelType',
+]
+
+# Keep old imports for any code that directly imports from here
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple, Any
@@ -270,10 +297,24 @@ class StrategyFactory:
     
     @staticmethod
     def create_strategy(strategy_type: str, config: Dict[str, Any]) -> BaseStrategy:
-        """Create strategy instance based on type"""
+        """
+        Create strategy instance based on type
+        
+        First checks the registry, then falls back to legacy strategies
+        """
+        # Try registry first
+        try:
+            from .strategy.registry import get_registry
+            registry = get_registry()
+            if registry.is_registered(strategy_type):
+                return registry.get_strategy(strategy_type, config)
+        except ImportError:
+            pass
+        
+        # Fall back to legacy strategies
         strategies = {
             'sma': SMAStrategy,
-            # Add more strategies here
+            # Add more legacy strategies here
         }
         
         if strategy_type not in strategies:
