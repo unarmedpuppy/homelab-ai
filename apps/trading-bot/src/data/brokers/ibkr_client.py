@@ -8,6 +8,7 @@ and position management.
 
 import asyncio
 import logging
+import time
 from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime, timedelta
 from dataclasses import dataclass
@@ -96,6 +97,45 @@ class IBKRClient:
         self.order_filled_callbacks = []
         self.position_update_callbacks = []
         self.error_callbacks = []
+        
+        # Track order placement times for fill time metrics
+        self.order_placement_times: Dict[int, float] = {}  # order_id -> timestamp
+        
+        # Import metrics helpers (optional, gracefully handle if metrics disabled)
+        try:
+            from ...utils.metrics_trading import (
+                record_trade_executed,
+                record_trade_rejected,
+                record_order_fill_time,
+                record_slippage,
+                update_position_metrics,
+                update_broker_connection_status
+            )
+            self._metrics_available = True
+            # Assign methods to instance
+            self.record_trade_executed = record_trade_executed
+            self.record_trade_rejected = record_trade_rejected
+            self.record_order_fill_time = record_order_fill_time
+            self.record_slippage = record_slippage
+            self.update_position_metrics = update_position_metrics
+            self.update_broker_connection_status = update_broker_connection_status
+        except ImportError:
+            self._metrics_available = False
+            logger.debug("Trading metrics helpers not available")
+            # Define stub functions if metrics unavailable
+            def record_trade_executed(*args, **kwargs): pass
+            def record_trade_rejected(*args, **kwargs): pass
+            def record_order_fill_time(*args, **kwargs): pass
+            def record_slippage(*args, **kwargs): pass
+            def update_position_metrics(*args, **kwargs): pass
+            def update_broker_connection_status(*args, **kwargs): pass
+            
+            self.record_trade_executed = record_trade_executed
+            self.record_trade_rejected = record_trade_rejected
+            self.record_order_fill_time = record_order_fill_time
+            self.record_slippage = record_slippage
+            self.update_position_metrics = update_position_metrics
+            self.update_broker_connection_status = update_broker_connection_status
     
     async def connect(self) -> bool:
         """Connect to IBKR TWS/Gateway"""
@@ -130,6 +170,13 @@ class IBKRClient:
                 self.ib.disconnect()
                 self.connected = False
                 logger.info("Disconnected from IBKR")
+                
+                # Update broker connection status metric
+                if self._metrics_available:
+                    try:
+                        self.update_broker_connection_status(False)
+                    except Exception as e:
+                        logger.debug(f"Error updating broker connection status metric: {e}")
             except Exception as e:
                 logger.error(f"Error disconnecting from IBKR: {e}")
     
@@ -150,6 +197,56 @@ class IBKRClient:
     def _on_order_filled(self, trade: Trade):
         """Handle order filled events"""
         logger.info(f"Order filled: {trade}")
+        
+        # Calculate order fill time
+        order_id = trade.order.orderId
+        fill_time = None
+        if order_id in self.order_placement_times:
+            fill_time = time.time() - self.order_placement_times[order_id]
+            # Clean up tracking
+            del self.order_placement_times[order_id]
+        
+        # Record metrics if available
+        if self._metrics_available:
+            try:
+                symbol = trade.contract.symbol if trade.contract else "unknown"
+                side = trade.order.action  # "BUY" or "SELL"
+                order_type = trade.order.orderType  # "MKT", "LMT", etc.
+                
+                # Record order fill time
+                if fill_time is not None:
+                    self.record_order_fill_time(
+                        symbol=symbol,
+                        order_type=order_type,
+                        fill_time=fill_time
+                    )
+                
+                # Record trade executed (only for fully filled orders)
+                if trade.orderStatus.filled > 0:
+                    # Note: Strategy name is not available here, will be "unknown"
+                    # This could be enhanced by storing strategy info with orders
+                    self.record_trade_executed(
+                        strategy="unknown",  # Could be enhanced with order metadata
+                        symbol=symbol,
+                        side=side
+                    )
+                
+                # Calculate and record slippage if limit order
+                if hasattr(trade, 'orderStatus') and hasattr(trade.orderStatus, 'avgFillPrice'):
+                    if trade.order.price and trade.order.price > 0:  # Limit order
+                        expected_price = float(trade.order.price)
+                        actual_price = float(trade.orderStatus.avgFillPrice)
+                        slippage_pct = ((actual_price - expected_price) / expected_price) * 100
+                        self.record_slippage(
+                            symbol=symbol,
+                            side=side,
+                            slippage_pct=slippage_pct
+                        )
+                        
+            except Exception as e:
+                logger.warning(f"Error recording order fill metrics: {e}")
+        
+        # Call callbacks
         for callback in self.order_filled_callbacks:
             try:
                 callback(trade)
@@ -159,6 +256,24 @@ class IBKRClient:
     def _on_position_update(self, position: Position):
         """Handle position update events"""
         logger.info(f"Position updated: {position}")
+        
+        # Update position metrics if available
+        if self._metrics_available:
+            try:
+                symbol = position.contract.symbol if position.contract else "unknown"
+                quantity = int(position.position)
+                # Calculate unrealized P/L if possible
+                # Note: This is a simplified calculation, real P/L needs market price
+                pnl = 0.0  # Would need market price for accurate P/L
+                self.update_position_metrics(
+                    symbol=symbol,
+                    quantity=quantity,
+                    pnl=pnl
+                )
+            except Exception as e:
+                logger.debug(f"Error updating position metrics: {e}")
+        
+        # Call callbacks
         for callback in self.position_update_callbacks:
             try:
                 callback(position)
@@ -167,6 +282,16 @@ class IBKRClient:
     
     def _on_error(self, reqId: int, errorCode: int, errorString: str):
         """Handle error events"""
+        # Check if this is an order rejection error
+        # Common error codes: 201 (Order rejected), 399 (Order rejected - duplicate)
+        if errorCode in [201, 399] or "rejected" in errorString.lower():
+            # Record trade rejection metric
+            if self._metrics_available:
+                try:
+                    reason = f"error_code_{errorCode}"
+                    self.record_trade_rejected(reason=reason)
+                except Exception as e:
+                    logger.debug(f"Error recording trade rejection metric: {e}")
         logger.error(f"IBKR Error {errorCode}: {errorString}")
         
         # Handle specific error codes
@@ -259,8 +384,14 @@ class IBKRClient:
             raise RuntimeError("Not connected to IBKR")
         
         try:
+            order_start_time = time.time()
+            
             order = MarketOrder(side.value, quantity)
             trade = self.ib.placeOrder(contract, order)
+            
+            # Track order placement time for fill time metrics
+            order_id = trade.order.orderId
+            self.order_placement_times[order_id] = order_start_time
             
             return BrokerOrder(
                 order_id=trade.order.orderId,
@@ -285,8 +416,14 @@ class IBKRClient:
             raise RuntimeError("Not connected to IBKR")
         
         try:
+            order_start_time = time.time()
+            
             order = LimitOrder(side.value, quantity, price)
             trade = self.ib.placeOrder(contract, order)
+            
+            # Track order placement time for fill time metrics
+            order_id = trade.order.orderId
+            self.order_placement_times[order_id] = order_start_time
             
             return BrokerOrder(
                 order_id=trade.order.orderId,

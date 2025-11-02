@@ -340,7 +340,15 @@ class StockTwitsSentimentProvider:
         Returns:
             SymbolSentiment object or None
         """
-        if not self.is_available():
+        # Track provider availability
+        is_available = self.is_available()
+        try:
+            from ...utils.metrics_providers_helpers import track_provider_availability
+            track_provider_availability("stocktwits", is_available)
+        except (ImportError, Exception) as e:
+            logger.debug(f"Could not record availability metric: {e}")
+        
+        if not is_available:
             logger.warning("StockTwits client not available")
             return None
         
@@ -353,19 +361,38 @@ class StockTwitsSentimentProvider:
             rate_status = self.rate_limiter.wait_if_needed(limit=rate_limit, window_seconds=window_seconds)
             if rate_status.is_limited:
                 logger.error(f"StockTwits rate limit still exceeded after wait")
+                # Record rate limit hit metric
+                try:
+                    from ...utils.metrics_providers_helpers import track_rate_limit_hit
+                    track_rate_limit_hit("stocktwits")
+                except (ImportError, Exception) as e:
+                    logger.debug(f"Could not record rate limit metric: {e}")
                 self.usage_monitor.record_request("stocktwits", success=False)
                 return None
+        
+        # Track API call timing
+        import time
+        api_start_time = time.time()
         
         # Check cache
         cache_key = f"sentiment_{symbol}_{hours}"
         cached = self._get_from_cache(cache_key)
         if cached:
             logger.debug(f"Returning cached sentiment for {symbol}")
+            # Track data freshness
+            try:
+                from ...utils.metrics_providers_helpers import track_cache_freshness
+                track_cache_freshness("stocktwits", "get_sentiment", cached)
+            except (ImportError, Exception) as e:
+                logger.debug(f"Could not record data freshness metric: {e}")
             self.usage_monitor.record_request("stocktwits", success=True, cached=True)
             return cached
         
         # Fetch messages
         messages = self.client.get_messages_for_symbol(symbol.upper(), limit=settings.stocktwits.max_results)
+        
+        # Record API response time
+        api_response_time = time.time() - api_start_time
         
         if not messages:
             logger.info(f"No StockTwits messages found for {symbol}")
@@ -553,8 +580,15 @@ class StockTwitsSentimentProvider:
         # Cache result
         self._set_cache(cache_key, sentiment)
         
-        # Record successful request
-        self.usage_monitor.record_request("stocktwits", success=True, cached=False)
+        # Record API response time (already calculated above)
+        try:
+            from ...utils.metrics_providers import record_provider_response_time
+            record_provider_response_time("stocktwits", api_response_time)
+        except (ImportError, Exception) as e:
+            logger.debug(f"Could not record response time metric: {e}")
+        
+        # Record successful request with response time
+        self.usage_monitor.record_request("stocktwits", success=True, cached=False, response_time=api_response_time)
         
         logger.info(
             f"StockTwits sentiment for {symbol}: {weighted_sentiment:.3f} "

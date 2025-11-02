@@ -15,12 +15,37 @@ from datetime import datetime
 from pathlib import Path
 
 from ..config.settings import settings
-from ..api.routes import trading, backtesting, screening, monitoring, market_data, strategies, sentiment, confluence, options_flow, trends, events
+from ..api.routes import trading, backtesting, screening, monitoring, market_data, strategies, sentiment, confluence, options_flow, trends, events, websocket
 from ..api.middleware import LoggingMiddleware, RateLimitMiddleware
+from ..api.middleware.metrics_middleware import MetricsMiddleware
+from ..utils.metrics_system import update_system_metrics, get_app_start_time, initialize_system_metrics
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+async def _publish_trade_from_ibkr(trade, trade_publisher):
+    """Helper function to publish trade from IBKR Trade object"""
+    try:
+        from ib_insync.objects import Trade as IBKRTrade
+        
+        symbol = trade.contract.symbol if trade.contract else "unknown"
+        side = trade.order.action  # "BUY" or "SELL"
+        quantity = trade.orderStatus.filled
+        price = trade.orderStatus.avgFillPrice
+        
+        if quantity > 0 and price > 0:
+            await trade_publisher.publish_trade(
+                symbol=symbol,
+                side=side,
+                quantity=int(quantity),
+                price=float(price),
+                timestamp=datetime.now()
+            )
+    except Exception as e:
+        logger.error(f"Error publishing trade from IBKR: {e}", exc_info=True)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -29,6 +54,78 @@ async def lifespan(app: FastAPI):
     
     # Startup tasks
     try:
+        # Initialize system metrics if enabled
+        if settings.metrics.enabled:
+            # Initialize system metrics (includes app start time)
+            initialize_system_metrics()
+            # Update metrics immediately
+            update_system_metrics()
+            logger.info("System metrics initialized")
+            
+            # Schedule periodic system metrics updates (every 30 seconds)
+            import asyncio
+            async def periodic_system_metrics():
+                while True:
+                    await asyncio.sleep(30)
+                    try:
+                        update_system_metrics()
+                    except Exception as e:
+                        logger.warning(f"Error updating system metrics: {e}")
+            
+            # Start background task
+            asyncio.create_task(periodic_system_metrics())
+        
+        # Start WebSocket streams if enabled
+        if settings.websocket.enabled:
+            from ..api.websocket.streams import get_stream_manager
+            from ..api.routes.strategies import get_evaluator
+            from ..api.routes.trading import get_ibkr_manager
+            from ..api.routes.trade_publisher import get_trade_publisher
+            
+            stream_manager = get_stream_manager()
+            evaluator = get_evaluator()
+            stream_manager.initialize(evaluator)
+            
+            # Integrate TradePublisher with IBKR client for trade execution notifications
+            try:
+                ibkr_manager = get_ibkr_manager()
+                trade_publisher = get_trade_publisher()
+                
+                if ibkr_manager and ibkr_manager.client:
+                    # Register trade publisher callback
+                    def on_trade_filled(trade):
+                        """Handle trade fill and publish to WebSocket"""
+                        # IBKR callback is synchronous, schedule async publish
+                        import asyncio
+                        try:
+                            loop = asyncio.get_running_loop()
+                            asyncio.create_task(
+                                _publish_trade_from_ibkr(trade, trade_publisher)
+                            )
+                        except RuntimeError:
+                            # No running loop - try to get/create one
+                            try:
+                                loop = asyncio.get_event_loop()
+                                if loop.is_running():
+                                    asyncio.create_task(
+                                        _publish_trade_from_ibkr(trade, trade_publisher)
+                                    )
+                                else:
+                                    asyncio.run_coroutine_threadsafe(
+                                        _publish_trade_from_ibkr(trade, trade_publisher),
+                                        loop
+                                    )
+                            except Exception as e:
+                                logger.warning(f"Could not publish trade to WebSocket: {e}")
+                    
+                    ibkr_manager.client.add_order_filled_callback(on_trade_filled)
+                    logger.info("TradePublisher integrated with IBKR client")
+            except Exception as e:
+                logger.warning(f"Could not integrate TradePublisher with IBKR: {e}")
+            
+            await stream_manager.start_all()
+            logger.info("WebSocket streams started")
+        
         logger.info("Trading Bot API started successfully")
         yield
         
@@ -37,6 +134,16 @@ async def lifespan(app: FastAPI):
         raise
     finally:
         # Shutdown tasks
+        # Stop WebSocket streams
+        if settings.websocket.enabled:
+            try:
+                from ..api.websocket.streams import get_stream_manager
+                stream_manager = get_stream_manager()
+                await stream_manager.stop_all()
+                logger.info("WebSocket streams stopped")
+            except Exception as e:
+                logger.warning(f"Error stopping WebSocket streams: {e}")
+        
         logger.info("Shutting down Trading Bot API")
 
 # Create FastAPI app
@@ -71,43 +178,75 @@ app = FastAPI(
     tags_metadata=[
         {
             "name": "trading",
-            "description": "Trading operations including order execution, position management, and portfolio monitoring."
+            "description": """
+            Trading operations and IBKR integration:
+            * **Order Execution**: Place market, limit, and stop orders
+            * **Position Management**: View and manage open positions
+            * **Account Info**: Account balances, margin, buying power
+            * **Trade History**: Complete trade execution history
+            """
         },
         {
             "name": "strategies",
-            "description": "Strategy management, evaluation, and configuration. Includes confluence-based filtering."
+            "description": """
+            Strategy management and evaluation:
+            * **Strategy CRUD**: Create, read, update, delete strategies
+            * **Signal Generation**: Evaluate strategies and generate trading signals
+            * **Strategy Performance**: Track strategy performance metrics
+            """
         },
         {
             "name": "backtesting",
-            "description": "Backtest trading strategies against historical data with detailed performance metrics."
+            "description": """
+            Backtesting engine for strategy validation:
+            * **Historical Testing**: Test strategies on historical data
+            * **Performance Metrics**: Sharpe ratio, drawdown, win rate
+            * **Parameter Optimization**: Find optimal strategy parameters
+            """
         },
         {
             "name": "screening",
-            "description": "Stock screening and filtering based on technical indicators, sentiment, and other criteria."
+            "description": """
+            Stock screening and filtering:
+            * **Custom Screens**: Define and run custom stock screens
+            * **Pre-built Filters**: Common screening criteria
+            * **Results Export**: Export screening results
+            """
         },
         {
             "name": "monitoring",
-            "description": "System health checks, metrics, and monitoring endpoints."
+            "description": """
+            System health and monitoring:
+            * **Health Checks**: API, database, and provider health
+            * **System Metrics**: CPU, memory, disk usage
+            * **Connection Status**: IBKR, data provider connections
+            """
         },
         {
             "name": "market-data",
-            "description": "Real-time and historical market data including quotes, charts, and symbol search."
+            "description": """
+            Market data endpoints:
+            * **Real-time Quotes**: Current prices and market data
+            * **Historical Data**: OHLCV data for any timeframe
+            * **Market Info**: Company information, symbols search
+            """
         },
         {
             "name": "sentiment",
             "description": """
-            Sentiment analysis from multiple sources:
-            * **Twitter/X**: Real-time social media sentiment
-            * **Reddit**: Community discussion sentiment
-            * **News**: Financial news article sentiment
-            * **Aggregated**: Unified sentiment across all sources
+            Sentiment analysis endpoints:
+            * **Multi-source Sentiment**: Twitter, Reddit, News, StockTwits
+            * **Aggregated Sentiment**: Unified sentiment scores
+            * **Sentiment History**: Historical sentiment trends
+            * **Provider Status**: Individual provider health
             """
         },
         {
             "name": "options-flow",
             "description": """
-            Options flow analysis including:
-            * **Pattern Detection**: Sweeps and block trades
+            Options flow analysis:
+            * **Flow Data**: Real-time unusual options activity
+            * **Pattern Detection**: Sweeps, blocks, spreads
             * **Metrics**: Put/call ratios, flow metrics
             * **Chain Analysis**: Max pain, gamma exposure, strike concentration
             * **Sentiment**: Options flow-based sentiment scoring
@@ -121,6 +260,16 @@ app = FastAPI(
             * **Sentiment**: Aggregated multi-source sentiment
             * **Options Flow**: Flow-based sentiment and metrics
             * **Unified Score**: Weighted confluence with directional bias
+            """
+        },
+        {
+            "name": "websocket",
+            "description": """
+            Real-time data streaming via WebSocket:
+            * **Live Price Updates**: Real-time price streaming for subscribed symbols
+            * **Trading Signals**: Broadcast trading signals as they're generated
+            * **Trade Executions**: Real-time trade execution notifications
+            * **Portfolio Updates**: Live portfolio position and P&L updates
             """
         },
     ]
@@ -137,6 +286,7 @@ app.add_middleware(
 
 app.add_middleware(LoggingMiddleware)
 app.add_middleware(RateLimitMiddleware)  # No params - uses settings
+app.add_middleware(MetricsMiddleware)  # Metrics collection (if enabled)
 
 # Include routers
 app.include_router(trading.router, prefix="/api/trading", tags=["trading"])
@@ -150,6 +300,7 @@ app.include_router(options_flow.router, prefix="/api/options-flow", tags=["optio
 app.include_router(confluence.router, prefix="/api/confluence", tags=["confluence"])
 app.include_router(trends.router, prefix="/api/data/trends", tags=["trends"])
 app.include_router(events.router, prefix="/api/data/events", tags=["events"])
+app.include_router(websocket.router, tags=["websocket"])
 
 # Templates
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -157,43 +308,54 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "ui" / "templates"))
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
-    """Serve the main dashboard"""
+    """Root endpoint - serve dashboard"""
     return templates.TemplateResponse("dashboard.html", {"request": {}})
 
-@app.get("/test", response_class=HTMLResponse)
-async def test_page():
-    """Serve the market data test page"""
-    return templates.TemplateResponse("market_data_test.html", {"request": {}})
-
 @app.get("/health")
-async def health_check():
-    """Basic health check endpoint"""
-    from .routes.monitoring import health_check as monitoring_health
-    return await monitoring_health()
+async def health():
+    """Health check endpoint"""
+    return {
+        "status": "healthy",
+        "timestamp": datetime.now().isoformat(),
+        "version": "2.0.0"
+    }
 
-# Error handlers
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request, exc):
-    """Custom HTTP exception handler"""
-    logger.error(f"HTTP error: {exc.status_code} - {exc.detail}")
+    """Handle HTTP exceptions with metrics tracking"""
+    # Record error metrics
+    if settings.metrics.enabled:
+        try:
+            from ..utils.metrics_system import record_error
+            is_critical = exc.status_code >= 500
+            record_error("http_error", component="api", is_critical=is_critical)
+        except (ImportError, Exception) as e:
+            logger.debug(f"Could not record HTTP exception metric: {e}")
+    
     return {
-        "error": {
-            "code": exc.status_code,
-            "message": exc.detail,
-            "timestamp": datetime.now().isoformat()
-        }
+        "error": exc.detail,
+        "status_code": exc.status_code,
+        "timestamp": datetime.now().isoformat()
     }
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request, exc):
-    """General exception handler"""
-    logger.error(f"Unhandled error: {exc}", exc_info=True)
+    """Handle general exceptions with metrics tracking"""
+    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    
+    # Record exception metrics
+    if settings.metrics.enabled:
+        try:
+            from ..utils.metrics_system import record_exception
+            exc_type = type(exc).__name__
+            record_exception(exc_type, component="api", is_critical=True)
+        except (ImportError, Exception) as e:
+            logger.debug(f"Could not record exception metric: {e}")
+    
     return {
-        "error": {
-            "code": 500,
-            "message": "Internal server error",
-            "timestamp": datetime.now().isoformat()
-        }
+        "error": "Internal server error",
+        "status_code": 500,
+        "timestamp": datetime.now().isoformat()
     }
 
 if __name__ == "__main__":

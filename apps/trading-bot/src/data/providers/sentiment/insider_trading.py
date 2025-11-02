@@ -667,15 +667,33 @@ class InsiderTradingSentimentProvider:
         Returns:
             SymbolSentiment object or None
         """
-        if not self.is_available():
+        # Track provider availability
+        is_available = self.is_available()
+        try:
+            from ...utils.metrics_providers_helpers import track_provider_availability
+            track_provider_availability("insider_trading", is_available)
+        except (ImportError, Exception) as e:
+            logger.debug(f"Could not record availability metric: {e}")
+        
+        if not is_available:
             logger.warning("Insider trading provider not available")
             return None
+        
+        # Track API call timing
+        import time
+        api_start_time = time.time()
         
         # Check cache
         cache_key = self._get_cache_key(symbol, hours)
         cached = self._get_from_cache(cache_key)
         if cached:
             logger.debug(f"Returning cached insider trading sentiment for {symbol}")
+            # Track data freshness
+            try:
+                from ...utils.metrics_providers_helpers import track_cache_freshness
+                track_cache_freshness("insider_trading", "get_sentiment", cached)
+            except (ImportError, Exception) as e:
+                logger.debug(f"Could not record data freshness metric: {e}")
             self.usage_monitor.record_request("insider_trading", success=True, cached=True)
             return cached
         
@@ -694,6 +712,12 @@ class InsiderTradingSentimentProvider:
             )
             if rate_status.is_limited:
                 logger.error(f"Insider trading rate limit still exceeded after wait")
+                # Record rate limit hit metric
+                try:
+                    from ...utils.metrics_providers_helpers import track_rate_limit_hit
+                    track_rate_limit_hit("insider_trading")
+                except (ImportError, Exception) as e:
+                    logger.debug(f"Could not record rate limit metric: {e}")
                 self.usage_monitor.record_request("insider_trading", success=False)
                 return None
         
@@ -702,6 +726,9 @@ class InsiderTradingSentimentProvider:
             major_holders = self.client.get_major_holders(symbol)
             insider_transactions = self.client.get_insider_transactions(symbol)
             institutional_holders = self.client.get_institutional_holders(symbol)
+            
+            # Record API response time
+            api_response_time = time.time() - api_start_time
             
             # Calculate component sentiments
             insider_sentiment = self._calculate_insider_sentiment(

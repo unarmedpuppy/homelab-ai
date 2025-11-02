@@ -371,6 +371,33 @@ System health check.
 }
 ```
 
+#### `GET /metrics`
+Exposes application metrics in Prometheus exposition format.
+
+**Response:**
+- **Content-Type**: `text/plain; version=0.0.4; charset=utf-8`
+- **Format**: Prometheus metrics text format
+
+**Example Response:**
+```
+# HELP http_requests_total Total HTTP requests
+# TYPE http_requests_total counter
+http_requests_total{method="GET",endpoint="/api/health",status_code="200"} 1523
+
+# HELP system_cpu_usage_percent CPU usage percentage
+# TYPE system_cpu_usage_percent gauge
+system_cpu_usage_percent 45.2
+```
+
+**Configuration:**
+- Enable/disable via `METRICS_ENABLED` environment variable (default: `true`)
+- When disabled, returns empty response
+
+**Usage:**
+- Intended for Prometheus scraping
+- Accessible without authentication
+- See `docs/METRICS_REFERENCE.md` for complete metrics catalog
+
 ## Error Responses
 
 All errors follow this format:

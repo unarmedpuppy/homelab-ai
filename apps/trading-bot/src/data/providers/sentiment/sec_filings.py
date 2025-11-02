@@ -465,6 +465,18 @@ class SECFilingsSentimentProvider:
         # For hours >= 720, search proportional days
         days = max(30, int(hours / 24))
         
+        # Track provider availability
+        is_available = self.is_available()
+        try:
+            from ...utils.metrics_providers_helpers import track_provider_availability
+            track_provider_availability("sec_filings", is_available)
+        except (ImportError, Exception) as e:
+            logger.debug(f"Could not record availability metric: {e}")
+        
+        if not is_available:
+            logger.warning("SEC filings provider not available")
+            return None
+        
         # Check rate limit (SEC allows 10 requests per second, but we're conservative)
         is_allowed, rate_status = self.rate_limiter.check_rate_limit(limit=10, window_seconds=1)
         if not is_allowed:
@@ -472,14 +484,30 @@ class SECFilingsSentimentProvider:
             rate_status = self.rate_limiter.wait_if_needed(limit=10, window_seconds=1)
             if rate_status.is_limited:
                 logger.error(f"SEC filings rate limit still exceeded after wait")
+                # Record rate limit hit metric
+                try:
+                    from ...utils.metrics_providers_helpers import track_rate_limit_hit
+                    track_rate_limit_hit("sec_filings")
+                except (ImportError, Exception) as e:
+                    logger.debug(f"Could not record rate limit metric: {e}")
                 self.usage_monitor.record_request("sec_filings", success=False)
                 return None
+        
+        # Track API call timing
+        import time
+        api_start_time = time.time()
         
         # Check cache
         cache_key = f"sentiment_{symbol}_{hours}_{'_'.join(filing_types)}"
         cached = self._get_from_cache(cache_key)
         if cached:
             logger.debug(f"Returning cached SEC sentiment for {symbol}")
+            # Track data freshness
+            try:
+                from ...utils.metrics_providers_helpers import track_cache_freshness
+                track_cache_freshness("sec_filings", "get_sentiment", cached)
+            except (ImportError, Exception) as e:
+                logger.debug(f"Could not record data freshness metric: {e}")
             self.usage_monitor.record_request("sec_filings", success=True, cached=True)
             return cached
         
@@ -490,6 +518,9 @@ class SECFilingsSentimentProvider:
                 filing_types=filing_types,
                 limit=3  # Limit per filing type
             )
+            
+            # Record API response time
+            api_response_time = time.time() - api_start_time
             
             if not filings:
                 logger.info(f"No SEC filings found for {symbol}")

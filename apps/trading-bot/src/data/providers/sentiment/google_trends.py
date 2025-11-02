@@ -370,14 +370,31 @@ class GoogleTrendsSentimentProvider:
         """
         symbol = symbol.upper()
         
+        # Track provider availability
+        is_available = self.is_available()
+        try:
+            from ...utils.metrics_providers_helpers import track_provider_availability
+            track_provider_availability("google_trends", is_available)
+        except (ImportError, Exception) as e:
+            logger.debug(f"Could not record availability metric: {e}")
+        
+        # Track API call timing
+        api_start_time = time.time()
+        
         # Check cache
         cache_key = self._get_cache_key(symbol, hours)
         cached = self._get_from_cache(cache_key)
         if cached:
             logger.debug(f"Returning cached Google Trends sentiment for {symbol}")
+            # Track data freshness
+            try:
+                from ...utils.metrics_providers_helpers import track_cache_freshness
+                track_cache_freshness("google_trends", "get_sentiment", cached)
+            except (ImportError, Exception) as e:
+                logger.debug(f"Could not record data freshness metric: {e}")
             return cached
         
-        if not self.is_available():
+        if not is_available:
             logger.warning("Google Trends provider not available")
             return None
         
@@ -448,15 +465,31 @@ class GoogleTrendsSentimentProvider:
                 volume_trend="up" if sentiment_score > 0.1 else "down" if sentiment_score < -0.1 else "stable"
             )
             
-            # Cache result
-            self._set_cache(cache_key, sentiment)
-            
-            # Persist to database if enabled
-            if self.persist_to_db and self.repository:
-                try:
-                    self.repository.save_symbol_sentiment(sentiment)
-                except Exception as e:
-                    logger.warning(f"Failed to save Google Trends sentiment to database: {e}")
+        # Record API response time
+        api_response_time = time.time() - api_start_time
+        
+        # Cache result
+        self._set_cache(cache_key, sentiment)
+        
+        # Track request via usage monitor (if available)
+        try:
+            from ...utils.monitoring import get_usage_monitor
+            usage_monitor = get_usage_monitor()
+            usage_monitor.record_request(
+                "google_trends",
+                success=True,
+                cached=False,
+                response_time=api_response_time
+            )
+        except (ImportError, Exception) as e:
+            logger.debug(f"Could not record usage metrics: {e}")
+        
+        # Persist to database if enabled
+        if self.persist_to_db and self.repository:
+            try:
+                self.repository.save_symbol_sentiment(sentiment)
+            except Exception as e:
+                logger.warning(f"Failed to save Google Trends sentiment to database: {e}")
             
             logger.info(
                 f"Google Trends sentiment for {symbol}: {sentiment_score:.3f} "

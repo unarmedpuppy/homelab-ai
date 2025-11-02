@@ -17,6 +17,12 @@ from dataclasses import dataclass, field
 from ...config.settings import settings
 from .models import SymbolSentiment, SentimentLevel
 from ...utils.cache import get_cache_manager
+from ...utils.metrics import (
+    get_or_create_histogram,
+    get_or_create_counter,
+    get_or_create_gauge,
+    track_duration_context
+)
 
 # Import providers (may not all be available)
 try:
@@ -174,6 +180,68 @@ class SentimentAggregator:
         logger.info(
             f"SentimentAggregator initialized with sources: {list(self.providers.keys())}"
         )
+        
+        # Initialize metrics
+        self._init_metrics()
+    
+    def _init_metrics(self):
+        """Initialize Prometheus metrics for sentiment tracking"""
+        # Sentiment calculation duration
+        self.metric_sentiment_duration = get_or_create_histogram(
+            'sentiment_calculation_duration_seconds',
+            'Time spent calculating aggregated sentiment',
+            labelnames=['symbol'],
+            buckets=[0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0, 2.0, 5.0]
+        )
+        
+        # Sentiment calculation count
+        self.metric_sentiment_count = get_or_create_counter(
+            'sentiment_calculations_total',
+            'Total number of sentiment calculations',
+            labelnames=['symbol', 'result']  # result: success, failed, cached
+        )
+        
+        # Provider usage tracking
+        self.metric_provider_usage = get_or_create_counter(
+            'sentiment_provider_usage_total',
+            'Number of times each sentiment provider was used',
+            labelnames=['provider', 'symbol', 'status']  # status: success, error, skipped
+        )
+        
+        # Aggregated sentiment distribution
+        self.metric_sentiment_distribution = get_or_create_histogram(
+            'sentiment_score_distribution',
+            'Distribution of aggregated sentiment scores',
+            labelnames=['symbol', 'sentiment_level'],  # sentiment_level: very_bearish, bearish, neutral, bullish, very_bullish
+            buckets=[-1.0, -0.6, -0.3, -0.1, 0.1, 0.3, 0.6, 1.0]
+        )
+        
+        # Sentiment divergence detection
+        self.metric_divergence_detected = get_or_create_counter(
+            'sentiment_divergence_detected_total',
+            'Number of times sentiment divergence was detected',
+            labelnames=['symbol', 'severity']  # severity: low, medium, high
+        )
+        
+        # Provider contribution (gauge - current weight)
+        self.metric_provider_contribution = get_or_create_gauge(
+            'sentiment_provider_weight',
+            'Current weight/contribution of each sentiment provider',
+            labelnames=['provider']
+        )
+        
+        # Number of sources used
+        self.metric_sources_count = get_or_create_histogram(
+            'sentiment_sources_count',
+            'Number of sources used in sentiment aggregation',
+            labelnames=['symbol'],
+            buckets=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        )
+        
+        # Set initial provider weights as gauges
+        for provider_name in self.providers.keys():
+            weight = self.source_weights.get(provider_name, 1.0)
+            self.metric_provider_contribution.labels(provider=provider_name).set(weight)
     
     def _initialize_providers(self):
         """Initialize available sentiment providers"""
@@ -305,67 +373,135 @@ class SentimentAggregator:
         symbol = symbol.upper()
         sources = sources or list(self.providers.keys())
         
-        # Check cache
-        cache_key = f"aggregated_{symbol}_{hours}_{','.join(sorted(sources))}"
-        cached = self._get_from_cache(cache_key)
-        if cached:
-            logger.debug(f"Returning cached aggregated sentiment for {symbol}")
-            return cached
-        
-        if not sources:
-            logger.warning(f"No sentiment sources available for {symbol}")
-            return None
-        
-        # Collect sentiment from each source
-        source_sentiments: Dict[str, SourceSentiment] = {}
-        
-        for source_name in sources:
-            if source_name not in self.providers:
-                logger.debug(f"Source {source_name} not available, skipping")
-                continue
+        # Track calculation duration using internal metrics
+        import time
+        calc_start_time = time.time()
+        try:
+            # Check cache
+            cache_key = f"aggregated_{symbol}_{hours}_{','.join(sorted(sources))}"
+            cached = self._get_from_cache(cache_key)
+            if cached:
+                logger.debug(f"Returning cached aggregated sentiment for {symbol}")
+                self.metric_sentiment_count.labels(symbol=symbol, result='cached').inc()
+                return cached
             
-            provider = self.providers[source_name]
+            if not sources:
+                logger.warning(f"No sentiment sources available for {symbol}")
+                self.metric_sentiment_count.labels(symbol=symbol, result='failed').inc()
+                return None
             
-            try:
-                sentiment = provider.get_sentiment(symbol, hours=hours)
-                
-                if sentiment and sentiment.confidence >= self.min_confidence:
-                    source_weight = self.source_weights.get(source_name, 1.0)
-                    
-                    # Apply time decay
-                    time_weight = self._calculate_time_decay(
-                        sentiment.timestamp,
-                        hours=self.time_decay_hours
-                    )
-                    
-                    source_sentiments[source_name] = SourceSentiment(
-                        source=source_name,
+            # Collect sentiment from each source
+            source_sentiments: Dict[str, SourceSentiment] = {}
+            
+            for source_name in sources:
+                if source_name not in self.providers:
+                    logger.debug(f"Source {source_name} not available, skipping")
+                    self.metric_provider_usage.labels(
+                        provider=source_name,
                         symbol=symbol,
-                        sentiment_score=sentiment.average_sentiment,
-                        weighted_sentiment=sentiment.weighted_sentiment,
-                        confidence=sentiment.confidence,
-                        mention_count=sentiment.mention_count,
-                        timestamp=sentiment.timestamp,
-                        sentiment_level=sentiment.sentiment_level,
-                        source_weight=source_weight * time_weight
-                    )
+                        status='skipped'
+                    ).inc()
+                    continue
                 
-            except Exception as e:
-                logger.warning(f"Error getting sentiment from {source_name} for {symbol}: {e}")
-                continue
-        
-        if not source_sentiments:
-            logger.debug(f"No sentiment data available for {symbol} from any source")
-            return None
-        
-        # Aggregate sentiment
-        aggregated = self._aggregate_source_sentiments(symbol, source_sentiments)
-        
-        # Cache result
-        if aggregated:
-            self._set_cache(cache_key, aggregated)
-        
-        return aggregated
+                provider = self.providers[source_name]
+                
+                try:
+                    sentiment = provider.get_sentiment(symbol, hours=hours)
+                    
+                    if sentiment and sentiment.confidence >= self.min_confidence:
+                        source_weight = self.source_weights.get(source_name, 1.0)
+                        
+                        # Apply time decay
+                        time_weight = self._calculate_time_decay(
+                            sentiment.timestamp,
+                            hours=self.time_decay_hours
+                        )
+                        
+                        source_sentiments[source_name] = SourceSentiment(
+                            source=source_name,
+                            symbol=symbol,
+                            sentiment_score=sentiment.average_sentiment,
+                            weighted_sentiment=sentiment.weighted_sentiment,
+                            confidence=sentiment.confidence,
+                            mention_count=sentiment.mention_count,
+                            timestamp=sentiment.timestamp,
+                            sentiment_level=sentiment.sentiment_level,
+                            source_weight=source_weight * time_weight
+                        )
+                        
+                        # Track successful provider usage
+                        self.metric_provider_usage.labels(
+                            provider=source_name,
+                            symbol=symbol,
+                            status='success'
+                        ).inc()
+                    else:
+                        # Provider returned no data or low confidence
+                        self.metric_provider_usage.labels(
+                            provider=source_name,
+                            symbol=symbol,
+                            status='skipped'
+                        ).inc()
+                    
+                except Exception as e:
+                    logger.warning(f"Error getting sentiment from {source_name} for {symbol}: {e}")
+                    self.metric_provider_usage.labels(
+                        provider=source_name,
+                        symbol=symbol,
+                        status='error'
+                    ).inc()
+                    continue
+            
+            if not source_sentiments:
+                logger.debug(f"No sentiment data available for {symbol} from any source")
+                self.metric_sentiment_count.labels(symbol=symbol, result='failed').inc()
+                return None
+            
+            # Track number of sources used
+            self.metric_sources_count.labels(symbol=symbol).observe(len(source_sentiments))
+            
+            # Aggregate sentiment
+            aggregated = self._aggregate_source_sentiments(symbol, source_sentiments)
+            
+            # Track aggregated sentiment distribution
+            if aggregated:
+                sentiment_level_str = aggregated.sentiment_level.value if hasattr(aggregated.sentiment_level, 'value') else str(aggregated.sentiment_level)
+                self.metric_sentiment_distribution.labels(
+                    symbol=symbol,
+                    sentiment_level=sentiment_level_str
+                ).observe(aggregated.unified_sentiment)
+                
+                # Track divergence detection
+                if aggregated.divergence_detected:
+                    # Determine severity based on divergence score
+                    if aggregated.divergence_score >= 0.7:
+                        severity = 'high'
+                    elif aggregated.divergence_score >= 0.4:
+                        severity = 'medium'
+                    else:
+                        severity = 'low'
+                    
+                    self.metric_divergence_detected.labels(
+                        symbol=symbol,
+                        severity=severity
+                    ).inc()
+                
+                # Cache result
+                self._set_cache(cache_key, aggregated)
+                
+                # Track successful calculation
+                self.metric_sentiment_count.labels(symbol=symbol, result='success').inc()
+            
+            # Track calculation duration
+            calc_duration = time.time() - calc_start_time
+            self.metric_sentiment_duration.labels(symbol=symbol).observe(calc_duration)
+            
+            return aggregated
+        except Exception as e:
+            # Track failed calculation duration
+            calc_duration = time.time() - calc_start_time
+            self.metric_sentiment_duration.labels(symbol=symbol).observe(calc_duration)
+            raise
     
     def _calculate_time_decay(self, timestamp: datetime, hours: int = 24) -> float:
         """

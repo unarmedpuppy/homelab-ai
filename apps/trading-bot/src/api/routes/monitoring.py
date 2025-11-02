@@ -321,47 +321,92 @@ async def detailed_health_check():
 @router.get("/metrics")
 async def get_metrics():
     """
-    Get system and application metrics
+    Get Prometheus-formatted metrics
+    
+    Returns Prometheus exposition format metrics that can be scraped by Prometheus server.
+    Includes all custom metrics plus built-in process metrics if enabled.
     
     Returns:
-        System resource usage and application metrics
+        Response with Prometheus-formatted metrics (text/plain)
     """
-    cpu_percent = psutil.cpu_percent(interval=0.1)
-    memory = psutil.virtual_memory()
+    from fastapi.responses import Response
+    from ...utils.metrics import (
+        generate_metrics_output,
+        get_metrics_content_type,
+        get_metrics_registry
+    )
+    from prometheus_client import REGISTRY, PROCESS_COLLECTOR, PLATFORM_COLLECTOR, GC_COLLECTOR
     
-    disk_percent = None
-    disk_used_mb = None
-    disk_total_mb = None
+    # If metrics not enabled, return empty response
+    if not settings.metrics.enabled:
+        return Response(
+            content="# Metrics collection is disabled\n",
+            media_type="text/plain"
+        )
+    
+    # Update system metrics before generating output
     try:
-        disk = psutil.disk_usage('/')
-        disk_percent = disk.percent
-        disk_used_mb = disk.used / (1024 * 1024)
-        disk_total_mb = disk.total / (1024 * 1024)
-    except Exception:
-        pass
+        from ...utils.metrics import get_or_create_gauge
+        import sys
+        
+        # System uptime
+        uptime_gauge = get_or_create_gauge(
+            name='system_uptime_seconds',
+            documentation='Application uptime in seconds'
+        )
+        uptime_gauge.set(get_uptime())
+        
+        # Python version
+        python_version_gauge = get_or_create_gauge(
+            name='system_python_version_info',
+            documentation='Python version as float (major.minor)',
+            labelnames=['version', 'version_string']
+        )
+        python_version_gauge.labels(
+            version=str(sys.version_info.major) + '.' + str(sys.version_info.minor),
+            version_string=sys.version.split()[0]
+        ).set(float(f"{sys.version_info.major}.{sys.version_info.minor}"))
+        
+        # Application version
+        app_version_gauge = get_or_create_gauge(
+            name='system_application_info',
+            documentation='Application version and environment information',
+            labelnames=['version', 'environment']
+        )
+        app_version_gauge.labels(
+            version='2.0.0',
+            environment=settings.environment
+        ).set(1)
+        
+        # Update system health metrics (memory, CPU, disk)
+        try:
+            from ...utils.metrics_system import update_system_metrics
+            update_system_metrics()
+        except Exception as e:
+            logger.debug(f"Could not update system metrics: {e}")
+        
+    except Exception as e:
+        logger.warning(f"Error updating system metrics: {e}", exc_info=True)
     
-    return {
-        "timestamp": datetime.now().isoformat(),
-        "system": {
-            "cpu_percent": cpu_percent,
-            "memory": {
-                "percent": memory.percent,
-                "used_mb": memory.used / (1024 * 1024),
-                "total_mb": memory.total / (1024 * 1024),
-                "available_mb": memory.available / (1024 * 1024)
-            },
-            "disk": {
-                "percent": disk_percent,
-                "used_mb": disk_used_mb,
-                "total_mb": disk_total_mb
-            } if disk_percent is not None else None
-        },
-        "application": {
-            "uptime_seconds": get_uptime(),
-            "version": "2.0.0",
-            "environment": settings.environment
-        }
-    }
+    # Get our custom registry
+    registry = get_metrics_registry()
+    
+    # If internal metrics enabled, we need to merge with default registry
+    # For now, we'll use our custom registry only
+    # In the future, we can add built-in collectors if needed
+    try:
+        metrics_output = generate_metrics_output()
+        return Response(
+            content=metrics_output,
+            media_type=get_metrics_content_type()
+        )
+    except Exception as e:
+        logger.error(f"Error generating metrics: {e}", exc_info=True)
+        return Response(
+            content=f"# Error generating metrics: {e}\n",
+            media_type="text/plain",
+            status_code=500
+        )
 
 
 @router.get("/providers/status")

@@ -14,6 +14,12 @@ from ...core.strategy.registry import get_registry
 from ...core.evaluation import StrategyEvaluator
 from ...config.settings import settings
 
+# Import strategies module to trigger registration
+try:
+    from ...core.strategies import *  # This triggers strategy registration
+except ImportError:
+    pass  # Strategies may not be available in all environments
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter()

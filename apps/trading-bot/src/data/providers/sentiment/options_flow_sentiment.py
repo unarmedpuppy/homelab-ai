@@ -71,7 +71,15 @@ class OptionsFlowSentimentProvider:
         Returns:
             SymbolSentiment object or None
         """
-        if not self.is_available():
+        # Track provider availability
+        is_available = self.is_available()
+        try:
+            from ...utils.metrics_providers_helpers import track_provider_availability
+            track_provider_availability("options", is_available)
+        except (ImportError, Exception) as e:
+            logger.debug(f"Could not record availability metric: {e}")
+        
+        if not is_available:
             logger.warning("Options flow provider not available")
             return None
         
@@ -82,14 +90,30 @@ class OptionsFlowSentimentProvider:
             rate_status = self.rate_limiter.wait_if_needed(limit=100, window_seconds=60)
             if rate_status.is_limited:
                 logger.error(f"Options rate limit still exceeded after wait")
+                # Record rate limit hit metric
+                try:
+                    from ...utils.metrics_providers_helpers import track_rate_limit_hit
+                    track_rate_limit_hit("options")
+                except (ImportError, Exception) as e:
+                    logger.debug(f"Could not record rate limit metric: {e}")
                 self.usage_monitor.record_request("options", success=False)
                 return None
+        
+        # Track API call timing
+        import time
+        api_start_time = time.time()
         
         # Check cache
         cache_key = f"options_sentiment_{symbol}_{hours}"
         cached = self._get_from_cache(cache_key)
         if cached:
             logger.debug(f"Returning cached options sentiment for {symbol}")
+            # Track data freshness
+            try:
+                from ...utils.metrics_providers_helpers import track_cache_freshness
+                track_cache_freshness("options", "get_sentiment", cached)
+            except (ImportError, Exception) as e:
+                logger.debug(f"Could not record data freshness metric: {e}")
             self.usage_monitor.record_request("options", success=True, cached=True)
             return cached
         
@@ -109,6 +133,9 @@ class OptionsFlowSentimentProvider:
                 asyncio.set_event_loop(loop)
             
             flows = loop.run_until_complete(fetch_flows())
+            
+            # Record API response time
+            api_response_time = time.time() - api_start_time
             
             if not flows:
                 logger.info(f"No options flow data for {symbol}")
@@ -148,8 +175,15 @@ class OptionsFlowSentimentProvider:
             # Cache result
             self._set_cache(cache_key, sentiment)
             
-            # Record successful request
-            self.usage_monitor.record_request("options", success=True, cached=False)
+            # Record API response time (already calculated above)
+            try:
+                from ...utils.metrics_providers import record_provider_response_time
+                record_provider_response_time("options", api_response_time)
+            except (ImportError, Exception) as e:
+                logger.debug(f"Could not record response time metric: {e}")
+            
+            # Record successful request with response time
+            self.usage_monitor.record_request("options", success=True, cached=False, response_time=api_response_time)
             
             logger.info(
                 f"Options flow sentiment for {symbol}: {sentiment_score:.3f} "

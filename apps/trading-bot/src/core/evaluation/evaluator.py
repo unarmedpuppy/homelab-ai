@@ -10,13 +10,25 @@ from typing import Dict, List, Optional, Callable, Any
 from datetime import datetime
 import pandas as pd
 import logging
+import time
 from dataclasses import dataclass
 
-from ..strategy.base import BaseStrategy, TradingSignal, Position, SignalType
+from ..strategy.base import BaseStrategy, TradingSignal, Position, SignalType, ExitReason
 from ..strategy.registry import get_registry
 from ..data.providers.market_data import DataProviderManager
 
 logger = logging.getLogger(__name__)
+
+# Import trading metrics helpers (optional, gracefully handle if metrics disabled)
+try:
+    from ...utils.metrics_trading import (
+        record_signal_generated,
+        record_strategy_evaluation
+    )
+    _metrics_available = True
+except ImportError:
+    _metrics_available = False
+    logger.debug("Trading metrics helpers not available")
 
 
 @dataclass
@@ -237,6 +249,8 @@ class StrategyEvaluator:
             return None
         
         try:
+            eval_start_time = time.time()
+            
             # Fetch sentiment if strategy uses it
             sentiment = None
             if state.strategy.use_sentiment:
@@ -259,13 +273,34 @@ class StrategyEvaluator:
             if state.strategy.use_events_filter and hasattr(state.strategy, '_apply_events_filter'):
                 signal = state.strategy._apply_events_filter(signal)
             
+            # Track strategy evaluation time (includes signal generation + filtering)
+            eval_duration = time.time() - eval_start_time
+            if _metrics_available:
+                strategy_name = state.strategy.__class__.__name__
+                record_strategy_evaluation(
+                    strategy=strategy_name,
+                    duration=eval_duration
+                )
+                
+                # Track signal generated (if signal was produced)
+                if signal and signal.signal_type.value != "HOLD":
+                    record_signal_generated(
+                        strategy=strategy_name,
+                        signal_type=signal.signal_type.value,
+                        symbol=state.symbol,
+                        confidence=signal.confidence or 0.0
+                    )
+            
             # Update state
             state.last_evaluation = datetime.now()
             state.evaluation_count += 1
             
-            if signal.signal_type != SignalType.HOLD:
+            if signal and signal.signal_type != SignalType.HOLD:
                 state.signals_generated += 1
                 state.last_signal = signal
+                
+                # Notify signal callbacks (for WebSocket broadcasting, etc.)
+                self._notify_signal_callbacks(signal)
                 
                 # Filter signal
                 if self._should_execute_signal(signal, state):
@@ -285,6 +320,19 @@ class StrategyEvaluator:
         except Exception as e:
             logger.error(f"Error evaluating strategy {strategy_id}: {e}", exc_info=True)
             return None
+    
+    def _notify_signal_callbacks(self, signal: TradingSignal):
+        """
+        Notify all registered signal callbacks
+        
+        Args:
+            signal: TradingSignal to notify callbacks about
+        """
+        for callback in self.signal_callbacks:
+            try:
+                callback(signal)
+            except Exception as e:
+                logger.error(f"Error in signal callback: {e}", exc_info=True)
     
     def evaluate_all_strategies(self, 
                                market_data: Optional[Dict[str, pd.DataFrame]] = None) -> List[TradingSignal]:
@@ -318,12 +366,8 @@ class StrategyEvaluator:
             
             if signal:
                 signals.append(signal)
-                # Trigger callbacks
-                for callback in self.signal_callbacks:
-                    try:
-                        callback(signal)
-                    except Exception as e:
-                        logger.error(f"Error in signal callback: {e}")
+                # Trigger callbacks (already handled in evaluate_strategy)
+                # No need to duplicate here
         
         return signals
     
@@ -340,13 +384,17 @@ class StrategyEvaluator:
             logger.debug(f"Updated position for {strategy_id}: {position}")
     
     def check_exit_conditions(self, strategy_id: str, 
-                             data: Optional[pd.DataFrame] = None) -> Optional[TradingSignal]:
+                             data: Optional[pd.DataFrame] = None,
+                             profit_exit_plan: Optional[Any] = None) -> Optional[TradingSignal]:
         """
         Check if current position should be exited
+        
+        Checks both profit taking levels (aggressive profit taking) and strategy exit logic.
         
         Args:
             strategy_id: Strategy identifier
             data: Market data (optional)
+            profit_exit_plan: Optional profit exit plan for profit taking checks
             
         Returns:
             SELL signal if exit conditions met, None otherwise
@@ -363,14 +411,68 @@ class StrategyEvaluator:
             return None
         
         try:
-            should_exit, reason = state.strategy.should_exit(state.current_position, data)
+            current_price = float(data['close'].iloc[-1])
             
-            if should_exit:
-                current_price = float(data['close'].iloc[-1])
+            # First check profit taking levels (aggressive profit taking)
+            profit_result = state.strategy.check_profit_taking_levels(
+                position=state.current_position,
+                current_price=current_price,
+                profit_exit_plan=profit_exit_plan
+            )
+            
+            if profit_result and profit_result.should_exit:
+                # Profit level hit - create exit signal
+                # For partial exits, quantity is profit_result.exit_quantity
+                exit_quantity = profit_result.exit_quantity
+                
+                # Determine exit reason based on profit level
+                if profit_result.profit_level:
+                    from ..risk.profit_taking import ProfitLevel
+                    if profit_result.profit_level == ProfitLevel.LEVEL_1:
+                        exit_reason = ExitReason.TAKE_PROFIT
+                        reason_str = f"profit_taking_level_1_{profit_result.profit_pct*100:.1f}%"
+                    elif profit_result.profit_level == ProfitLevel.LEVEL_2:
+                        exit_reason = ExitReason.TAKE_PROFIT
+                        reason_str = f"profit_taking_level_2_{profit_result.profit_pct*100:.1f}%"
+                    elif profit_result.profit_level == ProfitLevel.LEVEL_3:
+                        exit_reason = ExitReason.TAKE_PROFIT
+                        reason_str = f"profit_taking_level_3_{profit_result.profit_pct*100:.1f}%"
+                    else:
+                        exit_reason = ExitReason.TAKE_PROFIT
+                        reason_str = "profit_taking"
+                else:
+                    exit_reason = ExitReason.TAKE_PROFIT
+                    reason_str = "profit_taking"
                 
                 signal = state.strategy._create_sell_signal(
                     price=current_price,
-                    quantity=state.current_position.quantity,
+                    quantity=exit_quantity,
+                    confidence=1.0,
+                    exit_reason=exit_reason,
+                    metadata={
+                        'exit_reason': reason_str,
+                        'entry_price': state.current_position.entry_price,
+                        'pnl_pct': profit_result.profit_pct,
+                        'profit_level': profit_result.profit_level.value if profit_result.profit_level else None,
+                        'partial_exit': exit_quantity < abs(state.current_position.quantity),
+                        'remaining_shares': profit_result.remaining_shares
+                    }
+                )
+                
+                logger.info(
+                    f"Profit taking exit signal: {strategy_id} - {reason_str} "
+                    f"@ ${current_price:.2f} (exit {exit_quantity} shares, {profit_result.profit_pct*100:.1f}% profit)"
+                )
+                
+                return signal
+            
+            # Then check strategy exit logic
+            should_exit, reason = state.strategy.should_exit(state.current_position, data)
+            
+            if should_exit:
+                signal = state.strategy._create_sell_signal(
+                    price=current_price,
+                    quantity=abs(state.current_position.quantity),  # Full exit for strategy exits
                     confidence=1.0,
                     exit_reason=reason,
                     metadata={
@@ -381,7 +483,7 @@ class StrategyEvaluator:
                 )
                 
                 logger.info(
-                    f"Exit signal: {strategy_id} - {reason.value} "
+                    f"Strategy exit signal: {strategy_id} - {reason.value} "
                     f"@ ${current_price:.2f}"
                 )
                 
@@ -447,6 +549,16 @@ class StrategyEvaluator:
             'total_signals': sum(s.signals_generated for s in self.strategies.values()),
             'strategies': {}
         }
+        
+        # Update strategy performance metrics if available
+        try:
+            from ...utils.metrics_integration import calculate_and_update_strategy_win_rate
+            # This would ideally use actual trade history from database
+            # For now, we'll just update based on signal success rate if we had trade data
+            # Future: Query completed trades from database and calculate actual win rates
+            pass
+        except Exception as e:
+            logger.debug(f"Error updating strategy metrics in stats: {e}")
         
         for strategy_id, state in self.strategies.items():
             stats['strategies'][strategy_id] = {

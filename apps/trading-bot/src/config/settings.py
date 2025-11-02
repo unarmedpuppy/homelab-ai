@@ -263,6 +263,33 @@ class DarkPoolSettings(BaseSettings):
     class Config:
         env_prefix = "DARK_POOL_"
 
+class WebSocketSettings(BaseSettings):
+    """WebSocket configuration"""
+    enabled: bool = Field(default=True, description="Enable WebSocket server")
+    ping_interval: int = Field(default=30, description="Ping interval in seconds for keepalive")
+    heartbeat_timeout: int = Field(default=60, description="Heartbeat timeout in seconds (disconnect if no pong)")
+    price_update_interval: int = Field(default=3, description="Price update interval in seconds")
+    portfolio_update_interval: int = Field(default=5, description="Portfolio update interval in seconds")
+    market_data_interval: int = Field(default=5, description="Market data (OHLCV) update interval in seconds")
+    options_flow_interval: int = Field(default=10, description="Options flow update interval in seconds")
+    max_connections: int = Field(default=100, description="Maximum concurrent WebSocket connections")
+    
+    @validator('ping_interval', 'heartbeat_timeout', 'price_update_interval', 'portfolio_update_interval', 
+               'market_data_interval', 'options_flow_interval')
+    def validate_interval(cls, v):
+        if not 1 <= v <= 300:
+            raise ValueError('Interval must be between 1 and 300 seconds')
+        return v
+    
+    @validator('max_connections')
+    def validate_max_connections(cls, v):
+        if not 1 <= v <= 1000:
+            raise ValueError('Max connections must be between 1 and 1000')
+        return v
+    
+    class Config:
+        env_prefix = "WEBSOCKET_"
+
 class SentimentAggregatorSettings(BaseSettings):
     """Sentiment Aggregator configuration"""
     cache_ttl: int = Field(default=300, description="Aggregator cache TTL in seconds")
@@ -441,6 +468,88 @@ class RedisSettings(BaseSettings):
     class Config:
         env_prefix = "REDIS_"
 
+class MetricsSettings(BaseSettings):
+    """Prometheus metrics configuration"""
+    enabled: bool = Field(default=True, description="Enable metrics collection")
+    metrics_path: str = Field(default="/metrics", description="Metrics endpoint path")
+    enable_internal_metrics: bool = Field(default=True, description="Enable built-in Prometheus process metrics")
+    default_labels: Dict[str, str] = Field(default_factory=dict, description="Default labels for all metrics")
+    
+    class Config:
+        env_prefix = "METRICS_"
+
+class RiskManagementSettings(BaseSettings):
+    """Risk Management & Cash Account Rules configuration"""
+    # Cash Account Rules
+    cash_account_threshold: float = Field(default=25000.0, description="Balance threshold for cash account mode ($25k default)")
+    pdt_enforcement_mode: str = Field(default="strict", description="PDT enforcement mode: strict or warning")
+    gfv_enforcement_mode: str = Field(default="warning", description="GFV enforcement mode: strict or warning")
+    
+    # Trade Frequency Limits
+    daily_trade_limit: int = Field(default=5, description="Maximum trades per day in cash account mode")
+    weekly_trade_limit: int = Field(default=20, description="Maximum trades per week in cash account mode")
+    
+    # Position Sizing by Confidence
+    position_size_low_confidence: float = Field(default=0.01, description="Position size for low confidence (1% of account)")
+    position_size_medium_confidence: float = Field(default=0.025, description="Position size for medium confidence (2.5% of account)")
+    position_size_high_confidence: float = Field(default=0.04, description="Position size for high confidence (4% of account)")
+    max_position_size_pct: float = Field(default=0.10, description="Maximum position size as percentage of account (10% hard cap)")
+    
+    # Profit Taking Rules
+    profit_take_level_1: float = Field(default=0.05, description="First profit taking level (5%)")
+    profit_take_level_2: float = Field(default=0.10, description="Second profit taking level (10%)")
+    profit_take_level_3: float = Field(default=0.20, description="Third profit taking level (20%)")
+    partial_exit_enabled: bool = Field(default=True, description="Enable partial exit strategy")
+    partial_exit_level_1_pct: float = Field(default=0.25, description="Partial exit percentage at level 1 (25%)")
+    partial_exit_level_2_pct: float = Field(default=0.50, description="Partial exit percentage at level 2 (50%)")
+    
+    # Settlement Period
+    settlement_days: int = Field(default=2, description="Settlement period in business days (T+2 default)")
+    
+    # Account Monitoring
+    balance_check_interval_minutes: int = Field(default=5, description="Interval for checking account balance (minutes)")
+    balance_cache_duration_minutes: int = Field(default=5, description="Duration to cache balance (minutes)")
+    
+    @validator('pdt_enforcement_mode', 'gfv_enforcement_mode')
+    def validate_enforcement_mode(cls, v):
+        if v not in ['strict', 'warning']:
+            raise ValueError('enforcement_mode must be "strict" or "warning"')
+        return v
+    
+    @validator('cash_account_threshold')
+    def validate_threshold(cls, v):
+        if v < 0:
+            raise ValueError('cash_account_threshold must be >= 0')
+        return v
+    
+    @validator('daily_trade_limit', 'weekly_trade_limit')
+    def validate_trade_limits(cls, v):
+        if v < 1:
+            raise ValueError('Trade limits must be >= 1')
+        return v
+    
+    @validator('position_size_low_confidence', 'position_size_medium_confidence', 
+               'position_size_high_confidence', 'max_position_size_pct')
+    def validate_position_sizes(cls, v):
+        if not 0.0 < v <= 1.0:
+            raise ValueError('Position sizes must be between 0.0 and 1.0')
+        return v
+    
+    @validator('profit_take_level_1', 'profit_take_level_2', 'profit_take_level_3')
+    def validate_profit_levels(cls, v):
+        if not 0.0 < v <= 1.0:
+            raise ValueError('Profit take levels must be between 0.0 and 1.0')
+        return v
+    
+    @validator('settlement_days')
+    def validate_settlement_days(cls, v):
+        if not 0 <= v <= 5:
+            raise ValueError('settlement_days must be between 0 and 5')
+        return v
+    
+    class Config:
+        env_prefix = "RISK_"
+
 class Settings(BaseSettings):
     """Main application settings"""
     
@@ -462,6 +571,7 @@ class Settings(BaseSettings):
     analyst_ratings: AnalystRatingsSettings = AnalystRatingsSettings()
     insider_trading: InsiderTradingSettings = InsiderTradingSettings()
     dark_pool: DarkPoolSettings = DarkPoolSettings()
+    websocket: WebSocketSettings = WebSocketSettings()
     sentiment_aggregator: SentimentAggregatorSettings = SentimentAggregatorSettings()
     confluence: ConfluenceSettings = ConfluenceSettings()
     retention: DataRetentionSettings = DataRetentionSettings()
@@ -469,6 +579,8 @@ class Settings(BaseSettings):
     logging: LoggingSettings = LoggingSettings()
     api: APISettings = APISettings()
     redis: RedisSettings = RedisSettings()
+    metrics: MetricsSettings = MetricsSettings()
+    risk: RiskManagementSettings = RiskManagementSettings()
     
     # Paths
     data_dir: Path = Field(default=Path("./data"), description="Data directory")

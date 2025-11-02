@@ -9,9 +9,14 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Dict, Any, Optional
 import logging
 from pydantic import BaseModel
+from datetime import datetime
 
-from ...data.brokers.ibkr_client import IBKRClient, IBKRManager
+from ...data.brokers.ibkr_client import IBKRClient, IBKRManager, OrderSide
+from ...data.database.models import Trade, TradeSide, OrderStatus, Account
+from ...data.database import SessionLocal
 from ...config.settings import settings
+from ...utils.metrics_integration import update_portfolio_metrics_from_positions
+from ...core.risk import get_risk_manager, RiskManager
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +65,13 @@ async def ibkr_connection_status():
         )
     
     is_connected = manager.is_connected
+    
+    # Update broker connection status metric
+    try:
+        from ...utils.metrics_trading import update_broker_connection_status
+        update_broker_connection_status(is_connected)
+    except Exception:
+        pass
     
     return ConnectionResponse(
         connected=is_connected,
@@ -251,19 +263,37 @@ async def ibkr_positions():
         client = await manager.get_client()
         positions = await client.get_positions()
         
+        positions_list = []
+        for pos in positions:
+            positions_list.append({
+                "symbol": pos.symbol,
+                "quantity": pos.quantity,
+                "average_price": pos.average_price,
+                "market_price": pos.market_price,
+                "unrealized_pnl": pos.unrealized_pnl,
+                "unrealized_pnl_pct": pos.unrealized_pnl_pct
+            })
+            
+            # Update position metrics
+            try:
+                from ...utils.metrics_trading import update_position_metrics
+                update_position_metrics(
+                    symbol=pos.symbol,
+                    quantity=pos.quantity,
+                    pnl=pos.unrealized_pnl
+                )
+            except Exception:
+                pass
+        
+        # Update portfolio-level metrics
+        try:
+            update_portfolio_metrics_from_positions(positions_list)
+        except Exception:
+            pass
+        
         return {
             "status": "success",
-            "positions": [
-                {
-                    "symbol": pos.symbol,
-                    "quantity": pos.quantity,
-                    "average_price": pos.average_price,
-                    "market_price": pos.market_price,
-                    "unrealized_pnl": pos.unrealized_pnl,
-                    "unrealized_pnl_pct": pos.unrealized_pnl_pct
-                }
-                for pos in positions
-            ]
+            "positions": positions_list
         }
     except Exception as e:
         logger.error(f"Error getting positions: {e}")
@@ -272,17 +302,225 @@ async def ibkr_positions():
             detail=f"Error retrieving positions: {str(e)}"
         )
 
+@router.post("/execute")
+async def execute_trade(
+    trade_request: Dict[str, Any],
+    risk_manager: RiskManager = Depends(lambda: get_risk_manager())
+):
+    """
+    Execute a trade with risk management validation
+    
+    Required fields:
+    - account_id: Account ID
+    - symbol: Stock symbol
+    - side: "BUY" or "SELL"
+    - quantity: Number of shares (optional if confidence_score provided)
+    - price_per_share: Price per share (required)
+    - confidence_score: Optional confidence score (0.0-1.0) for position sizing
+    
+    Optional fields:
+    - strategy_id: Strategy ID that generated this trade
+    - will_create_day_trade: Whether this will create a day trade
+    """
+    try:
+        # Extract request parameters
+        account_id = trade_request.get("account_id")
+        symbol = trade_request.get("symbol")
+        side_str = trade_request.get("side", "BUY").upper()
+        quantity = trade_request.get("quantity")
+        price_per_share = trade_request.get("price_per_share")
+        confidence_score = trade_request.get("confidence_score")
+        strategy_id = trade_request.get("strategy_id")
+        will_create_day_trade = trade_request.get("will_create_day_trade", False)
+        
+        # Validate required fields
+        if not account_id:
+            raise HTTPException(status_code=400, detail="account_id is required")
+        if not symbol:
+            raise HTTPException(status_code=400, detail="symbol is required")
+        if not price_per_share:
+            raise HTTPException(status_code=400, detail="price_per_share is required")
+        if side_str not in ["BUY", "SELL"]:
+            raise HTTPException(status_code=400, detail="side must be 'BUY' or 'SELL'")
+        
+        # Convert side to enum
+        trade_side = TradeSide.BUY if side_str == "BUY" else TradeSide.SELL
+        
+        # 1. Pre-trade validation with risk management
+        logger.info(f"Validating trade: {side_str} {quantity or 'auto'} {symbol} @ ${price_per_share:.2f}")
+        
+        validation = await risk_manager.validate_trade(
+            account_id=account_id,
+            symbol=symbol,
+            side=side_str,
+            quantity=quantity,
+            price_per_share=price_per_share,
+            confidence_score=confidence_score,
+            will_create_day_trade=will_create_day_trade
+        )
+        
+        if not validation.can_proceed:
+            logger.warning(
+                f"Trade rejected: {side_str} {quantity or 'auto'} {symbol} - {validation.compliance_check.message}"
+            )
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    "error": "Trade rejected by risk management",
+                    "reason": validation.compliance_check.result.value,
+                    "message": validation.compliance_check.message,
+                    "compliance_details": validation.compliance_check.details
+                }
+            )
+        
+        # 2. Use position size from validation if calculated
+        if validation.position_size and validation.position_size.size_shares > 0:
+            quantity = validation.position_size.size_shares
+            logger.info(
+                f"Using calculated position size: {quantity} shares "
+                f"({validation.position_size.confidence_level.value} confidence)"
+            )
+        
+        if not quantity or quantity <= 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Quantity must be specified or confidence_score provided for auto-sizing"
+            )
+        
+        # 3. Get IBKR manager and client
+        manager = get_ibkr_manager()
+        if not manager or not manager.is_connected:
+            raise HTTPException(
+                status_code=503,
+                detail="IBKR not connected. Please connect first using /api/trading/ibkr/connect"
+            )
+        
+        client = await manager.get_client()
+        
+        # 4. Create contract and place order
+        contract = client.create_contract(symbol)
+        ibkr_side = OrderSide.BUY if trade_side == TradeSide.BUY else OrderSide.SELL
+        
+        # For now, use market orders (can be enhanced to support limit orders)
+        broker_order = await client.place_market_order(contract, ibkr_side, quantity)
+        
+        logger.info(
+            f"Order placed: {side_str} {quantity} {symbol} @ market "
+            f"(order_id: {broker_order.order_id})"
+        )
+        
+        # 5. Record trade in database
+        session = SessionLocal()
+        try:
+            # Get account (verify it exists)
+            account = session.query(Account).filter(Account.id == account_id).first()
+            if not account:
+                raise HTTPException(status_code=404, detail=f"Account {account_id} not found")
+            
+            # Create trade record
+            trade = Trade(
+                account_id=account_id,
+                strategy_id=strategy_id,
+                symbol=symbol,
+                side=trade_side,
+                quantity=quantity,
+                price=price_per_share,
+                order_type="market",
+                status=OrderStatus.SUBMITTED,
+                filled_quantity=0,
+                confidence_score=confidence_score
+            )
+            session.add(trade)
+            session.flush()  # Get trade ID
+            
+            # Record settlement for this trade
+            trade_amount = quantity * price_per_share
+            settlement_amount = -trade_amount if trade_side == TradeSide.BUY else trade_amount
+            risk_manager.compliance.record_settlement(
+                account_id=account_id,
+                trade_id=trade.id,
+                trade_date=datetime.now(),
+                amount=settlement_amount
+            )
+            
+            # Calculate and store settlement date
+            trade.settlement_date = risk_manager.compliance.calculate_settlement_date(datetime.now())
+            
+            # Increment trade frequency
+            risk_manager.compliance.increment_trade_frequency(account_id, datetime.now())
+            
+            # Check for day trade (for SELL orders)
+            if trade_side == TradeSide.SELL:
+                day_trade = risk_manager.compliance.detect_day_trade(
+                    account_id=account_id,
+                    symbol=symbol,
+                    side=trade_side,
+                    trade_date=datetime.now(),
+                    trade_id=trade.id
+                )
+                if day_trade:
+                    buy_trade_id, sell_trade_id = day_trade
+                    risk_manager.compliance.record_day_trade(
+                        account_id=account_id,
+                        symbol=symbol,
+                        buy_trade_id=buy_trade_id,
+                        sell_trade_id=sell_trade_id,
+                        trade_date=datetime.now()
+                    )
+                    trade.is_day_trade = True
+                    logger.info(f"Day trade detected and recorded for {symbol}")
+            
+            session.commit()
+            session.refresh(trade)
+            
+            logger.info(f"Trade recorded in database: trade_id={trade.id}")
+            
+            return {
+                "status": "success",
+                "message": "Trade executed successfully",
+                "trade_id": trade.id,
+                "broker_order_id": broker_order.order_id,
+                "symbol": symbol,
+                "side": side_str,
+                "quantity": quantity,
+                "price": price_per_share,
+                "order_status": "submitted",
+                "validation": {
+                    "passed": True,
+                    "compliance_result": validation.compliance_check.result.value,
+                    "position_size": {
+                        "size_shares": validation.position_size.size_shares if validation.position_size else quantity,
+                        "size_usd": validation.position_size.size_usd if validation.position_size else quantity * price_per_share,
+                        "confidence_level": validation.position_size.confidence_level.value if validation.position_size else None
+                    } if validation.position_size else None
+                }
+            }
+        except HTTPException:
+            session.rollback()
+            raise
+        except Exception as e:
+            session.rollback()
+            logger.error(f"Error recording trade: {e}", exc_info=True)
+            raise HTTPException(status_code=500, detail=f"Error recording trade: {str(e)}")
+        finally:
+            session.close()
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error executing trade: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Trade execution error: {str(e)}")
+
+
 @router.post("/live-trade")
 async def live_trade(trade_request: Dict[str, Any]):
-    """Execute a live trade"""
-    logger.info(f"Live trade request: {trade_request}")
+    """
+    Execute a live trade (legacy endpoint, redirects to /execute)
     
-    # TODO: Implement live trading logic
-    return {
-        "status": "success",
-        "message": "Live trading not yet implemented",
-        "trade_id": "placeholder"
-    }
+    Deprecated: Use /execute instead
+    """
+    logger.warning("/live-trade endpoint is deprecated, use /execute instead")
+    return await execute_trade(trade_request)
 
 @router.post("/backtest")
 async def backtest(backtest_request: Dict[str, Any]):

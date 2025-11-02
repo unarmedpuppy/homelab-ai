@@ -15,7 +15,8 @@ from . import engine, SessionLocal, Base
 from .models import (
     Tweet, TweetSentiment, SymbolSentiment, Influencer,
     RedditPost, RedditSentiment,
-    AggregatedSentiment, ConfluenceScore
+    AggregatedSentiment, ConfluenceScore,
+    CashAccountState, DayTrade, SettlementTracking, TradeFrequencyTracking
 )
 
 logger = logging.getLogger(__name__)

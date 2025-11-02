@@ -18,6 +18,7 @@ from .levels import PriceLevel
 
 if TYPE_CHECKING:
     from ...data.providers.sentiment.aggregator import AggregatedSentiment
+    from ...core.risk.profit_taking import ProfitExitPlan, ProfitCheckResult
 
 logger = logging.getLogger(__name__)
 
@@ -412,25 +413,180 @@ class BaseStrategy(ABC):
         pass
     
     def calculate_position_size(self, signal: TradingSignal, account_value: float) -> int:
-        """Calculate position size based on risk management rules"""
-        risk_per_trade = self.config.get('risk_management', {}).get('risk_per_trade', 0.02)  # 2% risk per trade
-        stop_loss_pct = self.config.get('exit', {}).get('stop_loss_pct', 0.10)  # 10% stop loss
+        """
+        Calculate position size based on confidence and risk rules
         
-        # Use signal stop_loss if available, otherwise calculate from percentage
-        if signal.stop_loss:
-            price_risk = abs(signal.price - signal.stop_loss)
+        Note: This method now uses PositionSizingManager for confidence-based sizing.
+        For async version with full features (settlement awareness, etc.), use
+        calculate_position_size_async() instead.
+        
+        Args:
+            signal: TradingSignal with confidence score
+            account_value: Account value in USD
+            
+        Returns:
+            Position size in shares (int)
+        """
+        # Fallback to old logic if no PositionSizingManager available
+        # (for backward compatibility with sync-only code paths)
+        try:
+            from ..risk.position_sizing import PositionSizingManager
+            from ..risk import get_position_sizing_manager
+            
+            # Get confidence from signal (default to medium if not set)
+            # Note: We use settings directly here since sync method doesn't have account_id
+            # For full features (settlement awareness, etc.), use calculate_position_size_async()
+            confidence = signal.confidence if signal.confidence is not None else 0.5
+            
+            # Use confidence-based percentage from settings
+            from ...config.settings import settings
+            if confidence >= 0.7:
+                position_pct = settings.risk.position_size_high_confidence
+            elif confidence >= 0.4:
+                position_pct = settings.risk.position_size_medium_confidence
+            else:
+                position_pct = settings.risk.position_size_low_confidence
+            
+            # Calculate position size in USD
+            position_size_usd = account_value * position_pct
+            
+            # Apply maximum cap from settings
+            max_size_usd = account_value * settings.risk.max_position_size_pct
+            position_size_usd = min(position_size_usd, max_size_usd)
+            
+            # Convert to shares (round down)
+            if signal.price > 0:
+                shares = int(position_size_usd / signal.price)
+                return max(shares, 0)  # Ensure non-negative
+            
+            # Fallback if price invalid
+            default_qty = self.config.get('risk_management', {}).get('default_qty', 10)
+            return default_qty
+            
+        except (ImportError, AttributeError):
+            # Fallback to old risk-based logic if PositionSizingManager not available
+            risk_per_trade = self.config.get('risk_management', {}).get('risk_per_trade', 0.02)  # 2% risk per trade
+            stop_loss_pct = self.config.get('exit', {}).get('stop_loss_pct', 0.10)  # 10% stop loss
+            
+            # Use signal stop_loss if available, otherwise calculate from percentage
+            if signal.stop_loss:
+                price_risk = abs(signal.price - signal.stop_loss)
+            else:
+                price_risk = signal.price * stop_loss_pct
+            
+            risk_amount = account_value * risk_per_trade
+            
+            if price_risk > 0:
+                position_size = int(risk_amount / price_risk)
+                max_size = self.config.get('risk_management', {}).get('max_position_size', 1000)
+                return min(position_size, max_size)
+            
+            default_qty = self.config.get('risk_management', {}).get('default_qty', 10)
+            return default_qty
+    
+    async def calculate_position_size_async(
+        self,
+        signal: TradingSignal,
+        account_id: int,
+        account_value: Optional[float] = None,
+        use_settled_cash: bool = False
+    ) -> int:
+        """
+        Calculate position size using PositionSizingManager (async version)
+        
+        This method provides full confidence-based position sizing with:
+        - Confidence-based sizing (low/medium/high)
+        - Cash account mode awareness
+        - Settlement period consideration
+        - Maximum position size enforcement
+        
+        Args:
+            signal: TradingSignal with confidence score
+            account_id: Account ID for position sizing
+            account_value: Optional account value (will be fetched if not provided)
+            use_settled_cash: If True, only use settled cash (for cash accounts)
+            
+        Returns:
+            Position size in shares (int)
+        """
+        from ..risk.position_sizing import PositionSizingManager
+        from ..risk import get_position_sizing_manager
+        
+        sizing_manager = get_position_sizing_manager()
+        
+        # Get confidence from signal (default to medium if not set)
+        confidence = signal.confidence if signal.confidence is not None else 0.5
+        
+        if use_settled_cash:
+            # Get available settled cash
+            from ..risk.compliance import ComplianceManager
+            compliance_manager = ComplianceManager()
+            available_settled = await compliance_manager.get_available_settled_cash(account_id)
+            
+            result = await sizing_manager.calculate_position_size_with_settlement(
+                account_id=account_id,
+                confidence_score=confidence,
+                price_per_share=signal.price,
+                available_settled_cash=available_settled
+            )
         else:
-            price_risk = signal.price * stop_loss_pct
+            result = await sizing_manager.calculate_position_size(
+                account_id=account_id,
+                confidence_score=confidence,
+                price_per_share=signal.price
+            )
         
-        risk_amount = account_value * risk_per_trade
+        return result.size_shares
+    
+    def check_profit_taking_levels(
+        self,
+        position: Position,
+        current_price: float,
+        profit_exit_plan: Optional['ProfitExitPlan'] = None
+    ) -> Optional['ProfitCheckResult']:
+        """
+        Check if profit taking levels have been hit
         
-        if price_risk > 0:
-            position_size = int(risk_amount / price_risk)
-            max_size = self.config.get('risk_management', {}).get('max_position_size', 1000)
-            return min(position_size, max_size)
+        This method integrates with ProfitTakingManager to check for aggressive
+        profit taking levels (5%, 10%, 20%) and partial exits.
         
-        default_qty = self.config.get('risk_management', {}).get('default_qty', 10)
-        return default_qty
+        Args:
+            position: Current position
+            current_price: Current market price
+            profit_exit_plan: Optional profit exit plan (will be created if not provided)
+            
+        Returns:
+            ProfitCheckResult if profit level hit and exit should occur, None otherwise
+        """
+        try:
+            from ..risk.profit_taking import ProfitTakingManager, get_profit_taking_manager
+            from ..risk.profit_taking import ProfitExitPlan, ProfitCheckResult
+            
+            profit_manager = get_profit_taking_manager()
+            
+            # Create exit plan if not provided
+            if profit_exit_plan is None:
+                profit_exit_plan = profit_manager.create_exit_plan(
+                    entry_price=position.entry_price,
+                    quantity=position.quantity
+                )
+            
+            # Check profit levels
+            result = profit_manager.check_profit_levels(
+                current_price=current_price,
+                exit_plan=profit_exit_plan,
+                current_quantity=abs(position.quantity)  # Use absolute value for long/short
+            )
+            
+            # Return result if exit should occur
+            if result.should_exit:
+                return result
+            
+            return None
+            
+        except (ImportError, AttributeError):
+            # ProfitTakingManager not available, skip profit taking checks
+            return None
     
     def evaluate_entry_conditions(self, data: pd.DataFrame) -> Dict[str, Any]:
         """

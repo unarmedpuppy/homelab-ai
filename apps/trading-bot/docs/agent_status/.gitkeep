@@ -1,0 +1,8 @@
+# Agent Status Files Directory
+
+This directory contains status files for agents actively working on tasks.
+
+Format: `[AGENT_ID]_[TASK_NAME].md`
+
+See `AGENT_COORDINATION.md` for template and instructions.
+

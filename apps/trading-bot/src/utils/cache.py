@@ -8,6 +8,7 @@ Centralized caching layer using Redis for sentiment and market data.
 import json
 import logging
 import threading
+import time
 from typing import Optional, Any, Dict
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -145,15 +146,23 @@ class CacheManager:
             Cached value or None
         """
         full_key = self._make_key(key)
+        op_start = time.time()
+        used_redis = False
+        hit = False
+        success = True
         
         # Try Redis first
         if self._ensure_connected():
             try:
                 value = self.redis_client.get(full_key)
+                used_redis = True
                 if value:
-                    return json.loads(value)
+                    result = json.loads(value)
+                    hit = True
+                    return result
             except (RedisError, json.JSONDecodeError) as e:
                 logger.warning(f"Redis get error for {key}: {e}")
+                success = False
         
         # Fallback to in-memory cache
         if key in self.in_memory_cache:
@@ -161,9 +170,20 @@ class CacheManager:
             if (datetime.now() - timestamp).total_seconds() < ttl:
                 # Move to end (LRU)
                 self.in_memory_cache.move_to_end(key)
+                hit = True
                 return data
             else:
                 del self.in_memory_cache[key]
+        
+        # Record metrics once at the end
+        op_duration = time.time() - op_start
+        if settings.metrics.enabled:
+            try:
+                from .metrics_system import record_redis_operation
+                # Record operation - success means no exception, hit means value found
+                record_redis_operation("get", op_duration, success=success)
+            except (ImportError, Exception):
+                pass  # Non-critical
         
         return None
     
@@ -177,15 +197,26 @@ class CacheManager:
             ttl: Time-to-live in seconds (default: 5 minutes)
         """
         full_key = self._make_key(key)
+        op_start = time.time()
+        success = True
         
         # Try Redis first
         if self._ensure_connected():
             try:
                 serialized = json.dumps(value, cls=CacheEncoder)
                 self.redis_client.setex(full_key, ttl, serialized)
+                # Record metrics and return
+                op_duration = time.time() - op_start
+                if settings.metrics.enabled:
+                    try:
+                        from .metrics_system import record_redis_operation
+                        record_redis_operation("set", op_duration, success=True)
+                    except (ImportError, Exception):
+                        pass
                 return
             except (RedisError, TypeError, ValueError) as e:
                 logger.warning(f"Redis set error for {key}: {e}")
+                success = False
         
         # Fallback to in-memory cache
         # Remove old entry if exists (will be re-added at end)
@@ -199,19 +230,40 @@ class CacheManager:
         while len(self.in_memory_cache) > self.max_memory_size:
             # Remove oldest entry (first in OrderedDict)
             self.in_memory_cache.popitem(last=False)
+        
+        # Record metrics once at the end
+        op_duration = time.time() - op_start
+        if settings.metrics.enabled:
+            try:
+                from .metrics_system import record_redis_operation
+                record_redis_operation("set", op_duration, success=success)
+            except (ImportError, Exception):
+                pass
     
     def delete(self, key: str):
         """Delete key from cache"""
         full_key = self._make_key(key)
+        op_start = time.time()
+        success = True
         
         if self._ensure_connected():
             try:
                 self.redis_client.delete(full_key)
             except RedisError as e:
                 logger.warning(f"Redis delete error for {key}: {e}")
+                success = False
         
         if key in self.in_memory_cache:
             del self.in_memory_cache[key]
+        
+        # Record metrics once at the end
+        op_duration = time.time() - op_start
+        if settings.metrics.enabled:
+            try:
+                from .metrics_system import record_redis_operation
+                record_redis_operation("delete", op_duration, success=success)
+            except (ImportError, Exception):
+                pass
     
     def clear_pattern(self, pattern: str):
         """

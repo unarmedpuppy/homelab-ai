@@ -83,6 +83,7 @@ class Account(Base):
     positions = relationship("Position", back_populates="account")
     trades = relationship("Trade", back_populates="account")
     backtests = relationship("Backtest", back_populates="account")
+    cash_account_state = relationship("CashAccountState", back_populates="account", uselist=False)
 
 # Trading Models
 class Strategy(Base):
@@ -123,6 +124,11 @@ class Trade(Base):
     timestamp = Column(DateTime, server_default=func.now())
     executed_at = Column(DateTime)
     cancelled_at = Column(DateTime)
+    
+    # Risk management fields
+    settlement_date = Column(DateTime)  # T+2 settlement date
+    is_day_trade = Column(Boolean, default=False, index=True)  # Flag for day trades
+    confidence_score = Column(Float)  # Signal confidence (0.0-1.0) for position sizing
     
     # Relationships
     account = relationship("Account", back_populates="trades")
@@ -343,6 +349,99 @@ class ScreenerResult(Base):
     run = relationship("ScreenerRun", back_populates="screener_results")
 
 # Risk Management Models
+class CashAccountState(Base):
+    """Cash account state tracking"""
+    __tablename__ = "cash_account_state"
+    
+    id = Column(Integer, primary_key=True)
+    account_id = Column(Integer, ForeignKey("accounts.id"), nullable=False, unique=True, index=True)
+    balance = Column(Float, nullable=False)
+    is_cash_account_mode = Column(Boolean, default=False, nullable=False, index=True)
+    threshold = Column(Float, nullable=False, default=25000.0)  # Default $25k threshold
+    last_checked = Column(DateTime, nullable=False, server_default=func.now())
+    last_updated = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+    
+    # Relationships
+    account = relationship("Account", back_populates="cash_account_state")
+    
+    # Indexes
+    __table_args__ = (
+        Index('idx_cash_account_mode', 'is_cash_account_mode'),
+        {"mysql_engine": "InnoDB"},
+    )
+
+class DayTrade(Base):
+    """Day trade tracking for PDT compliance"""
+    __tablename__ = "day_trades"
+    
+    id = Column(Integer, primary_key=True)
+    account_id = Column(Integer, ForeignKey("accounts.id"), nullable=False, index=True)
+    symbol = Column(String(20), nullable=False, index=True)
+    buy_trade_id = Column(Integer, ForeignKey("trades.id"), nullable=False)
+    sell_trade_id = Column(Integer, ForeignKey("trades.id"), nullable=False)
+    trade_date = Column(DateTime, nullable=False, index=True)  # Date of the day trade
+    created_at = Column(DateTime, server_default=func.now())
+    
+    # Relationships
+    account = relationship("Account")
+    buy_trade = relationship("Trade", foreign_keys=[buy_trade_id])
+    sell_trade = relationship("Trade", foreign_keys=[sell_trade_id])
+    
+    # Indexes
+    __table_args__ = (
+        Index('idx_day_trade_account_date', 'account_id', 'trade_date'),
+        {"mysql_engine": "InnoDB"},
+    )
+
+class SettlementTracking(Base):
+    """Track trade settlements for T+2 compliance"""
+    __tablename__ = "settlement_tracking"
+    
+    id = Column(Integer, primary_key=True)
+    account_id = Column(Integer, ForeignKey("accounts.id"), nullable=False, index=True)
+    trade_id = Column(Integer, ForeignKey("trades.id"), nullable=False, unique=True, index=True)
+    trade_date = Column(DateTime, nullable=False, index=True)
+    settlement_date = Column(DateTime, nullable=False, index=True)
+    amount = Column(Float, nullable=False)  # Cash amount from trade
+    is_settled = Column(Boolean, default=False, nullable=False, index=True)
+    settled_at = Column(DateTime)
+    created_at = Column(DateTime, server_default=func.now())
+    
+    # Relationships
+    account = relationship("Account")
+    trade = relationship("Trade")
+    
+    # Indexes
+    __table_args__ = (
+        Index('idx_settlement_account_date', 'account_id', 'settlement_date'),
+        Index('idx_settlement_is_settled', 'is_settled'),
+        {"mysql_engine": "InnoDB"},
+    )
+
+class TradeFrequencyTracking(Base):
+    """Track daily and weekly trade frequency"""
+    __tablename__ = "trade_frequency_tracking"
+    
+    id = Column(Integer, primary_key=True)
+    account_id = Column(Integer, ForeignKey("accounts.id"), nullable=False, index=True)
+    date = Column(DateTime, nullable=False, index=True)  # Date of the trading day
+    daily_count = Column(Integer, default=0, nullable=False)
+    weekly_count = Column(Integer, default=0, nullable=False)  # Count for current week
+    week_start_date = Column(DateTime, nullable=False)  # Start of the week (Monday)
+    last_trade_at = Column(DateTime)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    
+    # Relationships
+    account = relationship("Account")
+    
+    # Unique constraint: one record per account per day
+    __table_args__ = (
+        Index('idx_frequency_account_date', 'account_id', 'date', unique=True),
+        Index('idx_frequency_week_start', 'account_id', 'week_start_date'),
+        {"mysql_engine": "InnoDB"},
+    )
+
 class RiskLimits(Base):
     """Risk limits model"""
     __tablename__ = "risk_limits"

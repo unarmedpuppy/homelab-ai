@@ -57,7 +57,8 @@ class UsageMonitor:
         source: str,
         success: bool = True,
         cached: bool = False,
-        cost: float = 0.0
+        cost: float = 0.0,
+        response_time: Optional[float] = None
     ):
         """
         Record an API request
@@ -67,6 +68,7 @@ class UsageMonitor:
             success: Whether request was successful
             cached: Whether result came from cache
             cost: Estimated cost of request
+            response_time: Optional response time in seconds
         """
         now = datetime.now()
         
@@ -106,6 +108,40 @@ class UsageMonitor:
             total = metrics.cache_hits + metrics.cache_misses
             if total > 0:
                 metrics.cache_hit_rate = metrics.cache_hits / total
+                
+                # Update Redis hit rate metric if available
+                try:
+                    from .metrics_system import update_redis_hit_rate
+                    update_redis_hit_rate(metrics.cache_hit_rate)
+                except (ImportError, Exception) as e:
+                    logger.debug(f"Could not update Redis hit rate metric: {e}")
+            
+            # Record Prometheus metrics if enabled
+            try:
+                from .metrics_providers import (
+                    record_provider_request,
+                    record_provider_response_time,
+                    record_provider_error
+                )
+                from ..config.settings import settings
+                
+                if settings.metrics.enabled:
+                    # Record provider request (handles success/failure and cached status)
+                    record_provider_request(source, success=success, cached=cached)
+                    
+                    # Record duration if available
+                    if response_time is not None:
+                        record_provider_response_time(source, response_time)
+                    
+                    # Record errors
+                    if not success:
+                        record_provider_error(source, error_type="unknown_error")
+                    
+                    # Note: Rate limit hits are tracked separately when detected by providers
+                    # Providers should call record_rate_limit_hit() directly when is_limited is True
+            except (ImportError, Exception) as e:
+                # Metrics providers module may not exist yet or metrics disabled
+                logger.debug(f"Could not record Prometheus metrics: {e}")
             
             # Record in history with TTL cleanup
             cutoff_time = now - timedelta(hours=self.history_ttl_hours)
