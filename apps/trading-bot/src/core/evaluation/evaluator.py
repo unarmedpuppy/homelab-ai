@@ -15,7 +15,7 @@ from dataclasses import dataclass
 
 from ..strategy.base import BaseStrategy, TradingSignal, Position, SignalType, ExitReason
 from ..strategy.registry import get_registry
-from ..data.providers.market_data import DataProviderManager
+from ...data.providers.market_data import DataProviderManager
 
 logger = logging.getLogger(__name__)
 

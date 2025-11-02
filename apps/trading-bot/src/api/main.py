@@ -16,6 +16,7 @@ from pathlib import Path
 
 from ..config.settings import settings
 from ..api.routes import trading, backtesting, screening, monitoring, market_data, strategies, sentiment, confluence, options_flow, trends, events, websocket
+# Import from middleware package (which now exports from middleware.py)
 from ..api.middleware import LoggingMiddleware, RateLimitMiddleware
 from ..api.middleware.metrics_middleware import MetricsMiddleware
 from ..utils.metrics_system import update_system_metrics, get_app_start_time, initialize_system_metrics

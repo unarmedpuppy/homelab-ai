@@ -21,7 +21,7 @@ except ImportError:
     RateLimitError = None
     TooManyRequests = None
 
-from ...config.settings import settings
+from ....config.settings import settings
 from .models import Tweet, TweetSentiment, SymbolSentiment, SentimentLevel, Influencer
 from .sentiment_analyzer import SentimentAnalyzer
 from .repository import SentimentRepository
@@ -354,7 +354,7 @@ class TwitterSentimentProvider:
         # Track provider availability
         is_available = self.is_available()
         try:
-            from ...utils.metrics_providers import update_provider_availability
+            from ....utils.metrics_providers import update_provider_availability
             update_provider_availability("twitter", is_available)
         except (ImportError, Exception) as e:
             logger.debug(f"Could not record availability metric: {e}")
@@ -372,7 +372,7 @@ class TwitterSentimentProvider:
                 logger.error(f"Twitter rate limit still exceeded after wait")
                 # Record rate limit hit metric
                 try:
-                    from ...utils.metrics_providers import record_rate_limit_hit
+                    from ....utils.metrics_providers import record_rate_limit_hit
                     record_rate_limit_hit("twitter")
                 except (ImportError, Exception) as e:
                     logger.debug(f"Could not record rate limit metric: {e}")
@@ -386,7 +386,7 @@ class TwitterSentimentProvider:
             logger.debug(f"Returning cached sentiment for {symbol}")
             # Track data freshness
             try:
-                from ...utils.metrics_providers import update_data_freshness
+                from ....utils.metrics_providers import update_data_freshness
                 cache_age = (datetime.now() - cached.timestamp).total_seconds()
                 update_data_freshness("twitter", "get_sentiment", cache_age)
             except (ImportError, Exception) as e:
@@ -415,7 +415,7 @@ class TwitterSentimentProvider:
         # Record API response time
         api_response_time = time.time() - api_start_time
         try:
-            from ...utils.metrics_providers import record_provider_response_time
+            from ....utils.metrics_providers import record_provider_response_time
             record_provider_response_time("twitter", api_response_time)
         except (ImportError, Exception) as e:
             logger.debug(f"Could not record response time metric: {e}")

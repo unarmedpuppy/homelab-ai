@@ -7,12 +7,12 @@ to track overall attention and detect mention spikes and trends.
 """
 
 import logging
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime, timedelta
 from collections import defaultdict
 from dataclasses import dataclass, field
 
-from ...config.settings import settings
+from ....config.settings import settings
 from .repository import SentimentRepository
 
 logger = logging.getLogger(__name__)

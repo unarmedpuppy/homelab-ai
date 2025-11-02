@@ -6,7 +6,7 @@ API endpoints for sentiment data from various sources (Twitter, Reddit, etc.).
 """
 
 from fastapi import APIRouter, HTTPException, Query, Body, Depends
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 from pydantic import BaseModel
 import logging
@@ -86,8 +86,8 @@ def get_twitter_provider() -> TwitterSentimentProvider:
     if _twitter_provider is None:
         with _provider_locks['twitter']:
             # Double-check pattern to avoid unnecessary locks
-    if _twitter_provider is None:
-        _twitter_provider = TwitterSentimentProvider(persist_to_db=True)
+            if _twitter_provider is None:
+                _twitter_provider = TwitterSentimentProvider(persist_to_db=True)
                 logger.info("Twitter provider initialized")
     return _twitter_provider
 

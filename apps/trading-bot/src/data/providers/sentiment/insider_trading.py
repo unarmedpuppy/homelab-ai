@@ -42,13 +42,13 @@ except ImportError:
     retry_if_exception_type = None
     RetryError = Exception
 
-from ...config.settings import settings
+from ....config.settings import settings
 from .models import SymbolSentiment, SentimentLevel
 from .repository import SentimentRepository
 from .sentiment_analyzer import SentimentAnalyzer
-from ...utils.cache import get_cache_manager
-from ...utils.rate_limiter import get_rate_limiter
-from ...utils.monitoring import get_usage_monitor
+from ....utils.cache import get_cache_manager
+from ....utils.rate_limiter import get_rate_limiter
+from ....utils.monitoring import get_usage_monitor
 
 logger = logging.getLogger(__name__)
 
@@ -670,7 +670,7 @@ class InsiderTradingSentimentProvider:
         # Track provider availability
         is_available = self.is_available()
         try:
-            from ...utils.metrics_providers_helpers import track_provider_availability
+            from ....utils.metrics_providers_helpers import track_provider_availability
             track_provider_availability("insider_trading", is_available)
         except (ImportError, Exception) as e:
             logger.debug(f"Could not record availability metric: {e}")
@@ -690,7 +690,7 @@ class InsiderTradingSentimentProvider:
             logger.debug(f"Returning cached insider trading sentiment for {symbol}")
             # Track data freshness
             try:
-                from ...utils.metrics_providers_helpers import track_cache_freshness
+                from ....utils.metrics_providers_helpers import track_cache_freshness
                 track_cache_freshness("insider_trading", "get_sentiment", cached)
             except (ImportError, Exception) as e:
                 logger.debug(f"Could not record data freshness metric: {e}")
@@ -714,7 +714,7 @@ class InsiderTradingSentimentProvider:
                 logger.error(f"Insider trading rate limit still exceeded after wait")
                 # Record rate limit hit metric
                 try:
-                    from ...utils.metrics_providers_helpers import track_rate_limit_hit
+                    from ....utils.metrics_providers_helpers import track_rate_limit_hit
                     track_rate_limit_hit("insider_trading")
                 except (ImportError, Exception) as e:
                     logger.debug(f"Could not record rate limit metric: {e}")

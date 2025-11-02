@@ -14,10 +14,10 @@ if TYPE_CHECKING:
 from datetime import datetime, timedelta
 from dataclasses import dataclass, field
 
-from ...config.settings import settings
+from ....config.settings import settings
 from .models import SymbolSentiment, SentimentLevel
-from ...utils.cache import get_cache_manager
-from ...utils.metrics import (
+from ....utils.cache import get_cache_manager
+from ....utils.metrics import (
     get_or_create_histogram,
     get_or_create_counter,
     get_or_create_gauge,
