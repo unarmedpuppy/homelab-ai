@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trading Bot Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <style>
         .gradient-bg {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -24,6 +24,12 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
+        .price-up {
+            color: #10b981;
+        }
+        .price-down {
+            color: #ef4444;
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -36,12 +42,23 @@
                     <h1 class="text-white text-xl font-bold">Trading Bot Dashboard</h1>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <div class="text-white">
-                        <span class="text-sm">Status:</span>
-                        <span id="connection-status" class="ml-2 px-2 py-1 bg-green-500 rounded-full text-xs">
-                            <i class="fas fa-circle mr-1"></i>Connected
-                        </span>
+                    <div class="flex items-center space-x-3 text-white text-sm">
+                        <div class="flex items-center">
+                            <span class="mr-1">WebSocket:</span>
+                            <span id="ws-connection-status" class="px-2 py-1 bg-gray-500 rounded-full text-xs">
+                                <i class="fas fa-circle mr-1"></i>Connecting...
+                            </span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="mr-1">IBKR:</span>
+                            <span id="ibkr-connection-status" class="px-2 py-1 bg-gray-500 rounded-full text-xs">
+                                <i class="fas fa-circle mr-1"></i>Checking...
+                            </span>
+                        </div>
                     </div>
+                    <a href="/scheduler" class="px-3 py-2 bg-white bg-opacity-20 text-white rounded-md hover:bg-opacity-30 transition-colors text-sm font-medium">
+                        <i class="fas fa-tasks mr-2"></i>Scheduler
+                    </a>
                     <button id="settings-btn" class="text-white hover:text-gray-200">
                         <i class="fas fa-cog text-xl"></i>
                     </button>
@@ -61,7 +78,10 @@
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-500">Portfolio Value</p>
-                        <p id="portfolio-value" class="text-2xl font-semibold text-gray-900">$100,000</p>
+                        <p id="portfolio-value" class="text-2xl font-semibold text-gray-900" data-loading="true">
+                            <span class="portfolio-loading"><i class="fas fa-spinner fa-spin mr-2"></i>Loading...</span>
+                            <span class="portfolio-value-display hidden"></span>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -73,7 +93,14 @@
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-500">Today's P&L</p>
-                        <p id="daily-pnl" class="text-2xl font-semibold text-green-600">+$1,250</p>
+                        <p id="daily-pnl" class="text-2xl font-semibold text-green-600" data-loading="true">
+                            <span class="pnl-loading"><i class="fas fa-spinner fa-spin mr-2"></i>Loading...</span>
+                            <span class="pnl-value-display hidden"></span>
+                        </p>
+                        <p id="daily-pnl-percent" class="text-sm text-gray-500" data-loading="true">
+                            <span class="pnl-percent-loading"><i class="fas fa-spinner fa-spin mr-2"></i></span>
+                            <span class="pnl-percent-display hidden"></span>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -85,7 +112,10 @@
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-500">Win Rate</p>
-                        <p id="win-rate" class="text-2xl font-semibold text-gray-900">68.5%</p>
+                        <p id="win-rate" class="text-2xl font-semibold text-gray-900" data-loading="true">
+                            <span class="winrate-loading"><i class="fas fa-spinner fa-spin mr-2"></i>Loading...</span>
+                            <span class="winrate-value-display hidden"></span>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -97,7 +127,10 @@
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-500">Active Trades</p>
-                        <p id="active-trades" class="text-2xl font-semibold text-gray-900">3</p>
+                        <p id="active-trades" class="text-2xl font-semibold text-gray-900" data-loading="true">
+                            <span class="activetrades-loading"><i class="fas fa-spinner fa-spin mr-2"></i>Loading...</span>
+                            <span class="activetrades-value-display hidden"></span>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -130,6 +163,7 @@
                                 <option value="NVDA">NVDA - NVIDIA Corp.</option>
                                 <option value="GOOGL">GOOGL - Alphabet Inc.</option>
                                 <option value="AMZN">AMZN - Amazon.com Inc.</option>
+                                <option value="SPY">SPY - SPDR S&P 500 ETF</option>
                             </select>
                             <button id="refresh-price" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
                                 <i class="fas fa-sync-alt"></i>
@@ -142,11 +176,12 @@
                         <div class="flex justify-between items-center">
                             <div>
                                 <h3 id="current-symbol" class="text-lg font-semibold">AAPL</h3>
-                                <p id="current-price" class="text-3xl font-bold text-gray-900">$150.25</p>
+                                <p id="current-price" class="text-3xl font-bold text-gray-900">--</p>
+                                <p id="last-updated" class="text-xs text-gray-500 mt-1"></p>
                             </div>
                             <div class="text-right">
-                                <p id="price-change" class="text-lg font-semibold text-green-600">+$0.15</p>
-                                <p id="price-change-pct" class="text-sm text-green-600">+0.10%</p>
+                                <p id="price-change" class="text-lg font-semibold">--</p>
+                                <p id="price-change-pct" class="text-sm">--</p>
                             </div>
                         </div>
                     </div>
@@ -198,6 +233,21 @@
                     </div>
                 </div>
 
+                <!-- Live Signal Feed -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Live Signals</h3>
+                        <button id="clear-signals" class="text-sm text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-trash mr-1"></i>Clear
+                        </button>
+                    </div>
+                    <div id="signal-feed" class="space-y-2 max-h-96 overflow-y-auto">
+                        <div class="text-center text-gray-400 py-4 text-sm">
+                            <i class="fas fa-signal mr-2"></i>Waiting for signals...
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Recent Trades -->
                 <div class="bg-white rounded-lg shadow-md p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Trades</h3>
@@ -244,136 +294,750 @@
     </div>
 
     <!-- WebSocket Connection -->
+    <script src="/static/js/dashboard-utils.js"></script>
     <script>
+        /**
+         * WebSocket Connection Manager for Dashboard
+         * Manages connections, subscriptions, reconnection, and message routing
+         */
+        class DashboardWebSocketManager {
+            constructor() {
+                this.connections = {};
+                this.reconnectAttempts = {};
+                this.maxReconnectAttempts = 5;
+                this.reconnectDelays = {}; // Track delay per stream
+                this.subscribedSymbols = new Set();
+            }
+
+            connect(stream, symbol = null) {
+                const key = symbol ? `${stream}:${symbol}` : stream;
+                if (this.connections[key] && this.connections[key].readyState === WebSocket.OPEN) {
+                    console.log(`Already connected to ${key}`);
+                    return this.connections[key];
+                }
+
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const wsUrl = `${protocol}//${window.location.host}/ws`;
+                
+                const ws = new WebSocket(wsUrl);
+                this.connections[key] = ws;
+                this.reconnectAttempts[key] = 0;
+                this.reconnectDelays[key] = 1000; // Start with 1 second
+
+                ws.onopen = () => {
+                    console.log(`WebSocket connected: ${key}`);
+                    this.reconnectAttempts[key] = 0;
+                    this.reconnectDelays[key] = 1000;
+                    
+                    // Subscribe to the stream
+                    if (stream === 'price' && symbol) {
+                        ws.send(JSON.stringify({
+                            type: 'subscribe',
+                            channel: 'price',
+                            symbols: [symbol]
+                        }));
+                    } else {
+                        ws.send(JSON.stringify({
+                            type: 'subscribe',
+                            channel: stream
+                        }));
+                    }
+                };
+
+                ws.onclose = () => {
+                    console.log(`WebSocket disconnected: ${key}`);
+                    this.reconnect(key, stream, symbol);
+                };
+
+                ws.onerror = (error) => {
+                    console.error(`WebSocket error for ${key}:`, error);
+                };
+
+                return ws;
+            }
+
+            reconnect(key, stream, symbol = null) {
+                if (this.reconnectAttempts[key] >= this.maxReconnectAttempts) {
+                    console.error(`Max reconnection attempts reached for ${key}`);
+                    return;
+                }
+
+                this.reconnectAttempts[key]++;
+                const delay = this.reconnectDelays[key];
+                
+                console.log(`Reconnecting to ${key} in ${delay}ms (attempt ${this.reconnectAttempts[key]})`);
+                
+                setTimeout(() => {
+                    this.reconnectDelays[key] = Math.min(delay * 2, 16000); // Exponential backoff, max 16s
+                    this.connect(stream, symbol);
+                }, delay);
+            }
+
+            disconnect(stream, symbol = null) {
+                const key = symbol ? `${stream}:${symbol}` : stream;
+                if (this.connections[key]) {
+                    this.connections[key].close();
+                    delete this.connections[key];
+                    delete this.reconnectAttempts[key];
+                    delete this.reconnectDelays[key];
+                }
+            }
+
+            disconnectAll() {
+                Object.keys(this.connections).forEach(key => {
+                    if (this.connections[key]) {
+                        this.connections[key].close();
+                    }
+                });
+                this.connections = {};
+                this.reconnectAttempts = {};
+                this.reconnectDelays = {};
+            }
+        }
+
         class TradingDashboard {
             constructor() {
                 this.ws = null;
                 this.isConnected = false;
+                this.wsManager = new DashboardWebSocketManager();
+                this.reconnectAttempts = 0;
+                this.maxReconnectAttempts = 5;
+                this.reconnectDelay = 1000;
+                this.pricePollingInterval = null;
+                this.portfolioPollingInterval = null;
+                this.pingInterval = null;
+                this.signalFeedLimit = 50; // Limit to last 50 signals
+                this.currentSymbol = 'AAPL'; // Default symbol
+                this.lastKnownPrice = null; // Track last known price for fallback
                 this.init();
             }
 
             init() {
                 this.connectWebSocket();
+                this.checkIBKRStatus(); // Check IBKR status on init
                 this.setupEventListeners();
-                this.initializeCharts();
-                this.startPriceUpdates();
+                this.initializeCharts();  // This will also load chart data
+                this.loadRecentTrades();  // Load trades on page load
+                this.loadPortfolioSummary(); // Load portfolio summary on page load
+                this.setupPollingFallback(); // Fallback to polling if WebSocket fails
+                
+                // Fetch initial price on page load
+                const symbol = document.getElementById('symbol-select').value;
+                this.refreshPriceViaAPI(symbol);
+                
+                // Refresh portfolio summary periodically (every 30 seconds)
+                // This also updates IBKR status
+                setInterval(() => {
+                    this.loadPortfolioSummary();
+                }, 30 * 1000);
+                
+                // Check IBKR status periodically (every 60 seconds, independent of portfolio)
+                setInterval(() => {
+                    this.checkIBKRStatus();
+                }, 60 * 1000);
+                
+                // Refresh charts periodically (every 5 minutes)
+                setInterval(() => {
+                    this.loadChartData();
+                }, 5 * 60 * 1000);
             }
 
             connectWebSocket() {
                 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
                 const wsUrl = `${protocol}//${window.location.host}/ws`;
                 
-                this.ws = new WebSocket(wsUrl);
-                
-                this.ws.onopen = () => {
-                    this.isConnected = true;
-                    this.updateConnectionStatus('Connected', 'green');
-                    console.log('WebSocket connected');
-                };
-                
-                this.ws.onmessage = (event) => {
-                    const data = JSON.parse(event.data);
-                    this.handleWebSocketMessage(data);
-                };
-                
-                this.ws.onclose = () => {
-                    this.isConnected = false;
-                    this.updateConnectionStatus('Disconnected', 'red');
-                    console.log('WebSocket disconnected');
+                try {
+                    this.ws = new WebSocket(wsUrl);
                     
-                    // Reconnect after 5 seconds
-                    setTimeout(() => this.connectWebSocket(), 5000);
-                };
+                    this.ws.onopen = () => {
+                        this.isConnected = true;
+                        this.reconnectAttempts = 0;
+                        this.reconnectDelay = 1000;
+                        this.updateWebSocketStatus('Connected', 'green');
+                        console.log('WebSocket connected');
+                        
+                        // Subscribe to price updates for current symbol
+                        this.subscribeToPrice(this.currentSymbol);
+                        
+                        // Portfolio and signals are auto-subscribed by server
+                        // But we can explicitly subscribe for clarity
+                        this.ws.send(JSON.stringify({
+                            type: 'subscribe',
+                            channel: 'portfolio'
+                        }));
+                        
+                        this.ws.send(JSON.stringify({
+                            type: 'subscribe',
+                            channel: 'signals'
+                        }));
+                        
+                        // Stop polling fallback when WebSocket is connected
+                        this.stopPollingFallback();
+                        
+                        // Start ping interval
+                        this.startPingInterval();
+                    };
+                    
+                    this.ws.onmessage = (event) => {
+                        try {
+                            const data = JSON.parse(event.data);
+                            this.handleWebSocketMessage(data);
+                        } catch (error) {
+                            console.error('Error parsing WebSocket message:', error);
+                        }
+                    };
+                    
+                    this.ws.onclose = () => {
+                        this.isConnected = false;
+                        this.updateWebSocketStatus('Disconnected', 'red');
+                        console.log('WebSocket disconnected');
+                        
+                        // Start polling fallback
+                        this.startPollingFallback();
+                        
+                        // Attempt reconnection with exponential backoff
+                        this.reconnect();
+                    };
+                    
+                    this.ws.onerror = (error) => {
+                        console.error('WebSocket error:', error);
+                        this.updateWebSocketStatus('Error', 'red');
+                    };
+                } catch (error) {
+                    console.error('Error creating WebSocket:', error);
+                    this.updateWebSocketStatus('Error', 'red');
+                    this.startPollingFallback();
+                }
+            }
+
+            reconnect() {
+                if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+                    console.error('Max reconnection attempts reached, using polling fallback');
+                    this.updateWebSocketStatus('Fallback Mode', 'yellow');
+                    return;
+                }
+
+                this.reconnectAttempts++;
+                this.updateWebSocketStatus(`Reconnecting (${this.reconnectAttempts}/${this.maxReconnectAttempts})`, 'yellow');
+                console.log(`Reconnecting in ${this.reconnectDelay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
                 
-                this.ws.onerror = (error) => {
-                    console.error('WebSocket error:', error);
-                    this.updateConnectionStatus('Error', 'red');
-                };
+                setTimeout(() => {
+                    this.reconnectDelay = Math.min(this.reconnectDelay * 2, 16000); // Exponential backoff, max 16s
+                    this.connectWebSocket();
+                }, this.reconnectDelay);
+            }
+
+            subscribeToPrice(symbol) {
+                if (!this.isConnected || !this.ws) return;
+                
+                this.ws.send(JSON.stringify({
+                    type: 'subscribe',
+                    channel: 'price',
+                    symbols: [symbol.toUpperCase()]
+                }));
+                
+                this.currentSymbol = symbol.toUpperCase();
+                console.log(`Subscribed to price updates for ${this.currentSymbol}`);
+            }
+
+            unsubscribeFromPrice(symbol) {
+                if (!this.isConnected || !this.ws) return;
+                
+                this.ws.send(JSON.stringify({
+                    type: 'unsubscribe',
+                    channel: 'price',
+                    symbols: [symbol.toUpperCase()]
+                }));
             }
 
             handleWebSocketMessage(data) {
-                switch (data.type) {
+                // Handle different message formats
+                const messageType = data.type || data.message_type;
+                
+                switch (messageType) {
                     case 'price_update':
-                        this.updatePriceData(data.symbols);
+                    case 'price_updates':
+                        // Handle batch price update (all subscribed symbols)
+                        // Message format can be: { type: "price_update", symbols: {...} }
+                        // or: { type: "price_update", data: { symbols: {...} } }
+                        if (data.symbols) {
+                            this.updatePriceData(data.symbols);
+                        } else if (data.data && data.data.symbols) {
+                            this.updatePriceData(data.data.symbols);
+                        }
+                        break;
+                    case 'portfolio_update':
+                        // Portfolio update message
+                        // Format: { type: "portfolio_update", data: { positions: {...}, total_pnl: ..., ... } }
+                        if (data.data) {
+                            this.updatePortfolioData(data.data);
+                        } else {
+                            // Direct portfolio data
+                            this.updatePortfolioData(data);
+                        }
                         break;
                     case 'signal':
-                        this.displaySignal(data);
+                        // Individual signal message
+                        // Format: { type: "signal", signal_type: "BUY", symbol: "...", ... }
+                        this.handleSignal(data);
                         break;
                     case 'trade_executed':
-                        this.addRecentTrade(data);
+                        // Reload trades when a new trade is executed
+                        this.loadRecentTrades();
                         break;
                     case 'pong':
-                        console.log('Pong received');
+                        // Heartbeat response
                         break;
+                    case 'subscribed':
+                        console.log(`Subscribed to ${data.channel}`, data);
+                        break;
+                    case 'error':
+                        console.error('WebSocket error message:', data.error || data.message);
+                        break;
+                    default:
+                        // Try to handle unknown types gracefully
+                        if (data.symbols) {
+                            // Might be a price update with different type name
+                            this.updatePriceData(data.symbols);
+                        } else {
+                            console.log('Unknown WebSocket message type:', messageType, data);
+                        }
                 }
             }
 
             updatePriceData(symbols) {
                 const currentSymbol = document.getElementById('symbol-select').value;
-                if (symbols[currentSymbol]) {
+                if (symbols && symbols[currentSymbol]) {
                     const data = symbols[currentSymbol];
-                    document.getElementById('current-price').textContent = `$${data.price.toFixed(2)}`;
-                    document.getElementById('price-change').textContent = `${data.change >= 0 ? '+' : ''}$${data.change.toFixed(2)}`;
-                    document.getElementById('price-change-pct').textContent = `${data.change_pct >= 0 ? '+' : ''}${data.change_pct.toFixed(2)}%`;
+                    this.updatePriceDisplay(data);
+                }
+            }
+
+            /**
+             * Update price display with formatted data from API or WebSocket
+             * @param {Object} data - Market data response
+             */
+            updatePriceDisplay(data) {
+                if (!data) return;
+
+                const priceElement = document.getElementById('current-price');
+                const changeElement = document.getElementById('price-change');
+                const changePctElement = document.getElementById('price-change-pct');
+                const lastUpdatedElement = document.getElementById('last-updated');
+
+                // Update price
+                if (data.price !== undefined && data.price !== null) {
+                    const price = parseFloat(data.price);
+                    if (priceElement) {
+                        priceElement.textContent = `$${price.toFixed(2)}`;
+                    }
+                    this.lastKnownPrice = price;
+                }
+
+                // Update price change
+                if (data.change !== undefined && data.change !== null) {
+                    const change = parseFloat(data.change);
+                    const changePct = data.change_pct !== undefined && data.change_pct !== null 
+                        ? parseFloat(data.change_pct) 
+                        : 0;
+
+                    // Format change
+                    const changeSign = change >= 0 ? '+' : '';
+                    if (changeElement) {
+                        changeElement.textContent = `${changeSign}$${Math.abs(change).toFixed(2)}`;
+                        
+                        // Color code: green for up, red for down
+                        if (change >= 0) {
+                            changeElement.className = 'text-lg font-semibold text-green-600';
+                        } else {
+                            changeElement.className = 'text-lg font-semibold text-red-600';
+                        }
+                    }
                     
-                    // Update color based on change
-                    const changeColor = data.change >= 0 ? 'text-green-600' : 'text-red-600';
-                    document.getElementById('price-change').className = `text-lg font-semibold ${changeColor}`;
-                    document.getElementById('price-change-pct').className = `text-sm ${changeColor}`;
+                    if (changePctElement) {
+                        changePctElement.textContent = `${changeSign}${Math.abs(changePct).toFixed(2)}%`;
+                        
+                        // Color code: green for up, red for down
+                        if (change >= 0) {
+                            changePctElement.className = 'text-sm text-green-600';
+                        } else {
+                            changePctElement.className = 'text-sm text-red-600';
+                        }
+                    }
+                } else {
+                    if (changeElement) {
+                        changeElement.textContent = '--';
+                        changeElement.className = 'text-lg font-semibold';
+                    }
+                    if (changePctElement) {
+                        changePctElement.textContent = '--';
+                        changePctElement.className = 'text-sm';
+                    }
+                }
+
+                // Update last updated timestamp
+                if (lastUpdatedElement) {
+                    if (data.timestamp) {
+                        const updateTime = new Date(data.timestamp);
+                        lastUpdatedElement.textContent = `Updated: ${updateTime.toLocaleTimeString()}`;
+                    } else {
+                        lastUpdatedElement.textContent = `Updated: ${new Date().toLocaleTimeString()}`;
+                    }
+                }
+            }
+
+            updatePortfolioData(portfolioData) {
+                if (!portfolioData) return;
+                
+                // Update portfolio value
+                if (portfolioData.total_value !== undefined) {
+                    const portfolioValueElement = document.getElementById('portfolio-value');
+                    if (portfolioValueElement) {
+                        portfolioValueElement.textContent = `$${portfolioData.total_value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                    }
+                }
+                
+                // Update daily P&L
+                if (portfolioData.daily_pnl !== undefined || portfolioData.total_pnl !== undefined) {
+                    const dailyPnL = portfolioData.daily_pnl !== undefined ? portfolioData.daily_pnl : portfolioData.total_pnl;
+                    const dailyPnLElement = document.getElementById('daily-pnl');
+                    const dailyPnLPctElement = document.getElementById('daily-pnl-percent');
+                    
+                    if (dailyPnLElement) {
+                        const pnlColor = dailyPnL >= 0 ? 'text-green-600' : 'text-red-600';
+                        const sign = dailyPnL >= 0 ? '+' : '';
+                        dailyPnLElement.textContent = `${sign}$${Math.abs(dailyPnL).toFixed(2)}`;
+                        dailyPnLElement.className = `text-2xl font-semibold ${pnlColor}`;
+                    }
+                    
+                    if (dailyPnLPctElement && portfolioData.daily_pnl_pct !== undefined) {
+                        const pctColor = portfolioData.daily_pnl_pct >= 0 ? 'text-green-600' : 'text-red-600';
+                        const sign = portfolioData.daily_pnl_pct >= 0 ? '+' : '';
+                        dailyPnLPctElement.textContent = `${sign}${Math.abs(portfolioData.daily_pnl_pct).toFixed(2)}%`;
+                        dailyPnLPctElement.className = `text-sm ${pctColor}`;
+                    }
+                }
+                
+                // Update active trades count
+                if (portfolioData.position_count !== undefined) {
+                    const activeTradesElement = document.getElementById('active-trades');
+                    if (activeTradesElement) {
+                        activeTradesElement.textContent = portfolioData.position_count.toString();
+                    }
+                }
+            }
+
+            handleSignal(signalData) {
+                // Update current signal display
+                this.displaySignal(signalData);
+                
+                // Add to live signal feed
+                this.addSignalToFeed(signalData);
+            }
+
+            addSignalToFeed(signalData) {
+                const signalFeed = document.getElementById('signal-feed');
+                if (!signalFeed) return;
+                
+                // Remove "waiting for signals" message if present
+                if (signalFeed.children.length === 1 && signalFeed.children[0].textContent.includes('Waiting for signals')) {
+                    signalFeed.innerHTML = '';
+                }
+                
+                // Create signal card
+                const signalCard = document.createElement('div');
+                signalCard.className = 'p-3 bg-gray-50 rounded-md border-l-4';
+                
+                const signalType = signalData.signal_type || signalData.type;
+                const isBuy = signalType === 'BUY';
+                const borderColor = isBuy ? 'border-green-500' : 'border-red-500';
+                signalCard.classList.add(borderColor);
+                
+                // Format timestamp
+                let timeText = 'Just now';
+                if (signalData.timestamp) {
+                    try {
+                        const signalTime = new Date(signalData.timestamp);
+                        const now = new Date();
+                        const diffMs = now - signalTime;
+                        const diffMins = Math.floor(diffMs / 60000);
+                        
+                        if (diffMins < 1) {
+                            timeText = 'Just now';
+                        } else if (diffMins < 60) {
+                            timeText = `${diffMins}m ago`;
+                        } else {
+                            const diffHours = Math.floor(diffMins / 60);
+                            timeText = `${diffHours}h ago`;
+                        }
+                    } catch (e) {
+                        timeText = 'Just now';
+                    }
+                }
+                
+                const confidence = (signalData.confidence * 100).toFixed(1);
+                const confidenceColor = signalData.confidence >= 0.7 ? 'text-green-600' : 
+                                       signalData.confidence >= 0.4 ? 'text-yellow-600' : 'text-gray-600';
+                
+                signalCard.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-2 mb-1">
+                                <span class="font-semibold ${isBuy ? 'text-green-600' : 'text-red-600'}">
+                                    ${isBuy ? 'BUY' : 'SELL'}
+                                </span>
+                                <span class="font-medium text-gray-900">${signalData.symbol}</span>
+                                <span class="text-sm text-gray-500">@ $${(signalData.price || 0).toFixed(2)}</span>
+                            </div>
+                            <div class="flex items-center space-x-3 text-sm text-gray-600">
+                                <span class="${confidenceColor}">
+                                    <i class="fas fa-chart-line mr-1"></i>${confidence}% confidence
+                                </span>
+                                <span>Qty: ${signalData.quantity || 0}</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-gray-500">${timeText}</span>
+                        </div>
+                    </div>
+                `;
+                
+                // Add to top of feed
+                signalFeed.insertBefore(signalCard, signalFeed.firstChild);
+                
+                // Limit feed size
+                while (signalFeed.children.length > this.signalFeedLimit) {
+                    signalFeed.removeChild(signalFeed.lastChild);
+                }
+                
+                // Optional: Play notification sound for high-confidence signals
+                if (signalData.confidence >= 0.7) {
+                    // Could add sound notification here if desired
+                    console.log(`High-confidence signal: ${signalType} ${signalData.symbol}`);
                 }
             }
 
             displaySignal(signalData) {
                 const signalDisplay = document.getElementById('signal-display');
                 const signalType = signalData.signal_type;
-                const confidence = signalData.confidence;
+                const confidence = signalData.confidence || 0;
                 
-                let icon, color, text;
+                let icon, color, text, bgColor;
                 switch (signalType) {
                     case 'BUY':
                         icon = 'fas fa-arrow-up';
-                        color = 'text-green-500';
+                        color = 'text-green-600';
                         text = 'BUY Signal';
+                        bgColor = 'bg-green-50';
                         break;
                     case 'SELL':
                         icon = 'fas fa-arrow-down';
-                        color = 'text-red-500';
+                        color = 'text-red-600';
                         text = 'SELL Signal';
+                        bgColor = 'bg-red-50';
                         break;
                     default:
                         icon = 'fas fa-minus';
-                        color = 'text-gray-500';
+                        color = 'text-gray-600';
                         text = 'HOLD Signal';
+                        bgColor = 'bg-gray-50';
                 }
                 
-                signalDisplay.innerHTML = `
-                    <i class="${icon} ${color} text-4xl mb-4"></i>
-                    <p class="text-xl font-semibold ${color}">${text}</p>
-                    <p class="text-sm text-gray-500">Confidence: ${(confidence * 100).toFixed(1)}%</p>
-                    <p class="text-sm text-gray-500">Price: $${signalData.price}</p>
+                // Format prices
+                const entryPrice = signalData.entry_price || signalData.price || 0;
+                const takeProfitPrice = signalData.take_profit_price;
+                const stopLossPrice = signalData.stop_loss_price;
+                const confluenceScore = signalData.confluence_score;
+                const directionalBias = signalData.directional_bias;
+                const recommendation = signalData.recommendation || '';
+                const reasoning = signalData.reasoning || {};
+                
+                // Build HTML
+                let html = `
+                    <div class="${bgColor} rounded-lg p-6 border-2 ${color.replace('text-', 'border-')}">
+                        <div class="text-center mb-4">
+                            <i class="${icon} ${color} text-5xl mb-3"></i>
+                            <p class="text-2xl font-bold ${color} mb-1">${text}</p>
+                            <p class="text-lg font-semibold text-gray-900">${signalData.symbol || 'N/A'}</p>
+                        </div>
+                        
+                        <div class="space-y-3 mb-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Confidence:</span>
+                                <span class="font-semibold ${confidence >= 0.7 ? 'text-green-600' : confidence >= 0.4 ? 'text-yellow-600' : 'text-gray-600'}">
+                                    ${(confidence * 100).toFixed(1)}%
+                                </span>
+                            </div>
+                            
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Entry Price:</span>
+                                <span class="font-semibold text-gray-900">${formatCurrency(entryPrice)}</span>
+                            </div>
+                            
+                            ${confluenceScore !== null && confluenceScore !== undefined ? `
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Confluence Score:</span>
+                                <span class="font-semibold ${confluenceScore >= 0.7 ? 'text-green-600' : confluenceScore >= 0.5 ? 'text-yellow-600' : 'text-gray-600'}">
+                                    ${(confluenceScore * 100).toFixed(1)}%
+                                </span>
+                            </div>
+                            ` : ''}
+                            
+                            ${directionalBias !== null && directionalBias !== undefined ? `
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Directional Bias:</span>
+                                <span class="font-semibold ${directionalBias > 0 ? 'text-green-600' : directionalBias < 0 ? 'text-red-600' : 'text-gray-600'}">
+                                    ${directionalBias > 0 ? '+' : ''}${(directionalBias * 100).toFixed(1)}%
+                                    ${directionalBias > 0.2 ? '(Bullish)' : directionalBias < -0.2 ? '(Bearish)' : '(Neutral)'}
+                                </span>
+                            </div>
+                            ` : ''}
+                            
+                            ${takeProfitPrice ? `
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Take Profit:</span>
+                                <span class="font-semibold text-green-600">${formatCurrency(takeProfitPrice)}</span>
+                            </div>
+                            ` : ''}
+                            
+                            ${stopLossPrice ? `
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Stop Loss:</span>
+                                <span class="font-semibold text-red-600">${formatCurrency(stopLossPrice)}</span>
+                            </div>
+                            ` : ''}
+                            
+                            ${signalData.quantity ? `
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Quantity:</span>
+                                <span class="font-semibold text-gray-900">${signalData.quantity} shares</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                        
+                        ${recommendation ? `
+                        <div class="mt-4 pt-4 border-t border-gray-200">
+                            <p class="text-sm text-gray-700 leading-relaxed">${escapeHtml(recommendation)}</p>
+                        </div>
+                        ` : ''}
+                        
+                        ${reasoning && Object.keys(reasoning).length > 0 ? `
+                        <details class="mt-4 pt-4 border-t border-gray-200">
+                            <summary class="cursor-pointer text-sm font-medium text-gray-600 hover:text-gray-900">
+                                <i class="fas fa-info-circle mr-1"></i>View Detailed Analysis
+                            </summary>
+                            <div class="mt-2 text-xs text-gray-600 space-y-1">
+                                ${reasoning.confluence_level ? `<div>Confluence Level: <strong>${reasoning.confluence_level}</strong></div>` : ''}
+                                ${reasoning.meets_minimum_threshold !== undefined ? `<div>Meets Minimum Threshold: <strong>${reasoning.meets_minimum_threshold ? 'Yes' : 'No'}</strong></div>` : ''}
+                                ${reasoning.technical_score !== null && reasoning.technical_score !== undefined ? `<div>Technical Score: <strong>${(reasoning.technical_score * 100).toFixed(1)}%</strong></div>` : ''}
+                                ${reasoning.sentiment_score !== null && reasoning.sentiment_score !== undefined ? `<div>Sentiment Score: <strong>${(reasoning.sentiment_score * 100).toFixed(1)}%</strong></div>` : ''}
+                                ${reasoning.options_flow_score !== null && reasoning.options_flow_score !== undefined ? `<div>Options Flow Score: <strong>${(reasoning.options_flow_score * 100).toFixed(1)}%</strong></div>` : ''}
+                                ${reasoning.components_used && reasoning.components_used.length > 0 ? `<div>Components Used: <strong>${reasoning.components_used.join(', ')}</strong></div>` : ''}
+                            </div>
+                        </details>
+                        ` : ''}
+                    </div>
                 `;
+                
+                signalDisplay.innerHTML = html;
+                
+                // Also add to signal feed
+                this.addSignalToFeed({
+                    ...signalData,
+                    timestamp: new Date().toISOString()
+                });
+                
+                // Show success message
+                if (signalType !== 'HOLD') {
+                    showSuccessMessage(`Signal generated: ${text} ${signalData.symbol}`);
+                }
             }
 
             setupEventListeners() {
-                // Symbol selection
-                document.getElementById('symbol-select').addEventListener('change', (e) => {
-                    document.getElementById('current-symbol').textContent = e.target.value;
-                });
+                // Symbol selection - update subscription when symbol changes
+                const symbolSelect = document.getElementById('symbol-select');
+                if (symbolSelect) {
+                    // Load saved symbol from localStorage
+                    const savedSymbol = localStorage.getItem('selectedSymbol');
+                    if (savedSymbol && symbolSelect.querySelector(`option[value="${savedSymbol}"]`)) {
+                        symbolSelect.value = savedSymbol;
+                        document.getElementById('current-symbol').textContent = savedSymbol;
+                        this.currentSymbol = savedSymbol;
+                    }
+                    
+                    symbolSelect.addEventListener('change', (e) => {
+                        const newSymbol = e.target.value;
+                        document.getElementById('current-symbol').textContent = newSymbol;
+                        
+                        // Store in localStorage
+                        localStorage.setItem('selectedSymbol', newSymbol);
+                        
+                        // Unsubscribe from old symbol and subscribe to new one
+                        if (this.currentSymbol && this.currentSymbol !== newSymbol) {
+                            this.unsubscribeFromPrice(this.currentSymbol);
+                        }
+                        this.subscribeToPrice(newSymbol);
+                        
+                        // Fetch current price immediately via API
+                        this.refreshPriceViaAPI(newSymbol);
+                    });
+                }
 
                 // Generate signal
-                document.getElementById('generate-signal').addEventListener('click', () => {
-                    this.generateSignal();
-                });
+                const generateSignalBtn = document.getElementById('generate-signal');
+                if (generateSignalBtn) {
+                    generateSignalBtn.addEventListener('click', () => {
+                        this.generateSignal();
+                    });
+                }
 
                 // Execute trade
-                document.getElementById('execute-trade').addEventListener('click', () => {
-                    this.executeTrade();
-                });
+                const executeTradeBtn = document.getElementById('execute-trade');
+                if (executeTradeBtn) {
+                    executeTradeBtn.addEventListener('click', () => {
+                        this.executeTrade();
+                    });
+                }
 
-                // Refresh price
-                document.getElementById('refresh-price').addEventListener('click', () => {
-                    this.refreshPrice();
-                });
+                // Refresh price button
+                const refreshPriceBtn = document.getElementById('refresh-price');
+                if (refreshPriceBtn) {
+                    refreshPriceBtn.addEventListener('click', async () => {
+                        const symbol = document.getElementById('symbol-select').value;
+                        
+                        // Add visual feedback
+                        refreshPriceBtn.classList.add('animate-spin');
+                        refreshPriceBtn.disabled = true;
+                        
+                        // Fetch price
+                        await this.refreshPriceViaAPI(symbol);
+                        
+                        // Remove visual feedback
+                        setTimeout(() => {
+                            refreshPriceBtn.classList.remove('animate-spin');
+                            refreshPriceBtn.disabled = false;
+                        }, 500);
+                    });
+                }
+
+                // Clear signals feed
+                const clearSignalsBtn = document.getElementById('clear-signals');
+                if (clearSignalsBtn) {
+                    clearSignalsBtn.addEventListener('click', () => {
+                        this.clearSignalFeed();
+                    });
+                }
+            }
+
+            clearSignalFeed() {
+                const signalFeed = document.getElementById('signal-feed');
+                if (signalFeed) {
+                    signalFeed.innerHTML = `
+                        <div class="text-center text-gray-400 py-4 text-sm">
+                            <i class="fas fa-signal mr-2"></i>Signal feed cleared
+                        </div>
+                    `;
+                }
             }
 
             async generateSignal() {
@@ -384,11 +1048,8 @@
                 const quantity = parseInt(document.getElementById('quantity').value);
 
                 try {
-                    const response = await fetch('/api/trading/signal', {
+                    const result = await apiCall('/api/trading/signal', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
                         body: JSON.stringify({
                             symbol,
                             entry_threshold: entryThreshold,
@@ -398,24 +1059,25 @@
                         })
                     });
 
-                    const signal = await response.json();
-                    this.displaySignal(signal);
+                    if (result.ok && result.data) {
+                        this.displaySignal(result.data);
+                    } else {
+                        throw new Error(result.error || 'Failed to generate signal');
+                    }
                 } catch (error) {
                     console.error('Error generating signal:', error);
+                    showErrorMessage('Failed to generate trading signal', error);
                 }
             }
 
             async executeTrade() {
                 const symbol = document.getElementById('symbol-select').value;
                 const quantity = parseInt(document.getElementById('quantity').value);
-                const currentPrice = parseFloat(document.getElementById('current-price').textContent.replace('$', ''));
+                const currentPrice = this.getCurrentPrice();
 
                 try {
-                    const response = await fetch('/api/trading/execute', {
+                    const result = await apiCall('/api/trading/execute', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
                         body: JSON.stringify({
                             symbol,
                             side: 'BUY',
@@ -424,63 +1086,179 @@
                         })
                     });
 
-                    const trade = await response.json();
-                    console.log('Trade executed:', trade);
-                    
-                    // Add to recent trades
-                    this.addRecentTrade({
-                        symbol: trade.symbol,
-                        side: trade.side,
-                        quantity: trade.quantity,
-                        price: trade.price,
-                        timestamp: trade.timestamp
-                    });
+                    if (result.ok && result.data) {
+                        const trade = result.data;
+                        console.log('Trade executed:', trade);
+                        showSuccessMessage(`Trade executed: ${trade.side} ${trade.quantity} ${trade.symbol}`);
+                        
+                        // Refresh trades list
+                        await this.loadRecentTrades();
+                        
+                        // Refresh portfolio summary
+                        await this.loadPortfolioSummary();
+                    } else {
+                        throw new Error(result.error || 'Failed to execute trade');
+                    }
                 } catch (error) {
                     console.error('Error executing trade:', error);
+                    showErrorMessage('Failed to execute trade', error);
                 }
             }
 
-            addRecentTrade(trade) {
-                const recentTrades = document.getElementById('recent-trades');
-                const tradeElement = document.createElement('div');
-                tradeElement.className = 'flex justify-between items-center p-3 bg-gray-50 rounded-md';
-                
-                const pnl = Math.random() > 0.5 ? Math.random() * 200 - 100 : 0;
-                const pnlColor = pnl >= 0 ? 'text-green-600' : 'text-red-600';
-                const pnlSign = pnl >= 0 ? '+' : '';
-                
-                tradeElement.innerHTML = `
-                    <div>
-                        <p class="font-medium">${trade.symbol}</p>
-                        <p class="text-sm text-gray-500">${trade.side} ${trade.quantity} shares</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="font-semibold ${pnlColor}">${pnlSign}$${pnl.toFixed(0)}</p>
-                        <p class="text-sm text-gray-500">Just now</p>
-                    </div>
-                `;
-                
-                recentTrades.insertBefore(tradeElement, recentTrades.firstChild);
-                
-                // Keep only last 5 trades
-                while (recentTrades.children.length > 5) {
-                    recentTrades.removeChild(recentTrades.lastChild);
+            async loadRecentTrades(limit = 10) {
+                try {
+                    // Show loading state
+                    const recentTradesContainer = document.getElementById('recent-trades');
+                    if (recentTradesContainer) {
+                        recentTradesContainer.innerHTML = '<div class="text-center text-gray-500 py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Loading trades...</div>';
+                    }
+                    
+                    const result = await apiCall(`/api/trading/trades?limit=${limit}&offset=0&account_id=1`);
+                    
+                    if (result.ok && result.data) {
+                        // Update trades display
+                        this.renderTradesList(result.data.trades || []);
+                        return result.data;
+                    } else {
+                        throw new Error(result.error || 'Failed to load trades');
+                    }
+                } catch (error) {
+                    console.error('Error loading recent trades:', error);
+                    const recentTradesContainer = document.getElementById('recent-trades');
+                    if (recentTradesContainer) {
+                        recentTradesContainer.innerHTML = `
+                            <div class="text-center text-red-500 py-4">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                Failed to load trades
+                                ${error.message ? `<br><span class="text-sm">${escapeHtml(error.message)}</span>` : ''}
+                            </div>
+                        `;
+                    }
+                    showErrorMessage('Failed to load recent trades', error);
+                    return null;
                 }
+            }
+
+            renderTradesList(trades) {
+                const recentTradesContainer = document.getElementById('recent-trades');
+                if (!recentTradesContainer) return;
+                
+                // Handle empty trades list
+                if (!trades || trades.length === 0) {
+                    recentTradesContainer.innerHTML = `
+                        <div class="text-center text-gray-400 py-8">
+                            <i class="fas fa-chart-line text-4xl mb-2 opacity-50"></i>
+                            <p class="text-sm">No trades yet</p>
+                            <p class="text-xs mt-1 text-gray-500">Trades will appear here once you start trading</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Clear existing content
+                recentTradesContainer.innerHTML = '';
+                
+                // Render each trade
+                trades.forEach(trade => {
+                    const tradeElement = document.createElement('div');
+                    tradeElement.className = 'flex justify-between items-center p-3 bg-gray-50 rounded-md';
+                    
+                    // Format side with color
+                    const sideColor = trade.side === 'BUY' ? 'text-green-600' : 'text-red-600';
+                    const sideText = trade.side === 'BUY' ? 'BUY' : 'SELL';
+                    
+                    // Format price
+                    const priceFormatted = trade.price ? `$${trade.price.toFixed(2)}` : 'N/A';
+                    
+                    // Format quantity with commas
+                    const quantityFormatted = trade.quantity ? trade.quantity.toLocaleString() : '0';
+                    
+                    // Format time
+                    let timeFormatted = 'N/A';
+                    if (trade.executed_at) {
+                        const tradeDate = new Date(trade.executed_at);
+                        timeFormatted = tradeDate.toLocaleTimeString('en-US', { 
+                            hour: 'numeric', 
+                            minute: '2-digit',
+                            hour12: true 
+                        });
+                    } else if (trade.timestamp) {
+                        const tradeDate = new Date(trade.timestamp);
+                        timeFormatted = tradeDate.toLocaleTimeString('en-US', { 
+                            hour: 'numeric', 
+                            minute: '2-digit',
+                            hour12: true 
+                        });
+                    }
+                    
+                    // Format P&L if available
+                    let pnlHtml = '';
+                    if (trade.realized_pnl !== null && trade.realized_pnl !== undefined) {
+                        const pnlColor = trade.realized_pnl >= 0 ? 'text-green-600' : 'text-red-600';
+                        const pnlSign = trade.realized_pnl >= 0 ? '+' : '';
+                        pnlHtml = `
+                            <p class="font-semibold ${pnlColor}">${pnlSign}$${trade.realized_pnl.toFixed(2)}</p>
+                            ${trade.realized_pnl_pct ? `<p class="text-xs ${pnlColor}">${pnlSign}${trade.realized_pnl_pct.toFixed(2)}%</p>` : ''}
+                        `;
+                    } else {
+                        pnlHtml = '<p class="text-sm text-gray-400">-</p>';
+                    }
+                    
+                    // Status badge
+                    let statusBadge = '';
+                    if (trade.status) {
+                        const statusColors = {
+                            'FILLED': 'bg-green-100 text-green-800',
+                            'PENDING': 'bg-yellow-100 text-yellow-800',
+                            'SUBMITTED': 'bg-blue-100 text-blue-800',
+                            'CANCELLED': 'bg-gray-100 text-gray-800',
+                            'REJECTED': 'bg-red-100 text-red-800'
+                        };
+                        const statusColor = statusColors[trade.status] || 'bg-gray-100 text-gray-800';
+                        statusBadge = `<span class="px-2 py-1 text-xs rounded ${statusColor}">${trade.status}</span>`;
+                    }
+                    
+                    tradeElement.innerHTML = `
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <p class="font-medium">${trade.symbol}</p>
+                                ${statusBadge}
+                                ${trade.is_day_trade ? '<span class="px-2 py-1 text-xs rounded bg-purple-100 text-purple-800">DT</span>' : ''}
+                            </div>
+                            <p class="text-sm text-gray-500">
+                                <span class="${sideColor} font-medium">${sideText}</span> 
+                                ${quantityFormatted} shares @ ${priceFormatted}
+                            </p>
+                        </div>
+                        <div class="text-right">
+                            ${pnlHtml}
+                            <p class="text-sm text-gray-500">${timeFormatted}</p>
+                        </div>
+                    `;
+                    
+                    recentTradesContainer.appendChild(tradeElement);
+                });
+            }
+
+            addRecentTrade(trade) {
+                // Reload trades to include the new one
+                this.loadRecentTrades();
             }
 
             initializeCharts() {
                 // Portfolio Performance Chart
                 const portfolioCtx = document.getElementById('portfolio-chart').getContext('2d');
-                new Chart(portfolioCtx, {
+                this.portfolioChart = new Chart(portfolioCtx, {
                     type: 'line',
                     data: {
-                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        labels: [],
                         datasets: [{
                             label: 'Portfolio Value',
-                            data: [95000, 98000, 102000, 105000, 108000, 110000],
+                            data: [],
                             borderColor: 'rgb(59, 130, 246)',
                             backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            tension: 0.4
+                            tension: 0.4,
+                            fill: true
                         }]
                     },
                     options: {
@@ -489,11 +1267,23 @@
                         plugins: {
                             legend: {
                                 display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return '$' + context.parsed.y.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                                    }
+                                }
                             }
                         },
                         scales: {
                             y: {
-                                beginAtZero: false
+                                beginAtZero: false,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + value.toLocaleString('en-US');
+                                    }
+                                }
                             }
                         }
                     }
@@ -501,12 +1291,12 @@
 
                 // Trade Distribution Chart
                 const tradeDistCtx = document.getElementById('trade-distribution-chart').getContext('2d');
-                new Chart(tradeDistCtx, {
+                this.tradeDistChart = new Chart(tradeDistCtx, {
                     type: 'doughnut',
                     data: {
                         labels: ['Winning Trades', 'Losing Trades'],
                         datasets: [{
-                            data: [68, 32],
+                            data: [0, 0],
                             backgroundColor: ['rgb(34, 197, 94)', 'rgb(239, 68, 68)']
                         }]
                     },
@@ -516,38 +1306,574 @@
                         plugins: {
                             legend: {
                                 position: 'bottom'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.parsed || 0;
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                        return `${label}: ${value} (${percentage}%)`;
+                                    }
+                                }
                             }
+                        }
+                    }
+                });
+
+                // Load real data
+                this.loadChartData();
+            }
+
+            async loadChartData() {
+                await Promise.all([
+                    this.loadTradeDistributionData(),
+                    this.loadPortfolioChartData()
+                ]);
+            }
+
+            async loadTradeDistributionData() {
+                try {
+                    const result = await apiCall('/api/trading/performance?account_id=1');
+                    
+                    if (result.ok && result.data) {
+                        const data = result.data;
+                        // Update chart with real data
+                        if (this.tradeDistChart) {
+                            this.tradeDistChart.data.datasets[0].data = [
+                                data.winning_trades || 0,
+                                data.losing_trades || 0
+                            ];
+                            this.tradeDistChart.update();
+                        }
+                        return data;
+                    } else {
+                        throw new Error(result.error || 'Failed to load trade distribution data');
+                    }
+                } catch (error) {
+                    console.error('Error loading trade distribution:', error);
+                    // Keep default values (0, 0) on error - charts handle empty data gracefully
+                    return null;
+                }
+            }
+
+            async loadPortfolioChartData(days = 30) {
+                try {
+                    // Calculate date range for last N days
+                    const endDate = new Date();
+                    const startDate = new Date();
+                    startDate.setDate(startDate.getDate() - days);
+                    
+                    // Get trades within date range (limited to 1000 for performance)
+                    const startDateStr = startDate.toISOString().split('T')[0];
+                    const result = await apiCall(
+                        `/api/trading/trades?limit=1000&account_id=1&start_date=${startDateStr}`
+                    );
+                    
+                    if (result.ok && result.data) {
+                        // Extract trades from response (API returns {trades: [...]})
+                        const trades = result.data.trades || [];
+                        
+                        if (trades.length === 0) {
+                            // Show empty state message in chart area
+                            if (this.portfolioChart) {
+                                this.portfolioChart.data.labels = [];
+                                this.portfolioChart.data.datasets[0].data = [];
+                                this.portfolioChart.update();
+                            }
+                            console.log('No trades available for portfolio chart');
+                            return { dates: [], values: [] };
+                        }
+                        
+                        // Calculate equity curve from trades
+                        const equityCurve = await this.calculateEquityCurve(trades);
+                        
+                        // Update chart
+                        if (this.portfolioChart) {
+                            this.portfolioChart.data.labels = equityCurve.dates;
+                            this.portfolioChart.data.datasets[0].data = equityCurve.values;
+                            this.portfolioChart.update();
+                        }
+                        
+                        return equityCurve;
+                    } else {
+                        throw new Error(result.error || 'Failed to load portfolio chart data');
+                    }
+                } catch (error) {
+                    console.error('Error loading portfolio chart data:', error);
+                    // Keep empty chart on error - charts handle empty data gracefully
+                    return null;
+                }
+            }
+
+            async calculateEquityCurve(trades) {
+                if (!trades || trades.length === 0) {
+                    return { dates: [], values: [] };
+                }
+
+                // Sort trades by timestamp
+                const sortedTrades = trades
+                    .filter(t => t.executed_at) // Only trades with execution dates
+                    .sort((a, b) => new Date(a.executed_at) - new Date(b.executed_at));
+
+                if (sortedTrades.length === 0) {
+                    return { dates: [], values: [] };
+                }
+
+                // Try to get starting balance from portfolio summary
+                let startingBalance = 100000; // Default
+                try {
+                    const portfolioResult = await apiCall('/api/trading/portfolio/summary?account_id=1');
+                    if (portfolioResult.ok && portfolioResult.data) {
+                        const portfolioData = portfolioResult.data;
+                        // Use current portfolio value minus total P&L as starting balance estimate
+                        if (portfolioData.portfolio_value && portfolioData.total_pnl !== undefined) {
+                            startingBalance = portfolioData.portfolio_value - (portfolioData.total_pnl || 0);
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Could not fetch portfolio summary for starting balance:', error);
+                }
+                
+                const dates = [];
+                const values = [];
+                let cashBalance = startingBalance;
+                const positions = new Map(); // Track open positions: symbol -> {quantity, avgPrice}
+
+                // Process trades chronologically to build equity curve
+                sortedTrades.forEach(trade => {
+                    const tradeDate = new Date(trade.executed_at);
+                    const symbol = trade.symbol;
+                    const quantity = trade.quantity || 0;
+                    const price = trade.price || trade.average_fill_price || 0;
+                    
+                    // Update positions based on trade
+                    if (trade.side === 'BUY') {
+                        const cost = quantity * price;
+                        
+                        if (positions.has(symbol)) {
+                            const pos = positions.get(symbol);
+                            const totalCost = (pos.quantity * pos.avgPrice) + cost;
+                            const totalQuantity = pos.quantity + quantity;
+                            pos.avgPrice = totalQuantity > 0 ? totalCost / totalQuantity : price;
+                            pos.quantity = totalQuantity;
+                        } else {
+                            positions.set(symbol, { quantity: quantity, avgPrice: price });
+                        }
+                        
+                        cashBalance -= cost;
+                    } else if (trade.side === 'SELL') {
+                        const proceeds = quantity * price;
+                        
+                        if (positions.has(symbol)) {
+                            const pos = positions.get(symbol);
+                            const sellQuantity = Math.min(quantity, pos.quantity);
+                            const avgCost = pos.avgPrice;
+                            
+                            cashBalance += proceeds;
+                            pos.quantity -= sellQuantity;
+                            
+                            if (pos.quantity <= 0) {
+                                positions.delete(symbol);
+                            }
+                        } else {
+                            // Selling without position (short sale or error)
+                            cashBalance += proceeds;
+                        }
+                    }
+
+                    // Calculate portfolio value at this point
+                    // Simplified: cash + position value (using entry prices as current prices)
+                    let portfolioValue = cashBalance;
+                    positions.forEach((pos) => {
+                        portfolioValue += pos.quantity * pos.avgPrice;
+                    });
+
+                    // Add data point
+                    dates.push(tradeDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                    values.push(Math.round(portfolioValue * 100) / 100);
+                });
+
+                // Limit to reasonable number of data points (last 60 points for performance)
+                const maxPoints = 60;
+                if (dates.length > maxPoints) {
+                    return {
+                        dates: dates.slice(-maxPoints),
+                        values: values.slice(-maxPoints)
+                    };
+                }
+
+                return { dates, values };
+            }
+
+            startPingInterval() {
+                // Clear existing ping interval
+                if (this.pingInterval) {
+                    clearInterval(this.pingInterval);
+                }
+                
+                // Send ping every 30 seconds to keep connection alive
+                this.pingInterval = setInterval(() => {
+                    if (this.isConnected && this.ws) {
+                        try {
+                            this.ws.send(JSON.stringify({ type: 'ping' }));
+                        } catch (error) {
+                            console.error('Error sending ping:', error);
+                        }
+                    }
+                }, 30000);
+            }
+
+            setupPollingFallback() {
+                // Polling fallback - runs if WebSocket is not connected
+                // This ensures the dashboard still works even if WebSocket is unavailable
+                
+                // Price polling (every 7 seconds if WebSocket not connected)
+                if (this.pricePollingInterval) {
+                    clearInterval(this.pricePollingInterval);
+                }
+                
+                this.pricePollingInterval = setInterval(async () => {
+                    if (!this.isConnected) {
+                        const symbol = document.getElementById('symbol-select').value;
+                        await this.refreshPriceViaAPI(symbol);
+                    }
+                }, 7000); // 7 seconds - more frequent than portfolio updates
+                
+                // Portfolio polling (every 30 seconds if WebSocket not connected)
+                if (this.portfolioPollingInterval) {
+                    clearInterval(this.portfolioPollingInterval);
+                }
+                
+                this.portfolioPollingInterval = setInterval(async () => {
+                    if (!this.isConnected) {
+                        await this.refreshPortfolioViaAPI();
+                    }
+                }, 30000);
+            }
+
+            stopPollingFallback() {
+                if (this.pricePollingInterval) {
+                    clearInterval(this.pricePollingInterval);
+                    this.pricePollingInterval = null;
+                }
+                
+                if (this.portfolioPollingInterval) {
+                    clearInterval(this.portfolioPollingInterval);
+                    this.portfolioPollingInterval = null;
+                }
+            }
+
+            /**
+             * Refresh price data from API (polling fallback)
+             * @param {string} symbol - Stock symbol to fetch (optional, uses current selection if not provided)
+             * @returns {Promise<Object|null>} Price data or null on error
+             */
+            async refreshPriceViaAPI(symbol = null) {
+                try {
+                    const currentSymbol = symbol || document.getElementById('symbol-select').value;
+                    const result = await apiCall(`/api/market-data/quote/${currentSymbol}`);
+                    
+                    if (result.ok && result.data) {
+                        // Update price display with formatted data
+                        this.updatePriceDisplay(result.data);
+                        return result.data;
+                    } else {
+                        // Don't show error for price - it's non-critical
+                        // Keep last known price displayed
+                        console.warn('Price fetch failed, keeping last known price');
+                        return null;
+                    }
+                } catch (error) {
+                    console.error('Error fetching price:', error);
+                    // Don't show error for price - it's non-critical
+                    // Keep last known price displayed
+                    return null;
+                }
+            }
+
+            async loadPortfolioSummary() {
+                // Show loading states
+                this.setPortfolioLoadingState(true);
+                
+                try {
+                    const result = await apiCall('/api/trading/portfolio/summary?account_id=1');
+                    if (result.ok && result.data) {
+                        const data = result.data;
+                        
+                        // Update portfolio value (with validation)
+                        const portfolioValue = typeof data.portfolio_value === 'number' ? data.portfolio_value : 0;
+                        const portfolioEl = document.getElementById('portfolio-value');
+                        if (portfolioEl) {
+                            const displayEl = portfolioEl.querySelector('.portfolio-value-display');
+                            const loadingEl = portfolioEl.querySelector('.portfolio-loading');
+                            if (displayEl && loadingEl) {
+                                displayEl.textContent = formatCurrency(Math.max(0, portfolioValue)); // Ensure non-negative
+                                displayEl.classList.remove('hidden');
+                                loadingEl.classList.add('hidden');
+                                portfolioEl.removeAttribute('data-loading');
+                            } else {
+                                // Fallback for browsers that don't support querySelector
+                                portfolioEl.textContent = formatCurrency(Math.max(0, portfolioValue));
+                                portfolioEl.removeAttribute('data-loading');
+                            }
+                        }
+                        
+                        // Update daily P&L (with validation)
+                        const dailyPnl = typeof data.daily_pnl === 'number' ? data.daily_pnl : 0;
+                        const dailyPnlPercent = typeof data.daily_pnl_percent === 'number' ? data.daily_pnl_percent : 0;
+                        const pnlEl = document.getElementById('daily-pnl');
+                        const pnlPercentEl = document.getElementById('daily-pnl-percent');
+                        if (pnlEl) {
+                            const pnl = formatPnL(dailyPnl);
+                            const displayEl = pnlEl.querySelector('.pnl-value-display');
+                            const loadingEl = pnlEl.querySelector('.pnl-loading');
+                            if (displayEl && loadingEl) {
+                                displayEl.textContent = pnl.text;
+                                displayEl.className = `pnl-value-display ${pnl.colorClass}`;
+                                displayEl.classList.remove('hidden');
+                                loadingEl.classList.add('hidden');
+                                pnlEl.className = `text-2xl font-semibold ${pnl.colorClass}`;
+                                pnlEl.removeAttribute('data-loading');
+                            } else {
+                                pnlEl.textContent = pnl.text;
+                                pnlEl.className = `text-2xl font-semibold ${pnl.colorClass}`;
+                                pnlEl.removeAttribute('data-loading');
+                            }
+                        }
+                        if (pnlPercentEl) {
+                            const sign = dailyPnl >= 0 ? '+' : '';
+                            const percentText = `${sign}${Math.abs(dailyPnlPercent).toFixed(2)}%`;
+                            const displayEl = pnlPercentEl.querySelector('.pnl-percent-display');
+                            const loadingEl = pnlPercentEl.querySelector('.pnl-percent-loading');
+                            if (displayEl && loadingEl) {
+                                displayEl.textContent = percentText;
+                                displayEl.className = `pnl-percent-display ${getPnLColorClass(dailyPnl)}`;
+                                displayEl.classList.remove('hidden');
+                                loadingEl.classList.add('hidden');
+                                pnlPercentEl.className = `text-sm ${getPnLColorClass(dailyPnl)}`;
+                                pnlPercentEl.removeAttribute('data-loading');
+                            } else {
+                                pnlPercentEl.textContent = percentText;
+                                pnlPercentEl.className = `text-sm ${getPnLColorClass(dailyPnl)}`;
+                                pnlPercentEl.removeAttribute('data-loading');
+                            }
+                        }
+                        
+                        // Update win rate (with validation - ensure 0-1 range)
+                        const winRate = typeof data.win_rate === 'number' 
+                            ? Math.max(0, Math.min(1, data.win_rate)) // Clamp between 0 and 1
+                            : 0;
+                        const winRateEl = document.getElementById('win-rate');
+                        if (winRateEl) {
+                            const winRateText = formatPercentage(winRate);
+                            const displayEl = winRateEl.querySelector('.winrate-value-display');
+                            const loadingEl = winRateEl.querySelector('.winrate-loading');
+                            if (displayEl && loadingEl) {
+                                displayEl.textContent = winRateText;
+                                displayEl.classList.remove('hidden');
+                                loadingEl.classList.add('hidden');
+                                winRateEl.removeAttribute('data-loading');
+                            } else {
+                                winRateEl.textContent = winRateText;
+                                winRateEl.removeAttribute('data-loading');
+                            }
+                        }
+                        
+                        // Update active trades (positions) - ensure non-negative integer
+                        const activePositions = typeof data.active_positions === 'number' 
+                            ? Math.max(0, Math.floor(data.active_positions)) // Ensure non-negative integer
+                            : 0;
+                        const activeTradesEl = document.getElementById('active-trades');
+                        if (activeTradesEl) {
+                            const tradesText = String(activePositions);
+                            const displayEl = activeTradesEl.querySelector('.activetrades-value-display');
+                            const loadingEl = activeTradesEl.querySelector('.activetrades-loading');
+                            if (displayEl && loadingEl) {
+                                displayEl.textContent = tradesText;
+                                displayEl.classList.remove('hidden');
+                                loadingEl.classList.add('hidden');
+                                activeTradesEl.removeAttribute('data-loading');
+                            } else {
+                                activeTradesEl.textContent = tradesText;
+                                activeTradesEl.removeAttribute('data-loading');
+                            }
+                        }
+                        
+                        // Update IBKR connection status
+                        this.updateIBKRStatus(data.ibkr_connected);
+                    } else {
+                        throw new Error(result.error || 'Failed to load portfolio summary');
+                    }
+                } catch (error) {
+                    console.error('Error loading portfolio summary:', error);
+                    showErrorMessage('Failed to load portfolio summary', error);
+                    // Show error state in UI
+                    this.setPortfolioErrorState();
+                } finally {
+                    // Hide loading states if still showing (in case of error)
+                    this.setPortfolioLoadingState(false);
+                }
+            }
+
+            setPortfolioLoadingState(isLoading) {
+                // This method can be used to explicitly show/hide loading states
+                // Main loading logic is handled inline in loadPortfolioSummary
+                // This is a helper for external use if needed
+            }
+
+            setPortfolioErrorState() {
+                // Show error states in portfolio cards
+                const portfolioEl = document.getElementById('portfolio-value');
+                if (portfolioEl && portfolioEl.hasAttribute('data-loading')) {
+                    const displayEl = portfolioEl.querySelector('.portfolio-value-display');
+                    const loadingEl = portfolioEl.querySelector('.portfolio-loading');
+                    if (displayEl && loadingEl) {
+                        displayEl.textContent = 'Error';
+                        displayEl.className = 'portfolio-value-display text-red-600';
+                        displayEl.classList.remove('hidden');
+                        loadingEl.classList.add('hidden');
+                        portfolioEl.removeAttribute('data-loading');
+                    }
+                }
+                
+                // Similar for other fields - show "N/A" or "Error" on failure
+                const errorFields = ['daily-pnl', 'win-rate', 'active-trades'];
+                errorFields.forEach(fieldId => {
+                    const el = document.getElementById(fieldId);
+                    if (el && el.hasAttribute('data-loading')) {
+                        const displayEl = el.querySelector(`.${fieldId.replace('-', '')}-value-display`);
+                        const loadingEl = el.querySelector(`.${fieldId.replace('-', '')}-loading`);
+                        if (displayEl && loadingEl) {
+                            displayEl.textContent = 'N/A';
+                            displayEl.classList.remove('hidden');
+                            loadingEl.classList.add('hidden');
+                            el.removeAttribute('data-loading');
+                        } else if (el) {
+                            el.textContent = 'N/A';
+                            el.removeAttribute('data-loading');
                         }
                     }
                 });
             }
 
-            startPriceUpdates() {
-                // Send ping every 30 seconds to keep connection alive
-                setInterval(() => {
-                    if (this.isConnected) {
-                        this.ws.send(JSON.stringify({ type: 'ping' }));
-                    }
-                }, 30000);
+            async refreshPortfolioViaAPI() {
+                // Legacy method - redirects to new loadPortfolioSummary
+                await this.loadPortfolioSummary();
             }
 
+            updateWebSocketStatus(status, color) {
+                const statusElement = document.getElementById('ws-connection-status');
+                if (statusElement) {
+                    statusElement.innerHTML = `<i class="fas fa-circle mr-1"></i>${status}`;
+                    
+                    // Update color classes
+                    statusElement.className = 'px-2 py-1 rounded-full text-xs text-white';
+                    if (color === 'green') {
+                        statusElement.classList.add('bg-green-500');
+                    } else if (color === 'red') {
+                        statusElement.classList.add('bg-red-500');
+                    } else if (color === 'yellow') {
+                        statusElement.classList.add('bg-yellow-500');
+                    } else {
+                        statusElement.classList.add('bg-gray-500');
+                    }
+                }
+            }
+
+            updateIBKRStatus(isConnected) {
+                const statusElement = document.getElementById('ibkr-connection-status');
+                if (statusElement) {
+                    if (isConnected) {
+                        statusElement.innerHTML = '<i class="fas fa-circle mr-1"></i>Connected';
+                        statusElement.className = 'px-2 py-1 bg-green-500 rounded-full text-xs text-white';
+                    } else {
+                        statusElement.innerHTML = '<i class="fas fa-circle mr-1"></i>Disconnected';
+                        statusElement.className = 'px-2 py-1 bg-red-500 rounded-full text-xs text-white';
+                    }
+                }
+            }
+
+            // Legacy method for backwards compatibility
             updateConnectionStatus(status, color) {
-                const statusElement = document.getElementById('connection-status');
-                statusElement.textContent = status;
-                statusElement.className = `ml-2 px-2 py-1 bg-${color}-500 rounded-full text-xs`;
+                // Redirect to WebSocket status for now (legacy code might still call this)
+                this.updateWebSocketStatus(status, color);
+            }
+
+            async checkIBKRStatus() {
+                try {
+                    const result = await apiCall('/api/trading/ibkr/status');
+                    if (result.ok && result.data) {
+                        this.updateIBKRStatus(result.data.connected || false);
+                        return result.data.connected || false;
+                    }
+                } catch (error) {
+                    console.error('Error checking IBKR status:', error);
+                    this.updateIBKRStatus(false);
+                    return false;
+                }
+                return false;
             }
 
             refreshPrice() {
                 const symbol = document.getElementById('symbol-select').value;
-                if (this.isConnected) {
-                    this.ws.send(JSON.stringify({ type: 'subscribe', symbol }));
+                
+                if (this.isConnected && this.ws) {
+                    // Use WebSocket subscription (will update via WebSocket messages)
+                    this.subscribeToPrice(symbol);
+                    // Also fetch immediately via API as fallback
+                    this.refreshPriceViaAPI(symbol);
+                } else {
+                    // Fallback to API call
+                    this.refreshPriceViaAPI(symbol);
                 }
+            }
+            
+            /**
+             * Helper function to get current price (used by other parts of the dashboard)
+             * @returns {number} Current price or last known price or 0
+             */
+            getCurrentPrice() {
+                const priceElement = document.getElementById('current-price');
+                if (priceElement) {
+                    const priceText = priceElement.textContent.replace('$', '').replace(',', '').trim();
+                    const price = parseFloat(priceText);
+                    return isNaN(price) ? (this.lastKnownPrice || 0) : price;
+                }
+                return this.lastKnownPrice || 0;
+            }
+
+            cleanup() {
+                // Close WebSocket connection
+                if (this.ws) {
+                    this.ws.close();
+                    this.ws = null;
+                }
+                
+                // Clear intervals
+                if (this.pingInterval) {
+                    clearInterval(this.pingInterval);
+                }
+                
+                this.stopPollingFallback();
+                
+                // Disconnect all managed connections
+                this.wsManager.disconnectAll();
             }
         }
 
         // Initialize dashboard when page loads
+        let dashboard = null;
         document.addEventListener('DOMContentLoaded', () => {
-            new TradingDashboard();
+            dashboard = new TradingDashboard();
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (dashboard) {
+                dashboard.cleanup();
+            }
         });
     </script>
 </body>

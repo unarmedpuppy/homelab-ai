@@ -5,18 +5,23 @@ Trading Routes
 API routes for trading operations and IBKR connection management.
 """
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query
 from typing import List, Dict, Any, Optional
 import logging
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, date, timedelta
+from sqlalchemy import func, and_, or_
+from sqlalchemy.orm import Session
 
 from ...data.brokers.ibkr_client import IBKRClient, IBKRManager, OrderSide
-from ...data.database.models import Trade, TradeSide, OrderStatus, Account
-from ...data.database import SessionLocal
+from ...data.database.models import Trade, TradeSide, OrderStatus, Account, Position, PositionStatus, Strategy
+from ...data.database import SessionLocal, get_db
 from ...config.settings import settings
 from ...utils.metrics_integration import update_portfolio_metrics_from_positions
 from ...core.risk import get_risk_manager, RiskManager
+from ...data.providers.market_data import DataProviderManager
+from ...core.confluence import ConfluenceCalculator
+from ...core.strategy.base import TradingSignal, SignalType
 
 logger = logging.getLogger(__name__)
 
@@ -214,9 +219,8 @@ async def ibkr_test_connection(request: Optional[ConnectionTestRequest] = None):
         results["message"] = "Connection test completed successfully"
         
     except Exception as e:
-        logger.error(f"Error testing IBKR connection: {e}")
+        logger.error(f"Error testing IBKR connection: {e}", exc_info=True)
         results["error"] = str(e)
-        
     finally:
         if client:
             await client.disconnect()
@@ -301,6 +305,468 @@ async def ibkr_positions():
             status_code=500,
             detail=f"Error retrieving positions: {str(e)}"
         )
+
+@router.get("/performance")
+async def get_performance_metrics(
+    account_id: int = Query(default=1),
+    strategy_id: Optional[int] = Query(default=None),
+    db: Session = Depends(get_db)
+):
+    """
+    Get comprehensive performance metrics for trading account.
+    
+    Calculates win rate, trade statistics, P&L metrics, and performance breakdowns.
+    
+    Args:
+        account_id: Account ID to get metrics for (default: 1)
+        strategy_id: Optional strategy ID to filter by
+        db: Database session
+        
+    Returns:
+        Dictionary with performance metrics including:
+        - win_rate: Win rate as decimal (0.0-1.0)
+        - total_trades: Total number of closed positions
+        - winning_trades: Number of winning trades
+        - losing_trades: Number of losing trades
+        - total_realized_pnl: Sum of P&L from closed positions
+        - total_unrealized_pnl: Sum of P&L from open positions
+        - average_win: Average win amount
+        - average_loss: Average loss amount
+        - largest_win: Largest winning trade
+        - largest_loss: Largest losing trade
+        - profit_factor: Total wins / abs(total losses)
+        - win_loss_ratio: Average win / abs(average loss)
+        - average_pnl_per_trade: Average P&L per closed trade
+        - date_range: First and last trade dates
+    """
+    try:
+        # Query closed positions
+        closed_query = db.query(Position).filter(
+            Position.account_id == account_id,
+            Position.status == PositionStatus.CLOSED
+        )
+        
+        if strategy_id:
+            # Join with Trade table to filter by strategy
+            closed_query = closed_query.join(Trade).filter(
+                Trade.strategy_id == strategy_id
+            )
+        
+        closed_positions = closed_query.all()
+        
+        # Query open positions for unrealized P&L
+        open_query = db.query(Position).filter(
+            Position.account_id == account_id,
+            Position.status == PositionStatus.OPEN
+        )
+        
+        if strategy_id:
+            open_query = open_query.join(Trade).filter(
+                Trade.strategy_id == strategy_id
+            )
+        
+        open_positions = open_query.all()
+        
+        # Calculate metrics from closed positions
+        total_trades = len(closed_positions)
+        
+        if total_trades == 0:
+            # Return empty metrics structure
+            return {
+                "win_rate": 0.0,
+                "total_trades": 0,
+                "winning_trades": 0,
+                "losing_trades": 0,
+                "total_realized_pnl": 0.0,
+                "total_unrealized_pnl": sum(p.unrealized_pnl or 0.0 for p in open_positions),
+                "average_win": 0.0,
+                "average_loss": 0.0,
+                "largest_win": 0.0,
+                "largest_loss": 0.0,
+                "profit_factor": None,
+                "win_loss_ratio": None,
+                "average_pnl_per_trade": 0.0,
+                "date_range": {
+                    "first_trade": None,
+                    "last_trade": None
+                }
+            }
+        
+        # Separate winning and losing trades
+        winning_trades = [p for p in closed_positions if (p.unrealized_pnl or 0.0) > 0]
+        losing_trades = [p for p in closed_positions if (p.unrealized_pnl or 0.0) <= 0]
+        
+        winning_count = len(winning_trades)
+        losing_count = len(losing_trades)
+        
+        # Calculate win rate
+        win_rate = winning_count / total_trades if total_trades > 0 else 0.0
+        
+        # Calculate P&L metrics
+        total_realized_pnl = sum(p.unrealized_pnl or 0.0 for p in closed_positions)
+        total_unrealized_pnl = sum(p.unrealized_pnl or 0.0 for p in open_positions)
+        
+        # Calculate averages
+        average_win = sum(p.unrealized_pnl or 0.0 for p in winning_trades) / winning_count if winning_count > 0 else 0.0
+        average_loss = sum(p.unrealized_pnl or 0.0 for p in losing_trades) / losing_count if losing_count > 0 else 0.0
+        
+        # Calculate largest win/loss
+        largest_win = max((p.unrealized_pnl or 0.0 for p in winning_trades), default=0.0)
+        largest_loss = min((p.unrealized_pnl or 0.0 for p in losing_trades), default=0.0)
+        
+        # Calculate profit factor (total wins / abs(total losses))
+        total_wins = sum(p.unrealized_pnl or 0.0 for p in winning_trades)
+        total_losses = abs(sum(p.unrealized_pnl or 0.0 for p in losing_trades))
+        profit_factor = total_wins / total_losses if total_losses > 0 else None
+        
+        # Calculate win/loss ratio (average win / abs(average loss))
+        win_loss_ratio = average_win / abs(average_loss) if average_loss < 0 else None
+        
+        # Average P&L per trade
+        average_pnl_per_trade = total_realized_pnl / total_trades if total_trades > 0 else 0.0
+        
+        # Get date range
+        first_trade = min((p.opened_at for p in closed_positions if p.opened_at), default=None)
+        last_trade = max((p.closed_at for p in closed_positions if p.closed_at), default=None)
+        
+        return {
+            "win_rate": round(win_rate, 4),
+            "total_trades": total_trades,
+            "winning_trades": winning_count,
+            "losing_trades": losing_count,
+            "total_realized_pnl": round(total_realized_pnl, 2),
+            "total_unrealized_pnl": round(total_unrealized_pnl, 2),
+            "average_win": round(average_win, 2),
+            "average_loss": round(average_loss, 2),
+            "largest_win": round(largest_win, 2),
+            "largest_loss": round(largest_loss, 2),
+            "profit_factor": round(profit_factor, 4) if profit_factor is not None else None,
+            "win_loss_ratio": round(win_loss_ratio, 4) if win_loss_ratio is not None else None,
+            "average_pnl_per_trade": round(average_pnl_per_trade, 2),
+            "date_range": {
+                "first_trade": first_trade.isoformat() if first_trade else None,
+                "last_trade": last_trade.isoformat() if last_trade else None
+            }
+        }
+    
+    except Exception as e:
+        logger.error(f"Error calculating performance metrics: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error calculating performance metrics: {str(e)}"
+        )
+
+
+@router.get("/portfolio/summary")
+async def portfolio_summary(account_id: int = Query(default=1, description="Account ID")):
+    """
+    Get comprehensive portfolio summary including:
+    - Portfolio value from IBKR
+    - Cash balance
+    - Current positions count and value
+    - Daily P&L from trades
+    - Total P&L
+    - Win rate from closed trades
+    - Active positions count
+    """
+    session = SessionLocal()
+    
+    try:
+        # Initialize response structure
+        summary = {
+            "portfolio_value": 0.0,
+            "cash_balance": 0.0,
+            "positions_value": 0.0,
+            "daily_pnl": 0.0,
+            "daily_pnl_percent": 0.0,
+            "total_pnl": 0.0,
+            "win_rate": 0.0,
+            "total_trades": 0,
+            "winning_trades": 0,
+            "losing_trades": 0,
+            "active_positions": 0,
+            "last_updated": datetime.now().isoformat(),
+            "ibkr_connected": False
+        }
+        
+        # Get IBKR account data if connected
+        manager = get_ibkr_manager()
+        if manager and manager.is_connected:
+            try:
+                client = await manager.get_client()
+                account_summary = await client.get_account_summary()
+                
+                # Extract portfolio value (NetLiquidation)
+                if "NetLiquidation" in account_summary:
+                    summary["portfolio_value"] = float(account_summary["NetLiquidation"].get("value", 0))
+                
+                # Extract cash balance
+                if "TotalCashValue" in account_summary:
+                    summary["cash_balance"] = float(account_summary["TotalCashValue"].get("value", 0))
+                
+                # Get positions
+                positions = await client.get_positions()
+                summary["active_positions"] = len([p for p in positions if p.quantity != 0])
+                
+                # Calculate positions value (sum of market_price * quantity)
+                summary["positions_value"] = sum(
+                    p.market_price * p.quantity for p in positions if p.quantity != 0
+                )
+                
+                summary["ibkr_connected"] = True
+                
+            except Exception as e:
+                logger.warning(f"Error getting IBKR data for portfolio summary: {e}")
+                summary["ibkr_connected"] = False
+        
+        # Query database for trade statistics
+        today = date.today()
+        today_start = datetime.combine(today, datetime.min.time())
+        today_end = datetime.combine(today, datetime.max.time())
+        
+        # Get today's filled trades for daily P&L
+        today_trades = session.query(Trade).filter(
+            and_(
+                Trade.account_id == account_id,
+                Trade.status == OrderStatus.FILLED,
+                Trade.executed_at >= today_start,
+                Trade.executed_at <= today_end
+            )
+        ).all()
+        
+        # Calculate daily P&L from position changes
+        # For now, we'll use unrealized P&L from positions if available
+        # TODO: Calculate realized P&L from closed positions/trades
+        if manager and manager.is_connected:
+            try:
+                positions = await manager.get_client().get_positions()
+                daily_unrealized_pnl = sum(p.unrealized_pnl for p in positions if p.quantity != 0)
+                # This is a simplified calculation - ideally we'd track daily P&L separately
+                summary["daily_pnl"] = daily_unrealized_pnl
+            except Exception:
+                pass
+        
+        # Get all filled trades for win rate calculation
+        # We need to calculate realized P&L from closed positions
+        # For now, we'll use a simplified approach based on position P&L
+        all_filled_trades = session.query(Trade).filter(
+            and_(
+                Trade.account_id == account_id,
+                Trade.status == OrderStatus.FILLED
+            )
+        ).all()
+        
+        summary["total_trades"] = len(all_filled_trades)
+        
+        # Calculate win rate from database positions that are closed
+        closed_positions = session.query(Position).filter(
+            and_(
+                Position.account_id == account_id,
+                Position.status == PositionStatus.CLOSED
+            )
+        ).all()
+        
+        if closed_positions:
+            winning_positions = [p for p in closed_positions if p.unrealized_pnl > 0]
+            summary["winning_trades"] = len(winning_positions)
+            summary["losing_trades"] = len(closed_positions) - len(winning_positions)
+            
+            if len(closed_positions) > 0:
+                summary["win_rate"] = len(winning_positions) / len(closed_positions)
+            
+            # Calculate total P&L from closed positions
+            summary["total_pnl"] = sum(p.unrealized_pnl for p in closed_positions)
+        
+        # Calculate daily P&L percent
+        if summary["portfolio_value"] > 0:
+            summary["daily_pnl_percent"] = (summary["daily_pnl"] / summary["portfolio_value"]) * 100
+        
+        return {
+            "status": "success",
+            **summary
+        }
+    
+    except Exception as e:
+        logger.error(f"Error getting portfolio summary: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error retrieving portfolio summary: {str(e)}"
+        )
+    finally:
+        session.close()
+
+@router.get("/trades")
+async def get_trades(
+    account_id: int = Query(default=1, description="Account ID"),
+    limit: int = Query(default=20, ge=1, le=100, description="Maximum number of trades to return"),
+    offset: int = Query(default=0, ge=0, description="Number of trades to skip"),
+    symbol: Optional[str] = Query(default=None, description="Filter by symbol"),
+    side: Optional[str] = Query(default=None, description="Filter by side (BUY/SELL)"),
+    start_date: Optional[date] = Query(default=None, description="Filter trades from this date (YYYY-MM-DD)"),
+    end_date: Optional[date] = Query(default=None, description="Filter trades up to this date (YYYY-MM-DD)"),
+    sort_by: str = Query(default="executed_at", description="Field to sort by"),
+    sort_order: str = Query(default="desc", description="Sort order (asc/desc)")
+):
+    """
+    Get paginated list of trades from the database
+    
+    Supports filtering by:
+    - account_id (required)
+    - symbol (optional)
+    - side (BUY/SELL, optional)
+    - date range (start_date, end_date, optional)
+    
+    Supports pagination with limit and offset.
+    Returns trades sorted by executed_at (descending by default).
+    Includes realized P&L for closed positions and strategy information.
+    """
+    session = SessionLocal()
+    
+    try:
+        # Validate sort_by field
+        valid_sort_fields = ["executed_at", "timestamp", "symbol", "price", "quantity"]
+        if sort_by not in valid_sort_fields:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid sort_by field. Must be one of: {', '.join(valid_sort_fields)}"
+            )
+        
+        # Validate sort_order
+        if sort_order.lower() not in ["asc", "desc"]:
+            raise HTTPException(
+                status_code=400,
+                detail="sort_order must be 'asc' or 'desc'"
+            )
+        
+        # Validate side filter
+        if side and side.upper() not in ["BUY", "SELL"]:
+            raise HTTPException(
+                status_code=400,
+                detail="side must be 'BUY' or 'SELL'"
+            )
+        
+        # Build base query with joins
+        query = session.query(Trade).filter(Trade.account_id == account_id)
+        
+        # Apply filters
+        if symbol:
+            query = query.filter(Trade.symbol == symbol.upper())
+        
+        if side:
+            trade_side = TradeSide.BUY if side.upper() == "BUY" else TradeSide.SELL
+            query = query.filter(Trade.side == trade_side)
+        
+        # Date range filter
+        if start_date:
+            start_datetime = datetime.combine(start_date, datetime.min.time())
+            query = query.filter(Trade.executed_at >= start_datetime)
+        
+        if end_date:
+            end_datetime = datetime.combine(end_date, datetime.max.time())
+            query = query.filter(Trade.executed_at <= end_datetime)
+        
+        # Get total count before pagination
+        total_count = query.count()
+        
+        # Apply sorting
+        sort_field = getattr(Trade, sort_by, None)
+        if sort_field is None:
+            # Fallback to executed_at if field not found
+            sort_field = Trade.executed_at
+        
+        if sort_order.lower() == "desc":
+            query = query.order_by(sort_field.desc())
+        else:
+            query = query.order_by(sort_field.asc())
+        
+        # Apply pagination
+        trades = query.offset(offset).limit(limit).all()
+        
+        # Format response
+        trades_list = []
+        for trade in trades:
+            # Get strategy name if available
+            strategy_name = None
+            if trade.strategy_id:
+                strategy = session.query(Strategy).filter(Strategy.id == trade.strategy_id).first()
+                if strategy:
+                    strategy_name = strategy.name
+            
+            # Calculate realized P&L from closed position
+            # For SELL trades, we can calculate realized P&L by matching with the related position
+            realized_pnl = None
+            realized_pnl_pct = None
+            
+            # If trade has a position relationship, use that
+            if trade.position and trade.position.status == PositionStatus.CLOSED:
+                # Position is closed, use its final P&L as realized P&L for the closing trade
+                if trade.side == TradeSide.SELL:
+                    realized_pnl = trade.position.unrealized_pnl
+                    realized_pnl_pct = trade.position.unrealized_pnl_pct
+            elif trade.executed_at and trade.side == TradeSide.SELL:
+                # For SELL trades without direct position link, try to find the closed position
+                # that was closed around the time of this trade
+                # Match by symbol, account, and closed_at within a reasonable window (e.g., same day)
+                trade_date = trade.executed_at.date() if trade.executed_at else None
+                if trade_date:
+                    closed_position = session.query(Position).filter(
+                        and_(
+                            Position.account_id == account_id,
+                            Position.symbol == trade.symbol,
+                            Position.status == PositionStatus.CLOSED,
+                            func.date(Position.closed_at) == trade_date
+                        )
+                    ).order_by(Position.closed_at.desc()).first()
+                    
+                    if closed_position:
+                        # For SELL trades, realized P&L is the difference between sell price and avg buy price
+                        # But we'll use the position's final P&L which should be more accurate
+                        realized_pnl = closed_position.unrealized_pnl
+                        realized_pnl_pct = closed_position.unrealized_pnl_pct
+            
+            trade_dict = {
+                "id": trade.id,
+                "symbol": trade.symbol,
+                "side": trade.side.value if trade.side else None,
+                "quantity": trade.quantity,
+                "price": trade.price,
+                "order_type": trade.order_type,
+                "status": trade.status.value if trade.status else None,
+                "executed_at": trade.executed_at.isoformat() if trade.executed_at else None,
+                "timestamp": trade.timestamp.isoformat() if trade.timestamp else None,
+                "realized_pnl": realized_pnl,
+                "realized_pnl_pct": realized_pnl_pct,
+                "strategy_id": trade.strategy_id,
+                "strategy_name": strategy_name,
+                "confidence_score": trade.confidence_score,
+                "filled_quantity": trade.filled_quantity,
+                "average_fill_price": trade.average_fill_price,
+                "commission": trade.commission,
+                "is_day_trade": trade.is_day_trade
+            }
+            trades_list.append(trade_dict)
+        
+        # Calculate has_more
+        has_more = (offset + limit) < total_count
+        
+        return {
+            "trades": trades_list,
+            "total": total_count,
+            "limit": limit,
+            "offset": offset,
+            "has_more": has_more
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting trades: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error retrieving trades: {str(e)}"
+        )
+    finally:
+        session.close()
 
 @router.post("/execute")
 async def execute_trade(
@@ -547,3 +1013,219 @@ async def trading_status():
         "open_positions": 0,
         "last_trade": None
     }
+
+
+class SignalRequest(BaseModel):
+    """Signal generation request model"""
+    symbol: str
+    entry_threshold: Optional[float] = 0.005  # 0.5% default
+    take_profit: Optional[float] = 0.20  # 20% default
+    stop_loss: Optional[float] = 0.10  # 10% default
+    quantity: Optional[int] = None
+
+
+class SignalResponse(BaseModel):
+    """Signal generation response model"""
+    symbol: str
+    signal_type: str  # BUY, SELL, HOLD
+    price: float
+    confidence: float  # 0.0 to 1.0
+    entry_price: float
+    take_profit_price: Optional[float] = None
+    stop_loss_price: Optional[float] = None
+    quantity: Optional[int] = None
+    confluence_score: Optional[float] = None
+    directional_bias: Optional[float] = None
+    recommendation: str
+    reasoning: Optional[Dict[str, Any]] = None
+
+
+@router.post("/signal", response_model=SignalResponse)
+async def generate_signal(signal_request: SignalRequest):
+    """
+    Generate a trading signal for a symbol based on confluence analysis
+    
+    Uses confluence calculator to analyze technical indicators, sentiment,
+    and options flow to generate a trading recommendation.
+    
+    Request body:
+    {
+        "symbol": "AAPL",
+        "entry_threshold": 0.005,  # Optional: 0.5% price movement threshold
+        "take_profit": 0.20,       # Optional: 20% take profit target
+        "stop_loss": 0.10,         # Optional: 10% stop loss
+        "quantity": 10             # Optional: Suggested quantity
+    }
+    
+    Returns:
+    {
+        "symbol": "AAPL",
+        "signal_type": "BUY",
+        "price": 150.25,
+        "confidence": 0.75,
+        "entry_price": 150.25,
+        "take_profit_price": 180.30,
+        "stop_loss_price": 135.23,
+        "quantity": 10,
+        "confluence_score": 0.82,
+        "directional_bias": 0.65,
+        "recommendation": "Strong buy signal based on technical and sentiment confluence",
+        "reasoning": {...}
+    }
+    """
+    try:
+        symbol = signal_request.symbol.upper()
+        
+        # Initialize data provider and confluence calculator
+        data_provider = DataProviderManager()
+        calculator = ConfluenceCalculator(
+            use_sentiment=True,
+            use_options_flow=True
+        )
+        
+        # Fetch current market data (1-minute bars, last 100 bars for indicators)
+        logger.info(f"Fetching market data for {symbol} to generate signal")
+        market_data = await data_provider.get_historical_data(
+            symbol=symbol,
+            timeframe="1m",
+            lookback_bars=100
+        )
+        
+        if market_data.empty:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No market data available for {symbol}. Symbol may be invalid or market closed."
+            )
+        
+        # Get current price (last close price)
+        current_price = float(market_data['close'].iloc[-1])
+        
+        # Calculate confluence score
+        logger.info(f"Calculating confluence score for {symbol}")
+        confluence = calculator.calculate_confluence(
+            symbol=symbol,
+            market_data=market_data,
+            sentiment_hours=24
+        )
+        
+        if confluence is None:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Could not calculate confluence for {symbol}. Insufficient data."
+            )
+        
+        # Determine signal based on confluence and directional bias
+        signal_type = SignalType.HOLD
+        confidence = confluence.confidence
+        
+        # Use directional bias to determine signal direction
+        # Positive bias = bullish (BUY), Negative bias = bearish (SELL)
+        if confluence.directional_bias > 0.2 and confluence.confluence_score > 0.6:
+            signal_type = SignalType.BUY
+            confidence = min(confidence * (1 + confluence.directional_bias), 1.0)
+        elif confluence.directional_bias < -0.2 and confluence.confluence_score > 0.6:
+            signal_type = SignalType.SELL
+            confidence = min(confidence * (1 + abs(confluence.directional_bias)), 1.0)
+        else:
+            signal_type = SignalType.HOLD
+            confidence = confluence.confidence * 0.5  # Lower confidence for HOLD
+        
+        # Check if confluence meets minimum threshold for entry
+        if signal_type != SignalType.HOLD and not confluence.meets_minimum_threshold:
+            # Signal exists but doesn't meet minimum confluence
+            signal_type = SignalType.HOLD
+            confidence = confluence.confidence * 0.3
+        
+        # Calculate entry, take profit, and stop loss prices
+        entry_price = current_price
+        
+        # Apply entry threshold if provided (wait for price movement)
+        if signal_request.entry_threshold and signal_request.entry_threshold > 0:
+            if signal_type == SignalType.BUY:
+                entry_price = current_price * (1 + signal_request.entry_threshold)
+            elif signal_type == SignalType.SELL:
+                entry_price = current_price * (1 - signal_request.entry_threshold)
+        
+        # Calculate take profit and stop loss prices
+        take_profit_price = None
+        stop_loss_price = None
+        
+        if signal_type == SignalType.BUY:
+            if signal_request.take_profit:
+                take_profit_price = entry_price * (1 + signal_request.take_profit)
+            if signal_request.stop_loss:
+                stop_loss_price = entry_price * (1 - signal_request.stop_loss)
+        elif signal_type == SignalType.SELL:
+            if signal_request.take_profit:
+                take_profit_price = entry_price * (1 - signal_request.take_profit)
+            if signal_request.stop_loss:
+                stop_loss_price = entry_price * (1 + signal_request.stop_loss)
+        
+        # Build recommendation message
+        if signal_type == SignalType.BUY:
+            recommendation = f"Buy signal for {symbol} with {confidence:.1%} confidence. "
+            recommendation += f"Strong confluence (score: {confluence.confluence_score:.2f}, bias: {confluence.directional_bias:.2f}). "
+            recommendation += f"Entry: ${entry_price:.2f}"
+        elif signal_type == SignalType.SELL:
+            recommendation = f"Sell signal for {symbol} with {confidence:.1%} confidence. "
+            recommendation += f"Strong confluence (score: {confluence.confluence_score:.2f}, bias: {confluence.directional_bias:.2f}). "
+            recommendation += f"Entry: ${entry_price:.2f}"
+        else:
+            recommendation = f"Hold signal for {symbol}. "
+            recommendation += f"Confluence score {confluence.confluence_score:.2f} below threshold or mixed signals. "
+            recommendation += "Wait for better entry opportunity."
+        
+        # Build reasoning breakdown
+        reasoning = {
+            "confluence_score": confluence.confluence_score,
+            "confluence_level": confluence.confluence_level.value,
+            "directional_bias": confluence.directional_bias,
+            "meets_minimum_threshold": confluence.meets_minimum_threshold,
+            "meets_high_threshold": confluence.meets_high_threshold,
+            "components_used": confluence.components_used,
+            "technical_score": confluence.breakdown.technical.overall_score if confluence.breakdown.technical else None,
+            "sentiment_score": confluence.breakdown.sentiment.sentiment_score if confluence.breakdown.sentiment else None,
+            "options_flow_score": confluence.breakdown.options_flow.overall_score if confluence.breakdown.options_flow else None,
+            "current_price": current_price,
+            "entry_threshold_applied": signal_request.entry_threshold if signal_request.entry_threshold else 0.0
+        }
+        
+        # Record signal generation metric
+        try:
+            from ...utils.metrics_trading import record_signal_generated
+            record_signal_generated(
+                symbol=symbol,
+                signal_type=signal_type.value,
+                confidence=confidence
+            )
+        except Exception:
+            pass  # Non-critical, skip if metrics not available
+        
+        logger.info(
+            f"Signal generated for {symbol}: {signal_type.value} @ ${entry_price:.2f} "
+            f"(confidence: {confidence:.1%}, confluence: {confluence.confluence_score:.2f})"
+        )
+        
+        return SignalResponse(
+            symbol=symbol,
+            signal_type=signal_type.value,
+            price=entry_price,
+            confidence=confidence,
+            entry_price=entry_price,
+            take_profit_price=take_profit_price,
+            stop_loss_price=stop_loss_price,
+            quantity=signal_request.quantity,
+            confluence_score=confluence.confluence_score,
+            directional_bias=confluence.directional_bias,
+            recommendation=recommendation,
+            reasoning=reasoning
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error generating signal for {signal_request.symbol}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error generating signal: {str(e)}"
+        )

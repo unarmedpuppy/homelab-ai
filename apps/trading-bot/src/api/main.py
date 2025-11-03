@@ -8,6 +8,7 @@ Clean, scalable API with proper error handling, validation, and documentation.
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from contextlib import asynccontextmanager
 import logging
@@ -327,9 +328,14 @@ app.include_router(events.router, prefix="/api/data/events", tags=["events"])
 app.include_router(websocket.router, tags=["websocket"])
 app.include_router(scheduler.router, prefix="/api", tags=["scheduler"])
 
-# Templates
+# Templates and Static Files
 BASE_DIR = Path(__file__).resolve().parent.parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "ui" / "templates"))
+
+# Mount static files directory (for JavaScript, CSS, etc.)
+static_dir = BASE_DIR / "ui" / "static"
+if static_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 @app.get("/", response_class=HTMLResponse)
 async def root():

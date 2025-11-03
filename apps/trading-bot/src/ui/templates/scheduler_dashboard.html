@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trading Bot - Scheduler Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="/static/js/dashboard-utils.js"></script>
     <style>
         .status-badge {
             display: inline-block;
@@ -132,8 +134,8 @@
                         <span id="refresh-text">Refresh</span>
                         <span id="refresh-spinner" class="hidden inline-block ml-2 refresh-indicator">⟳</span>
                     </button>
-                    <a href="/" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
-                        Main Dashboard
+                    <a href="/" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors">
+                        <i class="fas fa-chart-line mr-2"></i>Main Dashboard
                     </a>
                 </div>
             </div>
