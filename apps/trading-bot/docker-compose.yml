@@ -109,6 +109,12 @@ services:
       start_period: 40s
     networks:
       - trading-bot-network
+    labels:
+      - "homepage.group=Trading Bot"
+      - "homepage.name=Trading Bot API"
+      - "homepage.icon=si-tradingview"
+      - "homepage.href=http://192.168.86.47:8021"
+      - "homepage.description=Trading bot API and dashboard"
 
   prometheus:
     image: prom/prometheus:latest
@@ -131,6 +137,12 @@ services:
       - trading-bot-network
     depends_on:
       - bot
+    labels:
+      - "homepage.group=Trading Bot"
+      - "homepage.name=Prometheus"
+      - "homepage.icon=si-prometheus"
+      - "homepage.href=http://192.168.86.47:9091"
+      - "homepage.description=Prometheus metrics for trading bot"
 
   grafana:
     image: grafana/grafana:latest
@@ -151,6 +163,12 @@ services:
       - trading-bot-network
     depends_on:
       - prometheus
+    labels:
+      - "homepage.group=Trading Bot"
+      - "homepage.name=Grafana"
+      - "homepage.icon=si-grafana"
+      - "homepage.href=http://192.168.86.47:3002"
+      - "homepage.description=Grafana dashboards for trading bot"
 
   alertmanager:
     image: prom/alertmanager:latest
@@ -169,6 +187,12 @@ services:
       - trading-bot-network
     depends_on:
       - prometheus
+    labels:
+      - "homepage.group=Trading Bot"
+      - "homepage.name=Alertmanager"
+      - "homepage.icon=si-bell"
+      - "homepage.href=http://192.168.86.47:9094"
+      - "homepage.description=Alertmanager for trading bot notifications"
 
 networks:
   trading-bot-network:
