@@ -478,6 +478,37 @@ class MetricsSettings(BaseSettings):
     class Config:
         env_prefix = "METRICS_"
 
+class SchedulerSettings(BaseSettings):
+    """Trading scheduler configuration"""
+    enabled: bool = Field(default=False, description="Enable automatic trading scheduler")
+    evaluation_interval: int = Field(default=60, description="Strategy evaluation interval (seconds)")
+    exit_check_interval: int = Field(default=30, description="Exit condition check interval (seconds)")
+    min_confidence: float = Field(default=0.5, description="Minimum confidence to execute trades (0.0-1.0)")
+    max_concurrent_trades: int = Field(default=5, description="Maximum concurrent trades")
+    require_ibkr_connection: bool = Field(default=True, description="Require IBKR connection to run")
+    market_hours_only: bool = Field(default=True, description="Only trade during market hours (9:30 AM - 4:00 PM ET)")
+    
+    @validator('evaluation_interval', 'exit_check_interval')
+    def validate_intervals(cls, v):
+        if v < 5:
+            raise ValueError('Intervals must be at least 5 seconds')
+        return v
+    
+    @validator('min_confidence')
+    def validate_confidence(cls, v):
+        if not 0.0 <= v <= 1.0:
+            raise ValueError('min_confidence must be between 0.0 and 1.0')
+        return v
+    
+    @validator('max_concurrent_trades')
+    def validate_max_trades(cls, v):
+        if v < 1:
+            raise ValueError('max_concurrent_trades must be at least 1')
+        return v
+    
+    class Config:
+        env_prefix = "SCHEDULER_"
+
 class RiskManagementSettings(BaseSettings):
     """Risk Management & Cash Account Rules configuration"""
     # Cash Account Rules
@@ -581,6 +612,7 @@ class Settings(BaseSettings):
     redis: RedisSettings = RedisSettings()
     metrics: MetricsSettings = MetricsSettings()
     risk: RiskManagementSettings = RiskManagementSettings()
+    scheduler: SchedulerSettings = SchedulerSettings()
     
     # Paths
     data_dir: Path = Field(default=Path("./data"), description="Data directory")

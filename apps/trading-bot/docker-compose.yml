@@ -94,7 +94,7 @@ services:
       METRICS_PATH: ${METRICS_PATH:-/metrics}
       METRICS_ENABLE_INTERNAL_METRICS: ${METRICS_ENABLE_INTERNAL_METRICS:-true}
     ports:
-      - "8000:8000"
+      - "8021:8000"
     volumes:
       - ./data:/data
       - ./logs:/app/logs
@@ -125,7 +125,7 @@ services:
       - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
       - prometheus-data:/prometheus
     ports:
-      - "9090:9090"
+      - "9091:9090"
     restart: unless-stopped
     networks:
       - trading-bot-network
@@ -139,13 +139,13 @@ services:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
       - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_SERVER_ROOT_URL=http://localhost:3000
+      - GF_SERVER_ROOT_URL=http://localhost:3002
     volumes:
       - grafana-data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
       - ./grafana/dashboards:/etc/grafana/dashboards:ro
     ports:
-      - "3000:3000"
+      - "3002:3000"
     restart: unless-stopped
     networks:
       - trading-bot-network
@@ -158,12 +158,12 @@ services:
     command:
       - '--config.file=/etc/alertmanager/alertmanager.yml'
       - '--storage.path=/alertmanager'
-      - '--web.external-url=http://localhost:9093'
+      - '--web.external-url=http://localhost:9094'
     volumes:
       - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
       - alertmanager-data:/alertmanager
     ports:
-      - "9093:9093"
+      - "9094:9093"
     restart: unless-stopped
     networks:
       - trading-bot-network

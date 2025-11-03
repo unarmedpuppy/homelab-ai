@@ -15,7 +15,7 @@ from datetime import datetime
 from pathlib import Path
 
 from ..config.settings import settings
-from ..api.routes import trading, backtesting, screening, monitoring, market_data, strategies, sentiment, confluence, options_flow, trends, events, websocket
+from ..api.routes import trading, backtesting, screening, monitoring, market_data, strategies, sentiment, confluence, options_flow, trends, events, websocket, scheduler
 # Import from middleware package (which now exports from middleware.py)
 from ..api.middleware import LoggingMiddleware, RateLimitMiddleware
 from ..api.middleware.metrics_middleware import MetricsMiddleware
@@ -127,6 +127,19 @@ async def lifespan(app: FastAPI):
             await stream_manager.start_all()
             logger.info("WebSocket streams started")
         
+        # Start trading scheduler if enabled
+        if settings.scheduler.enabled:
+            try:
+                from ..core.scheduler import get_scheduler
+                scheduler = get_scheduler()
+                
+                # Start scheduler if enabled in config
+                if settings.scheduler.enabled:
+                    await scheduler.start()
+                    logger.info("Trading scheduler started")
+            except Exception as e:
+                logger.warning(f"Could not start trading scheduler: {e}", exc_info=True)
+        
         logger.info("Trading Bot API started successfully")
         yield
         
@@ -135,6 +148,16 @@ async def lifespan(app: FastAPI):
         raise
     finally:
         # Shutdown tasks
+        # Stop trading scheduler
+        try:
+            from ..core.scheduler import get_scheduler
+            scheduler = get_scheduler()
+            if scheduler.state.value != "stopped":
+                await scheduler.stop()
+                logger.info("Trading scheduler stopped")
+        except Exception as e:
+            logger.warning(f"Error stopping trading scheduler: {e}")
+        
         # Stop WebSocket streams
         if settings.websocket.enabled:
             try:
@@ -302,6 +325,7 @@ app.include_router(confluence.router, prefix="/api/confluence", tags=["confluenc
 app.include_router(trends.router, prefix="/api/data/trends", tags=["trends"])
 app.include_router(events.router, prefix="/api/data/events", tags=["events"])
 app.include_router(websocket.router, tags=["websocket"])
+app.include_router(scheduler.router, prefix="/api", tags=["scheduler"])
 
 # Templates
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -311,6 +335,11 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "ui" / "templates"))
 async def root():
     """Root endpoint - serve dashboard"""
     return templates.TemplateResponse("dashboard.html", {"request": {}})
+
+@app.get("/scheduler", response_class=HTMLResponse)
+async def scheduler_dashboard():
+    """Scheduler dashboard endpoint"""
+    return templates.TemplateResponse("scheduler_dashboard.html", {"request": {}})
 
 @app.get("/health")
 async def health():
