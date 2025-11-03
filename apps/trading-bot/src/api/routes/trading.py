@@ -69,7 +69,8 @@ async def ibkr_connection_status():
             message="IBKR manager not initialized"
         )
     
-    is_connected = manager.is_connected
+    # Ensure is_connected is a boolean, not None
+    is_connected = bool(manager.is_connected) if manager.is_connected is not None else False
     
     # Update broker connection status metric
     try:

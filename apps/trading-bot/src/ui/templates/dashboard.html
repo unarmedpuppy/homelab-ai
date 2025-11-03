@@ -69,6 +69,12 @@
 
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Debug Banner (remove after testing) -->
+        <div id="debug-banner" class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-4 rounded">
+            <p class="font-semibold">Dashboard Debug Mode</p>
+            <p class="text-sm">If you see this, JavaScript is working. Check browser console for API call logs.</p>
+        </div>
+        
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div class="bg-white rounded-lg shadow-md p-6 card-hover">
@@ -413,6 +419,16 @@
             }
 
             init() {
+                console.log('[Dashboard] Initializing dashboard...');
+                
+                // Hide debug banner after 5 seconds
+                setTimeout(() => {
+                    const debugBanner = document.getElementById('debug-banner');
+                    if (debugBanner) {
+                        debugBanner.style.display = 'none';
+                    }
+                }, 5000);
+                
                 this.connectWebSocket();
                 this.checkIBKRStatus(); // Check IBKR status on init
                 this.setupEventListeners();
@@ -440,6 +456,20 @@
                 setInterval(() => {
                     this.loadChartData();
                 }, 5 * 60 * 1000);
+                
+                console.log('[Dashboard] Dashboard initialization complete');
+                
+                // Update debug banner with status
+                const debugBanner = document.getElementById('debug-banner');
+                if (debugBanner) {
+                    setTimeout(() => {
+                        debugBanner.innerHTML = `
+                            <p class="font-semibold">Dashboard Debug Mode</p>
+                            <p class="text-sm">JavaScript loaded. Check console (F12) for API call status.</p>
+                            <p class="text-xs mt-1">If cards show "Loading..." forever, API calls are failing.</p>
+                        `;
+                    }, 1000);
+                }
             }
 
             connectWebSocket() {
@@ -1703,11 +1733,14 @@
                         
                         // Update IBKR connection status
                         this.updateIBKRStatus(data.ibkr_connected);
+                        
+                        console.log('[Dashboard] Portfolio summary updated successfully');
                     } else {
+                        console.error('[Dashboard] Portfolio summary API call failed:', result);
                         throw new Error(result.error || 'Failed to load portfolio summary');
                     }
                 } catch (error) {
-                    console.error('Error loading portfolio summary:', error);
+                    console.error('[Dashboard] Error loading portfolio summary:', error);
                     showErrorMessage('Failed to load portfolio summary', error);
                     // Show error state in UI
                     this.setPortfolioErrorState();
