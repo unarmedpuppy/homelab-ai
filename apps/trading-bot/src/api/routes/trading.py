@@ -526,46 +526,61 @@ async def portfolio_summary(account_id: int = Query(default=1, description="Acco
         today_end = datetime.combine(today, datetime.max.time())
         
         # Get today's filled trades for daily P&L
-        today_trades = session.query(Trade).filter(
-            and_(
-                Trade.account_id == account_id,
-                Trade.status == OrderStatus.FILLED,
-                Trade.executed_at >= today_start,
-                Trade.executed_at <= today_end
-            )
-        ).all()
+        # Note: Using direct query without accessing relationship to avoid SQLAlchemy relationship errors
+        try:
+            today_trades = session.query(Trade).filter(
+                and_(
+                    Trade.account_id == account_id,
+                    Trade.status == OrderStatus.FILLED,
+                    Trade.executed_at >= today_start,
+                    Trade.executed_at <= today_end
+                )
+            ).all()
+        except Exception as db_error:
+            logger.warning(f"Error querying today's trades (may be database relationship issue): {db_error}")
+            today_trades = []
         
         # Calculate daily P&L from position changes
         # For now, we'll use unrealized P&L from positions if available
         # TODO: Calculate realized P&L from closed positions/trades
         if manager and manager.is_connected:
             try:
-                positions = await manager.get_client().get_positions()
+                client = await manager.get_client()
+                positions = await client.get_positions()
                 daily_unrealized_pnl = sum(p.unrealized_pnl for p in positions if p.quantity != 0)
                 # This is a simplified calculation - ideally we'd track daily P&L separately
                 summary["daily_pnl"] = daily_unrealized_pnl
-            except Exception:
+            except Exception as e:
+                logger.debug(f"Could not get daily P&L from IBKR positions: {e}")
                 pass
         
         # Get all filled trades for win rate calculation
         # We need to calculate realized P&L from closed positions
         # For now, we'll use a simplified approach based on position P&L
-        all_filled_trades = session.query(Trade).filter(
-            and_(
-                Trade.account_id == account_id,
-                Trade.status == OrderStatus.FILLED
-            )
-        ).all()
+        try:
+            all_filled_trades = session.query(Trade).filter(
+                and_(
+                    Trade.account_id == account_id,
+                    Trade.status == OrderStatus.FILLED
+                )
+            ).all()
+        except Exception as db_error:
+            logger.warning(f"Error querying all filled trades (may be database relationship issue): {db_error}")
+            all_filled_trades = []
         
         summary["total_trades"] = len(all_filled_trades)
         
         # Calculate win rate from database positions that are closed
-        closed_positions = session.query(Position).filter(
-            and_(
-                Position.account_id == account_id,
-                Position.status == PositionStatus.CLOSED
-            )
-        ).all()
+        try:
+            closed_positions = session.query(Position).filter(
+                and_(
+                    Position.account_id == account_id,
+                    Position.status == PositionStatus.CLOSED
+                )
+            ).all()
+        except Exception as db_error:
+            logger.warning(f"Error querying closed positions: {db_error}")
+            closed_positions = []
         
         if closed_positions:
             winning_positions = [p for p in closed_positions if p.unrealized_pnl > 0]

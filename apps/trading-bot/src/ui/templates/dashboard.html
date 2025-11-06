@@ -39,7 +39,7 @@
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
                     <i class="fas fa-chart-line text-white text-2xl mr-3"></i>
-                    <h1 class="text-white text-xl font-bold">Trading Bot Dashboard</h1>
+                    <h1 class="text-white text-xl font-bold">unarmedpuppy's Dashboard - IBKR Integration Active ✅</h1>
                 </div>
                 <div class="flex items-center space-x-4">
                     <div class="flex items-center space-x-3 text-white text-sm">
@@ -49,11 +49,17 @@
                                 <i class="fas fa-circle mr-1"></i>Connecting...
                             </span>
                         </div>
-                        <div class="flex items-center">
+                        <div class="flex items-center space-x-2">
                             <span class="mr-1">IBKR:</span>
                             <span id="ibkr-connection-status" class="px-2 py-1 bg-gray-500 rounded-full text-xs">
                                 <i class="fas fa-circle mr-1"></i>Checking...
                             </span>
+                            <button id="ibkr-connect-btn" class="px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded transition-colors hidden">
+                                <i class="fas fa-plug mr-1"></i>Connect
+                            </button>
+                            <button id="ibkr-disconnect-btn" class="px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors hidden">
+                                <i class="fas fa-unlink mr-1"></i>Disconnect
+                            </button>
                         </div>
                     </div>
                     <a href="/scheduler" class="px-3 py-2 bg-white bg-opacity-20 text-white rounded-md hover:bg-opacity-30 transition-colors text-sm font-medium">
@@ -72,7 +78,8 @@
         <!-- Debug Banner (remove after testing) -->
         <div id="debug-banner" class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-4 rounded">
             <p class="font-semibold">Dashboard Debug Mode</p>
-            <p class="text-sm">If you see this, JavaScript is working. Check browser console for API call logs.</p>
+            <p class="text-sm">If you see this, HTML is loading. JavaScript status: <span id="js-status">Loading...</span></p>
+            <p class="text-xs mt-1">Open browser console (F12) to see initialization logs and API calls.</p>
         </div>
         
         <!-- Stats Cards -->
@@ -300,8 +307,38 @@
     </div>
 
     <!-- WebSocket Connection -->
-    <script src="/static/js/dashboard-utils.js"></script>
     <script>
+        // Load dashboard-utils.js first, then execute main script
+        const utilsScript = document.createElement('script');
+        utilsScript.src = '/static/js/dashboard-utils.js';
+        utilsScript.onload = function() {
+            console.log('✅ dashboard-utils.js loaded successfully');
+            console.log('apiCall function type:', typeof apiCall);
+            
+            // Now load main dashboard script
+            loadDashboardScript();
+        };
+        utilsScript.onerror = function() {
+            console.error('❌ Failed to load dashboard-utils.js');
+            alert('ERROR: Failed to load dashboard utilities. Check network tab.');
+            // Try to continue anyway
+            loadDashboardScript();
+        };
+        document.head.appendChild(utilsScript);
+        
+        function loadDashboardScript() {
+            // IMMEDIATE DEBUG - This should run as soon as script loads
+            console.log('=== DASHBOARD MAIN SCRIPT LOADING ===');
+            console.log('Document ready state:', document.readyState);
+            
+            // Test if API call function exists
+            if (typeof apiCall === 'function') {
+                console.log('✅ apiCall function exists and is ready');
+            } else {
+                console.error('❌ apiCall function NOT FOUND');
+                console.error('This means dashboard-utils.js did not load properly');
+            }
+        
         /**
          * WebSocket Connection Manager for Dashboard
          * Manages connections, subscriptions, reconnection, and message routing
@@ -421,13 +458,20 @@
             init() {
                 console.log('[Dashboard] Initializing dashboard...');
                 
-                // Hide debug banner after 5 seconds
+                // Update JS status in debug banner
+                const jsStatusEl = document.getElementById('js-status');
+                if (jsStatusEl) {
+                    jsStatusEl.textContent = '✅ JavaScript is running!';
+                    jsStatusEl.className = 'text-green-700 font-bold';
+                }
+                
+                // Hide debug banner after 10 seconds
                 setTimeout(() => {
                     const debugBanner = document.getElementById('debug-banner');
                     if (debugBanner) {
                         debugBanner.style.display = 'none';
                     }
-                }, 5000);
+                }, 10000);
                 
                 this.connectWebSocket();
                 this.checkIBKRStatus(); // Check IBKR status on init
@@ -984,6 +1028,30 @@
             }
 
             setupEventListeners() {
+                // IBKR Connect/Disconnect buttons
+                const connectBtn = document.getElementById('ibkr-connect-btn');
+                const disconnectBtn = document.getElementById('ibkr-disconnect-btn');
+                
+                if (connectBtn) {
+                    connectBtn.addEventListener('click', async () => {
+                        connectBtn.disabled = true;
+                        connectBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Connecting...';
+                        await this.connectIBKR();
+                        connectBtn.disabled = false;
+                        connectBtn.innerHTML = '<i class="fas fa-plug mr-1"></i>Connect';
+                    });
+                }
+                
+                if (disconnectBtn) {
+                    disconnectBtn.addEventListener('click', async () => {
+                        disconnectBtn.disabled = true;
+                        disconnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Disconnecting...';
+                        await this.disconnectIBKR();
+                        disconnectBtn.disabled = false;
+                        disconnectBtn.innerHTML = '<i class="fas fa-unlink mr-1"></i>Disconnect';
+                    });
+                }
+                
                 // Symbol selection - update subscription when symbol changes
                 const symbolSelect = document.getElementById('symbol-select');
                 if (symbolSelect) {
@@ -1624,11 +1692,26 @@
             }
 
             async loadPortfolioSummary() {
+                console.log('=== [Dashboard] loadPortfolioSummary() called ===');
+                console.log('[Dashboard] API call function type:', typeof apiCall);
+                
                 // Show loading states
                 this.setPortfolioLoadingState(true);
                 
+                if (typeof apiCall !== 'function') {
+                    console.error('❌ apiCall is not a function! Cannot load portfolio data.');
+                    console.error('Available window properties:', Object.keys(window).filter(k => k.includes('api') || k.includes('Api')));
+                    alert('ERROR: apiCall function not found. Check browser console (F12) for details.');
+                    return;
+                }
+                
+                console.log('[Dashboard] Calling API: /api/trading/portfolio/summary?account_id=1');
+                
                 try {
                     const result = await apiCall('/api/trading/portfolio/summary?account_id=1');
+                    console.log('=== [Dashboard] API Response Received ===');
+                    console.log('[Dashboard] Portfolio summary API response:', result);
+                    
                     if (result.ok && result.data) {
                         const data = result.data;
                         
@@ -1817,14 +1900,68 @@
 
             updateIBKRStatus(isConnected) {
                 const statusElement = document.getElementById('ibkr-connection-status');
+                const connectBtn = document.getElementById('ibkr-connect-btn');
+                const disconnectBtn = document.getElementById('ibkr-disconnect-btn');
+                
                 if (statusElement) {
                     if (isConnected) {
                         statusElement.innerHTML = '<i class="fas fa-circle mr-1"></i>Connected';
                         statusElement.className = 'px-2 py-1 bg-green-500 rounded-full text-xs text-white';
+                        // Show disconnect button, hide connect button
+                        if (connectBtn) connectBtn.classList.add('hidden');
+                        if (disconnectBtn) disconnectBtn.classList.remove('hidden');
                     } else {
                         statusElement.innerHTML = '<i class="fas fa-circle mr-1"></i>Disconnected';
                         statusElement.className = 'px-2 py-1 bg-red-500 rounded-full text-xs text-white';
+                        // Show connect button, hide disconnect button
+                        if (connectBtn) connectBtn.classList.remove('hidden');
+                        if (disconnectBtn) disconnectBtn.classList.add('hidden');
                     }
+                }
+            }
+            
+            async connectIBKR() {
+                try {
+                    console.log('[Dashboard] Connecting to IBKR...');
+                    const result = await apiCall('/api/trading/ibkr/connect', {
+                        method: 'POST'
+                    });
+                    
+                    if (result.ok && result.data) {
+                        showSuccessMessage('Successfully connected to IBKR');
+                        this.updateIBKRStatus(true);
+                        // Refresh portfolio data since IBKR is now connected
+                        await this.loadPortfolioSummary();
+                        // Refresh positions
+                        await this.loadRecentTrades();
+                    } else {
+                        throw new Error(result.error || 'Failed to connect to IBKR');
+                    }
+                } catch (error) {
+                    console.error('[Dashboard] Error connecting to IBKR:', error);
+                    showErrorMessage('Failed to connect to IBKR', error);
+                    this.updateIBKRStatus(false);
+                }
+            }
+            
+            async disconnectIBKR() {
+                try {
+                    console.log('[Dashboard] Disconnecting from IBKR...');
+                    const result = await apiCall('/api/trading/ibkr/disconnect', {
+                        method: 'POST'
+                    });
+                    
+                    if (result.ok) {
+                        showSuccessMessage('Disconnected from IBKR');
+                        this.updateIBKRStatus(false);
+                        // Refresh portfolio data (will show zeros since disconnected)
+                        await this.loadPortfolioSummary();
+                    } else {
+                        throw new Error(result.error || 'Failed to disconnect from IBKR');
+                    }
+                } catch (error) {
+                    console.error('[Dashboard] Error disconnecting from IBKR:', error);
+                    showErrorMessage('Failed to disconnect from IBKR', error);
                 }
             }
 
@@ -1898,8 +2035,25 @@
 
         // Initialize dashboard when page loads
         let dashboard = null;
-        document.addEventListener('DOMContentLoaded', () => {
+        
+        // Try immediate initialization if DOM is already loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log('[Dashboard] DOM loaded, initializing...');
+                dashboard = new TradingDashboard();
+            });
+        } else {
+            // DOM already loaded, initialize immediately
+            console.log('[Dashboard] DOM already loaded, initializing immediately...');
             dashboard = new TradingDashboard();
+        }
+        
+        // Also try window.onload as fallback
+        window.addEventListener('load', () => {
+            if (!dashboard) {
+                console.log('[Dashboard] Window loaded, initializing (fallback)...');
+                dashboard = new TradingDashboard();
+            }
         });
 
         // Cleanup on page unload
@@ -1908,6 +2062,9 @@
                 dashboard.cleanup();
             }
         });
+        
+        console.log('=== END OF DASHBOARD SCRIPT ===');
+        } // End of loadDashboardScript function
     </script>
 </body>
 </html>

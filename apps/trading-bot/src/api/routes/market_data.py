@@ -64,8 +64,57 @@ async def get_market_data_info():
 
 @router.get("/quote/{symbol}", response_model=MarketDataResponse)
 async def get_quote(symbol: str):
-    """Get current quote for a symbol"""
+    """Get current quote for a symbol - uses IBKR if connected, otherwise falls back to other providers"""
     try:
+        # Try IBKR first if connected
+        try:
+            # Import IBKRManager and get the global instance from trading routes
+            from ...data.brokers.ibkr_client import IBKRManager
+            from ...api.routes.trading import get_ibkr_manager
+            ibkr_manager = get_ibkr_manager()
+            
+            if ibkr_manager and ibkr_manager.is_connected:
+                try:
+                    client = await ibkr_manager.get_client()
+                    contract = client.create_contract(symbol.upper())
+                    market_data = await client.get_market_data(contract)
+                    
+                    # Use last price if available, otherwise use bid/ask midpoint
+                    price = market_data.get("last")
+                    if price is None:
+                        bid = market_data.get("bid")
+                        ask = market_data.get("ask")
+                        if bid is not None and ask is not None:
+                            price = (bid + ask) / 2
+                        elif bid is not None:
+                            price = bid
+                        elif ask is not None:
+                            price = ask
+                    
+                    if price is None:
+                        raise ValueError("No price data available from IBKR")
+                    
+                    # Calculate change (simplified - would need previous close for accurate change)
+                    # For now, just return current price with 0 change
+                    return MarketDataResponse(
+                        symbol=symbol.upper(),
+                        price=float(price),
+                        change=0.0,  # Would need to track previous close for accurate change
+                        change_pct=0.0,
+                        volume=market_data.get("volume", 0),
+                        timestamp=datetime.now()
+                    )
+                except Exception as ibkr_error:
+                    logger.debug(f"IBKR quote failed for {symbol}, falling back to other providers: {ibkr_error}")
+                    # Fall through to use other providers
+        except ImportError:
+            # IBKR not available, use other providers
+            pass
+        except Exception as e:
+            logger.debug(f"Error checking IBKR connection: {e}")
+            # Fall through to use other providers
+        
+        # Fallback to other data providers
         manager = get_data_manager()
         quote = await manager.get_quote(symbol.upper())
         

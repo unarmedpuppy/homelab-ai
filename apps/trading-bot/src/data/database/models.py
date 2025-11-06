@@ -133,7 +133,8 @@ class Trade(Base):
     # Relationships
     account = relationship("Account", back_populates="trades")
     strategy = relationship("Strategy", back_populates="trades")
-    position = relationship("Position", back_populates="trades")
+    # Note: Position relationship removed - no foreign key exists
+    # If needed, query positions separately by symbol/account_id
 
 class Position(Base):
     """Position model"""
@@ -153,7 +154,8 @@ class Position(Base):
     
     # Relationships
     account = relationship("Account", back_populates="positions")
-    trades = relationship("Trade", back_populates="position")
+    # Note: Trade relationship removed - no foreign key exists
+    # If needed, query trades separately by symbol/account_id
 
 # Market Data Models
 class MarketData(Base):
