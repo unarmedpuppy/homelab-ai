@@ -264,7 +264,7 @@
                 <!-- Recent Trades -->
                 <div class="bg-white rounded-lg shadow-md p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Trades</h3>
-                    <div id="recent-trades" class="space-y-3">
+                    <div id="recent-trades" class="space-y-3 max-h-96 overflow-y-auto">
                         <div class="flex justify-between items-center p-3 bg-gray-50 rounded-md">
                             <div>
                                 <p class="font-medium">AAPL</p>
@@ -455,6 +455,8 @@
                 this.signalFeedLimit = 50; // Limit to last 50 signals
                 this.currentSymbol = 'AAPL'; // Default symbol
                 this.lastKnownPrice = null; // Track last known price for fallback
+                this.lastPortfolioData = null; // Track last portfolio data to prevent unnecessary updates
+                this.lastTradesKey = null; // Track last trades list to prevent unnecessary re-renders
                 this.initialized = false; // Prevent multiple initializations
                 this.init();
             }
@@ -866,11 +868,35 @@
 
             addSignalToFeed(signalData) {
                 const signalFeed = document.getElementById('signal-feed');
-                if (!signalFeed) return;
+                if (!signalFeed || !signalData) return;
+                
+                // Validate signal data
+                if (!signalData.symbol || !signalData.signal_type) {
+                    console.warn('Invalid signal data, skipping:', signalData);
+                    return;
+                }
                 
                 // Remove "waiting for signals" message if present
                 if (signalFeed.children.length === 1 && signalFeed.children[0].textContent.includes('Waiting for signals')) {
                     signalFeed.innerHTML = '';
+                }
+                
+                // Check for duplicate signals (same symbol + type within last 5 seconds)
+                const now = Date.now();
+                const recentSignals = Array.from(signalFeed.children);
+                const isDuplicate = recentSignals.some(child => {
+                    const symbolEl = child.querySelector('.font-medium.text-gray-900');
+                    const typeEl = child.querySelector('.font-semibold');
+                    if (!symbolEl || !typeEl) return false;
+                    
+                    const symbol = symbolEl.textContent.trim();
+                    const type = typeEl.textContent.trim();
+                    return symbol === signalData.symbol && type === (signalData.signal_type || signalData.type);
+                });
+                
+                if (isDuplicate) {
+                    console.debug('Duplicate signal ignored:', signalData.symbol, signalData.signal_type);
+                    return;
                 }
                 
                 // Create signal card
@@ -904,7 +930,7 @@
                     }
                 }
                 
-                const confidence = (signalData.confidence * 100).toFixed(1);
+                const confidence = signalData.confidence ? (signalData.confidence * 100).toFixed(1) : '0.0';
                 const confidenceColor = signalData.confidence >= 0.7 ? 'text-green-600' : 
                                        signalData.confidence >= 0.4 ? 'text-yellow-600' : 'text-gray-600';
                 
@@ -934,9 +960,15 @@
                 // Add to top of feed
                 signalFeed.insertBefore(signalCard, signalFeed.firstChild);
                 
-                // Limit feed size
-                while (signalFeed.children.length > this.signalFeedLimit) {
-                    signalFeed.removeChild(signalFeed.lastChild);
+                // Limit feed size (enforce limit strictly)
+                const maxSignals = this.signalFeedLimit || 50;
+                while (signalFeed.children.length > maxSignals) {
+                    const lastChild = signalFeed.lastChild;
+                    if (lastChild) {
+                        signalFeed.removeChild(lastChild);
+                    } else {
+                        break; // Safety break
+                    }
                 }
                 
                 // Optional: Play notification sound for high-confidence signals
@@ -1296,23 +1328,50 @@
                 const recentTradesContainer = document.getElementById('recent-trades');
                 if (!recentTradesContainer) return;
                 
-                // Handle empty trades list
-                if (!trades || trades.length === 0) {
-                    recentTradesContainer.innerHTML = `
-                        <div class="text-center text-gray-400 py-8">
-                            <i class="fas fa-chart-line text-4xl mb-2 opacity-50"></i>
-                            <p class="text-sm">No trades yet</p>
-                            <p class="text-xs mt-1 text-gray-500">Trades will appear here once you start trading</p>
-                        </div>
-                    `;
+                // Validate trades array
+                if (!Array.isArray(trades)) {
+                    console.warn('renderTradesList: Invalid trades data, expected array:', trades);
                     return;
                 }
                 
-                // Clear existing content
+                // Check if data has changed (prevent unnecessary re-renders)
+                const tradesKey = trades.map(t => `${t.id || t.symbol}-${t.executed_at || t.timestamp}`).join('|');
+                if (this.lastTradesKey === tradesKey && recentTradesContainer.children.length > 0) {
+                    console.debug('Trades list unchanged, skipping render');
+                    return;
+                }
+                this.lastTradesKey = tradesKey;
+                
+                // Handle empty trades list
+                if (trades.length === 0) {
+                    // Only update if not already showing empty state
+                    const isEmptyState = recentTradesContainer.querySelector('.text-gray-400');
+                    if (!isEmptyState) {
+                        recentTradesContainer.innerHTML = `
+                            <div class="text-center text-gray-400 py-8">
+                                <i class="fas fa-chart-line text-4xl mb-2 opacity-50"></i>
+                                <p class="text-sm">No trades yet</p>
+                                <p class="text-xs mt-1 text-gray-500">Trades will appear here once you start trading</p>
+                            </div>
+                        `;
+                    }
+                    return;
+                }
+                
+                // Clear existing content first (important to prevent accumulation)
                 recentTradesContainer.innerHTML = '';
                 
+                // Limit number of trades rendered (prevent excessive DOM elements)
+                const maxTrades = 20;
+                const tradesToRender = trades.slice(0, maxTrades);
+                
                 // Render each trade
-                trades.forEach(trade => {
+                tradesToRender.forEach(trade => {
+                    // Skip invalid trades
+                    if (!trade || (!trade.symbol && !trade.id)) {
+                        console.warn('Skipping invalid trade:', trade);
+                        return;
+                    }
                     const tradeElement = document.createElement('div');
                     tradeElement.className = 'flex justify-between items-center p-3 bg-gray-50 rounded-md';
                     
@@ -1750,13 +1809,19 @@
                 console.log('=== [Dashboard] loadPortfolioSummary() called ===');
                 console.log('[Dashboard] API call function type:', typeof apiCall);
                 
-                // Show loading states
-                this.setPortfolioLoadingState(true);
+                // Show loading states only if not already loaded
+                const portfolioEl = document.getElementById('portfolio-value');
+                const isAlreadyLoaded = portfolioEl && !portfolioEl.hasAttribute('data-loading');
+                
+                if (!isAlreadyLoaded) {
+                    this.setPortfolioLoadingState(true);
+                }
                 
                 if (typeof apiCall !== 'function') {
                     console.error('❌ apiCall is not a function! Cannot load portfolio data.');
                     console.error('Available window properties:', Object.keys(window).filter(k => k.includes('api') || k.includes('Api')));
-                    alert('ERROR: apiCall function not found. Check browser console (F12) for details.');
+                    // Don't show alert repeatedly - only log
+                    console.error('ERROR: apiCall function not found. Check browser console (F12) for details.');
                     return;
                 }
                 
@@ -1769,6 +1834,28 @@
                     
                     if (result.ok && result.data) {
                         const data = result.data;
+                        
+                        // Check if data has actually changed (prevent unnecessary DOM updates)
+                        const currentPortfolioValue = this.lastPortfolioData?.portfolio_value;
+                        const newPortfolioValue = typeof data.portfolio_value === 'number' ? data.portfolio_value : 0;
+                        const dataChanged = !this.lastPortfolioData || 
+                                          currentPortfolioValue !== newPortfolioValue ||
+                                          this.lastPortfolioData.daily_pnl !== data.daily_pnl ||
+                                          this.lastPortfolioData.active_positions !== data.active_positions;
+                        
+                        // Store last data for comparison
+                        this.lastPortfolioData = { ...data };
+                        
+                        // Skip UI update if data hasn't changed (but still update timestamp)
+                        if (!dataChanged && isAlreadyLoaded) {
+                            console.debug('[Dashboard] Portfolio data unchanged, skipping UI update');
+                            // Still update timestamp if element exists
+                            const lastUpdatedEl = document.querySelector('[data-last-updated]');
+                            if (lastUpdatedEl) {
+                                lastUpdatedEl.textContent = `Updated: ${new Date().toLocaleTimeString()}`;
+                            }
+                            return;
+                        }
                         
                         // Update portfolio value (with validation)
                         const portfolioValue = typeof data.portfolio_value === 'number' ? data.portfolio_value : 0;
@@ -1874,14 +1961,24 @@
                         
                         console.log('[Dashboard] Portfolio summary updated successfully');
                     } else {
-                        console.error('[Dashboard] Portfolio summary API call failed:', result);
-                        throw new Error(result.error || 'Failed to load portfolio summary');
+                        // API call failed - only show error if we don't have cached data
+                        if (!this.lastPortfolioData) {
+                            console.error('[Dashboard] Portfolio summary API call failed:', result);
+                            throw new Error(result.error || 'Failed to load portfolio summary');
+                        } else {
+                            // We have cached data, just log the error silently
+                            console.warn('[Dashboard] Portfolio summary API failed, using cached data:', result.error);
+                        }
                     }
                 } catch (error) {
                     console.error('[Dashboard] Error loading portfolio summary:', error);
-                    showErrorMessage('Failed to load portfolio summary', error);
-                    // Show error state in UI
-                    this.setPortfolioErrorState();
+                    // Only show error if we don't have cached data
+                    if (!this.lastPortfolioData) {
+                        showErrorMessage('Failed to load portfolio summary', error);
+                        this.setPortfolioErrorState();
+                    } else {
+                        console.warn('[Dashboard] Portfolio summary error, using cached data:', error.message);
+                    }
                 } finally {
                     // Hide loading states if still showing (in case of error)
                     this.setPortfolioLoadingState(false);

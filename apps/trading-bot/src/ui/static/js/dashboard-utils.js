@@ -147,9 +147,33 @@ function formatPnL(value, decimals = 2) {
 function showErrorMessage(message, error = null, container = null) {
     const targetContainer = container || document.body;
     
+    // Limit concurrent error messages to prevent page growth
+    const existingErrors = targetContainer.querySelectorAll('.error-alert-toast');
+    const MAX_ERRORS = 3;
+    
+    // Remove oldest errors if we're at the limit
+    if (existingErrors.length >= MAX_ERRORS) {
+        existingErrors[existingErrors.length - 1].remove();
+    }
+    
+    // Check if this exact error message is already displayed (prevent duplicates)
+    const errorText = error ? (error.message || String(error)) : '';
+    const allErrorMessages = Array.from(targetContainer.querySelectorAll('.error-alert-toast'));
+    const isDuplicate = allErrorMessages.some(el => {
+        const msgEl = el.querySelector('.font-medium');
+        const detailEl = el.querySelector('.text-sm');
+        return msgEl && msgEl.textContent === message && 
+               (!errorText || !detailEl || detailEl.textContent === errorText);
+    });
+    
+    if (isDuplicate) {
+        // Don't show duplicate errors
+        return;
+    }
+    
     // Create error alert element
     const alert = document.createElement('div');
-    alert.className = 'fixed top-4 right-4 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-lg z-50 max-w-md';
+    alert.className = 'error-alert-toast fixed top-4 right-4 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-lg z-50 max-w-md';
     alert.innerHTML = `
         <div class="flex items-start">
             <div class="flex-shrink-0">
@@ -167,6 +191,10 @@ function showErrorMessage(message, error = null, container = null) {
             </div>
         </div>
     `;
+    
+    // Position based on existing errors
+    const topOffset = 4 + (existingErrors.length * 80); // 80px per error
+    alert.style.top = `${topOffset}px`;
     
     targetContainer.appendChild(alert);
     
