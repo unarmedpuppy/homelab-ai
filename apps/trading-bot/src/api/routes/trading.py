@@ -604,10 +604,24 @@ async def portfolio_summary(account_id: int = Query(default=1, description="Acco
     
     except Exception as e:
         logger.error(f"Error getting portfolio summary: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error retrieving portfolio summary: {str(e)}"
-        )
+        error_msg = str(e)
+        
+        # Provide more user-friendly error messages
+        if "database" in error_msg.lower() or "connection" in error_msg.lower() or "DATABASE_URL" in error_msg:
+            raise HTTPException(
+                status_code=503,
+                detail="Database connection unavailable. Please check DATABASE_URL configuration."
+            )
+        elif "API" in error_msg or "key" in error_msg.lower():
+            raise HTTPException(
+                status_code=503,
+                detail="External service unavailable. API keys may be missing or invalid."
+            )
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error retrieving portfolio summary: {error_msg}"
+            )
     finally:
         session.close()
 

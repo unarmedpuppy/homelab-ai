@@ -449,14 +449,27 @@
                 this.pricePollingInterval = null;
                 this.portfolioPollingInterval = null;
                 this.pingInterval = null;
+                this.portfolioSummaryInterval = null;
+                this.ibkrStatusInterval = null;
+                this.chartRefreshInterval = null;
                 this.signalFeedLimit = 50; // Limit to last 50 signals
                 this.currentSymbol = 'AAPL'; // Default symbol
                 this.lastKnownPrice = null; // Track last known price for fallback
+                this.initialized = false; // Prevent multiple initializations
                 this.init();
             }
 
             init() {
+                // Prevent multiple initializations
+                if (this.initialized) {
+                    console.warn('[Dashboard] Already initialized, skipping...');
+                    return;
+                }
+                
                 console.log('[Dashboard] Initializing dashboard...');
+                
+                // Clear any existing intervals first
+                this.clearAllIntervals();
                 
                 // Update JS status in debug banner
                 const jsStatusEl = document.getElementById('js-status');
@@ -487,20 +500,21 @@
                 
                 // Refresh portfolio summary periodically (every 30 seconds)
                 // This also updates IBKR status
-                setInterval(() => {
+                this.portfolioSummaryInterval = setInterval(() => {
                     this.loadPortfolioSummary();
                 }, 30 * 1000);
                 
                 // Check IBKR status periodically (every 60 seconds, independent of portfolio)
-                setInterval(() => {
+                this.ibkrStatusInterval = setInterval(() => {
                     this.checkIBKRStatus();
                 }, 60 * 1000);
                 
                 // Refresh charts periodically (every 5 minutes)
-                setInterval(() => {
+                this.chartRefreshInterval = setInterval(() => {
                     this.loadChartData();
                 }, 5 * 60 * 1000);
                 
+                this.initialized = true;
                 console.log('[Dashboard] Dashboard initialization complete');
                 
                 // Update debug banner with status
@@ -514,6 +528,47 @@
                         `;
                     }, 1000);
                 }
+            }
+            
+            clearAllIntervals() {
+                // Clear all intervals
+                if (this.portfolioSummaryInterval) {
+                    clearInterval(this.portfolioSummaryInterval);
+                    this.portfolioSummaryInterval = null;
+                }
+                if (this.ibkrStatusInterval) {
+                    clearInterval(this.ibkrStatusInterval);
+                    this.ibkrStatusInterval = null;
+                }
+                if (this.chartRefreshInterval) {
+                    clearInterval(this.chartRefreshInterval);
+                    this.chartRefreshInterval = null;
+                }
+                if (this.pricePollingInterval) {
+                    clearInterval(this.pricePollingInterval);
+                    this.pricePollingInterval = null;
+                }
+                if (this.portfolioPollingInterval) {
+                    clearInterval(this.portfolioPollingInterval);
+                    this.portfolioPollingInterval = null;
+                }
+                if (this.pingInterval) {
+                    clearInterval(this.pingInterval);
+                    this.pingInterval = null;
+                }
+            }
+            
+            cleanup() {
+                console.log('[Dashboard] Cleaning up...');
+                this.clearAllIntervals();
+                if (this.ws) {
+                    this.ws.close();
+                    this.ws = null;
+                }
+                if (this.wsManager) {
+                    this.wsManager.disconnectAll();
+                }
+                this.initialized = false;
             }
 
             connectWebSocket() {
@@ -2039,8 +2094,10 @@
         // Try immediate initialization if DOM is already loaded
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
-                console.log('[Dashboard] DOM loaded, initializing...');
-                dashboard = new TradingDashboard();
+                if (!dashboard) {
+                    console.log('[Dashboard] DOM loaded, initializing...');
+                    dashboard = new TradingDashboard();
+                }
             });
         } else {
             // DOM already loaded, initialize immediately
@@ -2048,7 +2105,7 @@
             dashboard = new TradingDashboard();
         }
         
-        // Also try window.onload as fallback
+        // Also try window.onload as fallback (but only if not already initialized)
         window.addEventListener('load', () => {
             if (!dashboard) {
                 console.log('[Dashboard] Window loaded, initializing (fallback)...');
@@ -2058,7 +2115,7 @@
 
         // Cleanup on page unload
         window.addEventListener('beforeunload', () => {
-            if (dashboard) {
+            if (dashboard && dashboard.cleanup) {
                 dashboard.cleanup();
             }
         });

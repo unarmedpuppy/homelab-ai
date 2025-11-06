@@ -129,7 +129,24 @@ async def get_quote(symbol: str):
         
     except Exception as e:
         logger.error(f"Error getting quote for {symbol}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        error_msg = str(e)
+        
+        # Provide more user-friendly error messages
+        if "API" in error_msg or "key" in error_msg.lower() or "authentication" in error_msg.lower():
+            raise HTTPException(
+                status_code=503,
+                detail=f"Market data service unavailable. API keys may be missing or invalid. Error: {error_msg}"
+            )
+        elif "connection" in error_msg.lower() or "timeout" in error_msg.lower():
+            raise HTTPException(
+                status_code=503,
+                detail=f"Unable to connect to market data provider. Please check your internet connection."
+            )
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error retrieving quote for {symbol}: {error_msg}"
+            )
 
 @router.get("/quotes", response_model=List[MarketDataResponse])
 async def get_multiple_quotes(symbols: str = Query(..., description="Comma-separated list of symbols")):
