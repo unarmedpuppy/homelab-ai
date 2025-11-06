@@ -318,6 +318,14 @@ Use this checklist to systematically review your work:
    - Document fixes in review checklist or create fix summary
 
 7. **Complete Task & Clean Up Documentation** (MANDATORY):
+   - ✅ **Deploy Changes** (MANDATORY):
+     - Follow the deployment workflow (see "🚀 Deployment Workflow" section)
+     - Commit and push changes to git
+     - Pull changes on server
+     - Rebuild Docker image with --no-cache
+     - Restart container
+     - Verify deployment works correctly
+   
    - ✅ **Consolidate Documentation**:
      - Review all docs created during implementation
      - Extract key information into core documentation:
@@ -349,6 +357,7 @@ Use this checklist to systematically review your work:
      - Verify all tests pass
      - Check code quality
      - Ensure Docker compatibility
+     - **Deployment completed and verified**
      - Core documentation updated and accurate
      - Work-in-progress docs archived
      - Archive README updated
@@ -517,6 +526,14 @@ Before marking any work complete, verify:
 - [ ] **All critical/high priority issues fixed**
 - [ ] **Fixes documented** (fix summary created)
 
+### Deployment (MANDATORY)
+- [ ] **Changes committed to git**
+- [ ] **Changes pushed to remote repository**
+- [ ] **Changes pulled on server**
+- [ ] **Docker image rebuilt with --no-cache**
+- [ ] **Container restarted**
+- [ ] **Deployment verified** (tested in browser/API)
+
 ### Documentation & Cleanup
 - [ ] **Progress documented** (implementation plan, progress notes, decisions)
 - [ ] **Core documentation updated**:
@@ -648,6 +665,72 @@ Before marking any work complete, verify:
 
 ---
 
+## 🚀 Deployment Workflow (MANDATORY)
+
+**After completing any code changes that affect the running application, you MUST deploy to the server using this workflow.**
+
+### Deployment Steps
+
+1. **Stage and Commit Changes**:
+   ```bash
+   cd /Users/joshuajenquist/repos/personal/home-server
+   git add apps/trading-bot/[modified_files]
+   git commit -m "Descriptive commit message"
+   ```
+
+2. **Push to Remote Repository**:
+   ```bash
+   git push origin main
+   ```
+
+3. **Pull Changes on Server**:
+   ```bash
+   bash scripts/connect-server.sh "cd ~/server && git pull origin main"
+   ```
+
+4. **Rebuild Docker Image** (with --no-cache to ensure fresh build):
+   ```bash
+   bash scripts/connect-server.sh "cd ~/server/apps/trading-bot && docker-compose build --no-cache bot"
+   ```
+
+5. **Restart Container**:
+   ```bash
+   bash scripts/connect-server.sh "cd ~/server/apps/trading-bot && docker-compose up -d bot"
+   ```
+
+### Important Notes
+
+- **Always use `--no-cache`** when rebuilding to ensure changes are included
+- **Verify deployment** by checking the application after restart
+- **This workflow applies to ALL code changes** that affect the running application
+- **UI changes, API changes, configuration changes** all require deployment
+- **Test in incognito mode** after deployment to verify changes are live
+
+### Quick Deployment Command Sequence
+
+For convenience, you can run these commands in sequence:
+```bash
+cd /Users/joshuajenquist/repos/personal/home-server
+git add apps/trading-bot/[files]
+git commit -m "Your message"
+git push origin main
+bash scripts/connect-server.sh "cd ~/server && git pull origin main"
+bash scripts/connect-server.sh "cd ~/server/apps/trading-bot && docker-compose build --no-cache bot && docker-compose up -d bot"
+```
+
+### When to Deploy
+
+- ✅ After completing code changes
+- ✅ After fixing bugs
+- ✅ After updating configuration
+- ✅ After UI changes
+- ✅ After API endpoint changes
+- ✅ Before marking work as "complete"
+
+**Deployment is part of the completion checklist - do not mark work complete until deployed and verified.**
+
+---
+
 ## 🎯 Remember
 
 1. **Always understand existing code first** - Read documentation before coding
@@ -661,6 +744,7 @@ Before marking any work complete, verify:
 9. **Clean up documentation** - Archive work-in-progress, consolidate into core docs
 10. **Keep core docs current** - They should reflect final state, not plans
 11. **Integration over innovation** - Make your code feel like part of the existing codebase, not a separate system
+12. **Deploy after changes** - Always follow the deployment workflow before marking work complete
 
 ---
 
