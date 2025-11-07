@@ -371,6 +371,18 @@ class TradingScheduler:
             if side == "BUY":
                 self._monitored_positions[strategy_id] = signal.symbol
             
+            # Trigger position sync after trade execution if enabled
+            if self.position_sync_config.enabled and self.position_sync_config.sync_on_trade:
+                try:
+                    logger.debug("Triggering position sync after trade execution")
+                    await self.position_sync_service.sync_positions(
+                        account_id=account_id,
+                        calculate_realized_pnl=self.position_sync_config.calculate_realized_pnl
+                    )
+                except Exception as e:
+                    logger.warning(f"Error syncing positions after trade: {e}")
+                    # Don't fail the trade execution if sync fails
+            
         except Exception as e:
             logger.error(f"Error executing signal: {e}", exc_info=True)
             self.stats.trades_rejected += 1
