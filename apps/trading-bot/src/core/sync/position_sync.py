@@ -12,7 +12,7 @@ from datetime import datetime
 from contextlib import contextmanager
 
 from ...data.database import SessionLocal
-from ...data.database.models import Position, PositionStatus, Account
+from ...data.database.models import Position, PositionStatus, Account, PositionClose
 from ...data.brokers.ibkr_client import BrokerPosition, IBKRClient, IBKRManager
 from ...api.routes.trading import get_ibkr_manager
 
@@ -254,11 +254,56 @@ class PositionSyncService:
                             # Partial close - keep existing average price (FIFO assumption)
                             # The average price of remaining shares doesn't change
                             db_pos.average_price = old_average_price
-                            logger.debug(
-                                f"Partial close: {symbol} - "
-                                f"keeping average price: ${old_average_price:.2f} "
-                                f"(FIFO assumption)"
-                            )
+                            
+                            # Calculate and track realized P&L for partial close
+                            if calculate_realized_pnl:
+                                closed_quantity = old_quantity - ibkr_pos.quantity
+                                # Use current_price as exit price (or average_price if 0)
+                                exit_price = ibkr_pos.market_price if ibkr_pos.market_price > 0 else old_average_price
+                                
+                                # Calculate realized P&L for closed portion
+                                partial_realized_pnl = (exit_price - old_average_price) * closed_quantity
+                                partial_realized_pnl_pct = ((exit_price / old_average_price) - 1) * 100 if old_average_price > 0 else 0
+                                
+                                # Create PositionClose record for this partial close
+                                position_close = PositionClose(
+                                    position_id=db_pos.id,
+                                    account_id=account_id,
+                                    symbol=symbol,
+                                    quantity_closed=closed_quantity,
+                                    entry_price=old_average_price,
+                                    exit_price=exit_price,
+                                    realized_pnl=partial_realized_pnl,
+                                    realized_pnl_pct=partial_realized_pnl_pct,
+                                    closed_at=datetime.now(),
+                                    is_full_close=False
+                                )
+                                session.add(position_close)
+                                
+                                # Update position's total realized P&L (sum of all closes)
+                                # Get existing closes for this position
+                                existing_closes = session.query(PositionClose).filter(
+                                    PositionClose.position_id == db_pos.id
+                                ).all()
+                                total_realized_pnl = sum(close.realized_pnl for close in existing_closes) + partial_realized_pnl
+                                
+                                # Store cumulative realized P&L in position (for quick access)
+                                # Note: This is the sum of all partial closes, not just this one
+                                db_pos.realized_pnl = total_realized_pnl
+                                
+                                logger.info(
+                                    f"Partial close: {symbol} - "
+                                    f"closed {closed_quantity} shares, "
+                                    f"realized P&L: ${partial_realized_pnl:.2f} "
+                                    f"(exit: ${exit_price:.2f}, entry: ${old_average_price:.2f}, "
+                                    f"total realized: ${total_realized_pnl:.2f})"
+                                )
+                            else:
+                                logger.debug(
+                                    f"Partial close: {symbol} - "
+                                    f"keeping average price: ${old_average_price:.2f} "
+                                    f"(FIFO assumption, P&L calculation disabled)"
+                                )
                         else:
                             # Quantity unchanged - use IBKR's average (may have been updated)
                             db_pos.average_price = ibkr_pos.average_price
@@ -279,15 +324,43 @@ class PositionSyncService:
                             if calculate_realized_pnl:
                                 # Use current_price as exit price (or average_price if 0)
                                 exit_price = ibkr_pos.market_price if ibkr_pos.market_price > 0 else db_pos.average_price
-                                # Realized P&L = (exit_price - average_price) * original_quantity
-                                # Note: For now, we'll use the last known quantity before close
-                                # This is approximate - ideally we'd track entry/exit separately
+                                
+                                # Calculate realized P&L for full close
                                 realized_pnl = (exit_price - db_pos.average_price) * old_quantity
-                                db_pos.realized_pnl = realized_pnl  # Store realized P&L
+                                realized_pnl_pct = ((exit_price / db_pos.average_price) - 1) * 100 if db_pos.average_price > 0 else 0
+                                
+                                # Create PositionClose record for full close
+                                position_close = PositionClose(
+                                    position_id=db_pos.id,
+                                    account_id=account_id,
+                                    symbol=symbol,
+                                    quantity_closed=old_quantity,
+                                    entry_price=db_pos.average_price,
+                                    exit_price=exit_price,
+                                    realized_pnl=realized_pnl,
+                                    realized_pnl_pct=realized_pnl_pct,
+                                    closed_at=datetime.now(),
+                                    is_full_close=True
+                                )
+                                session.add(position_close)
+                                
+                                # Store realized P&L in position (for quick access)
+                                # This is the final realized P&L (sum of all closes including this full close)
+                                # Get existing closes for this position (partial closes)
+                                existing_closes = session.query(PositionClose).filter(
+                                    PositionClose.position_id == db_pos.id,
+                                    PositionClose.is_full_close == False
+                                ).all()
+                                partial_closes_pnl = sum(close.realized_pnl for close in existing_closes)
+                                total_realized_pnl = partial_closes_pnl + realized_pnl
+                                
+                                db_pos.realized_pnl = total_realized_pnl
+                                
                                 logger.info(
                                     f"Position closed: {symbol}, "
                                     f"realized P&L: ${realized_pnl:.2f} "
-                                    f"(exit: ${exit_price:.2f}, entry: ${db_pos.average_price:.2f}, qty: {old_quantity})"
+                                    f"(exit: ${exit_price:.2f}, entry: ${db_pos.average_price:.2f}, qty: {old_quantity}, "
+                                    f"total realized: ${total_realized_pnl:.2f})"
                                 )
                             
                             positions_closed += 1

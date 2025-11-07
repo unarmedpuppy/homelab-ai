@@ -154,12 +154,33 @@ class Position(Base):
     
     # Position sync fields
     last_synced_at = Column(DateTime, nullable=True, index=True)  # When position was last synced from IBKR
-    realized_pnl = Column(Float, nullable=True)  # Realized P&L when position closes
+    realized_pnl = Column(Float, nullable=True)  # Realized P&L when position fully closes (sum of all partial closes)
     
     # Relationships
     account = relationship("Account", back_populates="positions")
+    position_closes = relationship("PositionClose", back_populates="position", cascade="all, delete-orphan")
     # Note: Trade relationship removed - no foreign key exists
     # If needed, query trades separately by symbol/account_id
+
+class PositionClose(Base):
+    """Position close model - tracks partial and full closes"""
+    __tablename__ = "position_closes"
+    
+    id = Column(Integer, primary_key=True)
+    position_id = Column(Integer, ForeignKey("positions.id"), nullable=False, index=True)
+    account_id = Column(Integer, ForeignKey("accounts.id"), nullable=False, index=True)
+    symbol = Column(String(20), nullable=False, index=True)
+    quantity_closed = Column(Integer, nullable=False)  # Quantity closed in this transaction
+    entry_price = Column(Float, nullable=False)  # Average entry price at time of close
+    exit_price = Column(Float, nullable=False)  # Exit price for this close
+    realized_pnl = Column(Float, nullable=False)  # Realized P&L for this close
+    realized_pnl_pct = Column(Float, nullable=False)  # Realized P&L percentage
+    closed_at = Column(DateTime, server_default=func.now(), nullable=False, index=True)
+    is_full_close = Column(Boolean, default=False, index=True)  # True if this was a full position close
+    
+    # Relationships
+    position = relationship("Position", back_populates="position_closes")
+    account = relationship("Account")
 
 # Market Data Models
 class MarketData(Base):
