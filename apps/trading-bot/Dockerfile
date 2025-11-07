@@ -47,6 +47,8 @@ WORKDIR /app
 # Copy application code
 COPY src/ ./src/
 COPY main.py ./
+COPY alembic.ini ./
+COPY migrations/ ./migrations/
 
 # Create necessary directories
 RUN mkdir -p /app/data /app/logs && \
