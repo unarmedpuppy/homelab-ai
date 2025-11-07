@@ -492,6 +492,9 @@ async def portfolio_summary(account_id: int = Query(default=1, description="Acco
         
         # Get IBKR account data if connected
         manager = get_ibkr_manager()
+        ibkr_connected = False
+        last_synced_at = None
+        
         if manager and manager.is_connected:
             try:
                 client = await manager.get_client()
@@ -514,11 +517,66 @@ async def portfolio_summary(account_id: int = Query(default=1, description="Acco
                     p.market_price * p.quantity for p in positions if p.quantity != 0
                 )
                 
+                ibkr_connected = True
                 summary["ibkr_connected"] = True
                 
             except Exception as e:
                 logger.warning(f"Error getting IBKR data for portfolio summary: {e}")
+                ibkr_connected = False
                 summary["ibkr_connected"] = False
+        
+        # Fallback to database positions if IBKR is not connected
+        if not ibkr_connected:
+            try:
+                # Query database for open positions
+                db_positions = session.query(Position).filter(
+                    and_(
+                        Position.account_id == account_id,
+                        Position.status == PositionStatus.OPEN,
+                        Position.quantity > 0
+                    )
+                ).all()
+                
+                if db_positions:
+                    summary["active_positions"] = len(db_positions)
+                    
+                    # Calculate positions value from database
+                    summary["positions_value"] = sum(
+                        (p.current_price or p.average_price) * p.quantity for p in db_positions
+                    )
+                    
+                    # Calculate portfolio value (positions + cash)
+                    # Note: We don't have cash balance in DB, so we'll use positions value only
+                    # or try to get last known cash balance from account summary if available
+                    summary["portfolio_value"] = summary["positions_value"]
+                    
+                    # Get most recent sync timestamp
+                    synced_positions = [p for p in db_positions if p.last_synced_at is not None]
+                    if synced_positions:
+                        last_synced_at = max(p.last_synced_at for p in synced_positions)
+                        summary["last_synced_at"] = last_synced_at.isoformat()
+                        
+                        # Calculate minutes since last sync
+                        minutes_ago = (datetime.now() - last_synced_at).total_seconds() / 60
+                        summary["last_synced_minutes_ago"] = round(minutes_ago, 1)
+                    else:
+                        summary["last_synced_at"] = None
+                        summary["last_synced_minutes_ago"] = None
+                    
+                    logger.info(
+                        f"Using database positions for portfolio summary: "
+                        f"{len(db_positions)} positions, "
+                        f"last synced: {last_synced_at}"
+                    )
+                else:
+                    # No positions in database
+                    summary["last_synced_at"] = None
+                    summary["last_synced_minutes_ago"] = None
+                    
+            except Exception as db_error:
+                logger.warning(f"Error querying database positions for fallback: {db_error}")
+                summary["last_synced_at"] = None
+                summary["last_synced_minutes_ago"] = None
         
         # Query database for trade statistics
         today = date.today()
@@ -541,9 +599,8 @@ async def portfolio_summary(account_id: int = Query(default=1, description="Acco
             today_trades = []
         
         # Calculate daily P&L from position changes
-        # For now, we'll use unrealized P&L from positions if available
-        # TODO: Calculate realized P&L from closed positions/trades
-        if manager and manager.is_connected:
+        # Use unrealized P&L from positions (IBKR or database)
+        if ibkr_connected:
             try:
                 client = await manager.get_client()
                 positions = await client.get_positions()
@@ -552,6 +609,24 @@ async def portfolio_summary(account_id: int = Query(default=1, description="Acco
                 summary["daily_pnl"] = daily_unrealized_pnl
             except Exception as e:
                 logger.debug(f"Could not get daily P&L from IBKR positions: {e}")
+                pass
+        else:
+            # Fallback to database positions for daily P&L
+            try:
+                db_positions = session.query(Position).filter(
+                    and_(
+                        Position.account_id == account_id,
+                        Position.status == PositionStatus.OPEN,
+                        Position.quantity > 0
+                    )
+                ).all()
+                
+                if db_positions:
+                    # Calculate daily P&L from database positions
+                    daily_unrealized_pnl = sum(p.unrealized_pnl for p in db_positions)
+                    summary["daily_pnl"] = daily_unrealized_pnl
+            except Exception as e:
+                logger.debug(f"Could not get daily P&L from database positions: {e}")
                 pass
         
         # Get all filled trades for win rate calculation

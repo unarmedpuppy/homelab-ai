@@ -89,8 +89,13 @@
                     <div class="flex-shrink-0">
                         <i class="fas fa-wallet text-green-500 text-2xl"></i>
                     </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Portfolio Value</p>
+                    <div class="ml-4 flex-1">
+                        <div class="flex items-center justify-between">
+                            <p class="text-sm font-medium text-gray-500">Portfolio Value</p>
+                            <span id="sync-status-indicator" class="text-xs text-gray-400 hidden">
+                                <i class="fas fa-sync-alt mr-1"></i><span id="sync-status-text"></span>
+                            </span>
+                        </div>
                         <p id="portfolio-value" class="text-2xl font-semibold text-gray-900" data-loading="true">
                             <span class="portfolio-loading"><i class="fas fa-spinner fa-spin mr-2"></i>Loading...</span>
                             <span class="portfolio-value-display hidden"></span>
@@ -1959,6 +1964,9 @@
                         // Update IBKR connection status
                         this.updateIBKRStatus(data.ibkr_connected);
                         
+                        // Update sync status indicator (show when IBKR disconnected and using DB positions)
+                        this.updateSyncStatus(data);
+                        
                         console.log('[Dashboard] Portfolio summary updated successfully');
                     } else {
                         // API call failed - only show error if we don't have cached data
@@ -2069,6 +2077,49 @@
                         if (connectBtn) connectBtn.classList.remove('hidden');
                         if (disconnectBtn) disconnectBtn.classList.add('hidden');
                     }
+                }
+            }
+            
+            updateSyncStatus(data) {
+                const indicator = document.getElementById('sync-status-indicator');
+                const statusText = document.getElementById('sync-status-text');
+                
+                if (!indicator || !statusText) {
+                    return;
+                }
+                
+                // Show sync status only when IBKR is disconnected and we have sync data
+                if (!data.ibkr_connected && data.last_synced_minutes_ago !== null && data.last_synced_minutes_ago !== undefined) {
+                    const minutesAgo = data.last_synced_minutes_ago;
+                    let statusMessage = '';
+                    let statusColor = 'text-gray-400';
+                    
+                    if (minutesAgo < 5) {
+                        statusMessage = `Synced ${minutesAgo.toFixed(1)}m ago`;
+                        statusColor = 'text-green-600';
+                    } else if (minutesAgo < 30) {
+                        statusMessage = `Synced ${minutesAgo.toFixed(1)}m ago`;
+                        statusColor = 'text-yellow-600';
+                    } else if (minutesAgo < 60) {
+                        statusMessage = `Synced ${Math.round(minutesAgo)}m ago`;
+                        statusColor = 'text-orange-600';
+                    } else {
+                        const hoursAgo = minutesAgo / 60;
+                        statusMessage = `Synced ${hoursAgo.toFixed(1)}h ago`;
+                        statusColor = 'text-red-600';
+                    }
+                    
+                    statusText.textContent = statusMessage;
+                    indicator.className = `text-xs ${statusColor}`;
+                    indicator.classList.remove('hidden');
+                } else if (data.ibkr_connected) {
+                    // Hide sync status when IBKR is connected (using live data)
+                    indicator.classList.add('hidden');
+                } else {
+                    // IBKR disconnected but no sync data available
+                    statusText.textContent = 'No sync data';
+                    indicator.className = 'text-xs text-gray-400';
+                    indicator.classList.remove('hidden');
                 }
             }
             
