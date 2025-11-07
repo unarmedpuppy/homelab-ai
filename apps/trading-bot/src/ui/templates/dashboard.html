@@ -1147,6 +1147,21 @@
                     });
                 }
                 
+                // Sync Positions button
+                const syncBtn = document.getElementById('sync-positions-btn');
+                if (syncBtn) {
+                    syncBtn.addEventListener('click', async () => {
+                        syncBtn.disabled = true;
+                        syncBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Syncing...';
+                        try {
+                            await this.syncPositions();
+                        } finally {
+                            syncBtn.disabled = false;
+                            syncBtn.innerHTML = '<i class="fas fa-sync-alt mr-1"></i>Sync Positions';
+                        }
+                    });
+                }
+                
                 // Symbol selection - update subscription when symbol changes
                 const symbolSelect = document.getElementById('symbol-select');
                 if (symbolSelect) {
@@ -2168,6 +2183,38 @@
                 } catch (error) {
                     console.error('[Dashboard] Error disconnecting from IBKR:', error);
                     showErrorMessage('Failed to disconnect from IBKR', error);
+                }
+            }
+            
+            async syncPositions() {
+                try {
+                    console.log('[Dashboard] Manually syncing positions...');
+                    const result = await apiCall('/api/sync/positions?account_id=1', {
+                        method: 'POST'
+                    });
+                    
+                    if (result.ok && result.data) {
+                        const data = result.data;
+                        if (data.success) {
+                            const created = data.positions_created || 0;
+                            const updated = data.positions_updated || 0;
+                            const closed = data.positions_closed || 0;
+                            
+                            showSuccessMessage(
+                                `Positions synced: ${created} created, ${updated} updated, ${closed} closed`
+                            );
+                            
+                            // Refresh portfolio summary to show updated data
+                            await this.loadPortfolioSummary();
+                        } else {
+                            throw new Error(data.error || 'Sync failed');
+                        }
+                    } else {
+                        throw new Error(result.error || 'Failed to sync positions');
+                    }
+                } catch (error) {
+                    console.error('[Dashboard] Error syncing positions:', error);
+                    showErrorMessage('Failed to sync positions', error);
                 }
             }
 
