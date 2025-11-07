@@ -509,6 +509,25 @@ class SchedulerSettings(BaseSettings):
     class Config:
         env_prefix = "SCHEDULER_"
 
+class PositionSyncSettings(BaseSettings):
+    """Position sync service configuration"""
+    enabled: bool = Field(default=True, description="Enable position sync service")
+    sync_interval: int = Field(default=300, description="Position sync interval in seconds (5 minutes default)")
+    sync_on_trade: bool = Field(default=True, description="Sync positions after trade execution")
+    sync_on_position_update: bool = Field(default=True, description="Sync positions on IBKR position update callbacks")
+    mark_missing_as_closed: bool = Field(default=False, description="Mark positions as closed if not found in IBKR")
+    calculate_realized_pnl: bool = Field(default=True, description="Calculate realized P&L when positions close")
+    default_account_id: int = Field(default=1, description="Default account ID for position sync")
+    
+    @validator('sync_interval')
+    def validate_sync_interval(cls, v):
+        if v < 10:
+            raise ValueError('sync_interval must be at least 10 seconds')
+        return v
+    
+    class Config:
+        env_prefix = "POSITION_SYNC_"
+
 class RiskManagementSettings(BaseSettings):
     """Risk Management & Cash Account Rules configuration"""
     # Cash Account Rules
@@ -613,6 +632,7 @@ class Settings(BaseSettings):
     metrics: MetricsSettings = MetricsSettings()
     risk: RiskManagementSettings = RiskManagementSettings()
     scheduler: SchedulerSettings = SchedulerSettings()
+    position_sync: PositionSyncSettings = PositionSyncSettings()
     
     # Paths
     data_dir: Path = Field(default=Path("./data"), description="Data directory")

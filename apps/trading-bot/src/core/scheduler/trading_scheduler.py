@@ -20,6 +20,7 @@ from ...core.risk import RiskManager, get_risk_manager
 from ...data.providers.market_data import DataProviderManager
 from ...api.routes.strategies import get_evaluator
 from ...api.routes.trading import get_ibkr_manager
+from ...core.sync import PositionSyncService, get_position_sync_service
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +64,8 @@ class TradingScheduler:
         evaluator: Optional[StrategyEvaluator] = None,
         ibkr_manager: Optional[IBKRManager] = None,
         risk_manager: Optional[RiskManager] = None,
-        data_provider: Optional[DataProviderManager] = None
+        data_provider: Optional[DataProviderManager] = None,
+        position_sync_service: Optional[PositionSyncService] = None
     ):
         """
         Initialize trading scheduler
@@ -73,12 +75,15 @@ class TradingScheduler:
             ibkr_manager: IBKR manager instance
             risk_manager: Risk manager instance
             data_provider: Market data provider manager
+            position_sync_service: Position sync service instance
         """
         self.config = settings.scheduler
+        self.position_sync_config = settings.position_sync
         self.evaluator = evaluator or get_evaluator()
         self.ibkr_manager = ibkr_manager
         self.risk_manager = risk_manager or get_risk_manager()
         self.data_provider = data_provider
+        self.position_sync_service = position_sync_service or get_position_sync_service()
         
         # State
         self.state = SchedulerState.STOPPED
@@ -87,6 +92,7 @@ class TradingScheduler:
         # Background tasks
         self._evaluation_task: Optional[asyncio.Task] = None
         self._exit_check_task: Optional[asyncio.Task] = None
+        self._position_sync_task: Optional[asyncio.Task] = None
         self._running = False
         
         # Active positions being monitored (strategy_id -> symbol)
@@ -460,6 +466,54 @@ class TradingScheduler:
                 # Sleep briefly before retrying
                 await asyncio.sleep(5)
     
+    async def _position_sync_loop(self):
+        """Background task for position synchronization"""
+        # Wait a bit before first sync to let scheduler initialize
+        await asyncio.sleep(10)
+        
+        while self._running:
+            try:
+                # Check if position sync is enabled
+                if not self.position_sync_config.enabled:
+                    logger.debug("Position sync is disabled, skipping")
+                    await asyncio.sleep(self.position_sync_config.sync_interval)
+                    continue
+                
+                # Check if IBKR is connected
+                ibkr_manager = self._get_ibkr_manager()
+                if not ibkr_manager or not ibkr_manager.is_connected:
+                    logger.debug("IBKR not connected, skipping position sync")
+                    await asyncio.sleep(self.position_sync_config.sync_interval)
+                    continue
+                
+                # Perform position sync
+                logger.debug("Starting position sync")
+                result = await self.position_sync_service.sync_positions(
+                    account_id=self.position_sync_config.default_account_id,
+                    calculate_realized_pnl=self.position_sync_config.calculate_realized_pnl
+                )
+                
+                if result.get("success"):
+                    logger.debug(
+                        f"Position sync completed: "
+                        f"created={result.get('positions_created', 0)}, "
+                        f"updated={result.get('positions_updated', 0)}, "
+                        f"closed={result.get('positions_closed', 0)}"
+                    )
+                else:
+                    logger.warning(f"Position sync failed: {result.get('error', 'Unknown error')}")
+                
+                # Sleep for sync interval
+                await asyncio.sleep(self.position_sync_config.sync_interval)
+                
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error(f"Error in position sync loop: {e}", exc_info=True)
+                self.stats.errors += 1
+                # Sleep briefly before retrying
+                await asyncio.sleep(30)
+    
     async def start(self):
         """Start the scheduler"""
         if self.state == SchedulerState.RUNNING:
@@ -479,10 +533,20 @@ class TradingScheduler:
             self._evaluation_task = asyncio.create_task(self._evaluation_loop())
             self._exit_check_task = asyncio.create_task(self._exit_check_loop())
             
-            logger.info(
-                f"Trading scheduler started (evaluation: {self.config.evaluation_interval}s, "
-                f"exit check: {self.config.exit_check_interval}s)"
-            )
+            # Start position sync task if enabled
+            if self.position_sync_config.enabled:
+                self._position_sync_task = asyncio.create_task(self._position_sync_loop())
+                logger.info(
+                    f"Trading scheduler started (evaluation: {self.config.evaluation_interval}s, "
+                    f"exit check: {self.config.exit_check_interval}s, "
+                    f"position sync: {self.position_sync_config.sync_interval}s)"
+                )
+            else:
+                logger.info(
+                    f"Trading scheduler started (evaluation: {self.config.evaluation_interval}s, "
+                    f"exit check: {self.config.exit_check_interval}s, "
+                    f"position sync: disabled)"
+                )
         
         except Exception as e:
             logger.error(f"Error starting scheduler: {e}", exc_info=True)
@@ -511,6 +575,13 @@ class TradingScheduler:
                 self._exit_check_task.cancel()
                 try:
                     await self._exit_check_task
+                except asyncio.CancelledError:
+                    pass
+            
+            if self._position_sync_task:
+                self._position_sync_task.cancel()
+                try:
+                    await self._position_sync_task
                 except asyncio.CancelledError:
                     pass
             
@@ -543,6 +614,14 @@ class TradingScheduler:
         if self.stats.start_time:
             uptime = (datetime.now() - self.stats.start_time).total_seconds()
         
+        # Get position sync stats
+        position_sync_stats = None
+        if self.position_sync_service:
+            try:
+                position_sync_stats = self.position_sync_service.get_stats()
+            except Exception as e:
+                logger.debug(f"Error getting position sync stats: {e}")
+        
         return {
             "state": self.state.value,
             "enabled": self.config.enabled,
@@ -552,6 +631,11 @@ class TradingScheduler:
                 "min_confidence": self.config.min_confidence,
                 "max_concurrent_trades": self.config.max_concurrent_trades,
                 "market_hours_only": self.config.market_hours_only,
+            },
+            "position_sync": {
+                "enabled": self.position_sync_config.enabled,
+                "sync_interval": self.position_sync_config.sync_interval,
+                "stats": position_sync_stats,
             },
             "stats": {
                 "evaluations_run": self.stats.evaluations_run,
