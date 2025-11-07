@@ -483,6 +483,9 @@ class TradingScheduler:
         # Wait a bit before first sync to let scheduler initialize
         await asyncio.sleep(10)
         
+        # Register callbacks on first run if enabled
+        callback_registration_attempted = False
+        
         while self._running:
             try:
                 # Check if position sync is enabled
@@ -495,8 +498,23 @@ class TradingScheduler:
                 ibkr_manager = self._get_ibkr_manager()
                 if not ibkr_manager or not ibkr_manager.is_connected:
                     logger.debug("IBKR not connected, skipping position sync")
+                    # Reset callback registration flag if IBKR disconnects
+                    if callback_registration_attempted:
+                        callback_registration_attempted = False
                     await asyncio.sleep(self.position_sync_config.sync_interval)
                     continue
+                
+                # Register callbacks if enabled and not yet registered
+                if self.position_sync_config.sync_on_position_update and not callback_registration_attempted:
+                    try:
+                        # Try to register callbacks (may fail if client not ready)
+                        registered = self.position_sync_service.register_ibkr_callbacks()
+                        if registered:
+                            logger.info("Position sync callbacks registered successfully")
+                        callback_registration_attempted = True
+                    except Exception as e:
+                        logger.debug(f"Could not register callbacks yet (client may not be ready): {e}")
+                        # Will retry on next iteration
                 
                 # Perform position sync
                 logger.debug("Starting position sync")
@@ -596,6 +614,12 @@ class TradingScheduler:
                     await self._position_sync_task
                 except asyncio.CancelledError:
                     pass
+            
+            # Unregister callbacks when scheduler stops
+            try:
+                self.position_sync_service.unregister_ibkr_callbacks()
+            except Exception as e:
+                logger.debug(f"Error unregistering callbacks: {e}")
             
             logger.info("Trading scheduler stopped")
         

@@ -6,6 +6,7 @@ Service for syncing IBKR positions to the database.
 """
 
 import logging
+import asyncio
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 from contextlib import contextmanager
@@ -38,6 +39,7 @@ class PositionSyncService:
         """
         self.ibkr_manager = ibkr_manager
         self._last_sync_time: Optional[datetime] = None
+        self._callbacks_registered = False
         self._sync_stats = {
             "total_syncs": 0,
             "successful_syncs": 0,
@@ -45,6 +47,7 @@ class PositionSyncService:
             "positions_created": 0,
             "positions_updated": 0,
             "positions_closed": 0,
+            "callback_triggers": 0,
             "last_error": None
         }
     
@@ -326,9 +329,150 @@ class PositionSyncService:
             "positions_created": 0,
             "positions_updated": 0,
             "positions_closed": 0,
+            "callback_triggers": 0,
             "last_error": None
         }
         self._last_sync_time = None
+    
+    def _on_position_update_callback(self, position):
+        """
+        Callback handler for IBKR position updates
+        
+        This is called when IBKR reports a position change.
+        Triggers a position sync to update the database.
+        
+        Note: This is a synchronous callback, but it schedules an async sync task.
+        
+        Args:
+            position: IBKR Position object from ib_insync
+        """
+        try:
+            # Increment callback trigger counter
+            self._sync_stats["callback_triggers"] += 1
+            
+            # Get config to check if callback sync is enabled
+            from ...config.settings import settings
+            if not settings.position_sync.sync_on_position_update:
+                logger.debug("Position update callback sync is disabled, skipping")
+                return
+            
+            # Get account ID from config
+            account_id = settings.position_sync.default_account_id
+            
+            # Trigger sync (debounced - only if enough time has passed since last sync)
+            # This prevents too many syncs from rapid position updates
+            if self._last_sync_time:
+                time_since_last_sync = (datetime.now() - self._last_sync_time).total_seconds()
+                # Only sync if at least 5 seconds have passed since last sync
+                if time_since_last_sync < 5:
+                    logger.debug(f"Position update callback: skipping sync (only {time_since_last_sync:.1f}s since last sync)")
+                    return
+            
+            symbol = position.contract.symbol if position.contract else "unknown"
+            logger.debug(f"Position update callback triggered sync for {symbol}")
+            
+            # Schedule async sync task (callback is sync, but sync_positions is async)
+            # Use asyncio to create a task that will run the sync
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    # Event loop is running, create a task
+                    asyncio.create_task(self._sync_from_callback(account_id, settings.position_sync.calculate_realized_pnl))
+                else:
+                    # No event loop running, run sync in new event loop
+                    asyncio.run(self._sync_from_callback(account_id, settings.position_sync.calculate_realized_pnl))
+            except RuntimeError:
+                # No event loop available, create a new one
+                asyncio.run(self._sync_from_callback(account_id, settings.position_sync.calculate_realized_pnl))
+        
+        except Exception as e:
+            logger.error(f"Error in position update callback: {e}", exc_info=True)
+            # Don't increment failed_syncs here - the sync_positions method handles that
+    
+    async def _sync_from_callback(self, account_id: int, calculate_realized_pnl: bool):
+        """
+        Helper method to run sync from callback (async wrapper)
+        
+        Args:
+            account_id: Account ID to sync
+            calculate_realized_pnl: Whether to calculate realized P&L
+        """
+        try:
+            result = await self.sync_positions(
+                account_id=account_id,
+                calculate_realized_pnl=calculate_realized_pnl
+            )
+            
+            if result.get("success"):
+                logger.debug("Position sync from callback completed successfully")
+            else:
+                logger.warning(f"Position sync from callback failed: {result.get('error', 'Unknown error')}")
+        except Exception as e:
+            logger.error(f"Error in callback sync task: {e}", exc_info=True)
+    
+    def register_ibkr_callbacks(self) -> bool:
+        """
+        Register position update callbacks with IBKR client
+        
+        Returns:
+            True if callbacks were registered, False otherwise
+        """
+        if self._callbacks_registered:
+            logger.debug("IBKR callbacks already registered")
+            return True
+        
+        try:
+            ibkr_manager = self._get_ibkr_manager()
+            if not ibkr_manager or not ibkr_manager.is_connected:
+                logger.debug("IBKR not connected, cannot register callbacks")
+                return False
+            
+            # Get the client - need to check if it's available
+            # The client might not be available immediately, so we'll try to get it
+            # For now, we'll register when the client is available
+            # This will be called from the scheduler or when IBKR connects
+            
+            # Check if we can access the client
+            if hasattr(ibkr_manager, 'client') and ibkr_manager.client:
+                client = ibkr_manager.client
+                if hasattr(client, 'position_update_callbacks'):
+                    # Register callback
+                    client.position_update_callbacks.append(self._on_position_update_callback)
+                    self._callbacks_registered = True
+                    logger.info("Registered position update callbacks with IBKR client")
+                    return True
+                else:
+                    logger.warning("IBKR client does not support position_update_callbacks")
+                    return False
+            else:
+                logger.debug("IBKR client not available yet, callbacks will be registered when client is ready")
+                return False
+        
+        except Exception as e:
+            logger.error(f"Error registering IBKR callbacks: {e}", exc_info=True)
+            return False
+    
+    def unregister_ibkr_callbacks(self):
+        """Unregister position update callbacks from IBKR client"""
+        if not self._callbacks_registered:
+            return
+        
+        try:
+            ibkr_manager = self._get_ibkr_manager()
+            if not ibkr_manager:
+                return
+            
+            if hasattr(ibkr_manager, 'client') and ibkr_manager.client:
+                client = ibkr_manager.client
+                if hasattr(client, 'position_update_callbacks'):
+                    # Remove callback if it exists
+                    if self._on_position_update_callback in client.position_update_callbacks:
+                        client.position_update_callbacks.remove(self._on_position_update_callback)
+                        self._callbacks_registered = False
+                        logger.info("Unregistered position update callbacks from IBKR client")
+        
+        except Exception as e:
+            logger.error(f"Error unregistering IBKR callbacks: {e}", exc_info=True)
 
 
 # Global instance
