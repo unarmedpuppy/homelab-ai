@@ -202,11 +202,69 @@ class PositionSyncService:
                     else:
                         # Update existing position
                         old_quantity = db_pos.quantity
+                        old_average_price = db_pos.average_price
                         old_status = db_pos.status
                         
-                        # Update position fields
+                        # Calculate average price based on quantity change
+                        # If quantity increased, calculate weighted average
+                        # If quantity decreased (partial close), keep existing average (FIFO)
+                        # If quantity unchanged, use IBKR's average (may have been updated)
+                        if ibkr_pos.quantity > old_quantity:
+                            # Position increased (additional buy) - calculate weighted average
+                            # We derive the new shares' cost from IBKR's total cost basis
+                            # Formula: weighted_avg = (old_cost_basis + new_cost_basis) / total_qty
+                            total_cost_basis = ibkr_pos.average_price * ibkr_pos.quantity
+                            old_cost_basis = old_average_price * old_quantity
+                            new_shares = ibkr_pos.quantity - old_quantity
+                            
+                            if new_shares > 0 and old_quantity > 0:
+                                # Calculate cost of new shares
+                                new_shares_cost = total_cost_basis - old_cost_basis
+                                new_shares_avg = new_shares_cost / new_shares
+                                
+                                # Calculate weighted average (should match IBKR's average_price)
+                                weighted_avg = (old_average_price * old_quantity + new_shares_avg * new_shares) / ibkr_pos.quantity
+                                
+                                # Use calculated weighted average (should equal IBKR's, but we calculate it explicitly)
+                                # This ensures we maintain our own cost basis tracking
+                                db_pos.average_price = weighted_avg
+                                
+                                # Log if there's a discrepancy (shouldn't happen, but good to know)
+                                if abs(weighted_avg - ibkr_pos.average_price) > 0.01:
+                                    logger.warning(
+                                        f"Position increased: {symbol} - "
+                                        f"weighted avg (${weighted_avg:.2f}) differs from IBKR avg (${ibkr_pos.average_price:.2f})"
+                                    )
+                                else:
+                                    logger.debug(
+                                        f"Position increased: {symbol} - "
+                                        f"calculated weighted avg: ${weighted_avg:.2f} "
+                                        f"(old: ${old_average_price:.2f} x {old_quantity}, "
+                                        f"new: ${new_shares_avg:.2f} x {new_shares})"
+                                    )
+                            else:
+                                # Fallback to IBKR's average if calculation can't be done
+                                db_pos.average_price = ibkr_pos.average_price
+                                logger.debug(
+                                    f"Position increased: {symbol} - "
+                                    f"using IBKR average: ${ibkr_pos.average_price:.2f} "
+                                    f"(old_qty: {old_quantity}, new_qty: {ibkr_pos.quantity})"
+                                )
+                        elif ibkr_pos.quantity < old_quantity:
+                            # Partial close - keep existing average price (FIFO assumption)
+                            # The average price of remaining shares doesn't change
+                            db_pos.average_price = old_average_price
+                            logger.debug(
+                                f"Partial close: {symbol} - "
+                                f"keeping average price: ${old_average_price:.2f} "
+                                f"(FIFO assumption)"
+                            )
+                        else:
+                            # Quantity unchanged - use IBKR's average (may have been updated)
+                            db_pos.average_price = ibkr_pos.average_price
+                        
+                        # Update other position fields
                         db_pos.quantity = ibkr_pos.quantity
-                        db_pos.average_price = ibkr_pos.average_price
                         db_pos.current_price = ibkr_pos.market_price
                         db_pos.unrealized_pnl = ibkr_pos.unrealized_pnl
                         db_pos.unrealized_pnl_pct = ibkr_pos.unrealized_pnl_pct
@@ -241,13 +299,15 @@ class PositionSyncService:
                                 # Partial close
                                 logger.info(
                                     f"Partial close: {symbol} "
-                                    f"({old_quantity} → {ibkr_pos.quantity} shares)"
+                                    f"({old_quantity} → {ibkr_pos.quantity} shares, "
+                                    f"avg price: ${db_pos.average_price:.2f})"
                                 )
                             elif ibkr_pos.quantity > old_quantity:
                                 # Position increased (additional buy)
                                 logger.info(
                                     f"Position increased: {symbol} "
-                                    f"({old_quantity} → {ibkr_pos.quantity} shares)"
+                                    f"({old_quantity} → {ibkr_pos.quantity} shares, "
+                                    f"avg price: ${old_average_price:.2f} → ${db_pos.average_price:.2f})"
                                 )
                             
                             # Ensure status is OPEN if quantity > 0
