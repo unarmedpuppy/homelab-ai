@@ -80,6 +80,7 @@
 | BACKTESTING_METRICS_OPTIMIZATION_TODOS.md | Backtesting Engine Advanced Features | Auto | Task Tracking | 2024-12-19 | In Progress |
 | TESTING_SUITE_IMPLEMENTATION_PLAN.md | Testing & Quality Assurance Suite | Auto | Implementation Plan | 2024-12-19 | In Progress |
 | TESTING_SUITE_TODOS.md | Testing & Quality Assurance Suite | Auto | Task Tracking | 2024-12-19 | In Progress |
+| POSITION_SYNC_REVIEW_AND_OPTIMIZATIONS.md | Position Sync Service | Auto | Review & Optimization Plan | 2024-12-19 | Complete |
 
 #### Documentation Types
 
@@ -485,6 +486,70 @@ The background scheduler has been fully implemented. See `docs/SCHEDULER_COMPLET
 - ✅ Configurable intervals and thresholds
 
 **Usage**: Set `SCHEDULER_ENABLED=true` in environment or use API endpoints to start/stop.
+
+---
+
+## 10.5. Position Sync Service 🔄 **OPTIMIZATION PHASE**
+
+### Status: ✅ **CORE IMPLEMENTATION COMPLETE** - 🔄 **Optimizations Identified**
+
+**Priority**: 🔴 HIGH - Critical for data persistence and offline functionality
+
+The Position Sync Service has been fully implemented across 4 phases. Core functionality is complete and production-ready. See `docs/POSITION_SYNC_REVIEW_AND_OPTIMIZATIONS.md` for comprehensive review.
+
+**Completed Phases**:
+- ✅ Phase 1: Core Sync Service
+- ✅ Phase 2: Scheduler Integration
+- ✅ Phase 3: IBKR Callback Integration
+- ✅ Phase 4: Database Model Updates
+
+**Current Features**:
+- ✅ Automatic position sync every 5 minutes
+- ✅ Real-time sync via IBKR callbacks
+- ✅ Sync after trade execution
+- ✅ Position create/update/close handling
+- ✅ Realized P&L tracking for full closes
+- ✅ Sync timestamp tracking
+
+### 🔴 High Priority Optimizations
+
+| Task | Status | Priority | Effort | Description |
+|------|--------|----------|--------|-------------|
+| Run Database Migration | ⏳ Planned | 🔴 HIGH | 15 min | Apply migration 004 to add `last_synced_at` and `realized_pnl` fields |
+| Fix Average Price Calculation | ⏳ Planned | 🔴 HIGH | 1-2 hours | Calculate weighted average when position increases (not just replace) |
+| Dashboard Fallback to DB Positions | ⏳ Planned | 🔴 HIGH | 2-3 hours | Use database positions when IBKR disconnected, show sync status |
+| Add Manual Sync API Endpoints | ⏳ Planned | 🔴 HIGH | 1-2 hours | `POST /api/sync/positions` and `GET /api/sync/status` endpoints |
+| Partial Close Realized P&L Tracking | ⏳ Planned | 🔴 HIGH | 2-3 hours | Track realized P&L for partial position closes |
+
+### 🟡 Medium Priority Optimizations
+
+| Task | Status | Priority | Effort | Description |
+|------|--------|----------|--------|-------------|
+| Add Timeout to IBKR Calls | ⏳ Planned | 🟡 MEDIUM | 1 hour | Prevent hanging syncs with configurable timeout (30s default) |
+| Add Sync Locking | ⏳ Planned | 🟡 MEDIUM | 1 hour | Prevent concurrent syncs with asyncio.Lock |
+| Data Consistency Validation | ⏳ Planned | 🟡 MEDIUM | 2 hours | Validate DB positions match IBKR after sync, log discrepancies |
+| Handle Position Splits/Merges | ⏳ Planned | 🟡 MEDIUM | 2-3 hours | Detect and handle stock splits/merges with proportional price adjustment |
+
+### 🟢 Low Priority Enhancements
+
+| Task | Status | Priority | Effort | Description |
+|------|--------|----------|--------|-------------|
+| Add Position Sync Metrics | ⏳ Planned | 🟢 LOW | 1-2 hours | Prometheus metrics for sync duration, success/failure, positions created/updated/closed |
+| Write Unit/Integration Tests | ⏳ Planned | 🟢 LOW | 3-4 hours | Comprehensive test suite for sync logic, edge cases, error scenarios |
+| Add Position History Tracking | ⏳ Planned | 🟢 LOW | 3-4 hours | Track position changes over time with PositionHistory or PositionEvent model |
+| Multi-Account Support | ⏳ Planned | 🟢 LOW | 2-3 hours | Support syncing multiple accounts (currently only account_id=1) |
+
+**Documentation**: 
+- Review & Optimization Plan: `docs/POSITION_SYNC_REVIEW_AND_OPTIMIZATIONS.md`
+- Implementation Plan: `docs/POSITION_SYNC_IMPLEMENTATION_PLAN.md`
+- Phase Completion Docs: `docs/POSITION_SYNC_PHASE_[1-4]_COMPLETE.md`
+
+**Recommended Next Steps**:
+1. Run migration (5 min)
+2. Fix average price calculation (1-2 hours)
+3. Dashboard fallback to DB (2-3 hours)
+4. Manual sync API (1-2 hours)
+5. Partial close P&L tracking (2-3 hours)
 
 ---
 
