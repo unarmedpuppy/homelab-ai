@@ -16,7 +16,7 @@ from datetime import datetime
 from pathlib import Path
 
 from ..config.settings import settings
-from ..api.routes import trading, backtesting, screening, monitoring, market_data, strategies, sentiment, confluence, options_flow, trends, events, websocket, scheduler
+from ..api.routes import trading, backtesting, screening, monitoring, market_data, strategies, sentiment, confluence, options_flow, trends, events, websocket, scheduler, sync
 # Import from middleware package (which now exports from middleware.py)
 from ..api.middleware import LoggingMiddleware, RateLimitMiddleware
 from ..api.middleware.metrics_middleware import MetricsMiddleware
@@ -327,6 +327,7 @@ app.include_router(trends.router, prefix="/api/data/trends", tags=["trends"])
 app.include_router(events.router, prefix="/api/data/events", tags=["events"])
 app.include_router(websocket.router, tags=["websocket"])
 app.include_router(scheduler.router, prefix="/api", tags=["scheduler"])
+app.include_router(sync.router, prefix="/api/sync", tags=["sync"])
 
 # Templates and Static Files
 BASE_DIR = Path(__file__).resolve().parent.parent
