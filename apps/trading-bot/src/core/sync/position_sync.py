@@ -192,7 +192,8 @@ class PositionSyncService:
                             unrealized_pnl=ibkr_pos.unrealized_pnl,
                             unrealized_pnl_pct=ibkr_pos.unrealized_pnl_pct,
                             status=PositionStatus.OPEN,
-                            opened_at=datetime.now()
+                            opened_at=datetime.now(),
+                            last_synced_at=datetime.now()
                         )
                         session.add(new_position)
                         positions_created += 1
@@ -209,6 +210,7 @@ class PositionSyncService:
                         db_pos.current_price = ibkr_pos.market_price
                         db_pos.unrealized_pnl = ibkr_pos.unrealized_pnl
                         db_pos.unrealized_pnl_pct = ibkr_pos.unrealized_pnl_pct
+                        db_pos.last_synced_at = datetime.now()  # Update sync timestamp
                         
                         # Handle position close
                         if ibkr_pos.quantity == 0 and db_pos.status == PositionStatus.OPEN:
@@ -223,7 +225,7 @@ class PositionSyncService:
                                 # Note: For now, we'll use the last known quantity before close
                                 # This is approximate - ideally we'd track entry/exit separately
                                 realized_pnl = (exit_price - db_pos.average_price) * old_quantity
-                                # Store in a note or extend Position model later
+                                db_pos.realized_pnl = realized_pnl  # Store realized P&L
                                 logger.info(
                                     f"Position closed: {symbol}, "
                                     f"realized P&L: ${realized_pnl:.2f} "

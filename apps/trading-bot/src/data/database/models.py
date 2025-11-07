@@ -152,6 +152,10 @@ class Position(Base):
     opened_at = Column(DateTime, server_default=func.now())
     closed_at = Column(DateTime)
     
+    # Position sync fields
+    last_synced_at = Column(DateTime, nullable=True, index=True)  # When position was last synced from IBKR
+    realized_pnl = Column(Float, nullable=True)  # Realized P&L when position closes
+    
     # Relationships
     account = relationship("Account", back_populates="positions")
     # Note: Trade relationship removed - no foreign key exists

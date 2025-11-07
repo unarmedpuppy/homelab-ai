@@ -583,15 +583,22 @@ async def portfolio_summary(account_id: int = Query(default=1, description="Acco
             closed_positions = []
         
         if closed_positions:
-            winning_positions = [p for p in closed_positions if p.unrealized_pnl > 0]
+            # Use realized_pnl if available, otherwise fall back to unrealized_pnl
+            winning_positions = [
+                p for p in closed_positions 
+                if (p.realized_pnl if p.realized_pnl is not None else p.unrealized_pnl) > 0
+            ]
             summary["winning_trades"] = len(winning_positions)
             summary["losing_trades"] = len(closed_positions) - len(winning_positions)
             
             if len(closed_positions) > 0:
                 summary["win_rate"] = len(winning_positions) / len(closed_positions)
             
-            # Calculate total P&L from closed positions
-            summary["total_pnl"] = sum(p.unrealized_pnl for p in closed_positions)
+            # Calculate total P&L from closed positions (use realized_pnl if available)
+            summary["total_pnl"] = sum(
+                p.realized_pnl if p.realized_pnl is not None else p.unrealized_pnl 
+                for p in closed_positions
+            )
         
         # Calculate daily P&L percent
         if summary["portfolio_value"] > 0:
