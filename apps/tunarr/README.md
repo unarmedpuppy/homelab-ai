@@ -32,10 +32,28 @@ Tunarr is a live TV streaming server that creates virtual channels from your Ple
 - Data directory: `./data` (persists configuration and database)
 - Timezone: America/Chicago (matches Plex configuration)
 - Network: Connected to `my-network` for communication with Plex
+- **GPU Transcoding**: Configured for NVIDIA GPU (GeForce GT 1030)
+  - Hardware acceleration enabled via NVIDIA Container Runtime
+  - To enable GPU transcoding in Tunarr UI: Settings > FFmpeg > Hardware Acceleration > Select "NVIDIA"
+
+## Plex Live TV Tuner Setup
+
+To add Tunarr as a Live TV tuner in Plex:
+
+1. Go to Plex Settings > Live TV & DVR > Set Up
+2. When prompted for the HDHomeRun device address, use:
+   - **Container hostname (recommended)**: `http://tunarr:8000`
+   - **OR host IP**: `http://192.168.86.47:8001`
+3. For the XMLTV guide URL, use:
+   - **Container hostname**: `http://tunarr:8000/api/xmltv.xml`
+   - **OR host IP**: `http://192.168.86.47:8001/api/xmltv.xml`
+
+**Note**: Since both Plex and Tunarr are on the same Docker network (`my-network`), using the container hostname `tunarr:8000` is recommended for better reliability.
 
 ## Notes
 
 - Tunarr needs access to your Plex server to read media libraries
 - Since both are on the `my-network` Docker network, Tunarr can access Plex using the container name `plex` or the host IP
 - The Plex token can be found in Plex Settings > Network > Show Advanced > Manual Port Configuration (or use a tool to extract it)
+- If Plex can't discover the tuner automatically, manually enter the device address using the container hostname format
 

@@ -5,10 +5,12 @@ services:
     container_name: tunarr
     ports:
       - "8001:8000"
+    runtime: nvidia
     environment:
       - LOG_LEVEL=INFO
       - TZ=America/Chicago
       - TUNARR_SERVER_TRUST_PROXY=true
+      - NVIDIA_VISIBLE_DEVICES=all
     volumes:
       - ./data:/config/tunarr
     restart: unless-stopped
