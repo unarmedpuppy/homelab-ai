@@ -1,0 +1,35 @@
+version: '3.8'
+services:
+  tunarr:
+    image: chrisbenincasa/tunarr:latest
+    container_name: tunarr
+    ports:
+      - "8001:8000"
+    environment:
+      - LOG_LEVEL=INFO
+      - TZ=America/Chicago
+      - TUNARR_SERVER_TRUST_PROXY=true
+    volumes:
+      - ./data:/config/tunarr
+    restart: unless-stopped
+    networks:
+      - my-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tunarr.rule=Host(`tunarr.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.tunarr.entrypoints=websecure"
+      - "traefik.http.routers.tunarr.tls.certresolver=myresolver"
+      - "traefik.http.routers.tunarr.service=tunarr"
+      - "traefik.http.services.tunarr.loadbalancer.server.port=8000"
+      - "traefik.http.middlewares.tunarr-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.tunarr.middlewares=tunarr-https-redirect"
+      - "homepage.group=Apps"
+      - "homepage.name=Tunarr"
+      - "homepage.icon=si-tvtime"
+      - "homepage.href=https://tunarr.server.unarmedpuppy.com"
+      - "homepage.description=Live TV streaming from Plex media"
+
+networks:
+  my-network:
+    external: true
+
