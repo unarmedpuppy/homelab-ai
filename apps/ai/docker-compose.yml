@@ -57,7 +57,7 @@ services:
   deepseek-model:
     image: ghcr.io/huggingface/text-generation-inference:latest
     container_name: deepseek-model
-    restart: on-failure:5  # Stop retrying after 5 failures
+    restart: on-failure:5  # Stop retrying after 5 failures (prevents infinite restart loop)
     ports:
       - "8042:8000"
     volumes:
@@ -70,14 +70,11 @@ services:
       - PORT=80
       - UV_SYSTEM_PYTHON=1
       - EXLLAMA_NO_FLASH_ATTN=1
-    deploy:
-      resources:
-        limits:
-          cpus: '2.0'  # Limit to 2 CPU cores
-          memory: 8G   # Limit to 8GB RAM
-        reservations:
-          cpus: '0.5'  # Reserve 0.5 CPU cores
-          memory: 2G   # Reserve 2GB RAM
+    # Resource limits to prevent excessive CPU/memory usage
+    cpus: '2.0'  # Limit to 2 CPU cores (max 200% CPU usage)
+    mem_limit: 8g  # Limit to 8GB RAM
+    mem_reservation: 2g  # Reserve 2GB RAM
+    cpu_shares: 512  # Relative CPU priority (default is 1024)
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
