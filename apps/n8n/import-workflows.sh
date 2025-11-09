@@ -5,9 +5,13 @@ set -e
 
 # Configuration
 N8N_URL="${N8N_URL:-https://n8n.server.unarmedpuppy.com}"
-N8N_USER="${N8N_USER:-admin}"
-N8N_PASSWORD="${N8N_PASSWORD:-changeme123}"
+N8N_API_KEY="${N8N_API_KEY:-}"
 WORKFLOWS_DIR="${WORKFLOWS_DIR:-./workflows}"
+
+# Load API key from .env.local if it exists
+if [ -f .env.local ]; then
+    export $(grep N8N_API_KEY .env.local | xargs)
+fi
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -26,13 +30,30 @@ import_workflow() {
     
     echo -e "${YELLOW}Importing: $workflow_name${NC}"
     
-    # Read workflow JSON and remove fields that shouldn't be sent
-    workflow_json=$(cat "$workflow_file" | jq 'del(.id, .updatedAt, .versionId)')
+    # Read workflow JSON and extract only the fields that n8n API accepts
+    # Nodes must only have: name, type, typeVersion, position, parameters (no id, no credentials)
+    workflow_json=$(cat "$workflow_file" | jq '{
+        name: .name,
+        nodes: (.nodes | map({
+            name: .name,
+            type: .type,
+            typeVersion: .typeVersion,
+            position: .position,
+            parameters: .parameters
+        })),
+        connections: .connections,
+        settings: (.settings // {})
+    }')
     
     # Import workflow via API
+    if [ -z "$N8N_API_KEY" ]; then
+        echo -e "${RED}Error: N8N_API_KEY not set${NC}"
+        return 1
+    fi
+    
     response=$(curl -s -w "\n%{http_code}" -X POST \
         "$N8N_URL/api/v1/workflows" \
-        -u "$N8N_USER:$N8N_PASSWORD" \
+        -H "X-N8N-API-KEY: $N8N_API_KEY" \
         -H "Content-Type: application/json" \
         -d "$workflow_json")
     
@@ -71,15 +92,20 @@ fi
 
 # Test n8n connection
 echo "Testing n8n connection..."
-if curl -s -f -u "$N8N_USER:$N8N_PASSWORD" "$N8N_URL/api/v1/workflows" > /dev/null; then
+if [ -z "$N8N_API_KEY" ]; then
+    echo -e "${RED}Error: N8N_API_KEY not set${NC}"
+    echo "Please set N8N_API_KEY environment variable or add it to .env.local"
+    exit 1
+fi
+
+if curl -s -f -H "X-N8N-API-KEY: $N8N_API_KEY" "$N8N_URL/api/v1/workflows" > /dev/null; then
     echo -e "${GREEN}✓ Connected to n8n${NC}"
     echo ""
 else
     echo -e "${RED}✗ Failed to connect to n8n${NC}"
     echo "Please check:"
     echo "  - n8n URL: $N8N_URL"
-    echo "  - Username: $N8N_USER"
-    echo "  - Password: (check .env file)"
+    echo "  - API Key: (check .env.local file)"
     exit 1
 fi
 
