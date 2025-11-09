@@ -3,7 +3,7 @@ version: '3.8'
 services:
   open-health:
     build:
-      context: https://github.com/OpenHealthForAll/open-health.git
+      context: ./open-health-repo
       dockerfile: Containerfile
     container_name: open-health
     restart: unless-stopped
@@ -14,7 +14,7 @@ services:
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - DATABASE_URL=${DATABASE_URL:-file:./data/db.sqlite}
       - OLLAMA_API_URL=${OLLAMA_API_URL:-http://host.docker.internal:11434}
-      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:8095}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://192.168.86.47:8095}
     volumes:
       - ./data:/app/data
       - ./uploads:/app/public/uploads

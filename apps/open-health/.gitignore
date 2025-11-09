@@ -1,0 +1,18 @@
+# OpenHealth .gitignore
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Data directories
+data/
+uploads/
+
+# Repository clone
+open-health-repo/
+
+# Logs
+*.log
+npm-debug.log*
+

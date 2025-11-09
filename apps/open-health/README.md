@@ -29,14 +29,20 @@ OpenHealth helps you take charge of your health data. By leveraging AI and your 
 
 ## Quick Start
 
-### 1. Setup Environment
+### 1. Clone the Repository
 
 ```bash
 cd apps/open-health
+git clone https://github.com/OpenHealthForAll/open-health.git open-health-repo
+```
+
+### 2. Setup Environment
+
+```bash
 cp env.template .env
 ```
 
-### 2. Generate Encryption Key
+### 3. Generate Encryption Key
 
 ```bash
 # Generate encryption key and add to .env
@@ -48,23 +54,35 @@ Or manually edit `.env` and add:
 ENCRYPTION_KEY=<generated-key>
 ```
 
-### 3. Configure Ollama (Optional)
+### 4. Configure Ollama (Optional)
 
-If using Ollama for local LLM:
+If using Ollama for local LLM, edit `.env`:
 - Mac: `OLLAMA_API_URL=http://docker.for.mac.localhost:11434`
 - Windows/Linux: `OLLAMA_API_URL=http://host.docker.internal:11434`
 
-### 4. Start the Application
+### 5. Start the Application
 
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
 
-### 5. Access OpenHealth
+### 6. Access OpenHealth
 
 - **Local**: http://localhost:8095
 - **HTTPS**: https://open-health.server.unarmedpuppy.com
 - **Homepage**: Listed under "Health & Wellness" group
+
+## Updating OpenHealth
+
+To update to the latest version:
+
+```bash
+cd apps/open-health
+cd open-health-repo
+git pull origin main
+cd ..
+docker compose up -d --build
+```
 
 ## Configuration
 
