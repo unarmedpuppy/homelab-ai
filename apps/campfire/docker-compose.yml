@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  campfire:
+    build:
+      context: ./campfire-repo
+      dockerfile: Dockerfile
+    container_name: campfire
+    restart: unless-stopped
+    ports:
+      - "8096:80"
+      - "8443:443"
+    environment:
+      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
+      - SSL_DOMAIN=${SSL_DOMAIN:-}
+      - DISABLE_SSL=${DISABLE_SSL:-false}
+      - SENTRY_DSN=${SENTRY_DSN:-}
+      - RAILS_ENV=production
+    volumes:
+      - ./data:/rails/storage
+    networks:
+      - my-network
+    labels:
+      - "traefik.enable=true"
+      # HTTPS redirect
+      - "traefik.http.middlewares.campfire-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.campfire-redirect.middlewares=campfire-redirect"
+      - "traefik.http.routers.campfire-redirect.rule=Host(`campfire.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.campfire-redirect.entrypoints=web"
+      # Main HTTPS router
+      - "traefik.http.routers.campfire.rule=Host(`campfire.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.campfire.entrypoints=websecure"
+      - "traefik.http.routers.campfire.tls.certresolver=myresolver"
+      - "traefik.http.routers.campfire.service=campfire"
+      - "traefik.http.services.campfire.loadbalancer.server.port=80"
+      # Homepage labels
+      - "homepage.group=Communication"
+      - "homepage.name=Campfire"
+      - "homepage.icon=si-campfire"
+      - "homepage.href=http://192.168.86.47:8096"
+      - "homepage.description=Web-based chat application with rooms, DMs, and file sharing"
+
+networks:
+  my-network:
+    external: true
+
