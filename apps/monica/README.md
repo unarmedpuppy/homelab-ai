@@ -69,9 +69,12 @@ docker exec monica php artisan migrate --force
 
 ### 7. Access Monica
 
-- **Local**: http://192.168.86.47:8098
-- **HTTPS**: https://monica.server.unarmedpuppy.com (after DNS setup)
+**Important**: Use **HTTP** (not HTTPS) when accessing via local IP:
+- **Local HTTP**: http://192.168.86.47:8098
+- **HTTPS (via Traefik)**: https://monica.server.unarmedpuppy.com (after DNS setup)
 - **Homepage**: Listed under "Productivity & Organization" group
+
+**Note**: If you see `ERR_SSL_PROTOCOL_ERROR`, you're trying to access via HTTPS. Use `http://` instead of `https://` when accessing via the local IP address.
 
 ### 8. Create Your Account
 
