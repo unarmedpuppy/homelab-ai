@@ -34,7 +34,9 @@ Tunarr is a live TV streaming server that creates virtual channels from your Ple
 - Network: Connected to `my-network` for communication with Plex
 - **GPU Transcoding**: Configured for NVIDIA GPU (GeForce GT 1030)
   - Hardware acceleration enabled via NVIDIA Container Runtime
+  - **Note**: The GT 1030 may have NVENC limitations. If you encounter "OpenEncodeSessionEx failed: unsupported device" errors, use software transcoding instead
   - To enable GPU transcoding in Tunarr UI: Settings > FFmpeg > Hardware Acceleration > Select "NVIDIA"
+  - If GPU transcoding fails, use "Software" transcoding which works reliably
 
 ## Plex Live TV Tuner Setup
 
