@@ -11,6 +11,7 @@ services:
       - TZ=America/Chicago
       - TUNARR_SERVER_TRUST_PROXY=true
       - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
     volumes:
       - ./data:/config/tunarr
     restart: unless-stopped
