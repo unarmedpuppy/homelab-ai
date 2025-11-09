@@ -1,0 +1,18 @@
+# Monica .gitignore
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Data directories
+data/
+
+# Logs
+*.log
+log/
+
+# Temporary files
+tmp/
+*.tmp
+

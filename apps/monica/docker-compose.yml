@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  monica-db:
+    image: mysql:8.0
+    container_name: monica-db
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DATABASE_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DATABASE_NAME:-monica}
+      - MYSQL_USER=${DATABASE_USER:-monica}
+      - MYSQL_PASSWORD=${DATABASE_PASSWORD}
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    networks:
+      - my-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DATABASE_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  monica:
+    image: monicahq/monicahq:latest
+    container_name: monica
+    restart: unless-stopped
+    depends_on:
+      monica-db:
+        condition: service_healthy
+    ports:
+      - "8098:80"
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_KEY=${APP_KEY}
+      - DB_HOST=monica-db
+      - DB_PORT=3306
+      - DB_DATABASE=${DATABASE_NAME:-monica}
+      - DB_USERNAME=${DATABASE_USER:-monica}
+      - DB_PASSWORD=${DATABASE_PASSWORD}
+      - DB_CONNECTION=mysql
+      - APP_URL=${APP_URL}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-noreply@monica.local}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-Monica}
+    volumes:
+      - ./data/storage:/var/www/html/storage
+    networks:
+      - my-network
+    labels:
+      - "traefik.enable=true"
+      # HTTPS redirect
+      - "traefik.http.middlewares.monica-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.monica-redirect.middlewares=monica-redirect"
+      - "traefik.http.routers.monica-redirect.rule=Host(`${MONICA_DOMAIN}`)"
+      - "traefik.http.routers.monica-redirect.entrypoints=web"
+      # Main HTTPS router
+      - "traefik.http.routers.monica.rule=Host(`${MONICA_DOMAIN}`)"
+      - "traefik.http.routers.monica.entrypoints=websecure"
+      - "traefik.http.routers.monica.tls.certresolver=myresolver"
+      - "traefik.http.routers.monica.service=monica"
+      - "traefik.http.services.monica.loadbalancer.server.port=80"
+      # Homepage labels
+      - "homepage.group=Productivity & Organization"
+      - "homepage.name=Monica"
+      - "homepage.icon=si-monica"
+      - "homepage.href=http://192.168.86.47:8098"
+      - "homepage.description=Personal Relationship Management - Remember everything about your friends and family"
+
+networks:
+  my-network:
+    external: true
+
