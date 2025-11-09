@@ -44,7 +44,7 @@ services:
       - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-noreply@monica.local}
       - MAIL_FROM_NAME=${MAIL_FROM_NAME:-Monica}
     volumes:
-      - ./data/storage:/var/www/html/storage
+      - ./data/storage:/var/www/monica/storage
     networks:
       - my-network
     labels:
