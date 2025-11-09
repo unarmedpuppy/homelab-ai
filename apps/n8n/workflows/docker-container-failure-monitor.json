@@ -1,0 +1,290 @@
+{
+  "name": "Docker Container Failure Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 5
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "command": "docker ps -a --format '{{.ID}}|{{.Names}}|{{.Status}}|{{.State}}'",
+        "additionalFields": {}
+      },
+      "id": "check-containers",
+      "name": "Check All Containers",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [450, 300],
+      "credentials": {
+        "docker": {
+          "id": "docker-socket",
+          "name": "Docker Socket"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "filter-failures",
+              "leftValue": "={{ $json['Status'] }}",
+              "rightValue": "Exited (1)|Exited (2)|Exited (130)|Exited (137)|unhealthy|Restarting",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "filter-failures",
+      "name": "Filter Failures",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse container status and extract details\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const data = item.json;\n  const parts = data.stdout.split('|');\n  \n  if (parts.length >= 4) {\n    const containerId = parts[0];\n    const containerName = parts[1];\n    const status = parts[2];\n    const state = parts[3];\n    \n    // Extract exit code if present\n    const exitCodeMatch = status.match(/Exited \\((\\d+)\\)/);\n    const exitCode = exitCodeMatch ? exitCodeMatch[1] : null;\n    \n    results.push({\n      container_id: containerId,\n      container_name: containerName,\n      status: status,\n      state: state,\n      exit_code: exitCode,\n      timestamp: new Date().toISOString()\n    });\n  }\n}\n\nreturn results.map(r => ({ json: r }));"
+      },
+      "id": "parse-status",
+      "name": "Parse Container Status",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "command": "docker logs --tail 100 {{ $json['container_id'] }}",
+        "additionalFields": {}
+      },
+      "id": "get-logs",
+      "name": "Get Container Logs",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1050, 300],
+      "credentials": {
+        "docker": {
+          "id": "docker-socket",
+          "name": "Docker Socket"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "docker inspect {{ $json['container_id'] }} --format '{{json .}}'",
+        "additionalFields": {}
+      },
+      "id": "get-container-info",
+      "name": "Get Container Info",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1050, 450],
+      "credentials": {
+        "docker": {
+          "id": "docker-socket",
+          "name": "Docker Socket"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "docker stats {{ $json['container_id'] }} --no-stream --format '{{.CPUPerc}}|{{.MemUsage}}|{{.MemPerc}}'",
+        "additionalFields": {}
+      },
+      "id": "get-resource-usage",
+      "name": "Get Resource Usage",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1050, 600],
+      "credentials": {
+        "docker": {
+          "id": "docker-socket",
+          "name": "Docker Socket"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Combine all data into AI agent payload\nconst containerData = $('Parse Container Status').first().json;\nconst logsData = $('Get Container Logs').first().json;\nconst infoData = $('Get Container Info').first().json;\nconst resourceData = $('Get Resource Usage').first().json;\n\n// Parse resource usage\nlet cpuUsage = 'N/A';\nlet memoryUsage = 'N/A';\nlet memoryPercent = 'N/A';\n\nif (resourceData.stdout) {\n  const parts = resourceData.stdout.split('|');\n  if (parts.length >= 3) {\n    cpuUsage = parts[0].trim();\n    memoryUsage = parts[1].trim();\n    memoryPercent = parts[2].trim();\n  }\n}\n\n// Determine severity\nlet severity = 'medium';\nif (containerData.exit_code === '137' || containerData.status.includes('unhealthy')) {\n  severity = 'high';\n} else if (containerData.exit_code === '1' || containerData.exit_code === '2') {\n  severity = 'high';\n}\n\nconst payload = {\n  event_type: 'docker_container_failure',\n  severity: severity,\n  timestamp: new Date().toISOString(),\n  source: 'n8n-workflow',\n  workflow_name: 'Docker Container Failure Monitor',\n  event_data: {\n    container_name: containerData.container_name,\n    container_id: containerData.container_id,\n    status: containerData.status,\n    state: containerData.state,\n    exit_code: containerData.exit_code,\n    logs: logsData.stdout || logsData.stderr || 'No logs available',\n    resource_usage: {\n      cpu: cpuUsage,\n      memory: memoryUsage,\n      memory_percent: memoryPercent\n    },\n    container_info: infoData.stdout ? JSON.parse(infoData.stdout) : null\n  },\n  context: {\n    server_ip: process.env.SERVER_IP || '192.168.86.47',\n    server_path: process.env.SERVER_PATH || '~/server'\n  },\n  requested_action: 'analyze_and_recommend'\n};\n\nreturn [{ json: payload }];"
+      },
+      "id": "format-payload",
+      "name": "Format AI Agent Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 400]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.AI_AGENT_WEBHOOK_URL || 'https://n8n.server.unarmedpuppy.com/webhook/ai-agent' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "call-ai-agent",
+      "name": "Call AI Agent Webhook",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1450, 400],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ai-agent-webhook",
+          "name": "AI Agent Webhook Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-success",
+              "leftValue": "={{ $json['statusCode'] }}",
+              "rightValue": "200",
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "check-response",
+      "name": "Check Response",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1650, 400]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "log-success",
+              "name": "success",
+              "value": "AI agent webhook called successfully",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "log-success",
+      "name": "Log Success",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [1850, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "log-error",
+              "name": "error",
+              "value": "={{ $json['error'] || 'Unknown error' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "log-error",
+      "name": "Log Error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [1850, 500]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [[{ "node": "Check All Containers", "type": "main", "index": 0 }]]
+    },
+    "Check All Containers": {
+      "main": [[{ "node": "Filter Failures", "type": "main", "index": 0 }]]
+    },
+    "Filter Failures": {
+      "main": [[{ "node": "Parse Container Status", "type": "main", "index": 0 }]]
+    },
+    "Parse Container Status": {
+      "main": [[
+        { "node": "Get Container Logs", "type": "main", "index": 0 },
+        { "node": "Get Container Info", "type": "main", "index": 0 },
+        { "node": "Get Resource Usage", "type": "main", "index": 0 }
+      ]]
+    },
+    "Get Container Logs": {
+      "main": [[{ "node": "Format AI Agent Payload", "type": "main", "index": 0 }]]
+    },
+    "Get Container Info": {
+      "main": [[{ "node": "Format AI Agent Payload", "type": "main", "index": 0 }]]
+    },
+    "Get Resource Usage": {
+      "main": [[{ "node": "Format AI Agent Payload", "type": "main", "index": 0 }]]
+    },
+    "Format AI Agent Payload": {
+      "main": [[{ "node": "Call AI Agent Webhook", "type": "main", "index": 0 }]]
+    },
+    "Call AI Agent Webhook": {
+      "main": [[{ "node": "Check Response", "type": "main", "index": 0 }]]
+    },
+    "Check Response": {
+      "main": [
+        [{ "node": "Log Success", "type": "main", "index": 0 }],
+        [{ "node": "Log Error", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-01-XXT00:00:00.000Z",
+  "versionId": "1"
+}
+

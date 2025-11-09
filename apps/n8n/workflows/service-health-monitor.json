@@ -1,0 +1,210 @@
+{
+  "name": "Service Health Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 2
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "service",
+              "value": "trading-bot:8000"
+            },
+            {
+              "name": "service",
+              "value": "homepage:3000"
+            },
+            {
+              "name": "service",
+              "value": "grafana:3010"
+            },
+            {
+              "name": "service",
+              "value": "plex:32400"
+            },
+            {
+              "name": "service",
+              "value": "immich-server:2283"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "service-list",
+      "name": "Service List",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "url": "=http://{{ $json['service'].split(':')[0] }}:{{ $json['service'].split(':')[1] }}/health",
+        "options": {
+          "timeout": 5000,
+          "followRedirect": false
+        }
+      },
+      "id": "check-health",
+      "name": "Check Health Endpoint",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "url": "=http://{{ $json['service'].split(':')[0] }}:{{ $json['service'].split(':')[1] }}/",
+        "options": {
+          "timeout": 5000,
+          "followRedirect": false
+        }
+      },
+      "id": "check-root",
+      "name": "Check Root Endpoint",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [650, 450]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-failure",
+              "leftValue": "={{ $json['statusCode'] }}",
+              "rightValue": "500|502|503|504",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "filter-failures",
+      "name": "Filter Failures",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [850, 375]
+    },
+    {
+      "parameters": {
+        "command": "docker logs --tail 50 {{ $json['service'].split(':')[0] }} 2>&1",
+        "additionalFields": {}
+      },
+      "id": "get-service-logs",
+      "name": "Get Service Logs",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1050, 375],
+      "credentials": {
+        "docker": {
+          "id": "docker-socket",
+          "name": "Docker Socket"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format service health failure payload\nconst serviceData = $('Service List').first().json;\nconst healthCheck = $('Check Health Endpoint').first().json;\nconst logsData = $('Get Service Logs').first().json;\n\nconst serviceName = serviceData.service.split(':')[0];\nconst servicePort = serviceData.service.split(':')[1];\nconst statusCode = healthCheck.statusCode || 'unknown';\n\n// Determine severity\nlet severity = 'medium';\nif (statusCode >= 500) {\n  severity = 'high';\n}\n\nconst payload = {\n  event_type: 'service_health_failure',\n  severity: severity,\n  timestamp: new Date().toISOString(),\n  source: 'n8n-workflow',\n  workflow_name: 'Service Health Monitor',\n  event_data: {\n    service_name: serviceName,\n    service_port: servicePort,\n    health_endpoint: `http://${serviceName}:${servicePort}/health`,\n    status_code: statusCode,\n    response_body: healthCheck.body || 'No response',\n    service_logs: logsData.stdout || logsData.stderr || 'No logs available'\n  },\n  context: {\n    server_ip: process.env.SERVER_IP || '192.168.86.47',\n    server_path: process.env.SERVER_PATH || '~/server'\n  },\n  requested_action: 'analyze_and_recommend'\n};\n\nreturn [{ json: payload }];"
+      },
+      "id": "format-payload",
+      "name": "Format AI Agent Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 375]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.AI_AGENT_WEBHOOK_URL || 'https://n8n.server.unarmedpuppy.com/webhook/ai-agent' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "call-ai-agent",
+      "name": "Call AI Agent Webhook",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1450, 375],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ai-agent-webhook",
+          "name": "AI Agent Webhook Auth"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [[{ "node": "Service List", "type": "main", "index": 0 }]]
+    },
+    "Service List": {
+      "main": [[
+        { "node": "Check Health Endpoint", "type": "main", "index": 0 },
+        { "node": "Check Root Endpoint", "type": "main", "index": 0 }
+      ]]
+    },
+    "Check Health Endpoint": {
+      "main": [[{ "node": "Filter Failures", "type": "main", "index": 0 }]]
+    },
+    "Check Root Endpoint": {
+      "main": [[{ "node": "Filter Failures", "type": "main", "index": 0 }]]
+    },
+    "Filter Failures": {
+      "main": [[{ "node": "Get Service Logs", "type": "main", "index": 0 }]]
+    },
+    "Get Service Logs": {
+      "main": [[{ "node": "Format AI Agent Payload", "type": "main", "index": 0 }]]
+    },
+    "Format AI Agent Payload": {
+      "main": [[{ "node": "Call AI Agent Webhook", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-01-XXT00:00:00.000Z",
+  "versionId": "1"
+}
+

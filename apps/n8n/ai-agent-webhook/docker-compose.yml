@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  ai-agent-webhook:
+    build: .
+    container_name: ai-agent-webhook
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - WEBHOOK_PORT=${WEBHOOK_PORT:-8080}
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET}
+      - EVENT_STORAGE_PATH=/app/events
+      - EVENT_RETENTION_DAYS=${EVENT_RETENTION_DAYS:-7}
+      - SERVER_IP=${SERVER_IP:-192.168.86.47}
+      - SERVER_PATH=${SERVER_PATH:-~/server}
+    ports:
+      - "${WEBHOOK_PORT:-8080}:8080"
+    volumes:
+      - webhook_events:/app/events
+    networks:
+      - my-network
+    labels:
+      - "homepage.group=Automation"
+      - "homepage.name=AI Agent Webhook"
+      - "homepage.icon=si-openai"
+      - "homepage.href=http://${SERVER_IP}:${WEBHOOK_PORT:-8080}"
+      - "homepage.description=Webhook service for AI agent event processing"
+
+volumes:
+  webhook_events:
+    driver: local
+
+networks:
+  my-network:
+    external: true
+

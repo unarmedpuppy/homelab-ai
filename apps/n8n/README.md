@@ -105,6 +105,24 @@ docker run --rm -v n8n_data:/data -v $(pwd):/backup alpine tar xzf /backup/n8n_b
 
 This service is configured to appear in your Homepage dashboard under the "Automation" group.
 
+## AI Agent Workflows
+
+n8n includes workflows that monitor server events and trigger an AI agent for automated troubleshooting:
+
+- **Docker Container Failure Monitor**: Monitors containers for failures, crashes, or unhealthy states
+- **Docker Build Failure Monitor**: Monitors Docker build failures
+- **Service Health Monitor**: Monitors service health endpoints and metrics
+
+### Setup AI Agent Workflows
+
+See [SETUP_AI_AGENT_WORKFLOWS.md](./SETUP_AI_AGENT_WORKFLOWS.md) for detailed setup instructions.
+
+### Documentation
+
+- [AI_AGENT_WORKFLOWS.md](./AI_AGENT_WORKFLOWS.md) - Complete workflow documentation
+- [SETUP_AI_AGENT_WORKFLOWS.md](./SETUP_AI_AGENT_WORKFLOWS.md) - Step-by-step setup guide
+- [ai-agent-webhook/README.md](./ai-agent-webhook/README.md) - Webhook service documentation
+
 ## Troubleshooting
 
 - Check logs: `docker-compose logs -f n8n`

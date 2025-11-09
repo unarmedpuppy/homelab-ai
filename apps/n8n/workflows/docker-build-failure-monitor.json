@@ -1,0 +1,157 @@
+{
+  "name": "Docker Build Failure Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 10
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "command": "docker images --format '{{.ID}}|{{.Repository}}|{{.Tag}}|{{.CreatedAt}}' --filter 'dangling=false' | head -20",
+        "additionalFields": {}
+      },
+      "id": "check-recent-images",
+      "name": "Check Recent Images",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [450, 300],
+      "credentials": {
+        "docker": {
+          "id": "docker-socket",
+          "name": "Docker Socket"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "docker ps -a --filter 'status=exited' --format '{{.ID}}|{{.Names}}|{{.Status}}|{{.Image}}' | grep -E 'build|Build' || echo ''",
+        "additionalFields": {}
+      },
+      "id": "check-build-containers",
+      "name": "Check Build Containers",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [450, 450],
+      "credentials": {
+        "docker": {
+          "id": "docker-socket",
+          "name": "Docker Socket"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Check for failed build containers\nconst buildCheck = $('Check Build Containers').first().json;\nconst items = [];\n\nif (buildCheck.stdout && buildCheck.stdout.trim()) {\n  const lines = buildCheck.stdout.trim().split('\\n');\n  \n  for (const line of lines) {\n    if (line.includes('Exited (1)') || line.includes('Exited (2)')) {\n      const parts = line.split('|');\n      if (parts.length >= 4) {\n        items.push({\n          container_id: parts[0],\n          container_name: parts[1],\n          status: parts[2],\n          image: parts[3],\n          is_build_failure: true\n        });\n      }\n    }\n  }\n}\n\n// Also check Docker build history via events\n// This would require docker events API or checking build logs\n\nreturn items.length > 0 ? items.map(i => ({ json: i })) : [];"
+      },
+      "id": "identify-failures",
+      "name": "Identify Build Failures",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 375]
+    },
+    {
+      "parameters": {
+        "command": "docker logs {{ $json['container_id'] }} 2>&1 | tail -200",
+        "additionalFields": {}
+      },
+      "id": "get-build-logs",
+      "name": "Get Build Logs",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [850, 375],
+      "credentials": {
+        "docker": {
+          "id": "docker-socket",
+          "name": "Docker Socket"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format build failure payload for AI agent\nconst buildData = $('Identify Build Failures').first().json;\nconst logsData = $('Get Build Logs').first().json;\n\n// Extract error information from logs\nconst logs = logsData.stdout || logsData.stderr || '';\nlet errorMessage = 'Build failed';\nlet failedStage = 'unknown';\n\n// Try to identify failed stage\nif (logs.includes('ERROR')) {\n  const errorMatch = logs.match(/ERROR[^\\n]+/i);\n  if (errorMatch) errorMessage = errorMatch[0];\n}\n\nif (logs.includes('Step')) {\n  const stepMatch = logs.match(/Step (\\d+\\/\\d+)/i);\n  if (stepMatch) failedStage = stepMatch[1];\n}\n\n// Determine severity\nlet severity = 'high';\nif (logs.includes('timeout') || logs.includes('network')) {\n  severity = 'medium';\n}\n\nconst payload = {\n  event_type: 'docker_build_failure',\n  severity: severity,\n  timestamp: new Date().toISOString(),\n  source: 'n8n-workflow',\n  workflow_name: 'Docker Build Failure Monitor',\n  event_data: {\n    container_name: buildData.container_name,\n    container_id: buildData.container_id,\n    image: buildData.image,\n    status: buildData.status,\n    failed_stage: failedStage,\n    error_message: errorMessage,\n    build_logs: logs\n  },\n  context: {\n    server_ip: process.env.SERVER_IP || '192.168.86.47',\n    server_path: process.env.SERVER_PATH || '~/server'\n  },\n  requested_action: 'analyze_and_recommend'\n};\n\nreturn [{ json: payload }];"
+      },
+      "id": "format-payload",
+      "name": "Format AI Agent Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1050, 375]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.AI_AGENT_WEBHOOK_URL || 'https://n8n.server.unarmedpuppy.com/webhook/ai-agent' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "call-ai-agent",
+      "name": "Call AI Agent Webhook",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1250, 375],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ai-agent-webhook",
+          "name": "AI Agent Webhook Auth"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [[
+        { "node": "Check Recent Images", "type": "main", "index": 0 },
+        { "node": "Check Build Containers", "type": "main", "index": 0 }
+      ]]
+    },
+    "Check Build Containers": {
+      "main": [[{ "node": "Identify Build Failures", "type": "main", "index": 0 }]]
+    },
+    "Identify Build Failures": {
+      "main": [[{ "node": "Get Build Logs", "type": "main", "index": 0 }]]
+    },
+    "Get Build Logs": {
+      "main": [[{ "node": "Format AI Agent Payload", "type": "main", "index": 0 }]]
+    },
+    "Format AI Agent Payload": {
+      "main": [[{ "node": "Call AI Agent Webhook", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-01-XXT00:00:00.000Z",
+  "versionId": "1"
+}
+
