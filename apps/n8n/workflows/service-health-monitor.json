@@ -54,10 +54,11 @@
     },
     {
       "parameters": {
-        "url": "=http://{{ $json['service'].split(':')[0] }}:{{ $json['service'].split(':')[1] }}/health",
+        "url": "=http://192.168.86.47:{{ $json['service'].split(':')[1] }}/health",
         "options": {
           "timeout": 5000,
-          "followRedirect": false
+          "followRedirect": false,
+          "ignoreSSLIssues": true
         }
       },
       "id": "check-health",
@@ -68,10 +69,11 @@
     },
     {
       "parameters": {
-        "url": "=http://{{ $json['service'].split(':')[0] }}:{{ $json['service'].split(':')[1] }}/",
+        "url": "=http://192.168.86.47:{{ $json['service'].split(':')[1] }}/",
         "options": {
           "timeout": 5000,
-          "followRedirect": false
+          "followRedirect": false,
+          "ignoreSSLIssues": true
         }
       },
       "id": "check-root",
