@@ -41,6 +41,7 @@ services:
       - DB_PASSWORD=${DATABASE_PASSWORD}
       - DB_CONNECTION=mysql
       - APP_URL=${APP_URL}
+      - ASSET_URL=${APP_URL}
       - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-noreply@monica.local}
       - MAIL_FROM_NAME=${MAIL_FROM_NAME:-Monica}
     volumes:
