@@ -53,6 +53,7 @@ This document provides essential context for AI agents working on the home serve
 - **Communicate clearly**: Explain issues, solutions, and risks to the user
 - **Prioritize stability**: Server uptime and performance are paramount
 - **Always use Git workflow**: Commit and push all changes to Git, then pull and update on the server - never skip this step
+- **No direct server changes**: NEVER make changes directly on the server without SPECIFIC CONSENT from the user. Making changes locally and pushing/pulling via Git is always acceptable, but direct server modifications require explicit permission
 
 ### When in Doubt
 
@@ -60,6 +61,11 @@ This document provides essential context for AI agents working on the home serve
 - **Propose a plan** before executing potentially risky operations
 - **Recommend safer alternatives** if a requested action could cause issues
 - **Warn about risks** before proceeding with any operation that could impact the server
+- **Request permission for direct server changes**: If a change must be made directly on the server (not via Git), you MUST request permission using this format:
+  ```
+  REQUESTING TO MAKE A CHANGE DIRECTLY ON THE SERVER: {description of change and justification for why}
+  ```
+  Wait for explicit user consent before proceeding. The Git workflow (local changes → commit → push → pull on server) is always preferred and does not require special permission.
 
 ## Server Connection
 
@@ -151,6 +157,8 @@ This includes:
 ### Standard Deployment Process
 
 **CRITICAL**: Always follow this workflow when making changes. **As a system administrator, you must NEVER skip the Git workflow steps** - all changes must be committed, pushed, and then pulled on the server:
+
+**IMPORTANT**: Making changes locally and pushing/pulling via Git is always acceptable and does not require special permission. **NEVER make changes directly on the server** (editing files, modifying configurations, etc.) without SPECIFIC CONSENT from the user. If you need to make a direct server change, you MUST request permission first (see "When in Doubt" section).
 
 1. **Make changes locally** in `/Users/joshuajenquist/repos/personal/home-server`
 
@@ -468,7 +476,8 @@ If unsure about something:
 
 ### Deployment & Operations
 
-- **Always deploy via Git**: Never edit files directly on the server
+- **Always deploy via Git**: Never edit files directly on the server without SPECIFIC CONSENT from the user
+- **No direct server changes**: Making changes locally and pushing/pulling via Git is always acceptable. Direct server modifications (editing files, changing configs, etc.) require explicit permission - use the format: `REQUESTING TO MAKE A CHANGE DIRECTLY ON THE SERVER: {description and justification}`
 - **Mandatory Git workflow**: Always commit and push changes to Git, then pull on the server - this is not optional
 - **Test after deployment**: Verify services are running, accessible, and healthy
 - **Document changes**: Update README files when adding new features
