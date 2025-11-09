@@ -15,7 +15,7 @@ services:
       - SERVER_IP=${SERVER_IP:-192.168.86.47}
       - SERVER_PATH=${SERVER_PATH:-~/server}
     ports:
-      - "${WEBHOOK_PORT:-8080}:8080"
+      - "${WEBHOOK_PORT:-8080}:${WEBHOOK_PORT:-8080}"
     volumes:
       - webhook_events:/app/events
     networks:
