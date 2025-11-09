@@ -90,6 +90,18 @@ sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.ta
 - **Version**: MC123IOE.100
 - **ME FW Version**: 12/0.41.1435
 
+### CHASSIS
+
+- Sliger CX3701 | 3U 15" Deep Chassis | 10 X tray-less 3.5 HDD hot-swap/direct-wired SATA connectors | SFX PSU | Mini ITX Motherboard
+
+### MOTHERBOARD
+
+- B550I AORUS Pro AX AMD AM4 Mini-ITX Motherboard
+
+### POWER SUPPLY
+
+- Corsair SF750 (2018) 750 W 80+ Platinum Certified Fully Modular SFX Power Supply
+
 ### CPU
 
 **Original**:
