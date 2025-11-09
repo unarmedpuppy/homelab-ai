@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   open-archiver-db:
-    image: postgres:16-alpine
+    image: postgres:17-alpine
     container_name: open-archiver-db
     restart: unless-stopped
     environment:
@@ -20,21 +20,22 @@ services:
       retries: 5
 
   open-archiver-redis:
-    image: valkey/valkey:7.2-alpine
+    image: valkey/valkey:8-alpine
     container_name: open-archiver-redis
     restart: unless-stopped
+    command: valkey-server --requirepass ${REDIS_PASSWORD}
     volumes:
       - ./data/redis:/data
     networks:
       - my-network
     healthcheck:
-      test: ["CMD", "valkey-cli", "ping"]
+      test: ["CMD", "valkey-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   open-archiver-meilisearch:
-    image: getmeili/meilisearch:v1.7
+    image: getmeili/meilisearch:v1.15
     container_name: open-archiver-meilisearch
     restart: unless-stopped
     environment:
@@ -51,9 +52,7 @@ services:
       retries: 5
 
   open-archiver:
-    build:
-      context: ./open-archiver-repo
-      dockerfile: docker/Dockerfile
+    image: logiclabshq/open-archiver:latest
     container_name: open-archiver
     restart: unless-stopped
     depends_on:
@@ -65,15 +64,14 @@ services:
         condition: service_healthy
     ports:
       - "8099:3000"
+    env_file:
+      - .env
     environment:
-      - NODE_ENV=production
       - DATABASE_URL=postgresql://${POSTGRES_USER:-openarchiver}:${POSTGRES_PASSWORD}@open-archiver-db:5432/${POSTGRES_DB:-openarchiver}
-      - REDIS_URL=redis://open-archiver-redis:6379
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@open-archiver-redis:6379
       - MEILISEARCH_URL=http://open-archiver-meilisearch:7700
       - MEILISEARCH_MASTER_KEY=${MEILI_MASTER_KEY}
-      - JWT_SECRET=${JWT_SECRET}
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
-      - APP_URL=${APP_URL}
+      - STORAGE_LOCAL_ROOT_PATH=/app/storage
     volumes:
       - ./data/storage:/app/storage
     networks:
