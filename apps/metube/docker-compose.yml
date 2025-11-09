@@ -10,9 +10,9 @@ services:
       - ./data:/downloads
     environment:
       # yt-dlp options to improve YouTube compatibility
-      # Using ios client which is more reliable than android/web
+      # Let yt-dlp auto-select best available client (will try multiple clients automatically)
       # Increased retries and timeout for better connection handling
-      YTDL_OPTIONS: '{"extractor_args": {"youtube": {"player_client": ["ios"]}}, "retries": 10, "fragment_retries": 10, "file_access_retries": 3, "retry_sleep": 1, "socket_timeout": 30, "ignoreerrors": false}'
+      YTDL_OPTIONS: '{"retries": 10, "fragment_retries": 10, "file_access_retries": 3, "retry_sleep": 1, "socket_timeout": 30, "ignoreerrors": false, "no_warnings": false}'
     labels:
       - "homepage.group=Apps"
       - "homepage.name=MyTube"
