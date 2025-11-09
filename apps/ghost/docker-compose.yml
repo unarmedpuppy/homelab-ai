@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  ghost-db:
+    image: mysql:8.0
+    container_name: ghost-db
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DATABASE_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DATABASE_NAME:-ghost}
+      - MYSQL_USER=${DATABASE_USER:-ghost}
+      - MYSQL_PASSWORD=${DATABASE_PASSWORD}
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    networks:
+      - my-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DATABASE_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ghost:
+    image: ghost:latest
+    container_name: ghost
+    restart: unless-stopped
+    depends_on:
+      ghost-db:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - database__client=mysql
+      - database__connection__host=ghost-db
+      - database__connection__user=${DATABASE_USER:-ghost}
+      - database__connection__password=${DATABASE_PASSWORD}
+      - database__connection__database=${DATABASE_NAME:-ghost}
+      - url=${GHOST_URL}
+      - mail__transport=SMTP
+      - mail__options__host=${SMTP_HOST}
+      - mail__options__port=${SMTP_PORT:-587}
+      - mail__options__auth__user=${SMTP_USER}
+      - mail__options__auth__pass=${SMTP_PASSWORD}
+      - mail__from=${SMTP_FROM}
+    volumes:
+      - ./data/ghost:/var/lib/ghost/content
+    networks:
+      - my-network
+    labels:
+      - "traefik.enable=true"
+      # HTTPS redirect
+      - "traefik.http.middlewares.ghost-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.ghost-redirect.middlewares=ghost-redirect"
+      - "traefik.http.routers.ghost-redirect.rule=Host(`${GHOST_DOMAIN}`)"
+      - "traefik.http.routers.ghost-redirect.entrypoints=web"
+      # Main HTTPS router
+      - "traefik.http.routers.ghost.rule=Host(`${GHOST_DOMAIN}`)"
+      - "traefik.http.routers.ghost.entrypoints=websecure"
+      - "traefik.http.routers.ghost.tls.certresolver=myresolver"
+      - "traefik.http.routers.ghost.service=ghost"
+      - "traefik.http.services.ghost.loadbalancer.server.port=2368"
+      # Homepage labels
+      - "homepage.group=Content & Publishing"
+      - "homepage.name=Ghost"
+      - "homepage.icon=si-ghost"
+      - "homepage.href=http://192.168.86.47:8097"
+      - "homepage.description=Professional publishing platform"
+
+networks:
+  my-network:
+    external: true
+
