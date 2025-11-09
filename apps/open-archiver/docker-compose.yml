@@ -72,8 +72,8 @@ services:
       - MEILISEARCH_URL=http://open-archiver-meilisearch:7700
       - MEILISEARCH_MASTER_KEY=${MEILI_MASTER_KEY}
       - STORAGE_LOCAL_ROOT_PATH=/app/storage
-      - STORAGE_TYPE=${STORAGE_TYPE:-local}
-      - BODY_SIZE_LIMIT=${BODY_SIZE_LIMIT:-100M}
+      - STORAGE_TYPE=local
+      - BODY_SIZE_LIMIT=100M
     volumes:
       - ./data/storage:/app/storage
     networks:
