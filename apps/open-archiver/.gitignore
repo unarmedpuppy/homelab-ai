@@ -1,0 +1,21 @@
+# OpenArchiver .gitignore
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Data directories
+data/
+
+# Repository clone
+open-archiver-repo/
+
+# Logs
+*.log
+log/
+
+# Temporary files
+tmp/
+*.tmp
+

@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  open-archiver-db:
+    image: postgres:16-alpine
+    container_name: open-archiver-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-openarchiver}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB:-openarchiver}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    networks:
+      - my-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-openarchiver}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  open-archiver-redis:
+    image: valkey/valkey:7.2-alpine
+    container_name: open-archiver-redis
+    restart: unless-stopped
+    volumes:
+      - ./data/redis:/data
+    networks:
+      - my-network
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  open-archiver-meilisearch:
+    image: getmeili/meilisearch:v1.7
+    container_name: open-archiver-meilisearch
+    restart: unless-stopped
+    environment:
+      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
+      - MEILI_ENV=production
+    volumes:
+      - ./data/meilisearch:/meili_data
+    networks:
+      - my-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  open-archiver:
+    build:
+      context: ./open-archiver-repo
+      dockerfile: docker/Dockerfile
+    container_name: open-archiver
+    restart: unless-stopped
+    depends_on:
+      open-archiver-db:
+        condition: service_healthy
+      open-archiver-redis:
+        condition: service_healthy
+      open-archiver-meilisearch:
+        condition: service_healthy
+    ports:
+      - "8099:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-openarchiver}:${POSTGRES_PASSWORD}@open-archiver-db:5432/${POSTGRES_DB:-openarchiver}
+      - REDIS_URL=redis://open-archiver-redis:6379
+      - MEILISEARCH_URL=http://open-archiver-meilisearch:7700
+      - MEILISEARCH_MASTER_KEY=${MEILI_MASTER_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - APP_URL=${APP_URL}
+    volumes:
+      - ./data/storage:/app/storage
+    networks:
+      - my-network
+    labels:
+      - "traefik.enable=true"
+      # HTTPS redirect
+      - "traefik.http.middlewares.open-archiver-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.open-archiver-redirect.middlewares=open-archiver-redirect"
+      - "traefik.http.routers.open-archiver-redirect.rule=Host(`${OPEN_ARCHIVER_DOMAIN}`)"
+      - "traefik.http.routers.open-archiver-redirect.entrypoints=web"
+      # Main HTTPS router
+      - "traefik.http.routers.open-archiver.rule=Host(`${OPEN_ARCHIVER_DOMAIN}`)"
+      - "traefik.http.routers.open-archiver.entrypoints=websecure"
+      - "traefik.http.routers.open-archiver.tls.certresolver=myresolver"
+      - "traefik.http.routers.open-archiver.service=open-archiver"
+      - "traefik.http.services.open-archiver.loadbalancer.server.port=3000"
+      # Homepage labels
+      - "homepage.group=Productivity & Organization"
+      - "homepage.name=OpenArchiver"
+      - "homepage.icon=si-archive"
+      - "homepage.href=http://192.168.86.47:8099"
+      - "homepage.description=Secure email archiving platform with full-text search"
+
+networks:
+  my-network:
+    external: true
+
