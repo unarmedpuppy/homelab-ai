@@ -47,6 +47,7 @@ services:
       - MAIL_FROM_NAME=${MAIL_FROM_NAME:-Monica}
     volumes:
       - ./data/storage:/var/www/monica/storage
+      - ./patches/RouteServiceProvider.php:/var/www/monica/app/Providers/RouteServiceProvider.php:ro
     networks:
       - my-network
     labels:
