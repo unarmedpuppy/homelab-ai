@@ -56,7 +56,7 @@ You should see the unlock interface, which will also appear in your Homepage und
    - **ZFS Encryption Password**: Your existing ZFS dataset encryption key password (the password you use with `zfs load-key`)
 3. Enter all three credentials and click "Unlock & Mount" to decrypt and mount the ZFS dataset
 4. Click "Start Jellyfin" to start the Jellyfin container
-5. Access Jellyfin at `http://YOUR_SERVER_IP:8096`
+5. Access Jellyfin at `http://YOUR_SERVER_IP:8100`
 
 ### Stopping and Locking
 
