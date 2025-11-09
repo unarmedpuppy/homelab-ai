@@ -5,6 +5,7 @@ services:
     image: mysql:8.0
     container_name: monica-db
     restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
     environment:
       - MYSQL_ROOT_PASSWORD=${DATABASE_ROOT_PASSWORD}
       - MYSQL_DATABASE=${DATABASE_NAME:-monica}
