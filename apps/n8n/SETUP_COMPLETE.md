@@ -27,12 +27,15 @@ All three workflows have been successfully imported into your n8n instance:
 
 Open n8n: `https://n8n.server.unarmedpuppy.com`
 
-#### A. Docker Socket Credential
+#### A. Execute Command Nodes - No Credential Needed!
 
-1. Go to **Credentials** → **New**
-2. Select **Execute Command** type
-3. Name: `Docker Socket`
-4. Save (Docker socket is already mounted in n8n container)
+**Important**: Execute Command nodes don't need credentials! The Docker socket is already mounted in the n8n container, so Docker commands work directly.
+
+**What to do**:
+- Open each workflow
+- For Execute Command nodes, you may see credential warnings - **ignore them**
+- The Docker commands will work because `/var/run/docker.sock` is mounted in the container
+- Test by manually executing a workflow to verify Docker commands run successfully
 
 #### B. AI Agent Webhook Auth Credential
 
@@ -49,19 +52,16 @@ For each workflow:
 
 1. **Docker Container Failure Monitor**
    - Open the workflow
-   - For each **Execute Command** node:
-     - "Check All Containers"
-     - "Get Container Logs"
-     - "Get Container Info"
-     - "Get Resource Usage"
-   - Assign **"Docker Socket"** credential to each
+   - For **Execute Command** nodes (Check All Containers, Get Container Logs, etc.):
+     - **No credential needed** - Docker socket is mounted, commands work directly
+     - If you see credential warnings, ignore them or leave the field empty
    - For **"Call AI Agent Webhook"** node:
      - Assign **"AI Agent Webhook Auth"** credential
    - Save workflow
 
 2. **Docker Build Failure Monitor**
    - Open the workflow
-   - For **Execute Command** nodes, assign **"Docker Socket"** credential
+   - **Execute Command** nodes don't need credentials (Docker socket is mounted)
    - For **"Call AI Agent Webhook"** node, assign **"AI Agent Webhook Auth"** credential
    - Save workflow
 

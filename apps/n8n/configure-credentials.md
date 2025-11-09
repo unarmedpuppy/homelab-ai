@@ -10,18 +10,21 @@
 
 ## Required Credentials
 
-### 1. Docker Socket Credential
+### 1. Execute Command Nodes - No Credential Needed!
 
-**For**: Execute Command nodes (Docker commands)
+**Important**: The Execute Command nodes in these workflows don't actually need credentials!
 
-1. Open n8n: `https://n8n.server.unarmedpuppy.com`
-2. Go to **Credentials** → **New**
-3. Select **Execute Command** type
-4. Name: `Docker Socket`
-5. Configuration:
-   - The Docker socket is already mounted in the n8n container at `/var/run/docker.sock`
-   - The Execute Command node will automatically use the Docker socket
-   - No additional configuration needed - just create the credential
+Since the Docker socket is already mounted in the n8n container (`/var/run/docker.sock:/var/run/docker.sock:ro`), the Execute Command nodes can run Docker commands directly without any credentials.
+
+**What to do**:
+1. Open each workflow in n8n
+2. For each **Execute Command** node, you may see a credential warning
+3. **Simply ignore it or leave it unconfigured** - the Docker commands will work because the socket is mounted
+4. If n8n requires a credential field, you can:
+   - Leave it empty/unselected
+   - Or the workflow might work without assigning anything
+
+**Note**: If you see errors about missing credentials, the workflows might need to be updated to remove the credential references. The Docker commands should work directly since the socket is accessible.
 
 ### 2. AI Agent Webhook Auth Credential
 
@@ -52,13 +55,15 @@ For each workflow:
 4. Select the **"AI Agent Webhook Auth"** credential you just created
 5. Save the workflow
 
-### Assign Docker Socket Credential
+### Configure Execute Command Nodes
 
 For each workflow with Execute Command nodes:
 1. Open the workflow
 2. Find each **Execute Command** node (Check All Containers, Get Container Logs, etc.)
-3. Assign the **"Docker Socket"** credential to each node
-4. Save the workflow
+3. **No credential needed** - Docker socket is already mounted in the container
+4. If you see credential warnings, you can ignore them or leave the credential field empty
+5. Test the nodes by executing the workflow manually to verify Docker commands work
+6. Save the workflow
 
 ## Activate Workflows
 
