@@ -24,6 +24,8 @@ services:
     image: ghost:latest
     container_name: ghost
     restart: unless-stopped
+    ports:
+      - "8097:2368"
     depends_on:
       ghost-db:
         condition: service_healthy
