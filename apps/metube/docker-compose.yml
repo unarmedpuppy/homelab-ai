@@ -8,6 +8,10 @@ services:
       - "8020:8081"
     volumes:
       - ./data:/downloads
+    environment:
+      # yt-dlp options to improve YouTube compatibility
+      # These options help with recent YouTube API changes
+      - YTDL_OPTIONS={"extractor_args": {"youtube": {"player_client": ["android", "web"]}}, "retries": 10, "fragment_retries": 10, "ignoreerrors": false}
     labels:
       - "homepage.group=Apps"
       - "homepage.name=MyTube"
