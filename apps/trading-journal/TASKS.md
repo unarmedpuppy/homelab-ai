@@ -326,10 +326,31 @@ This file tracks the status of all implementation tasks. Agents should update th
 - Integrated dashboard router into main FastAPI app
 
 ### T2.4: Dashboard Frontend Components
-**Status**: `[PENDING]`
-**Claimed By**: -
+**Status**: `[COMPLETED]`
+**Claimed By**: Auto (AI Agent)
+**Completed**: 2025-01-27
 **Priority**: High
 **Dependencies**: T2.3
+**Summary**:
+- Created `frontend/src/types/dashboard.ts` with TypeScript types matching backend schemas
+- Created `frontend/src/api/dashboard.ts` with API functions for all dashboard endpoints
+- Created `frontend/src/hooks/useDashboard.ts` with React Query hooks for dashboard data
+- Created `frontend/src/components/dashboard/KPICard.tsx`:
+  - Reusable KPI card component with color coding and trend indicators
+  - Supports formatting for currency, percentages, and large numbers
+  - Color themes: success (green), error (red), info (blue), primary (purple)
+- Created `frontend/src/components/dashboard/RecentTrades.tsx`:
+  - Table component displaying recent closed trades
+  - Shows ticker, type, side, entry/exit dates, and P&L
+  - Color-coded P&L (green for profit, red for loss)
+  - Loading and error states
+- Updated `frontend/src/pages/Dashboard.tsx`:
+  - Main dashboard page with KPI grid (11 cards: Net P&L, Gross P&L, Win Rate, Total Trades, Profit Factor, Day Win Rate, Avg Win, Avg Loss, Max Drawdown, Zella Score)
+  - Recent trades table section
+  - Loading and error handling
+  - Responsive grid layout using MUI Grid
+- All components use dark mode theme
+- Proper TypeScript typing throughout
 
 ### T2.5: Calendar Service
 **Status**: `[PENDING]`
