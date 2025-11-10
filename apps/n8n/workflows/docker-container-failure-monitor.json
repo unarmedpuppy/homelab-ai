@@ -236,6 +236,38 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.2,
       "position": [1850, 500]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format Telegram message from event data\nconst eventData = $('Format AI Agent Payload').first().json;\n\nconst containerName = eventData.event_data?.container_name || 'Unknown';\nconst status = eventData.event_data?.status || 'Unknown';\nconst exitCode = eventData.event_data?.exit_code || 'N/A';\nconst severity = eventData.severity || 'medium';\nconst logs = eventData.event_data?.logs || 'No logs available';\nconst logsPreview = logs.substring(0, 500) + (logs.length > 500 ? '...' : '');\n\n// Emoji based on severity\nconst emoji = severity === 'high' ? '🚨' : severity === 'medium' ? '⚠️' : 'ℹ️';\n\nconst message = `${emoji} *Docker Container Failure*\\n\\n` +\n  `*Container:* ${containerName}\\n` +\n  `*Status:* ${status}\\n` +\n  `*Exit Code:* ${exitCode}\\n` +\n  `*Severity:* ${severity}\\n\\n` +\n  `*Logs Preview:*\\n\\`\\`\\`\\n${logsPreview}\\n\\`\\`\\``;\n\nreturn [{\n  json: {\n    chatId: process.env.TELEGRAM_CHAT_ID || '',\n    message: message\n  }\n}];"
+      },
+      "id": "format-telegram",
+      "name": "Format Telegram Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1650, 200]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $json['chatId'] }}",
+        "text": "={{ $json['message'] }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "send-telegram",
+      "name": "Send Telegram Notification",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [1850, 200],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-bot",
+          "name": "Telegram Bot"
+        }
+      }
     }
   ],
   "connections": {
@@ -265,7 +297,13 @@
       "main": [[{ "node": "Format AI Agent Payload", "type": "main", "index": 0 }]]
     },
     "Format AI Agent Payload": {
-      "main": [[{ "node": "Call AI Agent Webhook", "type": "main", "index": 0 }]]
+      "main": [[
+        { "node": "Call AI Agent Webhook", "type": "main", "index": 0 },
+        { "node": "Format Telegram Message", "type": "main", "index": 0 }
+      ]]
+    },
+    "Format Telegram Message": {
+      "main": [[{ "node": "Send Telegram Notification", "type": "main", "index": 0 }]]
     },
     "Call AI Agent Webhook": {
       "main": [[{ "node": "Check Response", "type": "main", "index": 0 }]]
