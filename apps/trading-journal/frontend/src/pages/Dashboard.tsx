@@ -2,7 +2,7 @@
  * Dashboard page component.
  */
 
-import { Box, Grid, Typography, Paper, CircularProgress, Alert } from '@mui/material'
+import { Box, Grid, Typography, CircularProgress, Alert } from '@mui/material'
 import { useDashboardStats, useRecentTrades } from '../hooks/useDashboard'
 import KPICard from '../components/dashboard/KPICard'
 import RecentTrades from '../components/dashboard/RecentTrades'
@@ -50,82 +50,84 @@ export default function Dashboard() {
       </Typography>
 
       {/* KPI Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <KPICard
-            title="Net P&L"
-            value={stats?.net_pnl ?? null}
-            trend={getPnlTrend(stats?.net_pnl ?? null)}
-            color={stats?.net_pnl && stats.net_pnl >= 0 ? 'success' : 'error'}
-          />
+      {stats && (
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid item xs={12} sm={6} md={3}>
+            <KPICard
+              title="Net P&L"
+              value={stats.net_pnl}
+              trend={getPnlTrend(stats.net_pnl)}
+              color={stats.net_pnl >= 0 ? 'success' : 'error'}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <KPICard
+              title="Gross P&L"
+              value={stats.gross_pnl}
+              trend={getPnlTrend(stats.gross_pnl)}
+              color={stats.gross_pnl >= 0 ? 'success' : 'error'}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <KPICard
+              title="Win Rate"
+              value={stats.win_rate !== null ? formatPercentage(stats.win_rate) : null}
+              subtitle={`${stats.winners}W / ${stats.losers}L`}
+              color="info"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <KPICard
+              title="Total Trades"
+              value={stats.total_trades}
+              color="primary"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <KPICard
+              title="Profit Factor"
+              value={stats.profit_factor !== null ? stats.profit_factor.toFixed(2) : null}
+              color={stats.profit_factor && stats.profit_factor >= 1 ? 'success' : 'error'}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <KPICard
+              title="Day Win Rate"
+              value={stats.day_win_rate !== null ? formatPercentage(stats.day_win_rate) : null}
+              color="info"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <KPICard
+              title="Avg Win"
+              value={stats.avg_win ?? null}
+              color="success"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <KPICard
+              title="Avg Loss"
+              value={stats.avg_loss ?? null}
+              color="error"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <KPICard
+              title="Max Drawdown"
+              value={stats.max_drawdown !== null ? formatPercentage(stats.max_drawdown) : null}
+              color="error"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <KPICard
+              title="Zella Score"
+              value={stats.zella_score !== null ? stats.zella_score.toFixed(1) : null}
+              subtitle="Composite metric (0-100)"
+              color="primary"
+            />
+          </Grid>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <KPICard
-            title="Gross P&L"
-            value={stats?.gross_pnl ?? null}
-            trend={getPnlTrend(stats?.gross_pnl ?? null)}
-            color={stats?.gross_pnl && stats.gross_pnl >= 0 ? 'success' : 'error'}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <KPICard
-            title="Win Rate"
-            value={stats?.win_rate !== null ? formatPercentage(stats.win_rate) : null}
-            subtitle={`${stats?.winners ?? 0}W / ${stats?.losers ?? 0}L`}
-            color="info"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <KPICard
-            title="Total Trades"
-            value={stats?.total_trades ?? 0}
-            color="primary"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <KPICard
-            title="Profit Factor"
-            value={stats?.profit_factor !== null ? stats.profit_factor.toFixed(2) : null}
-            color={stats?.profit_factor && stats.profit_factor >= 1 ? 'success' : 'error'}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <KPICard
-            title="Day Win Rate"
-            value={stats?.day_win_rate !== null ? formatPercentage(stats.day_win_rate) : null}
-            color="info"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <KPICard
-            title="Avg Win"
-            value={stats?.avg_win ?? null}
-            color="success"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <KPICard
-            title="Avg Loss"
-            value={stats?.avg_loss ?? null}
-            color="error"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <KPICard
-            title="Max Drawdown"
-            value={stats?.max_drawdown !== null ? formatPercentage(stats.max_drawdown) : null}
-            color="error"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <KPICard
-            title="Zella Score"
-            value={stats?.zella_score !== null ? stats.zella_score.toFixed(1) : null}
-            subtitle="Composite metric (0-100)"
-            color="primary"
-          />
-        </Grid>
-      </Grid>
+      )}
 
       {/* Recent Trades */}
       <Box sx={{ mt: 4 }}>

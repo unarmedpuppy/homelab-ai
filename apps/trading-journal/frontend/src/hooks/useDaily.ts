@@ -91,7 +91,7 @@ export function useCreateOrUpdateDailyNotes() {
   return useMutation({
     mutationFn: ({ date, noteData }: { date: string; noteData: DailyNoteCreate }) =>
       createOrUpdateDailyNotes(date, noteData),
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       // Invalidate notes and journal queries
       queryClient.invalidateQueries({ queryKey: dailyKeys.notes(variables.date) })
       queryClient.invalidateQueries({ queryKey: dailyKeys.journal(variables.date) })
@@ -108,7 +108,7 @@ export function useUpdateDailyNotes() {
   return useMutation({
     mutationFn: ({ date, noteData }: { date: string; noteData: DailyNoteUpdate }) =>
       updateDailyNotes(date, noteData),
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       // Invalidate notes and journal queries
       queryClient.invalidateQueries({ queryKey: dailyKeys.notes(variables.date) })
       queryClient.invalidateQueries({ queryKey: dailyKeys.journal(variables.date) })

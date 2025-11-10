@@ -13,6 +13,9 @@ import {
 } from '../types/daily'
 import { TradeResponse } from '../types/trade'
 
+// Export types for use in hooks
+export type { DailyNoteCreate, DailyNoteUpdate }
+
 /**
  * Get complete daily journal data for a specific date.
  */

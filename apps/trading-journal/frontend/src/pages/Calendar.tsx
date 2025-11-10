@@ -20,7 +20,7 @@ import {
   TrendingDown,
   Assessment,
 } from '@mui/icons-material'
-import { format, addMonths, subMonths, startOfMonth } from 'date-fns'
+import { format, addMonths, subMonths } from 'date-fns'
 import { useNavigate } from 'react-router-dom'
 import { useCalendarMonth } from '../hooks/useCalendar'
 import CalendarGrid from '../components/calendar/CalendarGrid'

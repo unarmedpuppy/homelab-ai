@@ -39,7 +39,6 @@ import {
   useCreateOrUpdateDailyNotes,
   useDeleteDailyNotes,
 } from '../hooks/useDaily'
-import { TradeResponse } from '../types/trade'
 
 export default function DailyJournal() {
   const theme = useTheme()
@@ -352,14 +351,14 @@ export default function DailyJournal() {
                     </TableCell>
                     <TableCell align="right">
                       <Typography variant="body2">
-                        {trade.net_roi !== null
+                        {trade.net_roi !== null && trade.net_roi !== undefined
                           ? `${trade.net_roi.toFixed(2)}%`
                           : 'N/A'}
                       </Typography>
                     </TableCell>
                     <TableCell align="right">
                       <Typography variant="body2">
-                        {trade.realized_r_multiple !== null
+                        {trade.realized_r_multiple !== null && trade.realized_r_multiple !== undefined
                           ? trade.realized_r_multiple.toFixed(2)
                           : 'N/A'}
                       </Typography>
