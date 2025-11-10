@@ -78,8 +78,6 @@ async def get_dashboard_stats(
     winning_trades_pnl = []
     losing_trades_pnl = []
     daily_pnl_map = defaultdict(Decimal)  # date -> daily P&L
-    daily_wins = defaultdict(int)  # date -> winning days count
-    daily_losses = defaultdict(int)  # date -> losing days count
     
     for trade in trades:
         trade_pnl = trade.calculate_net_pnl()
@@ -116,10 +114,6 @@ async def get_dashboard_stats(
         if trade.exit_time:
             trade_date = trade.exit_time.date()
             daily_pnl_map[trade_date] += trade_pnl
-            if trade_pnl > 0:
-                daily_wins[trade_date] = 1
-            elif trade_pnl < 0:
-                daily_losses[trade_date] = 1
     
     # Calculate win rate
     win_rate = None

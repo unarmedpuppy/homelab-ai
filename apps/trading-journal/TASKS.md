@@ -293,6 +293,9 @@ This file tracks the status of all implementation tasks. Agents should update th
 **Priority**: High
 **Dependencies**: T2.1
 **Summary**:
+- **Post-Review Fixes (2025-01-27)**:
+  - Removed unused `daily_wins` and `daily_losses` variables
+  - Improved max drawdown edge case handling for negative starting positions
 - Created `backend/app/services/dashboard_service.py` with comprehensive statistics calculations:
   - `get_dashboard_stats()`: Calculates all dashboard KPIs (net/gross P&L, win rates, profit factor, avg win/loss, max drawdown, Zella score)
   - `get_cumulative_pnl()`: Generates cumulative P&L chart data with grouping (day/week/month)
