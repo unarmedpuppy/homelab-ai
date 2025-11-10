@@ -24,7 +24,7 @@
           "string": [
             {
               "name": "service",
-              "value": "trading-bot:8000"
+              "value": "trading-bot:8021"
             },
             {
               "name": "service",
@@ -54,7 +54,7 @@
     },
     {
       "parameters": {
-        "url": "=http://192.168.86.47:{{ $json['service'].split(':')[1] }}/health",
+        "url": "={{ $json['service'].split(':')[0] === 'homepage' ? 'http://192.168.86.47:' + $json['service'].split(':')[1] + '/api/health' : 'http://192.168.86.47:' + $json['service'].split(':')[1] + '/health' }}",
         "options": {
           "timeout": 5000,
           "followRedirect": false,
@@ -72,7 +72,7 @@
         "url": "=http://192.168.86.47:{{ $json['service'].split(':')[1] }}/",
         "options": {
           "timeout": 5000,
-          "followRedirect": false,
+          "followRedirect": true,
           "ignoreSSLIssues": true
         }
       },
