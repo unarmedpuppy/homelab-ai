@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional, List
 
-from app.api.dependencies import RequireAuth, DatabaseSession
+from app.api.dependencies import RequireAuth, DatabaseSession, verify_api_key
 from app.schemas.trade import (
     TradeCreate,
     TradeUpdate,
@@ -23,7 +23,7 @@ from app.services.trade_service import (
     search_trades,
 )
 
-router = APIRouter(dependencies=[Depends(RequireAuth)])
+router = APIRouter(dependencies=[Depends(verify_api_key)])
 
 
 @router.get("", response_model=TradeListResponse)
