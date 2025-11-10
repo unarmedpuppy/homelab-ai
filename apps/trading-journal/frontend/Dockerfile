@@ -13,11 +13,9 @@ RUN npm install
 COPY . .
 
 # Build the application with environment variables
-# Vite environment variables must be available at build time
-ARG VITE_API_URL
+# Note: VITE_API_URL is now detected at runtime, so we don't need it at build time
 ARG VITE_API_KEY
 ARG VITE_APP_NAME
-ENV VITE_API_URL=$VITE_API_URL
 ENV VITE_API_KEY=$VITE_API_KEY
 ENV VITE_APP_NAME=$VITE_APP_NAME
 

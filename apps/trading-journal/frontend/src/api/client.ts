@@ -6,21 +6,14 @@
 
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios'
 
-// Get API URL from environment variable or detect from current host
-// Vite env vars are build-time, so we need a runtime fallback
+// Get API URL by detecting from current host at runtime
+// This ensures it works whether accessed via localhost or IP address
 const getApiUrl = (): string => {
-  // If VITE_API_URL is set at build time, use it
-  if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL
-  }
-  
-  // Otherwise, detect from current window location
-  // If accessing via IP, use same IP for API
-  // If accessing via localhost, use localhost
   const host = window.location.hostname
   const protocol = window.location.protocol
   
-  // Use port 8102 for backend (changed from 8100)
+  // Always use port 8102 for backend (changed from 8100)
+  // This dynamically adapts to whatever hostname is being used
   return `${protocol}//${host}:8102/api`
 }
 
