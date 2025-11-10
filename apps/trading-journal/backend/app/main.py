@@ -14,7 +14,7 @@ from sqlalchemy import text
 import logging
 
 from app.config import settings
-from app.api.routes import health, trades, dashboard
+from app.api.routes import health, trades, dashboard, calendar
 from app.database import engine
 
 # Configure logging
@@ -140,6 +140,7 @@ async def general_exception_handler(request: Request, exc: Exception):
 app.include_router(health.router, prefix="/api", tags=["health"])
 app.include_router(trades.router, prefix="/api/trades", tags=["trades"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["dashboard"])
+app.include_router(calendar.router, prefix="/api/calendar", tags=["calendar"])
 
 # Root endpoint
 @app.get("/")

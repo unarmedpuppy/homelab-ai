@@ -381,10 +381,26 @@ This file tracks the status of all implementation tasks. Agents should update th
 - Handles edge cases (no trades, empty months)
 
 ### T2.6: Calendar API Endpoints
-**Status**: `[PENDING]`
-**Claimed By**: -
+**Status**: `[COMPLETED]`
+**Claimed By**: Auto (AI Agent)
+**Completed**: 2025-01-27
 **Priority**: High
 **Dependencies**: T2.5
+**Summary**:
+- Created `backend/app/api/routes/calendar.py` with all calendar endpoints:
+  - `GET /api/calendar/{year}/{month}`: Get calendar data for a specific month
+    - Path parameters: year (2000-2100), month (1-12)
+    - Returns CalendarMonth with days array and month_summary
+  - `GET /api/calendar/date/{date}`: Get calendar data for a specific day
+    - Path parameter: date in YYYY-MM-DD format
+    - Returns CalendarDay with P&L, trade count, and profitability
+  - `GET /api/calendar/summary`: Get summary for a date range
+    - Query parameters: date_from, date_to (both optional, YYYY-MM-DD format)
+    - Returns CalendarSummary with totals
+- All endpoints require API key authentication
+- Proper path parameter validation (year range, month range)
+- Date parsing with error handling using reusable helper function
+- Integrated calendar router into main FastAPI app
 
 ### T2.7: Calendar Frontend Component
 **Status**: `[PENDING]`
