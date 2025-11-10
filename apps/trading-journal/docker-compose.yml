@@ -36,7 +36,7 @@ services:
       - ALPHA_VANTAGE_API_KEY=${ALPHA_VANTAGE_API_KEY:-}
       - COINGECKO_API_KEY=${COINGECKO_API_KEY:-}
       - POLYGON_API_KEY=${POLYGON_API_KEY:-}
-      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:8101}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:8101,http://192.168.86.47:8101}
       - ENVIRONMENT=${ENVIRONMENT:-production}
       - DEBUG=${DEBUG:-false}
     volumes:
