@@ -227,10 +227,9 @@ def calculate_max_drawdown(
             if drawdown > max_drawdown_pct:
                 max_drawdown_pct = drawdown
         elif peak == 0 and cumulative_pnl < 0:
-            # Handle case where we start negative
-            drawdown = abs(cumulative_pnl)
-            if drawdown > max_drawdown_pct:
-                max_drawdown_pct = drawdown
+            # Can't calculate percentage drawdown when starting negative (peak is 0)
+            # Skip this case - max drawdown percentage doesn't apply when there's no positive peak
+            pass
     
     return max_drawdown_pct if max_drawdown_pct > 0 else None
 
