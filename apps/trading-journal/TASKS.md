@@ -359,10 +359,26 @@ This file tracks the status of all implementation tasks. Agents should update th
 - Proper TypeScript typing throughout
 
 ### T2.5: Calendar Service
-**Status**: `[PENDING]`
-**Claimed By**: -
+**Status**: `[COMPLETED]`
+**Claimed By**: Auto (AI Agent)
+**Completed**: 2025-01-27
 **Priority**: High
 **Dependencies**: T2.1
+**Summary**:
+- Created `backend/app/services/calendar_service.py` with calendar data calculations:
+  - `get_calendar_month()`: Gets calendar data for a specific month (year/month)
+    - Returns all days in the month with P&L, trade count, and profitability
+    - Calculates month summary (total_pnl, total_trades, profitable_days, losing_days)
+    - Includes days with no trades (P&L = 0, trade_count = 0)
+  - `get_calendar_day()`: Gets calendar data for a specific day
+    - Returns single day summary with P&L, trade count, and profitability
+  - `get_calendar_summary()`: Gets summary for a date range
+    - Supports optional date_from and date_to parameters
+    - Calculates totals across all days in the range
+- Color coding logic: is_profitable boolean (true = green, false = red/gray)
+- All functions query closed trades only
+- Proper date range filtering with datetime boundaries
+- Handles edge cases (no trades, empty months)
 
 ### T2.6: Calendar API Endpoints
 **Status**: `[PENDING]`
