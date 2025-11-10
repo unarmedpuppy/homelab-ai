@@ -28,10 +28,6 @@
             },
             {
               "name": "service",
-              "value": "homepage:3000"
-            },
-            {
-              "name": "service",
               "value": "grafana:3010"
             },
             {
@@ -54,7 +50,7 @@
     },
     {
       "parameters": {
-        "url": "={{ $json['service'].split(':')[0] === 'homepage' ? 'http://192.168.86.47:' + $json['service'].split(':')[1] + '/api/health' : 'http://192.168.86.47:' + $json['service'].split(':')[1] + '/health' }}",
+        "url": "=http://192.168.86.47:{{ $json['service'].split(':')[1] }}/health",
         "options": {
           "timeout": 5000,
           "followRedirect": false,
