@@ -308,10 +308,22 @@ This file tracks the status of all implementation tasks. Agents should update th
 - Uses Trade model's calculate_net_pnl() method for consistency
 
 ### T2.3: Dashboard API Endpoints
-**Status**: `[PENDING]`
-**Claimed By**: -
+**Status**: `[COMPLETED]`
+**Claimed By**: Auto (AI Agent)
+**Completed**: 2025-01-27
 **Priority**: High
 **Dependencies**: T2.2
+**Summary**:
+- Created `backend/app/api/routes/dashboard.py` with all dashboard endpoints:
+  - `GET /api/dashboard/stats`: Complete dashboard statistics with date range filtering
+  - `GET /api/dashboard/cumulative-pnl`: Cumulative P&L chart data with grouping (day/week/month)
+  - `GET /api/dashboard/daily-pnl`: Daily P&L chart data
+  - `GET /api/dashboard/drawdown`: Drawdown data with peak/trough tracking
+  - `GET /api/dashboard/recent-trades`: Recent closed trades list with limit parameter
+- All endpoints require API key authentication
+- Date range filtering with YYYY-MM-DD format validation
+- Proper error handling for invalid date formats
+- Integrated dashboard router into main FastAPI app
 
 ### T2.4: Dashboard Frontend Components
 **Status**: `[PENDING]`
