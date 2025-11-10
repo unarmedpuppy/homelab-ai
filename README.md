@@ -781,7 +781,7 @@ docker run --rm --gpus all nvidia/cuda:12.2.0-runtime-ubuntu22.04 nvidia-smi
 
 ## Services & Applications
 
-For detailed information about all applications, their ports, and active status, see [APPS_DOCUMENTATION.md](./APPS_DOCUMENTATION.md).
+For detailed information about all applications, their ports, and active status, see [APPS_DOCUMENTATION.md](./apps/docs/APPS_DOCUMENTATION.md).
 
 ### Key Services
 
