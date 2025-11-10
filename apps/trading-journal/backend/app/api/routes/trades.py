@@ -190,11 +190,11 @@ async def bulk_create_trades_endpoint(
 
 @router.get("/search", response_model=TradeListResponse)
 async def search_trades_endpoint(
+    db: DatabaseSession,
     q: str = Query(..., min_length=1, description="Search query"),
     tags: Optional[str] = Query(None, description="Comma-separated tags"),
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
-    db: DatabaseSession,
 ):
     """
     Search trades by query string and optional tags.
