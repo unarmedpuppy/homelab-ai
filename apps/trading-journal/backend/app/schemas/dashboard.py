@@ -28,25 +28,25 @@ class DashboardStats(BaseModel):
 
 class CumulativePnLPoint(BaseModel):
     """Single point in cumulative P&L chart."""
-    date: date = Field(..., description="Date")
+    date: "date" = Field(..., description="Date")
     cumulative_pnl: Decimal = Field(..., description="Cumulative P&L up to this date")
 
 
 class DailyPnLPoint(BaseModel):
     """Single point in daily P&L chart."""
-    date: date = Field(..., description="Date")
+    date: "date" = Field(..., description="Date")
     pnl: Decimal = Field(..., description="Daily P&L")
     trade_count: int = Field(..., ge=0, description="Number of trades on this date")
 
 
 class DrawdownData(BaseModel):
     """Drawdown data with peak, trough, and recovery points."""
-    date: date = Field(..., description="Date")
+    date: "date" = Field(..., description="Date")
     peak: Decimal = Field(..., description="Peak value")
     trough: Decimal = Field(..., description="Trough value")
     drawdown: Decimal = Field(..., description="Drawdown amount")
     drawdown_pct: Decimal = Field(..., description="Drawdown percentage")
-    recovery_date: Optional[date] = Field(None, description="Recovery date (if recovered)")
+    recovery_date: Optional["date"] = Field(None, description="Recovery date (if recovered)")
 
 
 class RecentTrade(BaseModel):

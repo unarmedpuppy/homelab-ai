@@ -32,7 +32,7 @@ class PnLProgressionPoint(BaseModel):
 
 class DailyJournal(BaseModel):
     """Complete daily journal data."""
-    date: date = Field(..., description="Date")
+    date: "date" = Field(..., description="Date")
     net_pnl: Decimal = Field(..., description="Net P&L for the day")
     trades: List[TradeResponse] = Field(..., description="Trades for the day")
     summary: DailySummary = Field(..., description="Daily summary")
@@ -53,7 +53,7 @@ class DailyNoteUpdate(BaseModel):
 class DailyNoteResponse(BaseModel):
     """Schema for daily notes response."""
     id: int
-    date: date
+    date: "date"
     notes: Optional[str]
     created_at: datetime
     updated_at: datetime

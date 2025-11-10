@@ -12,7 +12,7 @@ from decimal import Decimal
 
 class CalendarDay(BaseModel):
     """Single day in calendar view."""
-    date: date = Field(..., description="Date")
+    date: "date" = Field(..., description="Date")
     pnl: Decimal = Field(..., description="Net P&L for the day")
     trade_count: int = Field(..., ge=0, description="Number of trades on this day")
     is_profitable: bool = Field(..., description="Whether the day was profitable")
