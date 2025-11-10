@@ -47,7 +47,8 @@ export default function CalendarGrid({
   const daysMap = new Map<string, CalendarDay>()
   days.forEach((day) => {
     // Ensure date is in YYYY-MM-DD format for lookup
-    const dateKey = typeof day.date === 'string' ? day.date : day.date.split('T')[0]
+    // Backend returns dates as ISO date strings (YYYY-MM-DD)
+    const dateKey = day.date.includes('T') ? day.date.split('T')[0] : day.date
     daysMap.set(dateKey, day)
   })
 
