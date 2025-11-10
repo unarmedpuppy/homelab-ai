@@ -570,7 +570,10 @@ async def get_recent_trades(
     limit: int = 10,
 ) -> List[RecentTrade]:
     """
-    Get recent closed trades for dashboard display.
+    Get recent trades for dashboard display.
+    
+    Returns the most recent trades (closed first, then open), ordered by entry_time (newest first).
+    For closed trades, orders by exit_time. For open trades, orders by entry_time.
     
     Args:
         db: Database session
@@ -579,18 +582,37 @@ async def get_recent_trades(
     Returns:
         List of recent trades
     """
-    query = (
+    from sqlalchemy import or_, case
+    
+    # Get closed trades ordered by exit_time
+    closed_query = (
         select(Trade)
         .where(Trade.status == "closed")
         .order_by(Trade.exit_time.desc())
         .limit(limit)
     )
     
-    result = await db.execute(query)
-    trades = result.scalars().all()
+    closed_result = await db.execute(closed_query)
+    closed_trades = closed_result.scalars().all()
+    
+    # Get open trades ordered by entry_time if we haven't reached the limit
+    remaining_limit = limit - len(closed_trades)
+    open_trades = []
+    if remaining_limit > 0:
+        open_query = (
+            select(Trade)
+            .where(Trade.status.in_(["open", "partial"]))
+            .order_by(Trade.entry_time.desc())
+            .limit(remaining_limit)
+        )
+        open_result = await db.execute(open_query)
+        open_trades = open_result.scalars().all()
+    
+    # Combine and sort: closed trades first (by exit_time), then open trades (by entry_time)
+    all_trades = list(closed_trades) + list(open_trades)
     
     recent_trades = []
-    for trade in trades:
+    for trade in all_trades:
         # Update calculated fields before accessing
         trade.update_calculated_fields()
         net_pnl = trade.calculate_net_pnl()

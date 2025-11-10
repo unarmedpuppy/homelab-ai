@@ -172,9 +172,10 @@ async def get_recent_trades_list(
     limit: int = Query(10, ge=1, le=100, description="Maximum number of trades to return"),
 ):
     """
-    Get recent closed trades for dashboard display.
+    Get recent trades for dashboard display.
     
-    Returns the most recent closed trades, ordered by exit time (newest first).
+    Returns the most recent trades (closed first, then open), ordered by exit time for closed trades
+    and entry time for open trades (newest first).
     """
     trades = await get_recent_trades(db=db, limit=limit)
     return trades
