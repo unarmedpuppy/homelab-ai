@@ -93,6 +93,7 @@ def calculate_r_multiple(
     quantity: Decimal,
     net_pnl: Decimal,
     trade_type: str,
+    side: str = "LONG",
     stop_loss: Optional[Decimal] = None
 ) -> Decimal:
     """
@@ -103,6 +104,7 @@ def calculate_r_multiple(
         quantity: Trade quantity
         net_pnl: Net P&L
         trade_type: Trade type (STOCK, OPTION, CRYPTO_SPOT, etc.)
+        side: Trade side (LONG or SHORT)
         stop_loss: Optional stop loss price. If not provided, uses entry price as risk.
     
     Returns:
@@ -110,10 +112,15 @@ def calculate_r_multiple(
     """
     # Calculate risk per unit
     if stop_loss is not None:
-        # Use stop loss as risk
-        risk_per_unit = abs(entry_price - stop_loss)
+        # Use stop loss to calculate risk
+        if side == "LONG":
+            risk_per_unit = entry_price - stop_loss
+        else:  # SHORT
+            risk_per_unit = stop_loss - entry_price
+        # Ensure risk is positive
+        risk_per_unit = abs(risk_per_unit)
     else:
-        # Default: use entry price as risk
+        # Default: use entry price as risk (per STARTUP_GUIDE.md)
         risk_per_unit = entry_price
     
     # Calculate total risk

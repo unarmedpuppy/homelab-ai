@@ -270,10 +270,21 @@ This file tracks the status of all implementation tasks. Agents should update th
 ## Phase 2: Core Features
 
 ### T2.1: P&L Calculation Utilities
-**Status**: `[PENDING]`
-**Claimed By**: -
+**Status**: `[COMPLETED]`
+**Claimed By**: Auto (AI Agent)
+**Completed**: 2025-01-27
 **Priority**: High
 **Dependencies**: T1.7
+**Summary**:
+- Reviewed and enhanced calculation utilities in `backend/app/utils/calculations.py`
+- Updated `calculate_r_multiple` to properly handle LONG/SHORT sides with stop loss
+- Created comprehensive unit tests in `backend/tests/test_calculations.py`:
+  - Net P&L tests: LONG/SHORT stocks, options, crypto, partial fills, no commissions
+  - ROI tests: profitable/losing trades, options, edge cases (zero cost, zero P&L)
+  - R-multiple tests: with/without stop loss, LONG/SHORT, options, negative values, edge cases
+- Added pytest and pytest-asyncio to requirements.txt
+- All calculations match formulas from STARTUP_GUIDE.md
+- Partial fills are handled via quantity parameter (caller must pass correct quantity)
 
 ### T2.2: Dashboard Statistics Service
 **Status**: `[PENDING]`
