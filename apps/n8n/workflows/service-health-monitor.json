@@ -50,21 +50,6 @@
     },
     {
       "parameters": {
-        "url": "=http://192.168.86.47:{{ $json['service'].split(':')[1] }}/health",
-        "options": {
-          "timeout": 5000,
-          "followRedirect": false,
-          "ignoreSSLIssues": true
-        }
-      },
-      "id": "check-health",
-      "name": "Check Health Endpoint",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [650, 300]
-    },
-    {
-      "parameters": {
         "url": "=http://192.168.86.47:{{ $json['service'].split(':')[1] }}/",
         "options": {
           "timeout": 5000,
@@ -90,7 +75,7 @@
             {
               "id": "check-failure",
               "leftValue": "={{ $json['statusCode'] }}",
-              "rightValue": "500|502|503|504",
+              "rightValue": "500|502|503|504|404",
               "operator": {
                 "type": "string",
                 "operation": "contains"
@@ -126,7 +111,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Format service health failure payload\nconst serviceData = $('Service List').first().json;\nconst healthCheck = $('Check Health Endpoint').first().json;\nconst logsData = $('Get Service Logs').first().json;\n\nconst serviceName = serviceData.service.split(':')[0];\nconst servicePort = serviceData.service.split(':')[1];\nconst statusCode = healthCheck.statusCode || 'unknown';\n\n// Determine severity\nlet severity = 'medium';\nif (statusCode >= 500) {\n  severity = 'high';\n}\n\nconst payload = {\n  event_type: 'service_health_failure',\n  severity: severity,\n  timestamp: new Date().toISOString(),\n  source: 'n8n-workflow',\n  workflow_name: 'Service Health Monitor',\n  event_data: {\n    service_name: serviceName,\n    service_port: servicePort,\n    health_endpoint: `http://${serviceName}:${servicePort}/health`,\n    status_code: statusCode,\n    response_body: healthCheck.body || 'No response',\n    service_logs: logsData.stdout || logsData.stderr || 'No logs available'\n  },\n  context: {\n    server_ip: process.env.SERVER_IP || '192.168.86.47',\n    server_path: process.env.SERVER_PATH || '~/server'\n  },\n  requested_action: 'analyze_and_recommend'\n};\n\nreturn [{ json: payload }];"
+        "jsCode": "// Format service health failure payload\nconst serviceData = $('Service List').first().json;\nconst rootCheck = $('Check Root Endpoint').first().json;\nconst logsData = $('Get Service Logs').first().json;\n\nconst serviceName = serviceData.service.split(':')[0];\nconst servicePort = serviceData.service.split(':')[1];\nconst statusCode = rootCheck.statusCode || 'unknown';\n\n// Determine severity\nlet severity = 'medium';\nif (statusCode >= 500) {\n  severity = 'high';\n} else if (statusCode === 404) {\n  // 404 might be OK for some services, but if it's unexpected, it's a problem\n  severity = 'medium';\n}\n\nconst payload = {\n  event_type: 'service_health_failure',\n  severity: severity,\n  timestamp: new Date().toISOString(),\n  source: 'n8n-workflow',\n  workflow_name: 'Service Health Monitor',\n  event_data: {\n    service_name: serviceName,\n    service_port: servicePort,\n    endpoint: `http://192.168.86.47:${servicePort}/`,\n    status_code: statusCode,\n    response_body: rootCheck.body ? (typeof rootCheck.body === 'string' ? rootCheck.body.substring(0, 500) : JSON.stringify(rootCheck.body).substring(0, 500)) : 'No response',\n    service_logs: logsData.stdout || logsData.stderr || 'No logs available'\n  },\n  context: {\n    server_ip: process.env.SERVER_IP || '192.168.86.47',\n    server_path: process.env.SERVER_PATH || '~/server'\n  },\n  requested_action: 'analyze_and_recommend'\n};\n\nreturn [{ json: payload }];"
       },
       "id": "format-payload",
       "name": "Format AI Agent Payload",
@@ -174,13 +159,7 @@
       "main": [[{ "node": "Service List", "type": "main", "index": 0 }]]
     },
     "Service List": {
-      "main": [[
-        { "node": "Check Health Endpoint", "type": "main", "index": 0 },
-        { "node": "Check Root Endpoint", "type": "main", "index": 0 }
-      ]]
-    },
-    "Check Health Endpoint": {
-      "main": [[{ "node": "Filter Failures", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Check Root Endpoint", "type": "main", "index": 0 }]]
     },
     "Check Root Endpoint": {
       "main": [[{ "node": "Filter Failures", "type": "main", "index": 0 }]]
