@@ -58,8 +58,8 @@ class RecentTrade(BaseModel):
     ticker: str
     trade_type: str
     side: str
-    entry_time: date
-    exit_time: Optional[date]
-    net_pnl: Optional[Decimal]
+    entry_time: DateType = Field(..., description="Entry date")
+    exit_time: Optional[DateType] = Field(None, description="Exit date")
+    net_pnl: Optional[Decimal] = Field(None, description="Net P&L")
     status: str
 

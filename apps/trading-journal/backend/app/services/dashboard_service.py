@@ -591,6 +591,10 @@ async def get_recent_trades(
     
     recent_trades = []
     for trade in trades:
+        # Update calculated fields before accessing
+        trade.update_calculated_fields()
+        net_pnl = trade.calculate_net_pnl()
+        
         recent_trades.append(RecentTrade(
             id=trade.id,
             ticker=trade.ticker,
@@ -598,7 +602,7 @@ async def get_recent_trades(
             side=trade.side,
             entry_time=trade.entry_time.date() if trade.entry_time else date.today(),
             exit_time=trade.exit_time.date() if trade.exit_time else None,
-            net_pnl=trade.calculate_net_pnl(),
+            net_pnl=net_pnl,
             status=trade.status,
         ))
     
