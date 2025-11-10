@@ -403,10 +403,35 @@ This file tracks the status of all implementation tasks. Agents should update th
 - Integrated calendar router into main FastAPI app
 
 ### T2.7: Calendar Frontend Component
-**Status**: `[PENDING]`
-**Claimed By**: -
+**Status**: `[COMPLETED]`
+**Claimed By**: Auto (AI Agent)
+**Completed**: 2025-01-27
 **Priority**: High
 **Dependencies**: T2.6
+**Summary**:
+- Created `frontend/src/types/calendar.ts` with TypeScript types matching backend schemas
+- Created `frontend/src/api/calendar.ts` with API functions for all calendar endpoints
+- Created `frontend/src/hooks/useCalendar.ts` with React Query hooks for calendar data
+- Created `frontend/src/components/calendar/DayCell.tsx`:
+  - Individual day cell component with color coding
+  - Green background for profitable days, red for losing days, gray for no trades
+  - Purple border for today
+  - Tooltip showing date, P&L, and trade count
+  - Click handler for navigation to daily journal
+- Created `frontend/src/components/calendar/CalendarGrid.tsx`:
+  - Monthly calendar grid with weekday headers
+  - Displays all days in month with proper spacing
+  - Includes leading/trailing days from adjacent months (grayed out)
+  - Handles loading and error states
+- Updated `frontend/src/pages/Calendar.tsx`:
+  - Main calendar page with month navigation (previous/next/today buttons)
+  - Month summary cards (Total P&L, Total Trades, Profitable Days, Losing Days)
+  - Calendar grid display
+  - Legend explaining color coding
+  - Click on day navigates to daily journal view
+- All components use dark mode theme
+- Proper TypeScript typing throughout
+- Responsive grid layout
 
 ### T2.8: Daily Journal Service
 **Status**: `[PENDING]`
