@@ -57,6 +57,32 @@ export default function Calendar() {
     return `$${value.toFixed(2)}`
   }
 
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <Typography>Loading calendar...</Typography>
+      </Box>
+    )
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography variant="h6" color="error">
+          Error loading calendar: {error.message}
+        </Typography>
+      </Box>
+    )
+  }
+
+  if (!calendarData) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography variant="h6">No calendar data available</Typography>
+      </Box>
+    )
+  }
+
   return (
     <Box sx={{ p: 3 }}>
       {/* Header with month navigation */}
