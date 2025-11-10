@@ -5,9 +5,12 @@ Daily journal schemas for daily view and notes.
 from __future__ import annotations
 
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional, List
-from datetime import date, datetime
+from typing import Optional, List, TYPE_CHECKING
+from datetime import date as DateType, datetime
 from decimal import Decimal
+
+if TYPE_CHECKING:
+    from datetime import date
 
 from app.schemas.trade import TradeResponse
 
@@ -32,7 +35,7 @@ class PnLProgressionPoint(BaseModel):
 
 class DailyJournal(BaseModel):
     """Complete daily journal data."""
-    date: "date" = Field(..., description="Date")
+    date: DateType = Field(..., description="Date")
     net_pnl: Decimal = Field(..., description="Net P&L for the day")
     trades: List[TradeResponse] = Field(..., description="Trades for the day")
     summary: DailySummary = Field(..., description="Daily summary")
@@ -53,7 +56,7 @@ class DailyNoteUpdate(BaseModel):
 class DailyNoteResponse(BaseModel):
     """Schema for daily notes response."""
     id: int
-    date: "date"
+    date: DateType
     notes: Optional[str]
     created_at: datetime
     updated_at: datetime

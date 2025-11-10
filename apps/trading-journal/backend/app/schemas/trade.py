@@ -5,10 +5,13 @@ Trade schemas for API requests and responses.
 from __future__ import annotations
 
 from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
-from typing import Optional, List
-from datetime import datetime, date
+from typing import Optional, List, TYPE_CHECKING
+from datetime import datetime, date as DateType
 from decimal import Decimal
 from enum import Enum
+
+if TYPE_CHECKING:
+    from datetime import date
 
 
 class TradeType(str, Enum):
@@ -60,7 +63,7 @@ class TradeBase(BaseModel):
     
     # Options specific fields
     strike_price: Optional[Decimal] = Field(None, gt=0, description="Strike price (options only)")
-    expiration_date: Optional["date"] = Field(None, description="Expiration date (options only)")
+    expiration_date: Optional[DateType] = Field(None, description="Expiration date (options only)")
     option_type: Optional[OptionType] = Field(None, description="Option type (CALL or PUT)")
     delta: Optional[Decimal] = Field(None, description="Delta (options only)")
     gamma: Optional[Decimal] = Field(None, description="Gamma (options only)")
@@ -153,7 +156,7 @@ class TradeUpdate(BaseModel):
     
     # Options specific
     strike_price: Optional[Decimal] = Field(None, gt=0)
-    expiration_date: Optional["date"] = None
+    expiration_date: Optional[DateType] = None
     option_type: Optional[OptionType] = None
     delta: Optional[Decimal] = None
     gamma: Optional[Decimal] = None

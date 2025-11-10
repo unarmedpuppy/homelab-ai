@@ -5,14 +5,17 @@ Calendar schemas for monthly view and navigation.
 from __future__ import annotations
 
 from pydantic import BaseModel, Field
-from typing import List
-from datetime import date
+from typing import List, TYPE_CHECKING
+from datetime import date as DateType
 from decimal import Decimal
+
+if TYPE_CHECKING:
+    from datetime import date
 
 
 class CalendarDay(BaseModel):
     """Single day in calendar view."""
-    date: "date" = Field(..., description="Date")
+    date: DateType = Field(..., description="Date")
     pnl: Decimal = Field(..., description="Net P&L for the day")
     trade_count: int = Field(..., ge=0, description="Number of trades on this day")
     is_profitable: bool = Field(..., description="Whether the day was profitable")
