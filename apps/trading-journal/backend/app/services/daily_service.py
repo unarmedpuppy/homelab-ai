@@ -372,15 +372,12 @@ async def delete_daily_note(
     Returns:
         True if note was deleted, False if note didn't exist
     """
-    query = select(DailyNote).where(DailyNote.date == note_date)
-    result = await db.execute(query)
-    daily_note = result.scalar_one_or_none()
+    from sqlalchemy import delete
     
-    if not daily_note:
-        return False
-    
-    await db.delete(daily_note)
+    # Delete using delete statement (SQLAlchemy 2.0 async)
+    stmt = delete(DailyNote).where(DailyNote.date == note_date)
+    result = await db.execute(stmt)
     await db.commit()
     
-    return True
+    return result.rowcount > 0
 
