@@ -43,9 +43,12 @@ export default function CalendarGrid({
   }
 
   // Create a map of date strings to CalendarDay for quick lookup
+  // Backend returns dates as ISO strings (YYYY-MM-DD)
   const daysMap = new Map<string, CalendarDay>()
   days.forEach((day) => {
-    daysMap.set(day.date, day)
+    // Ensure date is in YYYY-MM-DD format for lookup
+    const dateKey = typeof day.date === 'string' ? day.date : day.date.split('T')[0]
+    daysMap.set(dateKey, day)
   })
 
   // Get first and last day of the month

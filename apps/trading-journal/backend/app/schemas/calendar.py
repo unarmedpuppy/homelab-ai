@@ -4,7 +4,7 @@ Calendar schemas for monthly view and navigation.
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, TYPE_CHECKING
 from datetime import date as DateType
 from decimal import Decimal
@@ -19,6 +19,8 @@ class CalendarDay(BaseModel):
     pnl: Decimal = Field(..., description="Net P&L for the day")
     trade_count: int = Field(..., ge=0, description="Number of trades on this day")
     is_profitable: bool = Field(..., description="Whether the day was profitable")
+    
+    model_config = ConfigDict(json_encoders={DateType: lambda v: v.isoformat() if v else None})
 
 
 class CalendarMonth(BaseModel):
