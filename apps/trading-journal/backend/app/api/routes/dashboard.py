@@ -28,6 +28,31 @@ from app.services.dashboard_service import (
 router = APIRouter(dependencies=[Depends(verify_api_key)])
 
 
+def parse_date_param(date_str: Optional[str], param_name: str) -> Optional[date]:
+    """
+    Parse date string parameter with error handling.
+    
+    Args:
+        date_str: Date string in YYYY-MM-DD format
+        param_name: Name of the parameter (for error messages)
+    
+    Returns:
+        Parsed date object, or None if date_str is None/empty
+    
+    Raises:
+        HTTPException: If date format is invalid
+    """
+    if not date_str:
+        return None
+    try:
+        return datetime.strptime(date_str, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid {param_name} format. Use YYYY-MM-DD"
+        )
+
+
 @router.get("/stats", response_model=DashboardStats)
 async def get_stats(
     db: DatabaseSession,
@@ -47,26 +72,8 @@ async def get_stats(
     - Zella score
     """
     # Parse date strings
-    date_from_parsed = None
-    date_to_parsed = None
-    
-    if date_from:
-        try:
-            date_from_parsed = datetime.strptime(date_from, "%Y-%m-%d").date()
-        except ValueError:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid date_from format. Use YYYY-MM-DD"
-            )
-    
-    if date_to:
-        try:
-            date_to_parsed = datetime.strptime(date_to, "%Y-%m-%d").date()
-        except ValueError:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid date_to format. Use YYYY-MM-DD"
-            )
+    date_from_parsed = parse_date_param(date_from, "date_from")
+    date_to_parsed = parse_date_param(date_to, "date_to")
     
     stats = await get_dashboard_stats(
         db=db,
@@ -98,26 +105,8 @@ async def get_cumulative_pnl_chart(
         )
     
     # Parse date strings
-    date_from_parsed = None
-    date_to_parsed = None
-    
-    if date_from:
-        try:
-            date_from_parsed = datetime.strptime(date_from, "%Y-%m-%d").date()
-        except ValueError:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid date_from format. Use YYYY-MM-DD"
-            )
-    
-    if date_to:
-        try:
-            date_to_parsed = datetime.strptime(date_to, "%Y-%m-%d").date()
-        except ValueError:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid date_to format. Use YYYY-MM-DD"
-            )
+    date_from_parsed = parse_date_param(date_from, "date_from")
+    date_to_parsed = parse_date_param(date_to, "date_to")
     
     points = await get_cumulative_pnl(
         db=db,
@@ -141,26 +130,8 @@ async def get_daily_pnl_chart(
     Returns array of {date, pnl, trade_count} points.
     """
     # Parse date strings
-    date_from_parsed = None
-    date_to_parsed = None
-    
-    if date_from:
-        try:
-            date_from_parsed = datetime.strptime(date_from, "%Y-%m-%d").date()
-        except ValueError:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid date_from format. Use YYYY-MM-DD"
-            )
-    
-    if date_to:
-        try:
-            date_to_parsed = datetime.strptime(date_to, "%Y-%m-%d").date()
-        except ValueError:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid date_to format. Use YYYY-MM-DD"
-            )
+    date_from_parsed = parse_date_param(date_from, "date_from")
+    date_to_parsed = parse_date_param(date_to, "date_to")
     
     points = await get_daily_pnl(
         db=db,
@@ -183,26 +154,8 @@ async def get_drawdown_chart(
     Returns array of drawdown data points with peak, trough, and recovery information.
     """
     # Parse date strings
-    date_from_parsed = None
-    date_to_parsed = None
-    
-    if date_from:
-        try:
-            date_from_parsed = datetime.strptime(date_from, "%Y-%m-%d").date()
-        except ValueError:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid date_from format. Use YYYY-MM-DD"
-            )
-    
-    if date_to:
-        try:
-            date_to_parsed = datetime.strptime(date_to, "%Y-%m-%d").date()
-        except ValueError:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid date_to format. Use YYYY-MM-DD"
-            )
+    date_from_parsed = parse_date_param(date_from, "date_from")
+    date_to_parsed = parse_date_param(date_to, "date_to")
     
     drawdown_data = await get_drawdown_data(
         db=db,
