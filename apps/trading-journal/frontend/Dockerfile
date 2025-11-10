@@ -12,7 +12,15 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Build the application
+# Build the application with environment variables
+# Vite environment variables must be available at build time
+ARG VITE_API_URL
+ARG VITE_API_KEY
+ARG VITE_APP_NAME
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_API_KEY=$VITE_API_KEY
+ENV VITE_APP_NAME=$VITE_APP_NAME
+
 RUN npm run build
 
 # Production stage
