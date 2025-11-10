@@ -287,10 +287,25 @@ This file tracks the status of all implementation tasks. Agents should update th
 - Partial fills are handled via quantity parameter (caller must pass correct quantity)
 
 ### T2.2: Dashboard Statistics Service
-**Status**: `[PENDING]`
-**Claimed By**: -
+**Status**: `[COMPLETED]`
+**Claimed By**: Auto (AI Agent)
+**Completed**: 2025-01-27
 **Priority**: High
 **Dependencies**: T2.1
+**Summary**:
+- Created `backend/app/services/dashboard_service.py` with comprehensive statistics calculations:
+  - `get_dashboard_stats()`: Calculates all dashboard KPIs (net/gross P&L, win rates, profit factor, avg win/loss, max drawdown, Zella score)
+  - `get_cumulative_pnl()`: Generates cumulative P&L chart data with grouping (day/week/month)
+  - `get_daily_pnl()`: Generates daily P&L chart data
+  - `get_drawdown_data()`: Calculates drawdown data with peak/trough tracking
+  - `get_recent_trades()`: Retrieves recent closed trades for dashboard display
+- All calculations match formulas from STARTUP_GUIDE.md:
+  - Profit factor: Total gross profit / Total gross loss
+  - Max drawdown: Peak-to-trough decline algorithm
+  - Zella score: Weighted composite metric (win rate 30%, consistency 20%, profit factor 25%, avg win/loss 15%, max drawdown inverse 10%)
+- Supports date range filtering for all functions
+- Handles edge cases (no trades, zero values, division by zero)
+- Uses Trade model's calculate_net_pnl() method for consistency
 
 ### T2.3: Dashboard API Endpoints
 **Status**: `[PENDING]`
