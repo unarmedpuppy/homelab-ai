@@ -1,0 +1,260 @@
+{
+  "name": "Telegram AI Bot - Server Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ]
+      },
+      "id": "telegram-trigger",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300],
+      "webhookId": "telegram-ai-bot",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-bot",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract message and user info\nconst message = $input.first().json.message;\nconst chatId = message.chat.id;\nconst userId = message.from.id;\nconst username = message.from.username || message.from.first_name || 'Unknown';\nconst text = message.text || '';\n\n// Check if user is authorized (you can add your Telegram user ID here)\nconst authorizedUsers = [\n  // Add your Telegram user ID here\n  // Example: 123456789\n];\n\nconst isAuthorized = authorizedUsers.length === 0 || authorizedUsers.includes(userId);\n\nreturn [{\n  json: {\n    chatId: chatId,\n    userId: userId,\n    username: username,\n    message: text,\n    isAuthorized: isAuthorized,\n    originalMessage: message\n  }\n}];"
+      },
+      "id": "parse-message",
+      "name": "Parse Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-authorized",
+              "leftValue": "={{ $json['isAuthorized'] }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "check-authorization",
+      "name": "Check Authorization",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $json['chatId'] }}",
+        "text": "⛔ Unauthorized. You don't have permission to use this bot.",
+        "additionalFields": {}
+      },
+      "id": "send-unauthorized",
+      "name": "Send Unauthorized Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [850, 400],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-bot",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4",
+        "options": {
+          "temperature": 0.3,
+          "maxTokens": 500
+        },
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a helpful system administrator assistant for a Linux home server. You can help with:\n- Checking Docker container status\n- Viewing logs\n- Checking system resources\n- Restarting services\n- Troubleshooting issues\n\nIMPORTANT SAFETY RULES:\n1. NEVER execute destructive commands (rm -rf, format, etc.)\n2. Only execute commands that are safe and necessary\n3. Always explain what you're doing\n4. If unsure, ask for clarification\n\nWhen the user asks to execute a command, respond with a JSON object:\n{\"action\": \"execute\", \"command\": \"the command\", \"explanation\": \"why this command\"}\n\nFor informational queries, just provide the answer.\n\nServer details:\n- IP: 192.168.86.47\n- Path: ~/server\n- User: unarmedpuppy"
+            },
+            {
+              "role": "user",
+              "content": "={{ $json['message'] }}"
+            }
+          ]
+        }
+      },
+      "id": "openai-chat",
+      "name": "OpenAI Chat",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [850, 200],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai-api",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse OpenAI response and check if it wants to execute a command\nconst openaiResponse = $('OpenAI Chat').first().json;\nconst messageData = $('Parse Message').first().json;\n\nlet responseText = '';\nlet commandToExecute = null;\nlet explanation = '';\n\ntry {\n  // Get the message content from OpenAI response\n  const content = openaiResponse.choices?.[0]?.message?.content || '';\n  \n  // Try to parse JSON if OpenAI returned structured response\n  try {\n    const parsed = JSON.parse(content);\n    if (parsed.action === 'execute' && parsed.command) {\n      commandToExecute = parsed.command;\n      explanation = parsed.explanation || 'Executing command';\n      responseText = `🤖 ${explanation}\\n\\nExecuting: \\`${commandToExecute}\\``;\n    } else {\n      responseText = content;\n    }\n  } catch (e) {\n    // Not JSON, just use the text response\n    responseText = content;\n  }\n  \n  // Check for dangerous commands\n  const dangerousPatterns = [\n    /rm\\s+-rf/i,\n    /format/i,\n    /dd\\s+if=/i,\n    /mkfs/i,\n    /fdisk/i\n  ];\n  \n  if (commandToExecute) {\n    for (const pattern of dangerousPatterns) {\n      if (pattern.test(commandToExecute)) {\n        commandToExecute = null;\n        responseText = '❌ Blocked: This command is too dangerous to execute.';\n        break;\n      }\n    }\n  }\n  \n} catch (error) {\n  responseText = 'Error processing request: ' + error.message;\n}\n\nreturn [{\n  json: {\n    chatId: messageData.chatId,\n    responseText: responseText,\n    commandToExecute: commandToExecute,\n    explanation: explanation,\n    originalMessage: messageData.message\n  }\n}];"
+      },
+      "id": "parse-openai-response",
+      "name": "Parse OpenAI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1050, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-command",
+              "leftValue": "={{ $json['commandToExecute'] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "check-command",
+      "name": "Check If Command",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1250, 200]
+    },
+    {
+      "parameters": {
+        "command": "={{ $json['commandToExecute'] }}",
+        "additionalFields": {}
+      },
+      "id": "execute-command",
+      "name": "Execute Command",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1450, 100],
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format command execution result\nconst commandData = $('Parse OpenAI Response').first().json;\nconst execResult = $('Execute Command').first().json;\n\nconst stdout = execResult.stdout || '';\nconst stderr = execResult.stderr || '';\nconst exitCode = execResult.exitCode || 0;\n\nlet resultText = '';\nif (stdout) {\n  resultText += `✅ Output:\\n\\`\\`\\`\\n${stdout.substring(0, 3000)}\\n\\`\\`\\``;\n}\nif (stderr) {\n  resultText += `\\n\\n⚠️ Errors:\\n\\`\\`\\`\\n${stderr.substring(0, 1000)}\\n\\`\\`\\``;\n}\nif (exitCode !== 0) {\n  resultText = `❌ Command failed (exit code: ${exitCode})\\n\\n${resultText}`;\n}\n\nif (!resultText) {\n  resultText = '✅ Command executed successfully (no output)';\n}\n\nreturn [{\n  json: {\n    chatId: commandData.chatId,\n    responseText: resultText,\n    originalCommand: commandData.commandToExecute\n  }\n}];"
+      },
+      "id": "format-command-result",
+      "name": "Format Command Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1650, 100]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $json['chatId'] }}",
+        "text": "={{ $json['responseText'] }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "send-response",
+      "name": "Send Response",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [1850, 200],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-bot",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $json['chatId'] }}",
+        "text": "={{ $json['responseText'] }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "send-text-response",
+      "name": "Send Text Response",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [1250, 300],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-bot",
+          "name": "Telegram Bot"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [[{ "node": "Parse Message", "type": "main", "index": 0 }]]
+    },
+    "Parse Message": {
+      "main": [[{ "node": "Check Authorization", "type": "main", "index": 0 }]]
+    },
+    "Check Authorization": {
+      "main": [
+        [{ "node": "OpenAI Chat", "type": "main", "index": 0 }],
+        [{ "node": "Send Unauthorized Message", "type": "main", "index": 0 }]
+      ]
+    },
+    "OpenAI Chat": {
+      "main": [[{ "node": "Parse OpenAI Response", "type": "main", "index": 0 }]]
+    },
+    "Parse OpenAI Response": {
+      "main": [[{ "node": "Check If Command", "type": "main", "index": 0 }]]
+    },
+    "Check If Command": {
+      "main": [
+        [{ "node": "Execute Command", "type": "main", "index": 0 }],
+        [{ "node": "Send Text Response", "type": "main", "index": 0 }]
+      ]
+    },
+    "Execute Command": {
+      "main": [[{ "node": "Format Command Result", "type": "main", "index": 0 }]]
+    },
+    "Format Command Result": {
+      "main": [[{ "node": "Send Response", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-01-XXT00:00:00.000Z",
+  "versionId": "1"
+}
+
