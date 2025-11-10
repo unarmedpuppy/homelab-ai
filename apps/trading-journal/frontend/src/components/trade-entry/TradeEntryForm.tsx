@@ -20,7 +20,6 @@ import {
   Typography,
   Paper,
   Divider,
-  Chip,
   Alert,
   CircularProgress,
   FormControlLabel,
@@ -39,7 +38,7 @@ export default function TradeEntryForm() {
   const [ticker, setTicker] = useState('')
   const [tradeType, setTradeType] = useState<TradeType>('STOCK')
   const [side, setSide] = useState<TradeSide>('LONG')
-  const [status, setStatus] = useState<TradeStatus>('open')
+  const [status] = useState<TradeStatus>('open')
 
   // Entry details
   const [entryPrice, setEntryPrice] = useState('')
@@ -294,10 +293,11 @@ export default function TradeEntryForm() {
             if (!error) return 'Error creating trade. Please check your inputs and try again.'
             
             // Check if it's an Axios error with response data
-            if ('response' in error && error.response) {
-              const data = error.response.data
-              if (data && typeof data === 'object' && 'detail' in data) {
-                const detail = data.detail
+            if ('response' in error && error.response && typeof error.response === 'object') {
+              const response = error.response as { data?: unknown }
+              const data = response.data
+              if (data && typeof data === 'object' && data !== null && 'detail' in data) {
+                const detail = (data as { detail: unknown }).detail
                 if (typeof detail === 'string') {
                   return detail
                 }

@@ -15,7 +15,7 @@ import {
   TradeFilters,
   TradeSearchParams,
 } from '../api/trades'
-import { TradeCreate, TradeUpdate, TradeResponse } from '../types/trade'
+import { TradeCreate, TradeUpdate } from '../types/trade'
 
 // Query keys
 export const tradeKeys = {
