@@ -1,0 +1,122 @@
+{
+  "name": "Telegram AI Bot - Server Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["message"]
+      },
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300],
+      "webhookId": "telegram-ai-bot"
+    },
+    {
+      "parameters": {
+        "jsCode": "const message = $input.first().json.message;\nconst chatId = message.chat.id;\nconst userId = message.from.id;\nconst text = message.text || '';\n\nconst authorizedUsers = [];\nconst isAuthorized = authorizedUsers.length === 0 || authorizedUsers.includes(userId);\n\nreturn [{\n  json: {\n    chatId: chatId,\n    userId: userId,\n    message: text,\n    isAuthorized: isAuthorized\n  }\n}];"
+      },
+      "name": "Parse Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-authorized",
+              "leftValue": "={{ $json['isAuthorized'] }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Check Authorization",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $json['chatId'] }}",
+        "text": "⛔ Unauthorized. You don't have permission to use this bot.",
+        "additionalFields": {}
+      },
+      "name": "Send Unauthorized",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [850, 400]
+    },
+    {
+      "parameters": {
+        "command": "={{ $json['message'] }}",
+        "additionalFields": {}
+      },
+      "name": "Execute Command",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [850, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "const messageData = $('Parse Message').first().json;\nconst execResult = $('Execute Command').first().json;\n\nconst stdout = execResult.stdout || '';\nconst stderr = execResult.stderr || '';\nconst exitCode = execResult.exitCode || 0;\n\nlet resultText = '';\nif (stdout) {\n  resultText += `✅ Output:\\n\\`\\`\\`\\n${stdout.substring(0, 3000)}\\n\\`\\`\\``;\n}\nif (stderr) {\n  resultText += `\\n\\n⚠️ Errors:\\n\\`\\`\\`\\n${stderr.substring(0, 1000)}\\n\\`\\`\\``;\n}\nif (exitCode !== 0) {\n  resultText = `❌ Command failed (exit code: ${exitCode})\\n\\n${resultText}`;\n}\n\nif (!resultText) {\n  resultText = '✅ Command executed successfully (no output)';\n}\n\nreturn [{\n  json: {\n    chatId: messageData.chatId,\n    responseText: resultText\n  }\n}];"
+      },
+      "name": "Format Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1050, 200]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $json['chatId'] }}",
+        "text": "={{ $json['responseText'] }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "name": "Send Response",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [1250, 200]
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [[{"node": "Parse Message", "type": "main", "index": 0}]]
+    },
+    "Parse Message": {
+      "main": [[{"node": "Check Authorization", "type": "main", "index": 0}]]
+    },
+    "Check Authorization": {
+      "main": [
+        [{"node": "Execute Command", "type": "main", "index": 0}],
+        [{"node": "Send Unauthorized", "type": "main", "index": 0}]
+      ]
+    },
+    "Execute Command": {
+      "main": [[{"node": "Format Result", "type": "main", "index": 0}]]
+    },
+    "Format Result": {
+      "main": [[{"node": "Send Response", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
+
