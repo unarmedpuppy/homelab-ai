@@ -458,10 +458,26 @@ This file tracks the status of all implementation tasks. Agents should update th
 - Handles edge cases (no trades, no notes)
 
 ### T2.9: Daily Journal API Endpoints
-**Status**: `[PENDING]`
-**Claimed By**: -
+**Status**: `[COMPLETED]`
+**Claimed By**: Auto (AI Agent)
+**Completed**: 2025-01-27
 **Priority**: High
 **Dependencies**: T2.8
+**Summary**:
+- Created `backend/app/api/routes/daily.py` with all daily journal endpoints:
+  - `GET /api/daily/{date}`: Get complete daily journal data
+    - Returns trades, summary, notes, and P&L progression
+  - `GET /api/daily/{date}/trades`: Get trades for the day
+  - `GET /api/daily/{date}/summary`: Get daily summary statistics
+  - `GET /api/daily/{date}/pnl-progression`: Get P&L progression throughout the day
+  - `GET /api/daily/{date}/notes`: Get daily notes (404 if not found)
+  - `POST /api/daily/{date}/notes`: Create or update daily notes (upsert)
+  - `PUT /api/daily/{date}/notes`: Update daily notes
+  - `DELETE /api/daily/{date}/notes`: Delete daily notes (404 if not found)
+- All endpoints require API key authentication
+- Date parsing with error handling using reusable helper function
+- Proper HTTP status codes (404 for not found, 204 for delete)
+- Integrated daily router into main FastAPI app
 
 ### T2.10: Daily Journal Frontend Components
 **Status**: `[PENDING]`
