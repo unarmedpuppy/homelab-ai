@@ -2,6 +2,8 @@
 Dashboard schemas for statistics and metrics.
 """
 
+from __future__ import annotations
+
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import date
