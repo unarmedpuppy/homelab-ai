@@ -2,6 +2,8 @@
 Daily journal schemas for daily view and notes.
 """
 
+from __future__ import annotations
+
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
 from datetime import date, datetime
