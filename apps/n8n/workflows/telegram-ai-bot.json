@@ -68,7 +68,9 @@
     },
     {
       "parameters": {
-        "model": "gpt-4",
+        "resource": "chat",
+        "operation": "createMessage",
+        "modelId": "gpt-4",
         "options": {
           "temperature": 0.3,
           "maxTokens": 500
