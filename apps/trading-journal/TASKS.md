@@ -505,10 +505,31 @@ This file tracks the status of all implementation tasks. Agents should update th
 ## Phase 3: Charts & Visualization
 
 ### T3.1: Price Data Service
-**Status**: `[PENDING]`
-**Claimed By**: -
+**Status**: `[COMPLETED]`
+**Claimed By**: Auto (AI Agent)
+**Completed**: 2025-01-27
 **Priority**: High
 **Dependencies**: T1.5
+**Summary**:
+- Created `backend/app/services/price_service.py` with price data fetching and caching:
+  - `get_price_data()`: Main function to get price data with caching
+  - Supports multiple providers: Alpha Vantage (primary), yfinance (fallback), CoinGecko (crypto)
+  - Caching logic with configurable cache duration (24h for daily, 1h for intraday)
+  - Support for all timeframes: 1m, 5m, 15m, 1h, 1d
+  - Configurable date range (default 1 year)
+  - Gap detection and missing range fetching
+  - Database caching in `price_cache` table
+- Helper functions:
+  - `_get_cached_data()`: Retrieves cached data from database
+  - `_find_missing_ranges()`: Identifies gaps in cached data
+  - `_fetch_price_data()`: Fetches from external APIs with provider fallback
+  - `_fetch_alpha_vantage()`: Alpha Vantage API integration
+  - `_fetch_yfinance()`: yfinance library integration (fallback)
+  - `_fetch_coingecko()`: CoinGecko API integration (crypto)
+  - `_cache_price_data()`: Stores fetched data in cache
+  - `_merge_price_data()`: Merges cached and fetched data
+- Added dependencies: `httpx>=0.24.0`, `yfinance>=0.2.0` to `requirements.txt`
+- Handles edge cases: missing API keys, API failures, empty responses
 
 ### T3.2: Charts API Endpoints
 **Status**: `[PENDING]`
