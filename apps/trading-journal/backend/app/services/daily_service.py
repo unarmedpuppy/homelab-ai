@@ -121,6 +121,8 @@ async def get_daily_trades(
     """
     Get all trades for a specific date.
     
+    Includes both closed trades (exited on this day) and open trades (entered on this day).
+    
     Args:
         db: Database session
         journal_date: Date to get trades for
@@ -131,7 +133,8 @@ async def get_daily_trades(
     start_datetime = datetime.combine(journal_date, datetime.min.time())
     end_datetime = datetime.combine(journal_date, datetime.max.time())
     
-    query = (
+    # Get closed trades (exited on this day)
+    closed_query = (
         select(Trade)
         .where(
             and_(
@@ -140,11 +143,33 @@ async def get_daily_trades(
                 Trade.exit_time <= end_datetime,
             )
         )
-        .order_by(Trade.exit_time)
     )
     
-    result = await db.execute(query)
-    return list(result.scalars().all())
+    # Get open trades (entered on this day, still open)
+    open_query = (
+        select(Trade)
+        .where(
+            and_(
+                Trade.status.in_(["open", "partial"]),
+                Trade.entry_time >= start_datetime,
+                Trade.entry_time <= end_datetime,
+            )
+        )
+    )
+    
+    closed_result = await db.execute(closed_query)
+    open_result = await db.execute(open_query)
+    closed_trades = closed_result.scalars().all()
+    open_trades = open_result.scalars().all()
+    
+    # Combine and sort
+    all_trades = list(closed_trades) + list(open_trades)
+    trades = sorted(
+        all_trades,
+        key=lambda t: t.exit_time if t.status == "closed" and t.exit_time else t.entry_time if t.entry_time else datetime.min
+    )
+    
+    return trades
 
 
 async def get_daily_summary(
