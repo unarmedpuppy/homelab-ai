@@ -376,13 +376,15 @@ export default function DailyJournal() {
                     tickFormatter={(value) => `$${value.toFixed(0)}`}
                   />
                   <RechartsTooltip
-                    contentStyle={{
-                      backgroundColor: '#1e1e1e',
-                      border: '1px solid #2a2a2a',
-                      borderRadius: '4px',
-                      color: '#d1d5db',
-                    }}
-                    formatter={(value: number) => [formatCurrency(value), 'Cumulative P&L']}
+                    {...({
+                      contentStyle: {
+                        backgroundColor: '#1e1e1e',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '4px',
+                        color: '#d1d5db',
+                      },
+                      formatter: (value: number) => [formatCurrency(value), 'Cumulative P&L'],
+                    } as any)}
                   />
                   <Line
                     type="monotone"
