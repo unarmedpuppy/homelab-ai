@@ -38,10 +38,12 @@ async def get_daily_journal(
         DailyJournal with trades, summary, notes, and P&L progression
     """
     # Get all trades for the day
+    # Include both closed trades (exited on this day) and open trades (entered on this day)
     start_datetime = datetime.combine(journal_date, datetime.min.time())
     end_datetime = datetime.combine(journal_date, datetime.max.time())
     
-    query = (
+    # Get closed trades (exited on this day)
+    closed_query = (
         select(Trade)
         .where(
             and_(
@@ -50,11 +52,34 @@ async def get_daily_journal(
                 Trade.exit_time <= end_datetime,
             )
         )
-        .order_by(Trade.exit_time)
     )
     
-    result = await db.execute(query)
-    trades = result.scalars().all()
+    # Get open trades (entered on this day, still open)
+    open_query = (
+        select(Trade)
+        .where(
+            and_(
+                Trade.status.in_(["open", "partial"]),
+                Trade.entry_time >= start_datetime,
+                Trade.entry_time <= end_datetime,
+            )
+        )
+    )
+    
+    closed_result = await db.execute(closed_query)
+    open_result = await db.execute(open_query)
+    closed_trades = closed_result.scalars().all()
+    open_trades = open_result.scalars().all()
+    
+    # Combine: closed trades first (ordered by exit_time), then open trades (ordered by entry_time)
+    from sqlalchemy import case
+    all_trades = list(closed_trades) + list(open_trades)
+    
+    # Sort: closed trades by exit_time, open trades by entry_time
+    trades = sorted(
+        all_trades,
+        key=lambda t: t.exit_time if t.status == "closed" and t.exit_time else t.entry_time if t.entry_time else datetime.min
+    )
     
     # Calculate daily summary
     summary = await _calculate_daily_summary(trades)
