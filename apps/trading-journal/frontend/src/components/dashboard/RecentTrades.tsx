@@ -68,8 +68,8 @@ export default function RecentTrades({ trades, isLoading, error }: RecentTradesP
   }
 
   return (
-    <TableContainer component={Paper}>
-      <Table size="small">
+    <TableContainer component={Paper} sx={{ maxWidth: '100%', overflowX: 'auto' }}>
+      <Table size="small" sx={{ minWidth: 600 }}>
         <TableHead>
           <TableRow>
             <TableCell>Ticker</TableCell>

@@ -86,9 +86,18 @@ export default function Calendar() {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box>
       {/* Header with month navigation */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          mb: { xs: 2, sm: 3 },
+          flexWrap: 'wrap',
+          gap: 1,
+        }}
+      >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <IconButton onClick={handlePreviousMonth} color="primary">
             <ChevronLeft />
@@ -103,7 +112,7 @@ export default function Calendar() {
         <IconButton
           onClick={() => setCurrentDate(new Date())}
           color="primary"
-          sx={{ ml: 'auto' }}
+          sx={{ ml: { xs: 0, sm: 'auto' } }}
         >
           <Typography variant="body2">Today</Typography>
         </IconButton>
@@ -111,7 +120,7 @@ export default function Calendar() {
 
       {/* Month summary cards */}
       {calendarData && (
-        <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: { xs: 2, sm: 3 } }}>
           <Grid item xs={12} sm={6} md={3}>
             <Card>
               <CardContent>
@@ -204,7 +213,7 @@ export default function Calendar() {
       </Paper>
 
       {/* Legend */}
-      <Box sx={{ mt: 3, display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+      <Box sx={{ mt: { xs: 2, sm: 3 }, display: 'flex', gap: { xs: 2, sm: 3 }, flexWrap: 'wrap' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Box
             sx={{

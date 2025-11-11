@@ -76,15 +76,22 @@ export default function Charts() {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
+    <Box>
+      <Typography variant="h4" gutterBottom sx={{ mb: { xs: 2, sm: 3 } }}>
         {isTradeView ? 'Trade Chart View' : 'Price Charts'}
       </Typography>
 
       {/* Trade info banner */}
       {isTradeView && trade && (
-        <Paper sx={{ p: 2, mb: 3, bgcolor: 'background.paper' }}>
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+        <Paper sx={{ p: { xs: 1.5, sm: 2 }, mb: { xs: 2, sm: 3 }, bgcolor: 'background.paper' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              gap: { xs: 1, sm: 2 },
+              alignItems: 'center',
+              flexWrap: 'wrap',
+            }}
+          >
             <Typography variant="h6">
               Trade #{trade.id}: {trade.ticker}
             </Typography>
@@ -114,9 +121,16 @@ export default function Charts() {
 
       {/* Ticker input (only show if not viewing a trade) */}
       {!isTradeView && (
-        <Paper sx={{ p: 2, mb: 3 }}>
+        <Paper sx={{ p: { xs: 1.5, sm: 2 }, mb: { xs: 2, sm: 3 } }}>
           <form onSubmit={handleTickerSubmit}>
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <Box
+              sx={{
+                display: 'flex',
+                gap: { xs: 1, sm: 2 },
+                alignItems: 'center',
+                flexWrap: 'wrap',
+              }}
+            >
               <TextField
                 label="Ticker Symbol"
                 value={ticker}
@@ -135,7 +149,7 @@ export default function Charts() {
 
       {/* Chart controls */}
       {ticker && (
-        <Paper sx={{ p: 2, mb: 3 }}>
+        <Paper sx={{ p: { xs: 1.5, sm: 2 }, mb: { xs: 2, sm: 3 } }}>
           <ChartControls
             timeframe={timeframe}
             chartMode={chartMode}
@@ -145,12 +159,12 @@ export default function Charts() {
             onDaysChange={setDays}
           />
           
-          {/* Indicator controls */}
-          <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-            <Typography variant="subtitle2" gutterBottom>
-              Indicators
-            </Typography>
-            <FormGroup row>
+                 {/* Indicator controls */}
+                 <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+                   <Typography variant="subtitle2" gutterBottom>
+                     Indicators
+                   </Typography>
+                   <FormGroup row sx={{ flexWrap: 'wrap' }}>
               <FormControlLabel
                 control={
                   <Switch
@@ -268,7 +282,7 @@ export default function Charts() {
 
       {/* Chart */}
       {ticker && (
-        <Paper sx={{ p: 2 }}>
+        <Paper sx={{ p: { xs: 1, sm: 2 } }}>
           <Typography variant="h6" gutterBottom>
             {ticker.toUpperCase()} - {timeframe} Chart
             {isTradeView && trade && (

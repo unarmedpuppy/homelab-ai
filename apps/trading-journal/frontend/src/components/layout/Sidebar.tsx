@@ -8,6 +8,8 @@ import {
   ListItemText,
   Toolbar,
   Divider,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material'
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
@@ -25,22 +27,26 @@ const menuItems = [
   { text: 'Charts', icon: <ShowChartIcon />, path: '/charts' },
 ]
 
-export default function Sidebar() {
+interface SidebarProps {
+  mobileOpen: boolean
+  onMobileClose: () => void
+}
+
+export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
   const navigate = useNavigate()
   const location = useLocation()
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
-  return (
-    <Drawer
-      variant="permanent"
-      sx={{
-        width: drawerWidth,
-        flexShrink: 0,
-        '& .MuiDrawer-paper': {
-          width: drawerWidth,
-          boxSizing: 'border-box',
-        },
-      }}
-    >
+  const handleNavigation = (path: string) => {
+    navigate(path)
+    if (isMobile) {
+      onMobileClose()
+    }
+  }
+
+  const drawer = (
+    <>
       <Toolbar>
         <ListItemText primary="Trading Journal" primaryTypographyProps={{ variant: 'h6' }} />
       </Toolbar>
@@ -50,15 +56,61 @@ export default function Sidebar() {
           <ListItem key={item.text} disablePadding>
             <ListItemButton
               selected={location.pathname === item.path}
-              onClick={() => navigate(item.path)}
+              onClick={() => handleNavigation(item.path)}
+              sx={{
+                minHeight: 48,
+                '&.Mui-selected': {
+                  backgroundColor: 'rgba(156, 39, 176, 0.16)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(156, 39, 176, 0.24)',
+                  },
+                },
+              }}
             >
-              <ListItemIcon>{item.icon}</ListItemIcon>
+              <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} />
             </ListItemButton>
           </ListItem>
         ))}
       </List>
-    </Drawer>
+    </>
+  )
+
+  return (
+    <>
+      {/* Mobile drawer */}
+      <Drawer
+        variant="temporary"
+        open={mobileOpen}
+        onClose={onMobileClose}
+        ModalProps={{
+          keepMounted: true, // Better open performance on mobile
+        }}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
+            width: drawerWidth,
+          },
+        }}
+      >
+        {drawer}
+      </Drawer>
+      {/* Desktop drawer */}
+      <Drawer
+        variant="permanent"
+        sx={{
+          display: { xs: 'none', md: 'block' },
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
+            width: drawerWidth,
+          },
+        }}
+        open
+      >
+        {drawer}
+      </Drawer>
+    </>
   )
 }
 

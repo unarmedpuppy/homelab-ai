@@ -634,6 +634,9 @@ export default function PriceChart({
         minHeight: height,
         position: 'relative',
         display: 'block', // Ensure it's a block element
+        '& canvas': {
+          touchAction: 'pan-x pan-y', // Enable touch scrolling on charts
+        },
       }}
     />
   )

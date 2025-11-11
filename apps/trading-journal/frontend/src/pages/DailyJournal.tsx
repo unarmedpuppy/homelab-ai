@@ -136,9 +136,17 @@ export default function DailyJournal() {
   const journalDate = parseISO(date)
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box>
       {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: { xs: 1, sm: 2 },
+          mb: { xs: 2, sm: 3 },
+          flexWrap: 'wrap',
+        }}
+      >
         <IconButton onClick={() => navigate('/calendar')} color="primary">
           <ArrowBack />
         </IconButton>
@@ -153,7 +161,7 @@ export default function DailyJournal() {
       </Box>
 
       {/* Summary Cards */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
+      <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: { xs: 2, sm: 3 } }}>
         <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
@@ -283,7 +291,7 @@ export default function DailyJournal() {
       </Grid>
 
       {/* Trades Table */}
-      <Paper sx={{ p: 2, mb: 3 }}>
+      <Paper sx={{ p: { xs: 1.5, sm: 2 }, mb: { xs: 2, sm: 3 } }}>
         <Typography variant="h6" gutterBottom>
           Trades
         </Typography>
@@ -292,8 +300,8 @@ export default function DailyJournal() {
             No trades for this day
           </Typography>
         ) : (
-          <TableContainer>
-            <Table size="small">
+          <TableContainer sx={{ maxWidth: '100%', overflowX: 'auto' }}>
+            <Table size="small" sx={{ minWidth: 800 }}>
               <TableHead>
                 <TableRow>
                   <TableCell>Ticker</TableCell>
@@ -386,10 +394,19 @@ export default function DailyJournal() {
       </Paper>
 
       {/* Notes Section */}
-      <Paper sx={{ p: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+      <Paper sx={{ p: { xs: 1.5, sm: 2 } }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            mb: 2,
+            flexWrap: 'wrap',
+            gap: 1,
+          }}
+        >
           <Typography variant="h6">Daily Notes</Typography>
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
             {isEditing ? (
               <>
                 <Button

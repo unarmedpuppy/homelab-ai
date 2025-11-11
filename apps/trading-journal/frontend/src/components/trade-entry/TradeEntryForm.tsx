@@ -281,7 +281,7 @@ export default function TradeEntryForm() {
   }, [tradeType])
 
   return (
-    <Paper sx={{ p: 3 }}>
+    <Paper sx={{ p: { xs: 2, sm: 3 } }}>
       <Typography variant="h4" gutterBottom>
         Trade Entry
       </Typography>
@@ -316,7 +316,7 @@ export default function TradeEntryForm() {
       )}
 
       <form onSubmit={handleSubmit}>
-        <Grid container spacing={3}>
+        <Grid container spacing={{ xs: 2, sm: 3 }}>
           {/* Basic Information */}
           <Grid item xs={12}>
             <Typography variant="h6" gutterBottom>
@@ -658,7 +658,15 @@ export default function TradeEntryForm() {
 
           {/* Submit Button */}
           <Grid item xs={12}>
-            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                gap: { xs: 1, sm: 2 },
+                justifyContent: 'flex-end',
+                mt: 2,
+                flexWrap: 'wrap',
+              }}
+            >
               <Button
                 variant="outlined"
                 onClick={() => navigate('/')}

@@ -47,14 +47,14 @@ export default function Dashboard() {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom sx={{ mb: 3 }}>
+    <Box>
+      <Typography variant="h4" gutterBottom sx={{ mb: { xs: 2, sm: 3 } }}>
         Dashboard
       </Typography>
 
       {/* KPI Cards */}
       {stats && (
-        <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: { xs: 3, sm: 4 } }}>
           <Grid item xs={12} sm={6} md={3}>
             <KPICard
               title="Net P&L"
@@ -133,26 +133,26 @@ export default function Dashboard() {
       )}
 
       {/* Charts Section */}
-      <Box sx={{ mt: 4 }}>
-        <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
+      <Box sx={{ mt: { xs: 3, sm: 4 } }}>
+        <Typography variant="h5" gutterBottom sx={{ mb: { xs: 2, sm: 3 } }}>
           Performance Charts
         </Typography>
-        <Grid container spacing={3}>
+        <Grid container spacing={{ xs: 2, sm: 3 }}>
           <Grid item xs={12} md={6}>
-            <CumulativePnLChart height={350} />
+            <CumulativePnLChart height={300} />
           </Grid>
           <Grid item xs={12} md={6}>
-            <DailyPnLChart height={350} />
+            <DailyPnLChart height={300} />
           </Grid>
           <Grid item xs={12}>
-            <DrawdownChart height={350} />
+            <DrawdownChart height={300} />
           </Grid>
         </Grid>
       </Box>
 
       {/* Recent Trades */}
-      <Box sx={{ mt: 4 }}>
-        <Typography variant="h5" gutterBottom sx={{ mb: 2 }}>
+      <Box sx={{ mt: { xs: 3, sm: 4 } }}>
+        <Typography variant="h5" gutterBottom sx={{ mb: { xs: 1.5, sm: 2 } }}>
           Recent Trades
         </Typography>
         <RecentTrades
