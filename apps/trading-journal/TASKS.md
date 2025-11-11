@@ -579,10 +579,30 @@ This file tracks the status of all implementation tasks. Agents should update th
   - Loading and error states
 
 ### T3.4: Trade Overlay on Charts
-**Status**: `[PENDING]`
-**Claimed By**: -
+**Status**: `[COMPLETED]`
+**Claimed By**: Auto (AI Agent)
+**Completed**: 2025-01-27
 **Priority**: Medium
 **Dependencies**: T3.3
+**Summary**:
+- Added trade chart view route (`/charts/trade/:tradeId`) in App.tsx
+- Enhanced Charts page to support viewing trades with overlay:
+  - Trade info banner displaying trade ID, ticker, type, side, and P&L
+  - Automatic ticker detection from trade data
+  - Configurable days before/after entry/exit for chart context
+  - Trade overlay markers with detailed tooltips
+- Enhanced PriceChart component:
+  - Improved trade overlay markers with entry/exit prices and P&L in tooltips
+  - Color-coded markers (green for LONG entry, red for SHORT entry)
+  - Exit markers show P&L when available
+- Added chart navigation in trade tables:
+  - RecentTrades component: Added "Chart" column with icon button
+  - DailyJournal trades table: Added "Chart" column with icon button
+  - Both navigate to `/charts/trade/:tradeId` when clicked
+- Trade overlay markers display:
+  - Entry marker: Position, side, entry price
+  - Exit marker: Exit price, net P&L (if available)
+  - Visual indicators with arrows and color coding
 
 ### T3.5: Dashboard Charts
 **Status**: `[PENDING]`
