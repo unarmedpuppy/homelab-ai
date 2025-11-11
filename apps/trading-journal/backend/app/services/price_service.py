@@ -372,7 +372,7 @@ async def _fetch_alpha_vantage(
         }
         params["interval"] = interval_map.get(timeframe, "60min")
     
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=20.0) as client:
         response = await client.get(base_url, params=params)
         response.raise_for_status()
         data = response.json()
@@ -459,8 +459,15 @@ async def _fetch_yfinance(
     interval = interval_map.get(timeframe, "1h")
     
     # Fetch data
+    # Limit date range for yfinance to avoid timeouts (yfinance can be slow for large ranges)
+    max_yfinance_days = 60  # Limit to 60 days for yfinance
+    if (end_date - start_date).days > max_yfinance_days:
+        # Use a more recent date range
+        start_date = end_date - timedelta(days=max_yfinance_days)
+        logger.info(f"Limiting yfinance fetch to last {max_yfinance_days} days to avoid timeout")
+    
     ticker_obj = yf.Ticker(ticker)
-    hist = ticker_obj.history(start=start_date, end=end_date, interval=interval)
+    hist = ticker_obj.history(start=start_date, end=end_date, interval=interval, timeout=15)
     
     if hist.empty:
         return None
@@ -542,7 +549,7 @@ async def _fetch_coingecko(
     if settings.coingecko_api_key:
         params["x_cg_demo_api_key"] = settings.coingecko_api_key
     
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=20.0) as client:
         response = await client.get(url, params=params)
         response.raise_for_status()
         data = response.json()
