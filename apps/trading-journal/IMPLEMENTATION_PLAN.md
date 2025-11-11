@@ -298,6 +298,47 @@ CREATE TABLE daily_notes (
 CREATE INDEX idx_daily_notes_date ON daily_notes(date);
 ```
 
+#### `playbooks` (for playbook management)
+```sql
+CREATE TABLE playbooks (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    description TEXT,
+    template_id INTEGER,  -- Reference to template (optional)
+    is_active BOOLEAN DEFAULT true,
+    is_shared BOOLEAN DEFAULT false,  -- For future multi-user support
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    user_id INTEGER DEFAULT 1  -- Single user for MVP
+);
+
+CREATE INDEX idx_playbooks_name ON playbooks(name);
+CREATE INDEX idx_playbooks_active ON playbooks(is_active);
+CREATE INDEX idx_playbooks_user ON playbooks(user_id);
+```
+
+#### `playbook_templates` (for playbook templates)
+```sql
+CREATE TABLE playbook_templates (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    description TEXT,
+    category VARCHAR(50),  -- breakout, pullback, reversal, momentum, swing, scalp, etc.
+    is_system BOOLEAN DEFAULT false,  -- System templates vs user-created
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    user_id INTEGER DEFAULT 1  -- NULL for system templates
+);
+
+CREATE INDEX idx_playbook_templates_category ON playbook_templates(category);
+CREATE INDEX idx_playbook_templates_system ON playbook_templates(is_system);
+```
+
+**Note**: Update `trades` table to reference `playbooks.id` instead of storing playbook name as string. This enables:
+- Better data integrity
+- Playbook renaming without breaking references
+- Playbook deletion handling
+- Future playbook versioning
+
 ## Project Structure
 
 ```
