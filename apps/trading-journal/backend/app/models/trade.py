@@ -4,7 +4,7 @@ Trade model for tracking individual trades.
 Supports multiple trade types: STOCK, OPTION, CRYPTO_SPOT, CRYPTO_PERP, PREDICTION_MARKET.
 """
 
-from sqlalchemy import String, Numeric, DateTime, Date, Text, Index, func, CheckConstraint
+from sqlalchemy import String, Numeric, DateTime, Date, Text, Index, func, CheckConstraint, Integer, ForeignKey
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime, date
