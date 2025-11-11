@@ -29,7 +29,7 @@ def _is_regular_trading_hours(timestamp: datetime, timeframe: str) -> bool:
     For daily timeframes, always returns True.
     
     Args:
-        timestamp: Naive datetime to check
+        timestamp: Naive datetime to check (assumed to be in ET timezone)
         timeframe: Timeframe string (1m, 5m, 15m, 1h, 1d)
     
     Returns:
@@ -41,11 +41,13 @@ def _is_regular_trading_hours(timestamp: datetime, timeframe: str) -> bool:
     
     # For intraday data, filter for regular trading hours
     # Regular trading hours: 9:30 AM - 4:00 PM ET
-    # Note: This assumes the timestamp is in ET timezone or local market time
+    # yfinance returns timestamps in ET timezone (naive, but represents ET)
     hour = timestamp.hour
     minute = timestamp.minute
     
     # Skip pre-market (before 9:30 AM) and after-hours (at or after 4:00 PM)
+    # Market opens at 9:30 AM ET and closes at 4:00 PM ET
+    # So we include 9:30 AM to 3:59 PM (hour < 16, or hour == 15)
     if hour < 9 or (hour == 9 and minute < 30) or hour >= 16:
         return False
     
