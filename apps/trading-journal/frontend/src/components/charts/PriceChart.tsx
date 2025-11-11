@@ -4,7 +4,9 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { createChart, IChartApi, ISeriesApi, ColorType, LineStyle, LineWidth } from 'lightweight-charts'
-import { Box, CircularProgress, Alert, Typography } from '@mui/material'
+import { Box, Typography } from '@mui/material'
+import LoadingSpinner from '../common/LoadingSpinner'
+import ErrorAlert from '../common/ErrorAlert'
 import { PriceDataResponse, TradeOverlayData, ChartMode, ChartColorConfig, ChartIndicatorConfig } from '../../types/charts'
 
 interface PriceChartProps {
@@ -590,18 +592,17 @@ export default function PriceChart({
   }, [data, chartMode, tradeOverlay, chartReady, colors, indicators])
 
   if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height, minHeight: height }}>
-        <CircularProgress />
-      </Box>
-    )
+    return <LoadingSpinner message="Loading chart data..." minHeight={height} />
   }
 
   if (error) {
     return (
-      <Alert severity="error" sx={{ m: 2 }}>
-        Failed to load chart data: {error.message}
-      </Alert>
+      <ErrorAlert
+        title="Failed to load chart"
+        message={error.message || 'Failed to load chart data. Please try again.'}
+        showRetry
+        onRetry={() => window.location.reload()}
+      />
     )
   }
 

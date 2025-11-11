@@ -13,6 +13,8 @@ import {
   CardContent,
   useTheme,
 } from '@mui/material'
+import LoadingSpinner from '../components/common/LoadingSpinner'
+import ErrorAlert from '../components/common/ErrorAlert'
 import {
   ChevronLeft,
   ChevronRight,
@@ -60,20 +62,17 @@ export default function Calendar() {
   }
 
   if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-        <Typography>Loading calendar...</Typography>
-      </Box>
-    )
+    return <LoadingSpinner message="Loading calendar..." />
   }
 
   if (error) {
     return (
-      <Box sx={{ p: 3 }}>
-        <Typography variant="h6" color="error">
-          Error loading calendar: {error.message}
-        </Typography>
-      </Box>
+      <ErrorAlert
+        title="Failed to load calendar"
+        message={error.message || 'Failed to load calendar data. Please try again.'}
+        showRetry
+        onRetry={() => window.location.reload()}
+      />
     )
   }
 

@@ -2,7 +2,9 @@
  * Daily P&L bar chart component.
  */
 
-import { Box, Paper, Typography, CircularProgress, Alert } from '@mui/material'
+import { Box, Paper, Typography } from '@mui/material'
+import LoadingSpinner from '../common/LoadingSpinner'
+import ErrorAlert from '../common/ErrorAlert'
 import {
   BarChart,
   Bar,
@@ -34,18 +36,17 @@ export default function DailyPnLChart({
   })
 
   if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height }}>
-        <CircularProgress />
-      </Box>
-    )
+    return <LoadingSpinner message="Loading chart data..." minHeight={height} />
   }
 
   if (error) {
     return (
-      <Alert severity="error">
-        Failed to load daily P&L data: {error.message}
-      </Alert>
+      <ErrorAlert
+        title="Failed to load chart"
+        message={error.message || 'Failed to load daily P&L data. Please try again.'}
+        showRetry
+        onRetry={() => window.location.reload()}
+      />
     )
   }
 

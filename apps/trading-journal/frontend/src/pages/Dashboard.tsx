@@ -2,13 +2,15 @@
  * Dashboard page component.
  */
 
-import { Box, Grid, Typography, CircularProgress, Alert } from '@mui/material'
+import { Box, Grid, Typography } from '@mui/material'
 import { useDashboardStats, useRecentTrades } from '../hooks/useDashboard'
 import KPICard from '../components/dashboard/KPICard'
 import RecentTrades from '../components/dashboard/RecentTrades'
 import CumulativePnLChart from '../components/dashboard/CumulativePnLChart'
 import DailyPnLChart from '../components/dashboard/DailyPnLChart'
 import DrawdownChart from '../components/dashboard/DrawdownChart'
+import LoadingSpinner from '../components/common/LoadingSpinner'
+import ErrorAlert from '../components/common/ErrorAlert'
 
 export default function Dashboard() {
   const { data: stats, isLoading: statsLoading, error: statsError } = useDashboardStats()
@@ -19,18 +21,17 @@ export default function Dashboard() {
   } = useRecentTrades(10)
 
   if (statsLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-        <CircularProgress />
-      </Box>
-    )
+    return <LoadingSpinner message="Loading dashboard statistics..." />
   }
 
   if (statsError) {
     return (
-      <Alert severity="error" sx={{ m: 2 }}>
-        Failed to load dashboard statistics: {statsError.message}
-      </Alert>
+      <ErrorAlert
+        title="Failed to load dashboard"
+        message={statsError.message || 'Failed to load dashboard statistics. Please try again.'}
+        showRetry
+        onRetry={() => window.location.reload()}
+      />
     )
   }
 

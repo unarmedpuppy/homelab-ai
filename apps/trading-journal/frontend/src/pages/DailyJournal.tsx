@@ -41,6 +41,8 @@ import {
   useCreateOrUpdateDailyNotes,
   useDeleteDailyNotes,
 } from '../hooks/useDaily'
+import LoadingSpinner from '../components/common/LoadingSpinner'
+import ErrorAlert from '../components/common/ErrorAlert'
 
 export default function DailyJournal() {
   const theme = useTheme()
@@ -110,26 +112,27 @@ export default function DailyJournal() {
   }
 
   if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-        <CircularProgress />
-      </Box>
-    )
+    return <LoadingSpinner message="Loading daily journal..." />
   }
 
   if (error) {
     return (
-      <Alert severity="error" sx={{ m: 2 }}>
-        Failed to load daily journal: {error.message}
-      </Alert>
+      <ErrorAlert
+        title="Failed to load daily journal"
+        message={error.message || 'Failed to load daily journal data. Please try again.'}
+        showRetry
+        onRetry={() => window.location.reload()}
+      />
     )
   }
 
   if (!journal || !date) {
     return (
-      <Alert severity="warning" sx={{ m: 2 }}>
-        No data found for this date
-      </Alert>
+      <ErrorAlert
+        title="No data found"
+        message="No data found for this date. Please select a different date."
+        severity="warning"
+      />
     )
   }
 

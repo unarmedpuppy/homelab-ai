@@ -13,11 +13,11 @@ import {
   Typography,
   Chip,
   Box,
-  CircularProgress,
-  Alert,
   IconButton,
   Tooltip,
 } from '@mui/material'
+import LoadingSpinner from '../common/LoadingSpinner'
+import ErrorAlert from '../common/ErrorAlert'
 import { format } from 'date-fns'
 import { useNavigate } from 'react-router-dom'
 import { ShowChart } from '@mui/icons-material'
@@ -32,18 +32,17 @@ interface RecentTradesProps {
 export default function RecentTrades({ trades, isLoading, error }: RecentTradesProps) {
   const navigate = useNavigate()
   if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-        <CircularProgress />
-      </Box>
-    )
+    return <LoadingSpinner message="Loading recent trades..." minHeight={200} />
   }
 
   if (error) {
     return (
-      <Alert severity="error" sx={{ m: 2 }}>
-        Failed to load recent trades: {error.message}
-      </Alert>
+      <ErrorAlert
+        title="Failed to load recent trades"
+        message={error.message || 'Failed to load recent trades. Please try again.'}
+        showRetry
+        onRetry={() => window.location.reload()}
+      />
     )
   }
 

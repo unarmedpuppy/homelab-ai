@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
 import Layout from './components/layout/Layout'
+import ErrorBoundary from './components/common/ErrorBoundary'
 import Dashboard from './pages/Dashboard'
 import Calendar from './pages/Calendar'
 import DailyJournal from './pages/DailyJournal'
@@ -8,16 +9,20 @@ import Charts from './pages/Charts'
 
 function App() {
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/calendar" element={<Calendar />} />
-        <Route path="/daily/:date?" element={<DailyJournal />} />
-        <Route path="/trade-entry" element={<TradeEntry />} />
-        <Route path="/charts/:ticker?" element={<Charts />} />
-        <Route path="/charts/trade/:tradeId" element={<Charts />} />
-      </Routes>
-    </Layout>
+    <ErrorBoundary>
+      <Layout>
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/daily/:date?" element={<DailyJournal />} />
+            <Route path="/trade-entry" element={<TradeEntry />} />
+            <Route path="/charts/:ticker?" element={<Charts />} />
+            <Route path="/charts/trade/:tradeId" element={<Charts />} />
+          </Routes>
+        </ErrorBoundary>
+      </Layout>
+    </ErrorBoundary>
   )
 }
 
