@@ -20,6 +20,37 @@ def _naive_datetime(dt: datetime) -> datetime:
         return dt.replace(tzinfo=None)
     return dt
 
+
+def _is_regular_trading_hours(timestamp: datetime, timeframe: str) -> bool:
+    """
+    Check if timestamp is during regular trading hours (9:30 AM - 4:00 PM ET).
+    
+    For intraday timeframes, filters out pre-market and after-hours data.
+    For daily timeframes, always returns True.
+    
+    Args:
+        timestamp: Naive datetime to check
+        timeframe: Timeframe string (1m, 5m, 15m, 1h, 1d)
+    
+    Returns:
+        True if during regular trading hours or daily timeframe, False otherwise
+    """
+    # For daily data, include all timestamps
+    if timeframe == "1d":
+        return True
+    
+    # For intraday data, filter for regular trading hours
+    # Regular trading hours: 9:30 AM - 4:00 PM ET
+    # Note: This assumes the timestamp is in ET timezone or local market time
+    hour = timestamp.hour
+    minute = timestamp.minute
+    
+    # Skip pre-market (before 9:30 AM) and after-hours (at or after 4:00 PM)
+    if hour < 9 or (hour == 9 and minute < 30) or hour >= 16:
+        return False
+    
+    return True
+
 from app.models.price_cache import PriceCache
 from app.schemas.charts import PriceDataPoint, PriceDataResponse
 from app.config import settings
@@ -405,6 +436,10 @@ async def _fetch_alpha_vantage(
         start_naive = _naive_datetime(start_date)
         end_naive = _naive_datetime(end_date)
         if start_naive <= timestamp <= end_naive:
+            # Filter for regular trading hours only
+            if not _is_regular_trading_hours(timestamp, timeframe):
+                continue
+            
             # Alpha Vantage uses different keys for daily vs intraday
             open_key = values.get("1. open") or values.get("1. open")
             high_key = values.get("2. high") or values.get("2. high")
