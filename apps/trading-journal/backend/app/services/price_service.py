@@ -517,15 +517,19 @@ async def _fetch_yfinance(
         days_diff = (end_date - start_date).days
         if days_diff <= 60:
             # Use period parameter for intraday data - this gets more reliable results
-            period_days = min(days_diff + 1, 60)  # Add 1 day buffer to ensure we get enough data
+            # Add extra days to account for weekends/holidays (multiply by ~1.4 to account for non-trading days)
+            # For 2 days, request 3-4 days to ensure we get 2 full trading days
+            period_days = max(min(int(days_diff * 1.5) + 2, 60), days_diff + 1)
             period = f"{period_days}d"
-            logger.info(f"Fetching intraday data with period={period} for {ticker}")
+            logger.info(f"Fetching intraday data with period={period} for {ticker} (requested {days_diff} days)")
             hist = ticker_obj.history(period=period, interval=interval, timeout=20)
             # Filter to requested date range if needed
             if not hist.empty and len(hist) > 0:
                 # Convert index to timezone-naive for comparison
                 hist.index = hist.index.tz_localize(None) if hist.index.tz else hist.index
+                # Filter to requested date range
                 hist = hist[(hist.index >= start_date) & (hist.index <= end_date)]
+                logger.info(f"Fetched {len(hist)} data points from yfinance for {ticker} (after date filtering)")
         else:
             hist = ticker_obj.history(start=start_date, end=end_date, interval=interval, timeout=20)
     else:
