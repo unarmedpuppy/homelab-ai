@@ -25,12 +25,24 @@ class DailySummary(BaseModel):
     commissions: Decimal = Field(..., ge=0, description="Total commissions")
     volume: int = Field(..., ge=0, description="Total volume")
     profit_factor: Optional[Decimal] = Field(None, description="Profit factor")
+    
+    model_config = ConfigDict(
+        json_encoders={
+            Decimal: lambda v: float(v) if v is not None else None,
+        }
+    )
 
 
 class PnLProgressionPoint(BaseModel):
     """Single point in P&L progression chart."""
     time: datetime = Field(..., description="Timestamp")
     cumulative_pnl: Decimal = Field(..., description="Cumulative P&L at this time")
+    
+    model_config = ConfigDict(
+        json_encoders={
+            Decimal: lambda v: float(v) if v is not None else None,
+        }
+    )
 
 
 class DailyJournal(BaseModel):
@@ -41,6 +53,13 @@ class DailyJournal(BaseModel):
     summary: DailySummary = Field(..., description="Daily summary")
     notes: Optional[str] = Field(None, description="Daily notes")
     pnl_progression: List[PnLProgressionPoint] = Field(..., description="P&L progression throughout the day")
+    
+    model_config = ConfigDict(
+        json_encoders={
+            DateType: lambda v: v.isoformat() if v else None,
+            Decimal: lambda v: float(v) if v is not None else None,
+        }
+    )
 
 
 class DailyNoteCreate(BaseModel):

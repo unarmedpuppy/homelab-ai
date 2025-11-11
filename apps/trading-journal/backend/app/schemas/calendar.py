@@ -20,7 +20,12 @@ class CalendarDay(BaseModel):
     trade_count: int = Field(..., ge=0, description="Number of trades on this day")
     is_profitable: bool = Field(..., description="Whether the day was profitable")
     
-    model_config = ConfigDict(json_encoders={DateType: lambda v: v.isoformat() if v else None})
+    model_config = ConfigDict(
+        json_encoders={
+            DateType: lambda v: v.isoformat() if v else None,
+            Decimal: lambda v: float(v) if v is not None else None,
+        }
+    )
 
 
 class CalendarMonth(BaseModel):
@@ -37,6 +42,12 @@ class CalendarSummary(BaseModel):
     total_trades: int = Field(..., ge=0, description="Total number of trades")
     profitable_days: int = Field(..., ge=0, description="Number of profitable days")
     losing_days: int = Field(..., ge=0, description="Number of losing days")
+    
+    model_config = ConfigDict(
+        json_encoders={
+            Decimal: lambda v: float(v) if v is not None else None,
+        }
+    )
 
 
 # Update forward reference

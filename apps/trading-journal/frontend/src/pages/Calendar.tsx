@@ -47,14 +47,16 @@ export default function Calendar() {
     navigate(`/daily/${date}`)
   }
 
-  const formatCurrency = (value: number): string => {
-    if (value === 0) return '$0'
-    if (Math.abs(value) >= 1000000) {
-      return `$${(value / 1000000).toFixed(2)}M`
-    } else if (Math.abs(value) >= 1000) {
-      return `$${(value / 1000).toFixed(2)}K`
+  const formatCurrency = (value: number | string | null | undefined): string => {
+    // Convert to number if it's a string
+    const numValue = typeof value === 'string' ? parseFloat(value) : (value ?? 0)
+    if (isNaN(numValue) || numValue === 0) return '$0'
+    if (Math.abs(numValue) >= 1000000) {
+      return `$${(numValue / 1000000).toFixed(2)}M`
+    } else if (Math.abs(numValue) >= 1000) {
+      return `$${(numValue / 1000).toFixed(2)}K`
     }
-    return `$${value.toFixed(2)}`
+    return `$${numValue.toFixed(2)}`
   }
 
   if (isLoading) {
