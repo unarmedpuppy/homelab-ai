@@ -13,6 +13,13 @@ from decimal import Decimal
 import httpx
 import logging
 
+# Helper to ensure timezone-naive datetime
+def _naive_datetime(dt: datetime) -> datetime:
+    """Convert timezone-aware datetime to naive, or return naive datetime as-is."""
+    if dt.tzinfo is not None:
+        return dt.replace(tzinfo=None)
+    return dt
+
 from app.models.price_cache import PriceCache
 from app.schemas.charts import PriceDataPoint, PriceDataResponse
 from app.config import settings
@@ -44,11 +51,15 @@ async def get_price_data(
     Returns:
         PriceDataResponse with price data
     """
-    # Set defaults
+    # Set defaults (ensure timezone-naive)
     if end_date is None:
-        end_date = datetime.now()
+        end_date = _naive_datetime(datetime.now())
+    else:
+        end_date = _naive_datetime(end_date)
     if start_date is None:
-        start_date = end_date - timedelta(days=365)
+        start_date = _naive_datetime(end_date - timedelta(days=365))
+    else:
+        start_date = _naive_datetime(start_date)
     
     # Normalize ticker (uppercase, strip)
     ticker = ticker.upper().strip()
@@ -107,9 +118,13 @@ async def _get_cached_data(
     Returns:
         List of cached price data points
     """
-    # Determine cache expiration
+    # Determine cache expiration (ensure timezone-naive)
     cache_duration = CACHE_DURATION_DAILY if timeframe == "1d" else CACHE_DURATION_INTRADAY
-    cache_expiry = datetime.now() - timedelta(hours=cache_duration)
+    cache_expiry = _naive_datetime(datetime.now()) - timedelta(hours=cache_duration)
+    
+    # Ensure dates are timezone-naive for database comparison
+    start_date_naive = _naive_datetime(start_date)
+    end_date_naive = _naive_datetime(end_date)
     
     query = (
         select(PriceCache)
@@ -117,8 +132,8 @@ async def _get_cached_data(
             and_(
                 PriceCache.ticker == ticker,
                 PriceCache.timeframe == timeframe,
-                PriceCache.timestamp >= start_date,
-                PriceCache.timestamp <= end_date,
+                PriceCache.timestamp >= start_date_naive,
+                PriceCache.timestamp <= end_date_naive,
                 PriceCache.cached_at >= cache_expiry,
             )
         )
@@ -334,9 +349,13 @@ async def _fetch_alpha_vantage(
     data_points = []
     for timestamp_str, values in time_series.items():
         timestamp = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S" if ":" in timestamp_str else "%Y-%m-%d")
+        # Ensure timezone-naive
+        timestamp = _naive_datetime(timestamp)
         
-        # Filter by date range
-        if start_date <= timestamp <= end_date:
+        # Filter by date range (ensure dates are naive)
+        start_naive = _naive_datetime(start_date)
+        end_naive = _naive_datetime(end_date)
+        if start_naive <= timestamp <= end_naive:
             # Alpha Vantage uses different keys for daily vs intraday
             open_key = values.get("1. open") or values.get("1. open")
             high_key = values.get("2. high") or values.get("2. high")
@@ -408,8 +427,11 @@ async def _fetch_yfinance(
         except (ValueError, TypeError):
             pass
         
+        # Convert to naive datetime
+        timestamp_naive = _naive_datetime(timestamp.to_pydatetime())
+        
         data_points.append(PriceDataPoint(
-            timestamp=timestamp.to_pydatetime(),
+            timestamp=timestamp_naive,
             open=Decimal(str(row["Open"])),
             high=Decimal(str(row["High"])),
             low=Decimal(str(row["Low"])),
@@ -535,7 +557,7 @@ async def _cache_price_data(
             existing.low_price = point.low
             existing.close_price = point.close
             existing.volume = point.volume
-            existing.cached_at = datetime.now()
+            existing.cached_at = _naive_datetime(datetime.now())
         else:
             # Create new cache entry
             cache_entry = PriceCache(
@@ -547,7 +569,7 @@ async def _cache_price_data(
                 low_price=point.low,
                 close_price=point.close,
                 volume=point.volume,
-                cached_at=datetime.now(),
+                cached_at=_naive_datetime(datetime.now()),
             )
             db.add(cache_entry)
     
