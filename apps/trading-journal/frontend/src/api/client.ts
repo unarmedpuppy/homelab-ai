@@ -51,25 +51,39 @@ apiClient.interceptors.response.use(
       const status = error.response.status
       const data = error.response.data as { detail?: string }
       
-      switch (status) {
-        case 401:
-          console.error('Unauthorized - check API key')
-          break
-        case 403:
-          console.error('Forbidden - insufficient permissions')
-          break
-        case 404:
-          console.error('Resource not found')
-          break
-        case 422:
-          console.error('Validation error:', data.detail)
-          break
-        case 500:
-          console.error('Server error')
-          break
-        default:
-          console.error('API error:', data.detail || error.message)
+      // Create a more descriptive error message
+      let errorMessage = error.message
+      if (data?.detail) {
+        errorMessage = data.detail
+      } else {
+        switch (status) {
+          case 401:
+            errorMessage = 'Unauthorized - check API key'
+            break
+          case 403:
+            errorMessage = 'Forbidden - invalid API key or insufficient permissions'
+            break
+          case 404:
+            errorMessage = 'Resource not found'
+            break
+          case 422:
+            errorMessage = `Validation error: ${data.detail || 'Invalid request'}`
+            break
+          case 500:
+            errorMessage = 'Server error'
+            break
+          default:
+            errorMessage = data.detail || error.message
+        }
       }
+      
+      // Create a new error with the descriptive message
+      const enhancedError = new Error(errorMessage)
+      ;(enhancedError as any).response = error.response
+      ;(enhancedError as any).status = status
+      
+      console.error(`API error (${status}):`, errorMessage)
+      return Promise.reject(enhancedError)
     } else if (error.request) {
       // Request made but no response received
       console.error('Network error - backend may be unavailable')
