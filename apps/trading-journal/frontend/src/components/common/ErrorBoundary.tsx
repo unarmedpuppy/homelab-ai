@@ -5,7 +5,7 @@
  * logs those errors, and displays a fallback UI instead of crashing the entire app.
  */
 
-import React, { Component, ErrorInfo, ReactNode } from 'react'
+import { Component, ErrorInfo, ReactNode } from 'react'
 import { Box, Typography, Button, Paper, Alert } from '@mui/material'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 
@@ -83,7 +83,7 @@ class ErrorBoundary extends Component<Props, State> {
               An unexpected error occurred. Please try refreshing the page.
             </Typography>
 
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {import.meta.env.DEV && this.state.error && (
               <Alert severity="error" sx={{ mb: 2, textAlign: 'left' }}>
                 <Typography variant="subtitle2" gutterBottom>
                   Error Details (Development Only):

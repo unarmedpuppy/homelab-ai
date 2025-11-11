@@ -675,10 +675,45 @@ This file tracks the status of all implementation tasks. Agents should update th
 - Flexbox layouts with `flexWrap: 'wrap'` for better mobile behavior
 
 ### T4.2: Error Handling & Loading States
-**Status**: `[PENDING]`
-**Claimed By**: -
+**Status**: `[COMPLETED]`
+**Claimed By**: Auto (AI Agent)
+**Completed**: 2025-11-11
 **Priority**: High
 **Dependencies**: All frontend tasks
+**Summary**:
+- Created `frontend/src/components/common/ErrorBoundary.tsx`:
+  - React error boundary component to catch component errors
+  - Displays user-friendly fallback UI instead of crashing the app
+  - Shows error details in development mode
+  - Provides "Try Again" and "Refresh Page" buttons
+  - Supports custom fallback UI via props
+- Created `frontend/src/components/common/LoadingSpinner.tsx`:
+  - Reusable loading spinner component
+  - Configurable message, size, and minimum height
+  - Supports full-screen overlay mode
+  - Consistent loading states throughout the app
+- Created `frontend/src/components/common/ErrorAlert.tsx`:
+  - Reusable error alert component with retry functionality
+  - Configurable title, message, and severity
+  - Optional retry button with callback
+  - Consistent error display across the app
+- Updated `App.tsx`:
+  - Wrapped app with ErrorBoundary at root level
+  - Added nested ErrorBoundary for route content
+- Updated all page components to use new error/loading components:
+  - Dashboard: Uses LoadingSpinner and ErrorAlert
+  - Calendar: Uses LoadingSpinner and ErrorAlert
+  - Daily Journal: Uses LoadingSpinner and ErrorAlert
+  - Charts: Uses LoadingSpinner and ErrorAlert
+- Updated all chart components:
+  - CumulativePnLChart: Uses LoadingSpinner and ErrorAlert
+  - DailyPnLChart: Uses LoadingSpinner and ErrorAlert
+  - DrawdownChart: Uses LoadingSpinner and ErrorAlert
+  - PriceChart: Uses LoadingSpinner and ErrorAlert
+- Updated RecentTrades component:
+  - Uses LoadingSpinner and ErrorAlert
+- All error messages are now user-friendly with retry options
+- Consistent error handling patterns across all components
 
 ### T4.3: API Query Optimization
 **Status**: `[PENDING]`
