@@ -575,7 +575,8 @@ export default function DailyJournal() {
               </TableBody>
             </Table>
           </TableContainer>
-        )}
+          )
+        })()}
       </Paper>
 
       {/* Notes Section */}
