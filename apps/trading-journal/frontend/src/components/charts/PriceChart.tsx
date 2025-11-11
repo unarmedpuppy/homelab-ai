@@ -385,7 +385,7 @@ export default function PriceChart({
       sma200SeriesRef.current = chartRef.current.addLineSeries({
         color: '#808080', // Gray
         lineWidth: 1 as LineWidth,
-        lineStyle: LineStyle.Solid,
+        lineStyle: LineStyle.Dashed, // Dashed line for SMA 200
         // No title to avoid blocking view
         priceFormat: {
           type: 'price',

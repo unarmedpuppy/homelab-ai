@@ -17,7 +17,7 @@ export default function Charts() {
   const [ticker, setTicker] = useState<string>(urlTicker || '')
   const [timeframe, setTimeframe] = useState<Timeframe>('1h')
   const [chartMode, setChartMode] = useState<ChartMode>('candlestick')
-  const [days, setDays] = useState<number>(365)
+  const [days, setDays] = useState<number>(2) // Default to 2 days for hourly chart
   const [daysBefore, setDaysBefore] = useState<number>(30)
   const [daysAfter, setDaysAfter] = useState<number>(30)
   const [indicators, setIndicators] = useState<ChartIndicatorConfig>({
