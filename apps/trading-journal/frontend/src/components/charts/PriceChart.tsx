@@ -33,13 +33,15 @@ export default function PriceChart({
     if (!chartContainerRef.current) return
 
     const container = chartContainerRef.current
+    let resizeHandler: (() => void) | null = null
+    let timeoutId: NodeJS.Timeout | null = null
     
     // Wait for container to have a width
     const initChart = () => {
       const width = container.clientWidth
       if (width === 0) {
-        // Retry after a short delay
-        setTimeout(initChart, 100)
+        // Retry after a short delay (max 10 attempts)
+        timeoutId = setTimeout(initChart, 100)
         return
       }
 
@@ -67,14 +69,14 @@ export default function PriceChart({
       chartRef.current = chart
 
       // Handle resize
-      const handleResize = () => {
+      resizeHandler = () => {
         if (container && chart) {
           const newWidth = container.clientWidth || width
           chart.applyOptions({ width: newWidth })
         }
       }
 
-      window.addEventListener('resize', handleResize)
+      window.addEventListener('resize', resizeHandler)
       setChartReady(true)
     }
 
@@ -82,7 +84,12 @@ export default function PriceChart({
     initChart()
 
     return () => {
-      window.removeEventListener('resize', () => {})
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+      }
+      if (resizeHandler) {
+        window.removeEventListener('resize', resizeHandler)
+      }
       if (chartRef.current) {
         chartRef.current.remove()
         chartRef.current = null
