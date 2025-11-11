@@ -166,7 +166,11 @@ export default function PriceChart({
       hasChartRef: !!chartRef.current,
       chartReady,
       hasData: !!data,
-      dataLength: data?.data?.length || 0
+      dataLength: data?.data?.length || 0,
+      sma20Enabled: chartIndicators.showSMA20,
+      sma200Enabled: chartIndicators.showSMA200,
+      canShowSMA20: data?.data?.length >= 20,
+      canShowSMA200: data?.data?.length >= 200,
     })
 
     if (!chartRef.current || !chartReady || !data) {
