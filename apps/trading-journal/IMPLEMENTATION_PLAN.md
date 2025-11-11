@@ -702,6 +702,56 @@ GET    /api/options/greeks/:ticker
        Returns: Greeks data for ticker
 ```
 
+### Playbooks
+```
+GET    /api/playbooks
+       Query params:
+         - search: string (optional)
+         - is_active: boolean (optional)
+         - is_shared: boolean (optional)
+       Returns: List of playbooks
+
+GET    /api/playbooks/{id}
+       Returns: Single playbook with performance metrics
+
+POST   /api/playbooks
+       Body: {name, description, template_id (optional)}
+       Returns: Created playbook
+
+PUT    /api/playbooks/{id}
+       Body: {name, description, is_active, is_shared}
+       Returns: Updated playbook
+
+DELETE /api/playbooks/{id}
+       Returns: Success confirmation
+       Note: Should handle trades with this playbook (set to NULL or prevent deletion)
+
+GET    /api/playbooks/{id}/trades
+       Query params:
+         - date_from: ISO date (optional)
+         - date_to: ISO date (optional)
+       Returns: List of trades for this playbook
+
+GET    /api/playbooks/{id}/performance
+       Query params:
+         - date_from: ISO date (optional)
+         - date_to: ISO date (optional)
+       Returns: Performance metrics for playbook
+
+GET    /api/playbooks/templates
+       Returns: List of playbook templates
+
+POST   /api/playbooks/templates
+       Body: {name, description, category}
+       Returns: Created template
+
+GET    /api/trades/by-playbook/{playbook_id}
+       Query params:
+         - date_from: ISO date (optional)
+         - date_to: ISO date (optional)
+       Returns: Trades filtered by playbook
+```
+
 ### Analytics & Reports
 ```
 GET    /api/analytics/performance
