@@ -151,7 +151,7 @@ async def general_exception_handler(request: Request, exc: Exception):
 
 
 # Include routers
-from app.api.routes import trades, dashboard, calendar, daily, charts, options
+from app.api.routes import trades, dashboard, calendar, daily, charts, options, analytics
 
 # Authentication Note:
 # - Health endpoint (/api/health) is public (no auth required)
@@ -175,6 +175,7 @@ app.include_router(calendar.router, prefix="/api/calendar", tags=["calendar"])
 app.include_router(daily.router, prefix="/api/daily", tags=["daily"])
 app.include_router(charts.router, prefix="/api/charts", tags=["charts"])
 app.include_router(options.router, prefix="/api/options", tags=["options"])
+app.include_router(analytics.router, prefix="/api/analytics", tags=["analytics"])
 
 # Root endpoint
 @app.get("/")
