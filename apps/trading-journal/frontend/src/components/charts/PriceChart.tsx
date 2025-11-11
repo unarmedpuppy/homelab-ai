@@ -94,26 +94,31 @@ export default function PriceChart({
 
         console.log('Creating chart with dimensions:', { width, height })
 
-        // Create chart with custom colors
-        const chart = createChart(container, {
-          layout: {
-            background: { type: ColorType.Solid, color: chartColors.background || '#1e1e1e' },
-            textColor: chartColors.textColor || '#d1d5db',
-          },
-          grid: {
-            vertLines: { color: chartColors.gridLines || '#2a2a2a' },
-            horzLines: { color: chartColors.gridLines || '#2a2a2a' },
-          },
-          width: width,
-          height: height,
-          timeScale: {
-            timeVisible: true,
-            secondsVisible: false,
-          },
-          rightPriceScale: {
-            borderColor: chartColors.borderColor || '#2a2a2a',
-          },
-        })
+              // Create chart with custom colors
+              const chart = createChart(container, {
+                layout: {
+                  background: { type: ColorType.Solid, color: chartColors.background || '#1e1e1e' },
+                  textColor: chartColors.textColor || '#d1d5db',
+                },
+                grid: {
+                  vertLines: { color: chartColors.gridLines || '#2a2a2a' },
+                  horzLines: { 
+                    color: chartColors.gridLines || '#2a2a2a',
+                    style: LineStyle.Solid, // Solid grid lines, not dashed
+                  },
+                },
+                width: width,
+                height: height,
+                timeScale: {
+                  timeVisible: true,
+                  secondsVisible: false,
+                },
+                rightPriceScale: {
+                  borderColor: chartColors.borderColor || '#2a2a2a',
+                  // Remove any horizontal price lines that might appear dashed
+                  entireTextOnly: false,
+                },
+              })
 
         chartRef.current = chart
         console.log('Chart created successfully')
@@ -377,6 +382,9 @@ export default function PriceChart({
               precision: 2,
               minMove: 0.01,
             },
+            // Ensure it's just a line path, no other visual elements
+            lastValueVisible: false,
+            priceLineVisible: false,
           })
 
           sma20SeriesRef.current.setData(sma20Data)
@@ -386,39 +394,38 @@ export default function PriceChart({
     }
 
     // Calculate and add SMA 200 if enabled
-    if (chartIndicators.showSMA200) {
+    // Only show if we have enough data for the full 200 period
+    if (chartIndicators.showSMA200 && chartData.length >= 200) {
       const sma200Period = 200
-      // Use adaptive period if we don't have enough data
-      const actualPeriod = Math.min(sma200Period, Math.max(2, Math.floor(chartData.length / 2)))
-      
-      if (chartData.length >= actualPeriod) {
-        const sma200Data: { time: any; value: number }[] = []
+      const sma200Data: { time: any; value: number }[] = []
 
-        for (let i = actualPeriod - 1; i < chartData.length; i++) {
-          const sum = chartData.slice(i - actualPeriod + 1, i + 1).reduce((acc, point) => acc + point.close, 0)
-          const sma = sum / actualPeriod
-          sma200Data.push({
-            time: chartData[i].time,
-            value: sma,
-          })
-        }
+      for (let i = 199; i < chartData.length; i++) {
+        const sum = chartData.slice(i - 199, i + 1).reduce((acc, point) => acc + point.close, 0)
+        const sma = sum / sma200Period
+        sma200Data.push({
+          time: chartData[i].time,
+          value: sma,
+        })
+      }
 
-        if (sma200Data.length > 0) {
-          sma200SeriesRef.current = chartRef.current.addLineSeries({
-            color: '#808080', // Gray
-            lineWidth: 1 as LineWidth,
-            lineStyle: LineStyle.Dashed, // Dashed line for SMA 200
-            // No title to avoid blocking view
-            priceFormat: {
-              type: 'price',
-              precision: 2,
-              minMove: 0.01,
-            },
-          })
+      if (sma200Data.length > 0) {
+        sma200SeriesRef.current = chartRef.current.addLineSeries({
+          color: '#808080', // Gray
+          lineWidth: 1 as LineWidth,
+          lineStyle: LineStyle.Dashed, // Dashed line for SMA 200
+          // No title to avoid blocking view
+          priceFormat: {
+            type: 'price',
+            precision: 2,
+            minMove: 0.01,
+          },
+          // Ensure it's just a line path, no other visual elements
+          lastValueVisible: false,
+          priceLineVisible: false,
+        })
 
-          sma200SeriesRef.current.setData(sma200Data)
-          console.log(`SMA 200 added with period ${actualPeriod}, ${sma200Data.length} points`)
-        }
+        sma200SeriesRef.current.setData(sma200Data)
+        console.log(`SMA 200 added with period ${sma200Period}, ${sma200Data.length} points`)
       }
     }
 
@@ -459,6 +466,9 @@ export default function PriceChart({
               precision: 2,
               minMove: 0.01,
             },
+            // Ensure it's just a line path, no other visual elements
+            lastValueVisible: false,
+            priceLineVisible: false,
           })
 
           ema9SeriesRef.current.setData(ema9Data)
@@ -504,6 +514,9 @@ export default function PriceChart({
               precision: 2,
               minMove: 0.01,
             },
+            // Ensure it's just a line path, no other visual elements
+            lastValueVisible: false,
+            priceLineVisible: false,
           })
 
           ema21SeriesRef.current.setData(ema21Data)
