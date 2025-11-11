@@ -6,7 +6,7 @@ Supports multiple trade types: STOCK, OPTION, CRYPTO_SPOT, CRYPTO_PERP, PREDICTI
 
 from sqlalchemy import String, Numeric, DateTime, Date, Text, Index, func, CheckConstraint, Integer, ForeignKey
 from sqlalchemy.dialects.postgresql import ARRAY
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime, date
 from decimal import Decimal
 from typing import Optional, List
