@@ -33,10 +33,10 @@ async def list_trades(
     limit: int = Query(100, ge=1, le=1000, description="Maximum number of records to return"),
     date_from: Optional[str] = Query(None, description="Filter trades from this date (YYYY-MM-DD)"),
     date_to: Optional[str] = Query(None, description="Filter trades up to this date (YYYY-MM-DD)"),
-    ticker: Optional[str] = Query(None, description="Filter by ticker"),
-    trade_type: Optional[str] = Query(None, description="Filter by trade type"),
-    status: Optional[str] = Query(None, description="Filter by status"),
-    side: Optional[str] = Query(None, description="Filter by side"),
+    ticker: Optional[str] = Query(None, min_length=1, max_length=20, description="Filter by ticker"),
+    trade_type: Optional[str] = Query(None, description="Filter by trade type (STOCK, OPTION, CRYPTO_SPOT, CRYPTO_PERP, PREDICTION_MARKET)"),
+    status: Optional[str] = Query(None, description="Filter by status (open, closed, partial)"),
+    side: Optional[str] = Query(None, description="Filter by side (LONG, SHORT)"),
 ):
     """
     Get paginated list of trades with optional filters.

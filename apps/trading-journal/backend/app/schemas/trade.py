@@ -102,31 +102,98 @@ class TradeBase(BaseModel):
         """Validate that exit_time is after entry_time."""
         if self.exit_time and self.entry_time:
             if self.exit_time < self.entry_time:
-                raise ValueError("exit_time must be after entry_time")
+                raise ValueError("Exit time must be after entry time")
+        return self
+    
+    @model_validator(mode='after')
+    def validate_exit_quantity(self):
+        """Validate that exit_quantity does not exceed entry_quantity."""
+        if self.exit_quantity and self.entry_quantity:
+            if self.exit_quantity > self.entry_quantity:
+                raise ValueError(f"Exit quantity ({self.exit_quantity}) cannot exceed entry quantity ({self.entry_quantity})")
+        return self
+    
+    @model_validator(mode='after')
+    def validate_closed_trade_fields(self):
+        """Validate that closed trades have all required exit fields."""
+        if self.status == TradeStatus.CLOSED:
+            if not self.exit_price:
+                raise ValueError("Closed trades must have an exit price")
+            if not self.exit_quantity:
+                raise ValueError("Closed trades must have an exit quantity")
+            if not self.exit_time:
+                raise ValueError("Closed trades must have an exit time")
+        return self
+    
+    @model_validator(mode='after')
+    def validate_options_fields(self):
+        """Validate options-specific fields."""
+        if self.trade_type == TradeType.OPTION:
+            # Strike price is required for options
+            if not self.strike_price:
+                raise ValueError("Strike price is required for option trades")
+            if not self.expiration_date:
+                raise ValueError("Expiration date is required for option trades")
+            if not self.option_type:
+                raise ValueError("Option type (CALL or PUT) is required for option trades")
+            
+            # Validate Greeks ranges (reasonable bounds)
+            if self.delta is not None:
+                if abs(self.delta) > 1:
+                    raise ValueError(f"Delta must be between -1 and 1, got {self.delta}")
+            
+            if self.gamma is not None:
+                if self.gamma < 0 or self.gamma > 1:
+                    raise ValueError(f"Gamma must be between 0 and 1, got {self.gamma}")
+            
+            if self.vega is not None:
+                if self.vega < 0:
+                    raise ValueError(f"Vega must be non-negative, got {self.vega}")
+            
+            if self.theta is not None:
+                if self.theta > 0:
+                    raise ValueError(f"Theta should typically be negative for long options, got {self.theta}")
+            
+            # Validate expiration date is in the future for new trades
+            if self.expiration_date and self.entry_time:
+                if self.expiration_date < self.entry_time.date():
+                    raise ValueError("Expiration date must be on or after entry date")
+            
+            # Validate bid/ask prices
+            if self.bid_price is not None and self.ask_price is not None:
+                if self.bid_price > self.ask_price:
+                    raise ValueError(f"Bid price ({self.bid_price}) cannot exceed ask price ({self.ask_price})")
+                
+                # Validate bid-ask spread if provided
+                if self.bid_ask_spread is not None:
+                    calculated_spread = self.ask_price - self.bid_price
+                    if abs(self.bid_ask_spread - calculated_spread) > Decimal("0.01"):
+                        raise ValueError(f"Bid-ask spread ({self.bid_ask_spread}) does not match calculated spread ({calculated_spread})")
+        
         return self
     
     @model_validator(mode='after')
     def validate_trade_type_fields(self):
         """Validate that trade-type-specific fields are only set for appropriate types."""
         # Options fields should only be set for OPTION trades
-        if self.trade_type != "OPTION":
+        if self.trade_type != TradeType.OPTION:
             if any([
                 self.strike_price, self.expiration_date, self.option_type,
                 self.delta, self.gamma, self.theta, self.vega, self.rho,
                 self.implied_volatility, self.volume, self.open_interest,
                 self.bid_price, self.ask_price, self.bid_ask_spread
             ]):
-                raise ValueError(f"Options fields can only be set for OPTION trade type, got {self.trade_type}")
+                raise ValueError(f"Options-specific fields can only be set for OPTION trade type, but got {self.trade_type}")
         
         # Crypto fields should only be set for crypto trades
-        if self.trade_type not in ["CRYPTO_SPOT", "CRYPTO_PERP"]:
+        if self.trade_type not in [TradeType.CRYPTO_SPOT, TradeType.CRYPTO_PERP]:
             if self.crypto_exchange or self.crypto_pair:
-                raise ValueError(f"Crypto fields can only be set for CRYPTO_SPOT or CRYPTO_PERP trade types, got {self.trade_type}")
+                raise ValueError(f"Crypto-specific fields can only be set for CRYPTO_SPOT or CRYPTO_PERP trade types, but got {self.trade_type}")
         
         # Prediction market fields should only be set for prediction market trades
-        if self.trade_type != "PREDICTION_MARKET":
+        if self.trade_type != TradeType.PREDICTION_MARKET:
             if self.prediction_market_platform or self.prediction_outcome:
-                raise ValueError(f"Prediction market fields can only be set for PREDICTION_MARKET trade type, got {self.trade_type}")
+                raise ValueError(f"Prediction market fields can only be set for PREDICTION_MARKET trade type, but got {self.trade_type}")
         
         return self
 
