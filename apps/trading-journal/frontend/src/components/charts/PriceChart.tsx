@@ -32,8 +32,20 @@ export default function PriceChart({
   useEffect(() => {
     if (!chartContainerRef.current) return
 
+    // Ensure container has width
+    const container = chartContainerRef.current
+    if (container.clientWidth === 0) {
+      // Wait for next frame to ensure container is rendered
+      requestAnimationFrame(() => {
+        if (container.clientWidth === 0) {
+          console.warn('Chart container has no width, cannot render chart')
+          return
+        }
+      })
+    }
+
     // Create chart
-    const chart = createChart(chartContainerRef.current, {
+    const chart = createChart(container, {
       layout: {
         background: { type: ColorType.Solid, color: '#1e1e1e' },
         textColor: '#d1d5db',
@@ -42,7 +54,7 @@ export default function PriceChart({
         vertLines: { color: '#2a2a2a' },
         horzLines: { color: '#2a2a2a' },
       },
-      width: chartContainerRef.current.clientWidth,
+      width: container.clientWidth || 800, // Fallback width if clientWidth is 0
       height: height,
       timeScale: {
         timeVisible: true,
@@ -57,8 +69,9 @@ export default function PriceChart({
 
     // Handle resize
     const handleResize = () => {
-      if (chartContainerRef.current && chart) {
-        chart.applyOptions({ width: chartContainerRef.current.clientWidth })
+      if (container && chart) {
+        const newWidth = container.clientWidth || 800
+        chart.applyOptions({ width: newWidth })
       }
     }
 
@@ -82,18 +95,34 @@ export default function PriceChart({
       seriesRef.current = null
     }
 
+    // Check if we have data
+    if (!data.data || data.data.length === 0) {
+      console.warn('No chart data available')
+      return
+    }
+
     // Prepare data - convert timestamps to unix time (seconds since epoch)
     const chartData = data.data.map((point) => {
-      const unixTime = Math.floor(new Date(point.timestamp).getTime() / 1000)
+      const timestamp = new Date(point.timestamp)
+      if (isNaN(timestamp.getTime())) {
+        console.error('Invalid timestamp:', point.timestamp)
+        return null
+      }
+      const unixTime = Math.floor(timestamp.getTime() / 1000)
       return {
         time: unixTime as any, // lightweight-charts expects Time type
-        open: point.open,
-        high: point.high,
-        low: point.low,
-        close: point.close,
-        volume: point.volume || 0,
+        open: Number(point.open),
+        high: Number(point.high),
+        low: Number(point.low),
+        close: Number(point.close),
+        volume: point.volume ? Number(point.volume) : 0,
       }
-    })
+    }).filter((item): item is NonNullable<typeof item> => item !== null)
+
+    if (chartData.length === 0) {
+      console.warn('No valid chart data after processing')
+      return
+    }
 
     // Create series based on chart mode
     let series: ISeriesApi<'Candlestick' | 'Line'>
@@ -119,7 +148,14 @@ export default function PriceChart({
     }
 
     seriesRef.current = series
-    series.setData(chartData)
+    
+    try {
+      series.setData(chartData)
+      console.log(`Chart data set: ${chartData.length} points`)
+    } catch (error) {
+      console.error('Error setting chart data:', error)
+      return
+    }
 
     // Add trade overlay markers if provided
     if (tradeOverlay) {
@@ -163,7 +199,11 @@ export default function PriceChart({
     }
 
     // Fit content
-    chartRef.current.timeScale().fitContent()
+    try {
+      chartRef.current.timeScale().fitContent()
+    } catch (error) {
+      console.error('Error fitting content:', error)
+    }
   }, [data, chartMode, tradeOverlay, chartReady])
 
   if (isLoading) {
@@ -200,6 +240,7 @@ export default function PriceChart({
         height: height,
         minHeight: height,
         position: 'relative',
+        display: 'block', // Ensure it's a block element
       }}
     />
   )
