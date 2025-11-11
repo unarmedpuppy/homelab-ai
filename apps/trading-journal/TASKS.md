@@ -532,10 +532,23 @@ This file tracks the status of all implementation tasks. Agents should update th
 - Handles edge cases: missing API keys, API failures, empty responses
 
 ### T3.2: Charts API Endpoints
-**Status**: `[PENDING]`
-**Claimed By**: -
+**Status**: `[COMPLETED]`
+**Claimed By**: Auto (AI Agent)
+**Completed**: 2025-01-27
 **Priority**: High
 **Dependencies**: T3.1
+**Summary**:
+- Created `backend/app/api/routes/charts.py` with all chart endpoints:
+  - `GET /api/charts/prices/{ticker}`: Get price data with optional date range and timeframe
+  - `GET /api/charts/prices/{ticker}/range`: Get price data for specified number of days
+  - `GET /api/charts/trade/{trade_id}`: Get price data for a specific trade with entry/exit context
+  - `GET /api/charts/trade/{trade_id}/overlay`: Get trade overlay data for chart visualization
+- All endpoints require API key authentication
+- Supports all timeframes: 1m, 5m, 15m, 1h, 1d
+- Date range validation and parsing (ISO format or YYYY-MM-DD)
+- Trade chart endpoint includes configurable buffer periods (days_before, days_after)
+- Updated chart schemas with Decimal json_encoders for proper serialization
+- Integrated charts router into main FastAPI app
 
 ### T3.3: TradingView Lightweight Charts Integration
 **Status**: `[PENDING]`
