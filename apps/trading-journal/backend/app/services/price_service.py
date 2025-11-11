@@ -548,14 +548,22 @@ async def _fetch_yfinance(
     
     # Convert to PriceDataPoint list
     data_points = []
+    total_points = 0
+    filtered_out = 0
+    
     for timestamp, row in hist.iterrows():
+        total_points += 1
         # Convert to naive datetime
         timestamp_naive = _naive_datetime(timestamp.to_pydatetime())
         
         # Filter for regular trading hours only (9:30 AM - 4:00 PM ET)
         # For intraday data, only include data during market hours
         if not _is_regular_trading_hours(timestamp_naive, timeframe):
+            filtered_out += 1
+            logger.debug(f"Filtering out {timestamp_naive} (hour={timestamp_naive.hour}, minute={timestamp_naive.minute}) - outside trading hours")
             continue
+        
+        logger.debug(f"Including {timestamp_naive} (hour={timestamp_naive.hour}, minute={timestamp_naive.minute}) - within trading hours")
         
         volume = row["Volume"]
         volume_int = None
