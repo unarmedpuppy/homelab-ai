@@ -235,15 +235,15 @@ export default function PriceChart({
       rsiSeriesRef.current = null
     }
 
-    // Create series based on chart mode with custom colors
+    // Create series based on chart mode with custom colors (white/gray theme)
     let series: ISeriesApi<'Candlestick' | 'Line'>
     if (chartMode === 'candlestick') {
       series = chartRef.current.addCandlestickSeries({
-        upColor: chartColors.upColor || '#10b981',
-        downColor: chartColors.downColor || '#ef4444',
+        upColor: '#ffffff', // White for up candles
+        downColor: '#808080', // Gray for down candles
         borderVisible: false,
-        wickUpColor: chartColors.wickUpColor || chartColors.upColor || '#10b981',
-        wickDownColor: chartColors.wickDownColor || chartColors.downColor || '#ef4444',
+        wickUpColor: '#ffffff', // White wicks for up candles
+        wickDownColor: '#808080', // Gray wicks for down candles
       })
     } else {
       series = chartRef.current.addLineSeries({
@@ -358,7 +358,7 @@ export default function PriceChart({
         color: '#ffffff', // White
         lineWidth: 1 as LineWidth,
         lineStyle: LineStyle.Solid,
-        title: 'SMA(20)',
+        // No title to avoid blocking view
         priceFormat: {
           type: 'price',
           precision: 2,
@@ -386,7 +386,7 @@ export default function PriceChart({
         color: '#808080', // Gray
         lineWidth: 1 as LineWidth,
         lineStyle: LineStyle.Solid,
-        title: 'SMA(200)',
+        // No title to avoid blocking view
         priceFormat: {
           type: 'price',
           precision: 2,
@@ -423,7 +423,7 @@ export default function PriceChart({
         color: '#ffffff', // White
         lineWidth: 1 as LineWidth,
         lineStyle: LineStyle.Solid,
-        title: 'EMA(9)',
+        // No title to avoid blocking view
         priceFormat: {
           type: 'price',
           precision: 2,
@@ -460,7 +460,7 @@ export default function PriceChart({
         color: '#808080', // Gray
         lineWidth: 1 as LineWidth,
         lineStyle: LineStyle.Solid,
-        title: 'EMA(21)',
+        // No title to avoid blocking view
         priceFormat: {
           type: 'price',
           precision: 2,
@@ -507,7 +507,7 @@ export default function PriceChart({
         color: '#ffffff', // White
         lineWidth: 1 as LineWidth,
         lineStyle: LineStyle.Solid,
-        title: `RSI(${rsiPeriod})`,
+        // No title to avoid blocking view
         priceFormat: {
           type: 'price',
           precision: 2,
