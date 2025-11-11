@@ -750,10 +750,37 @@ This file tracks the status of all implementation tasks. Agents should update th
   - `idx_trades_trade_type`: For trade type filtering
 
 ### T4.4: Data Validation & Error Messages
-**Status**: `[PENDING]`
-**Claimed By**: -
+**Status**: `[COMPLETED]`
+**Claimed By**: Auto (AI Agent)
+**Completed**: 2025-11-11
 **Priority**: Medium
 **Dependencies**: All tasks
+**Summary**:
+- Enhanced validation in `TradeBase` schema (`trade.py`):
+  - Added `validate_exit_quantity`: Ensures exit quantity does not exceed entry quantity
+  - Added `validate_closed_trade_fields`: Ensures closed trades have all required exit fields (exit_price, exit_quantity, exit_time)
+  - Added `validate_options_fields`: Comprehensive options validation including:
+    - Required fields for options (strike_price, expiration_date, option_type)
+    - Greeks range validation (delta: -1 to 1, gamma: 0 to 1, vega: non-negative, theta typically negative)
+    - Expiration date must be on or after entry date
+    - Bid/ask price consistency (bid <= ask)
+    - Bid-ask spread matches calculated spread
+  - Improved error messages in `validate_trade_type_fields` to be more descriptive
+- Enhanced validation error handler in `main.py`:
+  - Transforms Pydantic validation errors into user-friendly messages
+  - Formats field paths for better readability
+  - Extracts actual error messages from validation context
+  - Returns structured error response with field, message, and type
+- Enhanced query parameter validation in `trades.py`:
+  - Added min/max length validation for ticker parameter
+  - Added descriptive descriptions for trade_type, status, and side parameters with valid values
+- Expanded validation utilities in `validators.py`:
+  - Added `validate_options_greeks`: Validates Greeks are within reasonable ranges
+  - Added `validate_implied_volatility`: Validates IV is between 0-10 (0-1000%)
+  - Added `validate_expiration_date`: Validates expiration date is reasonable and after entry date
+  - Added `validate_bid_ask_prices`: Validates bid/ask consistency and spread calculation
+- All validation errors now provide clear, actionable error messages
+- Validation covers all trade types (STOCK, OPTION, CRYPTO_SPOT, CRYPTO_PERP, PREDICTION_MARKET)
 
 ### T4.5: Options Chain API Endpoints
 **Status**: `[PENDING]`
