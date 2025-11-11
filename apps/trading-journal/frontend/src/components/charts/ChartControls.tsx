@@ -4,7 +4,6 @@
 
 import { Box, FormControl, InputLabel, Select, MenuItem, TextField, SelectChangeEvent } from '@mui/material'
 import { Timeframe, ChartMode } from '../../types/charts'
-import { format, subDays } from 'date-fns'
 
 interface ChartControlsProps {
   timeframe: Timeframe

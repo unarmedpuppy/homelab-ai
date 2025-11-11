@@ -5,7 +5,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createChart, IChartApi, ISeriesApi, ColorType, LineStyle, LineWidth } from 'lightweight-charts'
 import { Box, CircularProgress, Alert, Typography } from '@mui/material'
-import { PriceDataResponse, TradeOverlayData, Timeframe, ChartMode } from '../../types/charts'
+import { PriceDataResponse, TradeOverlayData, ChartMode } from '../../types/charts'
 
 interface PriceChartProps {
   data: PriceDataResponse | undefined
@@ -129,22 +129,22 @@ export default function PriceChart({
         : null
 
       // Entry marker
-      const markers = [
+      const markers: any[] = [
         {
-          time: entryTime as any,
-          position: 'belowBar' as const,
+          time: entryTime,
+          position: 'belowBar',
           color: tradeOverlay.side === 'LONG' ? '#10b981' : '#ef4444',
-          shape: 'arrowUp' as const,
+          shape: 'arrowUp',
           text: `Entry: ${tradeOverlay.side} @ $${tradeOverlay.entry_price.toFixed(2)}`,
         },
       ]
 
       if (exitTime) {
         markers.push({
-          time: exitTime as any,
-          position: 'aboveBar' as const,
+          time: exitTime,
+          position: 'aboveBar',
           color: tradeOverlay.side === 'LONG' ? '#ef4444' : '#10b981',
-          shape: 'arrowDown' as const,
+          shape: 'arrowDown',
           text: `Exit @ $${tradeOverlay.exit_price?.toFixed(2) || 'N/A'}`,
         })
       }
