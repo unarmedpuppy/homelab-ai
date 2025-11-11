@@ -23,6 +23,7 @@ import {
   Chip,
   useTheme,
   Tooltip,
+  MenuItem,
 } from '@mui/material'
 import {
   ArrowBack,
@@ -33,7 +34,16 @@ import {
   Assessment,
   ShowChart,
 } from '@mui/icons-material'
-import { format, parseISO } from 'date-fns'
+import { format, parseISO, startOfDay } from 'date-fns'
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts'
 import {
   useDailyJournal,
   useCreateOrUpdateDailyNotes,
@@ -49,6 +59,9 @@ export default function DailyJournal() {
   
   const [notes, setNotes] = useState('')
   const [isEditing, setIsEditing] = useState(false)
+  const [tickerFilter, setTickerFilter] = useState('')
+  const [playbookFilter, setPlaybookFilter] = useState('')
+  const [typeFilter, setTypeFilter] = useState('')
 
   const { data: journal, isLoading, error } = useDailyJournal(date || '')
   const createOrUpdateNotes = useCreateOrUpdateDailyNotes()
@@ -291,34 +304,196 @@ export default function DailyJournal() {
         </Grid>
       </Grid>
 
+      {/* P&L Progression Chart */}
+      {journal.trades.length > 0 && (
+        <Paper sx={{ p: { xs: 1.5, sm: 2 }, mb: { xs: 2, sm: 3 } }}>
+          <Typography variant="h6" gutterBottom>
+            P&L Progression
+          </Typography>
+          {(() => {
+            // Calculate cumulative P&L throughout the day
+            const dayStart = startOfDay(parseISO(date || ''))
+            const chartData: Array<{ time: string; cumulativePnl: number }> = []
+            let cumulativePnl = 0
+
+            // Sort trades by entry time
+            const sortedTrades = [...journal.trades].sort((a, b) => {
+              const aTime = a.entry_time ? parseISO(a.entry_time).getTime() : 0
+              const bTime = b.entry_time ? parseISO(b.entry_time).getTime() : 0
+              return aTime - bTime
+            })
+
+            // Add initial point at start of day
+            chartData.push({
+              time: format(dayStart, 'HH:mm'),
+              cumulativePnl: 0,
+            })
+
+            // Process each trade
+            sortedTrades.forEach((trade) => {
+              if (trade.entry_time) {
+                const entryTime = parseISO(trade.entry_time)
+                // Add point at entry (P&L doesn't change yet)
+                chartData.push({
+                  time: format(entryTime, 'HH:mm'),
+                  cumulativePnl: cumulativePnl,
+                })
+              }
+
+              // If trade is closed, add P&L at exit time
+              if (trade.exit_time && trade.net_pnl !== null && trade.net_pnl !== undefined) {
+                const exitTime = parseISO(trade.exit_time)
+                cumulativePnl += trade.net_pnl
+                chartData.push({
+                  time: format(exitTime, 'HH:mm'),
+                  cumulativePnl: cumulativePnl,
+                })
+              }
+            })
+
+            // If no trades have exited yet, show current cumulative
+            if (chartData.length === 1 && sortedTrades.length > 0) {
+              chartData.push({
+                time: format(new Date(), 'HH:mm'),
+                cumulativePnl: cumulativePnl,
+              })
+            }
+
+            return (
+              <ResponsiveContainer width="100%" height={250}>
+                <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+                  <XAxis
+                    dataKey="time"
+                    stroke="#d1d5db"
+                    style={{ fontSize: '12px' }}
+                    tick={{ fill: '#d1d5db' }}
+                  />
+                  <YAxis
+                    stroke="#d1d5db"
+                    style={{ fontSize: '12px' }}
+                    tick={{ fill: '#d1d5db' }}
+                    tickFormatter={(value) => `$${value.toFixed(0)}`}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#1e1e1e',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '4px',
+                      color: '#d1d5db',
+                    }}
+                    formatter={(value: number) => [formatCurrency(value), 'Cumulative P&L']}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="cumulativePnl"
+                    stroke={cumulativePnl >= 0 ? theme.palette.success.main : theme.palette.error.main}
+                    strokeWidth={2}
+                    dot={{ fill: cumulativePnl >= 0 ? theme.palette.success.main : theme.palette.error.main, r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            )
+          })()}
+        </Paper>
+      )}
+
       {/* Trades Table */}
       <Paper sx={{ p: { xs: 1.5, sm: 2 }, mb: { xs: 2, sm: 3 } }}>
-        <Typography variant="h6" gutterBottom>
-          Trades
-        </Typography>
-        {journal.trades.length === 0 ? (
-          <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
-            No trades for this day
-          </Typography>
-        ) : (
-          <TableContainer sx={{ maxWidth: '100%', overflowX: 'auto' }}>
-            <Table size="small" sx={{ minWidth: 800 }}>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Ticker</TableCell>
-                  <TableCell>Type</TableCell>
-                  <TableCell>Side</TableCell>
-                  <TableCell>Entry Time</TableCell>
-                  <TableCell>Exit Time</TableCell>
-                  <TableCell align="right">P&L</TableCell>
-                  <TableCell align="right">ROI</TableCell>
-                  <TableCell align="right">R-Multiple</TableCell>
-                  <TableCell align="center">Chart</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {journal.trades.map((trade) => (
-                  <TableRow key={trade.id} hover>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6">Trades</Typography>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            <TextField
+              size="small"
+              label="Filter by ticker"
+              value={tickerFilter}
+              onChange={(e) => setTickerFilter(e.target.value)}
+              sx={{ minWidth: 150 }}
+            />
+            <TextField
+              size="small"
+              select
+              label="Filter by playbook"
+              value={playbookFilter}
+              onChange={(e) => setPlaybookFilter(e.target.value)}
+              sx={{ minWidth: 150 }}
+            >
+              <MenuItem value="">All</MenuItem>
+              {Array.from(new Set(journal.trades.map((t) => t.playbook).filter(Boolean))).map(
+                (pb) => (
+                  <MenuItem key={pb} value={pb}>
+                    {pb}
+                  </MenuItem>
+                )
+              )}
+            </TextField>
+            <TextField
+              size="small"
+              select
+              label="Filter by type"
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              sx={{ minWidth: 150 }}
+            >
+              <MenuItem value="">All</MenuItem>
+              <MenuItem value="STOCK">Stock</MenuItem>
+              <MenuItem value="OPTION">Option</MenuItem>
+              <MenuItem value="CRYPTO_SPOT">Crypto Spot</MenuItem>
+              <MenuItem value="CRYPTO_PERP">Crypto Perp</MenuItem>
+              <MenuItem value="PREDICTION_MARKET">Prediction Market</MenuItem>
+            </TextField>
+          </Box>
+        </Box>
+        {(() => {
+          // Filter trades
+          const filteredTrades = journal.trades.filter((trade) => {
+            if (tickerFilter && !trade.ticker.toLowerCase().includes(tickerFilter.toLowerCase())) {
+              return false
+            }
+            if (playbookFilter && trade.playbook !== playbookFilter) {
+              return false
+            }
+            if (typeFilter && trade.trade_type !== typeFilter) {
+              return false
+            }
+            return true
+          })
+
+          return filteredTrades.length === 0 ? (
+            <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
+              {journal.trades.length === 0
+                ? 'No trades for this day'
+                : 'No trades match the selected filters'}
+            </Typography>
+          ) : (
+            <TableContainer sx={{ maxWidth: '100%', overflowX: 'auto' }}>
+              <Table size="small" sx={{ minWidth: 800 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Ticker</TableCell>
+                    <TableCell>Type</TableCell>
+                    <TableCell>Side</TableCell>
+                    <TableCell>Entry Time</TableCell>
+                    <TableCell>Exit Time</TableCell>
+                    <TableCell>Playbook</TableCell>
+                    <TableCell align="right">P&L</TableCell>
+                    <TableCell align="right">ROI</TableCell>
+                    <TableCell align="right">R-Multiple</TableCell>
+                    <TableCell align="center">Chart</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredTrades.map((trade) => (
+                    <TableRow
+                      key={trade.id}
+                      hover
+                      sx={{ cursor: 'pointer' }}
+                      onClick={() => {
+                        // TODO: Navigate to trade edit/view page
+                        console.log('View/edit trade:', trade.id)
+                      }}
+                    >
                     <TableCell>
                       <Typography variant="body2" fontWeight="bold">
                         {trade.ticker}
@@ -347,6 +522,15 @@ export default function DailyJournal() {
                           ? format(parseISO(trade.exit_time), 'HH:mm:ss')
                           : 'N/A'}
                       </Typography>
+                    </TableCell>
+                    <TableCell>
+                      {trade.playbook ? (
+                        <Chip label={trade.playbook} size="small" variant="outlined" />
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          -
+                        </Typography>
+                      )}
                     </TableCell>
                     <TableCell align="right">
                       <Typography

@@ -13,6 +13,11 @@ from typing import Optional, List
 
 from app.database import Base
 
+# Import for type hints (avoid circular import)
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from app.models.playbook import Playbook
+
 
 class Trade(Base):
     """
@@ -81,9 +86,13 @@ class Trade(Base):
     
     # Metadata
     status: Mapped[str] = mapped_column(String(20), nullable=False, server_default="open")  # open, closed, partial
-    playbook: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    playbook_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("playbooks.id", ondelete="SET NULL"), nullable=True)
+    playbook: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)  # Legacy field, kept for backward compatibility
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     tags: Mapped[Optional[List[str]]] = mapped_column(ARRAY(Text), nullable=True)
+    
+    # Relationships
+    playbook_rel: Mapped[Optional["Playbook"]] = relationship("Playbook", back_populates="trades")
     
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.current_timestamp())

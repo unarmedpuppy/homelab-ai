@@ -28,6 +28,27 @@ async def create_trade(db: AsyncSession, trade_data: TradeCreate) -> Trade:
     # Convert Pydantic model to dict, excluding None values
     trade_dict = trade_data.model_dump(exclude_unset=True)
     
+    # Handle playbook: if playbook string is provided, find or create playbook
+    if "playbook" in trade_dict and trade_dict["playbook"]:
+        from app.models.playbook import Playbook
+        from app.services.playbook_service import get_playbooks, create_playbook
+        from app.schemas.playbook import PlaybookCreate
+        
+        # Try to find existing playbook by name
+        playbooks, _ = await get_playbooks(db, search=trade_dict["playbook"], limit=1)
+        if playbooks and playbooks[0].name.lower() == trade_dict["playbook"].lower():
+            trade_dict["playbook_id"] = playbooks[0].id
+        else:
+            # Create new playbook
+            new_playbook = await create_playbook(
+                db,
+                PlaybookCreate(name=trade_dict["playbook"], description=None)
+            )
+            trade_dict["playbook_id"] = new_playbook.id
+        
+        # Keep playbook string for backward compatibility
+        # trade_dict["playbook"] is already set
+    
     # Create trade instance
     trade = Trade(**trade_dict)
     

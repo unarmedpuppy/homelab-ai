@@ -9,6 +9,7 @@ from app.models.trade import Trade
 from app.models.daily_summary import DailySummary
 from app.models.price_cache import PriceCache
 from app.models.daily_note import DailyNote
+from app.models.playbook import Playbook, PlaybookTemplate
 
 __all__ = [
     "Base",
@@ -16,5 +17,7 @@ __all__ = [
     "DailySummary",
     "PriceCache",
     "DailyNote",
+    "Playbook",
+    "PlaybookTemplate",
 ]
 

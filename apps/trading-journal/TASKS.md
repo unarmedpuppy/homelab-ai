@@ -857,22 +857,95 @@ This file tracks the status of all implementation tasks. Agents should update th
   - Best/worst trades: Identified from all trades in date range
 
 ### T4.7: AI Agent Helper Endpoints
-**Status**: `[PENDING]`
-**Claimed By**: -
+**Status**: `[COMPLETED]`
+**Claimed By**: Auto (AI Agent)
+**Completed**: 2025-11-11
 **Priority**: Medium
 **Dependencies**: T1.7
+**Summary**:
+- Created `backend/app/schemas/ai.py`:
+  - `ParseTradeRequest`: Request schema for parsing natural language trade descriptions
+  - `ParseTradeResponse`: Response with parsed trade data, confidence score, extracted/missing fields, and warnings
+  - `BatchCreateRequest`: Request schema for batch trade creation
+  - `BatchCreateResponse`: Response with created/failed trades and summary statistics
+  - `TradeSuggestion`: Suggested trade parameters based on historical data
+- Created `backend/app/services/ai_service.py`:
+  - `parse_trade_from_description()`: Rule-based parser that extracts trade information from natural language descriptions
+    - Extracts ticker, trade type, side, prices, quantities, dates, status, playbook
+    - Calculates confidence score based on extracted required fields
+    - Returns warnings and missing fields for transparency
+  - `batch_create_trades_from_descriptions()`: Batch creates trades from multiple descriptions
+    - Parses all trades first, filters low-confidence trades (< 0.5)
+    - Uses existing `bulk_create_trades` for efficient database operations
+    - Returns detailed success/failure information
+  - `get_trade_suggestions()`: Analyzes historical trades for a ticker
+    - Suggests entry price, quantity, trade type, side, playbook based on historical patterns
+    - Calculates win rate and average P&L
+    - Provides insights and notes about historical performance
+- Created `backend/app/api/routes/ai.py`:
+  - `POST /api/ai/parse-trade`: Parse natural language trade description into structured data
+  - `POST /api/ai/batch-create`: Batch create trades from multiple descriptions
+  - `GET /api/ai/suggestions/{ticker}`: Get trade suggestions based on historical data
+  - Proper error handling and user-friendly error messages
+- Updated `backend/app/main.py`:
+  - Added AI router with `/api/ai` prefix
+  - Tagged as "ai" for OpenAPI documentation
+- All endpoints require API key authentication
+- All endpoints are documented in OpenAPI/Swagger
+- Parser uses regex patterns and keyword matching for extraction
+- Suggestions analyze last 10 trades for recent patterns
+- Handles edge cases (no historical data, low confidence parsing, etc.)
 
 ### T4.8: Documentation & README
-**Status**: `[PENDING]`
-**Claimed By**: -
+**Status**: `[COMPLETED]`
+**Claimed By**: Auto (AI Agent)
+**Completed**: 2025-11-11
 **Priority**: Medium
 **Dependencies**: All tasks
+**Summary**:
+- Updated `README.md` with comprehensive documentation:
+  - **Features**: Complete list of implemented features and supported trade types
+  - **Quick Start**: Step-by-step installation and setup instructions
+  - **API Authentication**: How to use API key authentication
+  - **API Endpoints**: Complete list of all available endpoints organized by category
+  - **API Documentation**: Links to Swagger UI, ReDoc, and OpenAPI JSON
+  - **Database**: Schema overview, migration commands, backup/restore procedures
+  - **Deployment**: Production deployment guide, update procedures, port configuration
+  - **Configuration**: Environment variables documentation
+  - **Testing**: Manual testing procedures and troubleshooting guide
+  - **Performance Metrics**: Overview of calculated metrics
+  - **Security**: Security features and best practices
+  - **Development**: Project structure and how to add new features
+  - **Contributing**: Guidelines for working on the project
+- All endpoints documented with descriptions
+- Includes practical examples for common operations
+- Troubleshooting section for common issues
+- Complete deployment and maintenance procedures
 
 ### T4.9: Traefik & Homepage Integration
-**Status**: `[PENDING]`
-**Claimed By**: -
+**Status**: `[COMPLETED]`
+**Claimed By**: Auto (AI Agent)
+**Completed**: 2025-11-11
 **Priority**: Medium
 **Dependencies**: T1.2
+**Summary**:
+- Added Traefik labels to `docker-compose.yml` for internal routing:
+  - Enabled Traefik routing for frontend service
+  - Configured HTTPS redirect middleware
+  - Set up main HTTPS router with internal domain `trading-journal.server.unarmedpuppy.com`
+  - Configured service to use port 80 (frontend container port)
+  - Set Traefik network to `my-network`
+  - **Note**: Not exposed to public internet via Cloudflare (as requested)
+- Added Homepage labels for dashboard integration:
+  - Group: "Finance & Trading"
+  - Name: "Trading Journal"
+  - Icon: TradingView icon
+  - Direct link: `http://192.168.86.47:8101` (internal IP access)
+  - Description: "Self-hosted trading journal for tracking trades and analyzing performance"
+- Application accessible via:
+  - Direct port access: `http://192.168.86.47:8101`
+  - Traefik internal routing: `https://trading-journal.server.unarmedpuppy.com` (requires local network access)
+- Ready for future public exposure when needed (just need to add Cloudflare DDNS configuration)
 
 ---
 

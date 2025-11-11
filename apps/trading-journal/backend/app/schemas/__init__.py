@@ -38,6 +38,15 @@ from app.schemas.charts import (
     PriceDataResponse,
     TradeOverlayData,
 )
+from app.schemas.playbook import (
+    PlaybookCreate,
+    PlaybookUpdate,
+    PlaybookResponse,
+    PlaybookListResponse,
+    PlaybookPerformance,
+    PlaybookTemplateCreate,
+    PlaybookTemplateResponse,
+)
 
 __all__ = [
     # Trade schemas
@@ -69,5 +78,13 @@ __all__ = [
     "PriceDataPoint",
     "PriceDataResponse",
     "TradeOverlayData",
+    # Playbook schemas
+    "PlaybookCreate",
+    "PlaybookUpdate",
+    "PlaybookResponse",
+    "PlaybookListResponse",
+    "PlaybookPerformance",
+    "PlaybookTemplateCreate",
+    "PlaybookTemplateResponse",
 ]
 

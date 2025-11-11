@@ -4,6 +4,7 @@ import ErrorBoundary from './components/common/ErrorBoundary'
 import Dashboard from './pages/Dashboard'
 import Calendar from './pages/Calendar'
 import DailyJournal from './pages/DailyJournal'
+import Playbooks from './pages/Playbooks'
 import TradeEntry from './pages/TradeEntry'
 import Charts from './pages/Charts'
 
@@ -16,6 +17,7 @@ function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/daily/:date?" element={<DailyJournal />} />
+            <Route path="/playbooks" element={<Playbooks />} />
             <Route path="/trade-entry" element={<TradeEntry />} />
             <Route path="/charts/:ticker?" element={<Charts />} />
             <Route path="/charts/trade/:tradeId" element={<Charts />} />

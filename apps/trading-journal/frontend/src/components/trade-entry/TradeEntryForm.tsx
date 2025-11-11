@@ -29,10 +29,20 @@ import { format } from 'date-fns'
 import { TradeType, TradeSide, TradeStatus, OptionType, TradeCreate } from '../../types/trade'
 import { useCreateTrade } from '../../hooks/useTrades'
 import OptionsChainInput from './OptionsChainInput'
+import { useQuery } from '@tanstack/react-query'
+import { getPlaybooks } from '../../api/playbooks'
+import { Autocomplete, TextField as MuiTextField } from '@mui/material'
 
 export default function TradeEntryForm() {
   const navigate = useNavigate()
   const createTrade = useCreateTrade()
+
+  // Fetch playbooks for dropdown
+  const { data: playbooksData } = useQuery({
+    queryKey: ['playbooks', { is_active: true }],
+    queryFn: () => getPlaybooks({ is_active: true, limit: 100 }),
+  })
+  const playbooks = playbooksData?.playbooks || []
 
   // Form state
   const [ticker, setTicker] = useState('')
@@ -625,12 +635,19 @@ export default function TradeEntryForm() {
           </Grid>
 
           <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Playbook/Strategy"
+            <Autocomplete
+              freeSolo
+              options={playbooks.map((p) => p.name)}
               value={playbook}
-              onChange={(e) => setPlaybook(e.target.value)}
-              placeholder="e.g., Breakout, Reversal"
+              onInputChange={(_, newValue) => setPlaybook(newValue)}
+              renderInput={(params) => (
+                <MuiTextField
+                  {...params}
+                  label="Playbook/Strategy"
+                  placeholder="e.g., Breakout, Reversal"
+                  helperText="Select an existing playbook or type a new one"
+                />
+              )}
             />
           </Grid>
 
