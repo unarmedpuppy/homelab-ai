@@ -605,10 +605,36 @@ This file tracks the status of all implementation tasks. Agents should update th
   - Visual indicators with arrows and color coding
 
 ### T3.5: Dashboard Charts
-**Status**: `[PENDING]`
-**Claimed By**: -
+**Status**: `[COMPLETED]`
+**Claimed By**: Auto (AI Agent)
+**Completed**: 2025-11-11
 **Priority**: High
 **Dependencies**: T2.4, T3.2
+**Summary**:
+- Created `frontend/src/components/dashboard/CumulativePnLChart.tsx`:
+  - Line chart displaying cumulative P&L over time
+  - Uses Recharts LineChart component
+  - Dark theme styling with purple line color
+  - Custom tooltips with formatted currency values
+  - Responsive container
+- Created `frontend/src/components/dashboard/DailyPnLChart.tsx`:
+  - Bar chart displaying daily P&L
+  - Color-coded bars (green for profit, red for loss) using Cell components
+  - Shows trade count in tooltips
+  - Dark theme styling
+  - Responsive container
+- Created `frontend/src/components/dashboard/DrawdownChart.tsx`:
+  - Area chart displaying drawdown percentage over time
+  - Gradient fill for visual appeal
+  - Shows recovery dates in tooltips
+  - Dark theme styling with red color scheme
+  - Responsive container
+- Updated `frontend/src/pages/Dashboard.tsx`:
+  - Added "Performance Charts" section
+  - Integrated all three charts in responsive grid layout
+  - Cumulative P&L and Daily P&L side-by-side on larger screens
+  - Drawdown chart full width below
+  - All charts use existing API endpoints and React Query hooks
 
 ## Phase 4: Polish & Optimization
 
