@@ -816,10 +816,45 @@ This file tracks the status of all implementation tasks. Agents should update th
 - Ready for future integration with real-time options data providers
 
 ### T4.6: Analytics API Endpoints
-**Status**: `[PENDING]`
-**Claimed By**: -
+**Status**: `[COMPLETED]`
+**Claimed By**: Auto (AI Agent)
+**Completed**: 2025-11-11
 **Priority**: Low
 **Dependencies**: T2.2
+**Summary**:
+- Created `backend/app/schemas/analytics.py`:
+  - `PerformanceMetrics`: Advanced performance metrics (Sharpe ratio, Sortino ratio, max/avg drawdown, best/worst trades)
+  - `TickerPerformance`: Performance breakdown by ticker
+  - `TickerPerformanceResponse`: Response schema for ticker breakdown
+  - `TypePerformance`: Performance breakdown by trade type
+  - `TypePerformanceResponse`: Response schema for type breakdown
+  - `PlaybookPerformance`: Performance breakdown by playbook/strategy
+  - `PlaybookPerformanceResponse`: Response schema for playbook breakdown
+- Created `backend/app/services/analytics_service.py`:
+  - `get_performance_metrics()`: Calculates advanced metrics including Sharpe ratio, Sortino ratio, average drawdown, best/worst trades
+  - `get_performance_by_ticker()`: Groups trades by ticker and calculates performance metrics per ticker
+  - `get_performance_by_type()`: Groups trades by trade type and calculates performance metrics per type
+  - `get_performance_by_playbook()`: Groups trades by playbook/strategy and calculates performance metrics per playbook
+  - All functions support date range filtering
+  - Results sorted by net P&L (descending) for easy identification of best performers
+  - Handles trades without playbook (groups as "Unspecified")
+- Created `backend/app/api/routes/analytics.py`:
+  - `GET /api/analytics/performance`: Get comprehensive performance metrics
+  - `GET /api/analytics/by-ticker`: Get performance breakdown by ticker
+  - `GET /api/analytics/by-type`: Get performance breakdown by trade type
+  - `GET /api/analytics/by-playbook`: Get performance breakdown by playbook/strategy
+  - Proper date parsing and validation
+  - User-friendly error messages
+- Updated `backend/app/main.py`:
+  - Added analytics router with `/api/analytics` prefix
+  - Tagged as "analytics" for OpenAPI documentation
+- All endpoints require API key authentication
+- All endpoints are documented in OpenAPI/Swagger
+- Advanced metrics calculations:
+  - Sharpe ratio: Annualized (mean return / std dev) × sqrt(252)
+  - Sortino ratio: Annualized (mean return / downside deviation) × sqrt(252)
+  - Average drawdown: Calculated from daily P&L progression
+  - Best/worst trades: Identified from all trades in date range
 
 ### T4.7: AI Agent Helper Endpoints
 **Status**: `[PENDING]`
