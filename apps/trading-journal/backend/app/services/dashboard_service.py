@@ -40,7 +40,12 @@ async def get_dashboard_stats(
         DashboardStats with all calculated metrics
     """
     # Build query with filters
-    query = select(Trade).where(Trade.status == "closed")
+    # Order by exit_time for consistent processing order
+    query = (
+        select(Trade)
+        .where(Trade.status == "closed")
+        .order_by(Trade.exit_time.asc())
+    )
     
     if date_from:
         query = query.where(Trade.exit_time >= datetime.combine(date_from, datetime.min.time()))
@@ -187,9 +192,9 @@ def calculate_max_drawdown(
     4. Max Drawdown = Maximum drawdown value
     
     Args:
-        trades: List of closed trades
-        date_from: Start date filter
-        date_to: End date filter
+        trades: List of closed trades (should already be sorted by exit_time)
+        date_from: Start date filter (unused, kept for API compatibility)
+        date_to: End date filter (unused, kept for API compatibility)
     
     Returns:
         Maximum drawdown as percentage, or None if no trades
@@ -197,11 +202,9 @@ def calculate_max_drawdown(
     if not trades:
         return None
     
-    # Sort trades by exit time
-    sorted_trades = sorted(
-        [t for t in trades if t.exit_time],
-        key=lambda t: t.exit_time
-    )
+    # Filter out trades without exit_time (shouldn't happen for closed trades, but safety check)
+    # Trades should already be sorted by exit_time from the query
+    sorted_trades = [t for t in trades if t.exit_time]
     
     if not sorted_trades:
         return None

@@ -196,6 +196,8 @@ async def bulk_create_trades(
     """
     Create multiple trades in bulk.
     
+    Optimized to use bulk insert operations for better performance.
+    
     Args:
         db: Database session
         trades_data: List of trade creation data
@@ -203,6 +205,9 @@ async def bulk_create_trades(
     Returns:
         List of created trades
     """
+    if not trades_data:
+        return []
+    
     trades = []
     for trade_data in trades_data:
         trade_dict = trade_data.model_dump(exclude_unset=True)
@@ -213,11 +218,12 @@ async def bulk_create_trades(
             trade.update_calculated_fields()
         
         trades.append(trade)
-        db.add(trade)
     
+    # Use bulk_save_objects for better performance with many trades
+    db.add_all(trades)
     await db.commit()
     
-    # Refresh all trades
+    # Refresh all trades to get IDs and default values
     for trade in trades:
         await db.refresh(trade)
     

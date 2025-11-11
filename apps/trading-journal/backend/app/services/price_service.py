@@ -679,38 +679,52 @@ async def _cache_price_data(
     """
     Cache price data in database.
     
+    Optimized to batch check existing entries and use bulk operations.
+    
     Args:
         db: Database session
         ticker: Ticker symbol
         data_points: List of price data points to cache
         timeframe: Timeframe
     """
-    for point in data_points:
-        # Ensure timestamp is naive for database operations
-        point_timestamp_naive = _naive_datetime(point.timestamp)
-        
-        # Check if already cached
-        query = (
-            select(PriceCache)
-            .where(
-                and_(
-                    PriceCache.ticker == ticker,
-                    PriceCache.timestamp == point_timestamp_naive,
-                    PriceCache.timeframe == timeframe,
-                )
+    if not data_points:
+        return
+    
+    # Prepare timestamps
+    timestamps = [_naive_datetime(point.timestamp) for point in data_points]
+    now = _naive_datetime(datetime.now())
+    
+    # Batch check for existing entries
+    query = (
+        select(PriceCache)
+        .where(
+            and_(
+                PriceCache.ticker == ticker,
+                PriceCache.timeframe == timeframe,
+                PriceCache.timestamp.in_(timestamps),
             )
         )
-        result = await db.execute(query)
-        existing = result.scalar_one_or_none()
+    )
+    result = await db.execute(query)
+    existing_entries = {entry.timestamp: entry for entry in result.scalars().all()}
+    
+    # Prepare updates and inserts
+    to_update = []
+    to_insert = []
+    
+    for point in data_points:
+        point_timestamp_naive = _naive_datetime(point.timestamp)
         
-        if existing:
+        if point_timestamp_naive in existing_entries:
             # Update existing cache entry
+            existing = existing_entries[point_timestamp_naive]
             existing.open_price = point.open
             existing.high_price = point.high
             existing.low_price = point.low
             existing.close_price = point.close
             existing.volume = point.volume
-            existing.cached_at = _naive_datetime(datetime.now())
+            existing.cached_at = now
+            to_update.append(existing)
         else:
             # Create new cache entry
             cache_entry = PriceCache(
@@ -722,10 +736,15 @@ async def _cache_price_data(
                 low_price=point.low,
                 close_price=point.close,
                 volume=point.volume,
-                cached_at=_naive_datetime(datetime.now()),
+                cached_at=now,
             )
-            db.add(cache_entry)
+            to_insert.append(cache_entry)
     
+    # Bulk insert new entries
+    if to_insert:
+        db.add_all(to_insert)
+    
+    # Commit all changes (updates and inserts)
     await db.commit()
 
 
