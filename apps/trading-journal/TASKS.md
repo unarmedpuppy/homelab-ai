@@ -551,10 +551,32 @@ This file tracks the status of all implementation tasks. Agents should update th
 - Integrated charts router into main FastAPI app
 
 ### T3.3: TradingView Lightweight Charts Integration
-**Status**: `[PENDING]`
-**Claimed By**: -
+**Status**: `[COMPLETED]`
+**Claimed By**: Auto (AI Agent)
+**Completed**: 2025-01-27
 **Priority**: High
 **Dependencies**: T3.2
+**Summary**:
+- Installed `lightweight-charts` library (v4.1.3)
+- Created `frontend/src/types/charts.ts` with TypeScript types for chart data
+- Created `frontend/src/api/charts.ts` with API functions for all chart endpoints
+- Created `frontend/src/hooks/useCharts.ts` with React Query hooks for chart data
+- Created `frontend/src/components/charts/PriceChart.tsx`:
+  - TradingView Lightweight Charts integration
+  - Supports candlestick and line chart modes
+  - Dark theme styling matching app design
+  - Responsive chart with automatic resize handling
+  - Trade overlay marker support (prepared for T3.4)
+- Created `frontend/src/components/charts/ChartControls.tsx`:
+  - Timeframe selector (1m, 5m, 15m, 1h, 1d)
+  - Chart type selector (candlestick, line)
+  - Days selector (1-365 days)
+- Updated `frontend/src/pages/Charts.tsx`:
+  - Ticker input form
+  - Chart controls integration
+  - Price chart display
+  - URL parameter synchronization
+  - Loading and error states
 
 ### T3.4: Trade Overlay on Charts
 **Status**: `[PENDING]`
