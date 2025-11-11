@@ -76,6 +76,27 @@ services:
         condition: service_healthy
     networks:
       - my-network
+    labels:
+      # Traefik labels for internal routing (not exposed to public internet)
+      - "traefik.enable=true"
+      # HTTPS redirect (for when accessed via Traefik)
+      - "traefik.http.middlewares.trading-journal-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.trading-journal-redirect.middlewares=trading-journal-redirect"
+      - "traefik.http.routers.trading-journal-redirect.rule=Host(`trading-journal.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.trading-journal-redirect.entrypoints=web"
+      # Main HTTPS router (internal only - requires local network access)
+      - "traefik.http.routers.trading-journal.rule=Host(`trading-journal.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.trading-journal.entrypoints=websecure"
+      - "traefik.http.routers.trading-journal.tls.certresolver=myresolver"
+      - "traefik.http.routers.trading-journal.service=trading-journal"
+      - "traefik.http.services.trading-journal.loadbalancer.server.port=80"
+      - "traefik.docker.network=my-network"
+      # Homepage labels
+      - "homepage.group=Finance & Trading"
+      - "homepage.name=Trading Journal"
+      - "homepage.icon=si-tradingview"
+      - "homepage.href=http://192.168.86.47:8101"
+      - "homepage.description=Self-hosted trading journal for tracking trades and analyzing performance"
 
 networks:
   my-network:
