@@ -78,7 +78,43 @@ A self-hosted trading journal application inspired by Tradezella, designed for p
 - **Playbook Performance**: Breakdown of performance by playbook for the day
 - **Trade Timeline**: Chronological view of trades throughout the day
 
-### 5. Trade Visualization (Chart View)
+### 5. Playbooks Management
+- **Playbook List View**:
+  - Grid/list view toggle
+  - Filter by active/inactive, shared/private
+  - Search playbooks
+  - Sort by name, performance, trade count
+- **Playbook Details**:
+  - Name and description
+  - Performance metrics:
+    - Total trades, missed trades
+    - Average winner, average loser
+    - Total net P&L
+    - Profit factor
+    - Win rate
+  - Trade history for playbook
+  - Performance charts
+- **Create/Edit Playbook**:
+  - Name, description
+  - Tags/categories
+  - Template selection (optional)
+  - Share settings (private/shared)
+- **Playbook Templates**:
+  - Pre-built templates (breakout, pullback, reversal, momentum, swing, scalp, etc.)
+  - Create custom templates
+  - Apply template to new playbook
+- **Assign Playbook to Trade**:
+  - Dropdown/autocomplete in trade entry form
+  - Quick assign from trade list
+  - Bulk assign to multiple trades
+  - Filter trades by playbook
+- **Playbook Analytics**:
+  - Performance over time
+  - Best/worst performing playbooks
+  - Comparison between playbooks
+  - Missed trades tracking
+
+### 6. Trade Visualization (Chart View)
 - **Historical Price Chart**: 
   - Display ticker price data for trade timeframe
   - Show entry/exit points visually
