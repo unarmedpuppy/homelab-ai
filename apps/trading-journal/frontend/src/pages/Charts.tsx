@@ -3,13 +3,13 @@
  */
 
 import { useState, useEffect } from 'react'
-import { Box, Typography, Paper, TextField, Button, Alert, Chip } from '@mui/material'
+import { Box, Typography, Paper, TextField, Button, Alert, Chip, FormControlLabel, Switch, FormGroup } from '@mui/material'
 import { useParams, useNavigate } from 'react-router-dom'
 import { usePriceDataRange, useTradeChart, useTradeOverlay } from '../hooks/useCharts'
 import { useTrade } from '../hooks/useTrades'
 import PriceChart from '../components/charts/PriceChart'
 import ChartControls from '../components/charts/ChartControls'
-import { Timeframe, ChartMode } from '../types/charts'
+import { Timeframe, ChartMode, ChartIndicatorConfig } from '../types/charts'
 
 export default function Charts() {
   const { ticker: urlTicker, tradeId: urlTradeId } = useParams()
@@ -20,6 +20,13 @@ export default function Charts() {
   const [days, setDays] = useState<number>(365)
   const [daysBefore, setDaysBefore] = useState<number>(30)
   const [daysAfter, setDaysAfter] = useState<number>(30)
+  const [indicators, setIndicators] = useState<ChartIndicatorConfig>({
+    showSMA: false,
+    smaPeriod: 20,
+    showEMA: false,
+    emaPeriod: 20,
+    showVolume: false,
+  })
 
   const tradeId = urlTradeId ? parseInt(urlTradeId, 10) : undefined
   const isTradeView = !!tradeId
@@ -135,6 +142,81 @@ export default function Charts() {
             onChartModeChange={setChartMode}
             onDaysChange={setDays}
           />
+          
+          {/* Indicator controls */}
+          <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+            <Typography variant="subtitle2" gutterBottom>
+              Indicators
+            </Typography>
+            <FormGroup row>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={indicators.showVolume || false}
+                    onChange={(e) => setIndicators({ ...indicators, showVolume: e.target.checked })}
+                    size="small"
+                  />
+                }
+                label="Volume"
+              />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={indicators.showSMA || false}
+                    onChange={(e) => setIndicators({ ...indicators, showSMA: e.target.checked })}
+                    size="small"
+                  />
+                }
+                label={`SMA(${indicators.smaPeriod || 20})`}
+              />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={indicators.showEMA || false}
+                    onChange={(e) => setIndicators({ ...indicators, showEMA: e.target.checked })}
+                    size="small"
+                  />
+                }
+                label={`EMA(${indicators.emaPeriod || 20})`}
+              />
+            </FormGroup>
+            {(indicators.showSMA || indicators.showEMA) && (
+              <Box sx={{ mt: 1, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                {indicators.showSMA && (
+                  <TextField
+                    label="SMA Period"
+                    type="number"
+                    size="small"
+                    value={indicators.smaPeriod || 20}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value, 10)
+                      if (!isNaN(val) && val > 0 && val <= 200) {
+                        setIndicators({ ...indicators, smaPeriod: val })
+                      }
+                    }}
+                    inputProps={{ min: 1, max: 200 }}
+                    sx={{ width: 120 }}
+                  />
+                )}
+                {indicators.showEMA && (
+                  <TextField
+                    label="EMA Period"
+                    type="number"
+                    size="small"
+                    value={indicators.emaPeriod || 20}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value, 10)
+                      if (!isNaN(val) && val > 0 && val <= 200) {
+                        setIndicators({ ...indicators, emaPeriod: val })
+                      }
+                    }}
+                    inputProps={{ min: 1, max: 200 }}
+                    sx={{ width: 120 }}
+                  />
+                )}
+              </Box>
+            )}
+          </Box>
           {isTradeView && (
             <Box sx={{ display: 'flex', gap: 2, mt: 2, flexWrap: 'wrap' }}>
               <TextField
@@ -188,6 +270,7 @@ export default function Charts() {
             chartMode={chartMode}
             tradeOverlay={tradeOverlay || undefined}
             height={600}
+            indicators={indicators}
           />
         </Paper>
       )}

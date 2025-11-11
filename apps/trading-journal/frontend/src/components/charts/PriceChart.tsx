@@ -5,7 +5,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createChart, IChartApi, ISeriesApi, ColorType, LineStyle, LineWidth } from 'lightweight-charts'
 import { Box, CircularProgress, Alert, Typography } from '@mui/material'
-import { PriceDataResponse, TradeOverlayData, ChartMode } from '../../types/charts'
+import { PriceDataResponse, TradeOverlayData, ChartMode, ChartColorConfig, ChartIndicatorConfig } from '../../types/charts'
 
 interface PriceChartProps {
   data: PriceDataResponse | undefined
@@ -14,6 +14,33 @@ interface PriceChartProps {
   chartMode?: ChartMode
   tradeOverlay?: TradeOverlayData | null
   height?: number
+  colors?: ChartColorConfig
+  indicators?: ChartIndicatorConfig
+}
+
+// Default color scheme (dark theme)
+const DEFAULT_COLORS: ChartColorConfig = {
+  background: '#1e1e1e',
+  textColor: '#d1d5db',
+  gridLines: '#2a2a2a',
+  borderColor: '#2a2a2a',
+  upColor: '#10b981',      // Green for up candles
+  downColor: '#ef4444',    // Red for down candles
+  wickUpColor: '#10b981',
+  wickDownColor: '#ef4444',
+  lineColor: '#9c27b0',    // Purple for line chart
+  volumeColor: '#3b82f6',  // Blue for volume
+  movingAverageColor: '#f59e0b',  // Amber for MA
+  movingAverageColor2: '#8b5cf6', // Purple for MA2
+}
+
+// Default indicators
+const DEFAULT_INDICATORS: ChartIndicatorConfig = {
+  showSMA: false,
+  smaPeriod: 20,
+  showEMA: false,
+  emaPeriod: 20,
+  showVolume: false,
 }
 
 export default function PriceChart({
@@ -23,11 +50,20 @@ export default function PriceChart({
   chartMode = 'candlestick',
   tradeOverlay,
   height = 500,
+  colors = DEFAULT_COLORS,
+  indicators = DEFAULT_INDICATORS,
 }: PriceChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   const seriesRef = useRef<ISeriesApi<'Candlestick' | 'Line'> | null>(null)
+  const volumeSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null)
+  const smaSeriesRef = useRef<ISeriesApi<'Line'> | null>(null)
+  const emaSeriesRef = useRef<ISeriesApi<'Line'> | null>(null)
   const [chartReady, setChartReady] = useState(false)
+  
+  // Merge with defaults
+  const chartColors = { ...DEFAULT_COLORS, ...colors }
+  const chartIndicators = { ...DEFAULT_INDICATORS, ...indicators }
 
   useEffect(() => {
     // Wait for container ref to be attached
@@ -53,15 +89,15 @@ export default function PriceChart({
 
         console.log('Creating chart with dimensions:', { width, height })
 
-        // Create chart
+        // Create chart with custom colors
         const chart = createChart(container, {
           layout: {
-            background: { type: ColorType.Solid, color: '#1e1e1e' },
-            textColor: '#d1d5db',
+            background: { type: ColorType.Solid, color: chartColors.background || '#1e1e1e' },
+            textColor: chartColors.textColor || '#d1d5db',
           },
           grid: {
-            vertLines: { color: '#2a2a2a' },
-            horzLines: { color: '#2a2a2a' },
+            vertLines: { color: chartColors.gridLines || '#2a2a2a' },
+            horzLines: { color: chartColors.gridLines || '#2a2a2a' },
           },
           width: width,
           height: height,
@@ -70,7 +106,7 @@ export default function PriceChart({
             secondsVisible: false,
           },
           rightPriceScale: {
-            borderColor: '#2a2a2a',
+            borderColor: chartColors.borderColor || '#2a2a2a',
           },
         })
 
@@ -168,19 +204,33 @@ export default function PriceChart({
       return
     }
 
-    // Create series based on chart mode
+    // Remove existing indicator series
+    if (volumeSeriesRef.current) {
+      chartRef.current.removeSeries(volumeSeriesRef.current)
+      volumeSeriesRef.current = null
+    }
+    if (smaSeriesRef.current) {
+      chartRef.current.removeSeries(smaSeriesRef.current)
+      smaSeriesRef.current = null
+    }
+    if (emaSeriesRef.current) {
+      chartRef.current.removeSeries(emaSeriesRef.current)
+      emaSeriesRef.current = null
+    }
+
+    // Create series based on chart mode with custom colors
     let series: ISeriesApi<'Candlestick' | 'Line'>
     if (chartMode === 'candlestick') {
       series = chartRef.current.addCandlestickSeries({
-        upColor: '#10b981',
-        downColor: '#ef4444',
+        upColor: chartColors.upColor || '#10b981',
+        downColor: chartColors.downColor || '#ef4444',
         borderVisible: false,
-        wickUpColor: '#10b981',
-        wickDownColor: '#ef4444',
+        wickUpColor: chartColors.wickUpColor || chartColors.upColor || '#10b981',
+        wickDownColor: chartColors.wickDownColor || chartColors.downColor || '#ef4444',
       })
     } else {
       series = chartRef.current.addLineSeries({
-        color: '#9c27b0',
+        color: chartColors.lineColor || '#9c27b0',
         lineWidth: 2 as LineWidth,
         lineStyle: LineStyle.Solid,
         priceFormat: {
@@ -242,13 +292,111 @@ export default function PriceChart({
       series.setMarkers(markers)
     }
 
+    // Add volume indicator if enabled
+    if (chartIndicators.showVolume && chartData.length > 0) {
+      const volumeData = chartData.map(point => ({
+        time: point.time,
+        value: point.volume || 0,
+        color: point.close >= (chartData.find(d => d.time === point.time)?.open || point.close)
+          ? (chartColors.upColor || '#10b981') + '80' // Add transparency
+          : (chartColors.downColor || '#ef4444') + '80',
+      }))
+
+      volumeSeriesRef.current = chartRef.current.addHistogramSeries({
+        color: chartColors.volumeColor || '#3b82f6',
+        priceFormat: {
+          type: 'volume',
+        },
+        priceScaleId: 'volume',
+        scaleMargins: {
+          top: 0.8,
+          bottom: 0,
+        },
+      })
+
+      chartRef.current.priceScale('volume').applyOptions({
+        scaleMargins: {
+          top: 0.8,
+          bottom: 0,
+        },
+      })
+
+      volumeSeriesRef.current.setData(volumeData)
+    }
+
+    // Calculate and add Simple Moving Average (SMA) if enabled
+    if (chartIndicators.showSMA && chartData.length >= (chartIndicators.smaPeriod || 20)) {
+      const smaPeriod = chartIndicators.smaPeriod || 20
+      const smaData: { time: any; value: number }[] = []
+
+      for (let i = smaPeriod - 1; i < chartData.length; i++) {
+        const sum = chartData.slice(i - smaPeriod + 1, i + 1).reduce((acc, point) => acc + point.close, 0)
+        const sma = sum / smaPeriod
+        smaData.push({
+          time: chartData[i].time,
+          value: sma,
+        })
+      }
+
+      smaSeriesRef.current = chartRef.current.addLineSeries({
+        color: chartColors.movingAverageColor || '#f59e0b',
+        lineWidth: 2 as LineWidth,
+        lineStyle: LineStyle.Solid,
+        title: `SMA(${smaPeriod})`,
+        priceFormat: {
+          type: 'price',
+          precision: 2,
+          minMove: 0.01,
+        },
+      })
+
+      smaSeriesRef.current.setData(smaData)
+    }
+
+    // Calculate and add Exponential Moving Average (EMA) if enabled
+    if (chartIndicators.showEMA && chartData.length >= (chartIndicators.emaPeriod || 20)) {
+      const emaPeriod = chartIndicators.emaPeriod || 20
+      const multiplier = 2 / (emaPeriod + 1)
+      const emaData: { time: any; value: number }[] = []
+
+      // Start with SMA for first value
+      let ema = chartData.slice(0, emaPeriod).reduce((acc, point) => acc + point.close, 0) / emaPeriod
+      emaData.push({
+        time: chartData[emaPeriod - 1].time,
+        value: ema,
+      })
+
+      // Calculate EMA for remaining points
+      for (let i = emaPeriod; i < chartData.length; i++) {
+        ema = (chartData[i].close - ema) * multiplier + ema
+        emaData.push({
+          time: chartData[i].time,
+          value: ema,
+        })
+      }
+
+      emaSeriesRef.current = chartRef.current.addLineSeries({
+        color: chartColors.movingAverageColor2 || '#8b5cf6',
+        lineWidth: 2 as LineWidth,
+        lineStyle: LineStyle.Solid,
+        title: `EMA(${emaPeriod})`,
+        priceFormat: {
+          type: 'price',
+          precision: 2,
+          minMove: 0.01,
+        },
+      })
+
+      emaSeriesRef.current.setData(emaData)
+    }
+
     // Fit content
     try {
       chartRef.current.timeScale().fitContent()
     } catch (error) {
       console.error('Error fitting content:', error)
     }
-  }, [data, chartMode, tradeOverlay, chartReady])
+  }, [data, chartMode, tradeOverlay, chartReady, colors, indicators])
 
   if (isLoading) {
     return (
