@@ -505,8 +505,11 @@ async def _fetch_coingecko(
     # Note: CoinGecko only provides close prices, so we'll use the same value for OHLC
     data_points = []
     for timestamp_ms, price in prices:
-        timestamp = datetime.fromtimestamp(timestamp_ms / 1000)
-        if start_date <= timestamp <= end_date:
+        timestamp = _naive_datetime(datetime.fromtimestamp(timestamp_ms / 1000))
+        # Ensure dates are naive for comparison
+        start_naive = _naive_datetime(start_date)
+        end_naive = _naive_datetime(end_date)
+        if start_naive <= timestamp <= end_naive:
             price_decimal = Decimal(str(price))
             data_points.append(PriceDataPoint(
                 timestamp=_naive_datetime(timestamp),
