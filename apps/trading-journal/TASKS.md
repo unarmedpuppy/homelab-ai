@@ -716,10 +716,38 @@ This file tracks the status of all implementation tasks. Agents should update th
 - Consistent error handling patterns across all components
 
 ### T4.3: API Query Optimization
-**Status**: `[PENDING]`
-**Claimed By**: -
+**Status**: `[COMPLETED]`
+**Claimed By**: Auto (AI Agent)
+**Completed**: 2025-11-11
 **Priority**: Medium
 **Dependencies**: All API tasks
+**Summary**:
+- Created migration `002_add_exit_time_index.py`:
+  - Added index on `trades.exit_time` for faster queries on closed trades
+  - Significantly improves performance for dashboard stats, cumulative P&L, daily P&L, and drawdown queries
+- Optimized `bulk_create_trades` in `trade_service.py`:
+  - Changed from individual `db.add()` calls to `db.add_all()` for bulk operations
+  - Better performance when creating multiple trades at once
+- Optimized `_cache_price_data` in `price_service.py`:
+  - Changed from individual queries per data point to batch checking existing entries
+  - Uses `IN` clause to check all timestamps at once
+  - Separates updates and inserts for better bulk operation performance
+  - Uses `db.add_all()` for bulk inserts
+- Optimized query ordering in `dashboard_service.py`:
+  - Changed from Python sorting to database ordering using `.order_by(Trade.exit_time.asc())`
+  - Applied to `get_dashboard_stats`, `get_cumulative_pnl`, `get_daily_pnl`, and `get_drawdown_data`
+  - Reduces memory usage and improves performance by leveraging database indexes
+  - Removed redundant Python sorting operations
+- All list endpoints already have pagination:
+  - `get_trades`: Supports skip/limit pagination
+  - `search_trades`: Supports skip/limit pagination
+  - `get_recent_trades`: Supports limit parameter
+- Database indexes already in place:
+  - `idx_trades_entry_time`: For entry time queries
+  - `idx_trades_exit_time`: For exit time queries (newly added)
+  - `idx_trades_ticker`: For ticker lookups
+  - `idx_trades_status`: For status filtering
+  - `idx_trades_trade_type`: For trade type filtering
 
 ### T4.4: Data Validation & Error Messages
 **Status**: `[PENDING]`

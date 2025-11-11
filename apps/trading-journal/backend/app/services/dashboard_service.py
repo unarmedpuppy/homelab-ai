@@ -361,7 +361,13 @@ async def get_cumulative_pnl(
     Returns:
         List of cumulative P&L points
     """
-    query = select(Trade).where(Trade.status == "closed")
+    # Build query with filters and ordering
+    # Order by exit_time in database for better performance
+    query = (
+        select(Trade)
+        .where(Trade.status == "closed")
+        .order_by(Trade.exit_time.asc())
+    )
     
     if date_from:
         query = query.where(Trade.exit_time >= datetime.combine(date_from, datetime.min.time()))
@@ -375,11 +381,8 @@ async def get_cumulative_pnl(
     if not trades:
         return []
     
-    # Sort by exit time
-    sorted_trades = sorted(
-        [t for t in trades if t.exit_time],
-        key=lambda t: t.exit_time
-    )
+    # Filter out trades without exit_time (shouldn't happen for closed trades, but safety check)
+    sorted_trades = [t for t in trades if t.exit_time]
     
     cumulative_pnl = Decimal("0")
     points = []
@@ -444,7 +447,13 @@ async def get_daily_pnl(
     Returns:
         List of daily P&L points
     """
-    query = select(Trade).where(Trade.status == "closed")
+    # Build query with filters and ordering
+    # Order by exit_time in database for better performance
+    query = (
+        select(Trade)
+        .where(Trade.status == "closed")
+        .order_by(Trade.exit_time.asc())
+    )
     
     if date_from:
         query = query.where(Trade.exit_time >= datetime.combine(date_from, datetime.min.time()))
@@ -499,7 +508,13 @@ async def get_drawdown_data(
     Returns:
         List of drawdown data points
     """
-    query = select(Trade).where(Trade.status == "closed")
+    # Build query with filters and ordering
+    # Order by exit_time in database for better performance
+    query = (
+        select(Trade)
+        .where(Trade.status == "closed")
+        .order_by(Trade.exit_time.asc())
+    )
     
     if date_from:
         query = query.where(Trade.exit_time >= datetime.combine(date_from, datetime.min.time()))
@@ -513,11 +528,8 @@ async def get_drawdown_data(
     if not trades:
         return []
     
-    # Sort by exit time
-    sorted_trades = sorted(
-        [t for t in trades if t.exit_time],
-        key=lambda t: t.exit_time
-    )
+    # Filter out trades without exit_time (shouldn't happen for closed trades, but safety check)
+    sorted_trades = [t for t in trades if t.exit_time]
     
     cumulative_pnl = Decimal("0")
     peak = Decimal("0")
