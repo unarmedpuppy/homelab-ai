@@ -100,6 +100,11 @@ async def get_price_data(
     # Check cache first
     cached_data = await _get_cached_data(db, ticker, start_date, end_date, timeframe)
     
+    # Filter cached data for regular trading hours (if intraday)
+    if timeframe != "1d":
+        cached_data = [point for point in cached_data if _is_regular_trading_hours(point.timestamp, timeframe)]
+        logger.info(f"Filtered cached data: {len(cached_data)} points after trading hours filter")
+    
     # Determine what data we need to fetch
     missing_ranges = _find_missing_ranges(cached_data, start_date, end_date, timeframe)
     
