@@ -99,7 +99,17 @@ export default function PriceChart({
   }, [height])
 
   useEffect(() => {
-    if (!chartRef.current || !chartReady || !data) return
+    console.log('PriceChart useEffect triggered:', {
+      hasChartRef: !!chartRef.current,
+      chartReady,
+      hasData: !!data,
+      dataLength: data?.data?.length || 0
+    })
+
+    if (!chartRef.current || !chartReady || !data) {
+      console.log('PriceChart: Early return - missing requirements')
+      return
+    }
 
     // Remove existing series
     if (seriesRef.current) {
@@ -109,7 +119,7 @@ export default function PriceChart({
 
     // Check if we have data
     if (!data.data || data.data.length === 0) {
-      console.warn('No chart data available')
+      console.warn('No chart data available - data.data is empty or missing')
       return
     }
 
