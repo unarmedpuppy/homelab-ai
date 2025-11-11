@@ -58,16 +58,18 @@ export interface ChartColorConfig {
 }
 
 export interface ChartIndicatorConfig {
-  // Moving averages
-  showSMA?: boolean
-  smaPeriod?: number
-  showEMA?: boolean
-  emaPeriod?: number
+  // Moving averages - support multiple SMAs
+  showSMA20?: boolean
+  showSMA200?: boolean
+  
+  // Exponential moving averages - support multiple EMAs
+  showEMA9?: boolean
+  showEMA21?: boolean
   
   // Volume
   showVolume?: boolean
   
-  // Other indicators (can be added later)
+  // RSI
   showRSI?: boolean
   rsiPeriod?: number
 }

@@ -36,11 +36,13 @@ const DEFAULT_COLORS: ChartColorConfig = {
 
 // Default indicators
 const DEFAULT_INDICATORS: ChartIndicatorConfig = {
-  showSMA: false,
-  smaPeriod: 20,
-  showEMA: false,
-  emaPeriod: 20,
+  showSMA20: false,
+  showSMA200: false,
+  showEMA9: false,
+  showEMA21: false,
   showVolume: false,
+  showRSI: false,
+  rsiPeriod: 14,
 }
 
 export default function PriceChart({
@@ -57,8 +59,11 @@ export default function PriceChart({
   const chartRef = useRef<IChartApi | null>(null)
   const seriesRef = useRef<ISeriesApi<'Candlestick' | 'Line'> | null>(null)
   const volumeSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null)
-  const smaSeriesRef = useRef<ISeriesApi<'Line'> | null>(null)
-  const emaSeriesRef = useRef<ISeriesApi<'Line'> | null>(null)
+  const sma20SeriesRef = useRef<ISeriesApi<'Line'> | null>(null)
+  const sma200SeriesRef = useRef<ISeriesApi<'Line'> | null>(null)
+  const ema9SeriesRef = useRef<ISeriesApi<'Line'> | null>(null)
+  const ema21SeriesRef = useRef<ISeriesApi<'Line'> | null>(null)
+  const rsiSeriesRef = useRef<ISeriesApi<'Line'> | null>(null)
   const [chartReady, setChartReady] = useState(false)
   
   // Merge with defaults
@@ -209,13 +214,25 @@ export default function PriceChart({
       chartRef.current.removeSeries(volumeSeriesRef.current)
       volumeSeriesRef.current = null
     }
-    if (smaSeriesRef.current) {
-      chartRef.current.removeSeries(smaSeriesRef.current)
-      smaSeriesRef.current = null
+    if (sma20SeriesRef.current) {
+      chartRef.current.removeSeries(sma20SeriesRef.current)
+      sma20SeriesRef.current = null
     }
-    if (emaSeriesRef.current) {
-      chartRef.current.removeSeries(emaSeriesRef.current)
-      emaSeriesRef.current = null
+    if (sma200SeriesRef.current) {
+      chartRef.current.removeSeries(sma200SeriesRef.current)
+      sma200SeriesRef.current = null
+    }
+    if (ema9SeriesRef.current) {
+      chartRef.current.removeSeries(ema9SeriesRef.current)
+      ema9SeriesRef.current = null
+    }
+    if (ema21SeriesRef.current) {
+      chartRef.current.removeSeries(ema21SeriesRef.current)
+      ema21SeriesRef.current = null
+    }
+    if (rsiSeriesRef.current) {
+      chartRef.current.removeSeries(rsiSeriesRef.current)
+      rsiSeriesRef.current = null
     }
 
     // Create series based on chart mode with custom colors
@@ -292,25 +309,28 @@ export default function PriceChart({
       series.setMarkers(markers)
     }
 
-    // Add volume indicator if enabled
+    // Add volume indicator if enabled (white/gray theme)
     if (chartIndicators.showVolume && chartData.length > 0) {
-      const volumeData = chartData.map(point => ({
-        time: point.time,
-        value: point.volume || 0,
-        color: point.close >= (chartData.find(d => d.time === point.time)?.open || point.close)
-          ? (chartColors.upColor || '#10b981') + '80' // Add transparency
-          : (chartColors.downColor || '#ef4444') + '80',
-      }))
+      const volumeData = chartData.map((point, index) => {
+        // Determine if volume is up or down based on price movement
+        const prevPoint = index > 0 ? chartData[index - 1] : point
+        const isUp = point.close >= prevPoint.close
+        
+        return {
+          time: point.time,
+          value: point.volume || 0,
+          color: isUp ? '#ffffff' : '#808080', // White for up, gray for down
+        }
+      })
 
       volumeSeriesRef.current = chartRef.current.addHistogramSeries({
-        color: chartColors.volumeColor || '#3b82f6',
         priceFormat: {
           type: 'volume',
         },
         priceScaleId: 'volume',
       })
 
-      // Set scale margins on the price scale, not the series
+      // Set scale margins on the price scale
       chartRef.current.priceScale('volume').applyOptions({
         scaleMargins: {
           top: 0.8,
@@ -321,25 +341,24 @@ export default function PriceChart({
       volumeSeriesRef.current.setData(volumeData)
     }
 
-    // Calculate and add Simple Moving Average (SMA) if enabled
-    if (chartIndicators.showSMA && chartData.length >= (chartIndicators.smaPeriod || 20)) {
-      const smaPeriod = chartIndicators.smaPeriod || 20
-      const smaData: { time: any; value: number }[] = []
+    // Calculate and add SMA 20 if enabled
+    if (chartIndicators.showSMA20 && chartData.length >= 20) {
+      const sma20Data: { time: any; value: number }[] = []
 
-      for (let i = smaPeriod - 1; i < chartData.length; i++) {
-        const sum = chartData.slice(i - smaPeriod + 1, i + 1).reduce((acc, point) => acc + point.close, 0)
-        const sma = sum / smaPeriod
-        smaData.push({
+      for (let i = 19; i < chartData.length; i++) {
+        const sum = chartData.slice(i - 19, i + 1).reduce((acc, point) => acc + point.close, 0)
+        const sma = sum / 20
+        sma20Data.push({
           time: chartData[i].time,
           value: sma,
         })
       }
 
-      smaSeriesRef.current = chartRef.current.addLineSeries({
-        color: chartColors.movingAverageColor || '#f59e0b',
-        lineWidth: 2 as LineWidth,
+      sma20SeriesRef.current = chartRef.current.addLineSeries({
+        color: '#ffffff', // White
+        lineWidth: 1 as LineWidth,
         lineStyle: LineStyle.Solid,
-        title: `SMA(${smaPeriod})`,
+        title: 'SMA(20)',
         priceFormat: {
           type: 'price',
           precision: 2,
@@ -347,36 +366,64 @@ export default function PriceChart({
         },
       })
 
-      smaSeriesRef.current.setData(smaData)
+      sma20SeriesRef.current.setData(sma20Data)
     }
 
-    // Calculate and add Exponential Moving Average (EMA) if enabled
-    if (chartIndicators.showEMA && chartData.length >= (chartIndicators.emaPeriod || 20)) {
-      const emaPeriod = chartIndicators.emaPeriod || 20
-      const multiplier = 2 / (emaPeriod + 1)
-      const emaData: { time: any; value: number }[] = []
+    // Calculate and add SMA 200 if enabled
+    if (chartIndicators.showSMA200 && chartData.length >= 200) {
+      const sma200Data: { time: any; value: number }[] = []
+
+      for (let i = 199; i < chartData.length; i++) {
+        const sum = chartData.slice(i - 199, i + 1).reduce((acc, point) => acc + point.close, 0)
+        const sma = sum / 200
+        sma200Data.push({
+          time: chartData[i].time,
+          value: sma,
+        })
+      }
+
+      sma200SeriesRef.current = chartRef.current.addLineSeries({
+        color: '#808080', // Gray
+        lineWidth: 1 as LineWidth,
+        lineStyle: LineStyle.Solid,
+        title: 'SMA(200)',
+        priceFormat: {
+          type: 'price',
+          precision: 2,
+          minMove: 0.01,
+        },
+      })
+
+      sma200SeriesRef.current.setData(sma200Data)
+    }
+
+    // Calculate and add EMA 9 if enabled
+    if (chartIndicators.showEMA9 && chartData.length >= 9) {
+      const ema9Period = 9
+      const multiplier = 2 / (ema9Period + 1)
+      const ema9Data: { time: any; value: number }[] = []
 
       // Start with SMA for first value
-      let ema = chartData.slice(0, emaPeriod).reduce((acc, point) => acc + point.close, 0) / emaPeriod
-      emaData.push({
-        time: chartData[emaPeriod - 1].time,
+      let ema = chartData.slice(0, ema9Period).reduce((acc, point) => acc + point.close, 0) / ema9Period
+      ema9Data.push({
+        time: chartData[ema9Period - 1].time,
         value: ema,
       })
 
       // Calculate EMA for remaining points
-      for (let i = emaPeriod; i < chartData.length; i++) {
+      for (let i = ema9Period; i < chartData.length; i++) {
         ema = (chartData[i].close - ema) * multiplier + ema
-        emaData.push({
+        ema9Data.push({
           time: chartData[i].time,
           value: ema,
         })
       }
 
-      emaSeriesRef.current = chartRef.current.addLineSeries({
-        color: chartColors.movingAverageColor2 || '#8b5cf6',
-        lineWidth: 2 as LineWidth,
+      ema9SeriesRef.current = chartRef.current.addLineSeries({
+        color: '#ffffff', // White
+        lineWidth: 1 as LineWidth,
         lineStyle: LineStyle.Solid,
-        title: `EMA(${emaPeriod})`,
+        title: 'EMA(9)',
         priceFormat: {
           type: 'price',
           precision: 2,
@@ -384,7 +431,100 @@ export default function PriceChart({
         },
       })
 
-      emaSeriesRef.current.setData(emaData)
+      ema9SeriesRef.current.setData(ema9Data)
+    }
+
+    // Calculate and add EMA 21 if enabled
+    if (chartIndicators.showEMA21 && chartData.length >= 21) {
+      const ema21Period = 21
+      const multiplier = 2 / (ema21Period + 1)
+      const ema21Data: { time: any; value: number }[] = []
+
+      // Start with SMA for first value
+      let ema = chartData.slice(0, ema21Period).reduce((acc, point) => acc + point.close, 0) / ema21Period
+      ema21Data.push({
+        time: chartData[ema21Period - 1].time,
+        value: ema,
+      })
+
+      // Calculate EMA for remaining points
+      for (let i = ema21Period; i < chartData.length; i++) {
+        ema = (chartData[i].close - ema) * multiplier + ema
+        ema21Data.push({
+          time: chartData[i].time,
+          value: ema,
+        })
+      }
+
+      ema21SeriesRef.current = chartRef.current.addLineSeries({
+        color: '#808080', // Gray
+        lineWidth: 1 as LineWidth,
+        lineStyle: LineStyle.Solid,
+        title: 'EMA(21)',
+        priceFormat: {
+          type: 'price',
+          precision: 2,
+          minMove: 0.01,
+        },
+      })
+
+      ema21SeriesRef.current.setData(ema21Data)
+    }
+
+    // Calculate and add RSI if enabled
+    if (chartIndicators.showRSI && chartData.length >= (chartIndicators.rsiPeriod || 14) + 1) {
+      const rsiPeriod = chartIndicators.rsiPeriod || 14
+      const rsiData: { time: any; value: number }[] = []
+
+      // Calculate RSI
+      for (let i = rsiPeriod; i < chartData.length; i++) {
+        let gains = 0
+        let losses = 0
+
+        // Calculate average gain and loss over the period
+        for (let j = i - rsiPeriod + 1; j <= i; j++) {
+          const change = chartData[j].close - chartData[j - 1].close
+          if (change > 0) {
+            gains += change
+          } else {
+            losses += Math.abs(change)
+          }
+        }
+
+        const avgGain = gains / rsiPeriod
+        const avgLoss = losses / rsiPeriod
+
+        if (avgLoss === 0) {
+          rsiData.push({ time: chartData[i].time, value: 100 })
+        } else {
+          const rs = avgGain / avgLoss
+          const rsi = 100 - (100 / (1 + rs))
+          rsiData.push({ time: chartData[i].time, value: rsi })
+        }
+      }
+
+      rsiSeriesRef.current = chartRef.current.addLineSeries({
+        color: '#ffffff', // White
+        lineWidth: 1 as LineWidth,
+        lineStyle: LineStyle.Solid,
+        title: `RSI(${rsiPeriod})`,
+        priceFormat: {
+          type: 'price',
+          precision: 2,
+          minMove: 0.01,
+        },
+        priceScaleId: 'rsi',
+      })
+
+      // Set RSI scale to 0-100 range
+      chartRef.current.priceScale('rsi').applyOptions({
+        scaleMargins: {
+          top: 0.1,
+          bottom: 0.1,
+        },
+      })
+
+      rsiSeriesRef.current.setData(rsiData)
     }
 
     // Fit content

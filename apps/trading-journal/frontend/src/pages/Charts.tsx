@@ -21,11 +21,13 @@ export default function Charts() {
   const [daysBefore, setDaysBefore] = useState<number>(30)
   const [daysAfter, setDaysAfter] = useState<number>(30)
   const [indicators, setIndicators] = useState<ChartIndicatorConfig>({
-    showSMA: false,
-    smaPeriod: 20,
-    showEMA: false,
-    emaPeriod: 20,
-    showVolume: false,
+    showSMA20: true,
+    showSMA200: true,
+    showEMA9: true,
+    showEMA21: true,
+    showVolume: true,
+    showRSI: true,
+    rsiPeriod: 14,
   })
 
   const tradeId = urlTradeId ? parseInt(urlTradeId, 10) : undefined
@@ -162,58 +164,70 @@ export default function Charts() {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={indicators.showSMA || false}
-                    onChange={(e) => setIndicators({ ...indicators, showSMA: e.target.checked })}
+                    checked={indicators.showSMA20 || false}
+                    onChange={(e) => setIndicators({ ...indicators, showSMA20: e.target.checked })}
                     size="small"
                   />
                 }
-                label={`SMA(${indicators.smaPeriod || 20})`}
+                label="SMA(20)"
               />
               <FormControlLabel
                 control={
                   <Switch
-                    checked={indicators.showEMA || false}
-                    onChange={(e) => setIndicators({ ...indicators, showEMA: e.target.checked })}
+                    checked={indicators.showSMA200 || false}
+                    onChange={(e) => setIndicators({ ...indicators, showSMA200: e.target.checked })}
                     size="small"
                   />
                 }
-                label={`EMA(${indicators.emaPeriod || 20})`}
+                label="SMA(200)"
+              />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={indicators.showEMA9 || false}
+                    onChange={(e) => setIndicators({ ...indicators, showEMA9: e.target.checked })}
+                    size="small"
+                  />
+                }
+                label="EMA(9)"
+              />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={indicators.showEMA21 || false}
+                    onChange={(e) => setIndicators({ ...indicators, showEMA21: e.target.checked })}
+                    size="small"
+                  />
+                }
+                label="EMA(21)"
+              />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={indicators.showRSI || false}
+                    onChange={(e) => setIndicators({ ...indicators, showRSI: e.target.checked })}
+                    size="small"
+                  />
+                }
+                label={`RSI(${indicators.rsiPeriod || 14})`}
               />
             </FormGroup>
-            {(indicators.showSMA || indicators.showEMA) && (
+            {indicators.showRSI && (
               <Box sx={{ mt: 1, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                {indicators.showSMA && (
-                  <TextField
-                    label="SMA Period"
-                    type="number"
-                    size="small"
-                    value={indicators.smaPeriod || 20}
-                    onChange={(e) => {
-                      const val = parseInt(e.target.value, 10)
-                      if (!isNaN(val) && val > 0 && val <= 200) {
-                        setIndicators({ ...indicators, smaPeriod: val })
-                      }
-                    }}
-                    inputProps={{ min: 1, max: 200 }}
-                    sx={{ width: 120 }}
-                  />
-                )}
-                {indicators.showEMA && (
-                  <TextField
-                    label="EMA Period"
-                    type="number"
-                    size="small"
-                    value={indicators.emaPeriod || 20}
-                    onChange={(e) => {
-                      const val = parseInt(e.target.value, 10)
-                      if (!isNaN(val) && val > 0 && val <= 200) {
-                        setIndicators({ ...indicators, emaPeriod: val })
-                      }
-                    }}
-                    inputProps={{ min: 1, max: 200 }}
-                    sx={{ width: 120 }}
-                  />
-                )}
+                <TextField
+                  label="RSI Period"
+                  type="number"
+                  size="small"
+                  value={indicators.rsiPeriod || 14}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value, 10)
+                    if (!isNaN(val) && val > 0 && val <= 50) {
+                      setIndicators({ ...indicators, rsiPeriod: val })
+                    }
+                  }}
+                  inputProps={{ min: 1, max: 50 }}
+                  sx={{ width: 120 }}
+                />
               </Box>
             )}
           </Box>
