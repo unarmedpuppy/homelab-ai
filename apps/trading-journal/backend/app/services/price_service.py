@@ -468,22 +468,26 @@ async def _fetch_yfinance(
         logger.info(f"Limiting yfinance fetch to last {max_yfinance_days} days to avoid timeout")
     
     ticker_obj = yf.Ticker(ticker)
-    # For intraday data, yfinance may need a period parameter instead of start/end
-    # Try with period parameter for better intraday data retrieval
+    # For intraday data, yfinance works better with period parameter
+    # Intraday data (1m, 5m, 15m, 1h) is typically only available for the last 60 days
     if interval in ["1m", "5m", "15m", "1h"]:
         # For intraday, use period parameter (max 60 days for intraday)
         days_diff = (end_date - start_date).days
         if days_diff <= 60:
-            # Use period parameter for intraday data
-            period = f"{min(days_diff, 60)}d"
-            hist = ticker_obj.history(period=period, interval=interval, timeout=15)
-            # Filter to requested date range
-            if not hist.empty:
+            # Use period parameter for intraday data - this gets more reliable results
+            period_days = min(days_diff + 1, 60)  # Add 1 day buffer to ensure we get enough data
+            period = f"{period_days}d"
+            logger.info(f"Fetching intraday data with period={period} for {ticker}")
+            hist = ticker_obj.history(period=period, interval=interval, timeout=20)
+            # Filter to requested date range if needed
+            if not hist.empty and len(hist) > 0:
+                # Convert index to timezone-naive for comparison
+                hist.index = hist.index.tz_localize(None) if hist.index.tz else hist.index
                 hist = hist[(hist.index >= start_date) & (hist.index <= end_date)]
         else:
-            hist = ticker_obj.history(start=start_date, end=end_date, interval=interval, timeout=15)
+            hist = ticker_obj.history(start=start_date, end=end_date, interval=interval, timeout=20)
     else:
-        hist = ticker_obj.history(start=start_date, end=end_date, interval=interval, timeout=15)
+        hist = ticker_obj.history(start=start_date, end=end_date, interval=interval, timeout=20)
     
     if hist.empty:
         return None

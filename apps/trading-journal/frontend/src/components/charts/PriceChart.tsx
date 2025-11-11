@@ -162,15 +162,16 @@ export default function PriceChart({
   }, [height])
 
   useEffect(() => {
+    const dataLength = data?.data?.length || 0
     console.log('PriceChart useEffect triggered:', {
       hasChartRef: !!chartRef.current,
       chartReady,
       hasData: !!data,
-      dataLength: data?.data?.length || 0,
+      dataLength: dataLength,
       sma20Enabled: chartIndicators.showSMA20,
       sma200Enabled: chartIndicators.showSMA200,
-      canShowSMA20: data?.data?.length >= 20,
-      canShowSMA200: data?.data?.length >= 200,
+      canShowSMA20: dataLength >= 20,
+      canShowSMA200: dataLength >= 200,
     })
 
     if (!chartRef.current || !chartReady || !data) {
