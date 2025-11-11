@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { AppBar, Toolbar, Typography, IconButton, useMediaQuery, useTheme } from '@mui/material'
 import MenuIcon from '@mui/icons-material/Menu'
 
