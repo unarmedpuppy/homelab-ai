@@ -90,9 +90,9 @@ export default function CalendarGrid({
   return (
     <Box>
       {/* Weekday headers */}
-      <Grid container spacing={1} sx={{ mb: 1 }}>
+      <Grid container spacing={0.5} sx={{ mb: 1 }}>
         {WEEKDAYS.map((day) => (
-          <Grid item xs key={day}>
+          <Grid item xs={12/7} key={day} sx={{ minWidth: 0 }}>
             <Box
               sx={{
                 textAlign: 'center',
@@ -101,14 +101,14 @@ export default function CalendarGrid({
                 color: 'text.secondary',
               }}
             >
-              <Typography variant="caption">{day}</Typography>
+              <Typography variant="caption" sx={{ fontSize: '0.75rem' }}>{day}</Typography>
             </Box>
           </Grid>
         ))}
       </Grid>
 
       {/* Calendar grid */}
-      <Grid container spacing={1}>
+      <Grid container spacing={0.5} sx={{ mt: 1 }}>
         {calendarDays.map(({ date, isCurrentMonth }) => {
           const dateStr = format(date, 'yyyy-MM-dd')
           const day = daysMap.get(dateStr) || {
@@ -120,7 +120,7 @@ export default function CalendarGrid({
           const isToday = isSameDay(date, today)
 
           return (
-            <Grid item xs key={dateStr}>
+            <Grid item xs={12/7} key={dateStr} sx={{ aspectRatio: '1', minWidth: 0 }}>
               <DayCell
                 day={day}
                 isCurrentMonth={isCurrentMonth}

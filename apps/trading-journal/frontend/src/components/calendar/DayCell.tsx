@@ -56,14 +56,18 @@ export default function DayCell({ day, isCurrentMonth, isToday, onClick }: DayCe
       <Box
         onClick={onClick}
         sx={{
-          minHeight: '80px',
+          height: '100%',
+          minHeight: '100px',
           border: `2px solid ${getBorderColor()}`,
           borderRadius: 1,
           backgroundColor: getBackgroundColor(),
-          p: 1,
+          p: 0.75,
           cursor: onClick ? 'pointer' : 'default',
-          opacity: isCurrentMonth ? 1 : 0.4,
+          opacity: isCurrentMonth ? 1 : 0.3,
           transition: 'all 0.2s',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-start',
           '&:hover': onClick
             ? {
                 backgroundColor: isCurrentMonth
@@ -73,7 +77,8 @@ export default function DayCell({ day, isCurrentMonth, isToday, onClick }: DayCe
                     ? 'rgba(239, 68, 68, 0.3)'
                     : 'rgba(107, 114, 128, 0.2)'
                   : 'transparent',
-                transform: 'scale(1.05)',
+                transform: 'scale(1.02)',
+                borderColor: isToday ? '#9c27b0' : (day.is_profitable ? '#10b981' : (day.trade_count > 0 ? '#ef4444' : 'rgba(255, 255, 255, 0.1)')),
               }
             : {},
         }}
@@ -83,12 +88,14 @@ export default function DayCell({ day, isCurrentMonth, isToday, onClick }: DayCe
           sx={{
             fontWeight: isToday ? 'bold' : 'normal',
             color: isToday ? '#9c27b0' : 'text.primary',
+            fontSize: '0.85rem',
+            mb: 0.5,
           }}
         >
           {dayNumber}
         </Typography>
         {day.trade_count > 0 && (
-          <Box sx={{ mt: 0.5 }}>
+          <Box sx={{ mt: 'auto', pt: 0.5 }}>
             <Typography
               variant="caption"
               sx={{
@@ -96,6 +103,7 @@ export default function DayCell({ day, isCurrentMonth, isToday, onClick }: DayCe
                 fontWeight: 'bold',
                 color: day.is_profitable ? '#10b981' : '#ef4444',
                 fontSize: '0.7rem',
+                lineHeight: 1.2,
               }}
             >
               {formatPnl(day.pnl)}
@@ -106,6 +114,8 @@ export default function DayCell({ day, isCurrentMonth, isToday, onClick }: DayCe
                 display: 'block',
                 color: 'text.secondary',
                 fontSize: '0.65rem',
+                lineHeight: 1.2,
+                mt: 0.25,
               }}
             >
               {day.trade_count} {day.trade_count === 1 ? 'trade' : 'trades'}

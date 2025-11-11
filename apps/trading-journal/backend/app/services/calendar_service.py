@@ -45,11 +45,14 @@ async def get_calendar_month(
     last_day_num = calendar.monthrange(year, month)[1]
     last_day = date(year, month, last_day_num)
     
-    # Get all trades for the month (closed trades with exit_time in range)
+    # Get all trades for the month (both closed and open trades)
+    # For closed trades: use exit_time
+    # For open trades: use entry_time
     start_datetime = datetime.combine(first_day, datetime.min.time())
     end_datetime = datetime.combine(last_day, datetime.max.time())
     
-    query = (
+    # Get closed trades (exited in this month)
+    closed_query = (
         select(Trade)
         .where(
             and_(
@@ -60,20 +63,42 @@ async def get_calendar_month(
         )
     )
     
-    result = await db.execute(query)
-    trades = result.scalars().all()
+    # Get open trades (entered in this month, still open)
+    open_query = (
+        select(Trade)
+        .where(
+            and_(
+                Trade.status.in_(["open", "partial"]),
+                Trade.entry_time >= start_datetime,
+                Trade.entry_time <= end_datetime,
+            )
+        )
+    )
+    
+    closed_result = await db.execute(closed_query)
+    open_result = await db.execute(open_query)
+    closed_trades = closed_result.scalars().all()
+    open_trades = open_result.scalars().all()
+    
+    # Combine all trades
+    trades = list(closed_trades) + list(open_trades)
     
     # Group trades by date
     daily_data = defaultdict(lambda: {"pnl": Decimal("0"), "count": 0})
     
     for trade in trades:
-        trade_pnl = trade.calculate_net_pnl()
-        if trade_pnl is None or not trade.exit_time:
-            continue
-        
-        trade_date = trade.exit_time.date()
-        daily_data[trade_date]["pnl"] += trade_pnl
-        daily_data[trade_date]["count"] += 1
+        # For closed trades, use exit_time and calculate P&L
+        # For open trades, use entry_time and P&L is 0 (or unrealized)
+        if trade.status == "closed" and trade.exit_time:
+            trade_pnl = trade.calculate_net_pnl()
+            if trade_pnl is not None:
+                trade_date = trade.exit_time.date()
+                daily_data[trade_date]["pnl"] += trade_pnl
+                daily_data[trade_date]["count"] += 1
+        elif trade.status in ["open", "partial"] and trade.entry_time:
+            # Open trades: count them but don't add to P&L (or could show unrealized)
+            trade_date = trade.entry_time.date()
+            daily_data[trade_date]["count"] += 1
     
     # Create calendar days for all days in the month
     calendar_days = []
