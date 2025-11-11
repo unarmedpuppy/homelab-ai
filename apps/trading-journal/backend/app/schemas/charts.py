@@ -4,7 +4,7 @@ Charts schemas for price data and visualization.
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_serializer
 from typing import Optional, List
 from datetime import datetime
 from decimal import Decimal
@@ -19,9 +19,14 @@ class PriceDataPoint(BaseModel):
     close: Decimal = Field(..., description="Close price")
     volume: Optional[int] = Field(None, ge=0, description="Volume")
     
+    @field_serializer('open', 'high', 'low', 'close')
+    def serialize_decimal(self, value: Decimal) -> float:
+        """Serialize Decimal to float for JSON."""
+        return float(value) if value is not None else None
+    
     model_config = ConfigDict(
         json_encoders={
-            Decimal: lambda v: float(v) if v is not None else None,
+            datetime: lambda v: v.isoformat() if v else None,
         }
     )
 
@@ -36,7 +41,7 @@ class PriceDataResponse(BaseModel):
     
     model_config = ConfigDict(
         json_encoders={
-            Decimal: lambda v: float(v) if v is not None else None,
+            datetime: lambda v: v.isoformat() if v else None,
         }
     )
 

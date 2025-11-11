@@ -234,11 +234,21 @@ export default function PriceChart({
     )
   }
 
-  if (!data || data.data.length === 0) {
+  if (!data) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height, minHeight: height }}>
         <Typography variant="body2" color="text.secondary">
           No price data available
+        </Typography>
+      </Box>
+    )
+  }
+
+  if (data.data && data.data.length === 0) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height, minHeight: height }}>
+        <Typography variant="body2" color="text.secondary">
+          No price data available for this ticker/timeframe. The data may still be loading, or the ticker may not be available.
         </Typography>
       </Box>
     )
