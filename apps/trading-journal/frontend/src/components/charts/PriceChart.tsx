@@ -32,57 +32,62 @@ export default function PriceChart({
   useEffect(() => {
     if (!chartContainerRef.current) return
 
-    // Ensure container has width
     const container = chartContainerRef.current
-    if (container.clientWidth === 0) {
-      // Wait for next frame to ensure container is rendered
-      requestAnimationFrame(() => {
-        if (container.clientWidth === 0) {
-          console.warn('Chart container has no width, cannot render chart')
-          return
-        }
-      })
-    }
-
-    // Create chart
-    const chart = createChart(container, {
-      layout: {
-        background: { type: ColorType.Solid, color: '#1e1e1e' },
-        textColor: '#d1d5db',
-      },
-      grid: {
-        vertLines: { color: '#2a2a2a' },
-        horzLines: { color: '#2a2a2a' },
-      },
-      width: container.clientWidth || 800, // Fallback width if clientWidth is 0
-      height: height,
-      timeScale: {
-        timeVisible: true,
-        secondsVisible: false,
-      },
-      rightPriceScale: {
-        borderColor: '#2a2a2a',
-      },
-    })
-
-    chartRef.current = chart
-
-    // Handle resize
-    const handleResize = () => {
-      if (container && chart) {
-        const newWidth = container.clientWidth || 800
-        chart.applyOptions({ width: newWidth })
+    
+    // Wait for container to have a width
+    const initChart = () => {
+      const width = container.clientWidth
+      if (width === 0) {
+        // Retry after a short delay
+        setTimeout(initChart, 100)
+        return
       }
+
+      // Create chart
+      const chart = createChart(container, {
+        layout: {
+          background: { type: ColorType.Solid, color: '#1e1e1e' },
+          textColor: '#d1d5db',
+        },
+        grid: {
+          vertLines: { color: '#2a2a2a' },
+          horzLines: { color: '#2a2a2a' },
+        },
+        width: width,
+        height: height,
+        timeScale: {
+          timeVisible: true,
+          secondsVisible: false,
+        },
+        rightPriceScale: {
+          borderColor: '#2a2a2a',
+        },
+      })
+
+      chartRef.current = chart
+
+      // Handle resize
+      const handleResize = () => {
+        if (container && chart) {
+          const newWidth = container.clientWidth || width
+          chart.applyOptions({ width: newWidth })
+        }
+      }
+
+      window.addEventListener('resize', handleResize)
+      setChartReady(true)
     }
 
-    window.addEventListener('resize', handleResize)
-    setChartReady(true)
+    // Start initialization
+    initChart()
 
     return () => {
-      window.removeEventListener('resize', handleResize)
-      chart.remove()
-      chartRef.current = null
-      seriesRef.current = null
+      window.removeEventListener('resize', () => {})
+      if (chartRef.current) {
+        chartRef.current.remove()
+        chartRef.current = null
+        seriesRef.current = null
+      }
     }
   }, [height])
 
