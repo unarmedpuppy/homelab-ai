@@ -85,7 +85,7 @@ export default function Charts() {
               size="small"
               color={trade.side === 'LONG' ? 'primary' : 'secondary'}
             />
-            {trade.net_pnl !== null && (
+            {trade.net_pnl !== null && trade.net_pnl !== undefined && (
               <Chip
                 label={`P&L: $${trade.net_pnl.toFixed(2)}`}
                 size="small"

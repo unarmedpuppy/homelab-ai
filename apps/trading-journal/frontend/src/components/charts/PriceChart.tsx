@@ -132,7 +132,7 @@ export default function PriceChart({
       const entryText = `Entry: ${tradeOverlay.side} @ $${tradeOverlay.entry_price.toFixed(2)}`
       const exitText = exitTime
         ? `Exit @ $${tradeOverlay.exit_price?.toFixed(2) || 'N/A'}${
-            tradeOverlay.net_pnl !== null
+            tradeOverlay.net_pnl !== null && tradeOverlay.net_pnl !== undefined
               ? ` (P&L: $${tradeOverlay.net_pnl >= 0 ? '+' : ''}${tradeOverlay.net_pnl.toFixed(2)})`
               : ''
           }`

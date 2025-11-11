@@ -24,6 +24,7 @@ import {
   CircularProgress,
   Alert,
   useTheme,
+  Tooltip,
 } from '@mui/material'
 import {
   ArrowBack,
@@ -32,6 +33,7 @@ import {
   TrendingUp,
   TrendingDown,
   Assessment,
+  ShowChart,
 } from '@mui/icons-material'
 import { format, parseISO } from 'date-fns'
 import {
@@ -363,6 +365,17 @@ export default function DailyJournal() {
                           ? trade.realized_r_multiple.toFixed(2)
                           : 'N/A'}
                       </Typography>
+                    </TableCell>
+                    <TableCell align="center">
+                      <Tooltip title="View trade on chart">
+                        <IconButton
+                          size="small"
+                          onClick={() => navigate(`/charts/trade/${trade.id}`)}
+                          color="primary"
+                        >
+                          <ShowChart fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
                     </TableCell>
                   </TableRow>
                 ))}
