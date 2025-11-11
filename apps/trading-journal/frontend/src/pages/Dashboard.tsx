@@ -6,6 +6,9 @@ import { Box, Grid, Typography, CircularProgress, Alert } from '@mui/material'
 import { useDashboardStats, useRecentTrades } from '../hooks/useDashboard'
 import KPICard from '../components/dashboard/KPICard'
 import RecentTrades from '../components/dashboard/RecentTrades'
+import CumulativePnLChart from '../components/dashboard/CumulativePnLChart'
+import DailyPnLChart from '../components/dashboard/DailyPnLChart'
+import DrawdownChart from '../components/dashboard/DrawdownChart'
 
 export default function Dashboard() {
   const { data: stats, isLoading: statsLoading, error: statsError } = useDashboardStats()
@@ -128,6 +131,24 @@ export default function Dashboard() {
           </Grid>
         </Grid>
       )}
+
+      {/* Charts Section */}
+      <Box sx={{ mt: 4 }}>
+        <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
+          Performance Charts
+        </Typography>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <CumulativePnLChart height={350} />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <DailyPnLChart height={350} />
+          </Grid>
+          <Grid item xs={12}>
+            <DrawdownChart height={350} />
+          </Grid>
+        </Grid>
+      </Box>
 
       {/* Recent Trades */}
       <Box sx={{ mt: 4 }}>
