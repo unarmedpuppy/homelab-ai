@@ -22,11 +22,11 @@ export default function Charts() {
   const [daysAfter, setDaysAfter] = useState<number>(30)
   const [indicators, setIndicators] = useState<ChartIndicatorConfig>({
     showSMA20: true,
-    showSMA200: true,
-    showEMA9: true,
-    showEMA21: true,
+    showSMA200: false,
+    showEMA9: false,
+    showEMA21: false,
     showVolume: true,
-    showRSI: true,
+    showRSI: false,
     rsiPeriod: 14,
   })
 
