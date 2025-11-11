@@ -41,7 +41,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
 } from 'recharts'
 import {
@@ -375,7 +375,7 @@ export default function DailyJournal() {
                     tick={{ fill: '#d1d5db' }}
                     tickFormatter={(value) => `$${value.toFixed(0)}`}
                   />
-                  <Tooltip
+                  <RechartsTooltip
                     contentStyle={{
                       backgroundColor: '#1e1e1e',
                       border: '1px solid #2a2a2a',

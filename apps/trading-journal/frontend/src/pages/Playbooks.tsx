@@ -2,7 +2,7 @@
  * Playbooks page component.
  */
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   Box,
   Typography,
@@ -18,12 +18,6 @@ import {
   DialogActions,
   IconButton,
   Chip,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Switch,
   FormControlLabel,
   MenuItem,
@@ -36,8 +30,6 @@ import {
   Add,
   Edit,
   Delete,
-  TrendingUp,
-  TrendingDown,
   Visibility,
   Search,
 } from '@mui/icons-material'
