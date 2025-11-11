@@ -15,8 +15,12 @@ import {
   Box,
   CircularProgress,
   Alert,
+  IconButton,
+  Tooltip,
 } from '@mui/material'
 import { format } from 'date-fns'
+import { useNavigate } from 'react-router-dom'
+import { ShowChart } from '@mui/icons-material'
 import { RecentTrade } from '../../types/dashboard'
 
 interface RecentTradesProps {
@@ -26,6 +30,7 @@ interface RecentTradesProps {
 }
 
 export default function RecentTrades({ trades, isLoading, error }: RecentTradesProps) {
+  const navigate = useNavigate()
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
@@ -73,6 +78,7 @@ export default function RecentTrades({ trades, isLoading, error }: RecentTradesP
             <TableCell>Entry</TableCell>
             <TableCell>Exit</TableCell>
             <TableCell align="right">P&L</TableCell>
+            <TableCell align="center">Chart</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -113,6 +119,17 @@ export default function RecentTrades({ trades, isLoading, error }: RecentTradesP
                 >
                   {formatPnl(trade.net_pnl)}
                 </Typography>
+              </TableCell>
+              <TableCell align="center">
+                <Tooltip title="View trade on chart">
+                  <IconButton
+                    size="small"
+                    onClick={() => navigate(`/charts/trade/${trade.id}`)}
+                    color="primary"
+                  >
+                    <ShowChart fontSize="small" />
+                  </IconButton>
+                </Tooltip>
               </TableCell>
             </TableRow>
           ))}

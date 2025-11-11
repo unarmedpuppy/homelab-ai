@@ -128,6 +128,16 @@ export default function PriceChart({
         ? Math.floor(new Date(tradeOverlay.exit_time).getTime() / 1000)
         : null
 
+      // Build marker text with trade details
+      const entryText = `Entry: ${tradeOverlay.side} @ $${tradeOverlay.entry_price.toFixed(2)}`
+      const exitText = exitTime
+        ? `Exit @ $${tradeOverlay.exit_price?.toFixed(2) || 'N/A'}${
+            tradeOverlay.net_pnl !== null
+              ? ` (P&L: $${tradeOverlay.net_pnl >= 0 ? '+' : ''}${tradeOverlay.net_pnl.toFixed(2)})`
+              : ''
+          }`
+        : ''
+
       // Entry marker
       const markers: any[] = [
         {
@@ -135,7 +145,7 @@ export default function PriceChart({
           position: 'belowBar',
           color: tradeOverlay.side === 'LONG' ? '#10b981' : '#ef4444',
           shape: 'arrowUp',
-          text: `Entry: ${tradeOverlay.side} @ $${tradeOverlay.entry_price.toFixed(2)}`,
+          text: entryText,
         },
       ]
 
@@ -145,7 +155,7 @@ export default function PriceChart({
           position: 'aboveBar',
           color: tradeOverlay.side === 'LONG' ? '#ef4444' : '#10b981',
           shape: 'arrowDown',
-          text: `Exit @ $${tradeOverlay.exit_price?.toFixed(2) || 'N/A'}`,
+          text: exitText,
         })
       }
 

@@ -15,6 +15,7 @@ function App() {
         <Route path="/daily/:date?" element={<DailyJournal />} />
         <Route path="/trade-entry" element={<TradeEntry />} />
         <Route path="/charts/:ticker?" element={<Charts />} />
+        <Route path="/charts/trade/:tradeId" element={<Charts />} />
       </Routes>
     </Layout>
   )

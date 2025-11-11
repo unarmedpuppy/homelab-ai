@@ -302,6 +302,7 @@ export default function DailyJournal() {
                   <TableCell align="right">P&L</TableCell>
                   <TableCell align="right">ROI</TableCell>
                   <TableCell align="right">R-Multiple</TableCell>
+                  <TableCell align="center">Chart</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
