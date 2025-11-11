@@ -308,12 +308,9 @@ export default function PriceChart({
           type: 'volume',
         },
         priceScaleId: 'volume',
-        scaleMargins: {
-          top: 0.8,
-          bottom: 0,
-        },
       })
 
+      // Set scale margins on the price scale, not the series
       chartRef.current.priceScale('volume').applyOptions({
         scaleMargins: {
           top: 0.8,
