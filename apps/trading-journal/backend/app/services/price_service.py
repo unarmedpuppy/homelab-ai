@@ -456,10 +456,10 @@ async def _fetch_alpha_vantage(
                 continue
             
             # Alpha Vantage uses different keys for daily vs intraday
-            open_key = values.get("1. open") or values.get("1. open")
-            high_key = values.get("2. high") or values.get("2. high")
-            low_key = values.get("3. low") or values.get("3. low")
-            close_key = values.get("4. close") or values.get("4. close")
+                open_key = values.get("1. open")
+                high_key = values.get("2. high")
+                low_key = values.get("3. low")
+                close_key = values.get("4. close")
             volume_key = values.get("5. volume") or values.get("6. volume", 0)
             
             data_points.append(PriceDataPoint(
