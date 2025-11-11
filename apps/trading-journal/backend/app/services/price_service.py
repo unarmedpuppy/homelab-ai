@@ -70,15 +70,23 @@ async def get_price_data(
     # Determine what data we need to fetch
     missing_ranges = _find_missing_ranges(cached_data, start_date, end_date, timeframe)
     
-    # Fetch missing data
+    # Fetch missing data (limit to reasonable ranges to avoid timeouts)
     if missing_ranges:
-        fetched_data = await _fetch_price_data(ticker, missing_ranges, timeframe)
+        # Limit the number of ranges to fetch at once (to avoid timeouts)
+        # For large date ranges, we'll fetch in chunks
+        max_ranges = 5  # Limit concurrent range fetches
+        ranges_to_fetch = missing_ranges[:max_ranges]
+        
+        fetched_data = await _fetch_price_data(ticker, ranges_to_fetch, timeframe)
         
         # Cache the fetched data
         if fetched_data:
             await _cache_price_data(db, ticker, fetched_data, timeframe)
             # Merge with cached data
             cached_data = _merge_price_data(cached_data, fetched_data)
+        
+        # If there are more ranges, we'll fetch them on subsequent requests
+        # This prevents timeouts on initial load
     
     # Sort by timestamp
     cached_data.sort(key=lambda x: x.timestamp)
@@ -89,12 +97,25 @@ async def get_price_data(
         if start_date <= point.timestamp <= end_date
     ]
     
+    # If we have some data, return it even if not complete (to avoid timeout)
+    # Subsequent requests will fill in the gaps
+    if filtered_data:
+        logger.info(f"Returning {len(filtered_data)} data points for {ticker} (may be incomplete)")
+        return PriceDataResponse(
+            ticker=ticker,
+            timeframe=timeframe,
+            start_date=start_date,
+            end_date=end_date,
+            data=filtered_data,
+        )
+    
+    # If no data at all, return empty response
     return PriceDataResponse(
         ticker=ticker,
         timeframe=timeframe,
         start_date=start_date,
         end_date=end_date,
-        data=filtered_data,
+        data=[],
     )
 
 
@@ -236,35 +257,63 @@ async def _fetch_price_data(
     # Determine if this is crypto
     is_crypto = _is_crypto_ticker(ticker)
     
-    # Try providers in order
+    # Try providers in order, but limit date range to avoid timeouts
+    all_data = []
     for start_date, end_date in date_ranges:
-        # Try Alpha Vantage first (if API key available)
-        if settings.alpha_vantage_api_key and not is_crypto:
-            try:
-                data = await _fetch_alpha_vantage(ticker, start_date, end_date, timeframe)
-                if data:
-                    return data
-            except Exception as e:
-                logger.warning(f"Alpha Vantage fetch failed for {ticker}: {e}")
-        
-        # Try CoinGecko for crypto
-        if is_crypto and settings.coingecko_api_key:
-            try:
-                data = await _fetch_coingecko(ticker, start_date, end_date, timeframe)
-                if data:
-                    return data
-            except Exception as e:
-                logger.warning(f"CoinGecko fetch failed for {ticker}: {e}")
-        
-        # Fallback to yfinance (no API key needed)
+        # Limit date range to 90 days max per request to avoid timeouts
+        max_days = 90
+        if (end_date - start_date).days > max_days:
+            # Split large ranges into smaller chunks
+            current_start = start_date
+            while current_start < end_date:
+                current_end = min(current_start + timedelta(days=max_days), end_date)
+                chunk_data = await _fetch_from_providers(ticker, current_start, current_end, timeframe, is_crypto)
+                if chunk_data:
+                    all_data.extend(chunk_data)
+                current_start = current_end
+        else:
+            chunk_data = await _fetch_from_providers(ticker, start_date, end_date, timeframe, is_crypto)
+            if chunk_data:
+                all_data.extend(chunk_data)
+    
+    return all_data
+
+
+async def _fetch_from_providers(
+    ticker: str,
+    start_date: datetime,
+    end_date: datetime,
+    timeframe: str,
+    is_crypto: bool,
+) -> Optional[List[PriceDataPoint]]:
+    """Fetch from providers in order with timeout handling."""
+    # Try Alpha Vantage first (if API key available)
+    if settings.alpha_vantage_api_key and not is_crypto:
         try:
-            data = await _fetch_yfinance(ticker, start_date, end_date, timeframe)
+            data = await _fetch_alpha_vantage(ticker, start_date, end_date, timeframe)
             if data:
                 return data
         except Exception as e:
-            logger.warning(f"yfinance fetch failed for {ticker}: {e}")
+            logger.warning(f"Alpha Vantage fetch failed for {ticker}: {e}")
     
-    return []
+    # Try CoinGecko for crypto
+    if is_crypto and settings.coingecko_api_key:
+        try:
+            data = await _fetch_coingecko(ticker, start_date, end_date, timeframe)
+            if data:
+                return data
+        except Exception as e:
+            logger.warning(f"CoinGecko fetch failed for {ticker}: {e}")
+    
+    # Fallback to yfinance (no API key needed)
+    try:
+        data = await _fetch_yfinance(ticker, start_date, end_date, timeframe)
+        if data:
+            return data
+    except Exception as e:
+        logger.warning(f"yfinance fetch failed for {ticker}: {e}")
+    
+    return None
 
 
 def _is_crypto_ticker(ticker: str) -> bool:

@@ -26,7 +26,7 @@ const apiClient: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000, // 30 seconds
+  timeout: 60000, // 60 seconds (price data fetching can take longer)
 })
 
 // Request interceptor - add API key to all requests
