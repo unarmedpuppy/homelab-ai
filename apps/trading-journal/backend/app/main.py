@@ -14,7 +14,7 @@ from sqlalchemy import text
 import logging
 
 from app.config import settings
-from app.api.routes import health, trades, dashboard, calendar, daily
+from app.api.routes import health, trades, dashboard, calendar, daily, charts
 from app.database import engine
 
 # Configure logging
@@ -142,6 +142,7 @@ app.include_router(trades.router, prefix="/api/trades", tags=["trades"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["dashboard"])
 app.include_router(calendar.router, prefix="/api/calendar", tags=["calendar"])
 app.include_router(daily.router, prefix="/api/daily", tags=["daily"])
+app.include_router(charts.router, prefix="/api/charts", tags=["charts"])
 
 # Root endpoint
 @app.get("/")

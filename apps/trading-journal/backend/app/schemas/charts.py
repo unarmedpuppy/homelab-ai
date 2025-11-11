@@ -2,7 +2,9 @@
 Charts schemas for price data and visualization.
 """
 
-from pydantic import BaseModel, Field
+from __future__ import annotations
+
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
 from datetime import datetime
 from decimal import Decimal
@@ -16,6 +18,12 @@ class PriceDataPoint(BaseModel):
     low: Decimal = Field(..., description="Low price")
     close: Decimal = Field(..., description="Close price")
     volume: Optional[int] = Field(None, ge=0, description="Volume")
+    
+    model_config = ConfigDict(
+        json_encoders={
+            Decimal: lambda v: float(v) if v is not None else None,
+        }
+    )
 
 
 class PriceDataResponse(BaseModel):
@@ -25,6 +33,12 @@ class PriceDataResponse(BaseModel):
     start_date: datetime = Field(..., description="Start date")
     end_date: datetime = Field(..., description="End date")
     data: List[PriceDataPoint] = Field(..., description="Price data points")
+    
+    model_config = ConfigDict(
+        json_encoders={
+            Decimal: lambda v: float(v) if v is not None else None,
+        }
+    )
 
 
 class TradeOverlayData(BaseModel):
@@ -37,4 +51,10 @@ class TradeOverlayData(BaseModel):
     exit_price: Optional[Decimal] = Field(None, description="Exit price")
     side: str = Field(..., description="Trade side (LONG or SHORT)")
     net_pnl: Optional[Decimal] = Field(None, description="Net P&L")
+    
+    model_config = ConfigDict(
+        json_encoders={
+            Decimal: lambda v: float(v) if v is not None else None,
+        }
+    )
 
