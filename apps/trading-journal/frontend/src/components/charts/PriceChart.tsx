@@ -347,133 +347,169 @@ export default function PriceChart({
     }
 
     // Calculate and add SMA 20 if enabled
-    if (chartIndicators.showSMA20 && chartData.length >= 20) {
-      const sma20Data: { time: any; value: number }[] = []
+    // Indicators are calculated based on the number of candles, which aligns with the chart timeframe
+    // SMA 20 on 1h chart = 20 hours, SMA 20 on 1d chart = 20 days, etc.
+    if (chartIndicators.showSMA20) {
+      const sma20Period = 20
+      // Use adaptive period if we don't have enough data
+      const actualPeriod = Math.min(sma20Period, Math.max(2, Math.floor(chartData.length / 2)))
+      
+      if (chartData.length >= actualPeriod) {
+        const sma20Data: { time: any; value: number }[] = []
 
-      for (let i = 19; i < chartData.length; i++) {
-        const sum = chartData.slice(i - 19, i + 1).reduce((acc, point) => acc + point.close, 0)
-        const sma = sum / 20
-        sma20Data.push({
-          time: chartData[i].time,
-          value: sma,
-        })
+        for (let i = actualPeriod - 1; i < chartData.length; i++) {
+          const sum = chartData.slice(i - actualPeriod + 1, i + 1).reduce((acc, point) => acc + point.close, 0)
+          const sma = sum / actualPeriod
+          sma20Data.push({
+            time: chartData[i].time,
+            value: sma,
+          })
+        }
+
+        if (sma20Data.length > 0) {
+          sma20SeriesRef.current = chartRef.current.addLineSeries({
+            color: '#ffffff', // White
+            lineWidth: 1 as LineWidth,
+            lineStyle: LineStyle.Solid,
+            // No title to avoid blocking view
+            priceFormat: {
+              type: 'price',
+              precision: 2,
+              minMove: 0.01,
+            },
+          })
+
+          sma20SeriesRef.current.setData(sma20Data)
+          console.log(`SMA 20 added with period ${actualPeriod}, ${sma20Data.length} points`)
+        }
       }
-
-      sma20SeriesRef.current = chartRef.current.addLineSeries({
-        color: '#ffffff', // White
-        lineWidth: 1 as LineWidth,
-        lineStyle: LineStyle.Solid,
-        // No title to avoid blocking view
-        priceFormat: {
-          type: 'price',
-          precision: 2,
-          minMove: 0.01,
-        },
-      })
-
-      sma20SeriesRef.current.setData(sma20Data)
     }
 
     // Calculate and add SMA 200 if enabled
-    if (chartIndicators.showSMA200 && chartData.length >= 200) {
-      const sma200Data: { time: any; value: number }[] = []
+    if (chartIndicators.showSMA200) {
+      const sma200Period = 200
+      // Use adaptive period if we don't have enough data
+      const actualPeriod = Math.min(sma200Period, Math.max(2, Math.floor(chartData.length / 2)))
+      
+      if (chartData.length >= actualPeriod) {
+        const sma200Data: { time: any; value: number }[] = []
 
-      for (let i = 199; i < chartData.length; i++) {
-        const sum = chartData.slice(i - 199, i + 1).reduce((acc, point) => acc + point.close, 0)
-        const sma = sum / 200
-        sma200Data.push({
-          time: chartData[i].time,
-          value: sma,
-        })
+        for (let i = actualPeriod - 1; i < chartData.length; i++) {
+          const sum = chartData.slice(i - actualPeriod + 1, i + 1).reduce((acc, point) => acc + point.close, 0)
+          const sma = sum / actualPeriod
+          sma200Data.push({
+            time: chartData[i].time,
+            value: sma,
+          })
+        }
+
+        if (sma200Data.length > 0) {
+          sma200SeriesRef.current = chartRef.current.addLineSeries({
+            color: '#808080', // Gray
+            lineWidth: 1 as LineWidth,
+            lineStyle: LineStyle.Dashed, // Dashed line for SMA 200
+            // No title to avoid blocking view
+            priceFormat: {
+              type: 'price',
+              precision: 2,
+              minMove: 0.01,
+            },
+          })
+
+          sma200SeriesRef.current.setData(sma200Data)
+          console.log(`SMA 200 added with period ${actualPeriod}, ${sma200Data.length} points`)
+        }
       }
-
-      sma200SeriesRef.current = chartRef.current.addLineSeries({
-        color: '#808080', // Gray
-        lineWidth: 1 as LineWidth,
-        lineStyle: LineStyle.Dashed, // Dashed line for SMA 200
-        // No title to avoid blocking view
-        priceFormat: {
-          type: 'price',
-          precision: 2,
-          minMove: 0.01,
-        },
-      })
-
-      sma200SeriesRef.current.setData(sma200Data)
     }
 
     // Calculate and add EMA 9 if enabled
-    if (chartIndicators.showEMA9 && chartData.length >= 9) {
+    if (chartIndicators.showEMA9) {
       const ema9Period = 9
-      const multiplier = 2 / (ema9Period + 1)
-      const ema9Data: { time: any; value: number }[] = []
+      // Use adaptive period if we don't have enough data
+      const actualPeriod = Math.min(ema9Period, Math.max(2, Math.floor(chartData.length / 2)))
+      
+      if (chartData.length >= actualPeriod) {
+        const multiplier = 2 / (actualPeriod + 1)
+        const ema9Data: { time: any; value: number }[] = []
 
-      // Start with SMA for first value
-      let ema = chartData.slice(0, ema9Period).reduce((acc, point) => acc + point.close, 0) / ema9Period
-      ema9Data.push({
-        time: chartData[ema9Period - 1].time,
-        value: ema,
-      })
-
-      // Calculate EMA for remaining points
-      for (let i = ema9Period; i < chartData.length; i++) {
-        ema = (chartData[i].close - ema) * multiplier + ema
+        // Start with SMA for first value
+        let ema = chartData.slice(0, actualPeriod).reduce((acc, point) => acc + point.close, 0) / actualPeriod
         ema9Data.push({
-          time: chartData[i].time,
+          time: chartData[actualPeriod - 1].time,
           value: ema,
         })
+
+        // Calculate EMA for remaining points
+        for (let i = actualPeriod; i < chartData.length; i++) {
+          ema = (chartData[i].close - ema) * multiplier + ema
+          ema9Data.push({
+            time: chartData[i].time,
+            value: ema,
+          })
+        }
+
+        if (ema9Data.length > 0) {
+          ema9SeriesRef.current = chartRef.current.addLineSeries({
+            color: '#ffffff', // White
+            lineWidth: 1 as LineWidth,
+            lineStyle: LineStyle.Solid,
+            // No title to avoid blocking view
+            priceFormat: {
+              type: 'price',
+              precision: 2,
+              minMove: 0.01,
+            },
+          })
+
+          ema9SeriesRef.current.setData(ema9Data)
+          console.log(`EMA 9 added with period ${actualPeriod}, ${ema9Data.length} points`)
+        }
       }
-
-      ema9SeriesRef.current = chartRef.current.addLineSeries({
-        color: '#ffffff', // White
-        lineWidth: 1 as LineWidth,
-        lineStyle: LineStyle.Solid,
-        // No title to avoid blocking view
-        priceFormat: {
-          type: 'price',
-          precision: 2,
-          minMove: 0.01,
-        },
-      })
-
-      ema9SeriesRef.current.setData(ema9Data)
     }
 
     // Calculate and add EMA 21 if enabled
-    if (chartIndicators.showEMA21 && chartData.length >= 21) {
+    if (chartIndicators.showEMA21) {
       const ema21Period = 21
-      const multiplier = 2 / (ema21Period + 1)
-      const ema21Data: { time: any; value: number }[] = []
+      // Use adaptive period if we don't have enough data
+      const actualPeriod = Math.min(ema21Period, Math.max(2, Math.floor(chartData.length / 2)))
+      
+      if (chartData.length >= actualPeriod) {
+        const multiplier = 2 / (actualPeriod + 1)
+        const ema21Data: { time: any; value: number }[] = []
 
-      // Start with SMA for first value
-      let ema = chartData.slice(0, ema21Period).reduce((acc, point) => acc + point.close, 0) / ema21Period
-      ema21Data.push({
-        time: chartData[ema21Period - 1].time,
-        value: ema,
-      })
-
-      // Calculate EMA for remaining points
-      for (let i = ema21Period; i < chartData.length; i++) {
-        ema = (chartData[i].close - ema) * multiplier + ema
+        // Start with SMA for first value
+        let ema = chartData.slice(0, actualPeriod).reduce((acc, point) => acc + point.close, 0) / actualPeriod
         ema21Data.push({
-          time: chartData[i].time,
+          time: chartData[actualPeriod - 1].time,
           value: ema,
         })
+
+        // Calculate EMA for remaining points
+        for (let i = actualPeriod; i < chartData.length; i++) {
+          ema = (chartData[i].close - ema) * multiplier + ema
+          ema21Data.push({
+            time: chartData[i].time,
+            value: ema,
+          })
+        }
+
+        if (ema21Data.length > 0) {
+          ema21SeriesRef.current = chartRef.current.addLineSeries({
+            color: '#808080', // Gray
+            lineWidth: 1 as LineWidth,
+            lineStyle: LineStyle.Solid,
+            // No title to avoid blocking view
+            priceFormat: {
+              type: 'price',
+              precision: 2,
+              minMove: 0.01,
+            },
+          })
+
+          ema21SeriesRef.current.setData(ema21Data)
+          console.log(`EMA 21 added with period ${actualPeriod}, ${ema21Data.length} points`)
+        }
       }
-
-      ema21SeriesRef.current = chartRef.current.addLineSeries({
-        color: '#808080', // Gray
-        lineWidth: 1 as LineWidth,
-        lineStyle: LineStyle.Solid,
-        // No title to avoid blocking view
-        priceFormat: {
-          type: 'price',
-          precision: 2,
-          minMove: 0.01,
-        },
-      })
-
-      ema21SeriesRef.current.setData(ema21Data)
     }
 
     // Calculate and add RSI if enabled
