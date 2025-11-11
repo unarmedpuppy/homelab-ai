@@ -34,7 +34,7 @@ export default function PriceChart({
 
     const container = chartContainerRef.current
     let resizeHandler: (() => void) | null = null
-    let timeoutId: NodeJS.Timeout | null = null
+    let timeoutId: ReturnType<typeof setTimeout> | null = null
     
     // Wait for container to have a width
     const initChart = () => {
