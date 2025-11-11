@@ -364,7 +364,7 @@ async def _fetch_alpha_vantage(
             volume_key = values.get("5. volume") or values.get("6. volume", 0)
             
             data_points.append(PriceDataPoint(
-                timestamp=timestamp,
+                timestamp=_naive_datetime(timestamp),
                 open=Decimal(str(open_key or "0")),
                 high=Decimal(str(high_key or "0")),
                 low=Decimal(str(low_key or "0")),
@@ -509,7 +509,7 @@ async def _fetch_coingecko(
         if start_date <= timestamp <= end_date:
             price_decimal = Decimal(str(price))
             data_points.append(PriceDataPoint(
-                timestamp=timestamp,
+                timestamp=_naive_datetime(timestamp),
                 open=price_decimal,
                 high=price_decimal,
                 low=price_decimal,
@@ -536,13 +536,16 @@ async def _cache_price_data(
         timeframe: Timeframe
     """
     for point in data_points:
+        # Ensure timestamp is naive for database operations
+        point_timestamp_naive = _naive_datetime(point.timestamp)
+        
         # Check if already cached
         query = (
             select(PriceCache)
             .where(
                 and_(
                     PriceCache.ticker == ticker,
-                    PriceCache.timestamp == point.timestamp,
+                    PriceCache.timestamp == point_timestamp_naive,
                     PriceCache.timeframe == timeframe,
                 )
             )
@@ -562,7 +565,7 @@ async def _cache_price_data(
             # Create new cache entry
             cache_entry = PriceCache(
                 ticker=ticker,
-                timestamp=point.timestamp,
+                timestamp=point_timestamp_naive,
                 timeframe=timeframe,
                 open_price=point.open,
                 high_price=point.high,
