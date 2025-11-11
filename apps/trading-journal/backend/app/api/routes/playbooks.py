@@ -4,7 +4,7 @@ Playbooks API endpoints.
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Path, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional
+from typing import Optional, List
 from datetime import date, datetime
 
 from app.api.dependencies import verify_api_key, DatabaseSession
