@@ -30,66 +30,88 @@ export default function PriceChart({
   const [chartReady, setChartReady] = useState(false)
 
   useEffect(() => {
-    if (!chartContainerRef.current) return
-
-    const container = chartContainerRef.current
-    let resizeHandler: (() => void) | null = null
-    let timeoutId: ReturnType<typeof setTimeout> | null = null
-    
-    // Wait for container to have a width
+    // Wait for container ref to be attached
     const initChart = () => {
-      const width = container.clientWidth
-      if (width === 0) {
-        // Retry after a short delay (max 10 attempts)
-        timeoutId = setTimeout(initChart, 100)
+      if (!chartContainerRef.current) {
+        // Retry after a short delay if ref not attached yet
+        setTimeout(initChart, 50)
         return
       }
 
-      // Create chart
-      const chart = createChart(container, {
-        layout: {
-          background: { type: ColorType.Solid, color: '#1e1e1e' },
-          textColor: '#d1d5db',
-        },
-        grid: {
-          vertLines: { color: '#2a2a2a' },
-          horzLines: { color: '#2a2a2a' },
-        },
-        width: width,
-        height: height,
-        timeScale: {
-          timeVisible: true,
-          secondsVisible: false,
-        },
-        rightPriceScale: {
-          borderColor: '#2a2a2a',
-        },
-      })
-
-      chartRef.current = chart
-
-      // Handle resize
-      resizeHandler = () => {
-        if (container && chart) {
-          const newWidth = container.clientWidth || width
-          chart.applyOptions({ width: newWidth })
+      const container = chartContainerRef.current
+      let resizeHandler: (() => void) | null = null
+      let timeoutId: ReturnType<typeof setTimeout> | null = null
+      
+      // Wait for container to have a width
+      const createChartInstance = () => {
+        const width = container.clientWidth
+        if (width === 0) {
+          // Retry after a short delay (max 20 attempts)
+          timeoutId = setTimeout(createChartInstance, 100)
+          return
         }
+
+        console.log('Creating chart with dimensions:', { width, height })
+
+        // Create chart
+        const chart = createChart(container, {
+          layout: {
+            background: { type: ColorType.Solid, color: '#1e1e1e' },
+            textColor: '#d1d5db',
+          },
+          grid: {
+            vertLines: { color: '#2a2a2a' },
+            horzLines: { color: '#2a2a2a' },
+          },
+          width: width,
+          height: height,
+          timeScale: {
+            timeVisible: true,
+            secondsVisible: false,
+          },
+          rightPriceScale: {
+            borderColor: '#2a2a2a',
+          },
+        })
+
+        chartRef.current = chart
+        console.log('Chart created successfully')
+
+        // Handle resize
+        resizeHandler = () => {
+          if (container && chart) {
+            const newWidth = container.clientWidth || width
+            chart.applyOptions({ width: newWidth })
+          }
+        }
+
+        window.addEventListener('resize', resizeHandler)
+        setChartReady(true)
       }
 
-      window.addEventListener('resize', resizeHandler)
-      setChartReady(true)
+      // Start chart creation
+      createChartInstance()
+
+      return () => {
+        if (timeoutId) {
+          clearTimeout(timeoutId)
+        }
+        if (resizeHandler) {
+          window.removeEventListener('resize', resizeHandler)
+        }
+        if (chartRef.current) {
+          chartRef.current.remove()
+          chartRef.current = null
+          seriesRef.current = null
+        }
+      }
     }
 
     // Start initialization
-    initChart()
+    const cleanup = initChart()
 
     return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId)
-      }
-      if (resizeHandler) {
-        window.removeEventListener('resize', resizeHandler)
-      }
+      if (cleanup) cleanup()
       if (chartRef.current) {
         chartRef.current.remove()
         chartRef.current = null
