@@ -6,6 +6,8 @@ A self-hosted trading journal application inspired by Tradezella, designed for p
 
 ## Core Features (MVP)
 
+**Note**: This implementation plan includes both completed features and planned enhancements. See `TASKS.md` for current implementation status.
+
 ### 1. Trade Entry & Management
 - **Create Trade Entry**: Form-based entry with date picker (defaults to today)
 - **Trade Details**:
@@ -59,13 +61,22 @@ A self-hosted trading journal application inspired by Tradezella, designed for p
 - **Trade List Table**: All trades for selected day
   - Columns: Open time, Ticker, Side (CALL/PUT/LONG/SHORT), Net P&L, Net ROI, Realized R-Multiple, Playbook
   - Sortable and filterable
+  - Click trade to view/edit details
+  - Filter by playbook, ticker, trade type
 - **Daily Performance Summary**:
   - Total trades, winners, losers
   - Winrate percentage
   - Gross P&L, commissions, volume
   - Profit factor
+  - Best trade, worst trade
+  - Average win/loss
 - **P&L Progression Chart**: Line chart showing P&L throughout the day
 - **Notes**: Add daily notes/observations
+  - Rich text editor for notes
+  - Save/update daily notes
+  - View notes history
+- **Playbook Performance**: Breakdown of performance by playbook for the day
+- **Trade Timeline**: Chronological view of trades throughout the day
 
 ### 5. Trade Visualization (Chart View)
 - **Historical Price Chart**: 
@@ -77,7 +88,7 @@ A self-hosted trading journal application inspired by Tradezella, designed for p
 - **Options Chain Visualization**: Display relevant options data if applicable
 - **Trade Overlay**: Mark entry/exit points on chart
 
-### 6. Backend API (AI Agent Compatible)
+### 7. Backend API (AI Agent Compatible)
 - **RESTful API**: All data access through API (no direct DB queries from frontend)
 - **Comprehensive Endpoints**: Every UI action has a corresponding API endpoint for AI agent interaction
 - **Authentication**: Simple API key authentication (single user for MVP)
@@ -90,6 +101,7 @@ A self-hosted trading journal application inspired by Tradezella, designed for p
   - Chart data and price history
   - Options chain data
   - Daily notes management
+  - Playbooks management (CRUD, templates, assignment)
   - Bulk operations
 
 ## Technology Stack
@@ -183,7 +195,7 @@ CREATE TABLE trades (
     -- Metadata
     status VARCHAR(20) DEFAULT 'open',  -- 'open', 'closed', 'partial'
     side VARCHAR(10) NOT NULL,  -- 'LONG', 'SHORT'
-    playbook VARCHAR(100),
+    playbook_id INTEGER REFERENCES playbooks(id),  -- Foreign key to playbooks table
     notes TEXT,
     tags TEXT[],  -- Array of tags for categorization
     
