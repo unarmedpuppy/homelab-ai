@@ -29,7 +29,7 @@ def _is_regular_trading_hours(timestamp: datetime, timeframe: str) -> bool:
     For daily timeframes, always returns True.
     
     Args:
-        timestamp: Naive datetime to check (assumed to be in ET timezone)
+        timestamp: Naive datetime to check
         timeframe: Timeframe string (1m, 5m, 15m, 1h, 1d)
     
     Returns:
@@ -42,15 +42,23 @@ def _is_regular_trading_hours(timestamp: datetime, timeframe: str) -> bool:
     # For intraday data, filter for regular trading hours
     # Regular trading hours: 9:30 AM - 4:00 PM ET
     # yfinance returns timestamps in ET timezone (naive, but represents ET)
+    # However, we need to check if the hour is reasonable for ET market hours
     hour = timestamp.hour
     minute = timestamp.minute
     
-    # Skip pre-market (before 9:30 AM) and after-hours (at or after 4:00 PM)
-    # Market opens at 9:30 AM ET and closes at 4:00 PM ET
-    # So we include 9:30 AM to 3:59 PM (hour < 16, or hour == 15)
-    if hour < 9 or (hour == 9 and minute < 30) or hour >= 16:
+    # Regular trading hours: 9:30 AM - 4:00 PM ET
+    # Include: 9:30 AM to 3:59 PM (hour == 9 and minute >= 30) OR (hour >= 10 and hour < 16)
+    # Exclude: before 9:30 AM or at/after 4:00 PM
+    
+    # Check if it's before 9:30 AM
+    if hour < 9 or (hour == 9 and minute < 30):
         return False
     
+    # Check if it's at or after 4:00 PM (16:00)
+    if hour >= 16:
+        return False
+    
+    # If we get here, it's between 9:30 AM and 3:59 PM
     return True
 
 from app.models.price_cache import PriceCache
@@ -565,6 +573,10 @@ async def _fetch_yfinance(
             close=Decimal(str(row["Close"])),
             volume=volume_int,
         ))
+    
+    logger.info(f"yfinance filtering: {total_points} total points, {filtered_out} filtered out, {len(data_points)} included for {ticker}")
+    if len(data_points) > 0:
+        logger.info(f"First point: {data_points[0].timestamp}, Last point: {data_points[-1].timestamp}")
     
     return data_points
 
