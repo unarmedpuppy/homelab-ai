@@ -28,8 +28,9 @@ app.use(cors());
 app.use(express.json());
 
 // Database service
+// Default path: apps/agent-monitoring/data/agent_activity.db
 const dbPath = process.env.DATABASE_PATH || 
-  path.join(__dirname, '../../data/agent_activity.db');
+  path.join(__dirname, '../../../agent-monitoring/data/agent_activity.db');
 const dbService = new DatabaseService(dbPath);
 
 // InfluxDB service (optional)
