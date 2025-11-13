@@ -6,6 +6,7 @@ Provides tools for agents to create specialized agent definitions and manage age
 
 import sys
 import json
+import yaml
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 from datetime import datetime

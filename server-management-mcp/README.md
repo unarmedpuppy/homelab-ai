@@ -147,6 +147,8 @@ Add to Claude Desktop config (`~/Library/Application Support/Claude/claude_deskt
 - `create_agent_definition` - Create a new specialized agent definition (with tasks and registry entry)
 - `query_agent_registry` - Query the agent registry for existing agents (by specialization or status)
 - `assign_task_to_agent` - Assign a new task to an existing agent
+- `archive_agent` - Archive an agent (move to archive state)
+- `reactivate_agent` - Reactivate an archived agent
 
 ### Skill Management ✅
 - `propose_skill` - Propose a new skill for the skills library (creates proposal for review)
