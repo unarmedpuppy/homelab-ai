@@ -307,4 +307,204 @@ def register_task_coordination_tools(server: Server):
             "count": len(filtered_tasks),
             "tasks": filtered_tasks
         }
+    
+    @server.tool()
+    async def get_task(
+        task_id: str
+    ) -> Dict[str, Any]:
+        """
+        Get details for a single task by task ID.
+        
+        Args:
+            task_id: The task ID to retrieve (e.g., "T1.1")
+        
+        Returns:
+            Dictionary with status and task details, or error if not found
+        """
+        _ensure_tasks_dir()
+        
+        # Parse existing tasks
+        all_tasks = _parse_registry()
+        
+        # Find task by ID
+        for task in all_tasks:
+            if task.get('task_id') == task_id:
+                return {
+                    "status": "success",
+                    "task": task
+                }
+        
+        return {
+            "status": "error",
+            "message": f"Task {task_id} not found"
+        }
+    
+    @server.tool()
+    async def claim_task(
+        task_id: str,
+        agent_id: str
+    ) -> Dict[str, Any]:
+        """
+        Claim a task (assign it to an agent).
+        
+        Args:
+            task_id: The task ID to claim (e.g., "T1.1")
+            agent_id: The agent ID claiming the task
+        
+        Returns:
+            Dictionary with status and message
+        """
+        _ensure_tasks_dir()
+        
+        # Parse existing tasks
+        all_tasks = _parse_registry()
+        
+        # Find task by ID
+        task_found = False
+        for task in all_tasks:
+            if task.get('task_id') == task_id:
+                task_found = True
+                
+                # Check if task is already claimed
+                current_assignee = task.get('assignee', '-')
+                if current_assignee != '-' and current_assignee.lower() != agent_id.lower():
+                    return {
+                        "status": "error",
+                        "message": f"Task {task_id} is already claimed by {current_assignee}",
+                        "current_assignee": current_assignee
+                    }
+                
+                # Check if task is in a claimable status
+                current_status = task.get('status', '').lower()
+                if current_status not in ['pending', 'claimed']:
+                    return {
+                        "status": "error",
+                        "message": f"Task {task_id} cannot be claimed. Current status: {current_status}",
+                        "current_status": current_status
+                    }
+                
+                # Claim the task
+                task['assignee'] = agent_id
+                if current_status == 'pending':
+                    task['status'] = 'claimed'
+                task['updated'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                break
+        
+        if not task_found:
+            return {
+                "status": "error",
+                "message": f"Task {task_id} not found"
+            }
+        
+        # Write back to registry
+        _write_registry(all_tasks)
+        
+        return {
+            "status": "success",
+            "message": f"Task {task_id} claimed by {agent_id}",
+            "task_id": task_id,
+            "agent_id": agent_id
+        }
+    
+    @server.tool()
+    async def update_task_status(
+        task_id: str,
+        status: str,
+        agent_id: Optional[str] = None,
+        notes: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Update the status of a task.
+        
+        Args:
+            task_id: The task ID to update (e.g., "T1.1")
+            status: New status (pending, claimed, in_progress, blocked, review, completed, cancelled)
+            agent_id: Agent ID making the update (required for permission check)
+            notes: Optional notes about the status change
+        
+        Returns:
+            Dictionary with status and message
+        """
+        _ensure_tasks_dir()
+        
+        # Validate status
+        valid_statuses = ['pending', 'claimed', 'in_progress', 'blocked', 'review', 'completed', 'cancelled']
+        if status.lower() not in valid_statuses:
+            return {
+                "status": "error",
+                "message": f"Invalid status: {status}. Valid statuses: {', '.join(valid_statuses)}"
+            }
+        
+        # Parse existing tasks
+        all_tasks = _parse_registry()
+        
+        # Find task by ID
+        task_found = False
+        for task in all_tasks:
+            if task.get('task_id') == task_id:
+                task_found = True
+                
+                # Check permissions: agent must be assignee or creator
+                current_assignee = task.get('assignee', '-')
+                if agent_id:
+                    # If task is assigned, only assignee can update
+                    if current_assignee != '-' and current_assignee.lower() != agent_id.lower():
+                        return {
+                            "status": "error",
+                            "message": f"Permission denied. Task {task_id} is assigned to {current_assignee}",
+                            "current_assignee": current_assignee
+                        }
+                
+                # Validate status transition
+                current_status = task.get('status', '').lower()
+                status_lower = status.lower()
+                
+                # Allow status transitions
+                # pending -> claimed -> in_progress -> review -> completed
+                # Any status -> blocked (if dependencies not met)
+                # Any status -> cancelled
+                
+                # Check for invalid transitions
+                if current_status == 'completed' and status_lower != 'completed':
+                    return {
+                        "status": "error",
+                        "message": f"Cannot change status from completed to {status_lower}",
+                        "current_status": current_status
+                    }
+                
+                if current_status == 'cancelled' and status_lower != 'cancelled':
+                    return {
+                        "status": "error",
+                        "message": f"Cannot change status from cancelled to {status_lower}",
+                        "current_status": current_status
+                    }
+                
+                # Update task
+                old_status = task['status']
+                task['status'] = status_lower
+                task['updated'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                
+                # If status is in_progress and task is claimed, update assignee if needed
+                if status_lower == 'in_progress' and current_assignee == '-' and agent_id:
+                    task['assignee'] = agent_id
+                
+                break
+        
+        if not task_found:
+            return {
+                "status": "error",
+                "message": f"Task {task_id} not found"
+            }
+        
+        # Write back to registry
+        _write_registry(all_tasks)
+        
+        return {
+            "status": "success",
+            "message": f"Task {task_id} status updated from {old_status} to {status_lower}",
+            "task_id": task_id,
+            "old_status": old_status,
+            "new_status": status_lower,
+            "notes": notes
+        }
 

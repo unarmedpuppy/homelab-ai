@@ -156,20 +156,98 @@ result = query_tasks(
 # Returns: {"count": 2, "tasks": [...]}
 ```
 
-## Future Enhancements
+## Task Management (Phase 2)
 
-Phase 2 will add:
-- `claim_task()` - Claim/assign tasks
-- `update_task_status()` - Update task status
-- `get_task()` - Get single task details
+### Get Task Details
+
+```python
+get_task(task_id="T1.1")
+```
+
+**Returns**: Full task details including all fields
+
+### Claim a Task
+
+```python
+claim_task(
+    task_id="T1.1",
+    agent_id="agent-001"
+)
+```
+
+**Validation**:
+- Task must exist
+- Task must be in `pending` or `claimed` status
+- If already claimed, must be by the same agent
+
+**Status Changes**:
+- `pending` → `claimed` (when first claimed)
+
+### Update Task Status
+
+```python
+update_task_status(
+    task_id="T1.1",
+    status="in_progress",
+    agent_id="agent-001",
+    notes="Started working on database setup"
+)
+```
+
+**Valid Statuses**:
+- `pending` - Available to claim
+- `claimed` - Claimed by agent, not started
+- `in_progress` - Actively being worked on
+- `blocked` - Waiting on dependencies
+- `review` - Needs review
+- `completed` - Finished
+- `cancelled` - Cancelled
+
+**Status Transitions**:
+- `pending` → `claimed` → `in_progress` → `review` → `completed`
+- Any status → `blocked` (if dependencies not met)
+- Any status → `cancelled`
+- Cannot change from `completed` or `cancelled` to other statuses
+
+**Permissions**:
+- Only the assigned agent can update task status
+- If unassigned, any agent can update
+
+## Example Workflow
+
+```python
+# 1. Register a task
+result = register_task(
+    title="Setup database",
+    description="Create PostgreSQL schema",
+    project="trading-journal",
+    priority="high",
+    created_by="agent-001"
+)
+task_id = result["task_id"]  # e.g., "T1.1"
+
+# 2. Claim the task
+claim_task(task_id=task_id, agent_id="agent-001")
+
+# 3. Update status as work progresses
+update_task_status(task_id=task_id, status="in_progress", agent_id="agent-001")
+update_task_status(task_id=task_id, status="review", agent_id="agent-001", notes="Ready for review")
+update_task_status(task_id=task_id, status="completed", agent_id="agent-001")
+
+# 4. Query tasks
+my_tasks = query_tasks(assignee="agent-001", status="in_progress")
+```
+
+## Future Enhancements
 
 Phase 3 will add:
 - `check_task_dependencies()` - Check dependency status
 - Dependency validation before claiming
 - Automatic status updates when dependencies complete
+- Block task if dependencies not met
 
 ---
 
-**Status**: Phase 1 Complete
+**Status**: Phase 2 Complete
 **Last Updated**: 2025-01-10
 
