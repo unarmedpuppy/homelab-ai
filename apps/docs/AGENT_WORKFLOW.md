@@ -400,30 +400,43 @@ This document outlines a proven workflow for managing AI agents working on softw
 
 **Current Limitation**: Each agent session starts from scratch, losing context and decisions from previous sessions.
 
-**Solution**: Use a graph-based memory system like [mem-layer](https://github.com/0xSero/mem-layer) to:
-- Track decisions across sessions
-- Share knowledge between agents
-- Recognize patterns and learn from mistakes
-- Maintain context continuity
-- Build knowledge graphs of project relationships
+**Solution**: Use [Memori](https://github.com/GibsonAI/Memori) - an open-source memory engine that automatically:
+- Injects context before LLM calls (transparent)
+- Records all conversations automatically
+- Learns patterns in the background (Conscious Agent)
+- Shares knowledge between agents
+- Maintains context continuity across sessions
 
-**See**: `AGENT_MEMORY_INTEGRATION.md` for complete integration guide.
+**See**: 
+- `MEMORY_SYSTEM_COMPARISON.md` for comparison with alternatives
+- `AGENT_MEMORY_INTEGRATION.md` for detailed integration guide (legacy mem-layer plan)
 
-### Quick Integration
+### Quick Integration (Memori)
 
-1. **Install mem-layer**: `pip install mem-layer`
-2. **Initialize**: `mem-layer init --scope [project]`
-3. **Document decisions**: Agents create decision nodes
-4. **Query context**: Agents load context at start
-5. **Track patterns**: Reviewers document common issues
+**Memori is transparent - just enable it:**
+
+```python
+from memori import Memori
+
+memori = Memori(
+    database_connect="postgresql://user:pass@localhost/memori",
+    conscious_ingest=True,  # Short-term working memory
+    auto_ingest=True,       # Dynamic search per query
+)
+memori.enable()
+# That's it! Memory is now active and automatic
+```
+
+**No code changes needed** - Memori intercepts LLM calls transparently.
 
 ### Benefits
 
-- ✅ Persistent memory across sessions
-- ✅ Decision tracking and recall
-- ✅ Agent-to-agent communication
-- ✅ Pattern recognition
-- ✅ Reduced repetition
+- ✅ **Automatic**: No manual memory management needed
+- ✅ **Transparent**: Works with existing Skills and MCP tools
+- ✅ **Persistent**: Memory across sessions automatically
+- ✅ **Pattern Learning**: Conscious Agent learns patterns in background
+- ✅ **Multi-Agent**: Built-in support for multiple agents
+- ✅ **Production Ready**: 2.7k stars, active development
 
 ## Advanced Workflows
 
