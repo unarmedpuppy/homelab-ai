@@ -4,6 +4,46 @@
 
 This document outlines a proven workflow for managing AI agents working on software projects. This approach ensures quality, consistency, and effective collaboration between multiple AI agents.
 
+## ⚠️ CRITICAL: Skills and MCP Tools First
+
+**Before starting any task, your PRIMARY method for gaining context and capabilities is to discover Skills and MCP Tools.**
+
+### Discovery Workflow (Do This First)
+
+1. **Check Skills** - Review `server-management-skills/README.md` for workflows
+   - Skills provide complete workflows for common tasks
+   - Skills orchestrate MCP tools into tested workflows
+   - Skills include error handling and best practices
+   - **This is how you gain context** - don't start from scratch
+
+2. **Check MCP Tools** - Review `server-management-mcp/README.md` for available tools
+   - MCP tools provide individual operations (check status, restart, view logs)
+   - Tools are type-safe, tested, and documented
+   - **This is how you gain capabilities** - don't write custom commands
+
+3. **Use What Exists** - Skills and tools are your primary knowledge base
+   - Skills = workflows (how to do complete tasks)
+   - MCP Tools = capabilities (what you can do)
+   - Both provide context, examples, and best practices
+
+4. **Create New Only If Needed** - Only create new tools/skills if:
+   - No existing skill/tool exists for your operation
+   - The operation is reusable and should be shared
+   - You've tested your approach first
+
+**Discovery Priority**:
+1. **Skills** (workflows) → `server-management-skills/README.md`
+2. **MCP Tools** (operations) → `server-management-mcp/README.md`
+3. Create new MCP tool (if operation is reusable)
+4. Create new skill (if workflow is reusable)
+5. Existing scripts (fallback)
+6. SSH commands (last resort)
+
+**See**: 
+- `server-management-skills/README.md` - Skills catalog
+- `server-management-mcp/README.md` - MCP tools reference
+- `apps/docs/MCP_TOOL_DISCOVERY.md` - Tool discovery guide
+
 ## Core Workflow Components
 
 ### 1. Implementation Plan (`IMPLEMENTATION_PLAN.md`)
@@ -169,24 +209,34 @@ This document outlines a proven workflow for managing AI agents working on softw
    - Updates TASKS.md: `[CLAIMED]` or `[IN PROGRESS]`
    - Adds identifier/name
 
-2. **Agent Reads Documentation**
-   - STARTUP_GUIDE.md (first!)
+2. **Agent Discovers Skills and Tools** (PRIMARY STEP)
+   - **Check Skills first**: Review `server-management-skills/README.md` for workflows
+   - **Check MCP Tools**: Review `server-management-mcp/README.md` for available tools
+   - **Skills provide workflows**: Use existing skills for common tasks
+   - **MCP Tools provide capabilities**: Use tools for individual operations
+   - **This is how you gain context and capabilities** - don't start from scratch
+
+3. **Agent Reads Documentation**
+   - STARTUP_GUIDE.md (essential)
    - IMPLEMENTATION_PLAN.md (relevant sections)
    - Agent prompt (guidelines)
+   - Skills and tools documentation (capabilities)
    - Task details
 
-3. **Agent Implements**
+4. **Agent Implements**
+   - **Uses Skills for workflows** (don't reinvent common workflows)
+   - **Uses MCP Tools for operations** (don't write custom commands)
    - Follows coding standards
    - Uses patterns from examples
    - Documents as they go
    - Tests functionality
 
-4. **Agent Self-Reviews**
+5. **Agent Self-Reviews**
    - Completes Pre-Submission Checklist
    - Runs self-review questions
    - Fixes obvious issues
 
-5. **Agent Submits for Review**
+6. **Agent Submits for Review**
    - Updates TASKS.md: `[REVIEW]`
    - Adds completion summary
    - Commits and pushes code
@@ -496,22 +546,32 @@ This document outlines a proven workflow for managing AI agents working on softw
 
 ### For Agents
 
-1. **Read First**
+1. **Discover Skills and Tools First** (PRIMARY METHOD)
+   - **Check Skills**: Review `server-management-skills/README.md` for workflows matching your task
+   - **Check MCP Tools**: Review `server-management-mcp/README.md` for available tools
+   - **Skills provide workflows**: Complete step-by-step guidance for common tasks
+   - **MCP Tools provide capabilities**: Individual operations you can use
+   - **Skills use MCP Tools**: Skills orchestrate tools into workflows
+   - **This is your primary way to gain context and capabilities** - don't start from scratch
+
+2. **Read Documentation**
    - STARTUP_GUIDE.md (essential)
    - IMPLEMENTATION_PLAN.md (context)
    - Agent prompt (guidelines)
+   - Skills and tools documentation (capabilities)
 
-2. **Follow Standards**
-   - Coding standards
-   - Patterns and examples
-   - Documentation requirements
+3. **Follow Standards**
+   - Use Skills for workflows (don't reinvent)
+   - Use MCP Tools for operations (don't write custom commands)
+   - Follow coding standards
+   - Follow patterns and examples
 
-3. **Self-Review**
+4. **Self-Review**
    - Complete checklists
    - Test thoroughly
    - Fix obvious issues
 
-4. **Communicate**
+5. **Communicate**
    - Update task status
    - Document decisions
    - Ask questions early
@@ -540,12 +600,82 @@ This document outlines a proven workflow for managing AI agents working on softw
 
 ## Tools and Automation
 
+### ⚠️ CRITICAL: Skills and MCP Tools First
+
+**For all server operations, your PRIMARY discovery method is Skills and MCP Tools.**
+
+**Discovery Priority**:
+1. **Skills** (preferred for workflows) - Check `server-management-skills/README.md` first
+2. **MCP Tools** (preferred for operations) - Check `server-management-mcp/README.md` second
+3. Create new MCP tool (if operation is reusable)
+4. Create new skill (if workflow is reusable)
+5. Existing scripts (fallback)
+6. SSH commands (last resort)
+
+### Server Management Skills
+
+**Location**: `server-management-skills/` in repository root
+
+**What Skills Provide**:
+- Complete workflows for common tasks
+- Step-by-step guidance using MCP tools
+- Error handling and best practices
+- Examples and use cases
+
+**Available Skills**:
+- `standard-deployment` - Complete deployment workflow
+- `troubleshoot-container-failure` - Container diagnostics
+- `system-health-check` - Comprehensive system verification
+- `troubleshoot-stuck-downloads` - Download queue issues
+- `deploy-new-service` - New service setup
+- And more...
+
+**Usage**:
+- Review `server-management-skills/README.md` for complete catalog
+- Skills work in Claude.ai, Claude Code, and API
+- Skills automatically use MCP tools correctly
+
+**See**: `server-management-skills/README.md` for complete skills catalog.
+
+### Server Management MCP Server
+
+**Location**: `server-management-mcp/` in repository root
+
+**What MCP Tools Provide**:
+- Individual operations (check status, restart service, view logs)
+- Type-safe, tested capabilities
+- Consistent error handling
+- Standardized return formats
+
+**Available Tools** (39 tools):
+- Docker container management (8 tools)
+- Media download operations (13 tools)
+- System monitoring (5 tools)
+- Git operations (4 tools)
+- Troubleshooting (3 tools)
+- Networking (3 tools)
+- System utilities (3 tools)
+
+**Usage**:
+- If you have MCP access (Claude Desktop, GPT-4 with MCP): Use tools directly
+- If no MCP access: Reference `server-management-mcp/README.md` for tool documentation
+- Skills orchestrate MCP tools into workflows
+
+**See**: 
+- `server-management-mcp/README.md` for tool reference
+- `apps/docs/MCP_SERVER_PLAN.md` for complete architecture and tool catalog
+- `apps/docs/MCP_TOOL_DISCOVERY.md` for tool discovery guide
+
 ### Recommended Tools
 
-1. **Task Tracking**: Markdown files (TASKS.md) or GitHub Issues
-2. **Code Review**: GitHub PRs or inline comments
-3. **Automated Checks**: GitHub Actions, pre-commit hooks
-4. **Documentation**: Markdown files, auto-generated API docs
+1. **Server Management**: 
+   - **Skills** (preferred for workflows) - `server-management-skills/README.md`
+   - **MCP Tools** (preferred for operations) - `server-management-mcp/README.md`
+   - SSH commands (last resort fallback)
+2. **Task Tracking**: Markdown files (TASKS.md) or GitHub Issues
+3. **Code Review**: GitHub PRs or inline comments
+4. **Automated Checks**: GitHub Actions, pre-commit hooks
+5. **Documentation**: Markdown files, auto-generated API docs
 
 ### Automation Opportunities
 
@@ -596,8 +726,33 @@ This document outlines a proven workflow for managing AI agents working on softw
 
 ## Additional Resources
 
+### Primary Discovery Resources (Check First)
+
+1. **Skills Catalog**: `server-management-skills/README.md`
+   - Complete workflows for common tasks
+   - Step-by-step guidance using MCP tools
+   - Examples and error handling
+
+2. **MCP Tools Reference**: `server-management-mcp/README.md`
+   - All available tools with parameters
+   - Usage examples
+   - Tool categories
+
+3. **Tool Discovery Guide**: `apps/docs/MCP_TOOL_DISCOVERY.md`
+   - How to discover and use tools
+   - When to create new tools
+   - Tool creation workflow
+
+4. **MCP Server Plan**: `apps/docs/MCP_SERVER_PLAN.md`
+   - Complete tool catalog (implemented and planned)
+   - Architecture and design
+   - Implementation status
+
+### Other Resources
+
 - **Memory Integration**: See `AGENT_MEMORY_INTEGRATION.md` for mem-layer integration
 - **Server Setup**: See `SERVER_AGENT_PROMPT.md` for server-specific context
+- **Skills Proposal**: See `apps/docs/SKILLS_PROPOSAL.md` for skills architecture
 
 ## Conclusion
 

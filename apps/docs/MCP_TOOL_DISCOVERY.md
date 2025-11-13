@@ -1,36 +1,69 @@
-# MCP Tool Discovery Guide
+# MCP Tool and Skills Discovery Guide
 
 ## Overview
 
-This guide helps AI agents discover and use the Server Management MCP Server tools effectively. **Always check for MCP tools before writing custom scripts or SSH commands.**
+This guide helps AI agents discover and use **Skills** and **MCP Tools** effectively. **Skills and MCP Tools are your PRIMARY method for gaining context and capabilities.**
 
-**Key Principle**: If no tool exists for your operation, **test your approach first**, then **create an MCP tool** if the operation is reusable and should be shared with future agents.
+**Discovery Priority**:
+1. **Skills** (workflows) - Check `server-management-skills/README.md` first
+2. **MCP Tools** (operations) - Check `server-management-mcp/README.md` second
+3. Create new MCP tool (if operation is reusable)
+4. Create new skill (if workflow is reusable)
+5. Existing scripts (fallback)
+6. SSH commands (last resort)
 
-## Tool Discovery Workflow
+**Key Principles**:
+- **Skills provide workflows**: Complete step-by-step guidance for common tasks
+- **MCP Tools provide capabilities**: Individual operations you can use
+- **Skills use MCP Tools**: Skills orchestrate tools into workflows
+- **Always check Skills and Tools first** - don't start from scratch
+- If no tool/skill exists, **test your approach first**, then create one if reusable
 
-### Step 1: Identify the Operation
+## Discovery Workflow
+
+### Step 1: Identify What You Need
 
 When you need to perform a server operation, first identify what you're trying to do:
-- Manage Docker containers?
-- Check service status?
-- View logs?
-- Troubleshoot issues?
-- Manage media download queues?
-- Check disk space?
+- **Complete workflow?** (deployment, troubleshooting, setup) → Check **Skills**
+- **Individual operation?** (check status, restart, view logs) → Check **MCP Tools**
 
-### Step 2: Check MCP Server Tools
+Examples:
+- "Deploy code changes" → Use `standard-deployment` **skill**
+- "Troubleshoot container failure" → Use `troubleshoot-container-failure` **skill**
+- "Check container status" → Use `docker_container_status` **MCP tool**
+- "Restart service" → Use `docker_compose_restart` **MCP tool**
+
+### Step 2: Check Skills First (For Workflows)
+
+**Primary Resource**: `server-management-skills/README.md`
+- Complete skills catalog
+- Skills by category (deployment, troubleshooting, maintenance)
+- When to use each skill
+- MCP tools used by each skill
+
+**Available Skills**:
+- `standard-deployment` - Complete deployment workflow
+- `troubleshoot-container-failure` - Container diagnostics
+- `system-health-check` - Comprehensive system verification
+- `troubleshoot-stuck-downloads` - Download queue issues
+- `deploy-new-service` - New service setup
+- And more...
+
+**If a skill exists for your workflow**: Use it! Skills provide complete, tested workflows.
+
+### Step 3: Check MCP Tools (For Operations)
 
 **Primary Resources**:
 1. **Tool Reference**: `server-management-mcp/README.md`
    - Complete list of available tools
    - Tool signatures and parameters
    - Usage examples
-   - Common workflows
 
 2. **Tool Modules**: `server-management-mcp/tools/`
    - `docker.py` - Docker container management
-   - `media_download.py` - Sonarr/Radarr/NZBGet operations (when implemented)
-   - `monitoring.py` - System monitoring (when implemented)
+   - `media_download.py` - Sonarr/Radarr/NZBGet operations
+   - `monitoring.py` - System monitoring
+   - `git.py` - Git operations
    - And more...
 
 3. **Architecture Plan**: `apps/docs/MCP_SERVER_PLAN.md`
@@ -38,19 +71,20 @@ When you need to perform a server operation, first identify what you're trying t
    - Tool categories
    - Implementation status
 
-### Step 3: Use the Tool
+### Step 4: Use Skills or Tools
 
 **If you have MCP access** (Claude Desktop, GPT-4 with MCP):
-- Use tools directly via MCP interface
-- Tools are auto-discovered and documented
+- Skills are automatically discovered and activated
+- MCP tools are auto-discovered and documented
 - Type-safe with clear parameters
 
 **If you don't have MCP access**:
+- Review skill documentation in `server-management-skills/README.md`
 - Review tool documentation in `server-management-mcp/README.md`
-- Understand tool parameters and return values
-- Note that tools can be called programmatically or via CLI
+- Understand parameters and return values
+- Follow skill workflows step-by-step
 
-### Step 4: Fallback to SSH (If Needed)
+### Step 5: Fallback to SSH (If Needed)
 
 **Only if**:
 - No MCP tool exists for the operation
@@ -219,13 +253,42 @@ Use SSH commands via `scripts/connect-server.sh` as documented in `apps/docs/SER
 - Resource monitoring
 - Service lifecycle management
 
-## Common Operations → Tool Mapping
+## Common Operations → Skills/Tools Mapping
+
+### Workflows (Use Skills)
+
+### "Deploy changes and restart services" (Most Common)
+→ Use: **`standard-deployment` skill**
+- Complete workflow: verify → deploy → restart → verify
+- Uses: `git_deploy`, `docker_compose_restart`, `docker_container_status`
+
+### "Troubleshoot a container that won't start"
+→ Use: **`troubleshoot-container-failure` skill**
+- Complete diagnostic workflow
+- Uses: `docker_container_status`, `docker_view_logs`, `check_service_dependencies`
+
+### "Check overall system health"
+→ Use: **`system-health-check` skill**
+- Comprehensive system verification
+- Uses: `check_disk_space`, `check_system_resources`, `docker_list_containers`
+
+### "Fix stuck downloads in Sonarr/Radarr"
+→ Use: **`troubleshoot-stuck-downloads` skill**
+- Complete diagnostic and fix workflow
+- Uses: `sonarr_queue_status`, `troubleshoot_failed_downloads`, `remove_stuck_downloads`
+
+### "Set up a new service"
+→ Use: **`deploy-new-service` skill**
+- Complete setup workflow
+- Uses: `check_port_status`, `write_file`, `validate_docker_compose`, `git_deploy`
+
+### Operations (Use MCP Tools)
 
 ### "Check if a container is running"
 → Use: `docker_container_status(container_name)`
 
 ### "Restart a service"
-→ Use: `docker_restart_container(container_name)`
+→ Use: `docker_restart_container(container_name)` or `docker_compose_restart(app_path, service)`
 
 ### "View container logs"
 → Use: `docker_view_logs(container_name, lines=50)`
@@ -234,28 +297,14 @@ Use SSH commands via `scripts/connect-server.sh` as documented in `apps/docs/SER
 → Use: `docker_list_containers()`
 
 ### "Check Sonarr queue"
-→ Use: `sonarr_queue_status()` (when implemented)
-
-### "Clear stuck downloads"
-→ Use: `sonarr_clear_queue()` or `radarr_clear_queue()` (when implemented)
+→ Use: `sonarr_queue_status()`
 
 ### "Check disk space"
-→ Use: `check_disk_space()` (when implemented)
-
-### "Troubleshoot a service"
-→ Use: `troubleshoot_service(service_name)` (when implemented)
-
-### "Deploy changes and restart services" (Most Common Workflow)
-→ Use: `deploy_and_restart(commit_message, app_path, service)` (when implemented)
-- This is the standard agent workflow: make changes → deploy → restart
+→ Use: `check_disk_space()`
 
 ### "Deploy code changes to server"
-→ Use: `git_deploy(commit_message, files)` (when implemented)
+→ Use: `git_deploy(commit_message, files)`
 - Handles: add → commit → push → pull on server
-
-### "Restart services affected by changes"
-→ Use: `restart_affected_services(app_path, check_changes=True)` (when implemented)
-- Auto-detects which services need restarting based on git changes
 
 ## Tool Implementation Status
 
