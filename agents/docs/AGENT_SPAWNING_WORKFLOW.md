@@ -134,6 +134,8 @@ Add to agent registry:
 
 Assign first task to new agent:
 
+**Note**: When using `assign_task_to_agent()`, the task is automatically registered in the central task registry (`agents/tasks/registry.md`) for cross-agent coordination. You can also use `register_task()` directly if you need more control over task registration.
+
 ```markdown
 ## Task Assignment
 
