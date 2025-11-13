@@ -7,4 +7,5 @@ export { createActionsRouter } from './actions';
 export { createStatsRouter } from './stats';
 export { createTasksRouter } from './tasks';
 export { createInfluxDBRouter } from './influxdb';
+export { createSessionsRouter } from './sessions';
 

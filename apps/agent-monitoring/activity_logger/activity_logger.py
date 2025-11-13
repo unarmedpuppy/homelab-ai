@@ -2,6 +2,7 @@
 Activity Logger for Agent Monitoring
 
 Logs agent actions and status updates to SQLite database.
+Supports network-based logging via backend API with SQLite fallback.
 """
 
 import sqlite3
@@ -10,6 +11,22 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional, Dict, Any
 import os
+
+# Try to import HTTP client for API-based logging
+try:
+    from .http_client import (
+        log_action_via_api,
+        update_agent_status_via_api,
+        start_session_via_api,
+        end_session_via_api,
+        is_api_available
+    )
+    API_LOGGING_AVAILABLE = True
+except ImportError:
+    # If http_client not available (e.g., requests not installed), disable API logging
+    API_LOGGING_AVAILABLE = False
+    def is_api_available():
+        return False
 
 
 # Database path - relative to project root
@@ -124,6 +141,8 @@ def log_action(
     """
     Log an agent action to the database.
     
+    Tries API first, falls back to SQLite if API unavailable.
+    
     Args:
         agent_id: ID of the agent performing the action
         action_type: Type of action (mcp_tool, memory_query, memory_record, task_update)
@@ -134,8 +153,27 @@ def log_action(
         error: Error message if failed
         
     Returns:
-        ID of the inserted action record
+        ID of the inserted action record (always from SQLite, even if API succeeded)
     """
+    # Try API first if available
+    if API_LOGGING_AVAILABLE and is_api_available():
+        try:
+            api_success = log_action_via_api(
+                agent_id=agent_id,
+                action_type=action_type,
+                tool_name=tool_name,
+                parameters=parameters,
+                result_status=result_status,
+                duration_ms=duration_ms,
+                error=error
+            )
+            # If API succeeded, still write to SQLite for local backup/fallback
+            # This ensures data is available even if API goes down
+        except Exception:
+            # If API call fails, continue to SQLite fallback
+            pass
+    
+    # Always write to SQLite (for local backup and fallback)
     _init_database()
     
     conn = sqlite3.connect(DB_PATH)
@@ -176,6 +214,8 @@ def update_agent_status(
     """
     Update an agent's current status.
     
+    Tries API first, falls back to SQLite if API unavailable.
+    
     Args:
         agent_id: ID of the agent
         status: Current status (active, idle, blocked, completed)
@@ -186,6 +226,22 @@ def update_agent_status(
     Returns:
         ID of the status record (new or updated)
     """
+    # Try API first if available
+    if API_LOGGING_AVAILABLE and is_api_available():
+        try:
+            api_success = update_agent_status_via_api(
+                agent_id=agent_id,
+                status=status,
+                current_task_id=current_task_id,
+                progress=progress,
+                blockers=blockers
+            )
+            # If API succeeded, still write to SQLite for local backup
+        except Exception:
+            # If API call fails, continue to SQLite fallback
+            pass
+    
+    # Always write to SQLite (for local backup and fallback)
     _init_database()
     
     conn = sqlite3.connect(DB_PATH)
@@ -251,12 +307,24 @@ def start_agent_session(agent_id: str) -> int:
     """
     Start a new agent session.
     
+    Tries API first, falls back to SQLite if API unavailable.
+    
     Args:
         agent_id: ID of the agent
         
     Returns:
         ID of the session record
     """
+    # Try API first if available
+    api_session_id = None
+    if API_LOGGING_AVAILABLE and is_api_available():
+        try:
+            api_session_id = start_session_via_api(agent_id)
+        except Exception:
+            # If API call fails, continue to SQLite fallback
+            pass
+    
+    # Always write to SQLite (for local backup and fallback)
     _init_database()
     
     conn = sqlite3.connect(DB_PATH)
@@ -272,18 +340,34 @@ def start_agent_session(agent_id: str) -> int:
     conn.commit()
     conn.close()
     
-    return session_id
+    # Return API session ID if available, otherwise SQLite ID
+    return api_session_id if api_session_id else session_id
 
 
 def end_agent_session(agent_id: str, tasks_completed: int = 0, tools_called: int = 0) -> None:
     """
     End an agent session.
     
+    Tries API first, falls back to SQLite if API unavailable.
+    
     Args:
         agent_id: ID of the agent
         tasks_completed: Number of tasks completed in this session
         tools_called: Number of tools called in this session
     """
+    # Try API first if available
+    if API_LOGGING_AVAILABLE and is_api_available():
+        try:
+            end_session_via_api(
+                agent_id=agent_id,
+                tasks_completed=tasks_completed,
+                tools_called=tools_called
+            )
+        except Exception:
+            # If API call fails, continue to SQLite fallback
+            pass
+    
+    # Always write to SQLite (for local backup and fallback)
     _init_database()
     
     conn = sqlite3.connect(DB_PATH)
