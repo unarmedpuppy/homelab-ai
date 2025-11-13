@@ -173,6 +173,30 @@ Need to perform server operation?
 
 **See**: `server-management-mcp/README.md` for complete tool list and usage examples.
 
+### Task Coordination System
+
+**Location**: `agents/tasks/README.md`
+
+**What Task Coordination Provides:**
+- Central registry of all tasks across agents
+- Dependency tracking and validation
+- Conflict prevention
+- Cross-agent task visibility
+
+**Available Tools** (6 MCP tools):
+- `register_task()` - Register new tasks
+- `query_tasks()` - Query with filters (status, assignee, project, priority)
+- `get_task()` - Get single task details
+- `claim_task()` - Claim tasks (validates dependencies)
+- `update_task_status()` - Update status (auto-updates dependents)
+- `check_task_dependencies()` - Check dependency status
+
+**When to Use:**
+- **Central Registry**: For cross-agent coordination, dependencies, conflict prevention
+- **Individual TASKS.md**: For agent-specific context, detailed notes, implementation details
+
+**See**: `agents/tasks/README.md` for complete task coordination guide.
+
 ## Server Connection
 
 ### Connection Method (Fallback)

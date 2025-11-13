@@ -900,8 +900,9 @@ cat agents/memory/memory/export/decisions/*.md
 - Consistent error handling
 - Standardized return formats
 
-**Available Tools** (49 tools):
+**Available Tools** (58 tools):
 - **Memory management** (9 tools) - Query and record decisions, patterns, context
+- **Task coordination** (6 tools) - Register, claim, update, and query tasks
 - **Agent management** (3 tools) - Create specialized agents, query registry, assign tasks
 - Docker container management (8 tools)
 - Media download operations (13 tools)
@@ -928,7 +929,10 @@ cat agents/memory/memory/export/decisions/*.md
    - **Skills** (preferred for workflows) - `server-management-skills/README.md`
    - **MCP Tools** (preferred for operations) - `server-management-mcp/README.md`
    - SSH commands (last resort fallback)
-2. **Task Tracking**: Markdown files (TASKS.md) or GitHub Issues
+2. **Task Tracking**: 
+   - **Central Task Registry** (preferred) - `agents/tasks/registry.md` with 6 MCP tools
+   - Individual TASKS.md files (for agent-specific context)
+   - GitHub Issues (for external tracking)
 3. **Code Review**: GitHub PRs or inline comments
 4. **Automated Checks**: GitHub Actions, pre-commit hooks
 5. **Documentation**: Markdown files, auto-generated API docs
@@ -1000,9 +1004,16 @@ cat agents/memory/memory/export/decisions/*.md
    - Step-by-step guidance using MCP tools
    - Examples and error handling
 
+3. **Task Coordination Guide**: `agents/tasks/README.md` ⭐
+   - Complete task coordination system guide
+   - 6 MCP tools for task management
+   - Dependency tracking and validation
+   - Workflow examples
+
 4. **MCP Tools Reference**: `server-management-mcp/README.md`
-   - All available tools with parameters (49 tools total)
+   - All available tools with parameters (58 tools total)
    - Memory tools (9 tools) documented
+   - Task coordination tools (6 tools) documented
    - Agent management tools (3 tools) documented
    - Usage examples
    - Tool categories
@@ -1010,6 +1021,7 @@ cat agents/memory/memory/export/decisions/*.md
 5. **Tool Discovery Guide**: `agents/docs/MCP_TOOL_DISCOVERY.md`
    - How to discover and use tools
    - Memory operations section
+   - Task coordination operations section
    - When to create new tools
    - Tool creation workflow
 

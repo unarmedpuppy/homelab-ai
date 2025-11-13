@@ -17,6 +17,7 @@ This directory contains all documentation related to AI agent workflows, prompts
 
 - **`AGENT_PROMPT.md`** ⭐ - Main agent prompt with complete discovery workflow
   - Memory system usage
+  - Task coordination system
   - Skills and MCP tools
   - Agent spawning
   - Common operations
@@ -38,6 +39,7 @@ This directory contains all documentation related to AI agent workflows, prompts
   - When to create new tools
   - Tool categories
   - Memory operations
+  - Task coordination operations
 
 ### Agent Spawning
 
@@ -64,9 +66,13 @@ This directory contains all documentation related to AI agent workflows, prompts
 - `agents/memory/MEMORY_USAGE_EXAMPLES.md` - Real-world examples ⭐
 - `agents/memory/MCP_TOOLS_GUIDE.md` - Memory MCP tools reference
 
+### Task Coordination
+- `agents/tasks/README.md` - Task coordination system guide ⭐
+- `agents/tasks/registry.md` - Central task registry
+
 ### Skills & Tools
 - `server-management-skills/README.md` - Reusable workflow skills
-- `server-management-mcp/README.md` - MCP tools catalog
+- `server-management-mcp/README.md` - MCP tools catalog (58 tools)
 
 ### General Documentation
 - `apps/docs/APPS_DOCUMENTATION.md` - Application documentation

@@ -5,12 +5,15 @@
 This guide helps AI agents discover and use **Skills** and **MCP Tools** effectively. **Skills and MCP Tools are your PRIMARY method for gaining context and capabilities.**
 
 **Discovery Priority**:
-1. **Skills** (workflows) - Check `server-management-skills/README.md` first
-2. **MCP Tools** (operations) - Check `server-management-mcp/README.md` second
-3. Create new MCP tool (if operation is reusable)
-4. Create new skill (if workflow is reusable)
-5. Existing scripts (fallback)
-6. SSH commands (last resort)
+1. **Memory** - Query previous decisions and patterns
+2. **Specialized Agents** - Check if agent exists for your task
+3. **Skills** (workflows) - Check `server-management-skills/README.md`
+4. **Task Coordination** - Check `agents/tasks/README.md` for task management
+5. **MCP Tools** (operations) - Check `server-management-mcp/README.md`
+6. Create new MCP tool (if operation is reusable)
+7. Create new skill (if workflow is reusable)
+8. Existing scripts (fallback)
+9. SSH commands (last resort)
 
 **Key Principles**:
 - **Skills provide workflows**: Complete step-by-step guidance for common tasks
@@ -443,6 +446,28 @@ cat agents/memory/memory/export/decisions/*.md
 
 ### "Assign task to existing agent"
 → Use: `assign_task_to_agent(agent_id="agent-002", task_description="...")`
+**Note**: This automatically registers the task in the central task registry too.
+
+### Task Coordination Operations (Use MCP Tools)
+
+### "Register a new task"
+→ Use: `register_task(title="Setup database", project="app", priority="high", dependencies="T1.1,T1.2")`
+
+### "Query tasks I'm working on"
+→ Use: `query_tasks(assignee="agent-001", status="in_progress")`
+
+### "Claim a task"
+→ Use: `claim_task(task_id="T1.3", agent_id="agent-001")`
+**Note**: Automatically validates dependencies before allowing claim.
+
+### "Update task status"
+→ Use: `update_task_status(task_id="T1.3", status="completed", agent_id="agent-001")`
+**Note**: Automatically unblocks dependent tasks when status changes to completed.
+
+### "Check task dependencies"
+→ Use: `check_task_dependencies(task_id="T1.3")`
+
+**See**: `agents/tasks/README.md` for complete task coordination guide with examples.
 
 ## Tool Implementation Status
 
@@ -454,6 +479,10 @@ cat agents/memory/memory/export/decisions/*.md
 | Troubleshooting | ✅ Complete | 3 tools (planned: 10 total) |
 | Networking | ✅ Complete | 3 tools (planned: 8 total) |
 | System Utilities | ✅ Complete | 3 tools |
+| Task Coordination | ✅ Complete | 6 tools |
+| Memory Management | ✅ Complete | 9 tools |
+| Agent Management | ✅ Complete | 3 tools |
+| Skill Management | ✅ Complete | 3 tools |
 | Git Operations | ⏳ Planned | 0 tools (planned: 6) |
 | File Operations | ⏳ Planned | 0 tools (planned: 8) |
 | Database Operations | ⏳ Planned | 0 tools (planned: 6) |
@@ -463,7 +492,7 @@ cat agents/memory/memory/export/decisions/*.md
 | Application-Specific | ⏳ Planned | 0 tools (planned: 12) |
 | Backup & Restore | ⏳ Planned | 0 tools (planned: 4) |
 
-**Total**: 35 tools implemented, 60+ tools planned = 95+ total tools
+**Total**: 58 tools implemented, 60+ tools planned = 118+ total tools
 
 ## Adding New Tools
 

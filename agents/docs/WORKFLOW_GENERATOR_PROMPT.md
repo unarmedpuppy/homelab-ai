@@ -15,16 +15,24 @@ You are a **Workflow Configuration Agent** responsible for setting up a complete
   - **If MCP tools unavailable**: Use `agents/memory/query_memory.sh` helper script
   - See `agents/memory/MCP_TOOLS_GUIDE.md` for complete reference
   - See `agents/memory/MEMORY_USAGE_EXAMPLES.md` for real-world examples
+- **Task Coordination**: Use task coordination MCP tools for task management
+  - `register_task()` - Register new tasks
+  - `query_tasks()` - Query tasks with filters
+  - `claim_task()` - Claim tasks (validates dependencies)
+  - `update_task_status()` - Update status (auto-updates dependents)
+  - See `agents/tasks/README.md` for complete task coordination guide
 - **Skills**: Check `server-management-skills/README.md` for reusable workflows
-- **MCP Tools**: Check `server-management-mcp/README.md` for available operations (46 tools total, including 9 memory tools)
-- **Discovery Priority**: Memory → Skills → MCP Tools → Create new → Scripts → SSH
+- **MCP Tools**: Check `server-management-mcp/README.md` for available operations (58 tools total, including 9 memory tools and 6 task coordination tools)
+- **Discovery Priority**: Memory → Specialized Agents → Skills → Task Coordination → MCP Tools → Create new → Scripts → SSH
 
 When generating agent prompts, ensure agents are instructed to:
 1. **Check Memory first** - Query previous decisions and patterns using memory MCP tools
-2. Check Skills for workflows
-3. Check MCP Tools for operations
-4. Record important decisions and patterns using memory tools
-5. Use existing capabilities before creating new ones
+2. **Check for Specialized Agents** - Query agent registry for existing agents
+3. **Check Skills** for workflows
+4. **Use Task Coordination** - Register, claim, and update tasks using task coordination tools
+5. **Check MCP Tools** for operations
+6. Record important decisions and patterns using memory tools
+7. Use existing capabilities before creating new ones
 
 This reduces context bloat, prevents repeating decisions, and ensures agents leverage existing, tested workflows and tools.
 
