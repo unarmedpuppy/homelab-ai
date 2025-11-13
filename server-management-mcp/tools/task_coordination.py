@@ -383,6 +383,35 @@ def register_task_coordination_tools(server: Server):
                         "current_status": current_status
                     }
                 
+                # Check dependencies before allowing claim
+                dependencies_str = task.get('dependencies', '-')
+                if dependencies_str != '-' and dependencies_str:
+                    dependency_ids = [d.strip() for d in dependencies_str.split(',') if d.strip()]
+                    if dependency_ids:
+                        # Check if all dependencies are completed
+                        for dep_id in dependency_ids:
+                            dep_task = None
+                            for t in all_tasks:
+                                if t.get('task_id') == dep_id:
+                                    dep_task = t
+                                    break
+                            
+                            if not dep_task:
+                                return {
+                                    "status": "error",
+                                    "message": f"Task {task_id} cannot be claimed. Dependency {dep_id} not found",
+                                    "blocking_dependency": dep_id
+                                }
+                            
+                            dep_status = dep_task.get('status', '').lower()
+                            if dep_status != 'completed':
+                                return {
+                                    "status": "error",
+                                    "message": f"Task {task_id} cannot be claimed. Dependency {dep_id} is not completed (status: {dep_status})",
+                                    "blocking_dependency": dep_id,
+                                    "dependency_status": dep_status
+                                }
+                
                 # Claim the task
                 task['assignee'] = agent_id
                 if current_status == 'pending':
@@ -488,6 +517,54 @@ def register_task_coordination_tools(server: Server):
                 if status_lower == 'in_progress' and current_assignee == '-' and agent_id:
                     task['assignee'] = agent_id
                 
+                # If task was completed, check if any tasks depend on it and update their status
+                if status_lower == 'completed':
+                    # Find all tasks that depend on this task
+                    for dependent_task in all_tasks:
+                        deps_str = dependent_task.get('dependencies', '-')
+                        if deps_str != '-' and deps_str:
+                            dep_ids = [d.strip() for d in deps_str.split(',') if d.strip()]
+                            if task_id in dep_ids:
+                                # Check if all dependencies are now completed
+                                all_deps_completed = True
+                                for dep_id in dep_ids:
+                                    dep_task = None
+                                    for t in all_tasks:
+                                        if t.get('task_id') == dep_id:
+                                            dep_task = t
+                                            break
+                                    if not dep_task or dep_task.get('status', '').lower() != 'completed':
+                                        all_deps_completed = False
+                                        break
+                                
+                                # If all dependencies completed and task was blocked, change to pending
+                                if all_deps_completed and dependent_task.get('status', '').lower() == 'blocked':
+                                    dependent_task['status'] = 'pending'
+                                    dependent_task['updated'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                
+                # If task status changed to something other than completed, check if it should be blocked
+                elif status_lower != 'blocked' and status_lower != 'cancelled':
+                    # Check if this task has unmet dependencies
+                    deps_str = task.get('dependencies', '-')
+                    if deps_str != '-' and deps_str:
+                        dep_ids = [d.strip() for d in deps_str.split(',') if d.strip()]
+                        if dep_ids:
+                            has_unmet_deps = False
+                            for dep_id in dep_ids:
+                                dep_task = None
+                                for t in all_tasks:
+                                    if t.get('task_id') == dep_id:
+                                        dep_task = t
+                                        break
+                                if not dep_task or dep_task.get('status', '').lower() != 'completed':
+                                    has_unmet_deps = True
+                                    break
+                            
+                            # If has unmet dependencies and not already blocked, block it
+                            if has_unmet_deps and current_status != 'blocked':
+                                task['status'] = 'blocked'
+                                status_lower = 'blocked'
+                
                 break
         
         if not task_found:
@@ -506,5 +583,103 @@ def register_task_coordination_tools(server: Server):
             "old_status": old_status,
             "new_status": status_lower,
             "notes": notes
+        }
+    
+    @server.tool()
+    async def check_task_dependencies(
+        task_id: str
+    ) -> Dict[str, Any]:
+        """
+        Check the status of all dependencies for a task.
+        
+        Args:
+            task_id: The task ID to check dependencies for (e.g., "T1.1")
+        
+        Returns:
+            Dictionary with status, dependency details, and whether task can proceed
+        """
+        _ensure_tasks_dir()
+        
+        # Parse existing tasks
+        all_tasks = _parse_registry()
+        
+        # Find task by ID
+        task = None
+        for t in all_tasks:
+            if t.get('task_id') == task_id:
+                task = t
+                break
+        
+        if not task:
+            return {
+                "status": "error",
+                "message": f"Task {task_id} not found"
+            }
+        
+        # Parse dependencies
+        dependencies_str = task.get('dependencies', '-')
+        if dependencies_str == '-' or not dependencies_str:
+            return {
+                "status": "success",
+                "task_id": task_id,
+                "has_dependencies": False,
+                "dependencies": [],
+                "can_proceed": True,
+                "message": "Task has no dependencies"
+            }
+        
+        # Split dependencies (comma-separated)
+        dependency_ids = [d.strip() for d in dependencies_str.split(',') if d.strip()]
+        
+        # Check each dependency
+        dependency_details = []
+        all_completed = True
+        any_blocked = False
+        
+        for dep_id in dependency_ids:
+            dep_task = None
+            for t in all_tasks:
+                if t.get('task_id') == dep_id:
+                    dep_task = t
+                    break
+            
+            if not dep_task:
+                dependency_details.append({
+                    "task_id": dep_id,
+                    "status": "not_found",
+                    "can_proceed": False
+                })
+                all_completed = False
+            else:
+                dep_status = dep_task.get('status', '').lower()
+                is_completed = dep_status == 'completed'
+                is_blocked = dep_status == 'blocked' or dep_status == 'cancelled'
+                
+                dependency_details.append({
+                    "task_id": dep_id,
+                    "title": dep_task.get('title', ''),
+                    "status": dep_status,
+                    "assignee": dep_task.get('assignee', '-'),
+                    "is_completed": is_completed,
+                    "is_blocked": is_blocked,
+                    "can_proceed": is_completed
+                })
+                
+                if not is_completed:
+                    all_completed = False
+                if is_blocked:
+                    any_blocked = True
+        
+        can_proceed = all_completed and not any_blocked
+        
+        return {
+            "status": "success",
+            "task_id": task_id,
+            "has_dependencies": True,
+            "dependencies": dependency_details,
+            "all_completed": all_completed,
+            "any_blocked": any_blocked,
+            "can_proceed": can_proceed,
+            "message": "All dependencies completed" if can_proceed else f"{len([d for d in dependency_details if not d.get('can_proceed')])} dependencies not ready"
         }
 

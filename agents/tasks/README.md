@@ -238,16 +238,95 @@ update_task_status(task_id=task_id, status="completed", agent_id="agent-001")
 my_tasks = query_tasks(assignee="agent-001", status="in_progress")
 ```
 
-## Future Enhancements
+## Dependency Management (Phase 3)
 
-Phase 3 will add:
-- `check_task_dependencies()` - Check dependency status
-- Dependency validation before claiming
-- Automatic status updates when dependencies complete
-- Block task if dependencies not met
+### Check Task Dependencies
+
+```python
+check_task_dependencies(task_id="T1.3")
+```
+
+**Returns**:
+- List of all dependencies with their status
+- Whether all dependencies are completed
+- Whether task can proceed
+- Details about blocking dependencies
+
+**Example Response**:
+```json
+{
+  "status": "success",
+  "task_id": "T1.3",
+  "has_dependencies": true,
+  "dependencies": [
+    {
+      "task_id": "T1.1",
+      "title": "Setup project structure",
+      "status": "completed",
+      "is_completed": true,
+      "can_proceed": true
+    },
+    {
+      "task_id": "T1.2",
+      "title": "Configure Docker",
+      "status": "in_progress",
+      "is_completed": false,
+      "can_proceed": false
+    }
+  ],
+  "all_completed": false,
+  "can_proceed": false,
+  "message": "1 dependencies not ready"
+}
+```
+
+### Dependency Validation
+
+**Automatic Validation**:
+- `claim_task()` now validates dependencies before allowing claim
+- Tasks with unmet dependencies cannot be claimed
+- Returns error with details about blocking dependencies
+
+**Automatic Status Updates**:
+- When a task is marked `completed`, dependent tasks are automatically checked
+- If all dependencies are now completed and task was `blocked`, status changes to `pending`
+- Tasks with unmet dependencies are automatically set to `blocked` when status changes
+
+**Blocking Logic**:
+- Tasks with unmet dependencies are automatically blocked
+- Blocked tasks cannot be claimed until dependencies are completed
+- Status automatically changes from `blocked` to `pending` when dependencies complete
+
+### Example: Dependency Workflow
+
+```python
+# 1. Register tasks with dependencies
+t1 = register_task(title="Setup DB", project="app", created_by="agent-001")
+t2 = register_task(title="Setup API", project="app", dependencies=t1["task_id"], created_by="agent-001")
+t3 = register_task(title="Setup Frontend", project="app", dependencies=f"{t1['task_id']},{t2['task_id']}", created_by="agent-001")
+
+# 2. Try to claim T3 (will fail - dependencies not met)
+result = claim_task(task_id=t3["task_id"], agent_id="agent-001")
+# Returns: error - dependencies not completed
+
+# 3. Check dependencies
+deps = check_task_dependencies(task_id=t3["task_id"])
+# Shows: T1 and T2 are not completed
+
+# 4. Complete T1
+update_task_status(task_id=t1["task_id"], status="completed", agent_id="agent-001")
+
+# 5. Complete T2
+update_task_status(task_id=t2["task_id"], status="completed", agent_id="agent-001")
+# T3 automatically changes from blocked to pending
+
+# 6. Now T3 can be claimed
+claim_task(task_id=t3["task_id"], agent_id="agent-001")
+# Success!
+```
 
 ---
 
-**Status**: Phase 2 Complete
+**Status**: Phase 3 Complete
 **Last Updated**: 2025-01-10
 

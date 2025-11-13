@@ -149,8 +149,9 @@ Add to Claude Desktop config (`~/Library/Application Support/Claude/claude_deskt
 - `register_task` - Register a new task in the central task registry
 - `query_tasks` - Query tasks with filters (status, assignee, project, priority, search)
 - `get_task` - Get details for a single task by task ID
-- `claim_task` - Claim a task (assign it to an agent)
-- `update_task_status` - Update the status of a task
+- `claim_task` - Claim a task (assign it to an agent) - validates dependencies
+- `update_task_status` - Update the status of a task - auto-updates dependents
+- `check_task_dependencies` - Check dependency status for a task
 
 ## Development
 
@@ -210,5 +211,5 @@ server-management-mcp/
 - ⏳ Application-specific tools (planned)
 - ⏳ Backup/restore tools (planned)
 
-**Total Tools**: 57 tools implemented (37 server management + 9 memory management + 3 agent management + 3 skill management + 5 task coordination)
+**Total Tools**: 58 tools implemented (37 server management + 9 memory management + 3 agent management + 3 skill management + 6 task coordination)
 
