@@ -376,5 +376,6 @@ agents/
 **See Also**: 
 - `agents/docs/README.md` - Documentation index
 - `agents/docs/QUICK_START.md` - Quick start guide
+- `agents/docs/DATA_MODEL.md` - Data model and storage structure
 - `agents/docs/COMMUNICATION_GUIDELINES.md` - Communication channel usage
 

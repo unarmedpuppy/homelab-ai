@@ -108,6 +108,7 @@ This directory contains all documentation related to AI agent workflows, prompts
 
 ### Architecture & System Documentation
 - `agents/docs/SYSTEM_ARCHITECTURE.md` ⭐ - Unified architecture overview
+- `agents/docs/DATA_MODEL.md` ⭐ - Data model and storage structure
 - `agents/docs/COMMUNICATION_GUIDELINES.md` ⭐ - Communication channel usage
 - `apps/docs/APPS_DOCUMENTATION.md` - Application documentation
 - `apps/docs/MCP_SERVER_PLAN.md` - MCP server architecture plan
