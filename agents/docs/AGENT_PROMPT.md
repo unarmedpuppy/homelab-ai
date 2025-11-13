@@ -140,6 +140,7 @@ get_skill_activation_reminder(context_summary="Brief summary of your work")
 - `add-subdomain` - Subdomain configuration
 - `cleanup-disk-space` - Disk cleanup workflow
 - `add-root-folder` - Media folder configuration
+- `agent-self-documentation` - ⭐ **How to organize your own documentation** (use this for plans, notes, architecture docs)
 
 **Why**: Use tested workflows. Don't reinvent common processes. Skills prevent mistakes and ensure consistency.
 
@@ -989,7 +990,30 @@ memory_record_pattern(
 )
 ```
 
-**See**: `agents/docs/QUICK_START.md` for more quick reference commands.
+### Agent Documentation
+
+```python
+# Create your own documentation (plans, notes, architecture)
+create_agent_doc(
+    agent_id="agent-001",
+    doc_type="plan",  # "plan", "note", "architecture", "reference"
+    doc_name="feature-x-implementation",
+    content="# Plan content..."
+)
+
+# List your documentation
+list_agent_docs(agent_id="agent-001", doc_type="plan")
+
+# Read your documentation
+read_agent_doc(agent_id="agent-001", doc_type="plan", doc_name="feature-x-implementation")
+```
+
+**⚠️ IMPORTANT**: All your documentation should go in `agents/active/{agent-id}/docs/`, NOT in `agents/docs/`. This ensures proper namespacing and automatic archiving.
+
+**See**: 
+- `agents/docs/QUICK_START.md` for more quick reference commands
+- `agents/docs/AGENT_SELF_DOCUMENTATION.md` for complete guide
+- `agent-self-documentation` skill for workflow
 
 ---
 

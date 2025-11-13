@@ -182,6 +182,13 @@ Add to Claude Desktop config (`~/Library/Application Support/Claude/claude_deskt
 - `restart_service` - Restart a service/container (Docker or docker-compose)
 - `get_service_metrics` - Get resource usage metrics (CPU, memory, network)
 
+### Agent Documentation ✅
+- `create_agent_doc` - Create agent-specific documentation in namespaced directory
+- `list_agent_docs` - List all documentation for an agent (with optional type filter)
+- `read_agent_doc` - Read agent documentation
+- `update_agent_doc` - Update agent documentation (append or replace)
+- `get_agent_doc_structure` - Get documentation directory structure for an agent
+
 ### Task Coordination ✅
 - `register_task` - Register a new task in the central task registry
 - `query_tasks` - Query tasks with filters (status, assignee, project, priority, search)
@@ -248,7 +255,7 @@ server-management-mcp/
 - ⏳ Application-specific tools (planned)
 - ⏳ Backup/restore tools (planned)
 
-**Total Tools**: 80 tools implemented
+**Total Tools**: 85 tools implemented
 
 **Breakdown**:
 - Activity Monitoring: 4 tools
@@ -256,12 +263,13 @@ server-management-mcp/
 - Memory Management: 9 tools
 - Task Coordination: 6 tools
 - Agent Management: 6 tools
+- Agent Documentation: 5 tools ⭐ NEW
 - Skill Management: 5 tools
 - Skill Activation: 2 tools
 - Dev Docs: 4 tools
 - Quality Checks: 2 tools
 - Code Review: 2 tools
-- Service Debugging: 4 tools ⭐ NEW
+- Service Debugging: 4 tools
 - Docker Management: 8 tools
 - Media Download: 13 tools
 - System Monitoring: 5 tools

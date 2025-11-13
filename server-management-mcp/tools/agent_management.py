@@ -157,11 +157,20 @@ Read your TASKS.md file to see all assigned tasks.
 
 ```
 agents/active/{agent_id}-{specialization}/
-├── TASKS.md              # Your assigned tasks
-├── STATUS.md             # Your current status
-├── COMMUNICATION.md      # Parent-child communication
+├── dev-docs/             # Dev docs (plan, context, tasks) - managed by dev docs system
+│   └── {task-name}-*.md
+├── docs/                 # YOUR documentation (plans, notes, architecture, references)
+│   ├── plans/            # Implementation plans
+│   ├── notes/            # Working notes, research
+│   ├── architecture/     # System designs
+│   └── references/       # External references
+├── TASKS.md              # Your assigned tasks (deprecated - use task coordination)
+├── STATUS.md             # Your current status (deprecated - use monitoring)
+├── COMMUNICATION.md      # Parent-child communication (deprecated - use communication system)
 └── RESULTS.md            # Completed work results
 ```
+
+**⚠️ IMPORTANT**: All your documentation, plans, and notes should go in `docs/` directory, NOT in `agents/docs/`. This ensures proper namespacing and automatic archiving.
 
 ## Discovery Workflow
 

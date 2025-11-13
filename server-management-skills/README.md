@@ -106,6 +106,14 @@ See `server-management-skills/README.md` for complete catalog.
 - **Security**: By default, services are NOT exposed to internet. Cloudflare DDNS updates require explicit human approval.
 - **Includes**: Complete Traefik label patterns, Homepage label templates, Cloudflare DDNS update workflow
 
+#### `agent-self-documentation` ✅
+**How agents should organize and store their own documentation**: Namespaced directories → proper archiving
+
+- **When to use**: Creating implementation plans, taking research notes, documenting architecture, organizing agent-specific documentation
+- **MCP Tools**: `create_agent_doc`, `list_agent_docs`, `read_agent_doc`, `update_agent_doc`, `get_agent_doc_structure`
+- **Purpose**: Ensures all agent documentation is properly namespaced in `agents/active/{agent-id}/docs/` and automatically archived when agent lifecycle completes
+- **Includes**: Directory structure, documentation types, best practices, lifecycle management
+
 ### Maintenance Skills
 
 #### `system-health-check` ⏳
@@ -277,16 +285,18 @@ Skills **must** use MCP tools. They don't replace tools, they orchestrate them:
 
 ## Status
 
-- ✅ **7 skills implemented**:
+- ✅ **8 skills implemented**:
   - `standard-deployment` - Complete deployment workflow
   - `troubleshoot-container-failure` - Container diagnostics
   - `system-health-check` - Comprehensive system verification
   - `troubleshoot-stuck-downloads` - Download queue issues
   - `cleanup-disk-space` - Clean up disk space systematically
   - `add-root-folder` - Add root folders to Sonarr/Radarr
-- ⏳ **6 skills planned**: See catalog above
+  - `add-subdomain` - Subdomain configuration
+  - `agent-self-documentation` - Agent documentation organization
+- ⏳ **5 skills planned**: See catalog above
 
-**Total**: 7 implemented, 6 planned = 13 skills
+**Total**: 8 implemented, 5 planned = 13 skills
 
 ## Contributing
 

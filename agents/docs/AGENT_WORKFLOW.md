@@ -70,6 +70,7 @@ This document outlines a proven workflow for managing AI agents working on softw
    - Skills orchestrate MCP tools into tested workflows
    - Skills include error handling and best practices
    - **This is how you gain context** - don't start from scratch
+   - **Important**: Use `agent-self-documentation` skill to learn how to organize your own documentation
 
 3. **Check MCP Tools** - Review `server-management-mcp/README.md` for available tools
    - **⚠️ CRITICAL: Prioritize Observable Tools**
@@ -176,9 +177,51 @@ After completing work:
 - `server-management-mcp/README.md` - MCP tools reference
 - `agents/docs/MCP_TOOL_DISCOVERY.md` - Tool discovery guide
 
+## ⚠️ CRITICAL: Agent Documentation Namespacing
+
+**All agent-specific documentation, plans, and notes MUST go in your agent directory, NOT in `agents/docs/`.**
+
+### Agent Directory Structure
+
+```
+agents/active/{agent-id}/
+├── dev-docs/              # Dev docs (plan, context, tasks) - managed by dev docs system
+│   └── {task-name}-*.md
+├── docs/                  # YOUR documentation (create this!)
+│   ├── plans/             # Implementation plans
+│   ├── notes/             # Working notes, research
+│   ├── architecture/      # System designs
+│   └── references/        # External references
+└── (other agent files)
+```
+
+### Use Agent Documentation Tools
+
+```python
+# Create your documentation in your agent directory
+create_agent_doc(
+    agent_id="agent-001",
+    doc_type="plan",  # "plan", "note", "architecture", "reference"
+    doc_name="feature-x-implementation",
+    content="# Implementation Plan\n\n..."
+)
+```
+
+**Why This Matters:**
+- Proper namespacing prevents clutter in shared directories
+- Automatic archiving when agent lifecycle completes
+- Easy to find agent-specific documentation
+- Clean project structure
+
+**See**: 
+- `agents/docs/AGENT_SELF_DOCUMENTATION.md` - Complete guide
+- `agent-self-documentation` skill - Workflow for organizing documentation
+
+---
+
 ## Core Workflow Components
 
-### 1. Implementation Plan (`IMPLEMENTATION_PLAN.md`)
+### 1. Implementation Plan (`agents/active/{agent-id}/docs/plans/{plan-name}.md`)
 
 **Purpose**: Complete specification of what to build
 

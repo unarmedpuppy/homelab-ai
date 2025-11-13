@@ -111,6 +111,7 @@ This directory contains all documentation related to AI agent workflows, prompts
 - `agents/docs/SYSTEM_ARCHITECTURE.md` ⭐ - Unified architecture overview
 - `agents/docs/DATA_MODEL.md` ⭐ - Data model and storage structure
 - `agents/docs/COMMUNICATION_GUIDELINES.md` ⭐ - Communication channel usage
+- `agents/docs/AGENT_SELF_DOCUMENTATION.md` ⭐ - **How agents should organize their own documentation** (namespacing guide)
 
 ### Enhancement Plans
 - `agents/docs/AGENT_SYSTEM_ENHANCEMENT_PLAN.md` ⭐⭐ - **Enhancement opportunities based on production best practices**
