@@ -111,15 +111,37 @@ create_agent_definition(
 **Note**: `assign_task_to_agent()` now also registers tasks in the central task registry for cross-agent coordination.
 
 ### 3. Check Skills 📚
-Review `server-management-skills/README.md` for complete workflows:
+**🎯 CRITICAL: Skills won't be used unless you explicitly check them!**
 
+**Before starting ANY work, use skill activation tools:**
+```python
+# Get skill activation reminder based on your context
+suggest_relevant_skills(
+    prompt_text="What you're about to work on",
+    file_paths="files you're editing",
+    task_description="Your current task"
+)
+
+# Or get a quick reminder
+get_skill_activation_reminder(context_summary="Brief summary of your work")
+```
+
+**Then review relevant skills:**
+- Read `server-management-skills/README.md` for complete catalog
+- Load and review suggested skills BEFORE implementing
+- Skills provide tested workflows that prevent mistakes
+
+**Available Skills:**
 - `standard-deployment` - Deploy changes workflow
 - `troubleshoot-container-failure` - Container diagnostics
 - `system-health-check` - System verification
 - `troubleshoot-stuck-downloads` - Download queue fixes
 - `deploy-new-service` - New service setup
+- `add-subdomain` - Subdomain configuration
+- `cleanup-disk-space` - Disk cleanup workflow
+- `add-root-folder` - Media folder configuration
 
-**Why**: Use tested workflows. Don't reinvent common processes.
+**Why**: Use tested workflows. Don't reinvent common processes. Skills prevent mistakes and ensure consistency.
 
 ### 4. Check MCP Tools 🔧
 Review `server-management-mcp/README.md` for available operations:
@@ -502,12 +524,15 @@ Check:
 
 1. ✅ **Update status regularly** - `update_agent_status()` with progress
 2. ✅ **Use MCP tools** - All MCP tool calls are automatically logged
-3. ✅ Record important decisions in memory
-4. ✅ Record patterns discovered
-5. ✅ Update context regularly
-6. ✅ Use skills for workflows
-7. ✅ Create specialized agents when needed
-8. ✅ **Never use custom commands** - Use MCP tools instead (they're observable!)
+3. ✅ **Use dev docs for large tasks** - Create/update dev docs to preserve context
+4. ✅ Record important decisions in memory
+5. ✅ Record patterns discovered
+6. ✅ Update context regularly
+7. ✅ **Check relevant skills** - Use `suggest_relevant_skills()` if unsure
+8. ✅ Use skills for workflows (don't reinvent)
+9. ✅ Create specialized agents when needed
+10. ✅ **Never use custom commands** - Use MCP tools instead (they're observable!)
+11. ✅ **Run quality checks** - Check for errors after making edits
 
 ### After Work
 

@@ -158,6 +158,16 @@ Add to Claude Desktop config (`~/Library/Application Support/Claude/claude_deskt
 - `analyze_patterns_for_skills` - Analyze patterns in memory and identify candidates for skill creation
 - `auto_propose_skill_from_pattern` - Automatically create a skill proposal from a pattern
 
+### Skill Activation ✅
+- `suggest_relevant_skills` - Suggest relevant skills based on context (prompt, files, task) - **CRITICAL: Use this before starting work!**
+- `get_skill_activation_reminder` - Get formatted reminder of which skills to check
+
+### Dev Docs (Context Preservation) ✅
+- `create_dev_docs` - Create dev docs (plan, context, tasks) for a major task
+- `update_dev_docs` - Update dev docs with current progress (use before compaction)
+- `list_active_dev_docs` - List all active dev docs for an agent
+- `read_dev_docs` - Read all dev docs for a specific task (use at session start)
+
 ### Task Coordination ✅
 - `register_task` - Register a new task in the central task registry
 - `query_tasks` - Query tasks with filters (status, assignee, project, priority, search)
@@ -224,7 +234,7 @@ server-management-mcp/
 - ⏳ Application-specific tools (planned)
 - ⏳ Backup/restore tools (planned)
 
-**Total Tools**: 68 tools implemented
+**Total Tools**: 72 tools implemented
 
 **Breakdown**:
 - Activity Monitoring: 4 tools
@@ -233,6 +243,8 @@ server-management-mcp/
 - Task Coordination: 6 tools
 - Agent Management: 6 tools
 - Skill Management: 5 tools
+- Skill Activation: 2 tools ⭐ NEW
+- Dev Docs: 4 tools ⭐ NEW
 - Docker Management: 8 tools
 - Media Download: 13 tools
 - System Monitoring: 5 tools
