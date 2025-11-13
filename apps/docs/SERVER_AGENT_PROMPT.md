@@ -566,6 +566,37 @@ bash scripts/connect-server.sh "docker ps --format 'table {{.Names}}\t{{.Status}
 
 **Remember**: Always check for MCP tools first!
 
+## Memory System (Automatic)
+
+### ⚠️ Memory is Automatically Enabled
+
+**Memori is automatically enabled** - you don't need to do anything special:
+
+1. **Context is Automatic**: Memori automatically injects relevant context before each LLM call
+2. **Recording is Automatic**: All conversations are automatically recorded
+3. **Pattern Learning**: Conscious Agent learns patterns in the background
+
+### What Gets Remembered
+
+- All conversations across sessions
+- Decisions made (automatically extracted)
+- Patterns identified (by Conscious Agent)
+- Context automatically retrieved when needed
+
+### Using Memory (Optional)
+
+Memory works automatically, but you can explicitly query if needed:
+
+```python
+from apps.agent_memory import get_global_memori
+
+memori = get_global_memori()
+# Query recent decisions
+recent = memori.query("decisions from last week")
+```
+
+**See**: `apps/agent_memory/README.md` for details.
+
 ## Server Management Skills
 
 ### ⚠️ CRITICAL: Use Skills for Common Workflows
