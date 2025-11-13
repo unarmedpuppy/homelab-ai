@@ -430,7 +430,7 @@ After completing work:
 ├── STARTUP_GUIDE.md            # Essential details
 ├── [PROJECT]_AGENTS_PROMPT.md  # Agent guidelines
 ├── [PROJECT]_AGENT_REVIEWER_PROMPT.md  # Review standards
-├── TASKS.md                    # Task tracking
+├── [Note: Tasks tracked in central registry, not per-agent files]
 └── README.md                   # Overview
 ```
 
@@ -438,7 +438,7 @@ After completing work:
 ```
 [PROJECT]/
 ├── README.md                   # Quick overview
-├── TASKS.md                    # Task tracking
+├── [Note: Tasks tracked in central registry, not per-agent files]
 └── docs/
     ├── IMPLEMENTATION_PLAN.md
     ├── STARTUP_GUIDE.md
