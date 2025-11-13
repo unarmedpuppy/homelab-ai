@@ -16,6 +16,7 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from mcp.server import Server
+from tools.logging_decorator import with_automatic_logging
 
 
 # Paths
@@ -212,6 +213,7 @@ def register_skill_activation_tools(server: Server):
     """Register skill activation tools with MCP server."""
     
     @server.tool()
+    @with_automatic_logging()
     async def suggest_relevant_skills(
         prompt_text: str = "",
         file_paths: str = "",
@@ -289,6 +291,7 @@ def register_skill_activation_tools(server: Server):
         }
     
     @server.tool()
+    @with_automatic_logging()
     async def get_skill_activation_reminder(
         context_summary: str
     ) -> Dict[str, Any]:

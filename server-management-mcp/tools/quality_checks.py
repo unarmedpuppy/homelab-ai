@@ -16,6 +16,7 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from mcp.server import Server
+from tools.logging_decorator import with_automatic_logging
 
 
 def _detect_project_type(file_path: Path) -> Optional[str]:
@@ -256,6 +257,7 @@ def register_quality_check_tools(server: Server):
     """Register quality check tools with MCP server."""
     
     @server.tool()
+    @with_automatic_logging()
     async def check_code_quality(
         file_paths: str,
         check_types: str = "all"
@@ -394,6 +396,7 @@ def register_quality_check_tools(server: Server):
         return results
     
     @server.tool()
+    @with_automatic_logging()
     async def check_build_errors(
         project_path: str = "."
     ) -> Dict[str, Any]:

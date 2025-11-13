@@ -3,6 +3,7 @@ import re
 from typing import Dict, Any, Optional
 from mcp.server import Server
 from clients.remote_exec import RemoteExecutor
+from tools.logging_decorator import with_automatic_logging
 
 
 executor = RemoteExecutor()
@@ -12,6 +13,7 @@ def register_monitoring_tools(server: Server):
     """Register monitoring tools with MCP server."""
     
     @server.tool()
+    @with_automatic_logging()
     async def check_disk_space(path: Optional[str] = None) -> Dict[str, Any]:
         """
         Check disk space usage.
@@ -87,6 +89,7 @@ def register_monitoring_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def check_system_resources() -> Dict[str, Any]:
         """
         Check CPU, memory, and network usage.
@@ -145,6 +148,7 @@ def register_monitoring_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def service_health_check(service_name: str) -> Dict[str, Any]:
         """
         Comprehensive health check for a service.
@@ -232,6 +236,7 @@ def register_monitoring_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def get_recent_errors(
         service: Optional[str] = None,
         lines: int = 50
@@ -301,6 +306,7 @@ def register_monitoring_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def find_service_by_port(port: int) -> Dict[str, Any]:
         """
         Find which service is using a specific port.

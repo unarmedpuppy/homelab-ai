@@ -16,6 +16,7 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from mcp.server import Server
+from tools.logging_decorator import with_automatic_logging
 
 
 # Paths for communication
@@ -102,6 +103,7 @@ def register_communication_tools(server: Server):
     """Register communication tools with MCP server."""
     
     @server.tool()
+    @with_automatic_logging()
     async def send_agent_message(
         from_agent: str,
         to_agent: str,
@@ -203,6 +205,7 @@ def register_communication_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def get_agent_messages(
         agent_id: str,
         status: Optional[str] = None,
@@ -272,6 +275,7 @@ def register_communication_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def acknowledge_message(
         message_id: str,
         agent_id: str
@@ -345,6 +349,7 @@ def register_communication_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def mark_message_resolved(
         message_id: str,
         agent_id: str,
@@ -427,6 +432,7 @@ def register_communication_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def query_messages(
         from_agent: Optional[str] = None,
         to_agent: Optional[str] = None,

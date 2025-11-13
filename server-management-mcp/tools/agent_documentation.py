@@ -16,6 +16,7 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from mcp.server import Server
+from tools.logging_decorator import with_automatic_logging
 
 
 # Paths
@@ -54,6 +55,7 @@ def register_agent_documentation_tools(server: Server):
     """Register agent documentation tools with MCP server."""
     
     @server.tool()
+    @with_automatic_logging()
     async def create_agent_doc(
         agent_id: str,
         doc_type: str,
@@ -122,6 +124,7 @@ created: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
         }
     
     @server.tool()
+    @with_automatic_logging()
     async def list_agent_docs(
         agent_id: str,
         doc_type: Optional[str] = None
@@ -192,6 +195,7 @@ created: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
         }
     
     @server.tool()
+    @with_automatic_logging()
     async def read_agent_doc(
         agent_id: str,
         doc_type: str,
@@ -236,6 +240,7 @@ created: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
         }
     
     @server.tool()
+    @with_automatic_logging()
     async def update_agent_doc(
         agent_id: str,
         doc_type: str,
@@ -320,6 +325,7 @@ created: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
         }
     
     @server.tool()
+    @with_automatic_logging()
     async def get_agent_doc_structure(agent_id: str) -> Dict[str, Any]:
         """
         Get the documentation directory structure for an agent.

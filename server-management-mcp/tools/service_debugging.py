@@ -15,6 +15,7 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from mcp.server import Server
+from tools.logging_decorator import with_automatic_logging
 
 
 def _get_docker_logs(container_name: str, lines: int = 200, follow: bool = False) -> Dict[str, Any]:
@@ -117,6 +118,7 @@ def register_service_debugging_tools(server: Server):
     """Register service debugging tools with MCP server."""
     
     @server.tool()
+    @with_automatic_logging()
     async def get_service_logs(
         service_name: str,
         lines: int = 200,
@@ -204,6 +206,7 @@ def register_service_debugging_tools(server: Server):
         return result
     
     @server.tool()
+    @with_automatic_logging()
     async def monitor_service_status(
         service_name: str
     ) -> Dict[str, Any]:
@@ -255,6 +258,7 @@ def register_service_debugging_tools(server: Server):
         return status
     
     @server.tool()
+    @with_automatic_logging()
     async def restart_service(
         service_name: str,
         method: str = "docker"
@@ -334,6 +338,7 @@ def register_service_debugging_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def get_service_metrics(
         service_name: str
     ) -> Dict[str, Any]:

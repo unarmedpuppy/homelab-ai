@@ -2,6 +2,7 @@
 from typing import Dict, Any, Optional
 from mcp.server import Server
 from clients.remote_exec import RemoteExecutor
+from tools.logging_decorator import with_automatic_logging
 
 
 executor = RemoteExecutor()
@@ -11,6 +12,7 @@ def register_system_tools(server: Server):
     """Register system-level tools with MCP server."""
     
     @server.tool()
+    @with_automatic_logging()
     async def cleanup_archive_files(
         dry_run: bool = False,
         category: str = "all"
@@ -87,6 +89,7 @@ def register_system_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def check_unmapped_folders(
         service: str,
         root_folder_id: Optional[int] = None
@@ -148,6 +151,7 @@ def register_system_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def list_completed_downloads(
         category: str = "all",
         limit: int = 50

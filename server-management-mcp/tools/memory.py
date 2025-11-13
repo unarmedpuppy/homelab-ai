@@ -16,12 +16,14 @@ sys.path.insert(0, str(project_root))
 from agents.memory import get_memory
 from mcp.server import Server
 from mcp.types import Tool
+from tools.logging_decorator import with_automatic_logging
 
 
 def register_memory_tools(server: Server):
     """Register memory management tools with MCP server."""
     
     @server.tool()
+    @with_automatic_logging()
     async def memory_query_decisions(
         project: Optional[str] = None,
         task: Optional[str] = None,
@@ -64,6 +66,7 @@ def register_memory_tools(server: Server):
         }
     
     @server.tool()
+    @with_automatic_logging()
     async def memory_query_patterns(
         severity: Optional[str] = None,
         tags: Optional[str] = None,
@@ -103,6 +106,7 @@ def register_memory_tools(server: Server):
         }
     
     @server.tool()
+    @with_automatic_logging()
     async def memory_search(
         query: str,
         limit: int = 20
@@ -132,6 +136,7 @@ def register_memory_tools(server: Server):
         }
     
     @server.tool()
+    @with_automatic_logging()
     async def memory_record_decision(
         content: str,
         rationale: str = "",
@@ -174,6 +179,7 @@ def register_memory_tools(server: Server):
         }
     
     @server.tool()
+    @with_automatic_logging()
     async def memory_record_pattern(
         name: str,
         description: str,
@@ -216,6 +222,7 @@ def register_memory_tools(server: Server):
         }
     
     @server.tool()
+    @with_automatic_logging()
     async def memory_save_context(
         agent_id: str,
         task: str,
@@ -253,6 +260,7 @@ def register_memory_tools(server: Server):
         }
     
     @server.tool()
+    @with_automatic_logging()
     async def memory_get_recent_context(
         agent_id: Optional[str] = None,
         limit: int = 5
@@ -297,6 +305,7 @@ def register_memory_tools(server: Server):
         }
     
     @server.tool()
+    @with_automatic_logging()
     async def memory_get_context_by_task(
         task: str
     ) -> Dict[str, Any]:
@@ -337,6 +346,7 @@ def register_memory_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def memory_export_to_markdown(
         output_path: Optional[str] = None
     ) -> Dict[str, Any]:

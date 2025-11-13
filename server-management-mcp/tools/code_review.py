@@ -14,6 +14,7 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from mcp.server import Server
+from tools.logging_decorator import with_automatic_logging
 
 
 def _analyze_code_file(file_path: Path) -> Dict[str, Any]:
@@ -95,6 +96,7 @@ def register_code_review_tools(server: Server):
     """Register code review tools with MCP server."""
     
     @server.tool()
+    @with_automatic_logging()
     async def request_code_review(
         file_paths: str,
         review_type: str = "self"
@@ -235,6 +237,7 @@ def register_code_review_tools(server: Server):
         return review_results
     
     @server.tool()
+    @with_automatic_logging()
     async def self_review_checklist(
         file_paths: str
     ) -> Dict[str, Any]:

@@ -4,6 +4,7 @@ from mcp.server import Server
 from clients.sonarr import SonarrClient
 from clients.radarr import RadarrClient
 from clients.remote_exec import RemoteExecutor
+from tools.logging_decorator import with_automatic_logging
 
 
 executor = RemoteExecutor()
@@ -15,6 +16,7 @@ def register_media_tools(server: Server):
     # Sonarr Tools
     
     @server.tool()
+    @with_automatic_logging()
     async def sonarr_clear_queue(
         blocklist: bool = False,
         remove_from_client: bool = True
@@ -75,6 +77,7 @@ def register_media_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def sonarr_queue_status() -> Dict[str, Any]:
         """
         Get summary of Sonarr queue status.
@@ -127,6 +130,7 @@ def register_media_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def sonarr_trigger_import_scan(path: Optional[str] = None) -> Dict[str, Any]:
         """
         Trigger manual import scan for completed TV downloads.
@@ -158,6 +162,7 @@ def register_media_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def sonarr_check_download_clients() -> Dict[str, Any]:
         """
         Check Sonarr download client configuration and status.
@@ -205,6 +210,7 @@ def register_media_tools(server: Server):
     # Radarr Tools
     
     @server.tool()
+    @with_automatic_logging()
     async def radarr_clear_queue(
         blocklist: bool = False,
         remove_from_client: bool = True
@@ -265,6 +271,7 @@ def register_media_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def radarr_queue_status() -> Dict[str, Any]:
         """
         Get summary of Radarr queue status.
@@ -317,6 +324,7 @@ def register_media_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def radarr_trigger_import_scan(path: Optional[str] = None) -> Dict[str, Any]:
         """
         Trigger manual import scan for completed movie downloads.
@@ -348,6 +356,7 @@ def register_media_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def radarr_list_root_folders() -> Dict[str, Any]:
         """
         List all Radarr root folders.
@@ -373,6 +382,7 @@ def register_media_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def radarr_add_root_folder(path: str) -> Dict[str, Any]:
         """
         Add a root folder to Radarr.
@@ -404,6 +414,7 @@ def register_media_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def radarr_check_download_clients() -> Dict[str, Any]:
         """
         Check Radarr download client configuration and status.
@@ -449,6 +460,7 @@ def register_media_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def remove_stuck_downloads(
         service: str,
         status_filter: Optional[List[str]] = None

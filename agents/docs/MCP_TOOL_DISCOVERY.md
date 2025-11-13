@@ -675,6 +675,9 @@ If you need an operation that doesn't exist:
 2. ✅ **Test approach** - Verify operation works with SSH/direct execution
 3. ✅ **Confirm it's reusable** - Determine if it should be an MCP tool
 4. ✅ **Create the tool** - Implement following existing patterns
+   - **CRITICAL**: Add `@with_automatic_logging()` decorator after `@server.tool()`
+   - Import: `from tools.logging_decorator import with_automatic_logging`
+   - Pattern: `@server.tool()` → `@with_automatic_logging()` → `async def tool_name(...)`
 5. ✅ **Register and document** - Add to server.py and README.md
 6. ✅ **Test the tool** - Verify it works correctly
 7. ✅ **Use your tool** - Now use it for your operation (it's automatically observable!)

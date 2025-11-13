@@ -16,12 +16,14 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from mcp.server import Server
+from tools.logging_decorator import with_automatic_logging
 
 
 def register_skill_management_tools(server: Server):
     """Register skill management tools with MCP server."""
     
     @server.tool()
+    @with_automatic_logging()
     async def propose_skill(
         name: str,
         description: str,
@@ -154,6 +156,7 @@ List of skill proposals awaiting review.
         }
     
     @server.tool()
+    @with_automatic_logging()
     async def list_skill_proposals(
         category: Optional[str] = None,
         status: Optional[str] = None
@@ -207,6 +210,7 @@ List of skill proposals awaiting review.
         }
     
     @server.tool()
+    @with_automatic_logging()
     async def query_skills(
         category: Optional[str] = None,
         search_text: Optional[str] = None,
@@ -278,6 +282,7 @@ List of skill proposals awaiting review.
         }
     
     @server.tool()
+    @with_automatic_logging()
     async def analyze_patterns_for_skills(
         min_frequency: int = 3,
         severity: Optional[str] = None,
@@ -371,6 +376,7 @@ List of skill proposals awaiting review.
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def auto_propose_skill_from_pattern(
         pattern_name: str,
         category: Optional[str] = None,

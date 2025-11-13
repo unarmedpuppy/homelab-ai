@@ -63,24 +63,8 @@ To apply automatic logging to all tools in a file:
 
 Apply the decorator to these tool files:
 
-- ✅ `docker.py` - Done
-- ⏳ `git.py` - Pending
-- ⏳ `monitoring.py` - Pending
-- ⏳ `memory.py` - Pending
-- ⏳ `media_download.py` - Pending
-- ⏳ `networking.py` - Pending
-- ⏳ `system.py` - Pending
-- ⏳ `troubleshooting.py` - Pending
-- ⏳ `agent_management.py` - Pending
-- ⏳ `skill_management.py` - Pending
-- ⏳ `task_coordination.py` - Pending
-- ⏳ `communication.py` - Pending
-- ⏳ `skill_activation.py` - Pending
-- ⏳ `dev_docs.py` - Pending
-- ⏳ `quality_checks.py` - Pending
-- ⏳ `code_review.py` - Pending
-- ⏳ `service_debugging.py` - Pending
-- ⏳ `agent_documentation.py` - Pending
+- ✅ All tool files - **COMPLETE** (91/96 tools have decorator)
+- ⚠️ `activity_monitoring.py` - Intentionally excluded (tools handle their own logging)
 
 ## Testing
 
@@ -96,4 +80,25 @@ After applying the decorator:
 - The decorator handles errors gracefully - if logging fails, the tool still works
 - Activity monitoring tools (`start_agent_session`, `update_agent_status`) don't need the decorator (they log themselves)
 - Tools that already have manual logging can keep it or remove it in favor of the decorator
+
+## Required for New Tools
+
+**ALL new MCP tools MUST include the `@with_automatic_logging()` decorator.**
+
+This ensures:
+- All tool calls are visible in the agent monitoring dashboard
+- Tool usage is tracked for analytics and debugging
+- Agent activity is fully observable
+
+**Template for new tools:**
+```python
+from tools.logging_decorator import with_automatic_logging
+
+@server.tool()
+@with_automatic_logging()
+async def my_new_tool(param1: str, param2: int) -> Dict[str, Any]:
+    """Tool description."""
+    # Implementation
+    ...
+```
 

@@ -4,6 +4,7 @@ from mcp.server import Server
 from clients.sonarr import SonarrClient
 from clients.radarr import RadarrClient
 from clients.remote_exec import RemoteExecutor
+from tools.logging_decorator import with_automatic_logging
 # Import monitoring tools (will be called directly, not imported to avoid circular dependency)
 
 
@@ -14,6 +15,7 @@ def register_troubleshooting_tools(server: Server):
     """Register troubleshooting tools with MCP server."""
     
     @server.tool()
+    @with_automatic_logging()
     async def troubleshoot_failed_downloads(
         service: str = "sonarr",
         include_logs: bool = True
@@ -114,6 +116,7 @@ def register_troubleshooting_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def diagnose_download_client_unavailable(service: str) -> Dict[str, Any]:
         """
         Specific diagnostic for "downloadClientUnavailable" errors.
@@ -214,6 +217,7 @@ def register_troubleshooting_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def check_service_dependencies(service_name: str) -> Dict[str, Any]:
         """
         Check if service dependencies are running.

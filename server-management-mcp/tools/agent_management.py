@@ -16,12 +16,14 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from mcp.server import Server
+from tools.logging_decorator import with_automatic_logging
 
 
 def register_agent_management_tools(server: Server):
     """Register agent management tools with MCP server."""
     
     @server.tool()
+    @with_automatic_logging()
     async def create_agent_definition(
         specialization: str,
         capabilities: str,
@@ -336,6 +338,7 @@ _Add messages here when you need to communicate with your parent agent._
         }
     
     @server.tool()
+    @with_automatic_logging()
     async def query_agent_registry(
         specialization: Optional[str] = None,
         status: Optional[str] = None,
@@ -403,6 +406,7 @@ _Add messages here when you need to communicate with your parent agent._
         }
     
     @server.tool()
+    @with_automatic_logging()
     async def assign_task_to_agent(
         agent_id: str,
         task_description: str,
@@ -539,6 +543,7 @@ _Add messages here when you need to communicate with your parent agent._
         return result
     
     @server.tool()
+    @with_automatic_logging()
     async def sync_agent_registry() -> Dict[str, Any]:
         """
         Sync agent registry markdown from monitoring DB and definition files.
@@ -590,6 +595,7 @@ _Add messages here when you need to communicate with your parent agent._
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def archive_agent(
         agent_id: str,
         reason: Optional[str] = None,
@@ -762,6 +768,7 @@ _Add messages here when you need to communicate with your parent agent._
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def reactivate_agent(
         agent_id: str,
         new_tasks: Optional[str] = None

@@ -15,6 +15,7 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from mcp.server import Server
+from tools.logging_decorator import with_automatic_logging
 
 
 # Paths for task coordination
@@ -175,6 +176,7 @@ def register_task_coordination_tools(server: Server):
     _ensure_tasks_dir()
     
     @server.tool()
+    @with_automatic_logging()
     async def register_task(
         title: str,
         description: str,
@@ -233,6 +235,7 @@ def register_task_coordination_tools(server: Server):
         }
     
     @server.tool()
+    @with_automatic_logging()
     async def query_tasks(
         status: Optional[str] = None,
         assignee: Optional[str] = None,
@@ -309,6 +312,7 @@ def register_task_coordination_tools(server: Server):
         }
     
     @server.tool()
+    @with_automatic_logging()
     async def get_task(
         task_id: str
     ) -> Dict[str, Any]:
@@ -340,6 +344,7 @@ def register_task_coordination_tools(server: Server):
         }
     
     @server.tool()
+    @with_automatic_logging()
     async def claim_task(
         task_id: str,
         agent_id: str
@@ -436,6 +441,7 @@ def register_task_coordination_tools(server: Server):
         }
     
     @server.tool()
+    @with_automatic_logging()
     async def update_task_status(
         task_id: str,
         status: str,
@@ -586,6 +592,7 @@ def register_task_coordination_tools(server: Server):
         }
     
     @server.tool()
+    @with_automatic_logging()
     async def check_task_dependencies(
         task_id: str
     ) -> Dict[str, Any]:

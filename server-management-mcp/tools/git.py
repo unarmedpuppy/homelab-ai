@@ -3,6 +3,7 @@ import re
 from typing import Dict, Any, Optional, List
 from mcp.server import Server
 from clients.remote_exec import RemoteExecutor
+from tools.logging_decorator import with_automatic_logging
 
 
 executor = RemoteExecutor()
@@ -12,6 +13,7 @@ def register_git_tools(server: Server):
     """Register Git operation tools with MCP server."""
     
     @server.tool()
+    @with_automatic_logging()
     async def git_status(app_path: Optional[str] = None) -> Dict[str, Any]:
         """
         Check Git repository status.
@@ -84,6 +86,7 @@ def register_git_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def git_pull(app_path: Optional[str] = None) -> Dict[str, Any]:
         """
         Pull latest changes from Git repository.
@@ -129,6 +132,7 @@ def register_git_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def git_deploy(
         commit_message: str,
         files: Optional[List[str]] = None
@@ -213,6 +217,7 @@ def register_git_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def deploy_and_restart(
         commit_message: str,
         app_path: str,

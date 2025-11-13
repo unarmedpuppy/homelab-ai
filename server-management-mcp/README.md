@@ -202,12 +202,26 @@ Add to Claude Desktop config (`~/Library/Application Support/Claude/claude_deskt
 ### Adding New Tools
 
 1. Create a new module in `tools/` (e.g., `tools/monitoring.py`)
-2. Implement tool functions with `@server.tool()` decorator
-3. Register the module in `server.py`:
+2. **Import the logging decorator**:
+   ```python
+   from tools.logging_decorator import with_automatic_logging
+   ```
+3. Implement tool functions with **both decorators**:
+   ```python
+   @server.tool()
+   @with_automatic_logging()  # REQUIRED: Makes tool calls observable
+   async def my_tool(param: str) -> Dict[str, Any]:
+       """Tool description."""
+       # Implementation
+       ...
+   ```
+4. Register the module in `server.py`:
    ```python
    from tools.monitoring import register_monitoring_tools
    register_monitoring_tools(server)
    ```
+
+**Note**: The `@with_automatic_logging()` decorator is **required** for all new tools. It ensures all tool calls are automatically logged to the agent monitoring dashboard. See `tools/INTEGRATION_GUIDE.md` for details.
 
 ### Testing
 

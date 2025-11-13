@@ -4,6 +4,7 @@ import re
 from typing import Dict, Any, Optional, List
 from mcp.server import Server
 from clients.remote_exec import RemoteExecutor
+from tools.logging_decorator import with_automatic_logging
 
 
 executor = RemoteExecutor()
@@ -13,6 +14,7 @@ def register_networking_tools(server: Server):
     """Register networking and infrastructure tools with MCP server."""
     
     @server.tool()
+    @with_automatic_logging()
     async def check_port_status(port: int, host: str = "localhost") -> Dict[str, Any]:
         """
         Check if a port is listening.
@@ -59,6 +61,7 @@ def register_networking_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def vpn_status() -> Dict[str, Any]:
         """
         Check VPN services status (Gluetun, Tailscale).
@@ -102,6 +105,7 @@ def register_networking_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def check_dns_status() -> Dict[str, Any]:
         """
         Check DNS service status (AdGuard).
@@ -140,6 +144,7 @@ def register_networking_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def get_available_port(
         preferred_range: Optional[str] = None,
         min_port: int = 3000,

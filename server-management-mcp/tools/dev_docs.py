@@ -16,6 +16,7 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from mcp.server import Server
+from tools.logging_decorator import with_automatic_logging
 
 
 # Paths
@@ -41,6 +42,7 @@ def register_dev_docs_tools(server: Server):
     """Register dev docs tools with MCP server."""
     
     @server.tool()
+    @with_automatic_logging()
     async def create_dev_docs(
         agent_id: str,
         task_name: str,
@@ -158,6 +160,7 @@ def register_dev_docs_tools(server: Server):
         }
     
     @server.tool()
+    @with_automatic_logging()
     async def update_dev_docs(
         agent_id: str,
         task_name: str,
@@ -291,6 +294,7 @@ def register_dev_docs_tools(server: Server):
         }
     
     @server.tool()
+    @with_automatic_logging()
     async def list_active_dev_docs(agent_id: str) -> Dict[str, Any]:
         """
         List all active dev docs for an agent.
@@ -341,6 +345,7 @@ def register_dev_docs_tools(server: Server):
         }
     
     @server.tool()
+    @with_automatic_logging()
     async def read_dev_docs(agent_id: str, task_name: str) -> Dict[str, Any]:
         """
         Read all dev docs for a specific task.
