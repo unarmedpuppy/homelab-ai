@@ -80,6 +80,7 @@
 
 ### Networking
 - `check_port_status` - Check if port is listening
+- `get_available_port` - Find available ports for new Docker containers (checks running containers, docker-compose files, and system ports)
 - `vpn_status` - Check VPN services
 - `check_dns_status` - Check DNS service
 
