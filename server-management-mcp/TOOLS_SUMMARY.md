@@ -1,6 +1,6 @@
 # MCP Server Tools Summary
 
-## Implemented Tools (37 total)
+## Implemented Tools (38 total)
 
 ### Docker Management (8 tools)
 1. `docker_list_containers` - List all containers with filters
@@ -43,10 +43,11 @@
 30. `git_deploy` - Complete deployment workflow
 31. `deploy_and_restart` - Full workflow (deploy + restart)
 
-### Networking (3 tools)
+### Networking (4 tools)
 32. `check_port_status` - Check if port is listening
-33. `vpn_status` - Check VPN services (Gluetun, Tailscale)
-34. `check_dns_status` - Check DNS service (AdGuard)
+33. `get_available_port` - Find available ports for new Docker containers (checks running containers, docker-compose files, and system ports)
+34. `vpn_status` - Check VPN services (Gluetun, Tailscale)
+35. `check_dns_status` - Check DNS service (AdGuard)
 
 ### System Utilities (3 tools)
 35. `cleanup_archive_files` - Remove unpacked archive files
@@ -60,7 +61,7 @@
 - `tools/monitoring.py` - 5 tools
 - `tools/troubleshooting.py` - 3 tools
 - `tools/git.py` - 4 tools
-- `tools/networking.py` - 3 tools
+- `tools/networking.py` - 4 tools
 - `tools/system.py` - 3 tools
 
 ## High-Priority Planned Tools
@@ -127,7 +128,7 @@ errors = await get_recent_errors("sonarr")
 
 ---
 
-**Last Updated**: 2025-11-13
-**Total Implemented**: 37 tools
+**Last Updated**: 2025-01-13
+**Total Implemented**: 38 tools
 **Status**: Core functionality complete, expanding tool set
 
