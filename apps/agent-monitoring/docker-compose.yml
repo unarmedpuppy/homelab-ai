@@ -1,0 +1,109 @@
+version: '3.8'
+
+services:
+  # InfluxDB - Time-series database for metrics
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: agent-monitoring-influxdb
+    ports:
+      - "8086:8086"
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=admin123
+      - DOCKER_INFLUXDB_INIT_ORG=home-server
+      - DOCKER_INFLUXDB_INIT_BUCKET=agent_metrics
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=agent-monitoring-token-12345
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+      - influxdb-config:/etc/influxdb2
+    networks:
+      - agent-monitoring
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Grafana - Visualization and dashboards
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: agent-monitoring-grafana
+    ports:
+      - "3010:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_INSTALL_PLUGINS=
+      - GF_SERVER_ROOT_URL=http://localhost:3010
+      - GF_SERVER_SERVE_FROM_SUB_PATH=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    networks:
+      - agent-monitoring
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: agent-monitoring-backend
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - DATABASE_PATH=/data/agent_activity.db
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_TOKEN=agent-monitoring-token-12345
+      - INFLUXDB_ORG=home-server
+      - INFLUXDB_DATABASE=agent_metrics
+      - NODE_ENV=production
+    volumes:
+      - ./data:/data
+      - ./activity_logger:/app/activity_logger:ro
+    networks:
+      - agent-monitoring
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Frontend Dashboard
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: agent-monitoring-frontend
+    ports:
+      - "3012:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
+    networks:
+      - agent-monitoring
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  influxdb-data:
+  influxdb-config:
+  grafana-data:
+
+networks:
+  agent-monitoring:
+    driver: bridge
+

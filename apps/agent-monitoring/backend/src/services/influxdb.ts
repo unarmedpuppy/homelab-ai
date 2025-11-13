@@ -53,7 +53,7 @@ export class InfluxDBService {
         point.tag('tool_name', action.tool_name);
       }
 
-      if (action.duration_ms) {
+      if (action.duration_ms !== null && action.duration_ms !== undefined) {
         point.intField('duration_ms', action.duration_ms);
       }
 

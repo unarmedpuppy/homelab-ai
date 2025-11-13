@@ -1,0 +1,1 @@
+{"version":3,"file":"influxdb.d.ts","sourceRoot":"","sources":["../../src/routes/influxdb.ts"],"names":[],"mappings":"AAAA;;GAEG;AAEH,OAAO,EAAE,MAAM,EAAqB,MAAM,SAAS,CAAC;AACpD,OAAO,EAAE,eAAe,EAAE,MAAM,sBAAsB,CAAC;AAEvD,wBAAgB,oBAAoB,CAAC,aAAa,EAAE,eAAe,GAAG,IAAI,GAAG,MAAM,CAmFlF"}

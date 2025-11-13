@@ -9,6 +9,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { DatabaseService } from './services/database';
 import { InfluxDBService } from './services/influxdb';
+import { MetricExporter } from './services/metricExporter';
 import {
   createAgentsRouter,
   createActionsRouter,
@@ -51,6 +52,8 @@ console.log(`📊 Database path: ${defaultDbPath}`);
 
 // InfluxDB service (optional)
 let influxService: InfluxDBService | null = null;
+let metricExporter: MetricExporter | null = null;
+
 if (process.env.INFLUXDB_URL && process.env.INFLUXDB_TOKEN) {
   try {
     influxService = new InfluxDBService(
@@ -61,6 +64,11 @@ if (process.env.INFLUXDB_URL && process.env.INFLUXDB_TOKEN) {
       dbService
     );
     console.log('✅ InfluxDB service initialized');
+    
+    // Start automatic metric export
+    metricExporter = new MetricExporter(influxService, dbService);
+    const exportInterval = parseInt(process.env.METRIC_EXPORT_INTERVAL || '30000', 10);
+    metricExporter.start(exportInterval);
   } catch (error) {
     console.warn('⚠️  InfluxDB not configured:', error);
   }
@@ -110,6 +118,9 @@ app.listen(PORT, () => {
 // Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('SIGTERM received, closing connections...');
+  if (metricExporter) {
+    metricExporter.stop();
+  }
   dbService.close();
   if (influxService) {
     influxService.close();
@@ -119,6 +130,9 @@ process.on('SIGTERM', () => {
 
 process.on('SIGINT', () => {
   console.log('SIGINT received, closing connections...');
+  if (metricExporter) {
+    metricExporter.stop();
+  }
   dbService.close();
   if (influxService) {
     influxService.close();
