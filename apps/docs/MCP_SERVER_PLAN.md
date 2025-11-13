@@ -127,6 +127,13 @@ Stop and remove services via docker-compose
 - Parameters: `app_path`, `volumes` (default: false), `remove_orphans` (default: false)
 - Returns: Stop results
 
+#### `restart_affected_services`
+Restart services based on git changes or explicit app path
+- Parameters: `app_path` (optional) - Auto-detect from git changes if not provided, `service` (optional) - Specific service or all, `check_changes` (default: true) - Analyze git changes to determine affected services
+- Returns: Services restarted, restart results, detected changes summary
+- **Use Case**: Restart only services affected by recent changes
+- **Auto-detection**: Analyzes git diff to find modified docker-compose.yml files and restart those services
+
 ### 2. Git Operations & Repository Management
 
 #### `git_status`
@@ -158,6 +165,19 @@ Show differences between commits or branches
 Full sync workflow: pull, check status, report conflicts
 - Parameters: `path` (optional), `branch` (optional)
 - Returns: Sync status, conflicts, updated files count
+
+#### `git_deploy`
+Complete deployment workflow: add → commit → push → pull on server
+- Parameters: `commit_message`, `files` (optional) - Specific files or "all", `path` (optional), `branch` (optional, default: main), `skip_pull` (default: false)
+- Returns: Status of each step, commit hash, push status, pull status, conflicts if any, updated files on server
+- **Use Case**: Standard deployment workflow that agents use constantly
+
+#### `deploy_and_restart`
+Complete deployment and restart workflow: deploy changes → restart affected services
+- Parameters: `commit_message`, `app_path` (optional) - Auto-detect from changes if not provided, `service` (optional) - Specific service or all, `files` (optional), `branch` (optional)
+- Returns: Deployment status, services restarted, restart results, any errors
+- **Use Case**: Most common agent workflow - deploy code and restart services
+- **Auto-detection**: Can analyze git changes to determine which services need restarting
 
 ### 3. File Operations & Configuration Management
 
@@ -836,6 +856,45 @@ async def restart_media_stack():
     }
 ```
 
+### Example 4: Standard Deployment Workflow (Most Common)
+
+```python
+# Agent workflow - This is what agents do constantly
+async def deploy_changes():
+    # Single tool call handles entire workflow
+    result = await deploy_and_restart(
+        commit_message="Update service configuration",
+        # app_path auto-detected from git changes
+        # service auto-detected or restarts all in app
+    )
+    
+    # Result includes:
+    # - Git add/commit/push status
+    # - Server pull status
+    # - Services restarted
+    # - Any conflicts or errors
+    
+    if result["status"] == "success":
+        print(f"Deployed and restarted {result['services_restarted']} services")
+    else:
+        # Handle errors
+        print(f"Deployment failed: {result['error']}")
+```
+
+### Example 5: Git Deploy Only (Without Restart)
+
+```python
+# Agent workflow - When you just need to sync code
+async def sync_code():
+    result = await git_deploy(
+        commit_message="Update documentation",
+        files="all"  # or specific files
+    )
+    
+    # Handles: add → commit → push → pull on server
+    # Returns conflicts, updated files, etc.
+```
+
 ## Deployment
 
 ### Running the MCP Server
@@ -976,8 +1035,8 @@ Example Claude Desktop config:
 - Networking: 3 tools
 - System Utilities: 3 tools
 
-### ⏳ Planned (60+ tools)
-- Git Operations: 6 tools
+### ⏳ Planned (62+ tools)
+- Git Operations: 8 tools (including workflow tools)
 - File Operations: 8 tools
 - Database Operations: 6 tools
 - Log Management: 4 tools
@@ -993,6 +1052,7 @@ Example Claude Desktop config:
 
 ### Critical (Implement Next)
 1. **Git Operations** - Required for deployment workflow
+   - **Priority**: `git_deploy` and `deploy_and_restart` should be implemented first as they're the most common workflows
 2. **File Operations** - Essential for configuration management
 3. **Database Operations** - Critical for data management
 4. **Docker Advanced** - Image/volume management needed

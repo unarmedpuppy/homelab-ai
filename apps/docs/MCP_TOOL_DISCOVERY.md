@@ -138,12 +138,20 @@ Use SSH commands via `scripts/connect-server.sh` as documented in `apps/docs/SER
 - `git_log` - View commit history
 - `git_diff` - Show differences
 - `git_checkout` - Checkout branch/commit
+- **`git_deploy`** - **Complete deployment workflow** (add → commit → push → pull on server)
+- **`deploy_and_restart`** - **Full workflow** (deploy changes → restart affected services)
 
 **Use Cases**:
+- **Most Common**: `deploy_and_restart` - Standard agent workflow for deploying code and restarting services
 - Deployment workflow automation
 - Repository status checking
 - Conflict detection
 - Change tracking
+
+**Workflow Tools** (High Priority):
+- `git_deploy`: Combines git add, commit, push, and server pull into one operation
+- `deploy_and_restart`: Complete workflow from code changes to service restart
+- `restart_affected_services`: Auto-detect and restart services based on git changes
 
 ### File Operations ⏳ (Planned - High Priority)
 
@@ -236,6 +244,18 @@ Use SSH commands via `scripts/connect-server.sh` as documented in `apps/docs/SER
 
 ### "Troubleshoot a service"
 → Use: `troubleshoot_service(service_name)` (when implemented)
+
+### "Deploy changes and restart services" (Most Common Workflow)
+→ Use: `deploy_and_restart(commit_message, app_path, service)` (when implemented)
+- This is the standard agent workflow: make changes → deploy → restart
+
+### "Deploy code changes to server"
+→ Use: `git_deploy(commit_message, files)` (when implemented)
+- Handles: add → commit → push → pull on server
+
+### "Restart services affected by changes"
+→ Use: `restart_affected_services(app_path, check_changes=True)` (when implemented)
+- Auto-detects which services need restarting based on git changes
 
 ## Tool Implementation Status
 
