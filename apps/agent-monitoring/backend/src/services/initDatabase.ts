@@ -4,7 +4,6 @@
  */
 
 import Database from 'better-sqlite3';
-import path from 'path';
 
 export function initializeDatabase(dbPath: string): void {
   const db = new Database(dbPath);
