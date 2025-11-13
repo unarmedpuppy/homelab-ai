@@ -50,9 +50,9 @@
 35. `check_dns_status` - Check DNS service (AdGuard)
 
 ### System Utilities (3 tools)
-35. `cleanup_archive_files` - Remove unpacked archive files
-36. `check_unmapped_folders` - Find folders not mapped to series/movies
-37. `list_completed_downloads` - List completed downloads
+36. `cleanup_archive_files` - Remove unpacked archive files
+37. `check_unmapped_folders` - Find folders not mapped to series/movies
+38. `list_completed_downloads` - List completed downloads
 
 ## Tool Categories by Module
 
