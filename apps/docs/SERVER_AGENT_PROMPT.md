@@ -67,11 +67,117 @@ This document provides essential context for AI agents working on the home serve
   ```
   Wait for explicit user consent before proceeding. The Git workflow (local changes → commit → push → pull on server) is always preferred and does not require special permission.
 
+## Server Management MCP Server
+
+### ⚠️ CRITICAL: Use MCP Tools First
+
+**Before writing custom scripts or SSH commands, ALWAYS check if the MCP server has a tool for what you need.**
+
+The **Server Management MCP Server** provides standardized, type-safe tools for managing the entire home server infrastructure. These tools are the **preferred method** for all server operations.
+
+### MCP Server Location
+
+- **Path**: `server-management-mcp/` (in repository root)
+- **Documentation**: `server-management-mcp/README.md`
+- **Docker Setup**: `server-management-mcp/DOCKER_SETUP.md`
+- **Plan**: `apps/docs/MCP_SERVER_PLAN.md`
+
+### Available Tool Categories
+
+1. **Docker Management** - Container operations (list, status, restart, logs, etc.)
+2. **Media Download** - Sonarr/Radarr/NZBGet operations (queue management, imports, etc.)
+3. **System Monitoring** - Disk space, resources, health checks
+4. **Application Management** - Service-specific operations
+5. **Troubleshooting** - Automated diagnostics and fixes
+
+### How to Use MCP Tools
+
+**If you have MCP access** (Claude Desktop, GPT-4 with MCP, etc.):
+- Use MCP tools directly via the MCP interface
+- Tools are automatically discovered and documented
+- Type-safe with clear parameters and return values
+
+**If you don't have MCP access**:
+- Check `server-management-mcp/tools/` for available tools
+- Reference `server-management-mcp/README.md` for tool documentation
+- Consider implementing the operation as a new MCP tool if it doesn't exist
+
+### Tool Discovery Workflow
+
+**When you need to perform a server operation:**
+
+1. **First**: Check if an MCP tool exists for this operation
+   - Review `server-management-mcp/tools/` modules
+   - Check `server-management-mcp/README.md` for tool list
+   - Look for similar operations in existing tools
+
+2. **If tool exists**: Use the MCP tool (preferred method)
+   - Type-safe, tested, and documented
+   - Consistent error handling
+   - Automatic logging and monitoring
+
+3. **If tool doesn't exist**: 
+   - **Test your approach first** using SSH commands or direct execution
+   - **Verify the approach works** and produces expected results
+   - **If the operation should be reusable** (common task, will be used again, benefits from standardization):
+     - **Create the tool** in the MCP server (`server-management-mcp/tools/`)
+     - Follow the pattern in existing tools (see `server-management-mcp/tools/docker.py` for examples)
+     - Use `@server.tool()` decorator
+     - Add proper error handling and return types
+     - Register the tool in `server-management-mcp/server.py`
+     - Update `server-management-mcp/README.md` with the new tool
+     - **Then use your new tool** for the operation
+   - **If it's truly a one-off operation**: Use SSH commands as fallback and document why it's not an MCP tool
+
+### Quick Decision Tree
+
+```
+Need to perform server operation?
+│
+├─→ Tool exists in MCP server?
+│   └─→ YES: Use the tool ✅
+│
+└─→ NO: Test approach with SSH/direct execution
+    │
+    ├─→ Is operation reusable?
+    │   │
+    │   ├─→ YES: Create MCP tool
+    │   │   ├─→ Implement tool (follow patterns)
+    │   │   ├─→ Register in server.py
+    │   │   ├─→ Update README.md
+    │   │   └─→ Use your new tool ✅
+    │   │
+    │   └─→ NO: Use SSH commands (one-off)
+    │       └─→ Document why it's not a tool
+```
+
+**See**: `apps/docs/MCP_TOOL_DISCOVERY.md` for detailed tool creation guide.
+
+### Current MCP Tools
+
+**Docker Management** (Available):
+- `docker_list_containers` - List all containers
+- `docker_container_status` - Get container details
+- `docker_restart_container` - Restart containers
+- `docker_stop_container` - Stop containers
+- `docker_start_container` - Start containers
+- `docker_view_logs` - View container logs
+- `docker_compose_ps` - List docker-compose services
+- `docker_compose_restart` - Restart docker-compose services
+
+**Media Download** (Planned):
+- `sonarr_clear_queue` - Clear Sonarr queue
+- `sonarr_queue_status` - Get queue status
+- `radarr_clear_queue` - Clear Radarr queue
+- And more...
+
+**See**: `server-management-mcp/README.md` for complete tool list and usage examples.
+
 ## Server Connection
 
-### Connection Method
+### Connection Method (Fallback)
 
-The server is accessed via SSH using the `connect-server.sh` script:
+**Note**: If MCP tools are not available, use SSH via `connect-server.sh`:
 
 ```bash
 # From the local repository root
@@ -83,6 +189,8 @@ bash scripts/connect-server.sh "command to run on server"
 ```bash
 bash scripts/connect-server.sh "cd ~/server && docker ps"
 ```
+
+**However**: Prefer MCP tools when available - they provide better error handling, type safety, and consistency.
 
 ### Server Details
 
@@ -186,7 +294,9 @@ This includes:
 
 ### Docker Compose Commands
 
-All Docker Compose commands should be run on the server:
+**Preferred Method**: Use MCP tools (`docker_compose_ps`, `docker_compose_restart`, etc.)
+
+**Fallback Method**: If MCP tools unavailable, use SSH commands:
 
 ```bash
 # Start services
@@ -204,6 +314,8 @@ bash scripts/connect-server.sh "docker ps --filter name=[service]"
 # Restart service
 bash scripts/connect-server.sh "cd ~/server/apps/[app] && docker compose restart [service]"
 ```
+
+**Remember**: Always check for MCP tools first before using SSH commands directly.
 
 ## Key Learnings & Patterns
 
@@ -416,7 +528,23 @@ apps/[app-name]/
   3. Verify network connectivity
 - **Rollback Strategy**: Currently no automated rollback - manual intervention required
 
-## Quick Reference Commands
+## Quick Reference
+
+### MCP Tools (Preferred)
+
+**If you have MCP access**, use these tools:
+- `docker_list_containers` - List all containers
+- `docker_container_status` - Get container status
+- `docker_restart_container` - Restart a container
+- `docker_view_logs` - View container logs
+- `docker_compose_ps` - List docker-compose services
+- `docker_compose_restart` - Restart docker-compose services
+
+**See**: `server-management-mcp/README.md` for complete tool reference.
+
+### SSH Commands (Fallback)
+
+**If MCP tools unavailable**, use SSH:
 
 ```bash
 # Connect and run command
@@ -436,33 +564,101 @@ bash scripts/connect-server.sh "docker logs [service] --tail 50 -f"
 bash scripts/connect-server.sh "docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'"
 ```
 
+**Remember**: Always check for MCP tools first!
+
+## Server Management Skills
+
+### ⚠️ CRITICAL: Use Skills for Common Workflows
+
+**For common workflows, use Skills instead of manual steps. Skills orchestrate MCP tools into complete, tested workflows.**
+
+### Available Skills
+
+Skills are reusable workflows located in `server-management-skills/`. They provide step-by-step guidance for common tasks:
+
+#### Deployment Skills
+- **`standard-deployment`** - Complete deployment workflow (verify → deploy → restart → verify)
+  - **Use when**: Deploying code changes, updating configurations
+  - **Replaces**: The 14-step deployment checklist
+  - **MCP Tools**: `git_status`, `git_deploy`, `docker_compose_restart`, `docker_container_status`
+
+#### Troubleshooting Skills
+- **`troubleshoot-container-failure`** - Diagnose container issues (status → logs → dependencies → root cause)
+  - **Use when**: Container won't start, crashes, or unhealthy
+  - **MCP Tools**: `docker_container_status`, `docker_view_logs`, `check_service_dependencies`
+
+- **`system-health-check`** - Comprehensive system verification (disk → resources → services → report)
+  - **Use when**: Regular maintenance, after changes, troubleshooting
+  - **MCP Tools**: `check_disk_space`, `check_system_resources`, `docker_list_containers`
+
+**See**: `server-management-skills/README.md` for complete skills catalog.
+
+### When to Use Skills vs MCP Tools
+
+- **Use Skills**: For complete workflows (deployment, troubleshooting, setup)
+- **Use MCP Tools**: For individual operations (check status, restart service, view logs)
+- **Skills use MCP Tools**: Skills orchestrate multiple MCP tools into workflows
+
+### Skill Discovery Workflow
+
+1. **Check if a skill exists** for your workflow
+   - Review `server-management-skills/README.md`
+   - Look for skills matching your task
+
+2. **If skill exists**: Use the skill (preferred)
+   - Skills provide complete workflows with error handling
+   - Skills are tested and documented
+   - Skills use MCP tools correctly
+
+3. **If no skill exists**: 
+   - Use MCP tools directly for individual operations
+   - Consider creating a skill if the workflow is common and reusable
+
 ## Agent Workflow Checklist
 
 When working on a new task:
 
 1. ✅ **Read this prompt and relevant README files** - Understand context and requirements
-2. ✅ **Verify current state** - Check application status, logs, and system health before making changes
-3. ✅ **Plan the approach** - Consider impact, risks, and alternatives before proceeding
-4. ✅ **Make changes locally** - Edit files in local repository
-5. ✅ **Review changes carefully** - Double-check configurations, ports, and dependencies
-6. ✅ **Test locally if possible** - Validate syntax and structure
-7. ✅ **Commit and push to Git** (MANDATORY) - Use descriptive commit messages, never skip this step
-8. ✅ **Pull on server** (MANDATORY) - Always pull changes on server after pushing, verify git pull succeeds
-9. ✅ **Deploy/restart services** - Use appropriate docker compose commands
-10. ✅ **Verify deployment** - Check logs, HTTP response, container health, and homepage
-11. ✅ **Monitor for issues** - Watch for errors or performance degradation
-12. ✅ **Document changes** - Update README files and note any new patterns or issues
+2. ✅ **Check for Skills first** - Review `server-management-skills/README.md` for workflows matching your task
+3. ✅ **Check MCP Server tools** - Review `server-management-mcp/README.md` for available tools
+4. ✅ **If no skill/tool exists**: Test your approach first, then create an MCP tool or skill if reusable
+5. ✅ **Plan the approach** - Consider impact, risks, and alternatives before proceeding
+6. ✅ **Use Skills for workflows** - For common workflows (deployment, troubleshooting), use skills instead of manual steps
+7. ✅ **Make changes locally** - Edit files in local repository (including MCP tool/skill implementations)
+8. ✅ **Review changes carefully** - Double-check configurations, ports, and dependencies
+9. ✅ **Test locally if possible** - Validate syntax and structure
+10. ✅ **Deploy using skills** - Use `standard-deployment` skill for deployments (or MCP tools if skill unavailable)
+11. ✅ **Verify deployment** - Skills include verification, but double-check critical services
+12. ✅ **Monitor for issues** - Watch for errors or performance degradation
+13. ✅ **Document changes** - Update README files and note any new patterns or issues
 
 ## Questions to Ask
 
 If unsure about something:
 
-1. Check `apps/docs/APPS_DOCUMENTATION.md` for app details and port information
-2. Check the app's `README.md` first
-3. Check the main `README.md` for project-wide info
-4. Review similar apps for patterns
-5. Check Docker Compose files for examples
-6. Review logs for error messages
+1. **Check MCP Server Tools First**: Review `server-management-mcp/README.md` and `server-management-mcp/tools/` for available tools
+2. Check `apps/docs/APPS_DOCUMENTATION.md` for app details and port information
+3. Check the app's `README.md` first
+4. Check the main `README.md` for project-wide info
+5. Review similar apps for patterns
+6. Check Docker Compose files for examples
+7. Review logs for error messages
+
+**Discovery Priority**:
+1. **Skills** (preferred for workflows) - Use existing skills for common workflows
+2. **MCP Server tools** (preferred for operations) - Use existing tools for individual operations
+3. **Create new MCP tool** (if operation is reusable) - Test approach first, then implement tool
+4. **Create new skill** (if workflow is reusable) - If workflow is common, create a skill
+5. Existing scripts in `scripts/` directory
+6. SSH commands (last resort) - Only for one-off operations
+
+**When to Create a New MCP Tool**:
+- ✅ Operation will be used multiple times
+- ✅ Operation benefits from type safety and error handling
+- ✅ Operation should be standardized across agents
+- ✅ Operation is part of a common workflow
+- ❌ One-off operation that won't be repeated
+- ❌ Experimental/test operation that may change
 
 ## Remember
 
