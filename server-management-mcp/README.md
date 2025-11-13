@@ -133,10 +133,17 @@ Add to Claude Desktop config (`~/Library/Application Support/Claude/claude_deskt
 - `memory_get_context_by_task` - Get context for a specific task
 - `memory_export_to_markdown` - Export all memories to markdown files for human review
 
+**Fallback**: If MCP tools unavailable, use `apps/agent_memory/query_memory.sh` helper script. See `apps/agent_memory/QUERY_MEMORY_README.md` for usage.
+
 ### Agent Management ✅
 - `create_agent_definition` - Create a new specialized agent definition (with tasks and registry entry)
 - `query_agent_registry` - Query the agent registry for existing agents (by specialization or status)
 - `assign_task_to_agent` - Assign a new task to an existing agent
+
+### Skill Management ✅
+- `propose_skill` - Propose a new skill for the skills library (creates proposal for review)
+- `list_skill_proposals` - List skill proposals (by category or status)
+- `query_skills` - Query existing skills (by category or search text)
 
 ## Development
 
@@ -196,5 +203,5 @@ server-management-mcp/
 - ⏳ Application-specific tools (planned)
 - ⏳ Backup/restore tools (planned)
 
-**Total Tools**: 49 tools implemented (37 server management + 9 memory management + 3 agent management)
+**Total Tools**: 52 tools implemented (37 server management + 9 memory management + 3 agent management + 3 skill management)
 
