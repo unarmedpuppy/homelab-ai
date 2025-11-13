@@ -374,7 +374,7 @@ After completing work:
    - **Ends monitoring session** using `end_agent_session()` with summary stats
    - **Updates final status** using `update_agent_status(status="completed")`
    - **Saves final context** using `memory_save_context(status="completed")`
-   - Updates TASKS.md: `[REVIEW]`
+   - Updates task status to `review` using `update_task_status()`
    - Adds completion summary
    - Commits and pushes code
 
@@ -398,7 +398,7 @@ After completing work:
    - Makes decision (APPROVED/NEEDS REVISION/REJECTED)
 
 4. **Reviewer Updates Status**
-   - Updates TASKS.md with review status
+   - Updates task status using `update_task_status()` (approved/completed or needs_revision)
    - Adds review report reference
    - Communicates decision
 
