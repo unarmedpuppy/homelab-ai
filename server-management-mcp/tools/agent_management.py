@@ -509,10 +509,16 @@ _Add messages here when you need to communicate with your parent agent._
         tasks_content += new_task
         tasks_path.write_text(tasks_content)
         
-        return {
+        result = {
             "status": "success",
             "agent_id": agent_id,
             "task_id": task_id,
             "message": f"Task {task_id} assigned to {agent_id}"
         }
+        
+        if registry_registered:
+            result["registry_task_id"] = registry_task_id_used
+            result["message"] += f" Also registered in central registry as {registry_task_id_used}."
+        
+        return result
 
