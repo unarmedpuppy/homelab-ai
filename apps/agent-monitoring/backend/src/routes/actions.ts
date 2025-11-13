@@ -22,6 +22,20 @@ export function createActionsRouter(dbService: DatabaseService): Router {
         endTime: req.query.endTime as string | undefined
       };
 
+      // Validate numeric inputs
+      if (isNaN(options.limit!) || options.limit! < 1) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Invalid limit parameter (must be >= 1)'
+        });
+      }
+      if (isNaN(options.offset!) || options.offset! < 0) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Invalid offset parameter (must be >= 0)'
+        });
+      }
+
       const actions = dbService.getActions(options);
 
       res.json({

@@ -77,12 +77,37 @@ docker build -t agent-monitoring-backend .
 
 # Run
 docker run -p 3001:3001 \
-  -v $(pwd)/../data:/data \
+  -v $(pwd)/../../data:/data \
   -e DATABASE_PATH=/data/agent_activity.db \
   agent-monitoring-backend
 ```
 
+## Testing
+
+See `API_TESTING.md` for comprehensive test results and validation.
+
+### Quick Test
+
+```bash
+# Start server
+npm run dev
+
+# Test endpoints
+curl http://localhost:3001/health
+curl http://localhost:3001/api/agents
+curl http://localhost:3001/api/stats
+```
+
+## Improvements Made
+
+- ✅ Input validation for all query parameters
+- ✅ Error handling with try-catch for JSON parsing
+- ✅ Pagination limits (max 1000 items)
+- ✅ Task route filters placeholder rows
+- ✅ Request logging for development
+- ✅ Comprehensive error messages
+
 ---
 
-**Status**: Phase 2 Implementation
+**Status**: Phase 2 Complete ✅
 

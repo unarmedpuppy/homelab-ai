@@ -38,7 +38,8 @@ export function createTasksRouter(): Router {
           }
           if (inTable && line.startsWith('|') && !line.includes('---')) {
             const parts = line.split('|').map(p => p.trim()).filter(p => p);
-            if (parts.length >= 4) {
+            // Skip placeholder rows (all "-" or empty)
+            if (parts.length >= 4 && parts[0] !== '-' && parts[0] !== '') {
               const task = {
                 task_id: parts[0],
                 title: parts[1],

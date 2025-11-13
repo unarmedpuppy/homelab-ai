@@ -27,6 +27,14 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+// Request logging middleware (development)
+if (process.env.NODE_ENV !== 'production') {
+  app.use((req, res, next) => {
+    console.log(`${req.method} ${req.path}`);
+    next();
+  });
+}
+
 // Database service
 // Default path: apps/agent-monitoring/data/agent_activity.db
 // When running from dist/, __dirname is dist/, so we go up to backend, then to agent-monitoring

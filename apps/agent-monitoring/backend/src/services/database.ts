@@ -62,6 +62,10 @@ export class DatabaseService {
       endTime
     } = options;
 
+    // Validate limit and offset
+    const validLimit = Math.min(Math.max(1, limit), 1000); // Max 1000, min 1
+    const validOffset = Math.max(0, offset);
+
     let query = 'SELECT * FROM agent_actions WHERE 1=1';
     const params: any[] = [];
 
@@ -91,16 +95,26 @@ export class DatabaseService {
     }
 
     query += ' ORDER BY timestamp DESC LIMIT ? OFFSET ?';
-    params.push(limit, offset);
+    params.push(validLimit, validOffset);
 
     const stmt = this.db.prepare(query);
     const results = stmt.all(...params) as Action[];
 
-    // Parse JSON parameters
-    return results.map(action => ({
-      ...action,
-      parameters: action.parameters ? JSON.parse(action.parameters as any) : null
-    }));
+    // Parse JSON parameters safely
+    return results.map(action => {
+      try {
+        return {
+          ...action,
+          parameters: action.parameters ? JSON.parse(action.parameters as any) : null
+        };
+      } catch (e) {
+        // If JSON parsing fails, return null for parameters
+        return {
+          ...action,
+          parameters: null
+        };
+      }
+    });
   }
 
   getActionsLast24h(): Action[] {
