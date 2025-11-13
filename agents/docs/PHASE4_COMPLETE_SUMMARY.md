@@ -41,7 +41,7 @@ All improvements have been implemented, reviewed, and verified. All documentatio
 - ✅ `FINAL_REVIEW_CHECKLIST.md` - Review checklist
 
 **MCP Server**:
-- ✅ `server-management-mcp/README.md` - Updated tool counts (68 tools)
+- ✅ `agents/apps/agent-mcp/README.md` - Updated tool counts (68 tools)
 
 **Root Documentation**:
 - ✅ `agents/README.md` - Enhanced entry point
@@ -79,8 +79,8 @@ All improvements have been implemented, reviewed, and verified. All documentatio
 ### File Paths: ✅ Correct
 - All references to `agents/docs/` files correct
 - All references to `agents/` subdirectories correct
-- All references to `server-management-mcp/` correct
-- All references to `apps/agent-monitoring/` correct
+- All references to `agents/apps/agent-mcp/` correct
+- All references to `agents/apps/agent-monitoring/` correct
 
 ### Deprecated Patterns: ✅ Documented
 - Per-agent files clearly marked as deprecated
@@ -172,8 +172,8 @@ All success criteria from the improvement plan have been met:
 - `agents/docs/MCP_TOOL_DISCOVERY.md`
 - `agents/docs/AGENT_SYSTEM_GAPS_AND_IMPROVEMENTS.md`
 - `agents/docs/AGENT_SYSTEM_REVIEW_AND_IMPROVEMENT_PLAN.md`
-- `server-management-mcp/README.md`
-- `server-management-mcp/tools/agent_management.py`
+- `agents/apps/agent-mcp/README.md`
+- `agents/apps/agent-mcp/tools/agent_management.py`
 - And more...
 
 ### Archived (4 files)

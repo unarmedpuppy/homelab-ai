@@ -14,7 +14,7 @@ The Task Coordination System provides a centralized way to:
 ## Location
 
 - **Registry**: `agents/tasks/registry.md` - Central task registry (markdown table)
-- **MCP Tools**: Available via `server-management-mcp` MCP server
+- **MCP Tools**: Available via `agents/apps/agent-mcp` MCP server
 
 ## Task Status
 

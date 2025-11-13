@@ -328,7 +328,7 @@ await send_agent_message(
 **Resolution**: Updated agent-monitoring to use port 8087.
 
 **Files Changed**:
-- `apps/agent-monitoring/docker-compose.yml`
+- `agents/apps/agent-monitoring/docker-compose.yml`
 - All documentation references
 
 **Impact**: No conflicts, all services can run simultaneously.
@@ -465,7 +465,7 @@ See `protocol.md` for detailed examples of each message type.
 
 - **Protocol**: `agents/communication/protocol.md` - Complete protocol specification
 - **Agent Prompt**: `agents/docs/AGENT_PROMPT.md` - Agent prompt with communication section
-- **MCP Tools**: `server-management-mcp/README.md` - MCP tools reference
+- **MCP Tools**: `agents/apps/agent-mcp/README.md` - MCP tools reference
 
 ---
 

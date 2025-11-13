@@ -24,7 +24,7 @@ After comprehensive review of all agent systems, we've identified **7 major area
 ### Current State
 
 **Multiple Storage Systems:**
-- ✅ `apps/agent-monitoring/data/agent_activity.db` - SQLite (agent status, sessions, actions)
+- ✅ `agents/apps/agent-monitoring/data/agent_activity.db` - SQLite (agent status, sessions, actions)
 - ✅ `agents/registry/agent-registry.md` - Markdown (agent registry table)
 - ✅ `agents/registry/agent-definitions/*.md` - Markdown (agent definitions with YAML frontmatter)
 - ✅ `agents/active/{agent-id}/STATUS.md` - Markdown (per-agent status files)
@@ -114,7 +114,7 @@ After comprehensive review of all agent systems, we've identified **7 major area
 ### Current State
 
 **Status Stored In:**
-1. `apps/agent-monitoring/data/agent_activity.db` → `agent_status` table
+1. `agents/apps/agent-monitoring/data/agent_activity.db` → `agent_status` table
 2. `agents/registry/agent-registry.md` → Markdown table
 3. `agents/registry/agent-definitions/*.md` → YAML frontmatter `status` field
 4. `agents/active/{agent-id}/STATUS.md` → Per-agent status file
@@ -221,7 +221,7 @@ agents/docs/
 │   ├── MEMORY_GUIDE.md          # Link to agents/memory/README.md
 │   ├── TASK_COORDINATION.md     # Link to agents/tasks/README.md
 │   ├── COMMUNICATION.md          # Link to agents/communication/README.md
-│   └── MONITORING.md            # Link to apps/agent-monitoring/README.md
+│   └── MONITORING.md            # Link to agents/apps/agent-monitoring/README.md
 └── archive/
     ├── DASHBOARD_PROPOSAL.md    # Move implemented proposals here
     ├── TASK_COORDINATION_PLAN.md # Move implemented plans here
@@ -297,7 +297,7 @@ Primary Channels:
 1. Task Coordination (agents/tasks/) - For task assignment/tracking
 2. Communication Protocol (agents/communication/) - For agent-to-agent messaging
 3. Memory System (agents/memory/) - For knowledge/context sharing
-4. Monitoring System (apps/agent-monitoring/) - For status/activity
+4. Monitoring System (agents/apps/agent-monitoring/) - For status/activity
 
 Deprecated/Simplified:
 - Per-agent TASKS.md → Use task coordination registry

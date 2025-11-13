@@ -25,7 +25,7 @@
 │              Access Methods                                 │
 ├─────────────────────────────────────────────────────────────┤
 │                                                               │
-│  1. MCP Tools (via server-management-mcp)                   │
+│  1. MCP Tools (via agents/apps/agent-mcp)                   │
 │     └── Dockerized MCP server imports the library            │
 │                                                               │
 │  2. Direct Python Import (local)                            │
@@ -54,10 +54,10 @@
 
 ### 1. Via MCP Server (Dockerized)
 
-The **MCP server** (`server-management-mcp`) IS dockerized and uses this library:
+The **MCP server** (`agents/apps/agent-mcp`) IS dockerized and uses this library:
 
 ```python
-# In server-management-mcp/tools/memory.py
+# In agents/apps/agent-mcp/tools/memory.py
 from agents.memory import get_memory
 
 memory = get_memory()  # Accesses memory.db file
@@ -129,7 +129,7 @@ agents/memory/
 ├── query_memory.sh        ← Helper script
 └── __init__.py            ← Exports
 
-server-management-mcp/     ← Dockerized MCP server
+agents/apps/agent-mcp/     ← Dockerized MCP server
 ├── docker-compose.yml     ← Runs in Docker
 ├── tools/
 │   └── memory.py         ← Imports apps.agent_memory

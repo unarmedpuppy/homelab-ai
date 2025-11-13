@@ -127,7 +127,7 @@ This document provides essential context for AI agents working on the home serve
    - `sonarr_queue_status` - Get queue status
    - `radarr_clear_queue` - Clear Radarr queue
    - `radarr_queue_status` - Get queue status
-   - And more... (see `server-management-mcp/README.md`)
+   - And more... (see `agents/apps/agent-mcp/README.md`)
 
 3. **System Monitoring** (5 tools) - Server health checks
    - `check_disk_space` - Check disk usage
@@ -153,7 +153,7 @@ This document provides essential context for AI agents working on the home serve
    - `git_deploy` - Complete deployment workflow
    - `deploy_and_restart` - Full workflow (deploy + restart)
 
-**See**: `server-management-mcp/README.md` for complete tool reference.
+**See**: `agents/apps/agent-mcp/README.md` for complete tool reference.
 
 **⚠️ CRITICAL**: Always use MCP tools when available - they are automatically logged and visible in the agent monitoring dashboard. Custom commands are NOT observable!
 
@@ -494,7 +494,7 @@ bash scripts/connect-server.sh "cd ~/server/apps/[app] && docker compose restart
 - `get_recent_errors` - Get recent errors from logs
 - `find_service_by_port` - Find service using a port
 
-**See**: `server-management-mcp/README.md` for complete tool reference (68 tools total).
+**See**: `agents/apps/agent-mcp/README.md` for complete tool reference (68 tools total).
 
 ### SSH Commands (Fallback - NOT Observable!)
 
@@ -532,8 +532,8 @@ bash scripts/connect-server.sh "docker ps --format 'table {{.Names}}\t{{.Status}
 ### Main Documentation
 
 - **`apps/docs/APPS_DOCUMENTATION.md`**: Complete list of all applications, ports, and status ⭐
-- **`server-management-mcp/README.md`**: MCP tools reference
-- **`server-management-skills/README.md`**: Skills catalog
+- **`agents/apps/agent-mcp/README.md`**: MCP tools reference
+- **`agents/skills/README.md`**: Skills catalog
 
 ### Key Documentation Files
 

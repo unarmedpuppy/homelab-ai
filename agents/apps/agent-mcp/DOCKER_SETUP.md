@@ -22,22 +22,22 @@ The containerized MCP server:
 ### 1. Build and Start
 
 ```bash
-cd server-management-mcp
+cd agents/apps/agent-mcp
 docker-compose up -d --build
 ```
 
 ### 2. Verify It's Running
 
 ```bash
-docker ps | grep server-management-mcp
-docker logs server-management-mcp
+docker ps | grep agent-mcp
+docker logs agent-mcp
 ```
 
 ### 3. Test the Server
 
 ```bash
 # Execute a test inside the container
-docker exec server-management-mcp python test_setup.py
+docker exec agent-mcp python test_setup.py
 ```
 
 ## Configuration
@@ -57,7 +57,7 @@ QBITTORRENT_PASSWORD=adminadmin
 
 ### Config File (Optional)
 
-Create `config.json` in the `server-management-mcp` directory:
+Create `config.json` in the `agents/apps/agent-mcp` directory:
 
 ```json
 {
@@ -88,7 +88,7 @@ Use SSH to forward the MCP connection:
       "args": [
         "-p", "4242",
         "unarmedpuppy@192.168.86.47",
-        "docker exec -i server-management-mcp python /app/server.py"
+        "docker exec -i agent-mcp python /app/server.py"
       ]
     }
   }
@@ -142,14 +142,14 @@ The container is on `my-network` (external network) so it can:
 ls -la /var/run/docker.sock
 
 # Check if container can access
-docker exec server-management-mcp ls -la /var/run/docker.sock
+docker exec agent-mcp ls -la /var/run/docker.sock
 ```
 
 ### Container Can't Access Server Directory
 
 ```bash
 # Check mount
-docker exec server-management-mcp ls -la /server
+docker exec agent-mcp ls -la /server
 
 # Verify path in docker-compose.yml matches your server structure
 ```
@@ -158,16 +158,16 @@ docker exec server-management-mcp ls -la /server
 
 ```bash
 # Check logs
-docker logs server-management-mcp
+docker logs agent-mcp
 
 # Test server manually
-docker exec -it server-management-mcp python server.py
+docker exec -it agent-mcp python server.py
 ```
 
 ## Updating
 
 ```bash
-cd server-management-mcp
+cd agents/apps/agent-mcp
 docker-compose pull  # If using image
 docker-compose build  # If building locally
 docker-compose up -d

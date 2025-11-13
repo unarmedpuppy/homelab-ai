@@ -44,7 +44,7 @@ suggest_relevant_skills(
 ### Then Load and Review Skills
 
 1. Review the suggested skills
-2. Read the skill files (e.g., `server-management-skills/standard-deployment/SKILL.md`)
+2. Read the skill files (e.g., `agents/skills/standard-deployment/SKILL.md`)
 3. Follow the skill workflow instead of reinventing
 
 ---
@@ -150,7 +150,7 @@ suggest_relevant_skills(
 # Returns: standard-deployment skill (high match)
 
 # 2. Load the skill
-# Read: server-management-skills/standard-deployment/SKILL.md
+# Read: agents/skills/standard-deployment/SKILL.md
 
 # 3. Follow the skill workflow
 # Skill provides step-by-step deployment workflow
@@ -168,7 +168,7 @@ suggest_relevant_skills(
 # Returns: troubleshoot-container-failure skill
 
 # 2. Load the skill
-# Read: server-management-skills/troubleshoot-container-failure/SKILL.md
+# Read: agents/skills/troubleshoot-container-failure/SKILL.md
 
 # 3. Follow the diagnostic workflow
 ```
@@ -185,7 +185,7 @@ suggest_relevant_skills(
 # Returns: add-subdomain skill
 
 # 2. Load the skill
-# Read: server-management-skills/add-subdomain/SKILL.md
+# Read: agents/skills/add-subdomain/SKILL.md
 
 # 3. Follow the configuration workflow
 ```
@@ -242,7 +242,7 @@ suggest_relevant_skills(
 ### "No relevant skills found"
 
 **Solution**: 
-- Review `server-management-skills/README.md` for all available skills
+- Review `agents/skills/README.md` for all available skills
 - Your task might be too specific (use MCP tools directly)
 - Consider creating a new skill if workflow is reusable
 
@@ -265,7 +265,7 @@ suggest_relevant_skills(
 **Last Updated**: 2025-01-13  
 **Status**: Active  
 **See Also**:
-- `server-management-skills/README.md` - Skills catalog
+- `agents/skills/README.md` - Skills catalog
 - `agents/docs/AGENT_PROMPT.md` - Main agent prompt
 - `agents/docs/AGENT_SYSTEM_ENHANCEMENT_PLAN.md` - Enhancement plan
 

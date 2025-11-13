@@ -86,8 +86,8 @@ Memory is integrated into:
 ### MCP Server
 
 Memory tools are available via:
-- `server-management-mcp/README.md` - MCP server tool catalog
-- `server-management-mcp/tools/memory.py` - Memory tool implementation
+- `agents/apps/agent-mcp/README.md` - MCP server tool catalog
+- `agents/apps/agent-mcp/tools/memory.py` - Memory tool implementation
 
 ## Quick Reference
 

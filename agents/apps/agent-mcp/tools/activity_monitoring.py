@@ -15,7 +15,7 @@ sys.path.insert(0, str(project_root))
 
 # Import activity logger
 try:
-    from apps.agent_monitoring.activity_logger.activity_logger import (
+    from agents.apps.agent_monitoring.activity_logger.activity_logger import (
         update_agent_status as _update_agent_status,
         get_agent_status as _get_agent_status,
         log_action as _log_action,
@@ -24,7 +24,7 @@ try:
     )
 except ImportError:
     # Fallback: try direct path
-    activity_logger_path = project_root / "apps" / "agent-monitoring" / "activity_logger"
+    activity_logger_path = project_root / "agents" / "apps" / "agent-monitoring" / "activity_logger"
     sys.path.insert(0, str(activity_logger_path))
     from activity_logger import (
         update_agent_status as _update_agent_status,

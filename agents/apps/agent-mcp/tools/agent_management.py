@@ -179,8 +179,8 @@ agents/active/{agent_id}-{specialization}/
 Before starting work:
 
 1. **Check Memory**: Query previous decisions and patterns using memory MCP tools
-2. **Check Skills**: Review `server-management-skills/README.md` for workflows
-3. **Check MCP Tools**: Review `server-management-mcp/README.md` for available tools
+2. **Check Skills**: Review `agents/skills/README.md` for workflows
+3. **Check MCP Tools**: Review `agents/apps/agent-mcp/README.md` for available tools
 4. **Read Your Tasks**: Check TASKS.md
 
 ## Memory Integration

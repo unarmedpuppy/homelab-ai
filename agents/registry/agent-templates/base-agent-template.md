@@ -31,10 +31,10 @@ parent_agent: [parent-agent-id]
 ## Your Capabilities
 
 ### Skills
-- [List relevant skills from server-management-skills/]
+- [List relevant skills from agents/skills/]
 
 ### MCP Tools
-- [List relevant MCP tools from server-management-mcp/]
+- [List relevant MCP tools from agents/apps/agent-mcp/]
 
 ### Domain Knowledge
 - [List specific domain knowledge areas]
@@ -81,8 +81,8 @@ agents/active/agent-XXX-[specialization]/
 Before starting work:
 
 1. **Check Memory**: Query previous decisions and patterns
-2. **Check Skills**: Review `server-management-skills/README.md`
-3. **Check MCP Tools**: Review `server-management-mcp/README.md`
+2. **Check Skills**: Review `agents/skills/README.md`
+3. **Check MCP Tools**: Review `agents/apps/agent-mcp/README.md`
 4. **Read Your Tasks**: Check TASKS.md
 
 ## Memory Integration

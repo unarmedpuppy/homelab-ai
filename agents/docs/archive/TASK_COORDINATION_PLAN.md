@@ -247,8 +247,8 @@ pending → claimed → in_progress → review → completed
 
 1. `agents/tasks/registry.md` - Central task registry
 2. `agents/tasks/README.md` - Task coordination guide
-3. `server-management-mcp/tools/task_coordination.py` - MCP tools
-4. Update `server-management-mcp/server.py` - Register tools
+3. `agents/apps/agent-mcp/tools/task_coordination.py` - MCP tools
+4. Update `agents/apps/agent-mcp/server.py` - Register tools
 5. Update `agents/docs/AGENT_PROMPT.md` - Add instructions
 
 ## Success Criteria

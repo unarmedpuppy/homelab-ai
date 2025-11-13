@@ -53,7 +53,7 @@ def register_skill_management_tools(server: Server):
             Skill proposal info and file path
         """
         # Create proposals directory
-        proposals_dir = project_root / "server-management-skills" / "proposals"
+        proposals_dir = project_root / "agents" / "skills" / "proposals"
         proposals_dir.mkdir(parents=True, exist_ok=True)
         
         # Parse MCP tools
@@ -171,7 +171,7 @@ List of skill proposals awaiting review.
         Returns:
             List of skill proposals
         """
-        proposals_dir = project_root / "server-management-skills" / "proposals"
+        proposals_dir = project_root / "agents/skills" / "proposals"
         
         if not proposals_dir.exists():
             return {
@@ -227,7 +227,7 @@ List of skill proposals awaiting review.
         Returns:
             List of matching skills
         """
-        skills_dir = project_root / "server-management-skills"
+        skills_dir = project_root / "agents" / "skills"
         
         if not skills_dir.exists():
             return {

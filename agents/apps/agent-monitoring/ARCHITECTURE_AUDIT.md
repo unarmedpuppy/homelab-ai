@@ -8,7 +8,7 @@
 |-----------|-----------------|--------|----------------|
 | **Agent Monitoring Backend** | Server (Docker) | ✅ Running | `/data/agent_activity.db` (mounted volume) |
 | **Agent Monitoring Frontend** | Server (Docker) | ✅ Running | Reads from backend API |
-| **Agent Monitoring Database** | Server (Docker volume) | ✅ Running | `apps/agent-monitoring/data/agent_activity.db` |
+| **Agent Monitoring Database** | Server (Docker volume) | ✅ Running | `agents/apps/agent-monitoring/data/agent_activity.db` |
 | **MCP Server** | **UNKNOWN** | ❓ | **PROBLEM: Needs access to same DB** |
 | **Activity Logger** | Local (via MCP) | ✅ Code exists | **PROBLEM: Writes to local file system** |
 | **Cursor Agent (You)** | Local machine | ✅ Running | Connects to MCP server |
@@ -16,8 +16,8 @@
 ### Critical Issues Identified
 
 #### Issue 1: Database Location Mismatch
-- **Backend** reads from: `apps/agent-monitoring/data/agent_activity.db` (server)
-- **Activity Logger** writes to: `apps/agent-monitoring/data/agent_activity.db` (local)
+- **Backend** reads from: `agents/apps/agent-monitoring/data/agent_activity.db` (server)
+- **Activity Logger** writes to: `agents/apps/agent-monitoring/data/agent_activity.db` (local)
 - **Result**: Two separate databases, data doesn't sync
 
 #### Issue 2: MCP Server Location Unknown
@@ -202,8 +202,8 @@ If network-based logging doesn't work well, fall back to Option A:
 - [ ] Check if MCP server docker-compose is deployed
 - [ ] Verify agent-monitoring backend is accessible from local machine
 - [ ] Test network connectivity: `curl http://192.168.86.47:3001/health`
-- [ ] Check if database file exists on server: `apps/agent-monitoring/data/agent_activity.db`
-- [ ] Check if database file exists locally: `apps/agent-monitoring/data/agent_activity.db`
+- [ ] Check if database file exists on server: `agents/apps/agent-monitoring/data/agent_activity.db`
+- [ ] Check if database file exists locally: `agents/apps/agent-monitoring/data/agent_activity.db`
 - [ ] Verify Cursor MCP configuration (local vs network)
 
 ---

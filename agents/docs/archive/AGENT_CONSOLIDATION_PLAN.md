@@ -20,11 +20,11 @@
    - Documentation and guides
    - Memory database and exports
 
-4. **`server-management-skills/`** (root)
+4. **`agents/skills/`** (root)
    - Skills library
    - Skill definitions and proposals
 
-5. **`server-management-mcp/`** (root)
+5. **`agents/apps/agent-mcp/`** (root)
    - MCP tools (including agent management, memory, skills, task coordination)
    - Server management tools
 
@@ -69,8 +69,8 @@ agents/
 ```
 
 **MCP Tools & Skills**: Keep at root level (they're infrastructure)
-- `server-management-mcp/` - MCP server (used by agents and other systems)
-- `server-management-skills/` - Skills library (used by agents and other systems)
+- `agents/apps/agent-mcp/` - MCP server (used by agents and other systems)
+- `agents/skills/` - Skills library (used by agents and other systems)
 
 ### Option B: Minimal Consolidation
 
@@ -132,7 +132,7 @@ agents/memory/*         → agents/memory/
 
 ### Import Updates Needed
 
-**MCP Tools** (`server-management-mcp/tools/memory.py`):
+**MCP Tools** (`agents/apps/agent-mcp/tools/memory.py`):
 ```python
 # Old
 from agents.memory import get_memory
@@ -141,7 +141,7 @@ from agents.memory import get_memory
 from agents.memory import get_memory
 ```
 
-**MCP Tools** (`server-management-mcp/tools/task_coordination.py`):
+**MCP Tools** (`agents/apps/agent-mcp/tools/task_coordination.py`):
 ```python
 # Already uses project_root, should work with new structure
 ```
@@ -150,8 +150,8 @@ from agents.memory import get_memory
 
 1. **All docs in `agents/docs/`** - Update paths
 2. **`agents/README.md`** - Create new entry point
-3. **`server-management-mcp/README.md`** - Update memory import path
-4. **`server-management-skills/README.md`** - Update any agent references
+3. **`agents/apps/agent-mcp/README.md`** - Update memory import path
+4. **`agents/skills/README.md`** - Update any agent references
 
 ## Alternative: Keep Current Structure, Improve Organization
 

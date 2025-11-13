@@ -39,7 +39,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Database service
-// Default path: apps/agent-monitoring/data/agent_activity.db
+// Default path: agents/apps/agent-monitoring/data/agent_activity.db
 // When running from dist/, __dirname is dist/, so we go up to backend, then to agent-monitoring
 let defaultDbPath = process.env.DATABASE_PATH;
 if (!defaultDbPath) {

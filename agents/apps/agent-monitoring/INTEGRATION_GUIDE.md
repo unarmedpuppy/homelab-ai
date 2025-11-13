@@ -9,7 +9,7 @@ The activity logger is designed to be called by MCP tools to log agent actions. 
 ### Basic Integration
 
 ```python
-from apps.agent_monitoring.activity_logger import log_action, update_agent_status
+from agents.apps.agent_monitoring.activity_logger import log_action, update_agent_status
 
 # Log an MCP tool call
 log_action(
@@ -38,7 +38,7 @@ For automatic logging of all MCP tool calls, you can wrap your MCP tools:
 ```python
 import time
 from functools import wraps
-from apps.agent_monitoring.activity_logger import log_action
+from agents.apps.agent_monitoring.activity_logger import log_action
 
 def log_mcp_tool(agent_id: str):
     """Decorator to automatically log MCP tool calls."""
@@ -132,7 +132,7 @@ These are logged with `action_type="memory_query"` or `action_type="memory_recor
 ## Example: Complete Agent Workflow
 
 ```python
-from apps.agent_monitoring.activity_logger import (
+from agents.apps.agent_monitoring.activity_logger import (
     start_agent_session,
     end_agent_session,
     update_agent_status,

@@ -88,8 +88,8 @@ flowchart TD
     Step6 --> Step7[Call update_agent_status<br/>Set status to active]
     Step7 --> Step8[Check for Messages<br/>get_agent_messages]
     Step8 --> Step9[Query Memory<br/>memory_query_decisions]
-    Step9 --> Step10[Check Skills<br/>server-management-skills/]
-    Step10 --> Step11[Check MCP Tools<br/>server-management-mcp/]
+    Step9 --> Step10[Check Skills<br/>agents/skills/]
+    Step10 --> Step11[Check MCP Tools<br/>agents/apps/agent-mcp/]
     Step11 --> Step12[Query Tasks<br/>query_tasks]
     Step12 --> Step13[Start Working]
     
@@ -180,9 +180,9 @@ graph LR
 | **Agent Communication** | `agents/communication/` | Inter-agent messaging | `messages/`, `protocol.md` |
 | **Memory System** | `agents/memory/` | Persistent knowledge | `memory.db`, MCP tools |
 | **Agent Registry** | `agents/registry/` | Agent definitions | `agent-registry.md`, `agent-definitions/` |
-| **MCP Server** | `server-management-mcp/` | Tool execution | `tools/`, `server.py` |
-| **Skills Library** | `server-management-skills/` | Reusable workflows | `skills/`, `README.md` |
-| **Monitoring** | `apps/agent-monitoring/` | Observability | Dashboard, Grafana, DB |
+| **MCP Server** | `agents/apps/agent-mcp/` | Tool execution | `tools/`, `server.py` |
+| **Skills Library** | `agents/skills/` | Reusable workflows | `skills/`, `README.md` |
+| **Monitoring** | `agents/apps/agent-monitoring/` | Observability | Dashboard, Grafana, DB |
 
 ---
 
@@ -270,8 +270,8 @@ flowchart TD
     Start([Agent Starts]) --> Step0[0. Start Monitoring<br/>start_agent_session]
     Step0 --> Step0_5[0.5. Check Messages<br/>get_agent_messages]
     Step0_5 --> Step1[1. Query Memory<br/>memory_query_*]
-    Step1 --> Step2[2. Check Skills<br/>server-management-skills/]
-    Step2 --> Step3[3. Check MCP Tools<br/>server-management-mcp/]
+    Step1 --> Step2[2. Check Skills<br/>agents/skills/]
+    Step2 --> Step3[3. Check MCP Tools<br/>agents/apps/agent-mcp/]
     Step3 --> Step4[4. Query Tasks<br/>query_tasks]
     Step4 --> Step5[5. Use Tools/Skills]
     Step5 --> Step6{Need New Tool?}
@@ -926,8 +926,8 @@ graph TB
 
 | File | Purpose | When to Use |
 |------|---------|-------------|
-| `server-management-mcp/README.md` | MCP tools catalog | Finding tools |
-| `server-management-skills/README.md` | Skills catalog | Finding workflows |
+| `agents/apps/agent-mcp/README.md` | MCP tools catalog | Finding tools |
+| `agents/skills/README.md` | Skills catalog | Finding workflows |
 | `agents/tasks/README.md` | Task coordination | Task management |
 | `agents/communication/README.md` | Communication protocol | Inter-agent messaging |
 | `agents/memory/README.md` | Memory system | Knowledge management |

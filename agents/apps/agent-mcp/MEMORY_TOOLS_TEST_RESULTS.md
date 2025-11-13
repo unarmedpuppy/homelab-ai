@@ -93,11 +93,11 @@
 
 ## Test Script
 
-**Location**: `server-management-mcp/test_memory_tools.py`
+**Location**: `agents/apps/agent-mcp/test_memory_tools.py`
 
 **Usage**:
 ```bash
-cd server-management-mcp
+cd agents/apps/agent-mcp
 python3 test_memory_tools.py
 ```
 

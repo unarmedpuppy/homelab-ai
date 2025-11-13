@@ -20,7 +20,7 @@ The agent system uses **Markdown as the primary storage format** for human reada
 
 ### Storage Locations
 
-- **Primary Source**: `apps/agent-monitoring/data/agent_activity.db` (SQLite)
+- **Primary Source**: `agents/apps/agent-monitoring/data/agent_activity.db` (SQLite)
   - Table: `agent_status`
   - Fields: `agent_id`, `status`, `current_task_id`, `progress`, `blockers`, `last_updated`
   
@@ -279,7 +279,7 @@ Need ACID compliance and concurrent writes.
 
 ### Storage Location
 
-- **Primary Source**: `apps/agent-monitoring/data/agent_activity.db` (SQLite)
+- **Primary Source**: `agents/apps/agent-monitoring/data/agent_activity.db` (SQLite)
   - Tables: `agent_status`, `agent_actions`, `agent_sessions`
   - Time-series data for monitoring
 
@@ -315,7 +315,7 @@ CREATE TABLE agent_sessions (
 ### Query Methods
 
 - **MCP Tools**: `get_agent_status()`, `start_agent_session()`, `end_agent_session()`
-- **Dashboard**: `apps/agent-monitoring/` (Next.js frontend)
+- **Dashboard**: `agents/apps/agent-monitoring/` (Next.js frontend)
 - **Grafana**: Time-series visualizations
 
 ---
@@ -439,7 +439,7 @@ agents/
         ├── TASKS.md                # Agent-specific notes (optional)
         └── STATUS.md               # Agent-specific status (optional)
 
-apps/agent-monitoring/
+agents/apps/agent-monitoring/
 └── data/
     └── agent_activity.db           # Monitoring database
 ```

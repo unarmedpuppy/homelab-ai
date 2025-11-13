@@ -367,7 +367,7 @@ labels:
 - Service name should match docker-compose service name
 - Always include HTTPS redirect middleware
 
-See `apps/agent-monitoring/docker-compose.yml` for a complete example.
+See `agents/apps/agent-monitoring/docker-compose.yml` for a complete example.
 ```
 
 ### Example 3: Notification
@@ -391,7 +391,7 @@ created_at: 2025-01-13T11:00:00Z
 **Resolution**: Updated agent-monitoring to use port 8087 instead.
 
 **Files Changed**:
-- `apps/agent-monitoring/docker-compose.yml`
+- `agents/apps/agent-monitoring/docker-compose.yml`
 - All documentation references
 
 **Impact**: No conflicts, all services can run simultaneously.

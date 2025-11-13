@@ -69,7 +69,7 @@
 - [x] `AGENT_WORKFLOW.md` - Updated task coordination references
 - [x] `MCP_TOOL_DISCOVERY.md` - Updated tool counts (68 tools)
 - [x] `AGENT_PROMPT.md` - Updated tool counts and deprecated file references
-- [x] `server-management-mcp/README.md` - Updated tool counts (68 tools)
+- [x] `agents/apps/agent-mcp/README.md` - Updated tool counts (68 tools)
 - [x] `SYSTEM_ARCHITECTURE.md` - Updated tool counts
 - [x] `DATA_MODEL.md` - Complete and accurate
 - [x] `COMMUNICATION_GUIDELINES.md` - Complete and accurate
@@ -114,7 +114,7 @@
 - System Utilities: 3 tools ✅
 
 **Verified in**:
-- [x] `server-management-mcp/README.md`
+- [x] `agents/apps/agent-mcp/README.md`
 - [x] `agents/docs/AGENT_PROMPT.md`
 - [x] `agents/docs/MCP_TOOL_DISCOVERY.md`
 - [x] `agents/docs/SYSTEM_ARCHITECTURE.md`

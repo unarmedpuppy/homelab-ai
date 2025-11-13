@@ -9,9 +9,9 @@ This guide helps AI agents discover and use **Skills** and **MCP Tools** effecti
 0.5. **Check Messages** - `get_agent_messages()` - CRITICAL: Check for messages from other agents!
 1. **Memory** - Query previous decisions and patterns
 2. **Specialized Agents** - Check if agent exists for your task
-3. **Skills** (workflows) - Check `server-management-skills/README.md`
+3. **Skills** (workflows) - Check `agents/skills/README.md`
 4. **Task Coordination** - Check `agents/tasks/README.md` for task management
-5. **MCP Tools** (operations) - Check `server-management-mcp/README.md` - **PREFERRED: Observable!**
+5. **MCP Tools** (operations) - Check `agents/apps/agent-mcp/README.md` - **PREFERRED: Observable!**
 6. Create new MCP tool (if operation is reusable) - **New tools are automatically observable!**
 7. Create new skill (if workflow is reusable)
 8. Existing scripts (fallback - not observable)
@@ -42,7 +42,7 @@ Examples:
 
 ### Step 2: Check Skills First (For Workflows)
 
-**Primary Resource**: `server-management-skills/README.md`
+**Primary Resource**: `agents/skills/README.md`
 - Complete skills catalog
 - Skills by category (deployment, troubleshooting, maintenance)
 - When to use each skill
@@ -61,12 +61,12 @@ Examples:
 ### Step 3: Check MCP Tools (For Operations - If No Skill Exists)
 
 **Primary Resources**:
-1. **Tool Reference**: `server-management-mcp/README.md`
+1. **Tool Reference**: `agents/apps/agent-mcp/README.md`
    - Complete list of available tools
    - Tool signatures and parameters
    - Usage examples
 
-2. **Tool Modules**: `server-management-mcp/tools/`
+2. **Tool Modules**: `agents/apps/agent-mcp/tools/`
    - `docker.py` - Docker container management
    - `media_download.py` - Sonarr/Radarr/NZBGet operations
    - `monitoring.py` - System monitoring
@@ -86,8 +86,8 @@ Examples:
 - Type-safe with clear parameters
 
 **If you don't have MCP access**:
-- Review skill documentation in `server-management-skills/README.md`
-- Review tool documentation in `server-management-mcp/README.md`
+- Review skill documentation in `agents/skills/README.md`
+- Review tool documentation in `agents/apps/agent-mcp/README.md`
 - Understand parameters and return values
 - Follow skill workflows step-by-step
 
@@ -104,7 +104,7 @@ Use SSH commands via `scripts/connect-server.sh` as documented in `agents/docs/S
 
 ### Activity Monitoring ✅ (Available - USE THESE FIRST!)
 
-**Location**: `server-management-mcp/tools/activity_monitoring.py`
+**Location**: `agents/apps/agent-mcp/tools/activity_monitoring.py`
 
 **Available Tools**:
 - `start_agent_session(agent_id)` - Start a new monitoring session (call this first!)
@@ -121,12 +121,12 @@ Use SSH commands via `scripts/connect-server.sh` as documented in `agents/docs/S
 **Why Critical**: Without these tools, your work is invisible in the agent monitoring dashboard!
 
 **See**:
-- `apps/agent-monitoring/README.md` - Dashboard overview
-- `apps/agent-monitoring/INTEGRATION_GUIDE.md` - Complete integration guide
+- `agents/apps/agent-monitoring/README.md` - Dashboard overview
+- `agents/apps/agent-monitoring/INTEGRATION_GUIDE.md` - Complete integration guide
 
 ### Agent Communication ✅ (Available - CHECK MESSAGES EARLY!)
 
-**Location**: `server-management-mcp/tools/communication.py`
+**Location**: `agents/apps/agent-mcp/tools/communication.py`
 
 **Available Tools**:
 - `send_agent_message()` - Send message to another agent
@@ -162,7 +162,7 @@ Use SSH commands via `scripts/connect-server.sh` as documented in `agents/docs/S
 
 ### Docker Management ✅ (Available)
 
-**Location**: `server-management-mcp/tools/docker.py`
+**Location**: `agents/apps/agent-mcp/tools/docker.py`
 
 **Available Tools**:
 - `docker_list_containers` - List all containers with filters
@@ -182,7 +182,7 @@ Use SSH commands via `scripts/connect-server.sh` as documented in `agents/docs/S
 
 ### Media Download 🚧 (In Progress)
 
-**Location**: `server-management-mcp/tools/media_download.py` (to be implemented)
+**Location**: `agents/apps/agent-mcp/tools/media_download.py` (to be implemented)
 
 **Planned Tools**:
 - `sonarr_clear_queue` - Clear Sonarr download queue
@@ -339,7 +339,7 @@ Since agents run in Cursor/Claude Desktop, use **MCP tools** to interact with me
 **Export:**
 - `memory_export_to_markdown` - Export all memories to markdown
 
-**See**: `server-management-mcp/README.md` for complete memory tool reference.
+**See**: `agents/apps/agent-mcp/README.md` for complete memory tool reference.
 
 ### ⚠️ Fallback: When MCP Tools Aren't Available
 
@@ -632,7 +632,7 @@ If you need an operation that doesn't exist:
    - Register: `register_your_tools(server)`
 
 4. **Update documentation**:
-   - Add tool to `server-management-mcp/README.md`
+   - Add tool to `agents/apps/agent-mcp/README.md`
    - Include usage examples
    - Document parameters and return values
 
@@ -686,10 +686,10 @@ If you need an operation that doesn't exist:
 
 ## Quick Reference
 
-**Tool Documentation**: `server-management-mcp/README.md`
-**Tool Source Code**: `server-management-mcp/tools/`
+**Tool Documentation**: `agents/apps/agent-mcp/README.md`
+**Tool Source Code**: `agents/apps/agent-mcp/tools/`
 **Architecture Plan**: `apps/docs/MCP_SERVER_PLAN.md`
-**Docker Setup**: `server-management-mcp/DOCKER_SETUP.md`
+**Docker Setup**: `agents/apps/agent-mcp/DOCKER_SETUP.md`
 **Server Agent Prompt**: `agents/docs/SERVER_AGENT_PROMPT.md`
 
 ---

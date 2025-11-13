@@ -11,7 +11,7 @@ from pathlib import Path
 # Add project root to path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
-sys.path.insert(0, str(project_root / "server-management-mcp"))
+sys.path.insert(0, str(project_root / "agents" / "apps" / "agent-mcp"))
 
 # Import helper functions directly
 from tools.task_coordination import (

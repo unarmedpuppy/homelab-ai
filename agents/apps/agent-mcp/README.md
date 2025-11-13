@@ -5,7 +5,7 @@ MCP (Model Context Protocol) server providing tools for managing the entire home
 ## Installation
 
 ```bash
-cd server-management-mcp
+cd agents/apps/agent-mcp
 pip install -r requirements.txt
 ```
 
@@ -51,7 +51,7 @@ Add to Claude Desktop config (`~/Library/Application Support/Claude/claude_deskt
   "mcpServers": {
     "home-server": {
       "command": "python",
-      "args": ["/absolute/path/to/server-management-mcp/server.py"],
+      "args": ["/absolute/path/to/agents/apps/agent-mcp/server.py"],
       "env": {
         "SONARR_API_KEY": "...",
         "RADARR_API_KEY": "..."
@@ -239,7 +239,7 @@ register_docker_tools(server)
 ## Project Structure
 
 ```
-server-management-mcp/
+agents/apps/agent-mcp/
 ├── server.py              # Main MCP server
 ├── config/
 │   ├── __init__.py

@@ -6,7 +6,7 @@
 
 ## How Agents Discover Memory Tools
 
-1. **Check MCP Server**: Review `server-management-mcp/README.md` for available tools
+1. **Check MCP Server**: Review `agents/apps/agent-mcp/README.md` for available tools
 2. **Memory Tools Section**: Look for "Memory Management" category
 3. **Use Tools**: Call memory tools like any other MCP tool
 
@@ -310,7 +310,7 @@ cd apps/agent_memory
 
 ## See Also
 
-- **MCP Server README**: `server-management-mcp/README.md` - Complete tool reference
+- **MCP Server README**: `agents/apps/agent-mcp/README.md` - Complete tool reference
 - **Memory System README**: `agents/memory/README.md` - Memory system details
 - **Memory Usage Examples**: `agents/memory/MEMORY_USAGE_EXAMPLES.md` - Real-world examples ⭐
 - **Helper Script Guide**: `agents/memory/QUERY_MEMORY_README.md` - Fallback script usage

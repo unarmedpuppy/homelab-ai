@@ -50,7 +50,7 @@ This document outlines a proven workflow for managing AI agents working on softw
    - **CRITICAL**: Call `start_agent_session(agent_id)` first
    - **CRITICAL**: Call `update_agent_status(agent_id, status="active", ...)` to update your status
    - **Why**: The agent monitoring dashboard tracks all agent activity. Without this, your work is invisible!
-   - **See**: `apps/agent-monitoring/README.md` for dashboard access
+   - **See**: `agents/apps/agent-monitoring/README.md` for dashboard access
 
 0.5. **Check for Messages** - Check for messages from other agents
    - **CRITICAL**: Check for pending messages at start of session
@@ -65,14 +65,14 @@ This document outlines a proven workflow for managing AI agents working on softw
    - **If MCP tools NOT available**: Use fallback methods (direct SQLite queries or Python helpers - see Memory System section)
    - **This is how you gain context from past work** - don't repeat decisions
 
-2. **Check Skills** - Review `server-management-skills/README.md` for workflows
+2. **Check Skills** - Review `agents/skills/README.md` for workflows
    - Skills provide complete workflows for common tasks
    - Skills orchestrate MCP tools into tested workflows
    - Skills include error handling and best practices
    - **This is how you gain context** - don't start from scratch
    - **Important**: Use `agent-self-documentation` skill to learn how to organize your own documentation
 
-3. **Check MCP Tools** - Review `server-management-mcp/README.md` for available tools
+3. **Check MCP Tools** - Review `agents/apps/agent-mcp/README.md` for available tools
    - **⚠️ CRITICAL: Prioritize Observable Tools**
    - MCP tools provide individual operations (check status, restart, view logs)
    - **All MCP tool calls are automatically logged** and visible in the monitoring dashboard
@@ -114,7 +114,7 @@ This document outlines a proven workflow for managing AI agents working on softw
 - ✅ **Error handling** - Workflows that include troubleshooting steps
 
 **When**: After completing a workflow that you anticipate needing again
-**How**: Create a skill in `server-management-skills/` following the skill template
+**How**: Create a skill in `agents/skills/` following the skill template
 
 **Examples**:
 - Deployment workflows → `standard-deployment` skill
@@ -128,7 +128,7 @@ This document outlines a proven workflow for managing AI agents working on softw
 - ✅ **Frequently needed** - Operations you'll use multiple times
 
 **When**: After identifying an operation that should be standardized and reusable
-**How**: Add tool to `server-management-mcp/tools/` and update `server-management-mcp/README.md`
+**How**: Add tool to `agents/apps/agent-mcp/tools/` and update `agents/apps/agent-mcp/README.md`
 
 **Examples**:
 - Container management → `docker_restart_container`, `docker_container_status`
@@ -147,10 +147,10 @@ After completing work:
 │   └─→ YES: Store in memory (memory_record_pattern)
 │
 ├─→ Created a reusable workflow?
-│   └─→ YES: Create skill (server-management-skills/)
+│   └─→ YES: Create skill (agents/skills/)
 │
 └─→ Identified a reusable operation?
-    └─→ YES: Add MCP tool (server-management-mcp/tools/)
+    └─→ YES: Add MCP tool (agents/apps/agent-mcp/tools/)
 ```
 
 **Remember**: 
@@ -161,8 +161,8 @@ After completing work:
 **Discovery Priority**:
 0. **Start Monitoring** → `start_agent_session()` and `update_agent_status()` - CRITICAL: Do this first!
 1. **Memory** (past context) → Use `memory_query_*` and `memory_search` MCP tools (or fallback: direct SQLite queries)
-2. **Skills** (workflows) → `server-management-skills/README.md`
-3. **MCP Tools** (operations) → `server-management-mcp/README.md` - **PREFERRED: Observable!**
+2. **Skills** (workflows) → `agents/skills/README.md`
+3. **MCP Tools** (operations) → `agents/apps/agent-mcp/README.md` - **PREFERRED: Observable!**
 4. **Check for Specialized Agents** → Query agent registry if task requires specialization
 5. **Create Specialized Agent** → Use `create_agent_definition` if no existing agent
 6. Create new MCP tool (if operation is reusable) - **New tools are automatically observable!**
@@ -173,8 +173,8 @@ After completing work:
 **⚠️ IMPORTANT**: Always use MCP tools when available - they are automatically logged and visible in the agent monitoring dashboard. Custom commands and scripts are NOT observable!
 
 **See**: 
-- `server-management-skills/README.md` - Skills catalog
-- `server-management-mcp/README.md` - MCP tools reference
+- `agents/skills/README.md` - Skills catalog
+- `agents/apps/agent-mcp/README.md` - MCP tools reference
 - `agents/docs/MCP_TOOL_DISCOVERY.md` - Tool discovery guide
 
 ## ⚠️ CRITICAL: Agent Documentation Namespacing
@@ -410,8 +410,8 @@ create_agent_doc(
      - `query_agent_registry(specialization="...")` - Find existing specialized agents
      - If found: Assign task to existing agent
      - If not found: Consider creating specialized agent
-   - **Check Skills**: Review `server-management-skills/README.md` for workflows
-   - **Check MCP Tools**: Review `server-management-mcp/README.md` for available tools
+   - **Check Skills**: Review `agents/skills/README.md` for workflows
+   - **Check MCP Tools**: Review `agents/apps/agent-mcp/README.md` for available tools
    - **Memory provides past context**: Learn from previous decisions and patterns
    - **Specialized Agents provide expertise**: Delegate to domain experts when needed
    - **Skills provide workflows**: Use existing skills for common tasks
@@ -696,7 +696,7 @@ memory_save_context(
 **See**: 
 - `agents/memory/MCP_TOOLS_GUIDE.md` - Complete reference with examples
 - `agents/memory/MEMORY_USAGE_EXAMPLES.md` - Real-world usage examples and best practices
-- `server-management-mcp/README.md` - Memory tools in MCP catalog
+- `agents/apps/agent-mcp/README.md` - Memory tools in MCP catalog
 
 ### ⚠️ Fallback: When MCP Tools Aren't Available
 
@@ -915,7 +915,7 @@ cat agents/memory/memory/export/decisions/*.md
    - **Start session**: `start_agent_session(agent_id)` - Do this first!
    - **Update status**: `update_agent_status(agent_id, status="active", ...)` - Make yourself visible
    - **Why**: Your work must be observable in the agent monitoring dashboard!
-   - **See**: `apps/agent-monitoring/README.md` for dashboard access
+   - **See**: `agents/apps/agent-monitoring/README.md` for dashboard access
 
 1. **Discover Memory, Skills and Tools First** (PRIMARY METHOD)
    - **Check Memory**: Query previous decisions and patterns using memory MCP tools
@@ -923,8 +923,8 @@ cat agents/memory/memory/export/decisions/*.md
      - `memory_query_patterns()` - Find common patterns
      - `memory_search()` - Full-text search
      - Learn from past work - don't repeat decisions
-   - **Check Skills**: Review `server-management-skills/README.md` for workflows matching your task
-   - **Check MCP Tools**: Review `server-management-mcp/README.md` for available tools
+   - **Check Skills**: Review `agents/skills/README.md` for workflows matching your task
+   - **Check MCP Tools**: Review `agents/apps/agent-mcp/README.md` for available tools
    - **Memory provides past context**: Learn from previous decisions and patterns
    - **Skills provide workflows**: Complete step-by-step guidance for common tasks
    - **MCP Tools provide capabilities**: Individual operations you can use - **AND they're observable!**
@@ -995,8 +995,8 @@ cat agents/memory/memory/export/decisions/*.md
 
 **Discovery Priority**:
 0. **Start Monitoring** - `start_agent_session()` and `update_agent_status()` - CRITICAL: Do this first!
-1. **Skills** (preferred for workflows) - Check `server-management-skills/README.md` first
-2. **MCP Tools** (preferred for operations) - Check `server-management-mcp/README.md` second - **Observable!**
+1. **Skills** (preferred for workflows) - Check `agents/skills/README.md` first
+2. **MCP Tools** (preferred for operations) - Check `agents/apps/agent-mcp/README.md` second - **Observable!**
 3. Create new MCP tool (if operation is reusable) - **New tools are automatically observable!**
 4. Create new skill (if workflow is reusable)
 5. Existing scripts (fallback - not observable)
@@ -1006,7 +1006,7 @@ cat agents/memory/memory/export/decisions/*.md
 
 ### Server Management Skills
 
-**Location**: `server-management-skills/` in repository root
+**Location**: `agents/skills/` in repository root
 
 **What Skills Provide**:
 - Complete workflows for common tasks
@@ -1023,15 +1023,15 @@ cat agents/memory/memory/export/decisions/*.md
 - And more...
 
 **Usage**:
-- Review `server-management-skills/README.md` for complete catalog
+- Review `agents/skills/README.md` for complete catalog
 - Skills work in Claude.ai, Claude Code, and API
 - Skills automatically use MCP tools correctly
 
-**See**: `server-management-skills/README.md` for complete skills catalog.
+**See**: `agents/skills/README.md` for complete skills catalog.
 
 ### Server Management MCP Server
 
-**Location**: `server-management-mcp/` in repository root
+**Location**: `agents/apps/agent-mcp/` in repository root
 
 **What MCP Tools Provide**:
 - Individual operations (check status, restart service, view logs)
@@ -1057,20 +1057,20 @@ cat agents/memory/memory/export/decisions/*.md
 
 **Usage**:
 - If you have MCP access (Claude Desktop, GPT-4 with MCP): Use tools directly
-- If no MCP access: Reference `server-management-mcp/README.md` for tool documentation
+- If no MCP access: Reference `agents/apps/agent-mcp/README.md` for tool documentation
 - **Memory tools**: Use `memory_query_*` and `memory_record_*` throughout workflow
 - Skills orchestrate MCP tools into workflows
 
 **See**: 
-- `server-management-mcp/README.md` for tool reference
+- `agents/apps/agent-mcp/README.md` for tool reference
 - `apps/docs/MCP_SERVER_PLAN.md` for complete architecture and tool catalog
 - `agents/docs/MCP_TOOL_DISCOVERY.md` for tool discovery guide
 
 ### Recommended Tools
 
 1. **Server Management**: 
-   - **Skills** (preferred for workflows) - `server-management-skills/README.md`
-   - **MCP Tools** (preferred for operations) - `server-management-mcp/README.md`
+   - **Skills** (preferred for workflows) - `agents/skills/README.md`
+   - **MCP Tools** (preferred for operations) - `agents/apps/agent-mcp/README.md`
    - SSH commands (last resort fallback)
 2. **Task Tracking**: 
    - **Central Task Registry** (preferred) - `agents/tasks/registry.md` with 6 MCP tools
@@ -1142,7 +1142,7 @@ cat agents/memory/memory/export/decisions/*.md
    - Query and record examples
    - Workflow integration patterns
 
-3. **Skills Catalog**: `server-management-skills/README.md`
+3. **Skills Catalog**: `agents/skills/README.md`
    - Complete workflows for common tasks
    - Step-by-step guidance using MCP tools
    - Examples and error handling
@@ -1153,7 +1153,7 @@ cat agents/memory/memory/export/decisions/*.md
    - Dependency tracking and validation
    - Workflow examples
 
-4. **MCP Tools Reference**: `server-management-mcp/README.md`
+4. **MCP Tools Reference**: `agents/apps/agent-mcp/README.md`
    - All available tools with parameters (58 tools total)
    - Memory tools (9 tools) documented
    - Task coordination tools (6 tools) documented

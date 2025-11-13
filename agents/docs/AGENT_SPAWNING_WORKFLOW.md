@@ -209,7 +209,7 @@ Home server infrastructure management
 
 ## Capabilities
 - Skills: standard-deployment, troubleshoot-container-failure, system-health-check
-- MCP Tools: All server-management-mcp tools
+- MCP Tools: All agents/apps/agent-mcp tools
 - Domain Knowledge: Docker, networking, system administration
 
 ## Typical Tasks

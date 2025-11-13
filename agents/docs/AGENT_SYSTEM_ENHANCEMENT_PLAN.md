@@ -67,7 +67,7 @@ Working on subdomain setup? Check: add-subdomain skill
 
 **Files Needed**:
 - `agents/docs/SKILL_AUTO_ACTIVATION.md` - Guide for agents
-- `server-management-mcp/tools/skill_activation.py` - MCP tool for skill suggestions
+- `agents/apps/agent-mcp/tools/skill_activation.py` - MCP tool for skill suggestions
 - Update `AGENT_PROMPT.md` to include auto-activation instructions
 
 **Effort**: Medium (2-3 days)  
@@ -99,7 +99,7 @@ Working on subdomain setup? Check: add-subdomain skill
 
 **Files Needed**:
 - `agents/docs/DEV_DOCS_SYSTEM.md` - Guide for agents
-- `server-management-mcp/tools/dev_docs.py` - MCP tools for dev docs
+- `agents/apps/agent-mcp/tools/dev_docs.py` - MCP tools for dev docs
 - Update `AGENT_PROMPT.md` with dev docs workflow
 - Update `AGENT_WORKFLOW.md` with dev docs integration
 
@@ -139,7 +139,7 @@ Working on subdomain setup? Check: add-subdomain skill
 - Security patterns (input validation, SQL injection)
 
 **Files Needed**:
-- `server-management-mcp/tools/quality_checks.py` - Quality check tools
+- `agents/apps/agent-mcp/tools/quality_checks.py` - Quality check tools
 - Update `AGENT_PROMPT.md` with quality check workflow
 - Create quality check reminders in prompt
 
@@ -155,7 +155,7 @@ Working on subdomain setup? Check: add-subdomain skill
 **Solution**: Restructure skills to follow Anthropic's best practices - main file <500 lines, use resource files for details.
 
 **Implementation**:
-- Review all skills in `server-management-skills/`
+- Review all skills in `agents/skills/`
 - Split large skills into:
   - Main SKILL.md (<500 lines) - Core patterns, quick reference
   - Resource files - Detailed examples, edge cases, advanced patterns
@@ -175,7 +175,7 @@ standard-deployment/
 
 **Files Needed**:
 - Review and restructure existing skills
-- Update `server-management-skills/README.md` with structure guidelines
+- Update `agents/skills/README.md` with structure guidelines
 - Create skill template with progressive disclosure
 
 **Effort**: Medium (3-4 days to restructure all skills)  
@@ -209,7 +209,7 @@ standard-deployment/
 
 **Files Needed**:
 - `agents/docs/CODE_REVIEW_WORKFLOW.md` - Review process
-- `server-management-mcp/tools/code_review.py` - Review tools
+- `agents/apps/agent-mcp/tools/code_review.py` - Review tools
 - Review agent template/prompt
 - Update `AGENT_WORKFLOW.md` with review step
 
@@ -241,8 +241,8 @@ standard-deployment/
 - `get_service_metrics(service_name)`
 
 **Files Needed**:
-- `server-management-mcp/tools/service_debugging.py` - New tool file
-- Update `server-management-mcp/README.md`
+- `agents/apps/agent-mcp/tools/service_debugging.py` - New tool file
+- Update `agents/apps/agent-mcp/README.md`
 - Update `AGENT_PROMPT.md` with debugging workflow
 
 **Effort**: Low-Medium (1-2 days)  
@@ -273,7 +273,7 @@ standard-deployment/
 
 Before starting any work, ALWAYS check for relevant skills:
 1. Analyze your current task/file context
-2. Check `server-management-skills/README.md` for relevant skills
+2. Check `agents/skills/README.md` for relevant skills
 3. Load and review relevant skills BEFORE implementing
 4. Reference skill patterns throughout implementation
 

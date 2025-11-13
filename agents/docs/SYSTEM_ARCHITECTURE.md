@@ -10,12 +10,12 @@ The agent system provides a comprehensive framework for AI agents to work collab
 
 ### 1. Agent Monitoring System
 
-**Location**: `apps/agent-monitoring/`
+**Location**: `agents/apps/agent-monitoring/`
 
 **Purpose**: Real-time visibility into agent activity, status, and progress.
 
 **Components**:
-- **SQLite Database** (`apps/agent-monitoring/data/agent_activity.db`) - Stores agent status, sessions, and actions
+- **SQLite Database** (`agents/apps/agent-monitoring/data/agent_activity.db`) - Stores agent status, sessions, and actions
 - **Backend API** (Node.js/Express/TypeScript) - REST API for querying agent data
 - **Frontend Dashboard** (Next.js/TypeScript) - Real-time agent status dashboard
 - **Grafana Integration** - Time-series metrics and visualizations
@@ -27,7 +27,7 @@ The agent system provides a comprehensive framework for AI agents to work collab
 - `get_agent_status()` - Get current status
 - `end_agent_session()` - End session
 
-**See**: `apps/agent-monitoring/README.md` for complete documentation.
+**See**: `agents/apps/agent-monitoring/README.md` for complete documentation.
 
 ---
 
@@ -139,14 +139,14 @@ The agent system provides a comprehensive framework for AI agents to work collab
 
 ### 6. Skill Management
 
-**Location**: `server-management-skills/`
+**Location**: `agents/skills/`
 
 **Purpose**: Reusable workflows for common tasks.
 
 **Components**:
-- **Skills Catalog** (`server-management-skills/README.md`) - List of available skills
-- **Skill Definitions** (`server-management-skills/*/SKILL.md`) - Individual skill definitions
-- **Skill Proposals** (`server-management-skills/proposals/`) - Proposed skills awaiting review
+- **Skills Catalog** (`agents/skills/README.md`) - List of available skills
+- **Skill Definitions** (`agents/skills/*/SKILL.md`) - Individual skill definitions
+- **Skill Proposals** (`agents/skills/proposals/`) - Proposed skills awaiting review
 
 **MCP Tools** (5 tools):
 - `propose_skill()` - Propose new skill
@@ -155,7 +155,7 @@ The agent system provides a comprehensive framework for AI agents to work collab
 - `analyze_patterns_for_skills()` - Analyze patterns for skill candidates
 - `auto_propose_skill_from_pattern()` - Auto-create skill from pattern
 
-**See**: `server-management-skills/README.md` for complete documentation.
+**See**: `agents/skills/README.md` for complete documentation.
 
 ---
 
@@ -245,7 +245,7 @@ Returns pending messages
 
 ### MCP Server
 
-**Location**: `server-management-mcp/`
+**Location**: `agents/apps/agent-mcp/`
 
 **Purpose**: Unified interface for all agent operations.
 
@@ -264,7 +264,7 @@ Returns pending messages
 - Networking (4)
 - System Utilities (3)
 
-**See**: `server-management-mcp/README.md` for complete tool reference.
+**See**: `agents/apps/agent-mcp/README.md` for complete tool reference.
 
 ---
 
@@ -287,7 +287,7 @@ Need to coordinate with other agents?
 │   └─→ Use Memory System (agents/memory/)
 │
 └─→ Status/Activity Visibility?
-    └─→ Use Monitoring System (apps/agent-monitoring/)
+    └─→ Use Monitoring System (agents/apps/agent-monitoring/)
 ```
 
 **Primary Channels**:

@@ -8,8 +8,8 @@ This directory contains completed proposals, plans, and historical documentation
 
 - **`AGENT_DASHBOARD_PROPOSAL.md`** - Agent monitoring dashboard proposal
   - **Status**: ✅ Implemented
-  - **Implementation**: `apps/agent-monitoring/`
-  - **See**: `apps/agent-monitoring/README.md` for current documentation
+  - **Implementation**: `agents/apps/agent-monitoring/`
+  - **See**: `agents/apps/agent-monitoring/README.md` for current documentation
 
 ### Implemented Plans
 
@@ -28,8 +28,8 @@ This directory contains completed proposals, plans, and historical documentation
 
 - **`AGENT_MONITORING_STRUCTURE.md`** - Agent monitoring dashboard structure proposal
   - **Status**: ✅ Implemented
-  - **Implementation**: `apps/agent-monitoring/`
-  - **See**: `apps/agent-monitoring/README.md` for current documentation
+  - **Implementation**: `agents/apps/agent-monitoring/`
+  - **See**: `agents/apps/agent-monitoring/README.md` for current documentation
 
 ## Why Archived?
 

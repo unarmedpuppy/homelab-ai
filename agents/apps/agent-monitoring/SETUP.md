@@ -11,7 +11,7 @@ Complete setup guide for the self-contained agent monitoring system.
 
 1. **Navigate to the directory**:
    ```bash
-   cd apps/agent-monitoring
+   cd agents/apps/agent-monitoring
    ```
 
 2. **Copy environment file** (optional):

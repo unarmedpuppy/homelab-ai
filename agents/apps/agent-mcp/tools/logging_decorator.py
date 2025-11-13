@@ -22,12 +22,12 @@ _current_agent_id: ContextVar[Optional[str]] = ContextVar('current_agent_id', de
 
 # Import activity logger
 try:
-    from apps.agent_monitoring.activity_logger.activity_logger import (
+    from agents.apps.agent_monitoring.activity_logger.activity_logger import (
         log_action as _log_action
     )
 except ImportError:
     # Fallback: try direct path
-    activity_logger_path = project_root / "apps" / "agent-monitoring" / "activity_logger"
+    activity_logger_path = project_root / "agents" / "apps" / "agent-monitoring" / "activity_logger"
     sys.path.insert(0, str(activity_logger_path))
     try:
         from activity_logger import log_action as _log_action

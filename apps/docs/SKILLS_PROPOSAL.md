@@ -35,7 +35,7 @@ Based on the [Claude Skills pattern](https://github.com/unarmedpuppy/awesome-cla
 ## Proposed Skills Structure
 
 ```
-server-management-skills/
+agents/skills/
 ├── README.md                    # Skills catalog and usage guide
 ├── deploy-new-service/
 │   ├── SKILL.md                 # Skill definition with YAML frontmatter
@@ -282,7 +282,7 @@ Skills are reusable workflows that orchestrate MCP tools. Use them for common ta
 - **`troubleshoot-container-failure`** - Diagnose container issues
 - **`system-health-check`** - Comprehensive system verification
 
-See `server-management-skills/README.md` for complete catalog.
+See `agents/skills/README.md` for complete catalog.
 
 ## When to Use Skills vs MCP Tools
 
@@ -315,7 +315,7 @@ See `server-management-skills/README.md` for complete catalog.
 
 ## Next Steps
 
-1. Create `server-management-skills/` directory
+1. Create `agents/skills/` directory
 2. Implement `standard-deployment` skill (most common)
 3. Update `SERVER_AGENT_PROMPT.md` to reference skills
 4. Create skills catalog README

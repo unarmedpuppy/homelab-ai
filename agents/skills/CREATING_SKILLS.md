@@ -59,7 +59,7 @@ Before creating, check if a similar skill exists:
 
 ```python
 # Review skills catalog
-# Read: server-management-skills/README.md
+# Read: agents/skills/README.md
 # Check if your workflow matches an existing skill
 ```
 
@@ -84,7 +84,7 @@ propose_skill(
 ```
 
 This creates:
-- Skill proposal in `server-management-skills/proposals/my-skill-name.md`
+- Skill proposal in `agents/skills/proposals/my-skill-name.md`
 - Proposal includes all details for review
 
 ### Step 3: Test the Skill
@@ -106,7 +106,7 @@ Once tested, the proposal is ready for review. A human or review agent will:
 ### Step 5: Skill Approved
 
 Once approved:
-- Skill directory created: `server-management-skills/my-skill-name/`
+- Skill directory created: `agents/skills/my-skill-name/`
 - `SKILL.md` file created with full definition
 - Resources added if needed
 - Skills catalog (`README.md`) updated automatically
@@ -261,7 +261,7 @@ This script handles:
 ### Scenario: Agent needs "Rollback Deployment" skill
 
 **Step 1: Check Existing Skills**
-- Review `server-management-skills/README.md`
+- Review `agents/skills/README.md`
 - No rollback skill exists
 - Proceed to create
 
@@ -302,6 +302,6 @@ propose_skill(
 **Last Updated**: 2025-01-13  
 **Status**: Active  
 **See Also**:
-- `server-management-skills/README.md` - Skills catalog
+- `agents/skills/README.md` - Skills catalog
 - `agents/docs/SKILL_AUTO_ACTIVATION.md` - How to use skills
 - `agents/docs/AGENT_PROMPT.md` - Main agent prompt

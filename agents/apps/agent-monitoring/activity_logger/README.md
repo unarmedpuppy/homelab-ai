@@ -70,7 +70,7 @@ The activity logger needs to be accessible from the MCP server. Options:
 
 1. **Install as package** (recommended):
    ```bash
-   cd apps/agent-monitoring/activity_logger
+   cd agents/apps/agent-monitoring/activity_logger
    pip install -e .
    ```
 
@@ -83,13 +83,13 @@ The activity logger needs to be accessible from the MCP server. Options:
 
 3. **Copy to MCP server** (simple):
    ```bash
-   cp activity_logger.py server-management-mcp/tools/
+   cp activity_logger.py agents/apps/agent-mcp/tools/
    ```
 
 ## Database Location
 
 The logger writes to:
-- **SQLite**: `apps/agent-monitoring/data/agent_activity.db`
+- **SQLite**: `agents/apps/agent-monitoring/data/agent_activity.db`
 - **InfluxDB**: Via backend export service (optional)
 
 ## Functions

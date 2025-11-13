@@ -18,7 +18,7 @@ Create a comprehensive Model Context Protocol (MCP) server that provides AI agen
 ### Server Structure
 
 ```
-server-management-mcp/
+agents/apps/agent-mcp/
 ├── server.py                 # Main MCP server
 ├── config/
 │   ├── __init__.py
@@ -904,7 +904,7 @@ async def sync_code():
 pip install mcp python-dotenv
 
 # Run server
-python server-management-mcp/server.py
+python agents/apps/agent-mcp/server.py
 
 # Or as a service
 systemd service or docker container
@@ -923,7 +923,7 @@ Example Claude Desktop config:
   "mcpServers": {
     "home-server": {
       "command": "python",
-      "args": ["/path/to/server-management-mcp/server.py"],
+      "args": ["/path/to/agents/apps/agent-mcp/server.py"],
       "env": {
         "SONARR_API_KEY": "...",
         "RADARR_API_KEY": "..."

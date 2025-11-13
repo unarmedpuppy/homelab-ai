@@ -8,7 +8,7 @@ This document provides an overview of all applications deployed on the home serv
 - User: unarmedpuppy
 - Access: `bash scripts/connect-server.sh '<command>'`
 
-**⚠️ IMPORTANT**: Before using SSH commands, **check the MCP Server tools first** (`server-management-mcp/`). MCP tools provide standardized, type-safe operations for server management. See `agents/docs/SERVER_AGENT_PROMPT.md` for tool discovery workflow.
+**⚠️ IMPORTANT**: Before using SSH commands, **check the MCP Server tools first** (`agents/apps/agent-mcp/`). MCP tools provide standardized, type-safe operations for server management. See `agents/docs/SERVER_AGENT_PROMPT.md` for tool discovery workflow.
 
 ---
 
@@ -16,12 +16,12 @@ This document provides an overview of all applications deployed on the home serv
 
 ### Server Management MCP Server
 - **Description**: Model Context Protocol (MCP) server providing standardized tools for managing the entire home server infrastructure
-- **Location**: `server-management-mcp/` (in repository root)
-- **Container**: `server-management-mcp`
+- **Location**: `agents/apps/agent-mcp/` (in repository root)
+- **Container**: `agents/apps/agent-mcp`
 - **Status**: ✅ **ACTIVE**
 - **Documentation**: 
-  - `server-management-mcp/README.md` - Tool reference and usage
-  - `server-management-mcp/DOCKER_SETUP.md` - Docker setup guide
+  - `agents/apps/agent-mcp/README.md` - Tool reference and usage
+  - `agents/apps/agent-mcp/DOCKER_SETUP.md` - Docker setup guide
   - `apps/docs/MCP_SERVER_PLAN.md` - Complete architecture and tool catalog
 - **Notes**: 
   - Provides type-safe, standardized tools for server operations

@@ -2,7 +2,7 @@
 
 ## Recommended Structure
 
-Based on the existing project patterns, the agent monitoring dashboard should be located in **`apps/agent-monitoring/`** to follow the convention that all Docker Compose services live in `apps/`.
+Based on the existing project patterns, the agent monitoring dashboard should be located in **`agents/apps/agent-monitoring/`** to follow the convention that all Docker Compose services live in `apps/`.
 
 ### Complete Project Structure
 
@@ -91,12 +91,12 @@ home-server/
 │   ├── tasks/                         # Task coordination (markdown)
 │   └── ...
 │
-└── server-management-mcp/              # MCP server (Python)
+└── agents/apps/agent-mcp/              # MCP server (Python)
     └── tools/
         └── activity_monitoring.py      # MCP tools for activity logging
 ```
 
-## Why `apps/agent-monitoring/`?
+## Why `agents/apps/agent-monitoring/`?
 
 ### Follows Established Pattern
 - ✅ All Docker Compose services are in `apps/`
@@ -105,9 +105,9 @@ home-server/
 - ✅ Follows the convention: `apps/` = running services
 
 ### Separation of Concerns
-- **`apps/agent-monitoring/`**: The running service (Docker Compose)
+- **`agents/apps/agent-monitoring/`**: The running service (Docker Compose)
 - **`agents/`**: Agent system documentation, memory, registry, tasks
-- **`server-management-mcp/`**: MCP server and tools
+- **`agents/apps/agent-mcp/`**: MCP server and tools
 
 ### Benefits
 1. **Clear Ownership**: Service code lives with the service
@@ -125,8 +125,8 @@ The `agents/` directory can reference the monitoring service:
 ```markdown
 # agents/docs/README.md
 ## Agent Monitoring
-- **Dashboard**: `apps/agent-monitoring/` - Real-time agent activity dashboard
-- **Documentation**: `apps/agent-monitoring/README.md`
+- **Dashboard**: `agents/apps/agent-monitoring/` - Real-time agent activity dashboard
+- **Documentation**: `agents/apps/agent-monitoring/README.md`
 - **Access**: http://agent-dashboard.server.unarmedpuppy.com
 ```
 
@@ -135,7 +135,7 @@ The `agents/` directory can reference the monitoring service:
 The Python activity logger can be imported by MCP tools:
 
 ```python
-# server-management-mcp/tools/activity_monitoring.py
+# agents/apps/agent-mcp/tools/activity_monitoring.py
 from agents.monitoring.activity_logger import log_action
 
 @server.tool()
@@ -146,9 +146,9 @@ async def docker_list_containers(...):
 ```
 
 **Note**: The activity logger Python module can be:
-- Option A: In `apps/agent-monitoring/activity_logger/` (as shown above)
+- Option A: In `agents/apps/agent-monitoring/activity_logger/` (as shown above)
 - Option B: In `agents/monitoring/activity_logger/` (if we want it in agents/)
-- Option C: In `server-management-mcp/tools/activity_logger/` (if it's MCP-specific)
+- Option C: In `agents/apps/agent-mcp/tools/activity_logger/` (if it's MCP-specific)
 
 **Recommendation**: Option A - Keep it with the service, but make it importable from MCP tools via Python path or package installation.
 
@@ -225,7 +225,7 @@ agents/
 
 ## Recommendation
 
-**Use `apps/agent-monitoring/`** because:
+**Use `agents/apps/agent-monitoring/`** because:
 1. Follows established project patterns
 2. Works with existing Docker scripts
 3. Consistent with other services
@@ -239,11 +239,11 @@ The `agents/` directory remains focused on:
 - Tasks (markdown files)
 - Agent definitions
 
-While `apps/agent-monitoring/` is the running service that monitors all of the above.
+While `agents/apps/agent-monitoring/` is the running service that monitors all of the above.
 
 ---
 
 **Status**: Structure Proposal
-**Location**: `apps/agent-monitoring/` (recommended)
+**Location**: `agents/apps/agent-monitoring/` (recommended)
 **Alternative**: `agents/monitoring/` (if preferred)
 

@@ -23,7 +23,7 @@ A working MCP (Model Context Protocol) server with Docker management tools that 
 ## Installation
 
 ```bash
-cd server-management-mcp
+cd agents/apps/agent-mcp
 pip install -r requirements.txt
 ```
 
@@ -61,7 +61,7 @@ The server will communicate via stdin/stdout (for MCP clients).
   "mcpServers": {
     "home-server": {
       "command": "python",
-      "args": ["/absolute/path/to/home-server/server-management-mcp/server.py"],
+      "args": ["/absolute/path/to/home-server/agents/apps/agent-mcp/server.py"],
       "env": {
         "SONARR_API_KEY": "dd7148e5a3dd4f7aa0c579194f45edff",
         "RADARR_API_KEY": "afb58cf1eaee44208099b403b666e29c"
@@ -94,7 +94,7 @@ You can now ask Claude:
 ## Project Structure
 
 ```
-server-management-mcp/
+agents/apps/agent-mcp/
 ├── server.py              # Main MCP server entry point
 ├── config/
 │   └── settings.py        # Configuration management
@@ -114,7 +114,7 @@ server-management-mcp/
 
 ### "Module not found" errors
 - Install dependencies: `pip install -r requirements.txt`
-- Make sure you're running from the `server-management-mcp` directory
+- Make sure you're running from the `agents/apps/agent-mcp` directory
 
 ### MCP connection issues
 - Verify the Python path in Claude Desktop config is absolute

@@ -28,7 +28,7 @@ update_agent_status(
 - `get_agent_status(agent_id)` - Check your current status
 - `end_agent_session(agent_id, session_id, tasks_completed, tools_called, total_duration_ms)` - End session when done
 
-**See**: `apps/agent-monitoring/README.md` for dashboard access and `apps/agent-monitoring/INTEGRATION_GUIDE.md` for complete integration guide.
+**See**: `agents/apps/agent-monitoring/README.md` for dashboard access and `agents/apps/agent-monitoring/INTEGRATION_GUIDE.md` for complete integration guide.
 
 ### 1. Check Memory First ⚡
 Query previous decisions and patterns to learn from past work:
@@ -127,7 +127,7 @@ get_skill_activation_reminder(context_summary="Brief summary of your work")
 ```
 
 **Then review relevant skills:**
-- Read `server-management-skills/README.md` for complete catalog
+- Read `agents/skills/README.md` for complete catalog
 - Load and review suggested skills BEFORE implementing
 - Skills provide tested workflows that prevent mistakes
 
@@ -145,7 +145,7 @@ get_skill_activation_reminder(context_summary="Brief summary of your work")
 **Why**: Use tested workflows. Don't reinvent common processes. Skills prevent mistakes and ensure consistency.
 
 ### 4. Check MCP Tools 🔧
-Review `server-management-mcp/README.md` for available operations:
+Review `agents/apps/agent-mcp/README.md` for available operations:
 
 **⚠️ CRITICAL: Prioritize Observable Tools**
 **Always prefer MCP tools over custom commands** - MCP tools are automatically logged and visible in the agent monitoring dashboard. Custom commands are invisible!
@@ -333,7 +333,7 @@ cat agents/memory/memory/export/decisions/*.md
 
 ## Skills - How to Use
 
-**Location**: `server-management-skills/README.md`
+**Location**: `agents/skills/README.md`
 
 **What Skills Provide:**
 - Complete workflows for common tasks
@@ -348,7 +348,7 @@ cat agents/memory/memory/export/decisions/*.md
 - `deploy-new-service` - New service setup
 
 **How to Use:**
-1. Review `server-management-skills/README.md` for skills matching your task
+1. Review `agents/skills/README.md` for skills matching your task
 2. Follow the skill's workflow step-by-step
 3. Skills automatically use MCP tools correctly
 
@@ -364,7 +364,7 @@ If you identify a reusable workflow pattern:
 4. Proposal reviewed and approved
 5. Skill added to catalog
 
-**See**: `server-management-skills/CREATING_SKILLS.md` for complete guide.
+**See**: `agents/skills/CREATING_SKILLS.md` for complete guide.
 
 ## Task Coordination - How to Use
 
@@ -423,7 +423,7 @@ my_tasks = query_tasks(assignee="agent-001", status="in_progress")
 
 ## MCP Tools - How to Use
 
-**Location**: `server-management-mcp/README.md`
+**Location**: `agents/apps/agent-mcp/README.md`
 
 **What MCP Tools Provide:**
 - Individual operations (check status, restart, view logs)
@@ -444,7 +444,7 @@ my_tasks = query_tasks(assignee="agent-001", status="in_progress")
 **How to Use:**
 - **If you have MCP access**: Use tools directly via MCP interface (preferred)
 - **If no MCP access**: 
-  - Reference `server-management-mcp/README.md` for tool documentation
+  - Reference `agents/apps/agent-mcp/README.md` for tool documentation
   - For memory operations, use fallback methods (see Memory System section above)
   - For other operations, use SSH commands via `scripts/connect-server.sh`
 
@@ -597,12 +597,12 @@ Check:
 - Read: `read_dev_docs()` - Read dev docs at session start to refresh context
 
 ### Key Files
-- **Agent Monitoring**: `apps/agent-monitoring/README.md` ⭐ **See this for monitoring dashboard**
-- **Monitoring Integration**: `apps/agent-monitoring/INTEGRATION_GUIDE.md` ⭐ **See this for how to be observed**
+- **Agent Monitoring**: `agents/apps/agent-monitoring/README.md` ⭐ **See this for monitoring dashboard**
+- **Monitoring Integration**: `agents/apps/agent-monitoring/INTEGRATION_GUIDE.md` ⭐ **See this for how to be observed**
 - **Communication**: `agents/communication/README.md` ⭐ **See this for agent communication**
 - **Communication Protocol**: `agents/communication/protocol.md` ⭐ **See this for protocol specification**
-- Skills: `server-management-skills/README.md`
-- MCP Tools: `server-management-mcp/README.md`
+- Skills: `agents/skills/README.md`
+- MCP Tools: `agents/apps/agent-mcp/README.md`
 - Task Coordination: `agents/tasks/README.md` ⭐ **See this for task management**
 - Memory Guide: `agents/memory/MCP_TOOLS_GUIDE.md`
 - Memory Examples: `agents/memory/MEMORY_USAGE_EXAMPLES.md` ⭐ **See this for real-world examples**
@@ -1049,7 +1049,7 @@ read_agent_doc(agent_id="agent-001", doc_type="plan", doc_name="feature-x-implem
 - ✅ **Error handling** - Workflows that include troubleshooting steps
 
 **When**: After completing a workflow that you anticipate needing again
-**How**: Create a skill in `server-management-skills/` following the skill template
+**How**: Create a skill in `agents/skills/` following the skill template
 
 **Examples**:
 - Deployment workflows → `standard-deployment` skill
@@ -1063,7 +1063,7 @@ read_agent_doc(agent_id="agent-001", doc_type="plan", doc_name="feature-x-implem
 - ✅ **Frequently needed** - Operations you'll use multiple times
 
 **When**: After identifying an operation that should be standardized and reusable
-**How**: Add tool to `server-management-mcp/tools/` and update `server-management-mcp/README.md`
+**How**: Add tool to `agents/apps/agent-mcp/tools/` and update `agents/apps/agent-mcp/README.md`
 
 **Examples**:
 - Container management → `docker_restart_container`, `docker_container_status`
@@ -1082,10 +1082,10 @@ After completing work:
 │   └─→ YES: Store in memory (memory_record_pattern)
 │
 ├─→ Created a reusable workflow?
-│   └─→ YES: Create skill (server-management-skills/)
+│   └─→ YES: Create skill (agents/skills/)
 │
 └─→ Identified a reusable operation?
-    └─→ YES: Add MCP tool (server-management-mcp/tools/)
+    └─→ YES: Add MCP tool (agents/apps/agent-mcp/tools/)
 ```
 
 **Remember**: 

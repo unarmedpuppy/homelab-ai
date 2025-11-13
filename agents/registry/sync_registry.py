@@ -3,7 +3,7 @@ Sync Agent Registry from Monitoring DB and Definition Files
 
 This script generates the agent-registry.md file from:
 1. Agent definitions (agents/registry/agent-definitions/*.md)
-2. Monitoring DB status (apps/agent-monitoring/data/agent_activity.db)
+2. Monitoring DB status (agents/apps/agent-monitoring/data/agent_activity.db)
 3. Active/archive directories (agents/active/, agents/archive/)
 
 The monitoring DB is the source of truth for agent status.
@@ -185,7 +185,7 @@ Master registry of all agents (active, ready, and archived).
 
 **⚠️ NOTE**: This file is auto-generated from:
 - Agent definitions (`agents/registry/agent-definitions/`)
-- Monitoring DB (`apps/agent-monitoring/data/agent_activity.db`)
+- Monitoring DB (`agents/apps/agent-monitoring/data/agent_activity.db`)
 - Active/archive directories
 
 **Source of Truth**: Monitoring DB for status, Definition files for metadata.

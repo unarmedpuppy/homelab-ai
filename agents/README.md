@@ -86,7 +86,7 @@ Central task registry for coordinating work:
 
 These are at the repository root (shared infrastructure):
 
-- **`server-management-mcp/`** - MCP server with 68 tools
+- **`agents/apps/agent-mcp/`** - MCP server with 68 tools
   - Activity monitoring (4 tools)
   - Agent communication (5 tools)
   - Memory tools (9 tools)
@@ -95,7 +95,7 @@ These are at the repository root (shared infrastructure):
   - Skill management tools (5 tools)
   - Server management tools (33 tools)
 
-- **`server-management-skills/`** - Reusable workflow skills
+- **`agents/skills/`** - Reusable workflow skills
   - Skills catalog
   - Skill creation workflow
   - 7 implemented skills
@@ -223,12 +223,12 @@ query_agent_registry(specialization="database")
 
 ### I Need to Find Something
 
-- **Tools**: `docs/MCP_TOOL_DISCOVERY.md` or `server-management-mcp/README.md`
-- **Workflows**: `server-management-skills/README.md`
+- **Tools**: `docs/MCP_TOOL_DISCOVERY.md` or `agents/apps/agent-mcp/README.md`
+- **Workflows**: `agents/skills/README.md`
 - **Memory**: `memory/README.md`
 - **Tasks**: `tasks/README.md`
 - **Communication**: `communication/README.md`
-- **Monitoring**: `apps/agent-monitoring/README.md`
+- **Monitoring**: `agents/apps/agent-monitoring/README.md`
 
 ### I'm Working on Server Management
 

@@ -22,7 +22,7 @@ DB_PATH = PROJECT_ROOT / "apps" / "agent-monitoring" / "data" / "agent_activity.
 ```
 
 When MCP server runs locally:
-- Activity logger writes to: `/Users/joshuajenquist/repos/personal/home-server/apps/agent-monitoring/data/agent_activity.db` (local)
+- Activity logger writes to: `/Users/joshuajenquist/repos/personal/home-server/agents/apps/agent-monitoring/data/agent_activity.db` (local)
 - Backend reads from: `/data/agent_activity.db` in Docker container (server)
 
 **These are two different files!**
@@ -41,7 +41,7 @@ When MCP server runs locally:
 
 #### Step 1: Add HTTP Client to Activity Logger
 
-Create `apps/agent-monitoring/activity_logger/http_client.py`:
+Create `agents/apps/agent-monitoring/activity_logger/http_client.py`:
 ```python
 """HTTP client for activity logger to send data to backend API."""
 import requests
@@ -82,7 +82,7 @@ def log_action_via_api(
 
 #### Step 2: Update Activity Logger to Use API
 
-Modify `apps/agent-monitoring/activity_logger/activity_logger.py`:
+Modify `agents/apps/agent-monitoring/activity_logger/activity_logger.py`:
 - Add `AGENT_MONITORING_API_URL` environment variable support
 - Change `log_action()` to try API first, fallback to SQLite
 - Update `update_agent_status()` to use API

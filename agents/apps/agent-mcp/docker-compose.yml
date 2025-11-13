@@ -3,7 +3,7 @@ version: "3.8"
 services:
   mcp-server:
     build: .
-    container_name: server-management-mcp
+    container_name: agent-mcp
     restart: unless-stopped
     # Access to Docker socket for docker commands
     volumes:

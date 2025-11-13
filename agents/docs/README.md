@@ -97,14 +97,14 @@ This directory contains all documentation related to AI agent workflows, prompts
 - **5 MCP tools** for sending/receiving messages between agents
 
 ### Agent Monitoring
-- `apps/agent-monitoring/README.md` ⭐ - Dashboard overview and setup
-- `apps/agent-monitoring/INTEGRATION_GUIDE.md` ⭐ - Complete integration guide
+- `agents/apps/agent-monitoring/README.md` ⭐ - Dashboard overview and setup
+- `agents/apps/agent-monitoring/INTEGRATION_GUIDE.md` ⭐ - Complete integration guide
 - **Dashboard**: http://localhost:3012 or https://agent-dashboard.server.unarmedpuppy.com
 - **Grafana**: http://localhost:3011 (admin/admin123)
 
 ### Skills & Tools
-- `server-management-skills/README.md` - Reusable workflow skills
-- `server-management-mcp/README.md` - MCP tools catalog (68 tools, including 4 activity monitoring tools and 5 communication tools)
+- `agents/skills/README.md` - Reusable workflow skills
+- `agents/apps/agent-mcp/README.md` - MCP tools catalog (68 tools, including 4 activity monitoring tools and 5 communication tools)
 
 ### Architecture & System Documentation
 - `agents/docs/COMPLETE_SYSTEM_VISUALIZATION.md` ⭐⭐⭐ - **Complete visual guide with Mermaid diagrams**

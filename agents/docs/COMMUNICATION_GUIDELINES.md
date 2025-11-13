@@ -163,7 +163,7 @@ memory_record_pattern(
 
 ---
 
-### 4. Monitoring System (`apps/agent-monitoring/`)
+### 4. Monitoring System (`agents/apps/agent-monitoring/`)
 
 **Purpose**: Real-time visibility into agent activity, status, and progress.
 
@@ -203,7 +203,7 @@ end_agent_session(
 )
 ```
 
-**See**: `apps/agent-monitoring/README.md` for complete guide.
+**See**: `agents/apps/agent-monitoring/README.md` for complete guide.
 
 ---
 
@@ -270,7 +270,7 @@ Need to coordinate with other agents?
 │       └─→ memory_record_decision(), memory_query_patterns()
 │
 ├─→ Status/Activity Visibility?
-│   └─→ Use Monitoring System (apps/agent-monitoring/)
+│   └─→ Use Monitoring System (agents/apps/agent-monitoring/)
 │       └─→ update_agent_status(), start_agent_session()
 │
 └─→ Agent Discovery/Management?
@@ -337,7 +337,7 @@ Need to coordinate with other agents?
 **New Approach**:
 - **Tasks** → Use task coordination registry (`agents/tasks/registry.md`)
 - **Communication** → Use communication protocol (`agents/communication/`)
-- **Status** → Use monitoring system (`apps/agent-monitoring/`)
+- **Status** → Use monitoring system (`agents/apps/agent-monitoring/`)
 
 **When to Keep Per-Agent Files**:
 - Agent-specific notes/work (not for coordination)
@@ -404,5 +404,5 @@ Need to coordinate with other agents?
 - `agents/tasks/README.md` - Task coordination guide
 - `agents/communication/README.md` - Communication protocol guide
 - `agents/memory/README.md` - Memory system guide
-- `apps/agent-monitoring/README.md` - Monitoring system guide
+- `agents/apps/agent-monitoring/README.md` - Monitoring system guide
 

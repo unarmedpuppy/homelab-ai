@@ -21,8 +21,8 @@
 **Status**: ✅ Implemented
 
 **What Was Added**:
-- ✅ `server-management-skills/CREATING_SKILLS.md` - Comprehensive agent guide
-- ✅ `server-management-skills/proposals/` - Skill proposals directory
+- ✅ `agents/skills/CREATING_SKILLS.md` - Comprehensive agent guide
+- ✅ `agents/skills/proposals/` - Skill proposals directory
 - ✅ MCP tool: `propose_skill()` - Create skill proposal
 - ✅ MCP tool: `list_skill_proposals()` - List proposals
 - ✅ MCP tool: `query_skills()` - Query existing skills
@@ -44,7 +44,7 @@
 **Status**: ✅ Implemented (Full monitoring dashboard system)
 
 **What Was Added**:
-- ✅ `apps/agent-monitoring/` - Complete monitoring system (Backend, Frontend, Grafana, InfluxDB)
+- ✅ `agents/apps/agent-monitoring/` - Complete monitoring system (Backend, Frontend, Grafana, InfluxDB)
 - ✅ **4 Activity Monitoring MCP tools**:
   - `start_agent_session(agent_id)` - Start monitoring session
   - `update_agent_status(agent_id, status, current_task_id, progress, blockers)` - Update status

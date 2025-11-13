@@ -20,7 +20,7 @@ from tools.logging_decorator import with_automatic_logging
 
 
 # Paths
-SKILLS_DIR = project_root / "server-management-skills"
+SKILLS_DIR = project_root / "agents" / "skills"
 SKILLS_README = SKILLS_DIR / "README.md"
 
 
@@ -257,9 +257,9 @@ def register_skill_activation_tools(server: Server):
         if not relevant_skills:
             return {
                 "status": "success",
-                "message": "No relevant skills found for current context. Check server-management-skills/README.md for all available skills.",
+                "message": "No relevant skills found for current context. Check agents/skills/README.md for all available skills.",
                 "skills": [],
-                "suggestion": "Review server-management-skills/README.md to see all available skills."
+                "suggestion": "Review agents/skills/README.md to see all available skills."
             }
         
         # Format skill activation reminder
@@ -320,7 +320,7 @@ def register_skill_activation_tools(server: Server):
         if not relevant_skills:
             return {
                 "status": "success",
-                "reminder": "No specific skills match your context. Review server-management-skills/README.md for all available skills.",
+                "reminder": "No specific skills match your context. Review agents/skills/README.md for all available skills.",
                 "skills": []
             }
         

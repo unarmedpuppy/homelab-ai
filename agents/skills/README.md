@@ -4,7 +4,7 @@ A library of reusable workflows for managing the home server infrastructure. Ski
 
 ## Overview
 
-**Skills** are reusable workflows that combine MCP tools into complete operations. They complement the [MCP Server tools](../server-management-mcp/README.md) by providing step-by-step guidance for common tasks.
+**Skills** are reusable workflows that combine MCP tools into complete operations. They complement the [MCP Server tools](../agents/apps/agent-mcp/README.md) by providing step-by-step guidance for common tasks.
 
 ### Skills vs MCP Tools
 
@@ -41,7 +41,7 @@ For common workflows, use these skills instead of manual steps:
 - **`troubleshoot-container-failure`** - Diagnose container issues
 - **`system-health-check`** - Comprehensive system verification
 
-See `server-management-skills/README.md` for complete catalog.
+See `agents/skills/README.md` for complete catalog.
 ```
 
 ## Skills Catalog
@@ -235,8 +235,8 @@ If no → Use MCP tools directly
 ### Step 2: Create Skill Structure
 
 ```bash
-mkdir -p server-management-skills/my-skill-name
-touch server-management-skills/my-skill-name/SKILL.md
+mkdir -p agents/skills/my-skill-name
+touch agents/skills/my-skill-name/SKILL.md
 ```
 
 ### Step 3: Write Skill Definition
@@ -311,7 +311,7 @@ When creating new skills:
 
 ## References
 
-- **MCP Tools**: [server-management-mcp/README.md](../server-management-mcp/README.md)
+- **MCP Tools**: [agents/apps/agent-mcp/README.md](../agents/apps/agent-mcp/README.md)
 - **Skills Proposal**: [apps/docs/SKILLS_PROPOSAL.md](../apps/docs/SKILLS_PROPOSAL.md)
 - **Claude Skills Pattern**: [awesome-claude-skills](https://github.com/unarmedpuppy/awesome-claude-skills)
 

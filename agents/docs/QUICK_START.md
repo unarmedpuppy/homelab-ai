@@ -48,7 +48,7 @@ memory_search("your task keywords")
 
 ### Step 3: Check Skills (1 minute)
 
-Review `server-management-skills/README.md` for workflows:
+Review `agents/skills/README.md` for workflows:
 - `standard-deployment` - Deploy code changes
 - `troubleshoot-container-failure` - Diagnose issues
 - `system-health-check` - System verification
@@ -57,7 +57,7 @@ Review `server-management-skills/README.md` for workflows:
 
 ### Step 4: Check MCP Tools (1 minute)
 
-Review `server-management-mcp/README.md` for available tools (68 tools total).
+Review `agents/apps/agent-mcp/README.md` for available tools (68 tools total).
 
 **⚠️ CRITICAL**: Always prefer MCP tools over custom commands - they're observable!
 
@@ -74,7 +74,7 @@ Review `server-management-mcp/README.md` for available tools (68 tools total).
 - **Memory**: `agents/memory/README.md` - Store/query decisions and patterns
 - **Tasks**: `agents/tasks/README.md` - Task coordination
 - **Communication**: `agents/communication/README.md` - Agent messaging
-- **Monitoring**: `apps/agent-monitoring/README.md` - Activity dashboard
+- **Monitoring**: `agents/apps/agent-monitoring/README.md` - Activity dashboard
 
 ## 🛠️ Common Operations
 
@@ -138,8 +138,8 @@ docker_compose_restart(app_path="apps/my-app", service="my-service")
 0. **Start Monitoring** → `start_agent_session()`
 1. **Check Messages** → `get_agent_messages()`
 2. **Check Memory** → `memory_query_*()`
-3. **Check Skills** → `server-management-skills/README.md`
-4. **Check MCP Tools** → `server-management-mcp/README.md`
+3. **Check Skills** → `agents/skills/README.md`
+4. **Check MCP Tools** → `agents/apps/agent-mcp/README.md`
 5. **Create New** → Only if nothing exists
 
 ## 📖 Next Steps

@@ -33,7 +33,7 @@ A comprehensive review and improvement effort was completed across all agent sys
 
 **Files Created/Modified**:
 - `agents/registry/sync_registry.py` (NEW)
-- `server-management-mcp/tools/agent_management.py` (added sync tool)
+- `agents/apps/agent-mcp/tools/agent_management.py` (added sync tool)
 
 **Impact**: Eliminates status inconsistency, single source of truth
 
@@ -85,7 +85,7 @@ A comprehensive review and improvement effort was completed across all agent sys
 **Solution**:
 - ✅ Created `archive/` directory for completed proposals/plans
 - ✅ Moved implemented proposals to archive:
-  - `AGENT_DASHBOARD_PROPOSAL.md` → Implemented in `apps/agent-monitoring/`
+  - `AGENT_DASHBOARD_PROPOSAL.md` → Implemented in `agents/apps/agent-monitoring/`
   - `TASK_COORDINATION_PLAN.md` → Implemented in `agents/tasks/`
   - `TASK_COORDINATION_PHASE4.md` → Implemented
   - `AGENT_CONSOLIDATION_PLAN.md` → Partially implemented
@@ -167,7 +167,7 @@ A comprehensive review and improvement effort was completed across all agent sys
 - ✅ `AGENT_SYSTEM_REVIEW_AND_IMPROVEMENT_PLAN.md` - Updated with completion status
 - ✅ `AGENT_WORKFLOW.md` - Updated to reference new structure
 - ✅ `MCP_TOOL_DISCOVERY.md` - Updated tool counts and references
-- ✅ `server-management-mcp/README.md` - Updated tool counts
+- ✅ `agents/apps/agent-mcp/README.md` - Updated tool counts
 - ✅ All cross-references updated
 
 ### 2. Consistency Checks
@@ -292,7 +292,7 @@ A comprehensive review and improvement effort was completed across all agent sys
 - `agents/docs/SERVER_AGENT_PROMPT.md` - Streamlined (45% reduction)
 - `agents/docs/AGENT_SYSTEM_GAPS_AND_IMPROVEMENTS.md` - Updated completion status
 - `agents/docs/AGENT_SYSTEM_REVIEW_AND_IMPROVEMENT_PLAN.md` - Updated with results
-- `server-management-mcp/tools/agent_management.py` - Added sync tool
+- `agents/apps/agent-mcp/tools/agent_management.py` - Added sync tool
 
 ### Archived Files
 - `agents/docs/archive/AGENT_DASHBOARD_PROPOSAL.md`

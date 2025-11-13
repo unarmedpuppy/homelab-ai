@@ -95,8 +95,8 @@ update_agent_status(
 - `end_agent_session(agent_id, session_id, tasks_completed, tools_called, total_duration_ms)` - End session when done
 
 **See**:
-- `apps/agent-monitoring/README.md` - Dashboard overview
-- `apps/agent-monitoring/INTEGRATION_GUIDE.md` - Complete integration guide
+- `agents/apps/agent-monitoring/README.md` - Dashboard overview
+- `agents/apps/agent-monitoring/INTEGRATION_GUIDE.md` - Complete integration guide
 
 ## Agent Communication System
 
@@ -159,9 +159,9 @@ The **Server Management MCP Server** provides standardized, type-safe tools for 
 
 ### MCP Server Location
 
-- **Path**: `server-management-mcp/` (in repository root)
-- **Documentation**: `server-management-mcp/README.md`
-- **Docker Setup**: `server-management-mcp/DOCKER_SETUP.md`
+- **Path**: `agents/apps/agent-mcp/` (in repository root)
+- **Documentation**: `agents/apps/agent-mcp/README.md`
+- **Docker Setup**: `agents/apps/agent-mcp/DOCKER_SETUP.md`
 - **Plan**: `apps/docs/MCP_SERVER_PLAN.md`
 
 ### Available Tool Categories
@@ -192,8 +192,8 @@ The **Server Management MCP Server** provides standardized, type-safe tools for 
 - Type-safe with clear parameters and return values
 
 **If you don't have MCP access**:
-- Check `server-management-mcp/tools/` for available tools
-- Reference `server-management-mcp/README.md` for tool documentation
+- Check `agents/apps/agent-mcp/tools/` for available tools
+- Reference `agents/apps/agent-mcp/README.md` for tool documentation
 - Consider implementing the operation as a new MCP tool if it doesn't exist
 
 ### Tool Discovery Workflow
@@ -201,8 +201,8 @@ The **Server Management MCP Server** provides standardized, type-safe tools for 
 **When you need to perform a server operation:**
 
 1. **First**: Check if an MCP tool exists for this operation
-   - Review `server-management-mcp/tools/` modules
-   - Check `server-management-mcp/README.md` for tool list
+   - Review `agents/apps/agent-mcp/tools/` modules
+   - Check `agents/apps/agent-mcp/README.md` for tool list
    - Look for similar operations in existing tools
 
 2. **If tool exists**: Use the MCP tool (preferred method)
@@ -214,12 +214,12 @@ The **Server Management MCP Server** provides standardized, type-safe tools for 
    - **Test your approach first** using SSH commands or direct execution
    - **Verify the approach works** and produces expected results
    - **If the operation should be reusable** (common task, will be used again, benefits from standardization):
-     - **Create the tool** in the MCP server (`server-management-mcp/tools/`)
-     - Follow the pattern in existing tools (see `server-management-mcp/tools/docker.py` for examples)
+     - **Create the tool** in the MCP server (`agents/apps/agent-mcp/tools/`)
+     - Follow the pattern in existing tools (see `agents/apps/agent-mcp/tools/docker.py` for examples)
      - Use `@server.tool()` decorator
      - Add proper error handling and return types
-     - Register the tool in `server-management-mcp/server.py`
-     - Update `server-management-mcp/README.md` with the new tool
+     - Register the tool in `agents/apps/agent-mcp/server.py`
+     - Update `agents/apps/agent-mcp/README.md` with the new tool
      - **Then use your new tool** for the operation
    - **If it's truly a one-off operation**: Use SSH commands as fallback and document why it's not an MCP tool
 
@@ -278,7 +278,7 @@ Need to perform server operation?
 - `radarr_clear_queue` - Clear Radarr queue
 - And more...
 
-**See**: `server-management-mcp/README.md` for complete tool list (62 tools total) and usage examples.
+**See**: `agents/apps/agent-mcp/README.md` for complete tool list (62 tools total) and usage examples.
 
 ### Task Coordination System
 
@@ -678,7 +678,7 @@ apps/[app-name]/
   - `docker_compose_restart` - Restart docker-compose services
 - **And 50+ more tools** - All observable in monitoring dashboard
 
-**See**: `server-management-mcp/README.md` for complete tool reference (62 tools total).
+**See**: `agents/apps/agent-mcp/README.md` for complete tool reference (62 tools total).
 
 ### SSH Commands (Fallback - NOT Observable!)
 
@@ -798,7 +798,7 @@ memory_save_context(
 **See**: 
 - `agents/memory/README.md` - Complete guide
 - `agents/memory/MEMORY_USAGE_EXAMPLES.md` - Real-world usage examples and best practices ⭐
-- `server-management-mcp/README.md` - Memory tool reference
+- `agents/apps/agent-mcp/README.md` - Memory tool reference
 
 ### ⚠️ Fallback: When MCP Tools Aren't Available
 
@@ -952,7 +952,7 @@ Check agent status:
 
 ### Available Skills
 
-Skills are reusable workflows located in `server-management-skills/`. They provide step-by-step guidance for common tasks:
+Skills are reusable workflows located in `agents/skills/`. They provide step-by-step guidance for common tasks:
 
 #### Deployment Skills
 - **`standard-deployment`** - Complete deployment workflow (verify → deploy → restart → verify)
@@ -973,7 +973,7 @@ Skills are reusable workflows located in `server-management-skills/`. They provi
   - **Use when**: Regular maintenance, after changes, troubleshooting
   - **MCP Tools**: `check_disk_space`, `check_system_resources`, `docker_list_containers`
 
-**See**: `server-management-skills/README.md` for complete skills catalog.
+**See**: `agents/skills/README.md` for complete skills catalog.
 
 ### When to Use Skills vs MCP Tools
 
@@ -984,7 +984,7 @@ Skills are reusable workflows located in `server-management-skills/`. They provi
 ### Skill Discovery Workflow
 
 1. **Check if a skill exists** for your workflow
-   - Review `server-management-skills/README.md`
+   - Review `agents/skills/README.md`
    - Look for skills matching your task
 
 2. **If skill exists**: Use the skill (preferred)
@@ -1003,8 +1003,8 @@ When working on a new task:
 0. ✅ **Start monitoring session** - `start_agent_session(agent_id)` - CRITICAL: Do this first!
 1. ✅ **Update agent status** - `update_agent_status(agent_id, status="active", ...)` - Make yourself visible
 2. ✅ **Read this prompt and relevant README files** - Understand context and requirements
-3. ✅ **Check for Skills first** - Review `server-management-skills/README.md` for workflows matching your task
-4. ✅ **Check MCP Server tools** - Review `server-management-mcp/README.md` for available tools (PREFERRED - observable!)
+3. ✅ **Check for Skills first** - Review `agents/skills/README.md` for workflows matching your task
+4. ✅ **Check MCP Server tools** - Review `agents/apps/agent-mcp/README.md` for available tools (PREFERRED - observable!)
 5. ✅ **If no skill/tool exists**: Test your approach first, then create an MCP tool or skill if reusable
 6. ✅ **Plan the approach** - Consider impact, risks, and alternatives before proceeding
 7. ✅ **Use Skills for workflows** - For common workflows (deployment, troubleshooting), use skills instead of manual steps
@@ -1023,7 +1023,7 @@ When working on a new task:
 
 If unsure about something:
 
-1. **Check MCP Server Tools First**: Review `server-management-mcp/README.md` and `server-management-mcp/tools/` for available tools
+1. **Check MCP Server Tools First**: Review `agents/apps/agent-mcp/README.md` and `agents/apps/agent-mcp/tools/` for available tools
 2. Check `apps/docs/APPS_DOCUMENTATION.md` for app details and port information
 3. Check the app's `README.md` first
 4. Check the main `README.md` for project-wide info
@@ -1070,7 +1070,7 @@ If unsure about something:
 - ✅ **Error handling** - Workflows that include troubleshooting steps
 
 **When**: After completing a workflow that you anticipate needing again
-**How**: Create a skill in `server-management-skills/` following the skill template
+**How**: Create a skill in `agents/skills/` following the skill template
 
 **Examples**:
 - Deployment workflows → `standard-deployment` skill
@@ -1084,7 +1084,7 @@ If unsure about something:
 - ✅ **Frequently needed** - Operations you'll use multiple times
 
 **When**: After identifying an operation that should be standardized and reusable
-**How**: Add tool to `server-management-mcp/tools/` and update `server-management-mcp/README.md`
+**How**: Add tool to `agents/apps/agent-mcp/tools/` and update `agents/apps/agent-mcp/README.md`
 
 **Examples**:
 - Container management → `docker_restart_container`, `docker_container_status`
@@ -1103,10 +1103,10 @@ After completing work:
 │   └─→ YES: Store in memory (memory_record_pattern)
 │
 ├─→ Created a reusable workflow?
-│   └─→ YES: Create skill (server-management-skills/)
+│   └─→ YES: Create skill (agents/skills/)
 │
 └─→ Identified a reusable operation?
-    └─→ YES: Add MCP tool (server-management-mcp/tools/)
+    └─→ YES: Add MCP tool (agents/apps/agent-mcp/tools/)
 ```
 
 **Remember**: 
