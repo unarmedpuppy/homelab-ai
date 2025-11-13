@@ -497,10 +497,11 @@ Check:
 ## Discovery Priority (In Order)
 
 0. **Start Monitoring** → Start session and update status (CRITICAL - do this first!)
-1. **Check Messages** → Check for messages from other agents (CRITICAL - do this early!)
+0.5. **Check Messages** → Check for messages from other agents (CRITICAL - do this early!)
+1. **Check Active Dev Docs** → `list_active_dev_docs()` - Continue existing work if any
 2. **Memory** → Query previous decisions and patterns
 3. **Specialized Agents** → Check registry, create if needed
-4. **Skills** → Review workflows for common tasks
+4. **Skills** → Use `suggest_relevant_skills()` to find relevant skills (CRITICAL - skills won't be used unless checked!)
 5. **MCP Tools** → Review available operations (PREFERRED - observable!)
 6. **Create New** → Only if nothing exists
 7. **Scripts** → Fallback option (not observable)
