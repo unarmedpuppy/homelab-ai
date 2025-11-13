@@ -743,8 +743,9 @@ memory_save_context(
 - Consistent error handling
 - Standardized return formats
 
-**Available Tools** (46 tools):
+**Available Tools** (49 tools):
 - **Memory management** (9 tools) - Query and record decisions, patterns, context
+- **Agent management** (3 tools) - Create specialized agents, query registry, assign tasks
 - Docker container management (8 tools)
 - Media download operations (13 tools)
 - System monitoring (5 tools)
@@ -826,30 +827,36 @@ memory_save_context(
 
 ### Primary Discovery Resources (Check First)
 
-1. **Memory Tools Guide**: `apps/agent_memory/MCP_TOOLS_GUIDE.md`
+1. **Agent Prompt**: `apps/docs/AGENT_PROMPT.md` ⭐ **START HERE**
+   - Complete, efficient prompt with everything you need
+   - Discovery workflow, memory, skills, MCP tools, agent spawning
+   - Quick reference and common operations
+   - **Read this first** - it has everything
+
+2. **Memory Tools Guide**: `apps/agent_memory/MCP_TOOLS_GUIDE.md`
    - Complete reference for 9 memory MCP tools
    - Query and record examples
    - Workflow integration patterns
-   - **Start here** - learn from past decisions
 
-2. **Skills Catalog**: `server-management-skills/README.md`
+3. **Skills Catalog**: `server-management-skills/README.md`
    - Complete workflows for common tasks
    - Step-by-step guidance using MCP tools
    - Examples and error handling
 
-3. **MCP Tools Reference**: `server-management-mcp/README.md`
-   - All available tools with parameters (46 tools total)
+4. **MCP Tools Reference**: `server-management-mcp/README.md`
+   - All available tools with parameters (49 tools total)
    - Memory tools (9 tools) documented
+   - Agent management tools (3 tools) documented
    - Usage examples
    - Tool categories
 
-4. **Tool Discovery Guide**: `apps/docs/MCP_TOOL_DISCOVERY.md`
+5. **Tool Discovery Guide**: `apps/docs/MCP_TOOL_DISCOVERY.md`
    - How to discover and use tools
    - Memory operations section
    - When to create new tools
    - Tool creation workflow
 
-5. **MCP Server Plan**: `apps/docs/MCP_SERVER_PLAN.md`
+6. **MCP Server Plan**: `apps/docs/MCP_SERVER_PLAN.md`
    - Complete tool catalog (implemented and planned)
    - Architecture and design
    - Implementation status
