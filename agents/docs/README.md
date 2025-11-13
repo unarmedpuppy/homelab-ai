@@ -70,6 +70,11 @@ This directory contains all documentation related to AI agent workflows, prompts
 - `agents/tasks/README.md` - Task coordination system guide ⭐
 - `agents/tasks/registry.md` - Central task registry
 
+### Agent Communication
+- `agents/communication/README.md` ⭐ - Complete communication guide and usage
+- `agents/communication/protocol.md` ⭐ - Communication protocol specification
+- **5 MCP tools** for sending/receiving messages between agents
+
 ### Agent Monitoring
 - `apps/agent-monitoring/README.md` ⭐ - Dashboard overview and setup
 - `apps/agent-monitoring/INTEGRATION_GUIDE.md` ⭐ - Complete integration guide
@@ -78,7 +83,7 @@ This directory contains all documentation related to AI agent workflows, prompts
 
 ### Skills & Tools
 - `server-management-skills/README.md` - Reusable workflow skills
-- `server-management-mcp/README.md` - MCP tools catalog (62 tools, including 4 activity monitoring tools)
+- `server-management-mcp/README.md` - MCP tools catalog (67 tools, including 4 activity monitoring tools and 5 communication tools)
 
 ### General Documentation
 - `apps/docs/APPS_DOCUMENTATION.md` - Application documentation

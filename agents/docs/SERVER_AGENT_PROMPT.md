@@ -94,9 +94,54 @@ update_agent_status(
 - `get_agent_status(agent_id)` - Check your current status
 - `end_agent_session(agent_id, session_id, tasks_completed, tools_called, total_duration_ms)` - End session when done
 
-**See**: 
+**See**:
 - `apps/agent-monitoring/README.md` - Dashboard overview
 - `apps/agent-monitoring/INTEGRATION_GUIDE.md` - Complete integration guide
+
+## Agent Communication System
+
+### ⚠️ CRITICAL: Check Messages Early
+
+**After starting your monitoring session, check for messages from other agents:**
+
+```python
+# Check for pending messages
+messages = await get_agent_messages(
+    agent_id="agent-001",
+    status="pending"
+)
+
+# Acknowledge urgent/high priority messages immediately
+for msg in messages["messages"]:
+    if msg["priority"] in ["urgent", "high"]:
+        await acknowledge_message(msg["message_id"], "agent-001")
+        # Respond or escalate as needed
+```
+
+**Why**: Other agents may need your help or have important information to share.
+
+**Available Communication Tools** (5 tools):
+- `send_agent_message()` - Send message to another agent
+- `get_agent_messages()` - Get messages for you (with filters)
+- `acknowledge_message()` - Acknowledge receipt
+- `mark_message_resolved()` - Mark message as resolved
+- `query_messages()` - Query messages with multiple filters
+
+**Message Types**:
+- **Request** - Ask for help/information (requires response)
+- **Response** - Reply to a request
+- **Notification** - Informational message (no response needed)
+- **Escalation** - Critical issue requiring immediate attention
+
+**Priority Response Times**:
+- **Urgent**: 15 minutes
+- **High**: 1 hour
+- **Medium**: 4 hours
+- **Low**: 24 hours
+
+**See**:
+- `agents/communication/README.md` ⭐ - Complete communication guide
+- `agents/communication/protocol.md` ⭐ - Protocol specification
 
 ## Server Management MCP Server
 
@@ -124,8 +169,9 @@ The **Server Management MCP Server** provides standardized, type-safe tools for 
 **62 Tools Total** - All observable in agent monitoring dashboard:
 
 1. **Activity Monitoring** (4 tools) - ⭐ **USE THESE FIRST** - Start sessions, update status
-2. **Memory Management** (9 tools) - Query and record decisions, patterns, context
-3. **Task Coordination** (6 tools) - Register, claim, update tasks
+2. **Agent Communication** (5 tools) - ⭐ **CHECK MESSAGES EARLY** - Send/receive messages with other agents
+3. **Memory Management** (9 tools) - Query and record decisions, patterns, context
+4. **Task Coordination** (6 tools) - Register, claim, update tasks
 4. **Agent Management** (3 tools) - Create specialized agents, query registry
 5. **Skill Management** (3 tools) - Propose and manage skills
 6. **Docker Management** (8 tools) - Container operations (list, status, restart, logs, etc.)
@@ -208,6 +254,13 @@ Need to perform server operation?
 - `update_agent_status(agent_id, status, current_task_id, progress, blockers)` - Update status
 - `get_agent_status(agent_id)` - Get current status
 - `end_agent_session(agent_id, session_id, tasks_completed, tools_called, total_duration_ms)` - End session
+
+**Agent Communication** (5 tools) - ⭐ **CHECK MESSAGES EARLY**:
+- `send_agent_message()` - Send message to another agent
+- `get_agent_messages()` - Get messages for you (with filters)
+- `acknowledge_message()` - Acknowledge receipt
+- `mark_message_resolved()` - Mark message as resolved
+- `query_messages()` - Query messages with multiple filters
 
 **Docker Management** (8 tools):
 - `docker_list_containers` - List all containers

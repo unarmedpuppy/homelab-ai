@@ -16,6 +16,14 @@ This document outlines a proven workflow for managing AI agents working on softw
    - **Why**: The agent monitoring dashboard tracks all agent activity. Without this, your work is invisible!
    - **See**: `apps/agent-monitoring/README.md` for dashboard access
 
+0.5. **Check for Messages** - Check for messages from other agents
+   - **CRITICAL**: Check for pending messages at start of session
+   - Use `get_agent_messages(agent_id, status="pending")` to get messages
+   - Acknowledge urgent/high priority messages immediately
+   - Respond to requests within priority timeframe
+   - **Why**: Other agents may need your help or have important information
+   - **See**: `agents/communication/README.md` for complete communication guide
+
 1. **Check Memory** - Query previous decisions and patterns
    - **If MCP tools available**: Use `memory_query_decisions()`, `memory_query_patterns()`, `memory_search()`
    - **If MCP tools NOT available**: Use fallback methods (direct SQLite queries or Python helpers - see Memory System section)
@@ -33,6 +41,7 @@ This document outlines a proven workflow for managing AI agents working on softw
    - **All MCP tool calls are automatically logged** and visible in the monitoring dashboard
    - **Memory tools** (9 tools) for querying and recording decisions/patterns/context
    - **Activity monitoring tools** (4 tools) for tracking your work
+   - **Communication tools** (5 tools) for sending/receiving messages with other agents
    - Tools are type-safe, tested, and documented
    - **This is how you gain capabilities** - don't write custom commands (they're not observable!)
 

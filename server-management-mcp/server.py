@@ -22,6 +22,7 @@ from tools.agent_management import register_agent_management_tools
 from tools.skill_management import register_skill_management_tools
 from tools.task_coordination import register_task_coordination_tools
 from tools.activity_monitoring import register_activity_monitoring_tools
+from tools.communication import register_communication_tools
 
 # Create MCP server instance
 server = Server("home-server-management")
@@ -39,6 +40,7 @@ register_agent_management_tools(server)
 register_skill_management_tools(server)
 register_task_coordination_tools(server)
 register_activity_monitoring_tools(server)
+register_communication_tools(server)
 
 
 async def main():

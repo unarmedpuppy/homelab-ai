@@ -6,6 +6,7 @@ This guide helps AI agents discover and use **Skills** and **MCP Tools** effecti
 
 **Discovery Priority**:
 0. **Start Agent Monitoring** - `start_agent_session()` and `update_agent_status()` - CRITICAL: Do this first!
+0.5. **Check Messages** - `get_agent_messages()` - CRITICAL: Check for messages from other agents!
 1. **Memory** - Query previous decisions and patterns
 2. **Specialized Agents** - Check if agent exists for your task
 3. **Skills** (workflows) - Check `server-management-skills/README.md`
@@ -119,9 +120,45 @@ Use SSH commands via `scripts/connect-server.sh` as documented in `agents/docs/S
 
 **Why Critical**: Without these tools, your work is invisible in the agent monitoring dashboard!
 
-**See**: 
+**See**:
 - `apps/agent-monitoring/README.md` - Dashboard overview
 - `apps/agent-monitoring/INTEGRATION_GUIDE.md` - Complete integration guide
+
+### Agent Communication ✅ (Available - CHECK MESSAGES EARLY!)
+
+**Location**: `server-management-mcp/tools/communication.py`
+
+**Available Tools**:
+- `send_agent_message()` - Send message to another agent
+- `get_agent_messages()` - Get messages for you (with filters)
+- `acknowledge_message()` - Acknowledge receipt of message
+- `mark_message_resolved()` - Mark message as resolved
+- `query_messages()` - Query messages with multiple filters
+
+**Use Cases**:
+- Requesting help from other agents
+- Responding to requests
+- Sharing important findings
+- Escalating critical issues
+- Coordinating on shared tasks
+
+**Why Critical**: Other agents may need your help or have important information to share!
+
+**Message Types**:
+- **Request** - Ask for help/information (requires response)
+- **Response** - Reply to a request
+- **Notification** - Informational message (no response needed)
+- **Escalation** - Critical issue requiring immediate attention
+
+**Priority Levels**:
+- **Urgent** - 15 minute response time
+- **High** - 1 hour response time
+- **Medium** - 4 hour response time
+- **Low** - 24 hour response time
+
+**See**:
+- `agents/communication/README.md` ⭐ - Complete communication guide
+- `agents/communication/protocol.md` ⭐ - Protocol specification
 
 ### Docker Management ✅ (Available)
 
@@ -499,6 +536,7 @@ cat agents/memory/memory/export/decisions/*.md
 | Category | Status | Tools Available |
 |----------|--------|----------------|
 | **Activity Monitoring** | ✅ Complete | **4 tools** ⭐ **USE THESE FIRST!** |
+| **Agent Communication** | ✅ Complete | **5 tools** ⭐ **CHECK MESSAGES EARLY!** |
 | Memory Management | ✅ Complete | 9 tools |
 | Task Coordination | ✅ Complete | 6 tools |
 | Agent Management | ✅ Complete | 3 tools |
@@ -518,7 +556,7 @@ cat agents/memory/memory/export/decisions/*.md
 | Application-Specific | ⏳ Planned | 0 tools (planned: 12) |
 | Backup & Restore | ⏳ Planned | 0 tools (planned: 4) |
 
-**Total**: 62 tools implemented, 60+ tools planned = 122+ total tools
+**Total**: 67 tools implemented, 60+ tools planned = 127+ total tools
 
 **⚠️ IMPORTANT**: All MCP tools are automatically logged and visible in the agent monitoring dashboard. Always use MCP tools when available - they're observable!
 

@@ -58,6 +58,34 @@ sqlite3 memory.db "SELECT * FROM patterns WHERE severity='high' LIMIT 5;"
 
 **Why**: Don't repeat past decisions. Learn from what worked before.
 
+### 1.5. Check for Messages 📬
+**CRITICAL**: Check for messages from other agents at the start of your session:
+
+```python
+# Get pending messages for you
+messages = await get_agent_messages(
+    agent_id="agent-001",
+    status="pending"
+)
+
+# Acknowledge urgent/high priority messages immediately
+for msg in messages["messages"]:
+    if msg["priority"] in ["urgent", "high"]:
+        await acknowledge_message(msg["message_id"], "agent-001")
+        # Respond or escalate as needed
+```
+
+**Why**: Other agents may need your help or have important information to share.
+
+**Available Communication Tools** (5 tools):
+- `send_agent_message()` - Send message to another agent
+- `get_agent_messages()` - Get messages for you (with filters)
+- `acknowledge_message()` - Acknowledge receipt
+- `mark_message_resolved()` - Mark message as resolved
+- `query_messages()` - Query messages with multiple filters
+
+**See**: `agents/communication/README.md` for complete communication guide and `agents/communication/protocol.md` for protocol specification.
+
 ### 2. Check for Specialized Agents 🤖
 If your task requires domain expertise:
 
@@ -445,13 +473,14 @@ Check:
 ## Discovery Priority (In Order)
 
 0. **Start Monitoring** → Start session and update status (CRITICAL - do this first!)
-1. **Memory** → Query previous decisions and patterns
-2. **Specialized Agents** → Check registry, create if needed
-3. **Skills** → Review workflows for common tasks
-4. **MCP Tools** → Review available operations (PREFERRED - observable!)
-5. **Create New** → Only if nothing exists
-6. **Scripts** → Fallback option (not observable)
-7. **SSH Commands** → Last resort (not observable)
+1. **Check Messages** → Check for messages from other agents (CRITICAL - do this early!)
+2. **Memory** → Query previous decisions and patterns
+3. **Specialized Agents** → Check registry, create if needed
+4. **Skills** → Review workflows for common tasks
+5. **MCP Tools** → Review available operations (PREFERRED - observable!)
+6. **Create New** → Only if nothing exists
+7. **Scripts** → Fallback option (not observable)
+8. **SSH Commands** → Last resort (not observable)
 
 **⚠️ IMPORTANT**: Always use MCP tools when available - they are automatically logged and visible in the agent monitoring dashboard. Custom commands and scripts are NOT observable!
 
@@ -517,9 +546,18 @@ Check:
 - Update: `update_task_status()` - Update status (auto-updates dependents)
 - Check: `check_task_dependencies()` - Check dependency status
 
+### Communication Tools (NEW!)
+- Send: `send_agent_message()` - Send message to another agent
+- Get: `get_agent_messages()` - Get messages for you (with filters)
+- Acknowledge: `acknowledge_message()` - Acknowledge receipt
+- Resolve: `mark_message_resolved()` - Mark message as resolved
+- Query: `query_messages()` - Query messages with multiple filters
+
 ### Key Files
 - **Agent Monitoring**: `apps/agent-monitoring/README.md` ⭐ **See this for monitoring dashboard**
 - **Monitoring Integration**: `apps/agent-monitoring/INTEGRATION_GUIDE.md` ⭐ **See this for how to be observed**
+- **Communication**: `agents/communication/README.md` ⭐ **See this for agent communication**
+- **Communication Protocol**: `agents/communication/protocol.md` ⭐ **See this for protocol specification**
 - Skills: `server-management-skills/README.md`
 - MCP Tools: `server-management-mcp/README.md`
 - Task Coordination: `agents/tasks/README.md` ⭐ **See this for task management**
@@ -530,12 +568,14 @@ Check:
 ## Important Principles
 
 0. **Be Observable** - Always use activity monitoring tools so your work is visible
-1. **Memory First** - Always query memory before making decisions
-2. **Use What Exists** - Skills and tools are your primary knowledge base
-3. **Don't Reinvent** - Use existing workflows and operations
-4. **Record Everything** - Document decisions and patterns in memory
-5. **Delegate When Needed** - Create specialized agents for domain expertise
-6. **Use MCP Tools** - Always prefer MCP tools over custom commands (they're observable!)
+1. **Check Messages** - Check for messages from other agents at start of session
+2. **Memory First** - Always query memory before making decisions
+3. **Use What Exists** - Skills and tools are your primary knowledge base
+4. **Don't Reinvent** - Use existing workflows and operations
+5. **Record Everything** - Document decisions and patterns in memory
+6. **Delegate When Needed** - Create specialized agents for domain expertise
+7. **Communicate Effectively** - Use communication protocol for coordination and help
+8. **Use MCP Tools** - Always prefer MCP tools over custom commands (they're observable!)
 
 ## Decision Framework: When to Store, Create, or Add
 

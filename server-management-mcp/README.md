@@ -112,6 +112,13 @@ Add to Claude Desktop config (`~/Library/Application Support/Claude/claude_deskt
 - `vpn_status` - Check VPN services (Gluetun, Tailscale)
 - `check_dns_status` - Check DNS service (AdGuard) status
 
+### Agent Communication ✅
+- `send_agent_message()` - Send message to another agent
+- `get_agent_messages()` - Get messages for agent (with filters)
+- `acknowledge_message()` - Acknowledge receipt of message
+- `mark_message_resolved()` - Mark message as resolved
+- `query_messages()` - Query messages with multiple filters
+
 ### System Utilities ✅
 - `cleanup_archive_files` - Remove unpacked archive files (.rar, .par2, .nzb)
 - `check_unmapped_folders` - Find folders not mapped to series/movies
