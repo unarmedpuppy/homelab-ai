@@ -1,7 +1,8 @@
 'use client';
 
 import { Action } from '@/types';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { api } from '@/lib/api';
 
 interface ActivityFeedProps {
   initialActions?: Action[];
@@ -16,24 +17,25 @@ export default function ActivityFeed({
 }: ActivityFeedProps) {
   const [actions, setActions] = useState<Action[]>(initialActions);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const fetchActions = async () => {
+  const fetchActions = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      const response = await fetch(`${apiUrl}/api/actions/recent`, {
-        cache: 'no-store', // Always fetch fresh data
-      });
-      const data = await response.json();
+      const data = await api.getRecentActions();
       if (data.status === 'success') {
         setActions(data.actions);
+      } else {
+        setError('Failed to load actions');
       }
-    } catch (error) {
-      console.error('Failed to fetch actions:', error);
+    } catch (err) {
+      console.error('Failed to fetch actions:', err);
+      setError('Failed to load actions');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (autoRefresh) {
@@ -41,7 +43,7 @@ export default function ActivityFeed({
       const interval = setInterval(fetchActions, refreshInterval);
       return () => clearInterval(interval);
     }
-  }, [autoRefresh, refreshInterval]);
+  }, [autoRefresh, refreshInterval, fetchActions]);
 
   const getActionIcon = (actionType: string) => {
     switch (actionType) {
@@ -71,7 +73,17 @@ export default function ActivityFeed({
       </div>
 
       <div className="space-y-3 max-h-96 overflow-y-auto">
-        {actions.length === 0 ? (
+        {error ? (
+          <div className="text-center py-8">
+            <p className="text-red-600 mb-2">{error}</p>
+            <button
+              onClick={fetchActions}
+              className="text-sm text-blue-600 hover:text-blue-800 underline"
+            >
+              Retry
+            </button>
+          </div>
+        ) : actions.length === 0 ? (
           <p className="text-gray-500 text-center py-8">No recent activity</p>
         ) : (
           actions.map((action) => (
