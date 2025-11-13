@@ -10,6 +10,7 @@ import path from 'path';
 import { DatabaseService } from './services/database';
 import { InfluxDBService } from './services/influxdb';
 import { MetricExporter } from './services/metricExporter';
+import { initializeDatabase } from './services/initDatabase';
 import {
   createAgentsRouter,
   createActionsRouter,
@@ -47,6 +48,10 @@ if (!defaultDbPath) {
   // Resolve to absolute path
   defaultDbPath = path.resolve(defaultDbPath);
 }
+
+// Initialize database schema if needed
+initializeDatabase(defaultDbPath);
+
 const dbService = new DatabaseService(defaultDbPath);
 console.log(`📊 Database path: ${defaultDbPath}`);
 
