@@ -1,0 +1,64 @@
+# Agent Monitoring Dashboard
+
+Real-time monitoring and activity tracking for all AI agents in the home server system.
+
+## Overview
+
+This service provides:
+- **Real-time Agent Status**: See which agents are active, what they're working on
+- **Activity Tracking**: Log all MCP tool calls, memory operations, and task updates
+- **Visual Dashboard**: Next.js dashboard with live updates
+- **Grafana Integration**: Time-series metrics exported to InfluxDB
+
+## Architecture
+
+- **Backend**: Node.js + Express + TypeScript (REST API)
+- **Frontend**: Next.js 14+ + TypeScript (Dashboard UI)
+- **Database**: SQLite (primary) + InfluxDB (metrics export)
+- **Logging**: Python activity logger (integrated with MCP tools)
+
+## Quick Start
+
+### Prerequisites
+
+- Docker and Docker Compose
+- Access to InfluxDB (for Grafana integration)
+
+### Setup
+
+1. **Copy environment template**:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Configure environment variables** (see `.env.example`)
+
+3. **Start services**:
+   ```bash
+   docker-compose up -d
+   ```
+
+4. **Access dashboard**:
+   - Frontend: http://localhost:3012
+   - Backend API: http://localhost:3011
+   - Or via Traefik: http://agent-dashboard.server.unarmedpuppy.com
+
+## Development
+
+See individual README files in:
+- `backend/README.md` - Backend development
+- `frontend/README.md` - Frontend development
+- `activity_logger/README.md` - MCP tool integration
+
+## Status
+
+**Phase 1**: ✅ Database + Logging (In Progress)
+**Phase 2**: ⏳ Backend API
+**Phase 3**: ⏳ Frontend Dashboard
+**Phase 4**: ⏳ Grafana Integration
+**Phase 5**: ⏳ Integration & Polish
+
+---
+
+**Last Updated**: 2025-01-13
+

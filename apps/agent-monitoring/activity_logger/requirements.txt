@@ -1,0 +1,6 @@
+# Activity Logger Requirements
+# Minimal dependencies - only what's needed for logging
+
+# No external dependencies required - uses standard library only
+# (sqlite3, json, datetime, pathlib are all built-in)
+
