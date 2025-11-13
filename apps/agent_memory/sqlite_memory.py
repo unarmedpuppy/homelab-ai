@@ -138,12 +138,16 @@ class SQLiteMemory:
         conn.commit()
         conn.close()
     
-    def _get_tags(self, tag_names: List[str]) -> List[int]:
+    def _get_tags(self, tag_names: List[str], conn: Optional[sqlite3.Connection] = None) -> List[int]:
         """Get or create tag IDs."""
         if not tag_names:
             return []
         
-        conn = sqlite3.connect(self.db_path)
+        close_conn = False
+        if conn is None:
+            conn = sqlite3.connect(self.db_path)
+            close_conn = True
+        
         cursor = conn.cursor()
         
         tag_ids = []
@@ -152,8 +156,9 @@ class SQLiteMemory:
             cursor.execute("SELECT id FROM tags WHERE name = ?", (tag_name,))
             tag_ids.append(cursor.fetchone()[0])
         
-        conn.commit()
-        conn.close()
+        if close_conn:
+            conn.commit()
+            conn.close()
         
         return tag_ids
     
@@ -190,7 +195,7 @@ class SQLiteMemory:
         
         # Add tags
         if tags:
-            tag_ids = self._get_tags(tags)
+            tag_ids = self._get_tags(tags, conn)
             for tag_id in tag_ids:
                 cursor.execute("""
                     INSERT INTO decision_tags (decision_id, tag_id)
@@ -261,7 +266,7 @@ class SQLiteMemory:
             # Remove old tags
             cursor.execute("DELETE FROM pattern_tags WHERE pattern_id = ?", (pattern_id,))
             # Add new tags
-            tag_ids = self._get_tags(tags)
+            tag_ids = self._get_tags(tags, conn)
             for tag_id in tag_ids:
                 cursor.execute("""
                     INSERT INTO pattern_tags (pattern_id, tag_id)
