@@ -16,7 +16,7 @@ export function createAgentsRouter(dbService: DatabaseService): Router {
       const status = req.query.status as string | undefined;
       const cacheKey = status ? `agents_${status}` : 'agents_all';
       
-      const cached = cache.get(cacheKey);
+      const cached = cache.get<any[]>(cacheKey);
       if (cached) {
         return res.json({
           status: 'success',
@@ -35,13 +35,13 @@ export function createAgentsRouter(dbService: DatabaseService): Router {
 
       cache.set(cacheKey, agents, 3000); // Cache for 3 seconds
 
-      res.json({
+      return res.json({
         status: 'success',
         count: agents.length,
         agents
       });
     } catch (error: any) {
-      res.status(500).json({
+      return res.status(500).json({
         status: 'error',
         message: error.message
       });

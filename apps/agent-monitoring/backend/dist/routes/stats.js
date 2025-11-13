@@ -21,13 +21,13 @@ function createStatsRouter(dbService) {
             }
             const stats = dbService.getSystemStats();
             cache_1.cache.set('system_stats', stats, 5000); // Cache for 5 seconds
-            res.json({
+            return res.json({
                 status: 'success',
                 stats
             });
         }
         catch (error) {
-            res.status(500).json({
+            return res.status(500).json({
                 status: 'error',
                 message: error.message
             });

@@ -12,7 +12,7 @@ export function createStatsRouter(dbService: DatabaseService): Router {
   // GET /api/stats - Get system statistics (cached for 5 seconds)
   router.get('/', (_req: Request, res: Response) => {
     try {
-      const cached = cache.get('system_stats');
+      const cached = cache.get<any>('system_stats');
       if (cached) {
         return res.json({
           status: 'success',
@@ -24,12 +24,12 @@ export function createStatsRouter(dbService: DatabaseService): Router {
       const stats = dbService.getSystemStats();
       cache.set('system_stats', stats, 5000); // Cache for 5 seconds
 
-      res.json({
+      return res.json({
         status: 'success',
         stats
       });
     } catch (error: any) {
-      res.status(500).json({
+      return res.status(500).json({
         status: 'error',
         message: error.message
       });

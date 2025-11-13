@@ -30,14 +30,14 @@ function createAgentsRouter(dbService) {
                 agents = dbService.getAllAgents();
             }
             cache_1.cache.set(cacheKey, agents, 3000); // Cache for 3 seconds
-            res.json({
+            return res.json({
                 status: 'success',
                 count: agents.length,
                 agents
             });
         }
         catch (error) {
-            res.status(500).json({
+            return res.status(500).json({
                 status: 'error',
                 message: error.message
             });
