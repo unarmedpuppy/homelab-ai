@@ -176,6 +176,12 @@ Add to Claude Desktop config (`~/Library/Application Support/Claude/claude_deskt
 - `request_code_review` - Request systematic code review for modified files
 - `self_review_checklist` - Get self-review checklist before marking tasks complete
 
+### Service Debugging ✅
+- `get_service_logs` - Get logs from a service/container for debugging (with level filtering)
+- `monitor_service_status` - Monitor the status of a service/container
+- `restart_service` - Restart a service/container (Docker or docker-compose)
+- `get_service_metrics` - Get resource usage metrics (CPU, memory, network)
+
 ### Task Coordination ✅
 - `register_task` - Register a new task in the central task registry
 - `query_tasks` - Query tasks with filters (status, assignee, project, priority, search)
@@ -242,7 +248,7 @@ server-management-mcp/
 - ⏳ Application-specific tools (planned)
 - ⏳ Backup/restore tools (planned)
 
-**Total Tools**: 76 tools implemented
+**Total Tools**: 80 tools implemented
 
 **Breakdown**:
 - Activity Monitoring: 4 tools
@@ -253,8 +259,9 @@ server-management-mcp/
 - Skill Management: 5 tools
 - Skill Activation: 2 tools
 - Dev Docs: 4 tools
-- Quality Checks: 2 tools ⭐ NEW
-- Code Review: 2 tools ⭐ NEW
+- Quality Checks: 2 tools
+- Code Review: 2 tools
+- Service Debugging: 4 tools ⭐ NEW
 - Docker Management: 8 tools
 - Media Download: 13 tools
 - System Monitoring: 5 tools

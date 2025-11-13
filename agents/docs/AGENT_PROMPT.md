@@ -740,6 +740,12 @@ if result["has_issues"]:
 - `check_code_quality()` - Comprehensive quality check (errors, security, error handling)
 - `check_build_errors()` - Check for build errors in a project
 
+**Available Service Debugging Tools:**
+- `get_service_logs()` - Get logs from a service/container (with level filtering)
+- `monitor_service_status()` - Monitor service status and health
+- `restart_service()` - Restart a service/container
+- `get_service_metrics()` - Get resource usage metrics (CPU, memory, network)
+
 **Why This Matters:**
 - Catches errors immediately (before they compound)
 - Ensures code quality and consistency
