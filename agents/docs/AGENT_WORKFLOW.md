@@ -995,8 +995,8 @@ cat agents/memory/memory/export/decisions/*.md
    - SSH commands (last resort fallback)
 2. **Task Tracking**: 
    - **Central Task Registry** (preferred) - `agents/tasks/registry.md` with 6 MCP tools
-   - Central task registry (`agents/tasks/registry.md`) - For all task coordination
    - GitHub Issues (for external tracking)
+   - **Note**: Per-agent `TASKS.md` files are deprecated. Use the central task registry for all task management.
 3. **Code Review**: GitHub PRs or inline comments
 4. **Automated Checks**: GitHub Actions, pre-commit hooks
 5. **Documentation**: Markdown files, auto-generated API docs

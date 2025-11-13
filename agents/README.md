@@ -87,11 +87,13 @@ Central task registry for coordinating work:
 These are at the repository root (shared infrastructure):
 
 - **`server-management-mcp/`** - MCP server with 68 tools
+  - Activity monitoring (4 tools)
+  - Agent communication (5 tools)
   - Memory tools (9 tools)
-  - Agent management tools (3 tools)
-  - Task coordination tools (5 tools)
-  - Server management tools (37 tools)
-  - Skill management tools (3 tools)
+  - Agent management tools (6 tools)
+  - Task coordination tools (6 tools)
+  - Skill management tools (5 tools)
+  - Server management tools (33 tools)
 
 - **`server-management-skills/`** - Reusable workflow skills
   - Skills catalog
