@@ -15,7 +15,12 @@ This directory contains all documentation related to AI agent workflows, prompts
 
 ### Core Agent Documentation
 
-- **`AGENT_PROMPT.md`** ⭐ - Main agent prompt with complete discovery workflow
+- **`QUICK_START.md`** ⭐⭐⭐ - **START HERE** - 5-minute quick start guide
+  - Essential steps to get started
+  - Common operations
+  - Quick reference
+
+- **`AGENT_PROMPT.md`** ⭐⭐ - Main agent prompt with complete discovery workflow
   - Memory system usage
   - Task coordination system
   - Skills and MCP tools
@@ -33,6 +38,21 @@ This directory contains all documentation related to AI agent workflows, prompts
   - Available MCP tools
   - Docker management
   - System monitoring
+  - **Note**: Read `AGENT_PROMPT.md` first for common workflows
+
+### Architecture & Guidelines
+
+- **`SYSTEM_ARCHITECTURE.md`** - Unified architecture documentation
+  - Core components overview
+  - Data flow diagrams
+  - System integration
+  - File structure
+
+- **`COMMUNICATION_GUIDELINES.md`** - Communication channel usage guidelines
+  - When to use which channel
+  - Decision tree
+  - Common scenarios
+  - Best practices
 
 - **`MCP_TOOL_DISCOVERY.md`** - Tool discovery and usage guide
   - How to find tools
@@ -73,6 +93,7 @@ This directory contains all documentation related to AI agent workflows, prompts
 ### Agent Communication
 - `agents/communication/README.md` ⭐ - Complete communication guide and usage
 - `agents/communication/protocol.md` ⭐ - Communication protocol specification
+- `agents/docs/COMMUNICATION_GUIDELINES.md` ⭐ - When to use which channel
 - **5 MCP tools** for sending/receiving messages between agents
 
 ### Agent Monitoring
@@ -85,9 +106,14 @@ This directory contains all documentation related to AI agent workflows, prompts
 - `server-management-skills/README.md` - Reusable workflow skills
 - `server-management-mcp/README.md` - MCP tools catalog (67 tools, including 4 activity monitoring tools and 5 communication tools)
 
-### General Documentation
+### Architecture & System Documentation
+- `agents/docs/SYSTEM_ARCHITECTURE.md` ⭐ - Unified architecture overview
+- `agents/docs/COMMUNICATION_GUIDELINES.md` ⭐ - Communication channel usage
 - `apps/docs/APPS_DOCUMENTATION.md` - Application documentation
 - `apps/docs/MCP_SERVER_PLAN.md` - MCP server architecture plan
+
+### Archived Documentation
+- `agents/docs/archive/` - Completed proposals and plans (historical reference)
 
 ## Navigation
 
