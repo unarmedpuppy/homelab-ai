@@ -62,6 +62,13 @@ See `server-management-skills/README.md` for complete catalog.
 - **MCP Tools**: `read_file`, `write_file`, `validate_docker_compose`, `check_port_status`, `git_deploy`, `docker_compose_up`
 - **Includes**: Configuration patterns, templates, and best practices
 
+#### `add-subdomain` ✅
+**Add subdomain configuration**: Homepage labels → Traefik routing → optional Cloudflare DDNS (with explicit approval)
+
+- **When to use**: Adding a subdomain to an existing service, configuring Traefik routing, setting up HTTPS access
+- **MCP Tools**: `read_file`, `write_file`, `get_available_port`, `check_port_status`, `git_deploy`
+- **Security**: By default, services are NOT exposed to internet. Cloudflare DDNS updates require explicit human approval.
+
 #### `rollback-deployment` ⏳
 **Revert to previous version**: identify commit → checkout → restart
 
@@ -95,6 +102,16 @@ See `server-management-skills/README.md` for complete catalog.
 
 - **When to use**: Services can't connect, network issues
 - **MCP Tools**: `test_connectivity`, `resolve_dns`, `check_network_route`, `check_port_status`
+
+### Configuration Skills
+
+#### `add-subdomain` ✅
+**Add subdomain configuration**: Homepage labels → Traefik routing → optional Cloudflare DDNS (with explicit approval)
+
+- **When to use**: Adding a subdomain to an existing service, configuring Traefik routing, setting up HTTPS access
+- **MCP Tools**: `read_file`, `write_file`, `get_available_port`, `check_port_status`, `git_deploy`
+- **Security**: By default, services are NOT exposed to internet. Cloudflare DDNS updates require explicit human approval.
+- **Includes**: Complete Traefik label patterns, Homepage label templates, Cloudflare DDNS update workflow
 
 ### Maintenance Skills
 
