@@ -4,6 +4,32 @@
 
 **Before doing ANYTHING, follow this discovery workflow in order:**
 
+### 0. Start Agent Monitoring Session 📊
+**CRITICAL**: Always start your session and update your status so you can be observed:
+
+```python
+# Start session (do this first!)
+start_agent_session(agent_id="agent-001")
+
+# Update your status
+update_agent_status(
+    agent_id="agent-001",
+    status="active",
+    current_task_id="T1.1",
+    progress="Starting work on deployment task"
+)
+```
+
+**Why**: The agent monitoring dashboard tracks all agent activity. Without this, your work is invisible!
+
+**Available Activity Monitoring Tools** (4 tools):
+- `start_agent_session(agent_id)` - Start a new session (call this first!)
+- `update_agent_status(agent_id, status, current_task_id, progress, blockers)` - Update your status regularly
+- `get_agent_status(agent_id)` - Check your current status
+- `end_agent_session(agent_id, session_id, tasks_completed, tools_called, total_duration_ms)` - End session when done
+
+**See**: `apps/agent-monitoring/README.md` for dashboard access and `apps/agent-monitoring/INTEGRATION_GUIDE.md` for complete integration guide.
+
 ### 1. Check Memory First ⚡
 Query previous decisions and patterns to learn from past work:
 
@@ -70,8 +96,14 @@ Review `server-management-skills/README.md` for complete workflows:
 ### 4. Check MCP Tools 🔧
 Review `server-management-mcp/README.md` for available operations:
 
-**49 Tools Available:**
+**⚠️ CRITICAL: Prioritize Observable Tools**
+**Always prefer MCP tools over custom commands** - MCP tools are automatically logged and visible in the agent monitoring dashboard. Custom commands are invisible!
+
+**62 Tools Available:**
+- **Activity Monitoring** (4 tools) - ⭐ **USE THESE FIRST** - Start sessions, update status
 - Memory management (9 tools)
+- Task coordination (6 tools)
+- Agent management (3 tools)
 - Docker management (8 tools)
 - Media download (13 tools)
 - System monitoring (5 tools)
@@ -79,9 +111,13 @@ Review `server-management-mcp/README.md` for available operations:
 - Troubleshooting (3 tools)
 - Networking (3 tools)
 - System utilities (3 tools)
-- Agent management (3 tools)
+- Skill management (3 tools)
 
-**Why**: Use standardized tools. Don't write custom commands.
+**Why**: 
+- **Observability**: MCP tools are automatically logged and visible in the dashboard
+- **Standardization**: Type-safe, tested, and documented
+- **Visibility**: Your work is tracked and can be monitored
+- **Don't write custom commands** - They won't be visible in monitoring!
 
 ## Memory System - How to Use
 
@@ -408,39 +444,48 @@ Check:
 
 ## Discovery Priority (In Order)
 
+0. **Start Monitoring** → Start session and update status (CRITICAL - do this first!)
 1. **Memory** → Query previous decisions and patterns
 2. **Specialized Agents** → Check registry, create if needed
 3. **Skills** → Review workflows for common tasks
-4. **MCP Tools** → Review available operations
+4. **MCP Tools** → Review available operations (PREFERRED - observable!)
 5. **Create New** → Only if nothing exists
-6. **Scripts** → Fallback option
-7. **SSH Commands** → Last resort
+6. **Scripts** → Fallback option (not observable)
+7. **SSH Commands** → Last resort (not observable)
+
+**⚠️ IMPORTANT**: Always use MCP tools when available - they are automatically logged and visible in the agent monitoring dashboard. Custom commands and scripts are NOT observable!
 
 ## Workflow Integration
 
 ### Before Starting Work
 
-1. ✅ Query memory for related decisions
-2. ✅ Check for specialized agents
-3. ✅ Review relevant skills
-4. ✅ Check available MCP tools
-5. ✅ Read task details
+1. ✅ **Start agent monitoring session** - `start_agent_session(agent_id)`
+2. ✅ **Update agent status** - `update_agent_status(agent_id, status="active", ...)`
+3. ✅ Query memory for related decisions
+4. ✅ Check for specialized agents
+5. ✅ Review relevant skills
+6. ✅ Check available MCP tools (PREFERRED - observable!)
+7. ✅ Read task details
 
 ### During Work
 
-1. ✅ Record important decisions in memory
-2. ✅ Record patterns discovered
-3. ✅ Update context regularly
-4. ✅ Use skills for workflows
-5. ✅ Use MCP tools for operations
-6. ✅ Create specialized agents when needed
+1. ✅ **Update status regularly** - `update_agent_status()` with progress
+2. ✅ **Use MCP tools** - All MCP tool calls are automatically logged
+3. ✅ Record important decisions in memory
+4. ✅ Record patterns discovered
+5. ✅ Update context regularly
+6. ✅ Use skills for workflows
+7. ✅ Create specialized agents when needed
+8. ✅ **Never use custom commands** - Use MCP tools instead (they're observable!)
 
 ### After Work
 
-1. ✅ Save final context with status="completed"
-2. ✅ Update task status
-3. ✅ Document decisions made
-4. ✅ Commit and push changes
+1. ✅ **End agent session** - `end_agent_session(agent_id, session_id, ...)`
+2. ✅ **Update final status** - `update_agent_status(status="completed")`
+3. ✅ Save final context with status="completed"
+4. ✅ Update task status
+5. ✅ Document decisions made
+6. ✅ Commit and push changes
 
 ## Quick Reference
 
@@ -458,6 +503,12 @@ Check:
 - List: `list_skill_proposals()` - List proposals
 - Query: `query_skills()` - Query existing skills
 
+### Activity Monitoring Tools (USE THESE FIRST!)
+- Start: `start_agent_session(agent_id)` - Start monitoring session
+- Update: `update_agent_status(agent_id, status, current_task_id, progress, blockers)` - Update your status
+- Get: `get_agent_status(agent_id)` - Check your current status
+- End: `end_agent_session(agent_id, session_id, tasks_completed, tools_called, total_duration_ms)` - End session
+
 ### Task Coordination Tools
 - Register: `register_task()` - Register new task in central registry
 - Query: `query_tasks()` - Query tasks with filters
@@ -467,6 +518,8 @@ Check:
 - Check: `check_task_dependencies()` - Check dependency status
 
 ### Key Files
+- **Agent Monitoring**: `apps/agent-monitoring/README.md` ⭐ **See this for monitoring dashboard**
+- **Monitoring Integration**: `apps/agent-monitoring/INTEGRATION_GUIDE.md` ⭐ **See this for how to be observed**
 - Skills: `server-management-skills/README.md`
 - MCP Tools: `server-management-mcp/README.md`
 - Task Coordination: `agents/tasks/README.md` ⭐ **See this for task management**
@@ -476,11 +529,13 @@ Check:
 
 ## Important Principles
 
+0. **Be Observable** - Always use activity monitoring tools so your work is visible
 1. **Memory First** - Always query memory before making decisions
 2. **Use What Exists** - Skills and tools are your primary knowledge base
 3. **Don't Reinvent** - Use existing workflows and operations
 4. **Record Everything** - Document decisions and patterns in memory
 5. **Delegate When Needed** - Create specialized agents for domain expertise
+6. **Use MCP Tools** - Always prefer MCP tools over custom commands (they're observable!)
 
 ## Decision Framework: When to Store, Create, or Add
 

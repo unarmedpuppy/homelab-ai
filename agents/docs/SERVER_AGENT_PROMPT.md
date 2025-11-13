@@ -67,13 +67,50 @@ This document provides essential context for AI agents working on the home serve
   ```
   Wait for explicit user consent before proceeding. The Git workflow (local changes → commit → push → pull on server) is always preferred and does not require special permission.
 
+## Agent Monitoring System
+
+### ⚠️ CRITICAL: Start Monitoring Session First
+
+**Before doing ANY work, you MUST start an agent monitoring session so your activity is visible:**
+
+```python
+# Start session (do this first!)
+start_agent_session(agent_id="agent-001")
+
+# Update your status regularly
+update_agent_status(
+    agent_id="agent-001",
+    status="active",
+    current_task_id="T1.1",
+    progress="Working on deployment"
+)
+```
+
+**Why**: The agent monitoring dashboard (http://localhost:3012 or https://agent-dashboard.server.unarmedpuppy.com) tracks all agent activity. Without monitoring, your work is invisible!
+
+**Available Activity Monitoring Tools** (4 tools):
+- `start_agent_session(agent_id)` - Start a new session (call this first!)
+- `update_agent_status(agent_id, status, current_task_id, progress, blockers)` - Update your status regularly
+- `get_agent_status(agent_id)` - Check your current status
+- `end_agent_session(agent_id, session_id, tasks_completed, tools_called, total_duration_ms)` - End session when done
+
+**See**: 
+- `apps/agent-monitoring/README.md` - Dashboard overview
+- `apps/agent-monitoring/INTEGRATION_GUIDE.md` - Complete integration guide
+
 ## Server Management MCP Server
 
-### ⚠️ CRITICAL: Use MCP Tools First
+### ⚠️ CRITICAL: Use MCP Tools First (They're Observable!)
 
 **Before writing custom scripts or SSH commands, ALWAYS check if the MCP server has a tool for what you need.**
 
-The **Server Management MCP Server** provides standardized, type-safe tools for managing the entire home server infrastructure. These tools are the **preferred method** for all server operations.
+**IMPORTANT**: MCP tools are automatically logged and visible in the agent monitoring dashboard. Custom commands and scripts are NOT observable!
+
+The **Server Management MCP Server** provides standardized, type-safe tools for managing the entire home server infrastructure. These tools are the **preferred method** for all server operations because:
+- ✅ **Observable**: All tool calls are automatically logged
+- ✅ **Type-safe**: Validated parameters and return values
+- ✅ **Tested**: Standardized error handling
+- ✅ **Visible**: Your work appears in the monitoring dashboard
 
 ### MCP Server Location
 
@@ -84,11 +121,22 @@ The **Server Management MCP Server** provides standardized, type-safe tools for 
 
 ### Available Tool Categories
 
-1. **Docker Management** - Container operations (list, status, restart, logs, etc.)
-2. **Media Download** - Sonarr/Radarr/NZBGet operations (queue management, imports, etc.)
-3. **System Monitoring** - Disk space, resources, health checks
-4. **Application Management** - Service-specific operations
-5. **Troubleshooting** - Automated diagnostics and fixes
+**62 Tools Total** - All observable in agent monitoring dashboard:
+
+1. **Activity Monitoring** (4 tools) - ⭐ **USE THESE FIRST** - Start sessions, update status
+2. **Memory Management** (9 tools) - Query and record decisions, patterns, context
+3. **Task Coordination** (6 tools) - Register, claim, update tasks
+4. **Agent Management** (3 tools) - Create specialized agents, query registry
+5. **Skill Management** (3 tools) - Propose and manage skills
+6. **Docker Management** (8 tools) - Container operations (list, status, restart, logs, etc.)
+7. **Media Download** (13 tools) - Sonarr/Radarr/NZBGet operations (queue management, imports, etc.)
+8. **System Monitoring** (5 tools) - Disk space, resources, health checks
+9. **Git Operations** (4 tools) - Deploy, commit, push, pull
+10. **Troubleshooting** (3 tools) - Automated diagnostics and fixes
+11. **Networking** (3 tools) - Ports, VPN, DNS
+12. **System Utilities** (3 tools) - Cleanup, file management
+
+**⚠️ CRITICAL**: Always use MCP tools when available - they are automatically logged and visible. Custom commands are NOT observable!
 
 ### How to Use MCP Tools
 
@@ -155,7 +203,13 @@ Need to perform server operation?
 
 ### Current MCP Tools
 
-**Docker Management** (Available):
+**Activity Monitoring** (4 tools) - ⭐ **USE THESE FIRST**:
+- `start_agent_session(agent_id)` - Start monitoring session
+- `update_agent_status(agent_id, status, current_task_id, progress, blockers)` - Update status
+- `get_agent_status(agent_id)` - Get current status
+- `end_agent_session(agent_id, session_id, tasks_completed, tools_called, total_duration_ms)` - End session
+
+**Docker Management** (8 tools):
 - `docker_list_containers` - List all containers
 - `docker_container_status` - Get container details
 - `docker_restart_container` - Restart containers
@@ -165,13 +219,13 @@ Need to perform server operation?
 - `docker_compose_ps` - List docker-compose services
 - `docker_compose_restart` - Restart docker-compose services
 
-**Media Download** (Planned):
+**Media Download** (13 tools):
 - `sonarr_clear_queue` - Clear Sonarr queue
 - `sonarr_queue_status` - Get queue status
 - `radarr_clear_queue` - Clear Radarr queue
 - And more...
 
-**See**: `server-management-mcp/README.md` for complete tool list and usage examples.
+**See**: `server-management-mcp/README.md` for complete tool list (62 tools total) and usage examples.
 
 ### Task Coordination System
 
@@ -554,19 +608,28 @@ apps/[app-name]/
 
 ## Quick Reference
 
-### MCP Tools (Preferred)
+### MCP Tools (Preferred - Observable!)
 
-**If you have MCP access**, use these tools:
-- `docker_list_containers` - List all containers
-- `docker_container_status` - Get container status
-- `docker_restart_container` - Restart a container
-- `docker_view_logs` - View container logs
-- `docker_compose_ps` - List docker-compose services
-- `docker_compose_restart` - Restart docker-compose services
+**If you have MCP access**, use these tools (all automatically logged):
+- **Activity Monitoring** (use first!):
+  - `start_agent_session(agent_id)` - Start monitoring session
+  - `update_agent_status(agent_id, status, ...)` - Update your status
+  - `get_agent_status(agent_id)` - Check status
+  - `end_agent_session(agent_id, ...)` - End session
+- **Docker Management**:
+  - `docker_list_containers` - List all containers
+  - `docker_container_status` - Get container status
+  - `docker_restart_container` - Restart a container
+  - `docker_view_logs` - View container logs
+  - `docker_compose_ps` - List docker-compose services
+  - `docker_compose_restart` - Restart docker-compose services
+- **And 50+ more tools** - All observable in monitoring dashboard
 
-**See**: `server-management-mcp/README.md` for complete tool reference.
+**See**: `server-management-mcp/README.md` for complete tool reference (62 tools total).
 
-### SSH Commands (Fallback)
+### SSH Commands (Fallback - NOT Observable!)
+
+**⚠️ WARNING**: SSH commands are NOT observable in the agent monitoring dashboard. Only use as a last resort!
 
 **If MCP tools unavailable**, use SSH:
 
@@ -588,7 +651,10 @@ bash scripts/connect-server.sh "docker logs [service] --tail 50 -f"
 bash scripts/connect-server.sh "docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'"
 ```
 
-**Remember**: Always check for MCP tools first!
+**Remember**: 
+- ✅ **Always check for MCP tools first** - They're observable!
+- ❌ **Avoid SSH commands** - They're not visible in monitoring
+- ⚠️ **If you must use SSH**, manually log the action using `update_agent_status()` with progress notes
 
 ## Memory System (SQLite-Based)
 
@@ -881,19 +947,24 @@ Skills are reusable workflows located in `server-management-skills/`. They provi
 
 When working on a new task:
 
-1. ✅ **Read this prompt and relevant README files** - Understand context and requirements
-2. ✅ **Check for Skills first** - Review `server-management-skills/README.md` for workflows matching your task
-3. ✅ **Check MCP Server tools** - Review `server-management-mcp/README.md` for available tools
-4. ✅ **If no skill/tool exists**: Test your approach first, then create an MCP tool or skill if reusable
-5. ✅ **Plan the approach** - Consider impact, risks, and alternatives before proceeding
-6. ✅ **Use Skills for workflows** - For common workflows (deployment, troubleshooting), use skills instead of manual steps
-7. ✅ **Make changes locally** - Edit files in local repository (including MCP tool/skill implementations)
-8. ✅ **Review changes carefully** - Double-check configurations, ports, and dependencies
-9. ✅ **Test locally if possible** - Validate syntax and structure
-10. ✅ **Deploy using skills** - Use `standard-deployment` skill for deployments (or MCP tools if skill unavailable)
-11. ✅ **Verify deployment** - Skills include verification, but double-check critical services
-12. ✅ **Monitor for issues** - Watch for errors or performance degradation
-13. ✅ **Document changes** - Update README files and note any new patterns or issues
+0. ✅ **Start monitoring session** - `start_agent_session(agent_id)` - CRITICAL: Do this first!
+1. ✅ **Update agent status** - `update_agent_status(agent_id, status="active", ...)` - Make yourself visible
+2. ✅ **Read this prompt and relevant README files** - Understand context and requirements
+3. ✅ **Check for Skills first** - Review `server-management-skills/README.md` for workflows matching your task
+4. ✅ **Check MCP Server tools** - Review `server-management-mcp/README.md` for available tools (PREFERRED - observable!)
+5. ✅ **If no skill/tool exists**: Test your approach first, then create an MCP tool or skill if reusable
+6. ✅ **Plan the approach** - Consider impact, risks, and alternatives before proceeding
+7. ✅ **Use Skills for workflows** - For common workflows (deployment, troubleshooting), use skills instead of manual steps
+8. ✅ **Use MCP Tools** - Always prefer MCP tools over custom commands (they're observable!)
+9. ✅ **Update status regularly** - `update_agent_status()` with progress updates
+10. ✅ **Make changes locally** - Edit files in local repository (including MCP tool/skill implementations)
+11. ✅ **Review changes carefully** - Double-check configurations, ports, and dependencies
+12. ✅ **Test locally if possible** - Validate syntax and structure
+13. ✅ **Deploy using skills** - Use `standard-deployment` skill for deployments (or MCP tools if skill unavailable)
+14. ✅ **Verify deployment** - Skills include verification, but double-check critical services
+15. ✅ **Monitor for issues** - Watch for errors or performance degradation
+16. ✅ **End monitoring session** - `end_agent_session()` when done
+17. ✅ **Document changes** - Update README files and note any new patterns or issues
 
 ## Questions to Ask
 
@@ -908,12 +979,15 @@ If unsure about something:
 7. Review logs for error messages
 
 **Discovery Priority**:
+0. **Start monitoring** - `start_agent_session()` and `update_agent_status()` - CRITICAL: Do this first!
 1. **Skills** (preferred for workflows) - Use existing skills for common workflows
-2. **MCP Server tools** (preferred for operations) - Use existing tools for individual operations
+2. **MCP Server tools** (preferred for operations) - Use existing tools for individual operations (observable!)
 3. **Create new MCP tool** (if operation is reusable) - Test approach first, then implement tool
 4. **Create new skill** (if workflow is reusable) - If workflow is common, create a skill
-5. Existing scripts in `scripts/` directory
-6. SSH commands (last resort) - Only for one-off operations
+5. Existing scripts in `scripts/` directory (not observable - avoid if possible)
+6. SSH commands (last resort) - Only for one-off operations (not observable - avoid if possible)
+
+**⚠️ IMPORTANT**: Always use MCP tools when available - they are automatically logged and visible in the agent monitoring dashboard. Custom commands and scripts are NOT observable!
 
 **When to Create a New MCP Tool**:
 - ✅ Operation will be used multiple times

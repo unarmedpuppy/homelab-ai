@@ -4,11 +4,17 @@
 
 This document outlines a proven workflow for managing AI agents working on software projects. This approach ensures quality, consistency, and effective collaboration between multiple AI agents.
 
-## ⚠️ CRITICAL: Skills and MCP Tools First
+## ⚠️ CRITICAL: Start Monitoring First, Then Skills and MCP Tools
 
-**Before starting any task, your PRIMARY method for gaining context and capabilities is to discover Skills and MCP Tools.**
+**Before starting any task, you MUST start an agent monitoring session so your work is visible. Then discover Skills and MCP Tools.**
 
 ### Discovery Workflow (Do This First)
+
+0. **Start Agent Monitoring** - Make yourself visible
+   - **CRITICAL**: Call `start_agent_session(agent_id)` first
+   - **CRITICAL**: Call `update_agent_status(agent_id, status="active", ...)` to update your status
+   - **Why**: The agent monitoring dashboard tracks all agent activity. Without this, your work is invisible!
+   - **See**: `apps/agent-monitoring/README.md` for dashboard access
 
 1. **Check Memory** - Query previous decisions and patterns
    - **If MCP tools available**: Use `memory_query_decisions()`, `memory_query_patterns()`, `memory_search()`
@@ -22,21 +28,25 @@ This document outlines a proven workflow for managing AI agents working on softw
    - **This is how you gain context** - don't start from scratch
 
 3. **Check MCP Tools** - Review `server-management-mcp/README.md` for available tools
+   - **⚠️ CRITICAL: Prioritize Observable Tools**
    - MCP tools provide individual operations (check status, restart, view logs)
+   - **All MCP tool calls are automatically logged** and visible in the monitoring dashboard
    - **Memory tools** (9 tools) for querying and recording decisions/patterns/context
+   - **Activity monitoring tools** (4 tools) for tracking your work
    - Tools are type-safe, tested, and documented
-   - **This is how you gain capabilities** - don't write custom commands
+   - **This is how you gain capabilities** - don't write custom commands (they're not observable!)
 
 4. **Use What Exists** - Memory, Skills, and Tools are your primary knowledge base
    - Memory = past decisions and patterns (what was decided before)
    - Skills = workflows (how to do complete tasks)
-   - MCP Tools = capabilities (what you can do)
+   - MCP Tools = capabilities (what you can do) - **AND they're observable!**
    - All provide context, examples, and best practices
 
 5. **Create New Only If Needed** - Only create new tools/skills if:
    - No existing skill/tool exists for your operation
    - The operation is reusable and should be shared
    - You've tested your approach first
+   - **Important**: New MCP tools are automatically observable once created!
 
 ## Decision Framework: When to Store, Create, or Add
 
@@ -103,15 +113,18 @@ After completing work:
 - **MCP Tools** = Operations (what you can do)
 
 **Discovery Priority**:
+0. **Start Monitoring** → `start_agent_session()` and `update_agent_status()` - CRITICAL: Do this first!
 1. **Memory** (past context) → Use `memory_query_*` and `memory_search` MCP tools (or fallback: direct SQLite queries)
 2. **Skills** (workflows) → `server-management-skills/README.md`
-3. **MCP Tools** (operations) → `server-management-mcp/README.md`
+3. **MCP Tools** (operations) → `server-management-mcp/README.md` - **PREFERRED: Observable!**
 4. **Check for Specialized Agents** → Query agent registry if task requires specialization
 5. **Create Specialized Agent** → Use `create_agent_definition` if no existing agent
-6. Create new MCP tool (if operation is reusable)
+6. Create new MCP tool (if operation is reusable) - **New tools are automatically observable!**
 7. Create new skill (if workflow is reusable)
-8. Existing scripts (fallback)
-9. SSH commands (last resort)
+8. Existing scripts (fallback - not observable)
+9. SSH commands (last resort - not observable)
+
+**⚠️ IMPORTANT**: Always use MCP tools when available - they are automatically logged and visible in the agent monitoring dashboard. Custom commands and scripts are NOT observable!
 
 **See**: 
 - `server-management-skills/README.md` - Skills catalog
@@ -283,8 +296,12 @@ After completing work:
    - Updates TASKS.md: `[CLAIMED]` or `[IN PROGRESS]`
    - Adds identifier/name
 
-2. **Agent Discovers Memory, Skills, Tools, and Agents** (PRIMARY STEP)
-   - **Check Memory first**: Query previous decisions and patterns using memory MCP tools
+2. **Agent Starts Monitoring and Discovers Memory, Skills, Tools, and Agents** (PRIMARY STEP)
+   - **Start Monitoring first**: Make yourself visible
+     - `start_agent_session(agent_id)` - Start monitoring session
+     - `update_agent_status(agent_id, status="active", ...)` - Update your status
+     - **Why**: Your work must be observable in the monitoring dashboard!
+   - **Check Memory**: Query previous decisions and patterns using memory MCP tools
      - `memory_query_decisions()` - Find related decisions
      - `memory_query_patterns()` - Find common patterns
      - `memory_search()` - Full-text search across memories
@@ -298,7 +315,7 @@ After completing work:
    - **Memory provides past context**: Learn from previous decisions and patterns
    - **Specialized Agents provide expertise**: Delegate to domain experts when needed
    - **Skills provide workflows**: Use existing skills for common tasks
-   - **MCP Tools provide capabilities**: Use tools for individual operations
+   - **MCP Tools provide capabilities**: Use tools for individual operations - **AND they're observable!**
    - **This is how you gain context and capabilities** - don't start from scratch
 
 3. **Agent Reads Documentation**
@@ -309,6 +326,8 @@ After completing work:
    - Task details
 
 4. **Agent Implements**
+   - **Updates status regularly** using `update_agent_status()` with progress
+   - **Uses MCP Tools** - All MCP tool calls are automatically logged and visible
    - **Uses Memory to avoid repeating decisions** (query before deciding)
    - **Records important decisions** using `memory_record_decision()`
    - **Records patterns discovered** using `memory_record_pattern()`
@@ -318,7 +337,8 @@ After completing work:
      - If task would benefit from specialized knowledge
      - If similar tasks will recur (reusable specialization)
    - **Uses Skills for workflows** (don't reinvent common workflows)
-   - **Uses MCP Tools for operations** (don't write custom commands)
+   - **Uses MCP Tools for operations** (don't write custom commands - they're observable!)
+   - **Never uses custom commands** - Always prefer MCP tools (they're automatically logged)
    - Follows coding standards
    - Uses patterns from examples
    - Documents as they go
@@ -330,6 +350,8 @@ After completing work:
    - Fixes obvious issues
 
 6. **Agent Submits for Review**
+   - **Ends monitoring session** using `end_agent_session()` with summary stats
+   - **Updates final status** using `update_agent_status(status="completed")`
    - **Saves final context** using `memory_save_context(status="completed")`
    - Updates TASKS.md: `[REVIEW]`
    - Adds completion summary
@@ -787,6 +809,12 @@ cat agents/memory/memory/export/decisions/*.md
 
 ### For Agents
 
+0. **Start Monitoring First** (CRITICAL)
+   - **Start session**: `start_agent_session(agent_id)` - Do this first!
+   - **Update status**: `update_agent_status(agent_id, status="active", ...)` - Make yourself visible
+   - **Why**: Your work must be observable in the agent monitoring dashboard!
+   - **See**: `apps/agent-monitoring/README.md` for dashboard access
+
 1. **Discover Memory, Skills and Tools First** (PRIMARY METHOD)
    - **Check Memory**: Query previous decisions and patterns using memory MCP tools
      - `memory_query_decisions()` - Find related decisions
@@ -797,9 +825,10 @@ cat agents/memory/memory/export/decisions/*.md
    - **Check MCP Tools**: Review `server-management-mcp/README.md` for available tools
    - **Memory provides past context**: Learn from previous decisions and patterns
    - **Skills provide workflows**: Complete step-by-step guidance for common tasks
-   - **MCP Tools provide capabilities**: Individual operations you can use
+   - **MCP Tools provide capabilities**: Individual operations you can use - **AND they're observable!**
    - **Skills use MCP Tools**: Skills orchestrate tools into workflows
    - **This is your primary way to gain context and capabilities** - don't start from scratch
+   - **Always use MCP tools** - They're automatically logged and visible in monitoring!
 
 2. **Read Documentation**
    - STARTUP_GUIDE.md (essential)
@@ -808,12 +837,15 @@ cat agents/memory/memory/export/decisions/*.md
    - Skills and tools documentation (capabilities)
 
 3. **Follow Standards**
+   - **Update status regularly** using `update_agent_status()` with progress
+   - **Use MCP Tools** - All tool calls are automatically logged and visible
    - Query memory before making decisions (don't repeat past mistakes)
    - Record important decisions using `memory_record_decision()`
    - Record patterns using `memory_record_pattern()`
    - Update context using `memory_save_context()` during work
    - Use Skills for workflows (don't reinvent)
-   - Use MCP Tools for operations (don't write custom commands)
+   - Use MCP Tools for operations (don't write custom commands - they're observable!)
+   - **Never use custom commands** - Always prefer MCP tools (they're automatically logged)
    - Follow coding standards
    - Follow patterns and examples
 
@@ -823,11 +855,13 @@ cat agents/memory/memory/export/decisions/*.md
    - Fix obvious issues
 
 5. **Communicate**
+   - **Update agent status** using `update_agent_status()` regularly
    - Update task status
    - Record decisions in memory (not just in code comments)
    - Save context regularly
    - Document decisions
    - Ask questions early
+   - **End session** using `end_agent_session()` when done
 
 ### For Reviewers
 
@@ -853,17 +887,20 @@ cat agents/memory/memory/export/decisions/*.md
 
 ## Tools and Automation
 
-### ⚠️ CRITICAL: Skills and MCP Tools First
+### ⚠️ CRITICAL: Start Monitoring First, Then Skills and MCP Tools
 
-**For all server operations, your PRIMARY discovery method is Skills and MCP Tools.**
+**For all server operations, you MUST start monitoring first, then use Skills and MCP Tools (which are observable).**
 
 **Discovery Priority**:
+0. **Start Monitoring** - `start_agent_session()` and `update_agent_status()` - CRITICAL: Do this first!
 1. **Skills** (preferred for workflows) - Check `server-management-skills/README.md` first
-2. **MCP Tools** (preferred for operations) - Check `server-management-mcp/README.md` second
-3. Create new MCP tool (if operation is reusable)
+2. **MCP Tools** (preferred for operations) - Check `server-management-mcp/README.md` second - **Observable!**
+3. Create new MCP tool (if operation is reusable) - **New tools are automatically observable!**
 4. Create new skill (if workflow is reusable)
-5. Existing scripts (fallback)
-6. SSH commands (last resort)
+5. Existing scripts (fallback - not observable)
+6. SSH commands (last resort - not observable)
+
+**⚠️ IMPORTANT**: Always use MCP tools when available - they are automatically logged and visible in the agent monitoring dashboard. Custom commands and scripts are NOT observable!
 
 ### Server Management Skills
 
@@ -900,10 +937,12 @@ cat agents/memory/memory/export/decisions/*.md
 - Consistent error handling
 - Standardized return formats
 
-**Available Tools** (58 tools):
+**Available Tools** (62 tools):
+- **Activity Monitoring** (4 tools) - ⭐ **USE THESE FIRST** - Start sessions, update status (observable!)
 - **Memory management** (9 tools) - Query and record decisions, patterns, context
 - **Task coordination** (6 tools) - Register, claim, update, and query tasks
 - **Agent management** (3 tools) - Create specialized agents, query registry, assign tasks
+- **Skill management** (3 tools) - Propose and manage skills
 - Docker container management (8 tools)
 - Media download operations (13 tools)
 - System monitoring (5 tools)
@@ -911,6 +950,8 @@ cat agents/memory/memory/export/decisions/*.md
 - Troubleshooting (3 tools)
 - Networking (3 tools)
 - System utilities (3 tools)
+
+**⚠️ CRITICAL**: All MCP tools are automatically logged and visible in the agent monitoring dashboard. Always use MCP tools when available - they're observable!
 
 **Usage**:
 - If you have MCP access (Claude Desktop, GPT-4 with MCP): Use tools directly

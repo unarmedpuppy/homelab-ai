@@ -5,15 +5,18 @@
 This guide helps AI agents discover and use **Skills** and **MCP Tools** effectively. **Skills and MCP Tools are your PRIMARY method for gaining context and capabilities.**
 
 **Discovery Priority**:
+0. **Start Agent Monitoring** - `start_agent_session()` and `update_agent_status()` - CRITICAL: Do this first!
 1. **Memory** - Query previous decisions and patterns
 2. **Specialized Agents** - Check if agent exists for your task
 3. **Skills** (workflows) - Check `server-management-skills/README.md`
 4. **Task Coordination** - Check `agents/tasks/README.md` for task management
-5. **MCP Tools** (operations) - Check `server-management-mcp/README.md`
-6. Create new MCP tool (if operation is reusable)
+5. **MCP Tools** (operations) - Check `server-management-mcp/README.md` - **PREFERRED: Observable!**
+6. Create new MCP tool (if operation is reusable) - **New tools are automatically observable!**
 7. Create new skill (if workflow is reusable)
-8. Existing scripts (fallback)
-9. SSH commands (last resort)
+8. Existing scripts (fallback - not observable)
+9. SSH commands (last resort - not observable)
+
+**⚠️ CRITICAL**: Always use MCP tools when available - they are automatically logged and visible in the agent monitoring dashboard. Custom commands and scripts are NOT observable!
 
 **Key Principles**:
 - **Skills provide workflows**: Complete step-by-step guidance for common tasks
@@ -97,6 +100,28 @@ Examples:
 Use SSH commands via `scripts/connect-server.sh` as documented in `agents/docs/SERVER_AGENT_PROMPT.md`.
 
 ## Tool Categories
+
+### Activity Monitoring ✅ (Available - USE THESE FIRST!)
+
+**Location**: `server-management-mcp/tools/activity_monitoring.py`
+
+**Available Tools**:
+- `start_agent_session(agent_id)` - Start a new monitoring session (call this first!)
+- `update_agent_status(agent_id, status, current_task_id, progress, blockers)` - Update your status regularly
+- `get_agent_status(agent_id)` - Get current status of an agent
+- `end_agent_session(agent_id, session_id, tasks_completed, tools_called, total_duration_ms)` - End session when done
+
+**Use Cases**:
+- Starting a new work session
+- Updating progress on tasks
+- Reporting blockers or issues
+- Ending work sessions with summary stats
+
+**Why Critical**: Without these tools, your work is invisible in the agent monitoring dashboard!
+
+**See**: 
+- `apps/agent-monitoring/README.md` - Dashboard overview
+- `apps/agent-monitoring/INTEGRATION_GUIDE.md` - Complete integration guide
 
 ### Docker Management ✅ (Available)
 
@@ -473,16 +498,17 @@ cat agents/memory/memory/export/decisions/*.md
 
 | Category | Status | Tools Available |
 |----------|--------|----------------|
+| **Activity Monitoring** | ✅ Complete | **4 tools** ⭐ **USE THESE FIRST!** |
+| Memory Management | ✅ Complete | 9 tools |
+| Task Coordination | ✅ Complete | 6 tools |
+| Agent Management | ✅ Complete | 3 tools |
+| Skill Management | ✅ Complete | 3 tools |
 | Docker Management | ✅ Complete | 8 tools (planned: 16 total) |
 | Media Download | ✅ Complete | 13 tools |
 | System Monitoring | ✅ Complete | 5 tools |
 | Troubleshooting | ✅ Complete | 3 tools (planned: 10 total) |
 | Networking | ✅ Complete | 3 tools (planned: 8 total) |
 | System Utilities | ✅ Complete | 3 tools |
-| Task Coordination | ✅ Complete | 6 tools |
-| Memory Management | ✅ Complete | 9 tools |
-| Agent Management | ✅ Complete | 3 tools |
-| Skill Management | ✅ Complete | 3 tools |
 | Git Operations | ⏳ Planned | 0 tools (planned: 6) |
 | File Operations | ⏳ Planned | 0 tools (planned: 8) |
 | Database Operations | ⏳ Planned | 0 tools (planned: 6) |
@@ -492,7 +518,9 @@ cat agents/memory/memory/export/decisions/*.md
 | Application-Specific | ⏳ Planned | 0 tools (planned: 12) |
 | Backup & Restore | ⏳ Planned | 0 tools (planned: 4) |
 
-**Total**: 58 tools implemented, 60+ tools planned = 118+ total tools
+**Total**: 62 tools implemented, 60+ tools planned = 122+ total tools
+
+**⚠️ IMPORTANT**: All MCP tools are automatically logged and visible in the agent monitoring dashboard. Always use MCP tools when available - they're observable!
 
 ## Adding New Tools
 
@@ -588,27 +616,32 @@ If you need an operation that doesn't exist:
 
 ## Best Practices
 
+0. **Start monitoring first** - Always call `start_agent_session()` and `update_agent_status()` before work
 1. **Always check MCP tools first** - Don't write custom scripts without checking
-2. **Test before creating** - Verify your approach works before implementing as a tool
-3. **Create reusable tools** - If an operation will be used again, create an MCP tool
-4. **Use type-safe tools** - MCP tools provide better error handling
-5. **Document tool usage** - Note which tools you used in your work
-6. **Follow patterns** - Use existing tools as examples for new implementations
-7. **Update documentation** - Always update README.md when adding new tools
-8. **Share knowledge** - Creating tools helps future agents
+2. **Use observable tools** - MCP tools are automatically logged and visible in monitoring
+3. **Test before creating** - Verify your approach works before implementing as a tool
+4. **Create reusable tools** - If an operation will be used again, create an MCP tool (it will be observable!)
+5. **Use type-safe tools** - MCP tools provide better error handling
+6. **Document tool usage** - Note which tools you used in your work
+7. **Follow patterns** - Use existing tools as examples for new implementations
+8. **Update documentation** - Always update README.md when adding new tools
+9. **Share knowledge** - Creating tools helps future agents
+10. **Never use custom commands** - Always prefer MCP tools (they're observable!)
 
 ## Tool Creation Workflow
 
 **Complete workflow when no tool exists**:
 
+0. ✅ **Start monitoring** - `start_agent_session()` and `update_agent_status()` - Make yourself visible
 1. ✅ **Check for existing tool** - Review MCP server tools
 2. ✅ **Test approach** - Verify operation works with SSH/direct execution
 3. ✅ **Confirm it's reusable** - Determine if it should be an MCP tool
 4. ✅ **Create the tool** - Implement following existing patterns
 5. ✅ **Register and document** - Add to server.py and README.md
 6. ✅ **Test the tool** - Verify it works correctly
-7. ✅ **Use your tool** - Now use it for your operation
+7. ✅ **Use your tool** - Now use it for your operation (it's automatically observable!)
 8. ✅ **Share with others** - Future agents can discover and use it
+9. ✅ **End monitoring** - `end_agent_session()` when done
 
 ## Quick Reference
 
@@ -620,5 +653,10 @@ If you need an operation that doesn't exist:
 
 ---
 
-**Remember**: MCP tools are the preferred method for all server operations. Always check for available tools before writing custom commands.
+**Remember**: 
+- **MCP tools are the preferred method** for all server operations
+- **MCP tools are observable** - All tool calls are automatically logged and visible in the agent monitoring dashboard
+- **Always check for available tools** before writing custom commands
+- **Start monitoring first** - Always call `start_agent_session()` and `update_agent_status()` before work
+- **Custom commands are NOT observable** - Avoid them when MCP tools are available
 
