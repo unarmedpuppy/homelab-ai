@@ -1,0 +1,182 @@
+# Home Server Management MCP Server
+
+MCP (Model Context Protocol) server providing tools for managing the entire home server infrastructure.
+
+## Installation
+
+```bash
+cd server-management-mcp
+pip install -r requirements.txt
+```
+
+## Configuration
+
+Create `config.json` (optional) to override defaults:
+
+```json
+{
+  "server": {
+    "host": "192.168.86.47",
+    "port": 4242,
+    "user": "unarmedpuppy"
+  },
+  "sonarr": {
+    "api_key": "your-api-key"
+  }
+}
+```
+
+Or use environment variables:
+- `SONARR_API_KEY`
+- `RADARR_API_KEY`
+- `NZBGET_USERNAME`
+- `NZBGET_PASSWORD`
+- `QBITTORRENT_USERNAME`
+- `QBITTORRENT_PASSWORD`
+
+## Running the Server
+
+### Standalone (for testing)
+
+```bash
+python server.py
+```
+
+### With Claude Desktop
+
+Add to Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+
+```json
+{
+  "mcpServers": {
+    "home-server": {
+      "command": "python",
+      "args": ["/absolute/path/to/server-management-mcp/server.py"],
+      "env": {
+        "SONARR_API_KEY": "...",
+        "RADARR_API_KEY": "..."
+      }
+    }
+  }
+}
+```
+
+## Available Tools
+
+### Docker Management ✅
+- `docker_list_containers` - List all containers with filters
+- `docker_container_status` - Get detailed container status
+- `docker_restart_container` - Restart a container (with health check option)
+- `docker_stop_container` - Stop a container
+- `docker_start_container` - Start a container
+- `docker_view_logs` - View container logs
+- `docker_compose_ps` - List docker-compose services
+- `docker_compose_restart` - Restart docker-compose services
+
+### Media Download ✅
+**Sonarr Tools:**
+- `sonarr_clear_queue` - Clear all items from Sonarr queue
+- `sonarr_queue_status` - Get queue summary (total, by status, stuck items)
+- `sonarr_trigger_import_scan` - Trigger manual import scan
+- `sonarr_check_download_clients` - Check download client configuration
+- `sonarr_list_series` - List all series in library
+
+**Radarr Tools:**
+- `radarr_clear_queue` - Clear all items from Radarr queue
+- `radarr_queue_status` - Get queue summary
+- `radarr_trigger_import_scan` - Trigger manual import scan
+- `radarr_list_root_folders` - List all root folders
+- `radarr_add_root_folder` - Add a new root folder
+- `radarr_list_movies` - List all movies in library
+- `radarr_check_missing_root_folders` - Find movies using unconfigured paths
+
+**Download Clients:**
+- `nzbget_status` - Get NZBGet download status and speeds
+- `qbittorrent_status` - Get qBittorrent status and active torrents
+
+### System Monitoring ✅
+- `check_disk_space` - Check disk usage (with status: ok/warning/critical)
+- `check_system_resources` - Check CPU, memory, and load average
+- `get_recent_errors` - Get recent errors from service logs
+- `service_health_check` - Comprehensive health check for a service
+- `find_service_by_port` - Find which service is using a port
+
+### Troubleshooting ✅
+- `troubleshoot_failed_downloads` - Comprehensive diagnostic for Sonarr/Radarr
+- `diagnose_download_client_unavailable` - Specific diagnostic for stuck downloads
+- `check_service_dependencies` - Check if service dependencies are running
+
+### Networking ✅
+- `check_port_status` - Check if a port is listening
+- `vpn_status` - Check VPN services (Gluetun, Tailscale)
+- `check_dns_status` - Check DNS service (AdGuard) status
+
+### System Utilities ✅
+- `cleanup_archive_files` - Remove unpacked archive files (.rar, .par2, .nzb)
+- `check_unmapped_folders` - Find folders not mapped to series/movies
+- `list_completed_downloads` - List completed downloads in download directories
+
+### Git Operations & Deployment ✅
+- `git_status` - Check git repository status (branch, changes, ahead/behind)
+- `git_deploy` - Complete deployment workflow (add → commit → push → pull on server)
+- `deploy_and_restart` - Full workflow (deploy changes → restart affected services)
+- `restart_affected_services` - Auto-detect and restart services based on git changes
+
+## Development
+
+### Adding New Tools
+
+1. Create a new module in `tools/` (e.g., `tools/monitoring.py`)
+2. Implement tool functions with `@server.tool()` decorator
+3. Register the module in `server.py`:
+   ```python
+   from tools.monitoring import register_monitoring_tools
+   register_monitoring_tools(server)
+   ```
+
+### Testing
+
+Test tools directly:
+```python
+from tools.docker import register_docker_tools
+from mcp.server import Server
+
+server = Server("test")
+register_docker_tools(server)
+
+# Tools are now available
+```
+
+## Project Structure
+
+```
+server-management-mcp/
+├── server.py              # Main MCP server
+├── config/
+│   ├── __init__.py
+│   └── settings.py        # Configuration management
+├── clients/
+│   ├── __init__.py
+│   └── remote_exec.py     # Remote command execution
+├── tools/
+│   ├── __init__.py
+│   ├── docker.py          # Docker tools
+│   └── ...                # Other tool modules
+└── README.md
+```
+
+## Status
+
+- ✅ Core infrastructure
+- ✅ Docker management tools (8 tools)
+- ✅ Media download tools (13 tools)
+- ✅ System monitoring tools (5 tools)
+- ✅ Troubleshooting tools (3 tools)
+- ✅ Networking tools (3 tools)
+- ✅ System utilities (3 tools)
+- ✅ Git operations & deployment (4 tools)
+- ⏳ Application-specific tools (planned)
+- ⏳ Backup/restore tools (planned)
+
+**Total Tools**: 39 tools implemented
+
