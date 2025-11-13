@@ -729,7 +729,13 @@ _Add messages here when you need to communicate with your parent agent._
                         f"**Last Updated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
                     )
                 
-                registry_path.write_text(registry_content)
+                        registry_path.write_text(registry_content)
+            
+            # Sync registry after archiving
+            try:
+                await sync_agent_registry()
+            except:
+                pass  # Sync is optional, don't fail if it doesn't work
             
             return {
                 "status": "success",
@@ -860,7 +866,13 @@ _Add messages here when you need to communicate with your parent agent._
                         f"**Last Updated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
                     )
                 
-                registry_path.write_text(registry_content)
+                        registry_path.write_text(registry_content)
+            
+            # Sync registry after reactivation
+            try:
+                await sync_agent_registry()
+            except:
+                pass  # Sync is optional, don't fail if it doesn't work
             
             # Optionally assign new tasks
             task_assigned = False
