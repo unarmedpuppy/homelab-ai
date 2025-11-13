@@ -556,7 +556,7 @@ cat agents/memory/memory/export/decisions/*.md
 | Application-Specific | ⏳ Planned | 0 tools (planned: 12) |
 | Backup & Restore | ⏳ Planned | 0 tools (planned: 4) |
 
-**Total**: 67 tools implemented, 60+ tools planned = 127+ total tools
+**Total**: 68 tools implemented, 60+ tools planned = 128+ total tools
 
 **⚠️ IMPORTANT**: All MCP tools are automatically logged and visible in the agent monitoring dashboard. Always use MCP tools when available - they're observable!
 

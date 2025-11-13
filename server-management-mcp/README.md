@@ -149,6 +149,7 @@ Add to Claude Desktop config (`~/Library/Application Support/Claude/claude_deskt
 - `assign_task_to_agent` - Assign a new task to an existing agent
 - `archive_agent` - Archive an agent (move to archive state)
 - `reactivate_agent` - Reactivate an archived agent
+- `sync_agent_registry` - Sync agent registry markdown from monitoring DB and definition files
 
 ### Skill Management ✅
 - `propose_skill` - Propose a new skill for the skills library (creates proposal for review)
@@ -223,5 +224,20 @@ server-management-mcp/
 - ⏳ Application-specific tools (planned)
 - ⏳ Backup/restore tools (planned)
 
-**Total Tools**: 58 tools implemented (37 server management + 9 memory management + 3 agent management + 3 skill management + 6 task coordination)
+**Total Tools**: 68 tools implemented
+
+**Breakdown**:
+- Activity Monitoring: 4 tools
+- Agent Communication: 5 tools
+- Memory Management: 9 tools
+- Task Coordination: 6 tools
+- Agent Management: 6 tools
+- Skill Management: 5 tools
+- Docker Management: 8 tools
+- Media Download: 13 tools
+- System Monitoring: 5 tools
+- Troubleshooting: 3 tools
+- Git Operations: 4 tools
+- Networking: 4 tools
+- System Utilities: 3 tools
 

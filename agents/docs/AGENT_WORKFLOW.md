@@ -243,9 +243,21 @@ After completing work:
 
 **When to Create**: Alongside agent prompt
 
-### 5. Task Tracking (`TASKS.md`)
+### 5. Task Coordination
 
-**Purpose**: Manageable, claimable tasks with status tracking
+**Purpose**: Centralized task registry for coordinating work across agents
+
+**Location**: `agents/tasks/registry.md` (central registry)
+
+**MCP Tools**:
+- `register_task()` - Register new tasks
+- `query_tasks()` - Query with filters
+- `claim_task()` - Claim tasks (validates dependencies)
+- `update_task_status()` - Update status (auto-updates dependents)
+
+**Note**: Per-agent `TASKS.md` files are deprecated in favor of the central task registry. Use task coordination for all task management.
+
+**See**: `agents/tasks/README.md` for complete guide and `agents/docs/COMMUNICATION_GUIDELINES.md` for when to use which channel.
 
 **Contents**:
 - Task list with unique IDs
@@ -464,7 +476,9 @@ After completing work:
 
 ### 4. Communication Patterns
 
-**Current**: Status updates in TASKS.md
+**Current**: Task coordination via central registry (`agents/tasks/registry.md`)
+
+**Note**: Per-agent `TASKS.md` files are deprecated. Use the central task registry for all task management.
 
 **Enhancements**:
 - **Review Comments**: Add inline comments in code (if supported)
@@ -981,7 +995,7 @@ cat agents/memory/memory/export/decisions/*.md
    - SSH commands (last resort fallback)
 2. **Task Tracking**: 
    - **Central Task Registry** (preferred) - `agents/tasks/registry.md` with 6 MCP tools
-   - Individual TASKS.md files (for agent-specific context)
+   - Central task registry (`agents/tasks/registry.md`) - For all task coordination
    - GitHub Issues (for external tracking)
 3. **Code Review**: GitHub PRs or inline comments
 4. **Automated Checks**: GitHub Actions, pre-commit hooks

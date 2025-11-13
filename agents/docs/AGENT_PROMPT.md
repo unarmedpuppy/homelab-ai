@@ -361,8 +361,8 @@ If you identify a reusable workflow pattern:
 - `check_task_dependencies()` - Check dependency status
 
 **When to Use Task Coordination:**
-- **Use Central Registry**: For cross-agent coordination, dependencies, conflict prevention
-- **Use Individual TASKS.md**: For agent-specific context, detailed notes, implementation details
+- **Use Central Registry**: For all task coordination, dependencies, conflict prevention
+- **Note**: Per-agent `TASKS.md` files are deprecated. Use the central task registry for all task management.
 
 **Basic Workflow:**
 ```python
@@ -458,8 +458,9 @@ Agent definition created in `agents/registry/agent-definitions/`. Human will act
 
 **Step 4: Monitor Progress**
 Check:
-- `agents/active/agent-XXX-[specialization]/STATUS.md`
-- `agents/active/agent-XXX-[specialization]/COMMUNICATION.md`
+**Note**: Per-agent `STATUS.md` and `COMMUNICATION.md` files are deprecated. Use:
+- Monitoring system for status (`update_agent_status()`)
+- Communication protocol for messaging (`send_agent_message()`)
 
 **Available Agent Management Tools:**
 - `create_agent_definition` - Create new specialized agent
