@@ -642,6 +642,67 @@ memory_save_context(
 - `apps/agent_memory/README.md` for complete guide
 - `server-management-mcp/README.md` for memory tool reference
 
+## Agent Spawning and Specialization
+
+### ⚠️ When to Create Specialized Agents
+
+If you encounter a task that requires:
+- **Domain expertise** you don't have (e.g., database optimization, security hardening)
+- **Specialized knowledge** (e.g., Sonarr/Radarr troubleshooting, media management)
+- **Complex workflows** that would benefit from dedicated agent
+- **Recurring tasks** that need consistent specialization
+
+**Consider creating a specialized agent** using `create_agent_definition()`.
+
+### How to Create Specialized Agents
+
+**Step 1: Check Registry First**
+
+```python
+# Check if specialized agent already exists
+query_agent_registry(specialization="media-download")
+```
+
+**Step 2: Create Agent Definition**
+
+```python
+# Create specialized agent
+create_agent_definition(
+    specialization="media-download",
+    capabilities="troubleshoot-stuck-downloads skill, sonarr tools, radarr tools, download client knowledge",
+    initial_tasks="Fix 163 stuck downloads in Sonarr queue. Diagnose issue, remove stuck items, verify queue functionality.",
+    parent_agent_id="agent-001"
+)
+```
+
+**Step 3: Human Activates**
+
+The agent definition is created in `agents/registry/agent-definitions/`. A human will activate it by opening a new Cursor session with the agent definition.
+
+**Step 4: Monitor Progress**
+
+Check agent status:
+- `agents/active/agent-XXX-[specialization]/STATUS.md`
+- `agents/active/agent-XXX-[specialization]/COMMUNICATION.md`
+
+### Available Agent Management MCP Tools
+
+- `create_agent_definition` - Create new specialized agent (with tasks and registry entry)
+- `query_agent_registry` - Query for existing agents (by specialization or status)
+- `assign_task_to_agent` - Assign new task to existing agent
+
+### Agent Templates Available
+
+- `base-agent` - General purpose agent template
+- `server-management-agent` - Server management specialist
+- `media-download-agent` - Media download specialist (Sonarr/Radarr)
+- `database-agent` - Database specialist
+
+**See**: 
+- `agents/ACTIVATION_GUIDE.md` - Guide for activating agents
+- `apps/docs/AGENT_SPAWNING_ARCHITECTURE.md` - Complete architecture
+- `apps/docs/AGENT_SPAWNING_WORKFLOW.md` - Detailed workflow
+
 ## Server Management Skills
 
 ### ⚠️ CRITICAL: Use Skills for Common Workflows

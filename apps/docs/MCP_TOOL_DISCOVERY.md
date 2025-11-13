@@ -346,6 +346,17 @@ Since agents run in Cursor/Claude Desktop, use **MCP tools** to interact with me
 ### "Save current work context"
 → Use: `memory_save_context(agent_id="agent-001", task="T1.3", current_work="...")`
 
+### Agent Management Operations (Use MCP Tools)
+
+### "Create specialized agent for media downloads"
+→ Use: `create_agent_definition(specialization="media-download", capabilities="...", initial_tasks="...")`
+
+### "Check if specialized agent exists"
+→ Use: `query_agent_registry(specialization="media-download")`
+
+### "Assign task to existing agent"
+→ Use: `assign_task_to_agent(agent_id="agent-002", task_description="...")`
+
 ## Tool Implementation Status
 
 | Category | Status | Tools Available |

@@ -43,10 +43,12 @@ This document outlines a proven workflow for managing AI agents working on softw
 1. **Memory** (past context) → Use `memory_query_*` and `memory_search` MCP tools
 2. **Skills** (workflows) → `server-management-skills/README.md`
 3. **MCP Tools** (operations) → `server-management-mcp/README.md`
-4. Create new MCP tool (if operation is reusable)
-5. Create new skill (if workflow is reusable)
-6. Existing scripts (fallback)
-7. SSH commands (last resort)
+4. **Check for Specialized Agents** → Query agent registry if task requires specialization
+5. **Create Specialized Agent** → Use `create_agent_definition` if no existing agent
+6. Create new MCP tool (if operation is reusable)
+7. Create new skill (if workflow is reusable)
+8. Existing scripts (fallback)
+9. SSH commands (last resort)
 
 **See**: 
 - `server-management-skills/README.md` - Skills catalog
@@ -218,15 +220,20 @@ This document outlines a proven workflow for managing AI agents working on softw
    - Updates TASKS.md: `[CLAIMED]` or `[IN PROGRESS]`
    - Adds identifier/name
 
-2. **Agent Discovers Memory, Skills and Tools** (PRIMARY STEP)
+2. **Agent Discovers Memory, Skills, Tools, and Agents** (PRIMARY STEP)
    - **Check Memory first**: Query previous decisions and patterns using memory MCP tools
      - `memory_query_decisions()` - Find related decisions
      - `memory_query_patterns()` - Find common patterns
      - `memory_search()` - Full-text search across memories
      - `memory_get_recent_context()` - Check recent work
+   - **Check for Specialized Agents**: If task requires specialization, query agent registry
+     - `query_agent_registry(specialization="...")` - Find existing specialized agents
+     - If found: Assign task to existing agent
+     - If not found: Consider creating specialized agent
    - **Check Skills**: Review `server-management-skills/README.md` for workflows
    - **Check MCP Tools**: Review `server-management-mcp/README.md` for available tools
    - **Memory provides past context**: Learn from previous decisions and patterns
+   - **Specialized Agents provide expertise**: Delegate to domain experts when needed
    - **Skills provide workflows**: Use existing skills for common tasks
    - **MCP Tools provide capabilities**: Use tools for individual operations
    - **This is how you gain context and capabilities** - don't start from scratch
@@ -243,6 +250,10 @@ This document outlines a proven workflow for managing AI agents working on softw
    - **Records important decisions** using `memory_record_decision()`
    - **Records patterns discovered** using `memory_record_pattern()`
    - **Updates context** using `memory_save_context()` during work
+   - **Creates specialized agents when needed** using `create_agent_definition()`
+     - If task requires domain expertise not in current agent
+     - If task would benefit from specialized knowledge
+     - If similar tasks will recur (reusable specialization)
    - **Uses Skills for workflows** (don't reinvent common workflows)
    - **Uses MCP Tools for operations** (don't write custom commands)
    - Follows coding standards
