@@ -25,6 +25,8 @@ from tools.activity_monitoring import register_activity_monitoring_tools
 from tools.communication import register_communication_tools
 from tools.skill_activation import register_skill_activation_tools
 from tools.dev_docs import register_dev_docs_tools
+from tools.quality_checks import register_quality_check_tools
+from tools.code_review import register_code_review_tools
 
 # Create MCP server instance
 server = Server("home-server-management")
@@ -45,6 +47,8 @@ register_activity_monitoring_tools(server)
 register_communication_tools(server)
 register_skill_activation_tools(server)
 register_dev_docs_tools(server)
+register_quality_check_tools(server)
+register_code_review_tools(server)
 
 
 async def main():

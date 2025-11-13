@@ -716,20 +716,36 @@ update_dev_docs(
 ### Quality Check Workflow
 
 ```python
-# After making edits, check for issues:
-# 1. Run build/lint (if applicable)
-# 2. Review code for:
-#    - Error handling (try-catch, async error handling)
-#    - Security (input validation, SQL injection prevention)
-#    - Consistency (follows project patterns)
-# 3. Fix any issues before moving on
+# After making edits, ALWAYS run quality checks:
+result = check_code_quality(
+    file_paths="apps/my-app/src/index.ts,apps/my-app/src/utils.ts",
+    check_types="all"  # or "build,errors,security,handling"
+)
+
+# Review results
+if result["has_errors"]:
+    # Fix errors before proceeding
+    print(result["summary"])
+    # Fix each error...
+
+if result["has_issues"]:
+    # Review security and error handling issues
+    for issue in result["security_issues"]:
+        # Address security issues...
+    for issue in result["error_handling_issues"]:
+        # Add error handling...
 ```
+
+**Available Quality Check Tools:**
+- `check_code_quality()` - Comprehensive quality check (errors, security, error handling)
+- `check_build_errors()` - Check for build errors in a project
 
 **Why This Matters:**
 - Catches errors immediately (before they compound)
 - Ensures code quality and consistency
 - Prevents security issues
 - Saves time by fixing issues early
+- **Automated checks catch issues you might miss**
 
 ---
 
@@ -737,13 +753,42 @@ update_dev_docs(
 
 **Before marking tasks complete, review your own code:**
 
+### Self-Review Workflow
+
+```python
+# 1. Get self-review checklist
+checklist = self_review_checklist(
+    file_paths="apps/my-app/src/index.ts,apps/my-app/src/utils.ts"
+)
+
+# 2. Request code review
+review = request_code_review(
+    file_paths="apps/my-app/src/index.ts,apps/my-app/src/utils.ts",
+    review_type="self"
+)
+
+# 3. Review results and fix issues
+print(review["summary"])
+
+# 4. Address any issues found
+if review["issues"]:
+    # Fix each issue...
+    pass
+
+# 5. Verify checklist items
+for item in checklist["items"]:
+    # Verify each item...
+    pass
+```
+
 ### Self-Review Checklist
 
+Use `self_review_checklist()` to get a checklist, then verify:
 - [ ] Code follows project patterns
 - [ ] Error handling is present (try-catch, async error handling)
 - [ ] Security checks (input validation, SQL injection prevention)
 - [ ] Code is formatted consistently
-- [ ] No build/lint errors
+- [ ] No build/lint errors (use `check_code_quality()`)
 - [ ] Tests pass (if applicable)
 - [ ] Documentation updated (if needed)
 
@@ -753,11 +798,16 @@ For complex changes, consider requesting a code review:
 - Use communication protocol to request review from another agent
 - Or use specialized review agents if available
 
+**Available Code Review Tools:**
+- `request_code_review()` - Systematic code review with checklist
+- `self_review_checklist()` - Get checklist for self-review
+
 **Why This Matters:**
 - Catches issues before they become problems
 - Ensures code quality and consistency
 - Prevents security vulnerabilities
 - Maintains codebase standards
+- **Systematic review catches issues you might miss**
 
 ---
 

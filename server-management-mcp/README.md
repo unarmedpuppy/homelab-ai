@@ -168,6 +168,14 @@ Add to Claude Desktop config (`~/Library/Application Support/Claude/claude_deskt
 - `list_active_dev_docs` - List all active dev docs for an agent
 - `read_dev_docs` - Read all dev docs for a specific task (use at session start)
 
+### Quality Checks ✅
+- `check_code_quality` - Comprehensive quality check (errors, security, error handling) - **Use after every edit!**
+- `check_build_errors` - Check for build errors in a project
+
+### Code Review ✅
+- `request_code_review` - Request systematic code review for modified files
+- `self_review_checklist` - Get self-review checklist before marking tasks complete
+
 ### Task Coordination ✅
 - `register_task` - Register a new task in the central task registry
 - `query_tasks` - Query tasks with filters (status, assignee, project, priority, search)
@@ -234,7 +242,7 @@ server-management-mcp/
 - ⏳ Application-specific tools (planned)
 - ⏳ Backup/restore tools (planned)
 
-**Total Tools**: 72 tools implemented
+**Total Tools**: 76 tools implemented
 
 **Breakdown**:
 - Activity Monitoring: 4 tools
@@ -243,8 +251,10 @@ server-management-mcp/
 - Task Coordination: 6 tools
 - Agent Management: 6 tools
 - Skill Management: 5 tools
-- Skill Activation: 2 tools ⭐ NEW
-- Dev Docs: 4 tools ⭐ NEW
+- Skill Activation: 2 tools
+- Dev Docs: 4 tools
+- Quality Checks: 2 tools ⭐ NEW
+- Code Review: 2 tools ⭐ NEW
 - Docker Management: 8 tools
 - Media Download: 13 tools
 - System Monitoring: 5 tools
