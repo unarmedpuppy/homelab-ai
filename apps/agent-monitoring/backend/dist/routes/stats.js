@@ -5,12 +5,22 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createStatsRouter = createStatsRouter;
 const express_1 = require("express");
+const cache_1 = require("../utils/cache");
 function createStatsRouter(dbService) {
     const router = (0, express_1.Router)();
-    // GET /api/stats - Get system statistics
+    // GET /api/stats - Get system statistics (cached for 5 seconds)
     router.get('/', (_req, res) => {
         try {
+            const cached = cache_1.cache.get('system_stats');
+            if (cached) {
+                return res.json({
+                    status: 'success',
+                    stats: cached,
+                    cached: true
+                });
+            }
             const stats = dbService.getSystemStats();
+            cache_1.cache.set('system_stats', stats, 5000); // Cache for 5 seconds
             res.json({
                 status: 'success',
                 stats

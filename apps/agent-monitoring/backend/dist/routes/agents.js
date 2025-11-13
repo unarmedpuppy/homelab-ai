@@ -5,12 +5,23 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createAgentsRouter = createAgentsRouter;
 const express_1 = require("express");
+const cache_1 = require("../utils/cache");
 function createAgentsRouter(dbService) {
     const router = (0, express_1.Router)();
-    // GET /api/agents - List all agents
+    // GET /api/agents - List all agents (cached for 3 seconds)
     router.get('/', (req, res) => {
         try {
             const status = req.query.status;
+            const cacheKey = status ? `agents_${status}` : 'agents_all';
+            const cached = cache_1.cache.get(cacheKey);
+            if (cached) {
+                return res.json({
+                    status: 'success',
+                    count: cached.length,
+                    agents: cached,
+                    cached: true
+                });
+            }
             let agents;
             if (status) {
                 agents = dbService.getAgentsByStatus(status);
@@ -18,6 +29,7 @@ function createAgentsRouter(dbService) {
             else {
                 agents = dbService.getAllAgents();
             }
+            cache_1.cache.set(cacheKey, agents, 3000); // Cache for 3 seconds
             res.json({
                 status: 'success',
                 count: agents.length,

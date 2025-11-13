@@ -5,14 +5,26 @@
 import { Router, Request, Response } from 'express';
 import { DatabaseService } from '../services/database';
 import { AgentDetails } from '../types';
+import { cache } from '../utils/cache';
 
 export function createAgentsRouter(dbService: DatabaseService): Router {
   const router = Router();
 
-  // GET /api/agents - List all agents
+  // GET /api/agents - List all agents (cached for 3 seconds)
   router.get('/', (req: Request, res: Response) => {
     try {
       const status = req.query.status as string | undefined;
+      const cacheKey = status ? `agents_${status}` : 'agents_all';
+      
+      const cached = cache.get(cacheKey);
+      if (cached) {
+        return res.json({
+          status: 'success',
+          count: cached.length,
+          agents: cached,
+          cached: true
+        });
+      }
       
       let agents;
       if (status) {
@@ -20,6 +32,8 @@ export function createAgentsRouter(dbService: DatabaseService): Router {
       } else {
         agents = dbService.getAllAgents();
       }
+
+      cache.set(cacheKey, agents, 3000); // Cache for 3 seconds
 
       res.json({
         status: 'success',
