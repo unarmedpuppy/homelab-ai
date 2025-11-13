@@ -107,6 +107,7 @@ This directory contains all documentation related to AI agent workflows, prompts
 - `server-management-mcp/README.md` - MCP tools catalog (68 tools, including 4 activity monitoring tools and 5 communication tools)
 
 ### Architecture & System Documentation
+- `agents/docs/COMPLETE_SYSTEM_VISUALIZATION.md` ⭐⭐⭐ - **Complete visual guide with Mermaid diagrams**
 - `agents/docs/SYSTEM_ARCHITECTURE.md` ⭐ - Unified architecture overview
 - `agents/docs/DATA_MODEL.md` ⭐ - Data model and storage structure
 - `agents/docs/COMMUNICATION_GUIDELINES.md` ⭐ - Communication channel usage
