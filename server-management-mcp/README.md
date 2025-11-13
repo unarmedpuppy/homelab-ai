@@ -154,6 +154,8 @@ Add to Claude Desktop config (`~/Library/Application Support/Claude/claude_deskt
 - `propose_skill` - Propose a new skill for the skills library (creates proposal for review)
 - `list_skill_proposals` - List skill proposals (by category or status)
 - `query_skills` - Query existing skills (by category or search text)
+- `analyze_patterns_for_skills` - Analyze patterns in memory and identify candidates for skill creation
+- `auto_propose_skill_from_pattern` - Automatically create a skill proposal from a pattern
 
 ### Task Coordination ✅
 - `register_task` - Register a new task in the central task registry

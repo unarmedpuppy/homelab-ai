@@ -533,6 +533,8 @@ Check:
 - Propose: `propose_skill()` - Create skill proposal
 - List: `list_skill_proposals()` - List proposals
 - Query: `query_skills()` - Query existing skills
+- Analyze: `analyze_patterns_for_skills()` - Analyze patterns for skill candidates
+- Auto-create: `auto_propose_skill_from_pattern()` - Auto-create skill from pattern
 
 ### Activity Monitoring Tools (USE THESE FIRST!)
 - Start: `start_agent_session(agent_id)` - Start monitoring session
