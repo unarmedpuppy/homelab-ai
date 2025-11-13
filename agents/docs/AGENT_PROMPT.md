@@ -585,6 +585,16 @@ Check:
 - Resolve: `mark_message_resolved()` - Mark message as resolved
 - Query: `query_messages()` - Query messages with multiple filters
 
+### Skill Activation Tools ⭐ NEW
+- Suggest: `suggest_relevant_skills()` - Get skill suggestions based on context (CRITICAL: Use before starting work!)
+- Reminder: `get_skill_activation_reminder()` - Get formatted reminder of which skills to check
+
+### Dev Docs Tools ⭐ NEW
+- Create: `create_dev_docs()` - Create dev docs (plan, context, tasks) for major tasks
+- Update: `update_dev_docs()` - Update dev docs with progress (use before compaction)
+- List: `list_active_dev_docs()` - List all active dev docs for an agent
+- Read: `read_dev_docs()` - Read dev docs at session start to refresh context
+
 ### Key Files
 - **Agent Monitoring**: `apps/agent-monitoring/README.md` ⭐ **See this for monitoring dashboard**
 - **Monitoring Integration**: `apps/agent-monitoring/INTEGRATION_GUIDE.md` ⭐ **See this for how to be observed**
@@ -596,6 +606,160 @@ Check:
 - Memory Guide: `agents/memory/MCP_TOOLS_GUIDE.md`
 - Memory Examples: `agents/memory/MEMORY_USAGE_EXAMPLES.md` ⭐ **See this for real-world examples**
 - Tool Discovery: `agents/docs/MCP_TOOL_DISCOVERY.md`
+- **Skill Activation**: `agents/docs/SKILL_AUTO_ACTIVATION.md` ⭐ **See this for skill activation guide**
+- **Dev Docs System**: `agents/docs/DEV_DOCS_SYSTEM.md` ⭐ **See this for context preservation guide**
+
+## 🎯 CRITICAL: Skill Auto-Activation
+
+**Skills won't be used unless you explicitly check them!** This is a critical issue.
+
+### Before Starting ANY Work
+
+**Always use skill activation tools first:**
+
+```python
+# Option 1: Get suggestions based on your context
+suggest_relevant_skills(
+    prompt_text="What you're asking or working on",
+    file_paths="files you're editing (comma-separated)",
+    task_description="Description of your current task"
+)
+
+# Option 2: Get quick reminder
+get_skill_activation_reminder(context_summary="Brief summary of your work")
+```
+
+**Then:**
+1. Review the suggested skills
+2. Load and read the relevant skill files
+3. Follow the skill workflows instead of reinventing
+
+**Why This Matters:**
+- Skills provide tested workflows that prevent mistakes
+- Skills ensure consistency across the codebase
+- Skills save time by providing proven patterns
+- **Without checking, skills sit unused and you reinvent the wheel**
+
+**See**: `agents/docs/SKILL_AUTO_ACTIVATION.md` for complete guide.
+
+---
+
+## 📝 Context Preservation (Dev Docs)
+
+**For large tasks or features, use dev docs to prevent losing context:**
+
+### When to Create Dev Docs
+
+- Starting a major feature or task
+- Working on something that will take multiple sessions
+- Before compacting conversation (preserve context)
+
+### Creating Dev Docs
+
+```python
+# After planning, create dev docs
+create_dev_docs(
+    agent_id="agent-001",
+    task_name="deploy-trading-bot",
+    plan_content="# Plan content from planning...",
+    context_content="Key files: apps/trading-bot/docker-compose.yml",
+    initial_tasks="- [ ] Setup database\n- [ ] Configure API"
+)
+```
+
+### Continuing Work
+
+```python
+# At start of session, check for active dev docs
+active_docs = list_active_dev_docs(agent_id="agent-001")
+
+# Read dev docs to refresh context
+docs = read_dev_docs(agent_id="agent-001", task_name="deploy-trading-bot")
+# Now you have: plan, context, and tasks
+```
+
+### Before Compaction
+
+```python
+# Update dev docs with current progress
+update_dev_docs(
+    agent_id="agent-001",
+    task_name="deploy-trading-bot",
+    context_updates="Database configured, API key set",
+    completed_tasks="Setup database, Configure API",
+    next_steps="Deploy frontend, test integration"
+)
+```
+
+**Why This Matters:**
+- Prevents losing track during long sessions
+- Preserves context across auto-compaction
+- Maintains focus on the original plan
+- Documents decisions and progress
+
+**See**: `agents/docs/DEV_DOCS_SYSTEM.md` for complete guide.
+
+---
+
+## ✅ Quality Checks (After Every Edit)
+
+**After making code changes, always check for errors:**
+
+### Required Checks
+
+1. **Build/Lint Errors** - Run build or lint commands if applicable
+2. **TypeScript Errors** - Check for type errors
+3. **Missing Error Handling** - Verify try-catch blocks, error handling
+4. **Security Issues** - Input validation, SQL injection prevention
+5. **Code Formatting** - Ensure consistent formatting
+
+### Quality Check Workflow
+
+```python
+# After making edits, check for issues:
+# 1. Run build/lint (if applicable)
+# 2. Review code for:
+#    - Error handling (try-catch, async error handling)
+#    - Security (input validation, SQL injection prevention)
+#    - Consistency (follows project patterns)
+# 3. Fix any issues before moving on
+```
+
+**Why This Matters:**
+- Catches errors immediately (before they compound)
+- Ensures code quality and consistency
+- Prevents security issues
+- Saves time by fixing issues early
+
+---
+
+## 🔍 Code Review Workflow
+
+**Before marking tasks complete, review your own code:**
+
+### Self-Review Checklist
+
+- [ ] Code follows project patterns
+- [ ] Error handling is present (try-catch, async error handling)
+- [ ] Security checks (input validation, SQL injection prevention)
+- [ ] Code is formatted consistently
+- [ ] No build/lint errors
+- [ ] Tests pass (if applicable)
+- [ ] Documentation updated (if needed)
+
+### Request Code Review
+
+For complex changes, consider requesting a code review:
+- Use communication protocol to request review from another agent
+- Or use specialized review agents if available
+
+**Why This Matters:**
+- Catches issues before they become problems
+- Ensures code quality and consistency
+- Prevents security vulnerabilities
+- Maintains codebase standards
+
+---
 
 ## Important Principles
 
