@@ -817,6 +817,182 @@ For complex changes, consider requesting a code review:
 
 ---
 
+## 📋 Planning Mode Integration
+
+**Planning is king. Always plan before implementing major features or tasks.**
+
+### Planning Workflow
+
+```python
+# 1. Enter planning mode (or use planning agent)
+# Research codebase, understand requirements, create plan
+
+# 2. Review plan thoroughly
+# Take time to understand, catch mistakes, verify requirements
+
+# 3. Create dev docs from approved plan
+create_dev_docs(
+    agent_id="agent-001",
+    task_name="implement-feature-x",
+    plan_content="# Approved plan content...",
+    context_content="Key files, decisions, dependencies",
+    initial_tasks="- [ ] Task 1\n- [ ] Task 2"
+)
+
+# 4. Then implement following the plan
+# Reference dev docs throughout implementation
+```
+
+### When to Plan
+
+**Always plan for:**
+- ✅ Major features or tasks
+- ✅ Complex implementations
+- ✅ Multi-step workflows
+- ✅ Tasks with dependencies
+- ✅ Anything that will take multiple sessions
+
+**Quick fixes don't need planning:**
+- ❌ Simple bug fixes
+- ❌ Single file changes
+- ❌ Configuration updates
+- ❌ One-off operations
+
+### Planning Best Practices
+
+1. **Research First** - Understand the codebase before planning
+2. **Be Comprehensive** - Include all steps, dependencies, and considerations
+3. **Review Thoroughly** - Take time to review and understand the plan
+4. **Create Dev Docs** - Preserve plan in dev docs for reference
+5. **Follow the Plan** - Don't go off on tangents, stick to the plan
+6. **Update as Needed** - If plan needs to change, update dev docs
+
+**Why This Matters:**
+- Prevents going off on tangents
+- Ensures all requirements are addressed
+- Identifies dependencies early
+- Saves time by avoiding rework
+- Creates clear roadmap for implementation
+
+---
+
+## ⚡ Quick Commands / Common Workflows
+
+**Common workflow shortcuts to save time:**
+
+### Planning & Dev Docs
+
+```python
+# Create dev docs from approved plan
+create_dev_docs(
+    agent_id="agent-001",
+    task_name="task-name",
+    plan_content="...",
+    context_content="...",
+    initial_tasks="..."
+)
+
+# Update dev docs before compaction
+update_dev_docs(
+    agent_id="agent-001",
+    task_name="task-name",
+    context_updates="...",
+    completed_tasks="...",
+    next_steps="..."
+)
+
+# Read dev docs at session start
+read_dev_docs(agent_id="agent-001", task_name="task-name")
+```
+
+### Quality & Review
+
+```python
+# Check code quality after edits
+check_code_quality(
+    file_paths="file1.ts,file2.ts",
+    check_types="all"
+)
+
+# Request code review
+request_code_review(
+    file_paths="file1.ts,file2.ts",
+    review_type="self"
+)
+```
+
+### Skill Activation
+
+```python
+# Get skill suggestions
+suggest_relevant_skills(
+    prompt_text="What you're working on",
+    file_paths="files you're editing",
+    task_description="Your task"
+)
+```
+
+### Service Debugging
+
+```python
+# Get service logs
+get_service_logs(
+    service_name="service-name",
+    lines=200,
+    level="error"
+)
+
+# Monitor service status
+monitor_service_status(service_name="service-name")
+
+# Restart service
+restart_service(service_name="service-name")
+```
+
+### Task Management
+
+```python
+# Register new task
+register_task(
+    title="Task title",
+    description="Task description",
+    project="project-name",
+    priority="high"
+)
+
+# Claim task
+claim_task(task_id="T1.1", agent_id="agent-001")
+
+# Update task status
+update_task_status(task_id="T1.1", status="in_progress", progress="50%")
+```
+
+### Memory
+
+```python
+# Query previous decisions
+memory_query_decisions(project="home-server", limit=5)
+
+# Record decision
+memory_record_decision(
+    content="Decision made",
+    rationale="Why this decision",
+    project="home-server"
+)
+
+# Record pattern
+memory_record_pattern(
+    name="Pattern name",
+    description="Pattern description",
+    solution="Solution",
+    severity="medium"
+)
+```
+
+**See**: `agents/docs/QUICK_START.md` for more quick reference commands.
+
+---
+
 ## Important Principles
 
 0. **Be Observable** - Always use activity monitoring tools so your work is visible

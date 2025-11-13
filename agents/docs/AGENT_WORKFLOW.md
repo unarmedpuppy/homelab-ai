@@ -4,6 +4,42 @@
 
 This document outlines a proven workflow for managing AI agents working on software projects. This approach ensures quality, consistency, and effective collaboration between multiple AI agents.
 
+## ⚠️ CRITICAL: Planning is King
+
+**Before implementing ANY feature or major task, you MUST plan first. Planning prevents mistakes, ensures clarity, and saves time.**
+
+### Planning Workflow
+
+1. **Enter Planning Mode** (or use planning agent)
+   - Research the codebase
+   - Understand requirements
+   - Identify dependencies
+   - Create comprehensive plan
+
+2. **Review Plan Thoroughly**
+   - Take time to understand the plan
+   - Catch mistakes or misunderstandings
+   - Verify all requirements are addressed
+   - Adjust if needed
+
+3. **Create Dev Docs from Approved Plan**
+   - Use `create_dev_docs()` to preserve plan
+   - This prevents losing context during implementation
+
+4. **Then Implement**
+   - Follow the plan step-by-step
+   - Reference dev docs throughout
+   - Update dev docs as you progress
+
+**Why Planning Matters:**
+- Prevents going off on tangents
+- Ensures all requirements are addressed
+- Identifies dependencies early
+- Saves time by avoiding rework
+- Creates clear roadmap for implementation
+
+---
+
 ## ⚠️ CRITICAL: Start Monitoring First, Then Skills and MCP Tools
 
 **Before starting any task, you MUST start an agent monitoring session so your work is visible. Then discover Skills and MCP Tools.**
