@@ -2,7 +2,7 @@ import { api } from '@/lib/api';
 import AgentCard from '@/components/AgentCard';
 import ActivityFeed from '@/components/ActivityFeed';
 import StatsCards from '@/components/StatsCards';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import DashboardWrapper from '@/components/DashboardWrapper';
 
 export const revalidate = 5; // Revalidate every 5 seconds
 
@@ -28,7 +28,7 @@ export default async function DashboardPage() {
   const recentActions = recentActionsData.actions || [];
 
   return (
-    <ErrorBoundary>
+    <DashboardWrapper>
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
@@ -68,6 +68,6 @@ export default async function DashboardPage() {
           </div>
         </div>
       </div>
-    </ErrorBoundary>
+    </DashboardWrapper>
   );
 }
