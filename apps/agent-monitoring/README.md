@@ -24,7 +24,7 @@ This service provides:
 ### Prerequisites
 
 - Docker and Docker Compose
-- Ports available: 3001 (backend), 3010 (Grafana), 3012 (frontend), 8086 (InfluxDB)
+- Ports available: 3001 (backend), 3011 (Grafana), 3012 (frontend), 8087 (InfluxDB)
 
 ### Setup
 
@@ -44,13 +44,13 @@ This service provides:
 4. **Access services**:
    - Frontend Dashboard: http://localhost:3012
    - Backend API: http://localhost:3001
-   - Grafana: http://localhost:3010 (admin/admin123)
-   - InfluxDB: http://localhost:8086
+   - Grafana: http://localhost:3011 (admin/admin123)
+   - InfluxDB: http://localhost:8087
 
 ### First Time Setup
 
 1. **Grafana Login**:
-   - URL: http://localhost:3010
+   - URL: http://localhost:3011
    - Username: `admin`
    - Password: `admin123`
    - The InfluxDB data source is automatically configured
@@ -61,7 +61,7 @@ This service provides:
    - Metrics will start appearing after agents log activity
 
 3. **InfluxDB Setup** (if needed):
-   - URL: http://localhost:8086
+   - URL: http://localhost:8087
    - Username: `admin`
    - Password: `admin123`
    - Organization: `home-server`
@@ -134,7 +134,7 @@ See `.env.example` for all available options:
 
 - `BACKEND_PORT` - Backend API port (default: 3001)
 - `FRONTEND_PORT` - Frontend port (default: 3012)
-- `GRAFANA_PORT` - Grafana port (default: 3010)
+- `GRAFANA_PORT` - Grafana port (default: 3011)
 - `INFLUXDB_URL` - InfluxDB connection URL
 - `INFLUXDB_TOKEN` - InfluxDB authentication token
 - `METRIC_EXPORT_INTERVAL` - How often to export metrics (ms, default: 30000)

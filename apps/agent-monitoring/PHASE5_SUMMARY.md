@@ -60,7 +60,7 @@
 - [ ] All services start correctly with `docker-compose up -d`
 - [ ] Frontend accessible at http://localhost:3012
 - [ ] Backend API responds at http://localhost:3001
-- [ ] Grafana accessible at http://localhost:3010
+- [ ] Grafana accessible at http://localhost:3011
 - [ ] Homepage shows agent monitoring links
 - [ ] Traefik routes work (if configured)
 - [ ] Metrics export to InfluxDB works

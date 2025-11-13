@@ -74,7 +74,7 @@ This directory contains all documentation related to AI agent workflows, prompts
 - `apps/agent-monitoring/README.md` ⭐ - Dashboard overview and setup
 - `apps/agent-monitoring/INTEGRATION_GUIDE.md` ⭐ - Complete integration guide
 - **Dashboard**: http://localhost:3012 or https://agent-dashboard.server.unarmedpuppy.com
-- **Grafana**: http://localhost:3010 (admin/admin123)
+- **Grafana**: http://localhost:3011 (admin/admin123)
 
 ### Skills & Tools
 - `server-management-skills/README.md` - Reusable workflow skills

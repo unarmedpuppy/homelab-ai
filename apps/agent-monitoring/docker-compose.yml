@@ -7,7 +7,7 @@ services:
     container_name: agent-monitoring-influxdb
     restart: unless-stopped
     ports:
-      - "8086:8086"
+      - "8087:8086"  # Changed from 8086 to avoid conflict with existing Grafana Stack InfluxDB
     environment:
       - DOCKER_INFLUXDB_INIT_MODE=setup
       - DOCKER_INFLUXDB_INIT_USERNAME=admin
@@ -33,12 +33,12 @@ services:
     container_name: agent-monitoring-grafana
     restart: unless-stopped
     ports:
-      - "3010:3000"
+      - "3011:3000"  # Changed from 3010 to avoid conflict with existing Grafana Stack Grafana
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin123
       - GF_INSTALL_PLUGINS=
-      - GF_SERVER_ROOT_URL=http://localhost:3010
+      - GF_SERVER_ROOT_URL=http://localhost:3011
       - GF_SERVER_SERVE_FROM_SUB_PATH=false
     volumes:
       - grafana-data:/var/lib/grafana
@@ -59,7 +59,7 @@ services:
       - "homepage.group=Infrastructure"
       - "homepage.name=Agent Monitoring (Grafana)"
       - "homepage.icon=si-grafana"
-      - "homepage.href=http://192.168.86.47:3010"
+      - "homepage.href=http://192.168.86.47:3011"
       - "homepage.description=Grafana dashboards for agent metrics"
 
   # Backend API

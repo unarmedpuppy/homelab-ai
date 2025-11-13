@@ -5,7 +5,7 @@ Complete setup guide for the self-contained agent monitoring system.
 ## Prerequisites
 
 - Docker and Docker Compose installed
-- Ports available: 3001, 3010, 3012, 8086
+- Ports available: 3001, 3011, 3012, 8087
 
 ## Quick Start
 
@@ -33,14 +33,14 @@ Complete setup guide for the self-contained agent monitoring system.
 5. **Access the services**:
    - **Frontend Dashboard**: http://localhost:3012
    - **Backend API**: http://localhost:3001
-   - **Grafana**: http://localhost:3010 (admin/admin123)
-   - **InfluxDB**: http://localhost:8086 (admin/admin123)
+   - **Grafana**: http://localhost:3011 (admin/admin123)
+   - **InfluxDB**: http://localhost:8087 (admin/admin123)
 
 ## First Time Setup
 
 ### Grafana
 
-1. Open http://localhost:3010
+1. Open http://localhost:3011
 2. Login with:
    - Username: `admin`
    - Password: `admin123`
@@ -51,7 +51,7 @@ Complete setup guide for the self-contained agent monitoring system.
 
 ### InfluxDB (if needed)
 
-1. Open http://localhost:8086
+1. Open http://localhost:8087
 2. Login with:
    - Username: `admin`
    - Password: `admin123`
@@ -70,11 +70,11 @@ curl http://localhost:3001/health
 Open http://localhost:3012 in your browser
 
 ### Check Grafana
-Open http://localhost:3010 and login
+Open http://localhost:3011 and login
 
 ### Check InfluxDB
 ```bash
-curl http://localhost:8086/api/v2/health
+curl http://localhost:8087/api/v2/health
 # Should return: {"status":"pass",...}
 ```
 
@@ -127,7 +127,7 @@ Edit `docker-compose.yml` and change the port mappings:
 ```yaml
 ports:
   - "YOUR_PORT:3001"  # Backend
-  - "YOUR_PORT:3010"  # Grafana
+  - "YOUR_PORT:3011"  # Grafana
   - "YOUR_PORT:3012"  # Frontend
 ```
 

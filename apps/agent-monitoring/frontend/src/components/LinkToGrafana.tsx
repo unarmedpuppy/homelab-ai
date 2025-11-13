@@ -1,7 +1,7 @@
 'use client';
 
 export default function LinkToGrafana() {
-  const grafanaUrl = process.env.NEXT_PUBLIC_GRAFANA_URL || 'http://localhost:3010';
+  const grafanaUrl = process.env.NEXT_PUBLIC_GRAFANA_URL || 'http://localhost:3011';
   
   return (
     <a
