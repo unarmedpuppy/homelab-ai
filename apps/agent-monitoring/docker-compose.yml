@@ -13,6 +13,7 @@ services:
       - DOCKER_INFLUXDB_INIT_PASSWORD=admin123
       - DOCKER_INFLUXDB_INIT_ORG=home-server
       - DOCKER_INFLUXDB_INIT_BUCKET=agent_metrics
+      - DOCKER_INFLUXDB_INIT_RETENTION=0
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=agent-monitoring-token-12345
     volumes:
       - influxdb-data:/var/lib/influxdb2

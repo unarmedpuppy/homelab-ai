@@ -8,16 +8,14 @@ import { DatabaseService } from './database';
 
 export class MetricExporter {
   private influxService: InfluxDBService | null;
-  private dbService: DatabaseService;
   private exportInterval: NodeJS.Timeout | null = null;
   private isRunning = false;
 
   constructor(
     influxService: InfluxDBService | null,
-    dbService: DatabaseService
+    _dbService: DatabaseService // Kept for future use
   ) {
     this.influxService = influxService;
-    this.dbService = dbService;
   }
 
   /**

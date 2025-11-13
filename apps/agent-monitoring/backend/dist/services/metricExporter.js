@@ -7,12 +7,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MetricExporter = void 0;
 class MetricExporter {
     influxService;
-    dbService;
     exportInterval = null;
     isRunning = false;
-    constructor(influxService, dbService) {
+    constructor(influxService, _dbService // Kept for future use
+    ) {
         this.influxService = influxService;
-        this.dbService = dbService;
     }
     /**
      * Start automatic metric export

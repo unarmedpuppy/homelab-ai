@@ -22,6 +22,7 @@ export class InfluxDBService {
     if (url && token) {
       this.client = new InfluxDB({ url, token });
       this.writeApi = this.client.getWriteApi(org, bucket, 'ms');
+      console.log(`📊 InfluxDB WriteApi initialized: org=${org}, bucket=${bucket}`);
     }
   }
 

@@ -6,10 +6,9 @@ import { InfluxDBService } from './influxdb';
 import { DatabaseService } from './database';
 export declare class MetricExporter {
     private influxService;
-    private dbService;
     private exportInterval;
     private isRunning;
-    constructor(influxService: InfluxDBService | null, dbService: DatabaseService);
+    constructor(influxService: InfluxDBService | null, _dbService: DatabaseService);
     /**
      * Start automatic metric export
      * @param intervalMs - Export interval in milliseconds (default: 30 seconds)
