@@ -55,12 +55,12 @@ See `server-management-skills/README.md` for complete catalog.
 - **MCP Tools**: `git_status`, `git_deploy`, `docker_compose_restart`, `docker_container_status`
 - **Replaces**: 14-step deployment checklist from agent prompts
 
-#### `deploy-new-service` ⏳
+#### `deploy-new-service` ✅
 **Complete new service setup**: create config → validate → deploy → verify
 
 - **When to use**: Setting up a new application/service
-- **MCP Tools**: `read_file`, `validate_docker_compose`, `check_port_status`, `git_deploy`, `docker_compose_up`
-- **Includes**: Templates for docker-compose.yml and .env files
+- **MCP Tools**: `read_file`, `write_file`, `validate_docker_compose`, `check_port_status`, `git_deploy`, `docker_compose_up`
+- **Includes**: Configuration patterns, templates, and best practices
 
 #### `rollback-deployment` ⏳
 **Revert to previous version**: identify commit → checkout → restart
@@ -77,11 +77,11 @@ See `server-management-skills/README.md` for complete catalog.
 - **MCP Tools**: `docker_container_status`, `docker_view_logs`, `check_service_dependencies`, `check_system_resources`
 - **Output**: Root cause analysis and recommended fixes
 
-#### `troubleshoot-stuck-downloads` ⏳
+#### `troubleshoot-stuck-downloads` ✅
 **Diagnose Sonarr/Radarr queue issues**: check queue → verify clients → clear stuck items
 
 - **When to use**: Downloads stuck in queue, not processing
-- **MCP Tools**: `sonarr_queue_status`, `sonarr_check_download_clients`, `radarr_queue_status`, `sonarr_clear_queue`
+- **MCP Tools**: `sonarr_queue_status`, `sonarr_check_download_clients`, `radarr_queue_status`, `sonarr_clear_queue`, `nzbget_status`, `qbittorrent_status`
 - **Output**: Issue identification and resolution steps
 
 #### `troubleshoot-service-startup` ⏳
@@ -253,10 +253,15 @@ Skills **must** use MCP tools. They don't replace tools, they orchestrate them:
 
 ## Status
 
-- ✅ **1 skill implemented**: `standard-deployment`
-- ⏳ **11 skills planned**: See catalog above
+- ✅ **5 skills implemented**:
+  - `standard-deployment` - Complete deployment workflow
+  - `troubleshoot-container-failure` - Container diagnostics
+  - `system-health-check` - Comprehensive system verification
+  - `troubleshoot-stuck-downloads` - Download queue issues
+  - `deploy-new-service` - New service setup
+- ⏳ **7 skills planned**: See catalog above
 
-**Total**: 1 implemented, 11 planned = 12 skills
+**Total**: 5 implemented, 7 planned = 12 skills
 
 ## Contributing
 

@@ -4,14 +4,15 @@ description: Diagnose Sonarr/Radarr queue issues: check queue → verify clients
 category: troubleshooting
 mcp_tools_required:
   - sonarr_queue_status
-  - sonarr_check_download_clients
   - radarr_queue_status
-  - sonarr_clear_queue
-  - radarr_clear_queue
-  - nzbget_status
-  - qbittorrent_status
+  - sonarr_check_download_clients
+  - radarr_check_download_clients
+  - troubleshoot_failed_downloads
+  - diagnose_download_client_unavailable
+  - remove_stuck_downloads
+  - check_disk_space
 prerequisites:
-  - Sonarr or Radarr service running
+  - Sonarr or Radarr service name
   - MCP tools available
 ---
 
@@ -21,195 +22,213 @@ prerequisites:
 
 Use this skill when:
 - Downloads stuck in Sonarr/Radarr queue
-- Downloads not processing
-- Queue items in "downloading" state for extended time
-- Download client not responding
-- Import scans not working
+- Queue shows "downloadClientUnavailable" errors
+- Downloads not processing or importing
+- Queue items stuck in error/warning status
+- User reports queue is stuck
 
 ## Overview
 
-This skill diagnoses and fixes stuck download issues:
-1. Check queue status (stuck items, status breakdown)
+This skill provides a systematic approach to diagnosing and fixing stuck downloads in Sonarr/Radarr:
+1. Check queue status and identify stuck items
 2. Verify download client configuration
-3. Check download client status
-4. Identify root cause
-5. Clear stuck items if needed
+3. Diagnose root cause
+4. Fix issues (if possible)
+5. Clear stuck items
 6. Verify resolution
 
 ## Workflow Steps
 
 ### Step 1: Check Queue Status
 
-Get detailed queue status:
+Get current queue status for the service:
 
 ```python
-# Check Sonarr queue
-sonarr_queue = await sonarr_queue_status()
+# For Sonarr
+queue_status = await sonarr_queue_status()
 
-# Check Radarr queue
-radarr_queue = await radarr_queue_status()
+# For Radarr
+queue_status = await radarr_queue_status()
 
-# Analyze stuck items
-stuck_items = []
-for item in sonarr_queue.get("stuck_items", []):
-    stuck_items.append({
-        "service": "sonarr",
-        "item": item,
-        "status": item.get("status"),
-        "age": item.get("age_hours", 0)
-    })
+# Analyze results
+data = queue_status.get("data", {})
+stuck_count = data.get("stuck_count", 0)
+stuck_items = data.get("stuck_items", [])
 
-for item in radarr_queue.get("stuck_items", []):
-    stuck_items.append({
-        "service": "radarr",
-        "item": item,
-        "status": item.get("status"),
-        "age": item.get("age_hours", 0)
-    })
+if stuck_count > 0:
+    # Identify stuck statuses
+    statuses = set([item["status"] for item in stuck_items])
+    # Common: "downloadClientUnavailable", "error", "warning"
 ```
 
 **What to check:**
 - Total items in queue
-- Items by status (downloading, queued, paused)
-- Stuck items (same status for >1 hour)
-- Items by protocol (usenet vs torrent)
+- Items by status (downloading, queued, error, etc.)
+- Items by protocol (torrent, usenet)
+- Stuck items count and details
 
-### Step 2: Verify Download Client Configuration
+### Step 2: Verify Download Clients
 
-Check if download clients are properly configured:
+Check download client configuration:
 
 ```python
-# Check Sonarr download clients
-sonarr_clients = await sonarr_check_download_clients()
+# For Sonarr
+clients = await sonarr_check_download_clients()
 
-# Analyze client status
-client_issues = []
-for client in sonarr_clients.get("clients", []):
-    if client["status"] != "connected":
-        client_issues.append({
-            "service": "sonarr",
-            "client": client["name"],
-            "issue": client.get("error", "Not connected"),
-            "severity": "critical"
+# For Radarr
+clients = await radarr_check_download_clients()
+
+# Analyze
+issues = []
+for client in clients.get("clients", []):
+    if not client.get("enabled"):
+        issues.append({
+            "client": client.get("name"),
+            "problem": "Client disabled",
+            "fix": f"Enable {client['name']} in settings"
         })
-```
-
-**What to check:**
-- Download clients configured
-- Clients connected and responding
-- Client-specific errors
-- Protocol availability (usenet vs torrent)
-
-### Step 3: Check Download Client Status
-
-Verify download clients are actually working:
-
-```python
-# Check NZBGet status
-nzbget = await nzbget_status()
-
-# Check qBittorrent status
-qbittorrent = await qbittorrent_status()
-
-# Analyze client health
-client_status = {
-    "nzbget": {
-        "status": "ok" if nzbget.get("server_status") == "running" else "error",
-        "active_downloads": nzbget.get("active_downloads", 0),
-        "speed": nzbget.get("download_speed", 0)
-    },
-    "qbittorrent": {
-        "status": "ok" if qbittorrent.get("status") == "connected" else "error",
-        "active_torrents": qbittorrent.get("active_torrents", 0),
-        "speed": qbittorrent.get("download_speed", 0)
-    }
-}
-```
-
-**What to check:**
-- Download client running
-- Active downloads/torrents
-- Download speeds
-- Client errors
-
-### Step 4: Identify Root Cause
-
-Based on collected information, identify the root cause:
-
-**Common Issues:**
-
-1. **Download Client Not Configured**
-   - Symptom: No clients in configuration
-   - Action: Configure download client in Sonarr/Radarr
-
-2. **Download Client Not Connected**
-   - Symptom: Client shows "not connected" status
-   - Action: Check client URL, credentials, network connectivity
-
-3. **Download Client Not Running**
-   - Symptom: Client status check fails
-   - Action: Start download client container/service
-
-4. **Stuck Items in Queue**
-   - Symptom: Items in "downloading" state for >1 hour
-   - Action: Clear stuck items, verify client is working
-
-5. **Protocol Issues**
-   - Symptom: Usenet items stuck but torrents work (or vice versa)
-   - Action: Check protocol-specific client configuration
-
-6. **Root Folder Issues**
-   - Symptom: Downloads complete but not importing
-   - Action: Check root folder configuration, permissions
-
-### Step 5: Clear Stuck Items
-
-If stuck items identified, clear them:
-
-```python
-# Clear Sonarr queue if needed
-if sonarr_queue.get("stuck_items_count", 0) > 0:
-    clear_result = await sonarr_clear_queue(
-        blocklist=False,
-        remove_from_client=True
-    )
     
-# Clear Radarr queue if needed
-if radarr_queue.get("stuck_items_count", 0) > 0:
-    clear_result = await radarr_clear_queue(
+    # Check if required clients are configured
+    if "downloadClientUnavailable" in statuses:
+        if "torrent" in stuck_items[0].get("protocol", ""):
+            # Need qBittorrent
+            qbt_found = any(c.get("name", "").lower() == "qbittorrent" for c in clients.get("clients", []))
+            if not qbt_found:
+                issues.append({
+                    "problem": "qBittorrent not configured",
+                    "fix": "Add qBittorrent download client"
+                })
+```
+
+**What to check:**
+- Download clients are enabled
+- Required clients configured (qBittorrent for torrents, NZBGet for usenet)
+- Client connection settings correct
+- Authentication credentials valid
+
+### Step 3: Run Comprehensive Diagnostic
+
+Use the troubleshooting tool for detailed analysis:
+
+```python
+# Comprehensive diagnostic
+diagnosis = await troubleshoot_failed_downloads(
+    service="sonarr",  # or "radarr"
+    include_logs=True
+)
+
+# Analyze results
+queue_issues = diagnosis.get("queue_issues", {})
+client_issues = diagnosis.get("client_issues", [])
+disk_issues = diagnosis.get("disk_issues", [])
+recommendations = diagnosis.get("recommendations", [])
+```
+
+**What this provides:**
+- Queue issues summary
+- Client configuration issues
+- Disk space issues
+- Recent error logs
+- Actionable recommendations
+
+### Step 4: Diagnose Specific Issue
+
+If "downloadClientUnavailable" is the issue:
+
+```python
+# Specific diagnostic
+diagnosis = await diagnose_download_client_unavailable("sonarr")
+
+# Get root cause
+root_cause = diagnosis.get("root_cause")
+affected_count = diagnosis.get("affected_items", 0)
+fix_steps = diagnosis.get("fix_steps", [])
+can_auto_fix = diagnosis.get("can_auto_fix", False)
+
+if can_auto_fix:
+    # Apply fixes automatically
+    # (Currently most fixes require manual intervention)
+else:
+    # Report fix steps to user
+    return {
+        "root_cause": root_cause,
+        "affected_items": affected_count,
+        "fix_steps": fix_steps
+    }
+```
+
+**Common root causes:**
+- Download client disabled
+- qBittorrent not configured (for torrents)
+- NZBGet not configured (for usenet)
+- Client connection issues
+- Authentication failures
+
+### Step 5: Check Disk Space
+
+Verify disk space is not the issue:
+
+```python
+# Check disk space
+disk = await check_disk_space()
+
+if disk.get("data", {}).get("status") != "ok":
+    # Disk space issue
+    return {
+        "issue": "Low disk space",
+        "usage_percent": disk["data"]["usage_percent"],
+        "recommendation": "Clean up old files or increase disk space"
+    }
+```
+
+**What to check:**
+- Root filesystem usage
+- Download directory space
+- Status: ok, warning (>80%), critical (>90%)
+
+### Step 6: Clear Stuck Items
+
+After fixing root cause, remove stuck items:
+
+```python
+# Remove only stuck items
+result = await remove_stuck_downloads(
+    service="sonarr",
+    status_filter=["downloadClientUnavailable", "error"]
+)
+
+# Or clear entire queue if needed
+if clear_all:
+    result = await sonarr_clear_queue(
         blocklist=False,
         remove_from_client=True
     )
 ```
 
-**When to clear:**
-- Items stuck for >1 hour
-- Download client confirmed working
-- Items not progressing
+**Options:**
+- Remove only stuck items (recommended)
+- Clear entire queue (if queue is completely broken)
+- Blocklist items (if they should never be retried)
 
-**When NOT to clear:**
-- Items actively downloading (check age first)
-- Download client not working (fix client first)
+### Step 7: Verify Resolution
 
-### Step 6: Verify Resolution
-
-After clearing, verify queue is working:
+Verify queue is working:
 
 ```python
-# Re-check queue status
-new_queue = await sonarr_queue_status()
+# Check queue again
+queue_status = await sonarr_queue_status()
 
-# Verify stuck items cleared
-if new_queue.get("stuck_items_count", 0) == 0:
+# Verify
+if queue_status.get("data", {}).get("stuck_count", 0) == 0:
     return {
-        "status": "success",
-        "message": "Stuck items cleared, queue should process normally"
+        "status": "resolved",
+        "message": "Queue is now working correctly"
     }
 else:
     return {
         "status": "partial",
-        "message": f"Some items still stuck: {new_queue.get('stuck_items_count')}",
-        "action": "Investigate remaining stuck items"
+        "remaining_stuck": queue_status.get("data", {}).get("stuck_count", 0),
+        "action": "Review remaining stuck items"
     }
 ```
 
@@ -217,130 +236,147 @@ else:
 
 This skill uses the following MCP tools:
 
-1. **`sonarr_queue_status`** - Get Sonarr queue status and stuck items
-2. **`radarr_queue_status`** - Get Radarr queue status
-3. **`sonarr_check_download_clients`** - Verify download client configuration
-4. **`sonarr_clear_queue`** - Clear stuck items from Sonarr
-5. **`radarr_clear_queue`** - Clear stuck items from Radarr
-6. **`nzbget_status`** - Check NZBGet download client status
-7. **`qbittorrent_status`** - Check qBittorrent status
+1. **`sonarr_queue_status`** / **`radarr_queue_status`** - Get queue summary
+2. **`sonarr_check_download_clients`** / **`radarr_check_download_clients`** - Verify client config
+3. **`troubleshoot_failed_downloads`** - Comprehensive diagnostic
+4. **`diagnose_download_client_unavailable`** - Specific diagnostic for client issues
+5. **`remove_stuck_downloads`** - Remove stuck items from queue
+6. **`check_disk_space`** - Verify disk space availability
+7. **`sonarr_clear_queue`** / **`radarr_clear_queue`** - Clear entire queue (if needed)
 
 ## Examples
 
-### Example 1: Stuck Downloads in Sonarr
+### Example 1: Download Client Unavailable
 
-**Symptom**: Downloads stuck in "downloading" state for hours
+**Symptom**: Queue shows "downloadClientUnavailable" for all torrent items
 
 **Workflow**:
 ```python
 # Step 1: Check queue
 queue = await sonarr_queue_status()
-# Returns: {"stuck_items_count": 5, "stuck_items": [...]}
+# Returns: {"stuck_count": 45, "stuck_items": [{"status": "downloadClientUnavailable", "protocol": "torrent"}]}
 
 # Step 2: Check clients
 clients = await sonarr_check_download_clients()
-# Returns: {"clients": [{"name": "NZBGet", "status": "connected"}]}
+# Returns: {"clients": [{"name": "NZBGet", "enabled": true}], "issues": []}
+# Missing: qBittorrent
 
-# Step 3: Check NZBGet
-nzbget = await nzbget_status()
-# Returns: {"server_status": "running", "active_downloads": 0}
+# Step 3: Diagnose
+diagnosis = await diagnose_download_client_unavailable("sonarr")
+# Returns: {"root_cause": "qBittorrent not configured for torrent downloads"}
 
-# Step 4: Clear stuck items
-clear_result = await sonarr_clear_queue(remove_from_client=True)
-# Returns: {"removed_count": 5}
+# Step 4: Fix (manual - add qBittorrent in Sonarr settings)
+# Host: media-download-gluetun
+# Port: 8080
+# Username: admin
+# Password: adminadmin
+
+# Step 5: Clear stuck items
+await remove_stuck_downloads("sonarr", ["downloadClientUnavailable"])
+
+# Step 6: Verify
+queue = await sonarr_queue_status()
+# Returns: {"stuck_count": 0}
+```
+
+### Example 2: Queue Stuck with Errors
+
+**Symptom**: Queue has many items in error status
+
+**Workflow**:
+```python
+# Step 1: Comprehensive diagnostic
+diagnosis = await troubleshoot_failed_downloads("sonarr", include_logs=True)
+
+# Step 2: Analyze
+issues = diagnosis.get("queue_issues", {})
+# Returns: {"stuck_items": 163, "statuses": ["error", "downloadClientUnavailable"]}
+
+# Step 3: Check disk space
+disk = await check_disk_space()
+# Returns: {"status": "critical", "usage_percent": 95}
+
+# Root cause: Disk full preventing downloads
+# Action: Clean up disk space first
+
+# Step 4: After cleanup, clear stuck items
+await remove_stuck_downloads("sonarr", ["error", "downloadClientUnavailable"])
 
 # Step 5: Verify
-new_queue = await sonarr_queue_status()
-# Returns: {"stuck_items_count": 0}
+queue = await sonarr_queue_status()
+# Returns: {"stuck_count": 0, "total_items": 0}
 ```
 
-### Example 2: Download Client Not Connected
+### Example 3: Client Disabled
 
-**Symptom**: Queue items not processing, client shows "not connected"
+**Symptom**: Downloads not processing, client shows as disabled
 
 **Workflow**:
 ```python
-# Step 1: Check queue
-queue = await sonarr_queue_status()
-# Returns: {"total_items": 10, "stuck_items_count": 10}
-
-# Step 2: Check clients
+# Step 1: Check clients
 clients = await sonarr_check_download_clients()
-# Returns: {"clients": [{"name": "qBittorrent", "status": "not_connected", "error": "Connection refused"}]}
+# Returns: {"issues": [{"client": "qBittorrent", "problem": "Client is disabled"}]}
 
-# Root cause: Download client not connected
-# Action: Check qBittorrent container status, verify URL/credentials
-# Don't clear queue until client is fixed
-```
+# Step 2: Fix (enable client in Sonarr settings)
 
-### Example 3: Protocol-Specific Issue
+# Step 3: Clear stuck items
+await remove_stuck_downloads("sonarr", ["downloadClientUnavailable"])
 
-**Symptom**: Usenet downloads stuck, but torrents work
-
-**Workflow**:
-```python
-# Step 1: Check queue by protocol
+# Step 4: Verify
 queue = await sonarr_queue_status()
-# Returns: {"by_protocol": {"usenet": {"stuck": 5}, "torrent": {"stuck": 0}}}
-
-# Step 2: Check usenet client (NZBGet)
-nzbget = await nzbget_status()
-# Returns: {"server_status": "error", "error": "Server not responding"}
-
-# Root cause: NZBGet not working
-# Action: Restart NZBGet container, verify configuration
+# Returns: {"stuck_count": 0}
 ```
 
 ## Error Handling
 
-### Download Client Not Found
+### No Stuck Items Found
 
-**Action**: Verify download client is configured in Sonarr/Radarr settings
+**Action**: Queue is working correctly, no action needed
 
-### Client Connection Failed
-
-**Action**: 
-- Check client URL and port
-- Verify credentials
-- Check network connectivity
-- Verify client container is running
-
-### Queue Clear Failed
+### Client Configuration Issues
 
 **Action**: 
-- Check if items are actually stuck (verify age)
-- Try clearing individual items
-- Check Sonarr/Radarr API status
+- Enable disabled clients
+- Add missing clients (qBittorrent for torrents, NZBGet for usenet)
+- Verify connection settings
+- Check authentication credentials
 
-### Items Re-stuck After Clear
+### Disk Space Issues
 
 **Action**: 
-- Root cause not fixed (client still not working)
-- Fix download client first, then clear queue
-- Check for root folder or permission issues
+- Clean up old files using `cleanup_archive_files` skill
+- Remove unused Docker images/volumes
+- Increase disk space if possible
+
+### Persistent Issues
+
+**Action**:
+- Check download client logs
+- Verify network connectivity
+- Check VPN status (if using Gluetun)
+- Review Sonarr/Radarr logs for errors
 
 ## Recommended Fixes by Issue
 
 | Issue | Recommended Fix |
 |-------|----------------|
-| Download client not configured | Configure client in Sonarr/Radarr settings |
-| Client not connected | Check URL, credentials, network, container status |
-| Client not running | Start download client container/service |
-| Stuck items | Clear queue after verifying client is working |
-| Protocol issues | Check protocol-specific client configuration |
-| Root folder issues | Verify root folder paths and permissions |
+| qBittorrent not configured | Add qBittorrent client: host=media-download-gluetun, port=8080, username=admin, password=adminadmin |
+| NZBGet not configured | Add NZBGet client: host=media-download-gluetun, port=6789, username=nzbget, password=nzbget |
+| Client disabled | Enable client in Sonarr/Radarr settings |
+| Client connection failed | Verify network connectivity, check VPN status |
+| Disk full | Clean up archive files, remove unused resources |
+| Authentication failed | Verify credentials, check if password changed |
 
 ## Related Skills
 
-- **`troubleshoot-container-failure`** - If download client container is failing
+- **`cleanup-disk-space`** - If disk space is the issue
 - **`system-health-check`** - For comprehensive system verification
-- **`standard-deployment`** - If issue occurred after deployment
+- **`troubleshoot-container-failure`** - If download clients are failing
 
 ## Notes
 
-- Always verify download client is working before clearing queue
-- Stuck items are typically >1 hour in same status
-- Clearing queue removes items - verify this is desired
-- Check both Sonarr and Radarr if both are having issues
-- Protocol-specific issues require checking the specific client
-
+- Always check download client configuration first - most issues are configuration-related
+- qBittorrent requires a permanent password (set via API or WebUI)
+- All download clients should connect through Gluetun VPN (media-download-gluetun hostname)
+- Clearing the queue is safe - items can be re-added if needed
+- Use `remove_stuck_downloads` to only remove problematic items, not the entire queue

@@ -582,6 +582,10 @@ Skills are reusable workflows located in `server-management-skills/`. They provi
   - **Replaces**: The 14-step deployment checklist
   - **MCP Tools**: `git_status`, `git_deploy`, `docker_compose_restart`, `docker_container_status`
 
+- **`deploy-new-service`** - Complete new service setup (create config → validate → deploy → verify)
+  - **Use when**: Setting up a new application/service
+  - **MCP Tools**: `check_port_status`, `write_file`, `validate_docker_compose`, `git_deploy`, `docker_compose_up`
+
 #### Troubleshooting Skills
 - **`troubleshoot-container-failure`** - Diagnose container issues (status → logs → dependencies → root cause)
   - **Use when**: Container won't start, crashes, or unhealthy
