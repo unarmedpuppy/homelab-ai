@@ -70,9 +70,15 @@ This directory contains all documentation related to AI agent workflows, prompts
 - `agents/tasks/README.md` - Task coordination system guide ⭐
 - `agents/tasks/registry.md` - Central task registry
 
+### Agent Monitoring
+- `apps/agent-monitoring/README.md` ⭐ - Dashboard overview and setup
+- `apps/agent-monitoring/INTEGRATION_GUIDE.md` ⭐ - Complete integration guide
+- **Dashboard**: http://localhost:3012 or https://agent-dashboard.server.unarmedpuppy.com
+- **Grafana**: http://localhost:3010 (admin/admin123)
+
 ### Skills & Tools
 - `server-management-skills/README.md` - Reusable workflow skills
-- `server-management-mcp/README.md` - MCP tools catalog (58 tools)
+- `server-management-mcp/README.md` - MCP tools catalog (62 tools, including 4 activity monitoring tools)
 
 ### General Documentation
 - `apps/docs/APPS_DOCUMENTATION.md` - Application documentation
