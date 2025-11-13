@@ -1051,21 +1051,30 @@ Use this structure:
 \`\`\`
 ```
 
-### File 6: TASKS.md
+### File 6: Task Coordination (Central Registry)
 
-**Purpose**: Task tracking with dependencies
+**Purpose**: Task tracking with dependencies - Use Task Coordination System, not per-agent files
 
-**Must Include**:
-- Task list with unique IDs
-- Status tracking
-- Dependencies (auto-detected where possible)
-- Priority levels
-- Task descriptions
-- Files to create/modify
-- Completion criteria
-- Dependency graph visualization
+**Location**: `agents/tasks/registry.md` (central registry)
 
-**Template Structure**:
+**⚠️ IMPORTANT**: Per-agent `TASKS.md` files are deprecated. Use the Task Coordination System for all task management.
+
+**How to Use**:
+- Register tasks using `register_task()` MCP tool
+- Claim tasks using `claim_task()` (automatically validates dependencies)
+- Update status using `update_task_status()`
+- Query tasks using `query_tasks()`
+
+**Must Include** (when registering tasks):
+- Task title and description
+- Project name
+- Priority level (low, medium, high)
+- Dependencies (comma-separated task IDs)
+- Status tracking (pending, claimed, in_progress, review, completed, blocked, cancelled)
+
+**See**: `agents/tasks/README.md` for complete task coordination guide.
+
+**Template Structure** (for reference - use MCP tools instead):
 ```markdown
 # Tasks: [FEATURE_NAME]
 
