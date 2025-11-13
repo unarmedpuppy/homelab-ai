@@ -10,34 +10,43 @@ This document outlines a proven workflow for managing AI agents working on softw
 
 ### Discovery Workflow (Do This First)
 
-1. **Check Skills** - Review `server-management-skills/README.md` for workflows
+1. **Check Memory** - Query previous decisions and patterns
+   - Use `memory_query_decisions()` to find related decisions
+   - Use `memory_query_patterns()` to find common patterns
+   - Use `memory_search()` for full-text search
+   - **This is how you gain context from past work** - don't repeat decisions
+
+2. **Check Skills** - Review `server-management-skills/README.md` for workflows
    - Skills provide complete workflows for common tasks
    - Skills orchestrate MCP tools into tested workflows
    - Skills include error handling and best practices
    - **This is how you gain context** - don't start from scratch
 
-2. **Check MCP Tools** - Review `server-management-mcp/README.md` for available tools
+3. **Check MCP Tools** - Review `server-management-mcp/README.md` for available tools
    - MCP tools provide individual operations (check status, restart, view logs)
+   - **Memory tools** (9 tools) for querying and recording decisions/patterns/context
    - Tools are type-safe, tested, and documented
    - **This is how you gain capabilities** - don't write custom commands
 
-3. **Use What Exists** - Skills and tools are your primary knowledge base
+4. **Use What Exists** - Memory, Skills, and Tools are your primary knowledge base
+   - Memory = past decisions and patterns (what was decided before)
    - Skills = workflows (how to do complete tasks)
    - MCP Tools = capabilities (what you can do)
-   - Both provide context, examples, and best practices
+   - All provide context, examples, and best practices
 
-4. **Create New Only If Needed** - Only create new tools/skills if:
+5. **Create New Only If Needed** - Only create new tools/skills if:
    - No existing skill/tool exists for your operation
    - The operation is reusable and should be shared
    - You've tested your approach first
 
 **Discovery Priority**:
-1. **Skills** (workflows) → `server-management-skills/README.md`
-2. **MCP Tools** (operations) → `server-management-mcp/README.md`
-3. Create new MCP tool (if operation is reusable)
-4. Create new skill (if workflow is reusable)
-5. Existing scripts (fallback)
-6. SSH commands (last resort)
+1. **Memory** (past context) → Use `memory_query_*` and `memory_search` MCP tools
+2. **Skills** (workflows) → `server-management-skills/README.md`
+3. **MCP Tools** (operations) → `server-management-mcp/README.md`
+4. Create new MCP tool (if operation is reusable)
+5. Create new skill (if workflow is reusable)
+6. Existing scripts (fallback)
+7. SSH commands (last resort)
 
 **See**: 
 - `server-management-skills/README.md` - Skills catalog
@@ -209,9 +218,15 @@ This document outlines a proven workflow for managing AI agents working on softw
    - Updates TASKS.md: `[CLAIMED]` or `[IN PROGRESS]`
    - Adds identifier/name
 
-2. **Agent Discovers Skills and Tools** (PRIMARY STEP)
-   - **Check Skills first**: Review `server-management-skills/README.md` for workflows
+2. **Agent Discovers Memory, Skills and Tools** (PRIMARY STEP)
+   - **Check Memory first**: Query previous decisions and patterns using memory MCP tools
+     - `memory_query_decisions()` - Find related decisions
+     - `memory_query_patterns()` - Find common patterns
+     - `memory_search()` - Full-text search across memories
+     - `memory_get_recent_context()` - Check recent work
+   - **Check Skills**: Review `server-management-skills/README.md` for workflows
    - **Check MCP Tools**: Review `server-management-mcp/README.md` for available tools
+   - **Memory provides past context**: Learn from previous decisions and patterns
    - **Skills provide workflows**: Use existing skills for common tasks
    - **MCP Tools provide capabilities**: Use tools for individual operations
    - **This is how you gain context and capabilities** - don't start from scratch
@@ -224,6 +239,10 @@ This document outlines a proven workflow for managing AI agents working on softw
    - Task details
 
 4. **Agent Implements**
+   - **Uses Memory to avoid repeating decisions** (query before deciding)
+   - **Records important decisions** using `memory_record_decision()`
+   - **Records patterns discovered** using `memory_record_pattern()`
+   - **Updates context** using `memory_save_context()` during work
    - **Uses Skills for workflows** (don't reinvent common workflows)
    - **Uses MCP Tools for operations** (don't write custom commands)
    - Follows coding standards
@@ -237,6 +256,7 @@ This document outlines a proven workflow for managing AI agents working on softw
    - Fixes obvious issues
 
 6. **Agent Submits for Review**
+   - **Saves final context** using `memory_save_context(status="completed")`
    - Updates TASKS.md: `[REVIEW]`
    - Adds completion summary
    - Commits and pushes code
@@ -408,15 +428,22 @@ This document outlines a proven workflow for managing AI agents working on softw
 
 ### Quick Integration (SQLite-Based via MCP Tools)
 
-**Agents use MCP tools to interact with memory:**
+**Agents use MCP tools to interact with memory throughout the workflow:**
 
+**Before Starting Work:**
 ```python
-# Query memories (fast - 1-10ms via MCP tools)
+# Query previous decisions (learn from past)
 memory_query_decisions(project="trading-journal", limit=5)
 memory_query_patterns(severity="high", limit=5)
 memory_search("PostgreSQL database")
 
-# Record memories
+# Check recent context
+memory_get_recent_context(agent_id="agent-001", limit=5)
+```
+
+**During Work:**
+```python
+# Record important decisions as you make them
 memory_record_decision(
     content="Use PostgreSQL for database",
     rationale="Need ACID compliance",
@@ -424,14 +451,43 @@ memory_record_decision(
     importance=0.9,
     tags="database,architecture"
 )
+
+# Record patterns when discovered
+memory_record_pattern(
+    name="Port Conflict Resolution",
+    description="Services failing due to port conflicts",
+    solution="Always check port availability first",
+    severity="medium"
+)
+
+# Update context regularly
+memory_save_context(
+    agent_id="agent-001",
+    task="T1.3",
+    current_work="PostgreSQL setup in progress...",
+    status="in_progress"
+)
+```
+
+**After Work:**
+```python
+# Save final context
+memory_save_context(
+    agent_id="agent-001",
+    task="T1.3",
+    current_work="PostgreSQL setup complete",
+    status="completed"
+)
 ```
 
 **9 Memory MCP Tools Available:**
-- Query: `memory_query_decisions`, `memory_query_patterns`, `memory_search`, `memory_get_recent_context`, `memory_get_context_by_task`
-- Record: `memory_record_decision`, `memory_record_pattern`, `memory_save_context`
-- Export: `memory_export_to_markdown`
+- **Query** (5 tools): `memory_query_decisions`, `memory_query_patterns`, `memory_search`, `memory_get_recent_context`, `memory_get_context_by_task`
+- **Record** (3 tools): `memory_record_decision`, `memory_record_pattern`, `memory_save_context`
+- **Export** (1 tool): `memory_export_to_markdown`
 
-**See**: `apps/agent_memory/MCP_TOOLS_GUIDE.md` for complete reference.
+**See**: 
+- `apps/agent_memory/MCP_TOOLS_GUIDE.md` - Complete reference with examples
+- `server-management-mcp/README.md` - Memory tools in MCP catalog
 
 ### Benefits
 
@@ -563,9 +619,15 @@ memory_record_decision(
 
 ### For Agents
 
-1. **Discover Skills and Tools First** (PRIMARY METHOD)
+1. **Discover Memory, Skills and Tools First** (PRIMARY METHOD)
+   - **Check Memory**: Query previous decisions and patterns using memory MCP tools
+     - `memory_query_decisions()` - Find related decisions
+     - `memory_query_patterns()` - Find common patterns
+     - `memory_search()` - Full-text search
+     - Learn from past work - don't repeat decisions
    - **Check Skills**: Review `server-management-skills/README.md` for workflows matching your task
    - **Check MCP Tools**: Review `server-management-mcp/README.md` for available tools
+   - **Memory provides past context**: Learn from previous decisions and patterns
    - **Skills provide workflows**: Complete step-by-step guidance for common tasks
    - **MCP Tools provide capabilities**: Individual operations you can use
    - **Skills use MCP Tools**: Skills orchestrate tools into workflows
@@ -578,6 +640,10 @@ memory_record_decision(
    - Skills and tools documentation (capabilities)
 
 3. **Follow Standards**
+   - Query memory before making decisions (don't repeat past mistakes)
+   - Record important decisions using `memory_record_decision()`
+   - Record patterns using `memory_record_pattern()`
+   - Update context using `memory_save_context()` during work
    - Use Skills for workflows (don't reinvent)
    - Use MCP Tools for operations (don't write custom commands)
    - Follow coding standards
@@ -590,6 +656,8 @@ memory_record_decision(
 
 5. **Communicate**
    - Update task status
+   - Record decisions in memory (not just in code comments)
+   - Save context regularly
    - Document decisions
    - Ask questions early
 
@@ -664,7 +732,8 @@ memory_record_decision(
 - Consistent error handling
 - Standardized return formats
 
-**Available Tools** (39 tools):
+**Available Tools** (46 tools):
+- **Memory management** (9 tools) - Query and record decisions, patterns, context
 - Docker container management (8 tools)
 - Media download operations (13 tools)
 - System monitoring (5 tools)
@@ -676,6 +745,7 @@ memory_record_decision(
 **Usage**:
 - If you have MCP access (Claude Desktop, GPT-4 with MCP): Use tools directly
 - If no MCP access: Reference `server-management-mcp/README.md` for tool documentation
+- **Memory tools**: Use `memory_query_*` and `memory_record_*` throughout workflow
 - Skills orchestrate MCP tools into workflows
 
 **See**: 
@@ -745,22 +815,30 @@ memory_record_decision(
 
 ### Primary Discovery Resources (Check First)
 
-1. **Skills Catalog**: `server-management-skills/README.md`
+1. **Memory Tools Guide**: `apps/agent_memory/MCP_TOOLS_GUIDE.md`
+   - Complete reference for 9 memory MCP tools
+   - Query and record examples
+   - Workflow integration patterns
+   - **Start here** - learn from past decisions
+
+2. **Skills Catalog**: `server-management-skills/README.md`
    - Complete workflows for common tasks
    - Step-by-step guidance using MCP tools
    - Examples and error handling
 
-2. **MCP Tools Reference**: `server-management-mcp/README.md`
-   - All available tools with parameters
+3. **MCP Tools Reference**: `server-management-mcp/README.md`
+   - All available tools with parameters (46 tools total)
+   - Memory tools (9 tools) documented
    - Usage examples
    - Tool categories
 
-3. **Tool Discovery Guide**: `apps/docs/MCP_TOOL_DISCOVERY.md`
+4. **Tool Discovery Guide**: `apps/docs/MCP_TOOL_DISCOVERY.md`
    - How to discover and use tools
+   - Memory operations section
    - When to create new tools
    - Tool creation workflow
 
-4. **MCP Server Plan**: `apps/docs/MCP_SERVER_PLAN.md`
+5. **MCP Server Plan**: `apps/docs/MCP_SERVER_PLAN.md`
    - Complete tool catalog (implemented and planned)
    - Architecture and design
    - Implementation status
