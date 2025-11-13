@@ -108,7 +108,7 @@ This document provides essential context for AI agents working on the home serve
 
 ### Server-Specific MCP Tools
 
-**67 Tools Total** - See `AGENT_PROMPT.md` for complete list and common tools.
+**68 Tools Total** - See `AGENT_PROMPT.md` for complete list and common tools.
 
 **Server-Specific Tool Categories**:
 
@@ -494,7 +494,7 @@ bash scripts/connect-server.sh "cd ~/server/apps/[app] && docker compose restart
 - `get_recent_errors` - Get recent errors from logs
 - `find_service_by_port` - Find service using a port
 
-**See**: `server-management-mcp/README.md` for complete tool reference (67 tools total).
+**See**: `server-management-mcp/README.md` for complete tool reference (68 tools total).
 
 ### SSH Commands (Fallback - NOT Observable!)
 

@@ -57,7 +57,7 @@ Review `server-management-skills/README.md` for workflows:
 
 ### Step 4: Check MCP Tools (1 minute)
 
-Review `server-management-mcp/README.md` for available tools (67 tools total).
+Review `server-management-mcp/README.md` for available tools (68 tools total).
 
 **⚠️ CRITICAL**: Always prefer MCP tools over custom commands - they're observable!
 

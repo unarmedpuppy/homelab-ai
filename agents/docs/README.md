@@ -104,7 +104,7 @@ This directory contains all documentation related to AI agent workflows, prompts
 
 ### Skills & Tools
 - `server-management-skills/README.md` - Reusable workflow skills
-- `server-management-mcp/README.md` - MCP tools catalog (67 tools, including 4 activity monitoring tools and 5 communication tools)
+- `server-management-mcp/README.md` - MCP tools catalog (68 tools, including 4 activity monitoring tools and 5 communication tools)
 
 ### Architecture & System Documentation
 - `agents/docs/SYSTEM_ARCHITECTURE.md` ⭐ - Unified architecture overview

@@ -127,11 +127,12 @@ Review `server-management-mcp/README.md` for available operations:
 **⚠️ CRITICAL: Prioritize Observable Tools**
 **Always prefer MCP tools over custom commands** - MCP tools are automatically logged and visible in the agent monitoring dashboard. Custom commands are invisible!
 
-**62 Tools Available:**
+**68 Tools Available:**
 - **Activity Monitoring** (4 tools) - ⭐ **USE THESE FIRST** - Start sessions, update status
 - Memory management (9 tools)
 - Task coordination (6 tools)
-- Agent management (3 tools)
+- Agent management (6 tools)
+- Agent communication (5 tools)
 - Docker management (8 tools)
 - Media download (13 tools)
 - System monitoring (5 tools)

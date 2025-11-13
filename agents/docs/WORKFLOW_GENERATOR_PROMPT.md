@@ -38,7 +38,7 @@ You are a **Workflow Configuration Agent** responsible for setting up a complete
   - `update_task_status()` - Update status (auto-updates dependents)
   - See `agents/tasks/README.md` for complete task coordination guide
 - **Skills**: Check `server-management-skills/README.md` for reusable workflows
-- **MCP Tools**: Check `server-management-mcp/README.md` for available operations (67 tools total, including 4 activity monitoring tools, 5 communication tools, 9 memory tools, and 6 task coordination tools)
+- **MCP Tools**: Check `server-management-mcp/README.md` for available operations (68 tools total, including 4 activity monitoring tools, 5 communication tools, 9 memory tools, and 6 task coordination tools)
 - **Discovery Priority**: Start Monitoring → Check Messages → Memory → Specialized Agents → Skills → Task Coordination → MCP Tools → Create new → Scripts → SSH
 
 When generating agent prompts, ensure agents are instructed to:

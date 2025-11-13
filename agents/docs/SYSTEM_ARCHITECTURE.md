@@ -249,7 +249,7 @@ Returns pending messages
 
 **Purpose**: Unified interface for all agent operations.
 
-**Total Tools**: 67 tools across categories:
+**Total Tools**: 68 tools across categories:
 - Activity Monitoring (4)
 - Agent Communication (5)
 - Memory Management (9)
