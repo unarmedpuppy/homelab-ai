@@ -62,9 +62,12 @@ chmod +x pre-submit-check.sh
 **Purpose**: Structure tasks with explicit dependencies for parallel execution.
 
 **Usage**:
-- Use template format in your `TASKS.md`
-- Mark dependencies and blockers
-- Identify parallel execution opportunities
+- Use Task Coordination System for all task management (`agents/tasks/registry.md`)
+- Register tasks with dependencies using `register_task()`
+- Dependencies are automatically validated when claiming tasks
+- See `agents/tasks/README.md` for complete guide
+
+**Note**: `TASK_DEPENDENCY_TEMPLATE.md` is deprecated (references old per-agent TASKS.md files)
 
 **Benefits**:
 - Clear dependency graph

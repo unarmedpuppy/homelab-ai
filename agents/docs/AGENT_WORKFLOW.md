@@ -297,7 +297,7 @@ After completing work:
    - Define agent role
    - Set coding standards
    - Include review expectations
-   - Add task details (or reference TASKS.md)
+   - Reference task coordination system for task management
 
 4. **Create Reviewer Prompt**
    - Define review process
@@ -314,8 +314,8 @@ After completing work:
 ### Phase 2: Implementation
 
 1. **Agent Claims Task**
-   - Updates TASKS.md: `[CLAIMED]` or `[IN PROGRESS]`
-   - Adds identifier/name
+   - Uses `claim_task()` to claim task in central registry
+   - Updates task status using `update_task_status()`
 
 2. **Agent Starts Monitoring and Discovers Memory, Skills, Tools, and Agents** (PRIMARY STEP)
    - **Start Monitoring first**: Make yourself visible
@@ -381,7 +381,7 @@ After completing work:
 ### Phase 3: Review
 
 1. **Reviewer Picks Up Task**
-   - Sees `[REVIEW]` status in TASKS.md
+   - Queries tasks with `status="review"` using `query_tasks()`
    - Reads reviewer prompt
    - Gathers task context
 
@@ -405,7 +405,7 @@ After completing work:
 ### Phase 4: Iteration
 
 1. **If APPROVED**
-   - Task marked `[COMPLETED]`
+   - Task status updated to `completed` using `update_task_status()`
    - Agent can claim next task
    - Documentation updated if needed
 
@@ -723,9 +723,9 @@ cat agents/memory/memory/export/decisions/*.md
 - **Memory system**: Share context via memory graph
 
 **Coordination**:
-- Claim tasks in TASKS.md immediately
-- Update status frequently
-- Communicate blockers
+- Register/claim tasks in central registry immediately using `register_task()` and `claim_task()`
+- Update status frequently using `update_task_status()`
+- Communicate blockers via communication protocol
 - Share progress
 - **Memory system**: Use message queue for coordination
 

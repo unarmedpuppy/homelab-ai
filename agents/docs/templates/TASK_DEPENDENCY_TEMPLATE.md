@@ -1,6 +1,14 @@
 # Task Dependency Template
 
-This template shows how to structure tasks with explicit dependencies in your `TASKS.md` file.
+**⚠️ DEPRECATED**: This template references per-agent `TASKS.md` files which are deprecated. Use the **Task Coordination System** (`agents/tasks/registry.md`) for all task management.
+
+**See**: `agents/tasks/README.md` for the current task coordination system.
+
+---
+
+## Historical Reference
+
+This template shows how tasks were previously structured in per-agent `TASKS.md` files (now deprecated).
 
 ## Task Format with Dependencies
 
@@ -207,5 +215,25 @@ Tasks with **no dependencies** or **only completed dependencies** can run in par
 
 ---
 
-**Usage**: Copy this template structure into your `TASKS.md` file and fill in the details for each task.
+**Usage**: ⚠️ **DO NOT USE** - This template is for historical reference only. Use the Task Coordination System instead:
+
+```python
+# Register a task with dependencies
+register_task(
+    title="Task Name",
+    description="Detailed description",
+    project="project-name",
+    priority="high",
+    dependencies="T1.1,T1.2",  # Comma-separated task IDs
+    created_by="agent-id"
+)
+
+# Claim a task (validates dependencies automatically)
+claim_task(task_id="T1.3", agent_id="agent-id")
+
+# Update task status
+update_task_status(task_id="T1.3", status="in_progress", agent_id="agent-id")
+```
+
+**See**: `agents/tasks/README.md` for complete task coordination guide.
 

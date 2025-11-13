@@ -85,9 +85,10 @@
   - Setup instructions, usage examples, etc.
   - Evidence: `[List changes made]`
 
-- [ ] **TASKS.md updated with completion status**
-  - Task marked as `[REVIEW]` with completion summary
-  - Evidence: `[Link to TASKS.md update]`
+- [ ] **Task status updated in central registry**
+  - Task status updated to `review` using `update_task_status()`
+  - Completion summary added
+  - Evidence: `[Task ID and status]`
 
 ### Testing
 
@@ -220,5 +221,5 @@
 
 ---
 
-**After completing this checklist**, mark your task as `[REVIEW]` in TASKS.md and include a link to this self-review.
+**After completing this checklist**, update your task status to `review` using `update_task_status()` in the central task registry.
 

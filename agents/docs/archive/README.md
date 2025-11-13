@@ -26,6 +26,11 @@ This directory contains completed proposals, plans, and historical documentation
   - **Status**: ✅ Partially Implemented (Phase 1 complete)
   - **See**: `agents/docs/AGENT_SYSTEM_REVIEW_AND_IMPROVEMENT_PLAN.md` for current status
 
+- **`AGENT_MONITORING_STRUCTURE.md`** - Agent monitoring dashboard structure proposal
+  - **Status**: ✅ Implemented
+  - **Implementation**: `apps/agent-monitoring/`
+  - **See**: `apps/agent-monitoring/README.md` for current documentation
+
 ## Why Archived?
 
 These documents are kept for historical reference but are no longer the source of truth. The actual implementations have their own documentation in their respective directories.

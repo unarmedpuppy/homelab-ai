@@ -193,7 +193,7 @@
 - [ ] All functions have docstrings
 - [ ] Complex logic has comments
 - [ ] README is updated
-- [ ] TASKS.md is updated
+- [ ] Task status updated in central registry (using `update_task_status()`)
 - [ ] API documentation complete
 
 **Issues Found**: `[List any issues]`

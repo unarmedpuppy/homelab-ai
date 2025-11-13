@@ -52,7 +52,7 @@ agents/
 
 1. **For Coding Agents**: Use `agents/docs/CODING_AGENT_PROMPT.md`
 2. **For Review Agents**: Use `agents/docs/REVIEW_AGENT_PROMPT.md`
-3. **For Task Tracking**: Use `agents/docs/TASKS.md`
+3. **For Task Tracking**: Use the Task Coordination System (`agents/tasks/registry.md`) - See `agents/tasks/README.md`
 4. **For Setup**: Read `agents/docs/GETTING_STARTED.md`
 
 ## What Gets Generated
@@ -154,9 +154,9 @@ Project-specific validation script:
 - Re-run with more specific instructions
 
 **Missing dependencies?**
-- Check the TASKS.md dependency graph
-- Manually add missing dependencies
-- Agent can auto-detect, but may miss some
+- Use Task Coordination System to register tasks with dependencies
+- Dependencies are automatically validated when claiming tasks
+- See `agents/tasks/README.md` for dependency management
 
 ## Next Steps
 
@@ -166,7 +166,7 @@ After generating the workflow:
 2. Test the pre-submit script: `./agents/scripts/pre-submit-check.sh`
 3. Start with task T1.1 using CODING_AGENT_PROMPT.md
 4. Use REVIEW_AGENT_PROMPT.md for code reviews
-5. Track progress in TASKS.md
+5. Track progress using Task Coordination System (`update_task_status()`)
 
 ---
 

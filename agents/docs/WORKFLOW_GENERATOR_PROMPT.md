@@ -512,9 +512,10 @@ KEY2=value2
   - Setup instructions, usage examples
   - Evidence: `[List changes made]`
 
-- [ ] **TASKS.md updated**
-  - Task marked as `[REVIEW]` with completion summary
-  - Evidence: `[Link to TASKS.md update]`
+- [ ] **Task status updated in central registry**
+  - Task status updated to `review` using `update_task_status()`
+  - Completion summary added
+  - Evidence: `[Task ID and status]`
 
 ### Testing
 - [ ] **Manual testing completed**
@@ -618,9 +619,9 @@ KEY2=value2
 
 ## Task Claiming Process
 
-1. Check `TASKS.md` for available tasks
-2. Verify dependencies are met
-3. Update task status: `[CLAIMED]` or `[IN PROGRESS]`
+1. Query tasks using `query_tasks()` to find available tasks
+2. Check dependencies using `check_task_dependencies()`
+3. Claim task using `claim_task()` and update status with `update_task_status()`
 4. Add your identifier to the task
 5. Start work
 
@@ -629,7 +630,7 @@ KEY2=value2
 1. Complete Pre-Submission Self-Review Checklist
 2. Run `./agents/scripts/pre-submit-check.sh`
 3. Create self-review document: `agents/docs/self-review_T[X].[Y].md`
-4. Mark task as `[REVIEW]` in TASKS.md
+4. Update task status to `review` using `update_task_status()`
 5. Wait for reviewer
 
 ## Archive Management
@@ -662,7 +663,7 @@ KEY2=value2
    - `CODING_STANDARDS.md` (ongoing reference)
    - `CODING_AGENT_PROMPT.md` (active prompt)
    - `REVIEW_AGENT_PROMPT.md` (active prompt)
-   - `TASKS.md` (active tracking, even if all tasks complete)
+   - Task Coordination System (`agents/tasks/registry.md`) - All tasks tracked here
 
 ## Common Issues to Avoid
 
@@ -694,7 +695,7 @@ KEY2=value2
 ## Review Process
 
 ### Step 1: Pre-Review
-- [ ] Gather task context from TASKS.md
+- [ ] Gather task context from central task registry using `get_task()`
 - [ ] Read implementation plan section
 - [ ] Review coding agent prompt requirements
 - [ ] Check all files created/modified
@@ -706,7 +707,7 @@ KEY2=value2
 [Use feedback template below]
 
 ### Step 4: Update Status
-[Update TASKS.md with review status]
+[Update task status in central registry using `update_task_status()`]
 
 ### Step 5: Cleanup Feedback File
 [Mark all issues as resolved, update status, prepare for archive if task is complete]
@@ -854,7 +855,7 @@ Use this complete structure:
 - [ ] All functions have docstrings
 - [ ] Complex logic has comments
 - [ ] README updated
-- [ ] TASKS.md updated
+- [ ] Task status updated in central registry
 **Issues Found**: `[List]`
 
 ### Testing Review
@@ -1213,7 +1214,7 @@ After generation, provide:
 - ✅ CODING_STANDARDS.md
 - ✅ CODING_AGENT_PROMPT.md
 - ✅ REVIEW_AGENT_PROMPT.md
-- ✅ TASKS.md
+- ✅ Task Coordination System (`agents/tasks/registry.md`)
 
 **Scripts** (`agents/scripts/`):
 - ✅ pre-submit-check.sh
@@ -1231,8 +1232,8 @@ After generation, provide:
 To start working:
 1. Read `agents/docs/GETTING_STARTED.md`
 2. Read `agents/docs/IMPLEMENTATION_PLAN_[FEATURE].md`
-3. Check `agents/docs/TASKS.md` for available tasks
-4. Claim a task and start coding!
+3. Query available tasks using `query_tasks()` from the Task Coordination System
+4. Claim a task using `claim_task()` and start coding!
 ```
 
 ## Important Guidelines
