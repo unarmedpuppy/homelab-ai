@@ -400,43 +400,52 @@ This document outlines a proven workflow for managing AI agents working on softw
 
 **Current Limitation**: Each agent session starts from scratch, losing context and decisions from previous sessions.
 
-**Solution**: Use [Memori](https://github.com/GibsonAI/Memori) - an open-source memory engine that automatically:
-- Injects context before LLM calls (transparent)
-- Records all conversations automatically
-- Learns patterns in the background (Conscious Agent)
-- Shares knowledge between agents
-- Maintains context continuity across sessions
+**Solution**: Use **File-Based Memory System** - since agents run in Cursor/Claude Desktop, we use markdown files that agents can read/write directly.
 
 **See**: 
+- `apps/agent_memory/README_FILE_BASED.md` for complete guide
 - `MEMORY_SYSTEM_COMPARISON.md` for comparison with alternatives
-- `AGENT_MEMORY_INTEGRATION.md` for detailed integration guide (legacy mem-layer plan)
 
-### Quick Integration (Memori)
+### Quick Integration (File-Based)
 
-**Memori is transparent - just enable it:**
+**Agents record memories as markdown files:**
 
-```python
-from memori import Memori
+1. **Record decisions**: Create files in `apps/agent_memory/memory/decisions/`
+2. **Record patterns**: Create files in `apps/agent_memory/memory/patterns/`
+3. **Save context**: Create files in `apps/agent_memory/memory/context/`
 
-memori = Memori(
-    database_connect="postgresql://user:pass@localhost/memori",
-    conscious_ingest=True,  # Short-term working memory
-    auto_ingest=True,       # Dynamic search per query
-)
-memori.enable()
-# That's it! Memory is now active and automatic
+**Example - Recording a Decision:**
+
+Create `apps/agent_memory/memory/decisions/2025-01-10-14-30-00-use-postgresql.md`:
+
+```markdown
+# Decision: Use PostgreSQL for database
+
+**Date**: 2025-01-10 14:30:00
+**Project**: trading-journal
+**Importance**: 0.9
+
+## Decision
+
+Use PostgreSQL for trading journal database
+
+## Rationale
+
+Need ACID compliance and complex queries.
+
+## Tags
+
+- database
+- architecture
 ```
-
-**No code changes needed** - Memori intercepts LLM calls transparently.
 
 ### Benefits
 
-- ✅ **Automatic**: No manual memory management needed
-- ✅ **Transparent**: Works with existing Skills and MCP tools
-- ✅ **Persistent**: Memory across sessions automatically
-- ✅ **Pattern Learning**: Conscious Agent learns patterns in background
-- ✅ **Multi-Agent**: Built-in support for multiple agents
-- ✅ **Production Ready**: 2.7k stars, active development
+- ✅ **Works with Cursor/Claude Desktop**: Agents can read/write files
+- ✅ **Human readable**: Markdown files are easy to read
+- ✅ **Version controlled**: Files can be committed to git
+- ✅ **Simple**: No complex setup required
+- ✅ **Searchable**: Index file enables quick queries
 
 ## Advanced Workflows
 

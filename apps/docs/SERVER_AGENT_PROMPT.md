@@ -566,36 +566,94 @@ bash scripts/connect-server.sh "docker ps --format 'table {{.Names}}\t{{.Status}
 
 **Remember**: Always check for MCP tools first!
 
-## Memory System (Automatic)
+## Memory System (File-Based)
 
-### ⚠️ Memory is Automatically Enabled
+### ⚠️ Memory is File-Based
 
-**Memori is automatically enabled** - you don't need to do anything special:
+Since agents run in Cursor/Claude Desktop, we use **file-based memory** that you can read/write directly.
 
-1. **Context is Automatic**: Memori automatically injects relevant context before each LLM call
-2. **Recording is Automatic**: All conversations are automatically recorded
-3. **Pattern Learning**: Conscious Agent learns patterns in the background
+### How to Use Memory
 
-### What Gets Remembered
+1. **Before starting work**: Check `apps/agent_memory/memory/` for:
+   - Recent decisions in `decisions/`
+   - Common patterns in `patterns/`
+   - Current context in `context/`
 
-- All conversations across sessions
-- Decisions made (automatically extracted)
-- Patterns identified (by Conscious Agent)
-- Context automatically retrieved when needed
+2. **During work**: Document important decisions and patterns
 
-### Using Memory (Optional)
+3. **After work**: Save context and update patterns if needed
 
-Memory works automatically, but you can explicitly query if needed:
+### Recording a Decision
 
-```python
-from apps.agent_memory import get_global_memori
+Create a markdown file in `apps/agent_memory/memory/decisions/`:
 
-memori = get_global_memori()
-# Query recent decisions
-recent = memori.query("decisions from last week")
+```markdown
+# Decision: [Your Decision]
+
+**Date**: YYYY-MM-DD HH:MM:SS
+**Project**: project-name
+**Task**: task-id
+**Importance**: 0.0-1.0
+
+## Decision
+
+[Description of decision]
+
+## Rationale
+
+[Why this decision was made]
+
+## Tags
+
+- tag1
+- tag2
 ```
 
-**See**: `apps/agent_memory/README.md` for details.
+### Recording a Pattern
+
+Create a markdown file in `apps/agent_memory/memory/patterns/`:
+
+```markdown
+# Pattern: [Pattern Name]
+
+**Severity**: low|medium|high
+**Frequency**: number of occurrences
+
+## Description
+
+[Pattern description]
+
+## Solution
+
+[How to handle this pattern]
+
+## Examples
+
+1. Example 1
+2. Example 2
+```
+
+### Saving Context
+
+Create a markdown file in `apps/agent_memory/memory/context/`:
+
+```markdown
+# Context: [Task Name]
+
+**Agent**: agent-id
+**Date**: YYYY-MM-DD
+**Status**: in_progress|completed|blocked
+
+## Current Work
+
+[What you're working on]
+
+## Notes
+
+[Additional notes]
+```
+
+**See**: `apps/agent_memory/README_FILE_BASED.md` for complete guide.
 
 ## Server Management Skills
 
