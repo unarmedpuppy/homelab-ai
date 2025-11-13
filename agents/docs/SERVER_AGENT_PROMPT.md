@@ -177,10 +177,10 @@ The **Server Management MCP Server** provides standardized, type-safe tools for 
 7. **Docker Management** (8 tools) - Container operations (list, status, restart, logs, etc.)
 8. **Media Download** (13 tools) - Sonarr/Radarr/NZBGet operations (queue management, imports, etc.)
 9. **System Monitoring** (5 tools) - Disk space, resources, health checks
-9. **Git Operations** (4 tools) - Deploy, commit, push, pull
-10. **Troubleshooting** (3 tools) - Automated diagnostics and fixes
-11. **Networking** (3 tools) - Ports, VPN, DNS
-12. **System Utilities** (3 tools) - Cleanup, file management
+10. **Git Operations** (4 tools) - Deploy, commit, push, pull
+11. **Troubleshooting** (3 tools) - Automated diagnostics and fixes
+12. **Networking** (4 tools) - Ports, VPN, DNS, available port finder
+13. **System Utilities** (3 tools) - Cleanup, file management
 
 **⚠️ CRITICAL**: Always use MCP tools when available - they are automatically logged and visible. Custom commands are NOT observable!
 
