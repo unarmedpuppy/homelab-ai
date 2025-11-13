@@ -51,7 +51,7 @@ Examples:
 
 **If a skill exists for your workflow**: Use it! Skills provide complete, tested workflows.
 
-### Step 3: Check MCP Tools (For Operations)
+### Step 3: Check MCP Tools (For Operations - If No Skill Exists)
 
 **Primary Resources**:
 1. **Tool Reference**: `server-management-mcp/README.md`
