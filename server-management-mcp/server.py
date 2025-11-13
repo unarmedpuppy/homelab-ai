@@ -14,9 +14,10 @@ from tools.docker import register_docker_tools
 from tools.media_download import register_media_tools
 from tools.monitoring import register_monitoring_tools
 from tools.troubleshooting import register_troubleshooting_tools
+from tools.git import register_git_tools
 from tools.networking import register_networking_tools
 from tools.system import register_system_tools
-from tools.git import register_git_tools
+from tools.memory import register_memory_tools
 
 # Create MCP server instance
 server = Server("home-server-management")
@@ -26,9 +27,10 @@ register_docker_tools(server)
 register_media_tools(server)
 register_monitoring_tools(server)
 register_troubleshooting_tools(server)
+register_git_tools(server)
 register_networking_tools(server)
 register_system_tools(server)
-register_git_tools(server)
+register_memory_tools(server)
 
 
 async def main():

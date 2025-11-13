@@ -122,6 +122,17 @@ Add to Claude Desktop config (`~/Library/Application Support/Claude/claude_deskt
 - `deploy_and_restart` - Full workflow (deploy changes → restart affected services)
 - `restart_affected_services` - Auto-detect and restart services based on git changes
 
+### Memory Management ✅
+- `memory_query_decisions` - Query decisions from memory (by project, task, tags, importance, or full-text search)
+- `memory_query_patterns` - Query patterns from memory (by severity, tags, frequency, or full-text search)
+- `memory_search` - Full-text search across all memories (decisions and patterns)
+- `memory_record_decision` - Record a decision in memory
+- `memory_record_pattern` - Record or update a pattern in memory
+- `memory_save_context` - Save or update current work context
+- `memory_get_recent_context` - Get recent work context (by agent or all)
+- `memory_get_context_by_task` - Get context for a specific task
+- `memory_export_to_markdown` - Export all memories to markdown files for human review
+
 ## Development
 
 ### Adding New Tools
@@ -169,14 +180,16 @@ server-management-mcp/
 
 - ✅ Core infrastructure
 - ✅ Docker management tools (8 tools)
-- ✅ Media download tools (13 tools)
+- ✅ Media download tools (11 tools)
 - ✅ System monitoring tools (5 tools)
 - ✅ Troubleshooting tools (3 tools)
+- ✅ Git operations & deployment (4 tools)
 - ✅ Networking tools (3 tools)
 - ✅ System utilities (3 tools)
-- ✅ Git operations & deployment (4 tools)
+- ⏳ File operations (planned)
+- ⏳ Database operations (planned)
 - ⏳ Application-specific tools (planned)
 - ⏳ Backup/restore tools (planned)
 
-**Total Tools**: 39 tools implemented
+**Total Tools**: 46 tools implemented (37 server management + 9 memory management)
 

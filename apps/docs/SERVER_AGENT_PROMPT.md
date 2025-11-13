@@ -570,51 +570,47 @@ bash scripts/connect-server.sh "docker ps --format 'table {{.Names}}\t{{.Status}
 
 ### ⚠️ Memory Uses SQLite for Fast Queries
 
-Memory is stored in **SQLite database** (`apps/agent_memory/memory.db`) for fast queries and full-text search. Agents can query via helper functions.
+Memory is stored in **SQLite database** (`apps/agent_memory/memory.db`) for fast queries and full-text search. **Use MCP tools to interact with memory.**
 
-### How to Use Memory
+### How to Use Memory (Via MCP Tools)
 
 **Before starting work:**
 ```python
-from apps.agent_memory import get_memory
-
-memory = get_memory()
-
 # Check recent decisions
-decisions = memory.query_decisions(project="trading-journal", limit=5)
+memory_query_decisions(project="trading-journal", limit=5)
 
 # Check common patterns
-patterns = memory.query_patterns(severity="high", limit=5)
+memory_query_patterns(severity="high", limit=5)
 
 # Full-text search
-results = memory.search("PostgreSQL database setup")
+memory_search("PostgreSQL database setup")
 ```
 
 **During work:**
 ```python
 # Record important decisions
-memory.record_decision(
+memory_record_decision(
     content="Use PostgreSQL for database",
     rationale="Need ACID compliance and complex queries",
     project="trading-journal",
     importance=0.9,
-    tags=["database", "architecture"]
+    tags="database,architecture"
 )
 
 # Record patterns
-memory.record_pattern(
+memory_record_pattern(
     name="Missing Type Hints",
     description="Python functions missing type hints",
     solution="Add type hints to all functions",
     severity="medium",
-    tags=["python", "code-quality"]
+    tags="python,code-quality"
 )
 ```
 
 **After work:**
 ```python
 # Save context
-memory.save_context(
+memory_save_context(
     agent_id="agent-001",
     task="T1.3",
     current_work="PostgreSQL setup complete",
@@ -622,14 +618,29 @@ memory.save_context(
 )
 ```
 
+### Available Memory MCP Tools
+
+- `memory_query_decisions` - Query decisions (by project, task, tags, importance, or search)
+- `memory_query_patterns` - Query patterns (by severity, tags, frequency, or search)
+- `memory_search` - Full-text search across all memories
+- `memory_record_decision` - Record a decision
+- `memory_record_pattern` - Record or update a pattern
+- `memory_save_context` - Save current work context
+- `memory_get_recent_context` - Get recent context
+- `memory_get_context_by_task` - Get context for specific task
+- `memory_export_to_markdown` - Export to markdown for review
+
 ### Benefits
 
 - ✅ **Fast queries**: 10-100x faster than file-based (1-10ms vs 100-500ms)
 - ✅ **Full-text search**: Find memories quickly
 - ✅ **Relationships**: Link decisions to patterns via tags
 - ✅ **Structured**: Proper indexing and constraints
+- ✅ **MCP Tools**: Discoverable and consistent with other tools
 
-**See**: `apps/agent_memory/README.md` for complete guide.
+**See**: 
+- `apps/agent_memory/README.md` for complete guide
+- `server-management-mcp/README.md` for memory tool reference
 
 ## Server Management Skills
 

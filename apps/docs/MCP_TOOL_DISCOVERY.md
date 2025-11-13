@@ -253,6 +253,29 @@ Use SSH commands via `scripts/connect-server.sh` as documented in `apps/docs/SER
 - Resource monitoring
 - Service lifecycle management
 
+## Memory Operations
+
+### Memory MCP Tools
+
+Since agents run in Cursor/Claude Desktop, use **MCP tools** to interact with memory:
+
+**Query Memories:**
+- `memory_query_decisions` - Query decisions by project, task, tags, importance, or search
+- `memory_query_patterns` - Query patterns by severity, tags, frequency, or search
+- `memory_search` - Full-text search across all memories
+- `memory_get_recent_context` - Get recent work context
+- `memory_get_context_by_task` - Get context for specific task
+
+**Record Memories:**
+- `memory_record_decision` - Record a decision
+- `memory_record_pattern` - Record or update a pattern
+- `memory_save_context` - Save current work context
+
+**Export:**
+- `memory_export_to_markdown` - Export all memories to markdown
+
+**See**: `server-management-mcp/README.md` for complete memory tool reference.
+
 ## Common Operations → Skills/Tools Mapping
 
 ### Workflows (Use Skills)
@@ -305,6 +328,23 @@ Use SSH commands via `scripts/connect-server.sh` as documented in `apps/docs/SER
 ### "Deploy code changes to server"
 → Use: `git_deploy(commit_message, files)`
 - Handles: add → commit → push → pull on server
+
+### Memory Operations (Use MCP Tools)
+
+### "Find previous decisions about PostgreSQL"
+→ Use: `memory_query_decisions(project="trading-journal", search_text="PostgreSQL")`
+
+### "Record a decision"
+→ Use: `memory_record_decision(content="Use PostgreSQL", rationale="...", importance=0.9)`
+
+### "Find common patterns"
+→ Use: `memory_query_patterns(severity="high", limit=10)`
+
+### "Search all memories"
+→ Use: `memory_search("database setup")`
+
+### "Save current work context"
+→ Use: `memory_save_context(agent_id="agent-001", task="T1.3", current_work="...")`
 
 ## Tool Implementation Status
 

@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  mcp-server:
+    build: .
+    container_name: server-management-mcp
+    restart: unless-stopped
+    # Access to Docker socket for docker commands
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config.json:/app/config.json:ro
+      # Mount server directory for docker-compose access
+      - /home/unarmedpuppy/server:/server:ro
+    # Network access to other containers
+    networks:
+      - default
+    # Environment variables
+    environment:
+      - SONARR_API_KEY=${SONARR_API_KEY:-dd7148e5a3dd4f7aa0c579194f45edff}
+      - RADARR_API_KEY=${RADARR_API_KEY:-afb58cf1eaee44208099b403b666e29c}
+      - NZBGET_USERNAME=${NZBGET_USERNAME:-nzbget}
+      - NZBGET_PASSWORD=${NZBGET_PASSWORD:-nzbget}
+      - QBITTORRENT_USERNAME=${QBITTORRENT_USERNAME:-admin}
+      - QBITTORRENT_PASSWORD=${QBITTORRENT_PASSWORD:-adminadmin}
+    # For stdio transport (default MCP), no ports needed
+    # For HTTP/SSE transport, uncomment:
+    # ports:
+    #   - "8000:8000"
+    # Run as root to access Docker socket (or add user to docker group on host)
+    # For production, consider using docker group instead of root
+    user: "root"
+    labels:
+      - "homepage.group=Infrastructure"
+      - "homepage.name=MCP Server"
+      - "homepage.href=http://192.168.86.47:8000"
+      - "homepage.icon=mcp.svg"
+
+networks:
+  default:
+    name: my-network
+    external: true
+
