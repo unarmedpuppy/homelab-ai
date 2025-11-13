@@ -13,7 +13,7 @@ from typing import Dict, List, Optional, Any
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from apps.agent_memory import get_memory
+from agents.memory import get_memory
 from mcp.server import Server
 from mcp.types import Tool
 
@@ -344,7 +344,7 @@ def register_memory_tools(server: Server):
         Export all memories to markdown files for human review.
         
         Args:
-            output_path: Optional output directory path (defaults to apps/agent_memory/memory/export/)
+            output_path: Optional output directory path (defaults to agents/memory/memory/export/)
         
         Returns:
             Export path and file counts

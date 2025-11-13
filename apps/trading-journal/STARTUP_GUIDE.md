@@ -351,7 +351,7 @@ curl http://localhost:8101
 - **Implementation Details**: See `IMPLEMENTATION_PLAN.md`
 - **Agent Guidelines**: See `TRADING_JOURNAL_AGENTS_PROMPT.md`
 - **Review Standards**: See `TRADING_JOURNAL_AGENT_REVIEWER_PROMPT.md`
-- **Server Setup**: See `apps/docs/SERVER_AGENT_PROMPT.md`
+- **Server Setup**: See `agents/docs/SERVER_AGENT_PROMPT.md`
 - **Task Tracking**: See `TASKS.md`
 
 ## Next Steps

@@ -231,7 +231,7 @@ Skills go through review:
 
 **See Also**:
 - `server-management-skills/README.md` - Skills catalog
-- `apps/docs/agents/AGENT_PROMPT.md` - Agent prompt with skill discovery
+- `agents/docs/AGENT_PROMPT.md` - Agent prompt with skill discovery
 - `server-management-mcp/README.md` - MCP tools reference
 
 ---

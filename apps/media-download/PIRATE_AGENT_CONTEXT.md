@@ -48,6 +48,7 @@ bash scripts/connect-server.sh "docker exec media-download-sonarr curl -s 'http:
 
 ### Service Communication
 - **Sonarr/Radarr → NZBGet**: `http://media-download-gluetun:6789/jsonrpc`
+- **Sonarr/Radarr → qBittorrent**: `http://media-download-gluetun:8080/api/v2`
 - **Sonarr/Radarr → NZBHydra2**: `http://media-download-nzbhydra2:5076`
 - **Sonarr/Radarr → Jackett**: `http://media-download-jackett:9117`
 
@@ -69,6 +70,13 @@ bash scripts/connect-server.sh "docker exec media-download-sonarr curl -s 'http:
 - **Control Port**: `6789`
 - **Access**: Via `media-download-gluetun:6789` from Sonarr/Radarr
 
+### qBittorrent
+- **WebUI Username**: `admin`
+- **WebUI Password**: `adminadmin` (permanent password set via API)
+- **WebUI Port**: `8080`
+- **Access**: Via `media-download-gluetun:8080` from Sonarr/Radarr
+- **Note**: qBittorrent generates temporary passwords on each restart if no permanent password is set. The permanent password must be set via API or WebUI.
+
 ## Path Configuration
 
 ### Docker Volume Mounts
@@ -83,9 +91,14 @@ bash scripts/connect-server.sh "docker exec media-download-sonarr curl -s 'http:
   - Local: `/downloads/`
 - **Download Client Path**: `/downloads/completed/tv`
 - **Final Media Path**: `/tv/Shows/{Series Name}/` (inside container)
+- **Download Clients**:
+  - **NZBGet** (Usenet): `media-download-gluetun:6789`, category `tv`
+  - **qBittorrent** (Torrent): `media-download-gluetun:8080`, category `tv`
 
 ### Radarr Configuration
-- **Root Folder**: `/movies/Films`
+- **Root Folders**: 
+  - `/movies/Films` (ID: 4) - Main movies folder
+  - `/movies/Kids/Films` (ID: 5) - Kids movies folder
 - **Remote Path Mapping**: 
   - Host: `media-download-gluetun`
   - Remote: `/downloads/`
@@ -93,6 +106,7 @@ bash scripts/connect-server.sh "docker exec media-download-sonarr curl -s 'http:
 - **Download Client Path**: `/downloads/completed/movies`
 - **Final Media Path**: `/movies/{Category}/{Movie Name (Year)}/` (inside container)
   - Note: Movies may be in subdirectories like `/movies/Kids/Films/` or `/movies/Films/`
+  - Collections in `/movies/Kids/Films` require this root folder to be configured
 
 ### NZBGet Configuration
 - **Main Directory**: `/downloads`
@@ -185,6 +199,17 @@ bash scripts/connect-server.sh "docker exec media-download-sonarr curl -s 'http:
 bash scripts/connect-server.sh "docker exec media-download-radarr curl -s 'http://127.0.0.1:7878/api/v3/queue?apikey=afb58cf1eaee44208099b403b666e29c' | python3 -m json.tool"
 ```
 
+### Clear Queue
+
+#### Sonarr - Remove All Items
+```bash
+# Get all queue item IDs
+bash scripts/connect-server.sh "docker exec media-download-sonarr curl -s 'http://127.0.0.1:8989/api/v3/queue?apikey=dd7148e5a3dd4f7aa0c579194f45edff' | python3 -c \"import sys, json; data=json.load(sys.stdin); ids = [str(r['id']) for r in data['records']]; print(' '.join(ids))\""
+
+# Remove all items (replace with actual IDs from above)
+bash scripts/connect-server.sh "for id in ID_LIST; do docker exec media-download-sonarr curl -s -X DELETE \"http://127.0.0.1:8989/api/v3/queue/\$id?apikey=dd7148e5a3dd4f7aa0c579194f45edff&removeFromClient=true&blocklist=false\"; done"
+```
+
 ### Check Library Contents
 
 #### Sonarr Series
@@ -252,6 +277,47 @@ bash scripts/connect-server.sh "cd ~/server/apps/media-download/downloads/comple
 bash scripts/connect-server.sh "docker exec media-download-sonarr curl -s 'http://127.0.0.1:8989/api/v3/series?apikey=dd7148e5a3dd4f7aa0c579194f45edff' | python3 -c \"import sys, json; series=json.load(sys.stdin); print('\\n'.join([s['title'] for s in series]))\" | grep -i 'series name'"
 ```
 
+### 5. Sonarr Queue Stuck - "downloadClientUnavailable"
+**Symptom**: Queue items stuck with status "downloadClientUnavailable", especially torrents
+
+**Root Cause**: Sonarr may only have NZBGet configured but queue contains torrents requiring qBittorrent. Or qBittorrent password not set/configured correctly.
+
+**Solution**:
+1. Verify qBittorrent is configured in Sonarr:
+   ```bash
+   bash scripts/connect-server.sh "docker exec media-download-sonarr curl -s 'http://127.0.0.1:8989/api/v3/downloadclient?apikey=dd7148e5a3dd4f7aa0c579194f45edff' | python3 -c \"import sys, json; clients=json.load(sys.stdin); print('\\n'.join([c['name'] + ' (' + c['protocol'] + ')' for c in clients]))\""
+   ```
+
+2. If qBittorrent is missing, add it:
+   - Host: `media-download-gluetun`
+   - Port: `8080`
+   - Username: `admin`
+   - Password: `adminadmin` (or set permanent password via qBittorrent API/WebUI)
+   - Category: `tv`
+
+3. Set permanent qBittorrent password (if using temporary password):
+   ```bash
+   # Get current temp password from logs
+   bash scripts/connect-server.sh "docker logs media-download-qbittorrent 2>&1 | grep -i 'temporary password' | tail -1"
+   
+   # Login and set permanent password
+   bash scripts/connect-server.sh "docker exec media-download-qbittorrent curl -s -X POST 'http://127.0.0.1:8080/api/v2/auth/login' -d 'username=admin&password=TEMP_PASSWORD' -c /tmp/cookies.txt && docker exec media-download-qbittorrent curl -s -X POST 'http://127.0.0.1:8080/api/v2/app/setPreferences' -b /tmp/cookies.txt -d 'json={\"web_ui_password\":\"adminadmin\"}'"
+   ```
+
+4. Restart Sonarr to refresh download client connections:
+   ```bash
+   bash scripts/connect-server.sh "docker restart media-download-sonarr"
+   ```
+
+5. Clear stuck queue items if needed:
+   ```bash
+   # Get stuck item IDs
+   bash scripts/connect-server.sh "docker exec media-download-sonarr curl -s 'http://127.0.0.1:8989/api/v3/queue?apikey=dd7148e5a3dd4f7aa0c579194f45edff&status=downloadClientUnavailable' | python3 -c \"import sys, json; data=json.load(sys.stdin); print(','.join([str(r['id']) for r in data['records']]))\""
+   
+   # Remove each item (replace ID_LIST with comma-separated IDs)
+   bash scripts/connect-server.sh "for id in ID_LIST; do docker exec media-download-sonarr curl -s -X DELETE \"http://127.0.0.1:8989/api/v3/queue/\$id?apikey=dd7148e5a3dd4f7aa0c579194f45edff&removeFromClient=true&blocklist=false\"; done"
+   ```
+
 ## Important Configuration Notes
 
 ### VPN & DNS
@@ -291,9 +357,13 @@ bash scripts/connect-server.sh "docker exec media-download-sonarr curl -s 'http:
    bash scripts/connect-server.sh "docker logs media-download-gluetun --tail 50"
    ```
 
-5. **Test NZBGet Connection**
+5. **Test Download Client Connections**
    ```bash
+   # Test NZBGet
    bash scripts/connect-server.sh "docker exec media-download-radarr curl -s 'http://media-download-gluetun:6789/jsonrpc' -H 'Content-Type: application/json' -d '{\"method\":\"status\",\"params\":[],\"id\":1}' -u nzbget:nzbget"
+   
+   # Test qBittorrent
+   bash scripts/connect-server.sh "docker exec media-download-sonarr curl -s -X POST 'http://media-download-gluetun:8080/api/v2/auth/login' -d 'username=admin&password=adminadmin'"
    ```
 
 6. **Check Completed Downloads**
@@ -340,7 +410,7 @@ bash scripts/connect-server.sh "docker exec media-download-sonarr curl -s 'http:
 
 ---
 
-**Last Updated**: 2025-11-08
+**Last Updated**: 2025-11-13
 **Agent**: Auto (Cursor AI)
-**Status**: System operational, imports working, some files pending import
+**Status**: System operational, imports working. qBittorrent configured for torrent downloads. Queue cleared and ready for fresh downloads.
 

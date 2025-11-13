@@ -133,7 +133,7 @@ Add to Claude Desktop config (`~/Library/Application Support/Claude/claude_deskt
 - `memory_get_context_by_task` - Get context for a specific task
 - `memory_export_to_markdown` - Export all memories to markdown files for human review
 
-**Fallback**: If MCP tools unavailable, use `apps/agent_memory/query_memory.sh` helper script. See `apps/agent_memory/QUERY_MEMORY_README.md` for usage.
+**Fallback**: If MCP tools unavailable, use `agents/memory/query_memory.sh` helper script. See `agents/memory/QUERY_MEMORY_README.md` for usage.
 
 ### Agent Management ✅
 - `create_agent_definition` - Create a new specialized agent definition (with tasks and registry entry)

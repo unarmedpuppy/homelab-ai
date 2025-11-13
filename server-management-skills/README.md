@@ -81,7 +81,7 @@ See `server-management-skills/README.md` for complete catalog.
 **Diagnose Sonarr/Radarr queue issues**: check queue → verify clients → clear stuck items
 
 - **When to use**: Downloads stuck in queue, not processing
-- **MCP Tools**: `sonarr_queue_status`, `sonarr_check_download_clients`, `radarr_queue_status`, `sonarr_clear_queue`, `nzbget_status`, `qbittorrent_status`
+- **MCP Tools**: `sonarr_queue_status`, `sonarr_check_download_clients`, `radarr_queue_status`, `troubleshoot_failed_downloads`, `diagnose_download_client_unavailable`, `remove_stuck_downloads`
 - **Output**: Issue identification and resolution steps
 
 #### `troubleshoot-service-startup` ⏳
@@ -111,6 +111,13 @@ See `server-management-skills/README.md` for complete catalog.
 - **When to use**: Before major changes, regular backups
 - **MCP Tools**: `database_backup`, `backup_env_files`, `verify_backup`, `restore_backup`
 
+#### `cleanup-disk-space` ✅
+**Clean up disk space**: remove archive files → prune Docker resources → verify
+
+- **When to use**: Disk space above 80%, critical disk space, downloads failing
+- **MCP Tools**: `check_disk_space`, `cleanup_archive_files`, `docker_prune_images`, `docker_prune_volumes`
+- **Output**: Space freed, usage improvement
+
 #### `cleanup-old-resources` ⏳
 **Remove unused resources**: find unused images/volumes → verify → remove
 
@@ -124,6 +131,13 @@ See `server-management-skills/README.md` for complete catalog.
 - **MCP Tools**: `docker_list_images`, `docker_update_image`, `docker_compose_restart`, `docker_container_status`
 
 ### Configuration Skills
+
+#### `add-root-folder` ✅
+**Add root folder to Sonarr/Radarr**: check existing → verify path → add → verify
+
+- **When to use**: Missing root folder errors, organizing media into categories
+- **MCP Tools**: `radarr_list_root_folders`, `radarr_add_root_folder`, `check_disk_space`
+- **Output**: Root folder ID, accessibility status, unmapped folders
 
 #### `add-new-application` ⏳
 **Set up new application**: create structure → configure → deploy → verify
@@ -253,15 +267,16 @@ Skills **must** use MCP tools. They don't replace tools, they orchestrate them:
 
 ## Status
 
-- ✅ **5 skills implemented**:
+- ✅ **7 skills implemented**:
   - `standard-deployment` - Complete deployment workflow
   - `troubleshoot-container-failure` - Container diagnostics
   - `system-health-check` - Comprehensive system verification
   - `troubleshoot-stuck-downloads` - Download queue issues
-  - `deploy-new-service` - New service setup
-- ⏳ **7 skills planned**: See catalog above
+  - `cleanup-disk-space` - Clean up disk space systematically
+  - `add-root-folder` - Add root folders to Sonarr/Radarr
+- ⏳ **6 skills planned**: See catalog above
 
-**Total**: 5 implemented, 7 planned = 12 skills
+**Total**: 7 implemented, 6 planned = 13 skills
 
 ## Contributing
 

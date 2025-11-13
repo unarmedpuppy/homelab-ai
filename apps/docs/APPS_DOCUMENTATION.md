@@ -8,7 +8,7 @@ This document provides an overview of all applications deployed on the home serv
 - User: unarmedpuppy
 - Access: `bash scripts/connect-server.sh '<command>'`
 
-**⚠️ IMPORTANT**: Before using SSH commands, **check the MCP Server tools first** (`server-management-mcp/`). MCP tools provide standardized, type-safe operations for server management. See `apps/docs/SERVER_AGENT_PROMPT.md` for tool discovery workflow.
+**⚠️ IMPORTANT**: Before using SSH commands, **check the MCP Server tools first** (`server-management-mcp/`). MCP tools provide standardized, type-safe operations for server management. See `agents/docs/SERVER_AGENT_PROMPT.md` for tool discovery workflow.
 
 ---
 
@@ -28,7 +28,7 @@ This document provides an overview of all applications deployed on the home serv
   - **Agents should use MCP tools first** before writing custom scripts or SSH commands
   - Tools available: Docker management, media download operations, system monitoring, troubleshooting
   - Accessible via MCP protocol (Claude Desktop, GPT-4 with MCP) or via SSH tunnel
-  - See `apps/docs/SERVER_AGENT_PROMPT.md` for tool discovery workflow
+  - See `agents/docs/SERVER_AGENT_PROMPT.md` for tool discovery workflow
 
 ### Traefik
 - **Description**: Reverse proxy with automatic HTTPS via Let's Encrypt

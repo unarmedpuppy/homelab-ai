@@ -325,6 +325,6 @@ Edit workflow nodes to:
 ## Related Documentation
 
 - [n8n README](./README.md) - n8n setup and configuration
-- [SERVER_AGENT_PROMPT.md](../docs/SERVER_AGENT_PROMPT.md) - AI agent guidelines
+- [SERVER_AGENT_PROMPT.md](../docs/agents/SERVER_AGENT_PROMPT.md) - AI agent guidelines
 - [APPS_DOCUMENTATION.md](../docs/APPS_DOCUMENTATION.md) - Application details
 

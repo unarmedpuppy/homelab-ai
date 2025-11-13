@@ -1,0 +1,96 @@
+# Agent Workflow Documentation
+
+This directory contains all documentation related to AI agent workflows, prompts, and best practices for the home server project.
+
+## Quick Start
+
+**New to agent workflows?** Start here:
+
+1. **`AGENT_PROMPT.md`** ⭐ - **START HERE** - Complete agent prompt with discovery workflow
+2. **`AGENT_WORKFLOW.md`** - Detailed workflow guide and best practices
+3. **`SERVER_AGENT_PROMPT.md`** - Server-specific agent context and tools
+4. **`MCP_TOOL_DISCOVERY.md`** - How to discover and use MCP tools
+
+## Documentation Files
+
+### Core Agent Documentation
+
+- **`AGENT_PROMPT.md`** ⭐ - Main agent prompt with complete discovery workflow
+  - Memory system usage
+  - Skills and MCP tools
+  - Agent spawning
+  - Common operations
+
+- **`AGENT_WORKFLOW.md`** - Complete workflow guide
+  - Discovery workflow
+  - Implementation workflow
+  - Review workflow
+  - Best practices
+
+- **`SERVER_AGENT_PROMPT.md`** - Server management agent context
+  - Server connection methods
+  - Available MCP tools
+  - Docker management
+  - System monitoring
+
+- **`MCP_TOOL_DISCOVERY.md`** - Tool discovery and usage guide
+  - How to find tools
+  - When to create new tools
+  - Tool categories
+  - Memory operations
+
+### Agent Spawning
+
+- **`AGENT_SPAWNING_ARCHITECTURE.md`** - Architecture for creating specialized agents
+- **`AGENT_SPAWNING_WORKFLOW.md`** - Workflow for spawning specialized agents
+
+### Workflow Generation
+
+- **`WORKFLOW_GENERATOR_PROMPT.md`** - Meta-prompt for generating agent workflows
+- **`WORKFLOW_GENERATOR_USAGE.md`** - How to use the workflow generator
+
+
+### Templates
+
+- **`templates/`** - Templates for agent workflows
+  - Review templates
+  - Task templates
+  - Status tracking templates
+
+## Related Documentation
+
+### Memory System
+- `agents/memory/README.md` - Memory system overview
+- `agents/memory/MEMORY_USAGE_EXAMPLES.md` - Real-world examples ⭐
+- `agents/memory/MCP_TOOLS_GUIDE.md` - Memory MCP tools reference
+
+### Skills & Tools
+- `server-management-skills/README.md` - Reusable workflow skills
+- `server-management-mcp/README.md` - MCP tools catalog
+
+### General Documentation
+- `apps/docs/APPS_DOCUMENTATION.md` - Application documentation
+- `apps/docs/MCP_SERVER_PLAN.md` - MCP server architecture plan
+
+## Navigation
+
+### For Agents Starting Work
+1. Read `AGENT_PROMPT.md` first
+2. Follow discovery workflow in `AGENT_PROMPT.md`
+3. Reference `AGENT_WORKFLOW.md` for detailed workflows
+4. Use `MCP_TOOL_DISCOVERY.md` to find tools
+
+### For Creating New Agents
+1. Review `AGENT_SPAWNING_ARCHITECTURE.md`
+2. Follow `AGENT_SPAWNING_WORKFLOW.md`
+3. Use templates in `templates/`
+
+### For Workflow Generation
+1. Use `WORKFLOW_GENERATOR_PROMPT.md` as meta-prompt
+2. Reference `WORKFLOW_GENERATOR_USAGE.md` for usage
+
+---
+
+**Last Updated**: 2025-01-13
+**Status**: Active
+

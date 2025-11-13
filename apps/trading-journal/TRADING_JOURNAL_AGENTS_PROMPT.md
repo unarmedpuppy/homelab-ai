@@ -1074,7 +1074,7 @@ Before marking a task as `[REVIEW]` (which triggers code review):
 4. **`TRADING_JOURNAL_AGENT_REVIEWER_PROMPT.md`** - What reviewers will check (helps you prepare)
 
 **Additional Resources:**
-- **Server Setup**: See `apps/docs/SERVER_AGENT_PROMPT.md` for server context
+- **Server Setup**: See `agents/docs/SERVER_AGENT_PROMPT.md` for server context
 - **API Spec**: See API endpoints section in `IMPLEMENTATION_PLAN.md`
 - **Database Schema**: See database schema section in `IMPLEMENTATION_PLAN.md`
 - **Calculation Formulas**: See `STARTUP_GUIDE.md` (critical for accurate calculations)
