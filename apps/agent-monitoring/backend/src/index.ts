@@ -30,8 +30,14 @@ app.use(express.json());
 // Database service
 // Default path: apps/agent-monitoring/data/agent_activity.db
 // When running from dist/, __dirname is dist/, so we go up to backend, then to agent-monitoring
-const defaultDbPath = process.env.DATABASE_PATH || 
-  path.join(__dirname, '../../data/agent_activity.db');
+let defaultDbPath = process.env.DATABASE_PATH;
+if (!defaultDbPath) {
+  // Resolve relative to project root for consistency
+  // From dist/ -> backend/ -> agent-monitoring/ -> data/
+  defaultDbPath = path.join(__dirname, '../../data/agent_activity.db');
+  // Resolve to absolute path
+  defaultDbPath = path.resolve(defaultDbPath);
+}
 const dbService = new DatabaseService(defaultDbPath);
 console.log(`📊 Database path: ${defaultDbPath}`);
 
