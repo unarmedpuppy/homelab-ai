@@ -437,13 +437,59 @@ _Add messages here when you need to communicate with your parent agent._
             else:
                 task_id = "T1.1"
         
-        # Append new task
+        # Also register in central task registry
+        try:
+            # Import task coordination functions
+            # Use relative import since both are in tools/
+            import sys
+            from pathlib import Path
+            tools_dir = Path(__file__).parent
+            if str(tools_dir) not in sys.path:
+                sys.path.insert(0, str(tools_dir))
+            from task_coordination import _parse_registry, _write_registry, _generate_task_id
+            
+            # Determine project from agent_id or use default
+            project = "agent-tasks"  # Default project name
+            
+            # Parse existing tasks
+            existing_tasks = _parse_registry()
+            
+            # Generate task ID for registry (may differ from TASKS.md ID)
+            registry_task_id = _generate_task_id(project, existing_tasks)
+            
+            # Create task for registry
+            registry_task = {
+                "task_id": registry_task_id,
+                "title": task_description[:100] if len(task_description) > 100 else task_description,
+                "description": task_description[:500] if len(task_description) > 500 else task_description,
+                "status": "pending",
+                "assignee": "-",
+                "priority": priority.lower(),
+                "dependencies": "-",
+                "project": project,
+                "created": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }
+            
+            # Add to registry
+            existing_tasks.append(registry_task)
+            _write_registry(existing_tasks)
+            
+            registry_registered = True
+            registry_task_id_used = registry_task_id
+        except Exception as e:
+            # If registry registration fails, continue with TASKS.md only
+            registry_registered = False
+            registry_task_id_used = None
+        
+        # Append new task to agent's TASKS.md
         new_task = f"""
 ### {task_id}: {task_description[:50]}...
 **Assigned By**: [Parent Agent]
 **Created**: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 **Priority**: {priority.upper()}
 **Status**: PENDING
+{f"**Registry Task ID**: {registry_task_id_used}" if registry_registered else ""}
 
 **Description**:
 {task_description}

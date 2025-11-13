@@ -40,6 +40,7 @@ If your task requires domain expertise:
 query_agent_registry(specialization="media-download")
 
 # If found: Assign task to existing agent
+# (This automatically registers in central task registry too)
 assign_task_to_agent(agent_id="agent-002", task_description="...")
 
 # If not found: Create specialized agent
@@ -52,6 +53,8 @@ create_agent_definition(
 ```
 
 **Why**: Delegate to domain experts. Don't reinvent specialized knowledge.
+
+**Note**: `assign_task_to_agent()` now also registers tasks in the central task registry for cross-agent coordination.
 
 ### 3. Check Skills 📚
 Review `server-management-skills/README.md` for complete workflows:
@@ -275,6 +278,61 @@ If you identify a reusable workflow pattern:
 
 **See**: `server-management-skills/CREATING_SKILLS.md` for complete guide.
 
+## Task Coordination - How to Use
+
+**Location**: `agents/tasks/README.md`
+
+**What Task Coordination Provides:**
+- Central registry of all tasks across agents
+- Dependency tracking and validation
+- Conflict prevention
+- Cross-agent task visibility
+
+**Available Tools** (6 MCP tools):
+- `register_task()` - Register new tasks
+- `query_tasks()` - Query with filters (status, assignee, project, priority)
+- `get_task()` - Get single task details
+- `claim_task()` - Claim tasks (validates dependencies)
+- `update_task_status()` - Update status (auto-updates dependents)
+- `check_task_dependencies()` - Check dependency status
+
+**When to Use Task Coordination:**
+- **Use Central Registry**: For cross-agent coordination, dependencies, conflict prevention
+- **Use Individual TASKS.md**: For agent-specific context, detailed notes, implementation details
+
+**Basic Workflow:**
+```python
+# 1. Register a task
+task = register_task(
+    title="Setup database",
+    description="Create PostgreSQL schema",
+    project="trading-journal",
+    priority="high",
+    dependencies="T1.1,T1.2"  # Optional
+)
+
+# 2. Check dependencies (if any)
+deps = check_task_dependencies(task_id=task["task_id"])
+
+# 3. Claim the task (validates dependencies automatically)
+claim_task(task_id=task["task_id"], agent_id="agent-001")
+
+# 4. Update status as work progresses
+update_task_status(task_id=task["task_id"], status="in_progress", agent_id="agent-001")
+update_task_status(task_id=task["task_id"], status="completed", agent_id="agent-001")
+
+# 5. Query your tasks
+my_tasks = query_tasks(assignee="agent-001", status="in_progress")
+```
+
+**Dependency Management:**
+- Tasks with dependencies cannot be claimed until dependencies are completed
+- Tasks automatically block if dependencies not met
+- Tasks automatically unblock when dependencies complete
+- Use `check_task_dependencies()` to see dependency status
+
+**See**: `agents/tasks/README.md` for complete guide with examples.
+
 ## MCP Tools - How to Use
 
 **Location**: `server-management-mcp/README.md`
@@ -400,9 +458,18 @@ Check:
 - List: `list_skill_proposals()` - List proposals
 - Query: `query_skills()` - Query existing skills
 
+### Task Coordination Tools
+- Register: `register_task()` - Register new task in central registry
+- Query: `query_tasks()` - Query tasks with filters
+- Get: `get_task()` - Get single task details
+- Claim: `claim_task()` - Claim task (validates dependencies)
+- Update: `update_task_status()` - Update status (auto-updates dependents)
+- Check: `check_task_dependencies()` - Check dependency status
+
 ### Key Files
 - Skills: `server-management-skills/README.md`
 - MCP Tools: `server-management-mcp/README.md`
+- Task Coordination: `agents/tasks/README.md` ⭐ **See this for task management**
 - Memory Guide: `agents/memory/MCP_TOOLS_GUIDE.md`
 - Memory Examples: `agents/memory/MEMORY_USAGE_EXAMPLES.md` ⭐ **See this for real-world examples**
 - Tool Discovery: `agents/docs/MCP_TOOL_DISCOVERY.md`
