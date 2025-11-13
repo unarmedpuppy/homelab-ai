@@ -406,29 +406,32 @@ This document outlines a proven workflow for managing AI agents working on softw
 - `apps/agent_memory/README_FILE_BASED.md` for complete guide
 - `MEMORY_SYSTEM_COMPARISON.md` for comparison with alternatives
 
-### Quick Integration (SQLite-Based)
+### Quick Integration (SQLite-Based via MCP Tools)
 
-**Agents query and record memories via helper functions:**
+**Agents use MCP tools to interact with memory:**
 
 ```python
-from apps.agent_memory import get_memory
-
-memory = get_memory()
-
-# Query memories (fast - 1-10ms)
-decisions = memory.query_decisions(project="trading-journal", limit=5)
-patterns = memory.query_patterns(severity="high", limit=5)
-results = memory.search("PostgreSQL database")
+# Query memories (fast - 1-10ms via MCP tools)
+memory_query_decisions(project="trading-journal", limit=5)
+memory_query_patterns(severity="high", limit=5)
+memory_search("PostgreSQL database")
 
 # Record memories
-memory.record_decision(
+memory_record_decision(
     content="Use PostgreSQL for database",
     rationale="Need ACID compliance",
     project="trading-journal",
     importance=0.9,
-    tags=["database", "architecture"]
+    tags="database,architecture"
 )
 ```
+
+**9 Memory MCP Tools Available:**
+- Query: `memory_query_decisions`, `memory_query_patterns`, `memory_search`, `memory_get_recent_context`, `memory_get_context_by_task`
+- Record: `memory_record_decision`, `memory_record_pattern`, `memory_save_context`
+- Export: `memory_export_to_markdown`
+
+**See**: `apps/agent_memory/MCP_TOOLS_GUIDE.md` for complete reference.
 
 ### Benefits
 
