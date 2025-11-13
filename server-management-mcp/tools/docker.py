@@ -4,6 +4,7 @@ from typing import List, Dict, Any, Optional
 from mcp.server import Server
 from mcp.types import Tool
 from clients.remote_exec import RemoteExecutor
+from tools.logging_decorator import with_automatic_logging
 
 
 executor = RemoteExecutor()
@@ -50,6 +51,7 @@ def register_docker_tools(server: Server):
     """Register Docker management tools with MCP server."""
     
     @server.tool()
+    @with_automatic_logging()
     async def docker_list_containers(
         filter_status: Optional[str] = None,
         filter_app: Optional[str] = None
@@ -124,6 +126,7 @@ def register_docker_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def docker_container_status(container_name: str) -> Dict[str, Any]:
         """
         Get detailed status of a Docker container.
@@ -137,6 +140,7 @@ def register_docker_tools(server: Server):
         return await _get_container_status_internal(container_name)
     
     @server.tool()
+    @with_automatic_logging()
     async def docker_restart_container(
         container_name: str,
         wait_healthy: bool = False,
@@ -198,6 +202,7 @@ def register_docker_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def docker_stop_container(container_name: str) -> Dict[str, Any]:
         """
         Stop a Docker container.
@@ -233,6 +238,7 @@ def register_docker_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def docker_start_container(container_name: str) -> Dict[str, Any]:
         """
         Start a Docker container.
@@ -272,6 +278,7 @@ def register_docker_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def docker_view_logs(
         container_name: str,
         lines: int = 50,
@@ -314,6 +321,7 @@ def register_docker_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def docker_compose_ps(app_path: str) -> Dict[str, Any]:
         """
         List containers from docker-compose.
@@ -361,6 +369,7 @@ def register_docker_tools(server: Server):
             }
     
     @server.tool()
+    @with_automatic_logging()
     async def docker_compose_restart(
         app_path: str,
         service: Optional[str] = None
