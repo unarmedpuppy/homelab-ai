@@ -89,7 +89,7 @@ app.get('/', (_req, res) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Agent Monitoring Backend running on port ${PORT}`);
-  console.log(`📊 Database: ${dbPath}`);
+  console.log(`📊 Database: ${defaultDbPath}`);
   console.log(`🔗 API: http://localhost:${PORT}/api`);
 });
 
