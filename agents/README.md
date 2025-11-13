@@ -2,14 +2,17 @@
 
 **Main entry point for all agent-related features, documentation, and tools.**
 
-## Quick Start
+## 🚀 START HERE
 
-**New to agents?** Start here:
+**New to agents?** Follow this path:
 
-1. **`docs/AGENT_PROMPT.md`** ⭐ - **START HERE** - Complete agent prompt with discovery workflow
-2. **`docs/AGENT_WORKFLOW.md`** - Detailed workflow guide and best practices
-3. **`docs/SERVER_AGENT_PROMPT.md`** - Server-specific agent context and tools
-4. **`docs/MCP_TOOL_DISCOVERY.md`** - How to discover and use MCP tools
+1. **`docs/QUICK_START.md`** ⭐⭐⭐ - **5-MINUTE QUICK START** - Essential steps to get started
+2. **`docs/AGENT_PROMPT.md`** ⭐⭐ - **COMPLETE GUIDE** - Full agent prompt with discovery workflow
+3. **`docs/AGENT_WORKFLOW.md`** - Detailed workflow guide and best practices
+4. **`docs/SERVER_AGENT_PROMPT.md`** - Server-specific agent context (if working on server)
+5. **`docs/MCP_TOOL_DISCOVERY.md`** - How to discover and use MCP tools
+
+**For humans activating agents**: See `ACTIVATION_GUIDE.md`
 
 ## Directory Structure
 
@@ -97,12 +100,16 @@ These are at the repository root (shared infrastructure):
 
 ## Getting Started
 
-### For New Agents
+### For New Agents (Recommended Path)
 
-1. Read `docs/AGENT_PROMPT.md` - Complete guide
-2. Check `memory/README.md` - Memory system
-3. Review `tasks/README.md` - Task coordination
-4. Explore `registry/agent-registry.md` - Available agents
+1. **Start with `docs/QUICK_START.md`** ⭐ - 5-minute quick start
+2. **Read `docs/AGENT_PROMPT.md`** - Complete guide with all details
+3. **Review `docs/AGENT_WORKFLOW.md`** - Detailed workflows
+4. **Explore systems**:
+   - `memory/README.md` - Memory system
+   - `tasks/README.md` - Task coordination
+   - `communication/README.md` - Agent messaging
+   - `registry/agent-registry.md` - Available agents
 
 ### For Creating New Agents
 
@@ -126,9 +133,10 @@ These are at the repository root (shared infrastructure):
 ## Documentation Index
 
 ### Core Documentation
-- `docs/AGENT_PROMPT.md` ⭐ - Main agent prompt
+- `docs/QUICK_START.md` ⭐⭐⭐ - **START HERE** - 5-minute quick start
+- `docs/AGENT_PROMPT.md` ⭐⭐ - Main agent prompt (complete guide)
 - `docs/AGENT_WORKFLOW.md` - Workflow guide
-- `docs/SERVER_AGENT_PROMPT.md` - Server context
+- `docs/SERVER_AGENT_PROMPT.md` - Server context (if working on server)
 - `docs/MCP_TOOL_DISCOVERY.md` - Tool discovery
 
 ### Memory System
@@ -203,15 +211,48 @@ query_agent_registry(specialization="database")
 - ✅ **Agent Registry**: Active, ready, archived tracking
 - ✅ **Agent Spawning**: Manual creation workflow
 
-## Next Steps
+## Navigation Guide
 
-1. **For Agents**: Start with `docs/AGENT_PROMPT.md`
-2. **For Memory**: See `memory/README.md`
-3. **For Tasks**: See `tasks/README.md`
-4. **For Registry**: See `registry/agent-registry.md`
+### I'm a New Agent - Where Do I Start?
+
+1. **Read `docs/QUICK_START.md`** (5 minutes) - Essential steps
+2. **Read `docs/AGENT_PROMPT.md`** (15 minutes) - Complete guide
+3. **Start working** - Follow the discovery workflow
+
+### I Need to Find Something
+
+- **Tools**: `docs/MCP_TOOL_DISCOVERY.md` or `server-management-mcp/README.md`
+- **Workflows**: `server-management-skills/README.md`
+- **Memory**: `memory/README.md`
+- **Tasks**: `tasks/README.md`
+- **Communication**: `communication/README.md`
+- **Monitoring**: `apps/agent-monitoring/README.md`
+
+### I'm Working on Server Management
+
+- **Read `docs/SERVER_AGENT_PROMPT.md`** - Server-specific context
+- **Reference `docs/AGENT_PROMPT.md`** - For common workflows
+
+### I Want to Create a New Agent
+
+- **See `ACTIVATION_GUIDE.md`** - Human activation guide
+- **See `docs/AGENT_SPAWNING_WORKFLOW.md`** - Agent spawning workflow
+
+## System Status
+
+- ✅ **Documentation**: Complete and organized
+- ✅ **Memory System**: SQLite-based, 9 MCP tools
+- ✅ **Task Coordination**: Central registry, 6 MCP tools
+- ✅ **Communication**: Protocol implemented, 5 MCP tools
+- ✅ **Monitoring**: Dashboard available, 4 MCP tools
+- ✅ **Agent Management**: Registry, lifecycle, 5 MCP tools
+- ✅ **Skills**: Pattern learning, auto-creation, 5 MCP tools
+
+**Total MCP Tools**: 67 tools available
 
 ---
 
-**Last Updated**: 2025-01-10
+**Last Updated**: 2025-01-13
 **Status**: Active Development
+**Quick Start**: `docs/QUICK_START.md` ⭐
 

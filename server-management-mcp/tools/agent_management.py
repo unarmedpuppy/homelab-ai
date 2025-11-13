@@ -309,6 +309,12 @@ _Add messages here when you need to communicate with your parent agent._
                         )
                     
                     registry_path.write_text(registry_content)
+            
+            # Sync registry after creation
+            try:
+                await sync_agent_registry()
+            except:
+                pass  # Sync is optional, don't fail if it doesn't work
         
         return {
             "status": "success",
@@ -522,6 +528,57 @@ _Add messages here when you need to communicate with your parent agent._
             result["message"] += f" Also registered in central registry as {registry_task_id_used}."
         
         return result
+    
+    @server.tool()
+    async def sync_agent_registry() -> Dict[str, Any]:
+        """
+        Sync agent registry markdown from monitoring DB and definition files.
+        
+        This generates agents/registry/agent-registry.md from:
+        - Agent definitions (source of truth for metadata)
+        - Monitoring DB (source of truth for status)
+        - Active/archive directories (source of truth for location)
+        
+        Returns:
+            Sync confirmation and statistics
+        """
+        try:
+            # Import sync function
+            sync_script = project_root / "agents" / "registry" / "sync_registry.py"
+            if not sync_script.exists():
+                return {
+                    "status": "error",
+                    "message": "Sync script not found"
+                }
+            
+            # Run sync script
+            import subprocess
+            result = subprocess.run(
+                [sys.executable, str(sync_script)],
+                capture_output=True,
+                text=True,
+                cwd=str(project_root)
+            )
+            
+            if result.returncode == 0:
+                return {
+                    "status": "success",
+                    "message": "Registry synced successfully",
+                    "output": result.stdout.strip()
+                }
+            else:
+                return {
+                    "status": "error",
+                    "message": f"Sync failed: {result.stderr}",
+                    "output": result.stdout
+                }
+            
+        except Exception as e:
+            return {
+                "status": "error",
+                "error_type": type(e).__name__,
+                "message": str(e)
+            }
     
     @server.tool()
     async def archive_agent(
