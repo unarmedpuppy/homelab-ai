@@ -406,46 +406,38 @@ This document outlines a proven workflow for managing AI agents working on softw
 - `apps/agent_memory/README_FILE_BASED.md` for complete guide
 - `MEMORY_SYSTEM_COMPARISON.md` for comparison with alternatives
 
-### Quick Integration (File-Based)
+### Quick Integration (SQLite-Based)
 
-**Agents record memories as markdown files:**
+**Agents query and record memories via helper functions:**
 
-1. **Record decisions**: Create files in `apps/agent_memory/memory/decisions/`
-2. **Record patterns**: Create files in `apps/agent_memory/memory/patterns/`
-3. **Save context**: Create files in `apps/agent_memory/memory/context/`
+```python
+from apps.agent_memory import get_memory
 
-**Example - Recording a Decision:**
+memory = get_memory()
 
-Create `apps/agent_memory/memory/decisions/2025-01-10-14-30-00-use-postgresql.md`:
+# Query memories (fast - 1-10ms)
+decisions = memory.query_decisions(project="trading-journal", limit=5)
+patterns = memory.query_patterns(severity="high", limit=5)
+results = memory.search("PostgreSQL database")
 
-```markdown
-# Decision: Use PostgreSQL for database
-
-**Date**: 2025-01-10 14:30:00
-**Project**: trading-journal
-**Importance**: 0.9
-
-## Decision
-
-Use PostgreSQL for trading journal database
-
-## Rationale
-
-Need ACID compliance and complex queries.
-
-## Tags
-
-- database
-- architecture
+# Record memories
+memory.record_decision(
+    content="Use PostgreSQL for database",
+    rationale="Need ACID compliance",
+    project="trading-journal",
+    importance=0.9,
+    tags=["database", "architecture"]
+)
 ```
 
 ### Benefits
 
-- ✅ **Works with Cursor/Claude Desktop**: Agents can read/write files
-- ✅ **Human readable**: Markdown files are easy to read
-- ✅ **Version controlled**: Files can be committed to git
-- ✅ **Simple**: No complex setup required
-- ✅ **Searchable**: Index file enables quick queries
+- ✅ **Fast queries**: 10-100x faster than file-based (indexed SQLite)
+- ✅ **Full-text search**: SQLite FTS5 for fast searching
+- ✅ **Relationships**: Link decisions to patterns via tags
+- ✅ **Structured**: Proper indexing and foreign keys
+- ✅ **Human readable**: Optional markdown export
+- ✅ **No setup**: Database auto-created on first use
 
 ## Advanced Workflows
 
