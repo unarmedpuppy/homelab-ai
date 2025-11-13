@@ -523,9 +523,11 @@ Check:
 - Record: `memory_record_decision()`, `memory_record_pattern()`, `memory_save_context()`
 
 ### Agent Management Tools
-- Create: `create_agent_definition()`
-- Query: `query_agent_registry()`
-- Assign: `assign_task_to_agent()`
+- Create: `create_agent_definition()` - Create specialized agent
+- Query: `query_agent_registry()` - Query agent registry
+- Assign: `assign_task_to_agent()` - Assign task to agent
+- Archive: `archive_agent()` - Archive agent (lifecycle management)
+- Reactivate: `reactivate_agent()` - Reactivate archived agent
 
 ### Skill Management Tools
 - Propose: `propose_skill()` - Create skill proposal

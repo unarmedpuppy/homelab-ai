@@ -521,4 +521,316 @@ _Add messages here when you need to communicate with your parent agent._
             result["message"] += f" Also registered in central registry as {registry_task_id_used}."
         
         return result
+    
+    @server.tool()
+    async def archive_agent(
+        agent_id: str,
+        reason: Optional[str] = None,
+        force: bool = False
+    ) -> Dict[str, Any]:
+        """
+        Archive an agent (move to archive state).
+        
+        Args:
+            agent_id: Agent ID to archive
+            reason: Reason for archiving (optional)
+            force: Force archive even if tasks pending (default: False)
+        
+        Returns:
+            Archive confirmation and details
+        """
+        try:
+            # Find agent directory
+            active_dir = project_root / "agents" / "active"
+            archive_dir = project_root / "agents" / "archive"
+            archive_dir.mkdir(parents=True, exist_ok=True)
+            
+            agent_dirs = [d for d in active_dir.iterdir() if d.is_dir() and agent_id in d.name]
+            
+            if not agent_dirs:
+                # Check if already archived
+                archived_dirs = [d for d in archive_dir.iterdir() if d.is_dir() and agent_id in d.name]
+                if archived_dirs:
+                    return {
+                        "status": "error",
+                        "message": f"Agent {agent_id} is already archived"
+                    }
+                return {
+                    "status": "error",
+                    "message": f"Agent {agent_id} not found in active agents"
+                }
+            
+            agent_dir = agent_dirs[0]
+            
+            # Check for pending tasks (unless force)
+            if not force:
+                tasks_path = agent_dir / "TASKS.md"
+                if tasks_path.exists():
+                    tasks_content = tasks_path.read_text()
+                    # Simple check for pending tasks
+                    if "PENDING" in tasks_content or "IN PROGRESS" in tasks_content:
+                        return {
+                            "status": "error",
+                            "message": f"Agent {agent_id} has pending tasks. Use force=True to archive anyway.",
+                            "action": "Complete or cancel tasks before archiving"
+                        }
+            
+            # Check for active monitoring session (if monitoring available)
+            try:
+                from tools.activity_monitoring import get_agent_status
+                status = await get_agent_status(agent_id)
+                if status and status.get("status") == "active":
+                    return {
+                        "status": "error",
+                        "message": f"Agent {agent_id} has active monitoring session. End session before archiving."
+                    }
+            except:
+                pass  # Monitoring not available, continue
+            
+            # Get agent specialization from directory name
+            specialization = agent_dir.name.replace(f"{agent_id}-", "")
+            
+            # Move agent directory to archive
+            archive_agent_dir = archive_dir / agent_dir.name
+            if archive_agent_dir.exists():
+                # If archive already exists, add timestamp
+                timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+                archive_agent_dir = archive_dir / f"{agent_dir.name}-{timestamp}"
+            
+            agent_dir.rename(archive_agent_dir)
+            
+            # Update agent definition
+            definitions_dir = project_root / "agents" / "registry" / "agent-definitions"
+            definition_files = list(definitions_dir.glob(f"{agent_id}-*.md"))
+            
+            if definition_files:
+                definition_path = definition_files[0]
+                definition_content = definition_path.read_text()
+                
+                # Update frontmatter
+                if definition_content.startswith("---"):
+                    parts = definition_content.split("---", 2)
+                    if len(parts) >= 3:
+                        metadata = yaml.safe_load(parts[1])
+                        metadata["status"] = "archived"
+                        metadata["archived_date"] = datetime.now().strftime("%Y-%m-%d")
+                        if reason:
+                            metadata["archived_reason"] = reason
+                        
+                        # Rewrite definition
+                        new_content = f"---\n{yaml.dump(metadata, default_flow_style=False)}---\n{parts[2]}"
+                        definition_path.write_text(new_content)
+            
+            # Update registry
+            registry_path = project_root / "agents" / "registry" / "agent-registry.md"
+            if registry_path.exists():
+                registry_content = registry_path.read_text()
+                
+                # Remove from Active Agents table
+                if "## Active Agents" in registry_content:
+                    active_section = registry_content.split("## Active Agents")[1].split("##")[0]
+                    lines = active_section.split('\n')
+                    new_lines = []
+                    for line in lines:
+                        if agent_id not in line or line.startswith('|---'):
+                            new_lines.append(line)
+                    registry_content = registry_content.replace(active_section, '\n'.join(new_lines))
+                
+                # Remove from Ready Agents table
+                if "## Ready Agents" in registry_content:
+                    ready_section = registry_content.split("## Ready Agents")[1].split("## Archived Agents")[0]
+                    lines = ready_section.split('\n')
+                    new_lines = []
+                    for line in lines:
+                        if agent_id not in line or line.startswith('|---'):
+                            new_lines.append(line)
+                    registry_content = registry_content.replace(
+                        "## Ready Agents" + ready_section,
+                        "## Ready Agents\n" + '\n'.join(new_lines)
+                    )
+                
+                # Add to Archived Agents table
+                if "## Archived Agents" in registry_content:
+                    archived_section = registry_content.split("## Archived Agents")[1]
+                    table_marker = "| Agent ID | Specialization |"
+                    if table_marker in archived_section:
+                        new_row = f"| {agent_id} | {specialization} | {metadata.get('created_by', 'unknown')} | {datetime.now().strftime('%Y-%m-%d')} | `agents/archive/{archive_agent_dir.name}/` |\n"
+                        archived_section = archived_section.replace(
+                            table_marker + "\n|----------|",
+                            table_marker + "\n" + new_row + "|----------|"
+                        )
+                        registry_content = registry_content.replace(
+                            "## Archived Agents" + registry_content.split("## Archived Agents")[1],
+                            "## Archived Agents" + archived_section
+                        )
+                
+                # Update last updated
+                if "**Last Updated**:" in registry_content:
+                    registry_content = registry_content.replace(
+                        "**Last Updated**: ",
+                        f"**Last Updated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+                    )
+                
+                registry_path.write_text(registry_content)
+            
+            return {
+                "status": "success",
+                "agent_id": agent_id,
+                "archive_location": str(archive_agent_dir.relative_to(project_root)),
+                "message": f"Agent {agent_id} archived successfully",
+                "reason": reason or "No reason provided"
+            }
+            
+        except Exception as e:
+            return {
+                "status": "error",
+                "error_type": type(e).__name__,
+                "message": str(e)
+            }
+    
+    @server.tool()
+    async def reactivate_agent(
+        agent_id: str,
+        new_tasks: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Reactivate an archived agent.
+        
+        Args:
+            agent_id: Agent ID to reactivate
+            new_tasks: Optional new tasks to assign (optional)
+        
+        Returns:
+            Reactivation confirmation and details
+        """
+        try:
+            # Find agent in archive
+            archive_dir = project_root / "agents" / "archive"
+            active_dir = project_root / "agents" / "active"
+            active_dir.mkdir(parents=True, exist_ok=True)
+            
+            archived_dirs = [d for d in archive_dir.iterdir() if d.is_dir() and agent_id in d.name]
+            
+            if not archived_dirs:
+                # Check if already active
+                active_dirs = [d for d in active_dir.iterdir() if d.is_dir() and agent_id in d.name]
+                if active_dirs:
+                    return {
+                        "status": "error",
+                        "message": f"Agent {agent_id} is already active"
+                    }
+                return {
+                    "status": "error",
+                    "message": f"Agent {agent_id} not found in archive"
+                }
+            
+            # Use most recent archive if multiple
+            archived_dir = sorted(archived_dirs, key=lambda x: x.stat().st_mtime, reverse=True)[0]
+            
+            # Get specialization from directory name
+            specialization = archived_dir.name.replace(f"{agent_id}-", "").split("-")[0]  # Handle timestamp suffix
+            
+            # Move back to active
+            active_agent_dir = active_dir / f"{agent_id}-{specialization}"
+            if active_agent_dir.exists():
+                # If active directory exists, add timestamp
+                timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+                active_agent_dir = active_dir / f"{agent_id}-{specialization}-{timestamp}"
+            
+            archived_dir.rename(active_agent_dir)
+            
+            # Update agent definition
+            definitions_dir = project_root / "agents" / "registry" / "agent-definitions"
+            definition_files = list(definitions_dir.glob(f"{agent_id}-*.md"))
+            
+            if definition_files:
+                definition_path = definition_files[0]
+                definition_content = definition_path.read_text()
+                
+                # Update frontmatter
+                if definition_content.startswith("---"):
+                    parts = definition_content.split("---", 2)
+                    if len(parts) >= 3:
+                        metadata = yaml.safe_load(parts[1])
+                        metadata["status"] = "ready"  # Reactivated agents start as ready
+                        metadata["reactivated_date"] = datetime.now().strftime("%Y-%m-%d")
+                        if "archived_date" in metadata:
+                            metadata["archived_date"] = None  # Clear archived date
+                        
+                        # Rewrite definition
+                        new_content = f"---\n{yaml.dump(metadata, default_flow_style=False)}---\n{parts[2]}"
+                        definition_path.write_text(new_content)
+            
+            # Update registry
+            registry_path = project_root / "agents" / "registry" / "agent-registry.md"
+            if registry_path.exists():
+                registry_content = registry_path.read_text()
+                
+                # Remove from Archived Agents table
+                if "## Archived Agents" in registry_content:
+                    archived_section = registry_content.split("## Archived Agents")[1]
+                    lines = archived_section.split('\n')
+                    new_lines = []
+                    for line in lines:
+                        if agent_id not in line or line.startswith('|---'):
+                            new_lines.append(line)
+                    registry_content = registry_content.replace(
+                        "## Archived Agents" + archived_section,
+                        "## Archived Agents\n" + '\n'.join(new_lines)
+                    )
+                
+                # Add to Ready Agents table
+                if "## Ready Agents" in registry_content:
+                    ready_section = registry_content.split("## Ready Agents")[1].split("## Archived Agents")[0]
+                    table_marker = "| Agent ID | Specialization |"
+                    if table_marker in ready_section:
+                        created_by = metadata.get("created_by", "unknown")
+                        new_row = f"| {agent_id} | {specialization} | {created_by} | {datetime.now().strftime('%Y-%m-%d')} | `agents/registry/agent-definitions/{agent_id}-{specialization}.md` | `agents/active/{agent_id}-{specialization}/TASKS.md` |\n"
+                        ready_section = ready_section.replace(
+                            table_marker + "\n|----------|",
+                            table_marker + "\n" + new_row + "|----------|"
+                        )
+                        registry_content = registry_content.replace(
+                            "## Ready Agents" + registry_content.split("## Ready Agents")[1].split("## Archived Agents")[0],
+                            "## Ready Agents" + ready_section
+                        )
+                
+                # Update last updated
+                if "**Last Updated**:" in registry_content:
+                    registry_content = registry_content.replace(
+                        "**Last Updated**: ",
+                        f"**Last Updated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+                    )
+                
+                registry_path.write_text(registry_content)
+            
+            # Optionally assign new tasks
+            task_assigned = False
+            if new_tasks:
+                try:
+                    # Call assign_task_to_agent from this module
+                    task_result = await assign_task_to_agent(
+                        agent_id=agent_id,
+                        task_description=new_tasks,
+                        priority="medium"
+                    )
+                    task_assigned = task_result.get("status") == "success"
+                except Exception as e:
+                    # Task assignment failed, but reactivation succeeded
+                    pass
+            
+            return {
+                "status": "success",
+                "agent_id": agent_id,
+                "active_location": str(active_agent_dir.relative_to(project_root)),
+                "message": f"Agent {agent_id} reactivated successfully",
+                "task_assigned": task_assigned
+            }
+            
+        except Exception as e:
+            return {
+                "status": "error",
+                "error_type": type(e).__name__,
+                "message": str(e)
+            }
 
