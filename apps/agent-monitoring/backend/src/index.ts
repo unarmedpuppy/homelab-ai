@@ -29,9 +29,11 @@ app.use(express.json());
 
 // Database service
 // Default path: apps/agent-monitoring/data/agent_activity.db
-const dbPath = process.env.DATABASE_PATH || 
-  path.join(__dirname, '../../../agent-monitoring/data/agent_activity.db');
-const dbService = new DatabaseService(dbPath);
+// When running from dist/, __dirname is dist/, so we go up to backend, then to agent-monitoring
+const defaultDbPath = process.env.DATABASE_PATH || 
+  path.join(__dirname, '../../data/agent_activity.db');
+const dbService = new DatabaseService(defaultDbPath);
+console.log(`📊 Database path: ${defaultDbPath}`);
 
 // InfluxDB service (optional)
 let influxService: InfluxDBService | null = null;
