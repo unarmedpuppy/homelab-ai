@@ -1,14 +1,11 @@
 """
-Agent Memory Integration using Memori
+Agent Memory Integration - File-Based System
 
-Memori provides transparent memory management for AI agents:
-- Automatic context injection before LLM calls
-- Automatic conversation recording
-- Background pattern learning (Conscious Agent)
-- Multi-agent support
+Since agents run in Cursor/Claude Desktop, we use file-based memory
+that agents can read/write directly as markdown files.
 """
 
-from .memori_helper import get_memori_instance, setup_memori
+from .file_based_memory import get_memory, FileBasedMemory
 
-__all__ = ["get_memori_instance", "setup_memori"]
+__all__ = ["get_memory", "FileBasedMemory"]
 

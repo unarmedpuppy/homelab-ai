@@ -1,0 +1,11 @@
+# Memory Directory
+
+This directory stores file-based memories:
+- decisions/ - Architectural and design decisions
+- patterns/ - Common patterns and learnings
+- context/ - Current work context
+- sessions/ - Session summaries
+- index.json - Searchable index
+
+Agents can read/write files here to maintain memory across sessions.
+
