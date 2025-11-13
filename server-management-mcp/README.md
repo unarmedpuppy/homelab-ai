@@ -145,6 +145,10 @@ Add to Claude Desktop config (`~/Library/Application Support/Claude/claude_deskt
 - `list_skill_proposals` - List skill proposals (by category or status)
 - `query_skills` - Query existing skills (by category or search text)
 
+### Task Coordination ✅
+- `register_task` - Register a new task in the central task registry
+- `query_tasks` - Query tasks with filters (status, assignee, project, priority, search)
+
 ## Development
 
 ### Adding New Tools
@@ -203,5 +207,5 @@ server-management-mcp/
 - ⏳ Application-specific tools (planned)
 - ⏳ Backup/restore tools (planned)
 
-**Total Tools**: 52 tools implemented (37 server management + 9 memory management + 3 agent management + 3 skill management)
+**Total Tools**: 54 tools implemented (37 server management + 9 memory management + 3 agent management + 3 skill management + 2 task coordination)
 
