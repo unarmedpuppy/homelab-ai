@@ -35,6 +35,7 @@ except ImportError:
     )
 
 from mcp.server import Server
+from tools.logging_decorator import set_agent_id_context, clear_agent_id_context
 
 
 def register_activity_monitoring_tools(server: Server):
@@ -129,6 +130,9 @@ def register_activity_monitoring_tools(server: Server):
         try:
             session_id = _start_agent_session(agent_id)
             
+            # Set agent_id in context for automatic logging
+            set_agent_id_context(agent_id)
+            
             return {
                 "status": "success",
                 "session_id": session_id,
@@ -163,6 +167,9 @@ def register_activity_monitoring_tools(server: Server):
                 tasks_completed=tasks_completed,
                 tools_called=tools_called
             )
+            
+            # Clear agent_id from context
+            clear_agent_id_context()
             
             return {
                 "status": "success",

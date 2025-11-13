@@ -2,10 +2,12 @@
 Automatic logging decorator for MCP tools.
 
 This decorator automatically logs all MCP tool calls to the activity logger.
+Uses context variables to track the current agent_id from session start.
 """
 
 import sys
 import time
+from contextvars import ContextVar
 from functools import wraps
 from pathlib import Path
 from typing import Dict, Any, Optional, Callable
@@ -13,6 +15,10 @@ from typing import Dict, Any, Optional, Callable
 # Add project root to path for imports
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
+
+# Context variable to store current agent_id
+# This is set when start_agent_session() is called
+_current_agent_id: ContextVar[Optional[str]] = ContextVar('current_agent_id', default=None)
 
 # Import activity logger
 try:
@@ -31,26 +37,71 @@ except ImportError:
             return None
 
 
+def get_agent_id_from_context() -> Optional[str]:
+    """
+    Get agent_id from context variable (set by start_agent_session).
+    
+    Returns:
+        Current agent_id from context, or None if not set
+    """
+    return _current_agent_id.get()
+
+
+def set_agent_id_context(agent_id: str) -> None:
+    """
+    Set the current agent_id in context.
+    
+    This should be called by start_agent_session() to establish context.
+    
+    Args:
+        agent_id: The agent ID to set in context
+    """
+    _current_agent_id.set(agent_id)
+
+
+def clear_agent_id_context() -> None:
+    """
+    Clear the current agent_id from context.
+    
+    This should be called by end_agent_session() to clean up.
+    """
+    _current_agent_id.set(None)
+
+
 def get_agent_id_from_kwargs(kwargs: Dict[str, Any]) -> str:
     """
-    Extract agent_id from tool arguments.
+    Extract agent_id using multiple strategies (in priority order):
     
-    Checks for common parameter names: agent_id, from_agent, parent_agent_id
-    Falls back to default "agent-001" if not found.
+    1. Context variable (set by start_agent_session)
+    2. agent_id parameter in tool arguments
+    3. from_agent parameter (used in communication tools)
+    4. parent_agent_id parameter (used in agent management)
+    5. Default to "agent-001" if none found
+    
+    Args:
+        kwargs: Tool function keyword arguments
+        
+    Returns:
+        Agent ID string
     """
-    # Check for agent_id parameter
+    # Priority 1: Check context variable (set by start_agent_session)
+    context_agent_id = get_agent_id_from_context()
+    if context_agent_id:
+        return context_agent_id
+    
+    # Priority 2: Check for agent_id parameter
     if "agent_id" in kwargs and kwargs["agent_id"]:
         return kwargs["agent_id"]
     
-    # Check for from_agent (used in communication tools)
+    # Priority 3: Check for from_agent (used in communication tools)
     if "from_agent" in kwargs and kwargs["from_agent"]:
         return kwargs["from_agent"]
     
-    # Check for parent_agent_id (used in agent management)
+    # Priority 4: Check for parent_agent_id (used in agent management)
     if "parent_agent_id" in kwargs and kwargs["parent_agent_id"]:
         return kwargs["parent_agent_id"]
     
-    # Default agent ID
+    # Priority 5: Default agent ID
     return "agent-001"
 
 

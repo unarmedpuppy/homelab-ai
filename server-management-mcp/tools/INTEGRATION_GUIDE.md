@@ -28,11 +28,16 @@ async def my_tool(param1: str, param2: int) -> Dict[str, Any]:
 
 ### Agent ID Detection
 
-The decorator automatically extracts `agent_id` from tool parameters by checking:
-1. `agent_id` parameter
-2. `from_agent` parameter (used in communication tools)
-3. `parent_agent_id` parameter (used in agent management)
-4. Falls back to `"agent-001"` if none found
+The decorator automatically extracts `agent_id` using a priority system:
+
+**Priority Order:**
+1. **Context variable** (set by `start_agent_session()`) - **RECOMMENDED**
+2. `agent_id` parameter in tool arguments
+3. `from_agent` parameter (used in communication tools)
+4. `parent_agent_id` parameter (used in agent management)
+5. Falls back to `"agent-001"` if none found
+
+**Best Practice:** Agents should call `start_agent_session(agent_id)` at the beginning of their session. This sets the agent_id in context, and all subsequent tool calls will automatically use that agent_id without needing to pass it as a parameter.
 
 ### Parameter Logging
 
