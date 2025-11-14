@@ -244,10 +244,10 @@ services:
       - radarr
 
   # Books Automation (Bookshelf - Readarr fork)
-  # Note: Using linuxserver readarr image as Bookshelf is a Readarr fork
+  # Note: Using hotio readarr image as Bookshelf is a Readarr fork
   # The config should be compatible. Update image when Bookshelf-specific image is available.
   bookshelf:
-    image: lscr.io/linuxserver/readarr:latest
+    image: ghcr.io/hotio/readarr:latest
     container_name: media-download-bookshelf
     environment:
       - PUID=1000
