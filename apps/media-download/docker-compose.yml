@@ -244,8 +244,8 @@ services:
       - radarr
 
   # Books Automation (Bookshelf - Readarr fork)
-  # Note: If Bookshelf image doesn't exist, you may need to use a different image
-  # or build from source. Check https://github.com for the Bookshelf project.
+  # Note: Using linuxserver readarr image as Bookshelf is a Readarr fork
+  # The config should be compatible. Update image when Bookshelf-specific image is available.
   bookshelf:
     image: lscr.io/linuxserver/readarr:latest
     container_name: media-download-bookshelf
