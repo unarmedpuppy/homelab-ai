@@ -98,7 +98,7 @@ Examples:
 - MCP server is unavailable
 - One-off operation not worth adding to MCP
 
-Use SSH commands via `scripts/connect-server.sh` as documented in `agents/docs/SERVER_AGENT_PROMPT.md`.
+Use SSH commands via `scripts/connect-server.sh` as documented in `agents/prompts/server.md`.
 
 ## Tool Categories
 
@@ -690,7 +690,7 @@ If you need an operation that doesn't exist:
 **Tool Source Code**: `agents/apps/agent-mcp/tools/`
 **Architecture Plan**: `apps/docs/MCP_SERVER_PLAN.md`
 **Docker Setup**: `agents/apps/agent-mcp/DOCKER_SETUP.md`
-**Server Agent Prompt**: `agents/docs/SERVER_AGENT_PROMPT.md`
+**Server Agent Prompt**: `agents/prompts/server.md`
 
 ---
 

@@ -41,8 +41,8 @@ agents/
 │   ├── IMPLEMENTATION_PLAN_[FEATURE].md
 │   ├── GETTING_STARTED.md
 │   ├── CODING_STANDARDS.md
-│   ├── CODING_AGENT_PROMPT.md
-│   ├── REVIEW_AGENT_PROMPT.md
+│   ├── CODING_prompts/base.md
+│   ├── REVIEW_prompts/base.md
 │   └── TASKS.md
 └── scripts/
     └── pre-submit-check.sh
@@ -50,8 +50,8 @@ agents/
 
 ### Step 5: Start Using the Workflow
 
-1. **For Coding Agents**: Use `agents/docs/CODING_AGENT_PROMPT.md`
-2. **For Review Agents**: Use `agents/docs/REVIEW_AGENT_PROMPT.md`
+1. **For Coding Agents**: Use `agents/docs/CODING_prompts/base.md`
+2. **For Review Agents**: Use `agents/docs/REVIEW_prompts/base.md`
 3. **For Task Tracking**: Use the Task Coordination System (`agents/tasks/registry.md`) - See `agents/tasks/README.md`
 4. **For Setup**: Read `agents/docs/GETTING_STARTED.md`
 
@@ -164,8 +164,8 @@ After generating the workflow:
 
 1. Review all generated files
 2. Test the pre-submit script: `./agents/scripts/pre-submit-check.sh`
-3. Start with task T1.1 using CODING_AGENT_PROMPT.md
-4. Use REVIEW_AGENT_PROMPT.md for code reviews
+3. Start with task T1.1 using CODING_prompts/base.md
+4. Use REVIEW_prompts/base.md for code reviews
 5. Track progress using Task Coordination System (`update_task_status()`)
 
 ---

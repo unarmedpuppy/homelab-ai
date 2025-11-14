@@ -21,8 +21,8 @@
 - [x] Updated all references
 
 ### Prompt Consolidation
-- [x] Streamlined `SERVER_AGENT_PROMPT.md` (45% reduction)
-- [x] Removed duplication with `AGENT_PROMPT.md`
+- [x] Streamlined `SERVER_prompts/base.md` (45% reduction)
+- [x] Removed duplication with `prompts/base.md`
 - [x] Added clear references between prompts
 - [x] Preserved all server-specific content
 
@@ -68,7 +68,7 @@
 - [x] `AGENT_SYSTEM_REVIEW_AND_IMPROVEMENT_PLAN.md` - Updated with completion
 - [x] `AGENT_WORKFLOW.md` - Updated task coordination references
 - [x] `MCP_TOOL_DISCOVERY.md` - Updated tool counts (68 tools)
-- [x] `AGENT_PROMPT.md` - Updated tool counts and deprecated file references
+- [x] `prompts/base.md` - Updated tool counts and deprecated file references
 - [x] `agents/apps/agent-mcp/README.md` - Updated tool counts (68 tools)
 - [x] `SYSTEM_ARCHITECTURE.md` - Updated tool counts
 - [x] `DATA_MODEL.md` - Complete and accurate
@@ -115,7 +115,7 @@
 
 **Verified in**:
 - [x] `agents/apps/agent-mcp/README.md`
-- [x] `agents/docs/AGENT_PROMPT.md`
+- [x] `agents/prompts/base.md`
 - [x] `agents/docs/MCP_TOOL_DISCOVERY.md`
 - [x] `agents/docs/SYSTEM_ARCHITECTURE.md`
 - [x] `agents/README.md`
@@ -131,7 +131,7 @@
 
 **Updated in**:
 - [x] `AGENT_WORKFLOW.md`
-- [x] `AGENT_PROMPT.md`
+- [x] `prompts/base.md`
 - [x] `COMMUNICATION_GUIDELINES.md`
 - [x] `SYSTEM_ARCHITECTURE.md`
 
@@ -162,11 +162,11 @@
 ## Cross-References Verified
 
 ### Key Documents
-- [x] `QUICK_START.md` → `AGENT_PROMPT.md` ✅
-- [x] `AGENT_PROMPT.md` → `SERVER_AGENT_PROMPT.md` ✅
-- [x] `AGENT_PROMPT.md` → `SYSTEM_ARCHITECTURE.md` ✅
-- [x] `AGENT_PROMPT.md` → `COMMUNICATION_GUIDELINES.md` ✅
-- [x] `AGENT_PROMPT.md` → `DATA_MODEL.md` ✅
+- [x] `QUICK_START.md` → `prompts/base.md` ✅
+- [x] `prompts/base.md` → `SERVER_prompts/base.md` ✅
+- [x] `prompts/base.md` → `SYSTEM_ARCHITECTURE.md` ✅
+- [x] `prompts/base.md` → `COMMUNICATION_GUIDELINES.md` ✅
+- [x] `prompts/base.md` → `DATA_MODEL.md` ✅
 - [x] `SYSTEM_ARCHITECTURE.md` → `DATA_MODEL.md` ✅
 - [x] `SYSTEM_ARCHITECTURE.md` → `COMMUNICATION_GUIDELINES.md` ✅
 - [x] `COMMUNICATION_GUIDELINES.md` → Task/Memory/Monitoring docs ✅

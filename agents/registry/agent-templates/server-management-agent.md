@@ -8,27 +8,16 @@ Home server infrastructure management, Docker, networking, system administration
 
 ## Capabilities
 
-### Skills
-- `standard-deployment` - Complete deployment workflow
-- `troubleshoot-container-failure` - Container diagnostics
-- `system-health-check` - Comprehensive system verification
-- `troubleshoot-stuck-downloads` - Download queue issues
-- `deploy-new-service` - New service setup
+**Note**: Capabilities are now embedded in `prompts/server.md` under "Your Capabilities" section.
 
-### MCP Tools
-- All Docker management tools (8 tools)
-- All system monitoring tools (5 tools)
-- All troubleshooting tools (3 tools)
-- All networking tools (3 tools)
-- All Git operations tools (4 tools)
-- All system utilities (3 tools)
+**This template is for reference only** - the prompt contains the complete, authoritative list.
 
-### Domain Knowledge
-- Docker and Docker Compose
-- Linux system administration
-- Networking and port management
-- Service lifecycle management
-- Git workflows and deployment
+**Quick Reference:**
+- **Skills**: See `prompts/server.md` "Your Capabilities" → "Relevant Skills"
+- **MCP Tools**: See `prompts/server.md` "Your Capabilities" → "Relevant MCP Tools"
+- **Domain Knowledge**: See `prompts/server.md` "Your Capabilities" → "Domain Knowledge"
+
+**Why**: Prompts are the source of truth. This template is just metadata for the agent creation tool.
 
 ## Typical Tasks
 
@@ -39,12 +28,30 @@ Home server infrastructure management, Docker, networking, system administration
 - Network troubleshooting
 - Deployment automation
 
+## Prompt
+
+**Use**: `agents/prompts/server.md` (extends `agents/prompts/base.md`)
+
+The server prompt provides:
+- Server connection methods
+- Server-specific MCP tools
+- Server-specific workflows
+- Server-specific patterns
+
+**Read both prompts**:
+1. First read `agents/prompts/base.md` (universal workflows)
+2. Then read `agents/prompts/server.md` (server-specific context)
+
 ## Usage
 
 Copy this template when creating a server management specialized agent.
 
+When creating the agent definition, reference:
+- **Template**: `server-management-agent.md` (this file)
+- **Prompt**: `agents/prompts/server.md`
+
 ---
 
-**Template Version**: 1.0
-**Last Updated**: 2025-01-10
+**Template Version**: 1.1
+**Last Updated**: 2025-01-13
 

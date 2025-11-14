@@ -304,4 +304,4 @@ propose_skill(
 **See Also**:
 - `agents/skills/README.md` - Skills catalog
 - `agents/docs/SKILL_AUTO_ACTIVATION.md` - How to use skills
-- `agents/docs/AGENT_PROMPT.md` - Main agent prompt
+- `agents/prompts/base.md` - Main agent prompt

@@ -13,7 +13,7 @@
 
 2. **`agents/docs/`**
    - Agent documentation (workflows, prompts, guides)
-   - 18 files including AGENT_PROMPT.md, AGENT_WORKFLOW.md, etc.
+   - 18 files including prompts/base.md, AGENT_WORKFLOW.md, etc.
 
 3. **`agents/memory/`**
    - Memory system (SQLite, Python code)
@@ -45,7 +45,7 @@ agents/
 ├── README.md                    # Main entry point - START HERE
 ├── docs/                        # All agent documentation
 │   ├── README.md                # Documentation index
-│   ├── AGENT_PROMPT.md          # Main agent prompt
+│   ├── prompts/base.md          # Main agent prompt
 │   ├── AGENT_WORKFLOW.md        # Workflow guide
 │   ├── AGENT_SPAWNING_*.md      # Spawning docs
 │   ├── MCP_TOOL_DISCOVERY.md    # Tool discovery

@@ -4,7 +4,39 @@
 
 **Before doing ANYTHING, follow this discovery workflow in order:**
 
-### 0. Start Agent Monitoring Session 📊
+### 0. Start Agent Infrastructure 🏗️
+**CRITICAL**: Ensure agent infrastructure is running before starting work.
+
+**If MCP tools are available:**
+```python
+# Check if infrastructure is running
+infra_status = await check_agent_infrastructure()
+
+# If not running, start it
+if not infra_status.get("all_running"):
+    await start_agent_infrastructure()
+```
+
+**If MCP tools are NOT available** (fallback):
+```bash
+# Run startup script directly
+cd /Users/joshuajenquist/repos/personal/home-server
+./agents/scripts/start-agent-infrastructure.sh
+```
+
+**Why**: Agent monitoring, memory, and all agent systems need infrastructure running locally.
+
+**Services**:
+- Backend API: `http://localhost:3001`
+- Frontend Dashboard: `http://localhost:3012`
+- Grafana: `http://localhost:3011`
+
+**Available Infrastructure Tools**:
+- `start_agent_infrastructure()` - Start all infrastructure services
+- `check_agent_infrastructure()` - Check if services are running
+- `stop_agent_infrastructure()` - Stop all services
+
+### 0.5. Start Agent Monitoring Session 📊
 **CRITICAL**: Always start your session and update your status so you can be observed:
 
 ```python
@@ -497,16 +529,17 @@ Check:
 
 ## Discovery Priority (In Order)
 
-0. **Start Monitoring** → Start session and update status (CRITICAL - do this first!)
-0.5. **Check Messages** → Check for messages from other agents (CRITICAL - do this early!)
-1. **Check Active Dev Docs** → `list_active_dev_docs()` - Continue existing work if any
-2. **Memory** → Query previous decisions and patterns
-3. **Specialized Agents** → Check registry, create if needed
-4. **Skills** → Use `suggest_relevant_skills()` to find relevant skills (CRITICAL - skills won't be used unless checked!)
-5. **MCP Tools** → Review available operations (PREFERRED - observable!)
-6. **Create New** → Only if nothing exists
-7. **Scripts** → Fallback option (not observable)
-8. **SSH Commands** → Last resort (not observable)
+0. **Start Infrastructure** → `start_agent_infrastructure()` - Ensure monitoring is running (CRITICAL - do this first!)
+0.5. **Start Monitoring** → Start session and update status (CRITICAL - do this second!)
+1. **Check Messages** → Check for messages from other agents (CRITICAL - do this early!)
+2. **Check Active Dev Docs** → `list_active_dev_docs()` - Continue existing work if any
+3. **Memory** → Query previous decisions and patterns
+4. **Specialized Agents** → Check registry, create if needed
+5. **Skills** → Use `suggest_relevant_skills()` to find relevant skills (CRITICAL - skills won't be used unless checked!)
+6. **MCP Tools** → Review available operations (PREFERRED - observable!)
+7. **Create New** → Only if nothing exists
+8. **Scripts** → Fallback option (not observable)
+9. **SSH Commands** → Last resort (not observable)
 
 **⚠️ IMPORTANT**: Always use MCP tools when available - they are automatically logged and visible in the agent monitoring dashboard. Custom commands and scripts are NOT observable!
 
@@ -565,7 +598,14 @@ Check:
 - Analyze: `analyze_patterns_for_skills()` - Analyze patterns for skill candidates
 - Auto-create: `auto_propose_skill_from_pattern()` - Auto-create skill from pattern
 
-### Activity Monitoring Tools (USE THESE FIRST!)
+### Infrastructure Management Tools (USE THESE FIRST!)
+- Start: `start_agent_infrastructure()` - Start all infrastructure services (monitoring, etc.)
+- Check: `check_agent_infrastructure()` - Check if services are running
+- Stop: `stop_agent_infrastructure()` - Stop all services
+
+**Fallback** (if MCP unavailable): Run `agents/scripts/start-agent-infrastructure.sh`
+
+### Activity Monitoring Tools (USE THESE SECOND!)
 - Start: `start_agent_session(agent_id)` - Start monitoring session
 - Update: `update_agent_status(agent_id, status, current_task_id, progress, blockers)` - Update your status
 - Get: `get_agent_status(agent_id)` - Check your current status
@@ -1019,15 +1059,16 @@ read_agent_doc(agent_id="agent-001", doc_type="plan", doc_name="feature-x-implem
 
 ## Important Principles
 
-0. **Be Observable** - Always use activity monitoring tools so your work is visible
-1. **Check Messages** - Check for messages from other agents at start of session
-2. **Memory First** - Always query memory before making decisions
-3. **Use What Exists** - Skills and tools are your primary knowledge base
-4. **Don't Reinvent** - Use existing workflows and operations
-5. **Record Everything** - Document decisions and patterns in memory
-6. **Delegate When Needed** - Create specialized agents for domain expertise
-7. **Communicate Effectively** - Use communication protocol for coordination and help
-8. **Use MCP Tools** - Always prefer MCP tools over custom commands (they're observable!)
+0. **Start Infrastructure First** - Always ensure agent infrastructure is running before starting work
+1. **Be Observable** - Always use activity monitoring tools so your work is visible
+2. **Check Messages** - Check for messages from other agents at start of session
+3. **Memory First** - Always query memory before making decisions
+4. **Use What Exists** - Skills and tools are your primary knowledge base
+5. **Don't Reinvent** - Use existing workflows and operations
+6. **Record Everything** - Document decisions and patterns in memory
+7. **Delegate When Needed** - Create specialized agents for domain expertise
+8. **Communicate Effectively** - Use communication protocol for coordination and help
+9. **Use MCP Tools** - Always prefer MCP tools over custom commands (they're observable!)
 
 ## Decision Framework: When to Store, Create, or Add
 

@@ -153,8 +153,8 @@ After comprehensive review of all agent systems, we've identified **7 major area
 **Documentation Files (18+ files in `agents/docs/`):**
 
 **Core Prompts:**
-- `AGENT_PROMPT.md` - Main agent prompt (637 lines)
-- `SERVER_AGENT_PROMPT.md` - Server-specific prompt (1099 lines)
+- `prompts/base.md` - Main agent prompt (637 lines)
+- `SERVER_prompts/base.md` - Server-specific prompt (1099 lines)
 - `WORKFLOW_GENERATOR_PROMPT.md` - Meta-prompt for workflows
 
 **Workflows:**
@@ -179,8 +179,8 @@ After comprehensive review of all agent systems, we've identified **7 major area
 ### Issues Identified
 
 1. **Overlapping Content**:
-   - `AGENT_PROMPT.md` and `SERVER_AGENT_PROMPT.md` have significant overlap
-   - `AGENT_WORKFLOW.md` duplicates content from `AGENT_PROMPT.md`
+   - `prompts/base.md` and `SERVER_prompts/base.md` have significant overlap
+   - `AGENT_WORKFLOW.md` duplicates content from `prompts/base.md`
    - Multiple architecture docs for similar concepts
 
 2. **Outdated Documents**:
@@ -207,8 +207,8 @@ agents/docs/
 ├── README.md                    # Main entry point (already exists, enhance)
 ├── QUICK_START.md               # NEW: Quick start guide
 ├── prompts/
-│   ├── AGENT_PROMPT.md          # Main prompt (consolidate from multiple)
-│   ├── SERVER_AGENT_PROMPT.md   # Server-specific (reduce overlap)
+│   ├── prompts/base.md          # Main prompt (consolidate from multiple)
+│   ├── SERVER_prompts/base.md   # Server-specific (reduce overlap)
 │   └── WORKFLOW_GENERATOR.md    # Keep as-is
 ├── workflows/
 │   ├── AGENT_WORKFLOW.md        # Main workflow (reference prompt, don't duplicate)
@@ -230,12 +230,12 @@ agents/docs/
 
 **Phase 2: Consolidate Prompts**
 
-- **Create unified `AGENT_PROMPT.md`**:
+- **Create unified `prompts/base.md`**:
   - Core prompt content
-  - Reference `SERVER_AGENT_PROMPT.md` for server-specific details
+  - Reference `SERVER_prompts/base.md` for server-specific details
   - Remove duplication between files
 
-- **Streamline `SERVER_AGENT_PROMPT.md`**:
+- **Streamline `SERVER_prompts/base.md`**:
   - Focus on server-specific context
   - Reference main prompt for common workflows
   - Reduce overlap
@@ -327,14 +327,14 @@ Deprecated/Simplified:
 
 **Three Main Prompt Files:**
 
-1. `AGENT_PROMPT.md` (637 lines) - Main agent prompt
-2. `SERVER_AGENT_PROMPT.md` (1099 lines) - Server-specific prompt
+1. `prompts/base.md` (637 lines) - Main agent prompt
+2. `SERVER_prompts/base.md` (1099 lines) - Server-specific prompt
 3. `WORKFLOW_GENERATOR_PROMPT.md` - Meta-prompt for workflow generation
 
 ### Issues
 
 1. **Significant Overlap**:
-   - Both `AGENT_PROMPT.md` and `SERVER_AGENT_PROMPT.md` contain:
+   - Both `prompts/base.md` and `SERVER_prompts/base.md` contain:
      - Discovery workflow
      - MCP tools lists
      - Memory system usage
@@ -343,23 +343,23 @@ Deprecated/Simplified:
      - Monitoring instructions
 
 2. **Maintenance Burden**: Updates need to be made in multiple places
-3. **Size**: `SERVER_AGENT_PROMPT.md` is very large (1099 lines)
+3. **Size**: `SERVER_prompts/base.md` is very large (1099 lines)
 
 ### Proposed Solution
 
 **Consolidation Strategy:**
 
-1. **`AGENT_PROMPT.md`** = Core prompt (keep as main entry point)
+1. **`prompts/base.md`** = Core prompt (keep as main entry point)
    - Universal agent workflows
    - Common systems (memory, tasks, communication, monitoring)
    - Discovery priorities
-   - Reference `SERVER_AGENT_PROMPT.md` for server-specific details
+   - Reference `SERVER_prompts/base.md` for server-specific details
 
-2. **`SERVER_AGENT_PROMPT.md`** = Server-specific context (streamline)
+2. **`SERVER_prompts/base.md`** = Server-specific context (streamline)
    - Server connection methods
    - Server-specific MCP tools
    - Server-specific workflows
-   - Reference `AGENT_PROMPT.md` for common workflows
+   - Reference `prompts/base.md` for common workflows
    - **Target**: Reduce to ~400-500 lines (remove duplication)
 
 3. **`WORKFLOW_GENERATOR_PROMPT.md`** = Keep as-is (meta-prompt)
@@ -367,8 +367,8 @@ Deprecated/Simplified:
 **Implementation Steps:**
 
 1. Extract common content from both prompts
-2. Keep common content in `AGENT_PROMPT.md`
-3. Move server-specific content to `SERVER_AGENT_PROMPT.md`
+2. Keep common content in `prompts/base.md`
+3. Move server-specific content to `SERVER_prompts/base.md`
 4. Add clear references between files
 5. Update all agent definitions to reference both
 
@@ -434,7 +434,7 @@ Deprecated/Simplified:
 **Multiple Entry Points:**
 
 1. `agents/docs/README.md` - Documentation index
-2. `agents/docs/AGENT_PROMPT.md` - Main prompt (says "START HERE")
+2. `agents/prompts/base.md` - Main prompt (says "START HERE")
 3. `agents/README.md` - Root agents README
 4. `agents/ACTIVATION_GUIDE.md` - Activation guide
 
@@ -452,14 +452,14 @@ Deprecated/Simplified:
 agents/
 ├── README.md                    # MAIN ENTRY POINT
 │   ├── Quick Start
-│   ├── For New Agents → agents/docs/AGENT_PROMPT.md
+│   ├── For New Agents → agents/prompts/base.md
 │   ├── For Humans → agents/ACTIVATION_GUIDE.md
 │   └── System Overview → agents/docs/README.md
 │
 ├── docs/
 │   ├── README.md                # Documentation index
 │   ├── QUICK_START.md           # NEW: Quick start guide
-│   └── AGENT_PROMPT.md          # Main agent prompt
+│   └── prompts/base.md          # Main agent prompt
 │
 └── ACTIVATION_GUIDE.md           # Human activation guide
 ```
@@ -546,8 +546,8 @@ agents/
 
 **Day 4-5: Prompt Consolidation** ✅
 - ✅ Extracted common content from prompts
-- ✅ Consolidated into `AGENT_PROMPT.md`
-- ✅ Streamlined `SERVER_AGENT_PROMPT.md`
+- ✅ Consolidated into `prompts/base.md`
+- ✅ Streamlined `SERVER_prompts/base.md`
 - ✅ Updated references
 
 ### Phase 2: Documentation & Guidelines (Week 2) ✅ COMPLETE

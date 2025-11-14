@@ -23,13 +23,39 @@ This directory contains completed proposals, plans, and historical documentation
   - **See**: `agents/tasks/README.md` for current documentation
 
 - **`AGENT_CONSOLIDATION_PLAN.md`** - Agent system consolidation plan
-  - **Status**: ✅ Partially Implemented (Phase 1 complete)
-  - **See**: `agents/docs/AGENT_SYSTEM_REVIEW_AND_IMPROVEMENT_PLAN.md` for current status
+  - **Status**: ✅ Implemented
+  - **See**: `agents/docs/archive/AGENT_SYSTEM_REVIEW_AND_IMPROVEMENT_PLAN.md` for details
 
 - **`AGENT_MONITORING_STRUCTURE.md`** - Agent monitoring dashboard structure proposal
   - **Status**: ✅ Implemented
   - **Implementation**: `agents/apps/agent-monitoring/`
   - **See**: `agents/apps/agent-monitoring/README.md` for current documentation
+
+### Completed Summary Documents
+
+- **`SERVER_AGENT_PROMPT_OLD.md`** - Old version of server agent prompt
+  - **Status**: ✅ Superseded by `SERVER_prompts/base.md`
+  - **Reason**: Streamlined version created (45% reduction)
+
+- **`AGENT_SYSTEM_GAPS_AND_IMPROVEMENTS.md`** - Gaps and improvements document
+  - **Status**: ✅ All improvements completed
+  - **Reason**: Historical reference only
+
+- **`IMPROVEMENTS_SUMMARY.md`** - Summary of all improvements
+  - **Status**: ✅ All phases complete
+  - **Reason**: Historical reference only
+
+- **`PHASE4_COMPLETE_SUMMARY.md`** - Phase 4 completion summary
+  - **Status**: ✅ All phases complete
+  - **Reason**: Historical reference only
+
+- **`AGENT_SYSTEM_REVIEW_AND_IMPROVEMENT_PLAN.md`** - Review and improvement plan
+  - **Status**: ✅ All phases complete
+  - **Reason**: Historical reference only
+
+- **`FINAL_REVIEW_CHECKLIST.md`** - Final review checklist
+  - **Status**: ✅ Review complete
+  - **Reason**: Historical reference only
 
 ## Why Archived?
 

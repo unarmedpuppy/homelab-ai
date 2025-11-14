@@ -503,6 +503,6 @@ create_agent_doc(
 **Status**: Active  
 **See Also**:
 - `agents/docs/DEV_DOCS_SYSTEM.md` - Dev docs system (separate from agent docs)
-- `agents/docs/AGENT_PROMPT.md` - Main agent prompt
+- `agents/prompts/base.md` - Main agent prompt
 - `agents/lifecycle/policy.md` - Lifecycle management policy
 

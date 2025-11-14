@@ -311,8 +311,8 @@ Need to coordinate with other agents?
 agents/
 ├── docs/                    # Agent documentation
 │   ├── QUICK_START.md       # 5-minute quick start
-│   ├── AGENT_PROMPT.md      # Main agent prompt
-│   ├── SERVER_AGENT_PROMPT.md # Server-specific context
+│   ├── prompts/base.md      # Main agent prompt
+│   ├── SERVER_prompts/base.md # Server-specific context
 │   ├── AGENT_WORKFLOW.md    # Workflow guide
 │   ├── SYSTEM_ARCHITECTURE.md # This file
 │   ├── COMMUNICATION_GUIDELINES.md # Communication channel usage

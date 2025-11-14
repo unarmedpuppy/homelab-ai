@@ -7,9 +7,9 @@
 **New to agents?** Follow this path:
 
 1. **`docs/QUICK_START.md`** ⭐⭐⭐ - **5-MINUTE QUICK START** - Essential steps to get started
-2. **`docs/AGENT_PROMPT.md`** ⭐⭐ - **COMPLETE GUIDE** - Full agent prompt with discovery workflow
+2. **`prompts/base.md`** ⭐⭐ - **COMPLETE GUIDE** - Full agent prompt with discovery workflow
 3. **`docs/AGENT_WORKFLOW.md`** - Detailed workflow guide and best practices
-4. **`docs/SERVER_AGENT_PROMPT.md`** - Server-specific agent context (if working on server)
+4. **`prompts/server.md`** - Server-specific agent context (if working on server)
 5. **`docs/MCP_TOOL_DISCOVERY.md`** - How to discover and use MCP tools
 
 **For humans activating agents**: See `ACTIVATION_GUIDE.md`
@@ -19,10 +19,11 @@
 ```
 agents/
 ├── README.md              # This file - main entry point
+├── prompts/               # Agent prompts (identity, role, workflow)
+│   ├── base.md           # Core agent prompt ⭐ START HERE
+│   └── server.md         # Server management extension
 ├── docs/                  # Agent documentation
-│   ├── AGENT_PROMPT.md    # Main agent prompt ⭐ START HERE
 │   ├── AGENT_WORKFLOW.md  # Workflow guide
-│   ├── SERVER_AGENT_PROMPT.md
 │   ├── MCP_TOOL_DISCOVERY.md
 │   └── templates/         # Workflow templates
 ├── memory/                # Memory system (SQLite-based)
@@ -44,14 +45,18 @@ agents/
 
 ## Core Features
 
-### 1. Agent Documentation (`docs/`)
+### 1. Agent Prompts (`prompts/`)
+
+Agent prompts define identity, role, and workflow:
+- **`prompts/base.md`** - Core agent prompt with discovery workflow
+- **`prompts/server.md`** - Server management extension
+
+### 2. Agent Documentation (`docs/`)
 
 Complete documentation for agents:
-- **AGENT_PROMPT.md** - Main prompt with discovery workflow
-- **AGENT_WORKFLOW.md** - Complete workflow guide
-- **SERVER_AGENT_PROMPT.md** - Server management context
-- **MCP_TOOL_DISCOVERY.md** - Tool discovery guide
-- **AGENT_SPAWNING_*.md** - Agent spawning workflows
+- **`AGENT_WORKFLOW.md`** - Detailed workflow guide
+- **`MCP_TOOL_DISCOVERY.md`** - Tool discovery guide
+- **`AGENT_SPAWNING_*.md`** - Agent spawning workflows
 
 ### 2. Memory System (`memory/`)
 
@@ -104,10 +109,11 @@ These are at the repository root (shared infrastructure):
 
 ### For New Agents (Recommended Path)
 
-1. **Start with `docs/QUICK_START.md`** ⭐ - 5-minute quick start
-2. **Read `docs/AGENT_PROMPT.md`** - Complete guide with all details
-3. **Review `docs/AGENT_WORKFLOW.md`** - Detailed workflows
-4. **Explore systems**:
+1. **Start Infrastructure** - Run `agents/scripts/start-agent-infrastructure.sh` or use `start_agent_infrastructure()` MCP tool
+2. **Start with `docs/QUICK_START.md`** ⭐ - 5-minute quick start
+3. **Read `prompts/base.md`** - Complete guide with all details
+4. **Review `docs/AGENT_WORKFLOW.md`** - Detailed workflows
+5. **Explore systems**:
    - `memory/README.md` - Memory system
    - `tasks/README.md` - Task coordination
    - `communication/README.md` - Agent messaging
@@ -136,9 +142,9 @@ These are at the repository root (shared infrastructure):
 
 ### Core Documentation
 - `docs/QUICK_START.md` ⭐⭐⭐ - **START HERE** - 5-minute quick start
-- `docs/AGENT_PROMPT.md` ⭐⭐ - Main agent prompt (complete guide)
+- `prompts/base.md` ⭐⭐ - Main agent prompt (complete guide)
 - `docs/AGENT_WORKFLOW.md` - Workflow guide
-- `docs/SERVER_AGENT_PROMPT.md` - Server context (if working on server)
+- `prompts/server.md` - Server context (if working on server)
 - `docs/MCP_TOOL_DISCOVERY.md` - Tool discovery
 
 ### Memory System
@@ -218,7 +224,7 @@ query_agent_registry(specialization="database")
 ### I'm a New Agent - Where Do I Start?
 
 1. **Read `docs/QUICK_START.md`** (5 minutes) - Essential steps
-2. **Read `docs/AGENT_PROMPT.md`** (15 minutes) - Complete guide
+2. **Read `prompts/base.md`** (15 minutes) - Complete guide
 3. **Start working** - Follow the discovery workflow
 
 ### I Need to Find Something
@@ -232,8 +238,8 @@ query_agent_registry(specialization="database")
 
 ### I'm Working on Server Management
 
-- **Read `docs/SERVER_AGENT_PROMPT.md`** - Server-specific context
-- **Reference `docs/AGENT_PROMPT.md`** - For common workflows
+- **Read `prompts/server.md`** - Server-specific context
+- **Reference `prompts/base.md`** - For common workflows
 
 ### I Want to Create a New Agent
 

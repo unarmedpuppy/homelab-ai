@@ -33,7 +33,7 @@
 
 **Current State**: Agent prompt mentions `assign_task_to_agent()` but not the full task coordination system
 
-**Needed**: Add task coordination section to `agents/docs/AGENT_PROMPT.md`
+**Needed**: Add task coordination section to `agents/prompts/base.md`
 
 **Should Include**:
 - When to use central registry vs individual TASKS.md

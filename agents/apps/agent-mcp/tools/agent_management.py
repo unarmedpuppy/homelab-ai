@@ -133,18 +133,28 @@ You are a specialized agent created to handle tasks requiring expertise in {spec
 
 Read your TASKS.md file to see all assigned tasks.
 
+## Your Prompt
+
+**Read your agent prompt to understand how to work:**
+- **Server management agents**: Read `agents/prompts/server.md` (extends base.md)
+- **Other agents**: Read `agents/prompts/base.md`
+- **Domain-specific**: Check if `agents/prompts/[domain].md` exists
+
+The prompt defines your workflow, principles, and how to use systems (memory, skills, tools).
+
 ## How to Work
 
-1. **Read Your Tasks**: Check `agents/active/{agent_id}-{specialization}/TASKS.md`
-2. **Check Memory**: Query memory for related decisions and patterns
+1. **Read Your Prompt**: Read your agent prompt (see above)
+2. **Read Your Tasks**: Check `agents/active/{agent_id}-{specialization}/TASKS.md`
+3. **Check Memory**: Query memory for related decisions and patterns
    - Use `memory_query_decisions()` for related decisions
    - Use `memory_query_patterns()` for common patterns
    - Use `memory_search()` for full-text search
-3. **Use Your Specialization**: Leverage your specialized knowledge
-4. **Update Status**: Regularly update `STATUS.md` with progress
-5. **Communicate**: Use `COMMUNICATION.md` to communicate with parent agent
-6. **Record Decisions**: Use `memory_record_decision()` for important decisions
-7. **Complete Tasks**: Mark tasks complete in TASKS.md
+4. **Use Your Specialization**: Leverage your specialized knowledge
+5. **Update Status**: Use monitoring tools to update status
+6. **Communicate**: Use communication MCP tools to communicate with parent agent
+7. **Record Decisions**: Use `memory_record_decision()` for important decisions
+8. **Complete Tasks**: Mark tasks complete using task coordination tools
 
 ## Communication
 
@@ -178,10 +188,11 @@ agents/active/{agent_id}-{specialization}/
 
 Before starting work:
 
-1. **Check Memory**: Query previous decisions and patterns using memory MCP tools
-2. **Check Skills**: Review `agents/skills/README.md` for workflows
-3. **Check MCP Tools**: Review `agents/apps/agent-mcp/README.md` for available tools
-4. **Read Your Tasks**: Check TASKS.md
+1. **Read Your Prompt**: Read your agent prompt (see "Your Prompt" section above)
+2. **Check Memory**: Query previous decisions and patterns using memory MCP tools
+3. **Check Skills**: Review `agents/skills/README.md` for workflows
+4. **Check MCP Tools**: Review `agents/apps/agent-mcp/README.md` for available tools
+5. **Read Your Tasks**: Check TASKS.md or use task coordination tools
 
 ## Memory Integration
 

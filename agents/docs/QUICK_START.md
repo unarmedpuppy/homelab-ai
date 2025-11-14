@@ -65,7 +65,7 @@ Review `agents/apps/agent-mcp/README.md` for available tools (68 tools total).
 
 ### Must-Read Documents
 
-1. **`AGENT_PROMPT.md`** ⭐ - Complete agent prompt (read this for full details)
+1. **`prompts/base.md`** ⭐ - Complete agent prompt (read this for full details)
 2. **`AGENT_WORKFLOW.md`** - Detailed workflow guide
 3. **`MCP_TOOL_DISCOVERY.md`** - How to find and use tools
 
@@ -146,7 +146,7 @@ docker_compose_restart(app_path="apps/my-app", service="my-service")
 
 After this quick start:
 
-1. Read **`AGENT_PROMPT.md`** for complete details
+1. Read **`prompts/base.md`** for complete details
 2. Review **`AGENT_WORKFLOW.md`** for detailed workflows
 3. Explore **`MCP_TOOL_DISCOVERY.md`** for tool discovery
 

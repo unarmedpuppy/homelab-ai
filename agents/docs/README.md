@@ -6,9 +6,9 @@ This directory contains all documentation related to AI agent workflows, prompts
 
 **New to agent workflows?** Start here:
 
-1. **`AGENT_PROMPT.md`** ⭐ - **START HERE** - Complete agent prompt with discovery workflow
+1. **`prompts/base.md`** ⭐ - **START HERE** - Complete agent prompt with discovery workflow
 2. **`AGENT_WORKFLOW.md`** - Detailed workflow guide and best practices
-3. **`SERVER_AGENT_PROMPT.md`** - Server-specific agent context and tools
+3. **`prompts/server.md`** - Server-specific agent context and tools
 4. **`MCP_TOOL_DISCOVERY.md`** - How to discover and use MCP tools
 
 ## Documentation Files
@@ -20,7 +20,7 @@ This directory contains all documentation related to AI agent workflows, prompts
   - Common operations
   - Quick reference
 
-- **`AGENT_PROMPT.md`** ⭐⭐ - Main agent prompt with complete discovery workflow
+- **`prompts/base.md`** ⭐⭐ - Main agent prompt with complete discovery workflow
   - Memory system usage
   - Task coordination system
   - Skills and MCP tools
@@ -33,12 +33,12 @@ This directory contains all documentation related to AI agent workflows, prompts
   - Review workflow
   - Best practices
 
-- **`SERVER_AGENT_PROMPT.md`** - Server management agent context
+- **`prompts/server.md`** - Server management agent context
   - Server connection methods
   - Available MCP tools
   - Docker management
   - System monitoring
-  - **Note**: Read `AGENT_PROMPT.md` first for common workflows
+  - **Note**: Read `prompts/base.md` first for common workflows
 
 ### Architecture & Guidelines
 
@@ -124,8 +124,8 @@ This directory contains all documentation related to AI agent workflows, prompts
 ## Navigation
 
 ### For Agents Starting Work
-1. Read `AGENT_PROMPT.md` first
-2. Follow discovery workflow in `AGENT_PROMPT.md`
+1. Read `prompts/base.md` first
+2. Follow discovery workflow in `prompts/base.md`
 3. Reference `AGENT_WORKFLOW.md` for detailed workflows
 4. Use `MCP_TOOL_DISCOVERY.md` to find tools
 

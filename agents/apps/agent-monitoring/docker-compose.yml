@@ -39,6 +39,7 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin123
       - GF_INSTALL_PLUGINS=
       - GF_SERVER_ROOT_URL=http://localhost:3011
+      - GF_SERVER_DOMAIN=localhost
       - GF_SERVER_SERVE_FROM_SUB_PATH=false
     volumes:
       - grafana-data:/var/lib/grafana
@@ -104,8 +105,8 @@ services:
     ports:
       - "3012:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://192.168.86.47:3001
-      - NEXT_PUBLIC_GRAFANA_URL=http://192.168.86.47:3011
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
+      - NEXT_PUBLIC_GRAFANA_URL=http://localhost:3011
     networks:
       - agent-monitoring
       - my-network

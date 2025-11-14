@@ -111,7 +111,7 @@ mkdir -p agents/active/agent-XXX-[specialization]
 touch agents/active/agent-XXX-[specialization]/AGENT_CONFIG.md
 
 # Create agent prompt
-touch agents/active/agent-XXX-[specialization]/AGENT_PROMPT.md
+touch agents/active/agent-XXX-[specialization]/prompts/base.md
 ```
 
 ### Step 5: Register Agent
@@ -260,11 +260,11 @@ agents/
 ├── active/
 │   ├── agent-001-server-mgmt/
 │   │   ├── AGENT_CONFIG.md
-│   │   ├── AGENT_PROMPT.md
+│   │   ├── prompts/base.md
 │   │   └── status/
 │   └── agent-002-media-download/
 │       ├── AGENT_CONFIG.md
-│       ├── AGENT_PROMPT.md
+│       ├── prompts/base.md
 │       └── status/
 └── archive/
     └── agent-001-completed/

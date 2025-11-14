@@ -170,7 +170,7 @@ python3 agents/memory/test_memori.py
 
 After setup:
 
-1. **Update Agent Prompts**: Add memory section (see `SERVER_AGENT_PROMPT.md`)
+1. **Update Agent Prompts**: Add memory section (see `SERVER_prompts/base.md`)
 2. **Test with Real Workflow**: Use with actual agent tasks
 3. **Monitor Memory**: Check database for stored memories
 4. **Review Patterns**: Conscious Agent learns patterns automatically

@@ -464,7 +464,7 @@ See `protocol.md` for detailed examples of each message type.
 ## Related Documentation
 
 - **Protocol**: `agents/communication/protocol.md` - Complete protocol specification
-- **Agent Prompt**: `agents/docs/AGENT_PROMPT.md` - Agent prompt with communication section
+- **Agent Prompt**: `agents/prompts/base.md` - Agent prompt with communication section
 - **MCP Tools**: `agents/apps/agent-mcp/README.md` - MCP tools reference
 
 ---

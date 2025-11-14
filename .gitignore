@@ -14,3 +14,10 @@ apps/media-download/calibre/config/.cache/
 apps/media-download/calibre/config/.dbus/
 apps/media-download/overseerr/config/db/*.sqlite3*
 apps/media-download/overseerr/config/logs/
+# Agent state files
+agents/memory/memory.db
+agents/memory/memory/export/
+agents/memory/memory/index.json
+agents/apps/agent-monitoring/data/*.db
+agents/**/__pycache__/
+agents/**/*.pyc

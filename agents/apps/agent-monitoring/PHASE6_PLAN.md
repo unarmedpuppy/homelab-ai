@@ -128,7 +128,7 @@ Start with **Option C** (add optional agent_id parameter) as it's simplest and w
 
 1. **Apply to high-priority tools first** (git, monitoring, memory, task_coordination)
 2. **Test with one agent session** to verify end-to-end
-3. **Document agent_id usage** in AGENT_PROMPT.md
+3. **Document agent_id usage** in prompts/base.md
 4. **Create helper script** to batch-apply decorator (optional)
 
 ## Estimated Effort

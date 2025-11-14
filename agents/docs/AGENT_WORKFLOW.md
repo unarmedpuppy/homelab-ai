@@ -1131,7 +1131,7 @@ cat agents/memory/memory/export/decisions/*.md
 
 ### Primary Discovery Resources (Check First)
 
-1. **Agent Prompt**: `agents/docs/AGENT_PROMPT.md` ⭐ **START HERE**
+1. **Agent Prompt**: `agents/prompts/base.md` ⭐ **START HERE**
    - Complete, efficient prompt with everything you need
    - Discovery workflow, memory, skills, MCP tools, agent spawning
    - Quick reference and common operations
@@ -1176,7 +1176,7 @@ cat agents/memory/memory/export/decisions/*.md
 ### Other Resources
 
 - **Memory System**: See `agents/memory/README.md` for current SQLite-based memory system
-- **Server Setup**: See `SERVER_AGENT_PROMPT.md` for server-specific context
+- **Server Setup**: See `SERVER_prompts/base.md` for server-specific context
 - **Skills Proposal**: See `apps/docs/SKILLS_PROPOSAL.md` for skills architecture
 
 ## Conclusion

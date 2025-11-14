@@ -28,8 +28,8 @@ The agent system is a comprehensive, self-improving ecosystem for managing home 
 graph TB
     subgraph "Entry Points"
         A[New Agent Session] --> B[QUICK_START.md]
-        B --> C[AGENT_PROMPT.md]
-        C --> D[SERVER_AGENT_PROMPT.md]
+        B --> C[prompts/base.md]
+        C --> D[SERVER_prompts/base.md]
     end
     
     subgraph "Core Systems"
@@ -78,9 +78,9 @@ graph TB
 ```mermaid
 flowchart TD
     Start([New Agent Session]) --> Step1[Read QUICK_START.md<br/>5-minute guide]
-    Step1 --> Step2[Read AGENT_PROMPT.md<br/>Complete guide]
+    Step1 --> Step2[Read prompts/base.md<br/>Complete guide]
     Step2 --> Step3{Server Management?}
-    Step3 -->|Yes| Step4[Read SERVER_AGENT_PROMPT.md<br/>Server-specific context]
+    Step3 -->|Yes| Step4[Read SERVER_prompts/base.md<br/>Server-specific context]
     Step3 -->|No| Step5[Start Monitoring Session]
     Step4 --> Step5
     
@@ -102,11 +102,11 @@ flowchart TD
 ```mermaid
 graph TD
     A[agents/README.md<br/>Main Entry Point] --> B[QUICK_START.md<br/>5-minute guide]
-    A --> C[AGENT_PROMPT.md<br/>Complete guide]
+    A --> C[prompts/base.md<br/>Complete guide]
     A --> D[docs/README.md<br/>Documentation index]
     
     B --> C
-    C --> E[SERVER_AGENT_PROMPT.md<br/>Server-specific]
+    C --> E[SERVER_prompts/base.md<br/>Server-specific]
     C --> F[SYSTEM_ARCHITECTURE.md<br/>System overview]
     C --> G[DATA_MODEL.md<br/>Data structure]
     C --> H[COMMUNICATION_GUIDELINES.md<br/>Channel usage]
@@ -175,7 +175,7 @@ graph LR
 
 | Component | Location | Purpose | Key Files |
 |-----------|----------|---------|-----------|
-| **Agent Prompts** | `agents/docs/` | Agent instructions and context | `AGENT_PROMPT.md`, `SERVER_AGENT_PROMPT.md` |
+| **Agent Prompts** | `agents/docs/` | Agent instructions and context | `prompts/base.md`, `SERVER_prompts/base.md` |
 | **Task Coordination** | `agents/tasks/` | Central task registry | `registry.md`, MCP tools |
 | **Agent Communication** | `agents/communication/` | Inter-agent messaging | `messages/`, `protocol.md` |
 | **Memory System** | `agents/memory/` | Persistent knowledge | `memory.db`, MCP tools |
@@ -781,8 +781,8 @@ flowchart TB
     
     subgraph Onboarding
         O1[Read QUICK_START.md]
-        O2[Read AGENT_PROMPT.md]
-        O3[Read SERVER_AGENT_PROMPT.md if needed]
+        O2[Read prompts/base.md]
+        O3[Read SERVER_prompts/base.md if needed]
     end
     
     Onboard --> Monitor[Start Monitoring]
@@ -909,8 +909,8 @@ graph TB
 |------|---------|-------------|
 | `agents/README.md` | Main entry point | First file to read |
 | `agents/docs/QUICK_START.md` | 5-minute quick start | New agent onboarding |
-| `agents/docs/AGENT_PROMPT.md` | Complete agent guide | Full agent context |
-| `agents/docs/SERVER_AGENT_PROMPT.md` | Server-specific guide | Server management agents |
+| `agents/prompts/base.md` | Complete agent guide | Full agent context |
+| `agents/prompts/server.md` | Server-specific guide | Server management agents |
 
 ### System Documentation
 
@@ -999,9 +999,9 @@ end_agent_session(agent_id="your-agent-id", session_id="...", tasks_completed=1)
    ↓
 2. agents/docs/QUICK_START.md (5 minutes)
    ↓
-3. agents/docs/AGENT_PROMPT.md (Complete guide)
+3. agents/prompts/base.md (Complete guide)
    ↓
-4. agents/docs/SERVER_AGENT_PROMPT.md (If server management)
+4. agents/prompts/server.md (If server management)
    ↓
 5. agents/docs/SYSTEM_ARCHITECTURE.md (System overview)
    ↓

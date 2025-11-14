@@ -498,7 +498,7 @@ if not status["is_running"]:
 **Last Updated**: 2025-01-13  
 **Status**: Active  
 **See Also**:
-- `agents/docs/AGENT_PROMPT.md` - Main agent prompt
+- `agents/prompts/base.md` - Main agent prompt
 - `agents/docs/AGENT_WORKFLOW.md` - Complete workflow guide
 - `agents/docs/QUICK_START.md` - Quick start guide
 

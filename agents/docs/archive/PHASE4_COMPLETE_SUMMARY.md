@@ -24,8 +24,8 @@ All improvements have been implemented, reviewed, and verified. All documentatio
 
 **Core Documentation**:
 - ✅ `QUICK_START.md` - 5-minute quick start
-- ✅ `AGENT_PROMPT.md` - Complete guide (updated tool counts, deprecated files)
-- ✅ `SERVER_AGENT_PROMPT.md` - Server-specific (streamlined, 45% reduction)
+- ✅ `prompts/base.md` - Complete guide (updated tool counts, deprecated files)
+- ✅ `SERVER_prompts/base.md` - Server-specific (streamlined, 45% reduction)
 - ✅ `AGENT_WORKFLOW.md` - Workflow guide (updated task coordination)
 - ✅ `MCP_TOOL_DISCOVERY.md` - Tool discovery (updated tool counts)
 
@@ -109,7 +109,7 @@ All improvements have been implemented, reviewed, and verified. All documentatio
 
 ### Improvements
 - **Status Tracking**: Single source of truth (monitoring DB)
-- **Prompt Size**: 45% reduction in `SERVER_AGENT_PROMPT.md`
+- **Prompt Size**: 45% reduction in `SERVER_prompts/base.md`
 - **Documentation**: Clear hierarchy and navigation
 - **Data Model**: Fully documented
 - **Communication**: Clear guidelines
@@ -137,7 +137,7 @@ All success criteria from the improvement plan have been met:
 
 ### For Agents
 1. **Start with `QUICK_START.md`** - 5-minute quick start
-2. **Read `AGENT_PROMPT.md`** - Complete guide
+2. **Read `prompts/base.md`** - Complete guide
 3. **Reference architecture docs** - System overview
 4. **Use communication guidelines** - Channel usage
 
@@ -166,8 +166,8 @@ All success criteria from the improvement plan have been met:
 ### Modified (15+ files)
 - `agents/README.md`
 - `agents/docs/README.md`
-- `agents/docs/AGENT_PROMPT.md`
-- `agents/docs/SERVER_AGENT_PROMPT.md`
+- `agents/prompts/base.md`
+- `agents/prompts/server.md`
 - `agents/docs/AGENT_WORKFLOW.md`
 - `agents/docs/MCP_TOOL_DISCOVERY.md`
 - `agents/docs/AGENT_SYSTEM_GAPS_AND_IMPROVEMENTS.md`

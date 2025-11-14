@@ -12,7 +12,8 @@ from typing import Optional, Dict, Any
 import sys
 
 # Default API URL - can be overridden with environment variable
-DEFAULT_API_URL = "http://192.168.86.47:3001"
+# Default to localhost for local-first architecture
+DEFAULT_API_URL = "http://localhost:3001"
 API_URL = os.getenv('AGENT_MONITORING_API_URL', DEFAULT_API_URL)
 
 # Request timeout in seconds

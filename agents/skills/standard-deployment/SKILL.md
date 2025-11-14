@@ -258,7 +258,7 @@ for service in ["sonarr", "radarr", "nzbget"]:
 
 ## Notes
 
-- This skill replaces the 14-step checklist from `SERVER_AGENT_PROMPT.md`
+- This skill replaces the 14-step checklist from `SERVER_prompts/base.md`
 - All steps use MCP tools for consistency and error handling
 - Skills can be used in Claude.ai, Claude Code, or via API
 - Skills are portable and can be shared between agents

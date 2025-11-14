@@ -5,17 +5,21 @@
 **This document provides SERVER-SPECIFIC context only.**
 
 **Before reading this**, you should read:
-1. **`AGENT_PROMPT.md`** ⭐ - Complete agent prompt with discovery workflow, memory, communication, monitoring, and all common workflows
-2. **`QUICK_START.md`** - 5-minute quick start guide
+1. **`prompts/base.md`** ⭐ - Complete agent prompt with discovery workflow, memory, communication, monitoring, and all common workflows
+2. **`prompts/README.md`** - Prompt system overview
+3. **`docs/QUICK_START.md`** - 5-minute quick start guide
 
-**This document focuses ONLY on**:
+**This document provides**:
+- **Your Capabilities** (pre-curated skills, tools, knowledge) ⭐ Discovery shortcuts
 - Server connection methods
 - Server project structure
 - Server-specific deployment workflows
 - Server-specific MCP tools (Docker, Media Download, System Monitoring)
 - Server-specific patterns and learnings
 
-**For common workflows** (monitoring, memory, communication, task coordination, agent spawning), see `AGENT_PROMPT.md`.
+**For common workflows** (monitoring, memory, communication, task coordination, agent spawning), see `prompts/base.md`.
+
+**Note**: The "Your Capabilities" section below provides discovery shortcuts - pre-curated lists of relevant skills and tools so you don't have to discover them from scratch. This replaces the need to reference templates.
 
 ---
 
@@ -88,17 +92,17 @@ This document provides essential context for AI agents working on the home serve
 
 ---
 
-## Common Workflows (See AGENT_PROMPT.md)
+## Common Workflows (See prompts/base.md)
 
-**For these common workflows, see `AGENT_PROMPT.md`**:
+**For these common workflows, see `prompts/base.md`**:
 
-- ✅ **Agent Monitoring** - Start sessions, update status (see `AGENT_PROMPT.md` Section 0)
-- ✅ **Agent Communication** - Send/receive messages (see `AGENT_PROMPT.md` Section 1.5)
-- ✅ **Memory System** - Query and record decisions/patterns (see `AGENT_PROMPT.md` Section 1)
-- ✅ **Task Coordination** - Register, claim, update tasks (see `AGENT_PROMPT.md` Section 2)
-- ✅ **Agent Spawning** - Create specialized agents (see `AGENT_PROMPT.md` Section 2)
-- ✅ **Discovery Workflow** - Complete discovery priority (see `AGENT_PROMPT.md` Section "Discovery Priority")
-- ✅ **MCP Tool Discovery** - How to find and use tools (see `AGENT_PROMPT.md` Section "MCP Tools")
+- ✅ **Agent Monitoring** - Start sessions, update status (see `prompts/base.md` Section 0)
+- ✅ **Agent Communication** - Send/receive messages (see `prompts/base.md` Section 1.5)
+- ✅ **Memory System** - Query and record decisions/patterns (see `prompts/base.md` Section 1)
+- ✅ **Task Coordination** - Register, claim, update tasks (see `prompts/base.md` Section 2)
+- ✅ **Agent Spawning** - Create specialized agents (see `prompts/base.md` Section 2)
+- ✅ **Discovery Workflow** - Complete discovery priority (see `prompts/base.md` Section "Discovery Priority")
+- ✅ **MCP Tool Discovery** - How to find and use tools (see `prompts/base.md` Section "MCP Tools")
 
 **This document focuses on SERVER-SPECIFIC content only.**
 
@@ -108,9 +112,27 @@ This document provides essential context for AI agents working on the home serve
 
 ### Server-Specific MCP Tools
 
-**68 Tools Total** - See `AGENT_PROMPT.md` for complete list and common tools.
+**68 Tools Total** - See `prompts/base.md` for complete list and common tools.
 
-**Server-Specific Tool Categories**:
+## Your Capabilities (Discovery Shortcuts)
+
+**These are pre-curated for server management agents. Use these instead of discovering from scratch:**
+
+### Relevant Skills ⭐
+**Before starting work, check these skills:**
+- `standard-deployment` - Complete deployment workflow (replaces 14-step checklist)
+- `troubleshoot-container-failure` - Container diagnostics and fixes
+- `system-health-check` - Comprehensive system verification
+- `troubleshoot-stuck-downloads` - Download queue diagnostics and fixes
+- `deploy-new-service` - New service setup workflow
+- `add-subdomain` - Subdomain configuration workflow
+- `cleanup-disk-space` - Disk cleanup workflow
+- `add-root-folder` - Media folder configuration
+
+**See**: `agents/skills/README.md` for complete catalog and usage.
+
+### Relevant MCP Tools ⭐
+**Server-Specific Tool Categories:**
 
 1. **Docker Management** (8 tools) - Container operations
    - `docker_list_containers` - List all containers
@@ -153,9 +175,23 @@ This document provides essential context for AI agents working on the home serve
    - `git_deploy` - Complete deployment workflow
    - `deploy_and_restart` - Full workflow (deploy + restart)
 
+7. **System Utilities** (3 tools) - System operations
+   - `execute_remote_command` - Execute commands on server
+   - `read_remote_file` - Read files from server
+   - `write_remote_file` - Write files to server
+
 **See**: `agents/apps/agent-mcp/README.md` for complete tool reference.
 
 **⚠️ CRITICAL**: Always use MCP tools when available - they are automatically logged and visible in the agent monitoring dashboard. Custom commands are NOT observable!
+
+### Domain Knowledge
+- Docker and Docker Compose
+- Linux system administration
+- Networking and port management
+- Service lifecycle management
+- Git workflows and deployment
+- Container orchestration
+- System monitoring and troubleshooting
 
 ---
 
@@ -574,5 +610,5 @@ bash scripts/connect-server.sh "docker ps --format 'table {{.Names}}\t{{.Status}
 
 **Last Updated**: 2025-01-13  
 **Status**: Streamlined (Phase 1)  
-**See Also**: `AGENT_PROMPT.md` for common workflows
+**See Also**: `prompts/base.md` for common workflows
 

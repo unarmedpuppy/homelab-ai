@@ -249,7 +249,7 @@ pending → claimed → in_progress → review → completed
 2. `agents/tasks/README.md` - Task coordination guide
 3. `agents/apps/agent-mcp/tools/task_coordination.py` - MCP tools
 4. Update `agents/apps/agent-mcp/server.py` - Register tools
-5. Update `agents/docs/AGENT_PROMPT.md` - Add instructions
+5. Update `agents/prompts/base.md` - Add instructions
 
 ## Success Criteria
 

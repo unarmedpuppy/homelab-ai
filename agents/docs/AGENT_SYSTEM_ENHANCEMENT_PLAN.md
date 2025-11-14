@@ -68,7 +68,7 @@ Working on subdomain setup? Check: add-subdomain skill
 **Files Needed**:
 - `agents/docs/SKILL_AUTO_ACTIVATION.md` - Guide for agents
 - `agents/apps/agent-mcp/tools/skill_activation.py` - MCP tool for skill suggestions
-- Update `AGENT_PROMPT.md` to include auto-activation instructions
+- Update `prompts/base.md` to include auto-activation instructions
 
 **Effort**: Medium (2-3 days)  
 **Impact**: High (ensures skills are actually used)
@@ -100,7 +100,7 @@ Working on subdomain setup? Check: add-subdomain skill
 **Files Needed**:
 - `agents/docs/DEV_DOCS_SYSTEM.md` - Guide for agents
 - `agents/apps/agent-mcp/tools/dev_docs.py` - MCP tools for dev docs
-- Update `AGENT_PROMPT.md` with dev docs workflow
+- Update `prompts/base.md` with dev docs workflow
 - Update `AGENT_WORKFLOW.md` with dev docs integration
 
 **Effort**: Medium (2-3 days)  
@@ -123,7 +123,7 @@ Working on subdomain setup? Check: add-subdomain skill
 - Returns issues for agent to fix
 
 **Option B: Prompt Reminders** (Simpler)
-- Add to `AGENT_PROMPT.md`: "After making edits, always run build/lint checks"
+- Add to `prompts/base.md`: "After making edits, always run build/lint checks"
 - Create reminder checklist in prompt
 - Less automated but easier to implement
 
@@ -140,7 +140,7 @@ Working on subdomain setup? Check: add-subdomain skill
 
 **Files Needed**:
 - `agents/apps/agent-mcp/tools/quality_checks.py` - Quality check tools
-- Update `AGENT_PROMPT.md` with quality check workflow
+- Update `prompts/base.md` with quality check workflow
 - Create quality check reminders in prompt
 
 **Effort**: Medium (2-3 days)  
@@ -243,7 +243,7 @@ standard-deployment/
 **Files Needed**:
 - `agents/apps/agent-mcp/tools/service_debugging.py` - New tool file
 - Update `agents/apps/agent-mcp/README.md`
-- Update `AGENT_PROMPT.md` with debugging workflow
+- Update `prompts/base.md` with debugging workflow
 
 **Effort**: Low-Medium (1-2 days)  
 **Impact**: Medium (improves debugging efficiency)
@@ -261,7 +261,7 @@ standard-deployment/
 - Better structure and emphasis
 
 **Implementation**:
-- Add "Skill Activation" section to `AGENT_PROMPT.md`
+- Add "Skill Activation" section to `prompts/base.md`
 - Add "Quality Checks" section with explicit checklist
 - Add "Context Preservation" section with dev docs workflow
 - Use formatting (boxes, emojis) to emphasize critical sections
@@ -287,8 +287,8 @@ After EVERY edit, you MUST:
 ```
 
 **Files Needed**:
-- Update `AGENT_PROMPT.md` with enhanced sections
-- Update `SERVER_AGENT_PROMPT.md` similarly
+- Update `prompts/base.md` with enhanced sections
+- Update `SERVER_prompts/base.md` similarly
 - Create prompt best practices guide
 
 **Effort**: Low (1 day)  
@@ -340,7 +340,7 @@ This script handles:
 **Solution**: Emphasize planning mode usage and create planning workflows.
 
 **Implementation**:
-- Update `AGENT_PROMPT.md` to emphasize planning
+- Update `prompts/base.md` to emphasize planning
 - Create planning workflow in `AGENT_WORKFLOW.md`
 - Create planning agent template
 - Integrate planning with dev docs system
@@ -355,7 +355,7 @@ This script handles:
 **Files Needed**:
 - Update `AGENT_WORKFLOW.md` with planning emphasis
 - Create planning agent template
-- Update `AGENT_PROMPT.md` with planning instructions
+- Update `prompts/base.md` with planning instructions
 
 **Effort**: Low (1 day)  
 **Impact**: Medium (better planning, fewer mistakes)
@@ -413,7 +413,7 @@ This script handles:
    - Create dev docs guide
 
 3. **Prompt Enhancement** (1 day)
-   - Enhance `AGENT_PROMPT.md` with critical sections
+   - Enhance `prompts/base.md` with critical sections
    - Add skill activation reminders
    - Add quality check reminders
 
@@ -554,7 +554,7 @@ These three improvements will have the biggest impact:
 
 ### Quick Wins (Can Do Immediately)
 
-1. **Update `AGENT_PROMPT.md`** - Add skill activation and quality check reminders
+1. **Update `prompts/base.md`** - Add skill activation and quality check reminders
 2. **Create dev docs MCP tools** - Simple file creation/update tools
 3. **Create quality check MCP tool** - Basic build/lint checking
 

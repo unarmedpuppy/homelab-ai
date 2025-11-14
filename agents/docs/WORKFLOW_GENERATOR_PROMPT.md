@@ -200,8 +200,8 @@ After clarification and analysis, generate ALL of the following files in the `ag
     │   ├── IMPLEMENTATION_PLAN_[FEATURE].md
     │   ├── GETTING_STARTED.md
     │   ├── CODING_STANDARDS.md
-    │   ├── CODING_AGENT_PROMPT.md
-    │   ├── REVIEW_AGENT_PROMPT.md
+    │   ├── CODING_prompts/base.md
+    │   ├── REVIEW_prompts/base.md
     │   └── TASKS.md
     ├── scripts/
     │   ├── pre-submit-check.sh
@@ -399,7 +399,7 @@ KEY2=value2
 [Commit message format, branching]
 ```
 
-### File 4: CODING_AGENT_PROMPT.md
+### File 4: CODING_prompts/base.md
 
 **Purpose**: Complete prompt for coding agents
 
@@ -661,8 +661,8 @@ KEY2=value2
    - `IMPLEMENTATION_PLAN_[FEATURE].md` (reference for future work)
    - `GETTING_STARTED.md` (ongoing reference)
    - `CODING_STANDARDS.md` (ongoing reference)
-   - `CODING_AGENT_PROMPT.md` (active prompt)
-   - `REVIEW_AGENT_PROMPT.md` (active prompt)
+   - `CODING_prompts/base.md` (active prompt)
+   - `REVIEW_prompts/base.md` (active prompt)
    - Task Coordination System (`agents/tasks/registry.md`) - All tasks tracked here
 
 ## Common Issues to Avoid
@@ -670,7 +670,7 @@ KEY2=value2
 [Based on codebase analysis and standards]
 ```
 
-### File 5: REVIEW_AGENT_PROMPT.md
+### File 5: REVIEW_prompts/base.md
 
 **Purpose**: Complete prompt for review agents
 
@@ -1221,8 +1221,8 @@ After generation, provide:
 - ✅ IMPLEMENTATION_PLAN_[FEATURE].md
 - ✅ GETTING_STARTED.md
 - ✅ CODING_STANDARDS.md
-- ✅ CODING_AGENT_PROMPT.md
-- ✅ REVIEW_AGENT_PROMPT.md
+- ✅ CODING_prompts/base.md
+- ✅ REVIEW_prompts/base.md
 - ✅ Task Coordination System (`agents/tasks/registry.md`)
 
 **Scripts** (`agents/scripts/`):
@@ -1233,8 +1233,8 @@ After generation, provide:
 1. Review generated documentation
 2. Customize any project-specific details
 3. Start with task T1.1
-4. Use CODING_AGENT_PROMPT.md for coding agents
-5. Use REVIEW_AGENT_PROMPT.md for review agents
+4. Use CODING_prompts/base.md for coding agents
+5. Use REVIEW_prompts/base.md for review agents
 
 ### Quick Start
 

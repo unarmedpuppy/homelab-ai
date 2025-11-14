@@ -78,8 +78,8 @@ decisions = memory.query_decisions(project="home-server", limit=5)
 ### Agent Prompts
 
 Memory is integrated into:
-- `agents/docs/AGENT_PROMPT.md` - Main agent prompt
-- `agents/docs/SERVER_AGENT_PROMPT.md` - Server agent prompt
+- `agents/prompts/base.md` - Main agent prompt
+- `agents/prompts/server.md` - Server agent prompt
 - `agents/docs/AGENT_WORKFLOW.md` - Agent workflow guide
 - `agents/docs/MCP_TOOL_DISCOVERY.md` - Tool discovery guide
 

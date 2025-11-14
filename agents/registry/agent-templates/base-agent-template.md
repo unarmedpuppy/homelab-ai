@@ -76,14 +76,24 @@ agents/active/agent-XXX-[specialization]/
 └── RESULTS.md            # Completed work results
 ```
 
+## Your Prompt
+
+**Read your agent prompt to understand how to work:**
+- **General agents**: Read `agents/prompts/base.md`
+- **Server management agents**: Read `agents/prompts/server.md` (extends base.md)
+- **Domain-specific agents**: Check if `agents/prompts/[domain].md` exists, otherwise use `base.md`
+
+The prompt defines your workflow, principles, and how to use systems (memory, skills, tools).
+
 ## Discovery Workflow
 
 Before starting work:
 
-1. **Check Memory**: Query previous decisions and patterns
-2. **Check Skills**: Review `agents/skills/README.md`
-3. **Check MCP Tools**: Review `agents/apps/agent-mcp/README.md`
-4. **Read Your Tasks**: Check TASKS.md
+1. **Read Your Prompt**: Read your agent prompt (see above)
+2. **Check Memory**: Query previous decisions and patterns using memory MCP tools
+3. **Check Skills**: Review `agents/skills/README.md` for relevant workflows
+4. **Check MCP Tools**: Review `agents/apps/agent-mcp/README.md` for available tools
+5. **Read Your Tasks**: Check TASKS.md for assigned work
 
 ## Memory Integration
 

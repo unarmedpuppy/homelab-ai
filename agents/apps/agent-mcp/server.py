@@ -29,6 +29,7 @@ from tools.quality_checks import register_quality_check_tools
 from tools.code_review import register_code_review_tools
 from tools.service_debugging import register_service_debugging_tools
 from tools.agent_documentation import register_agent_documentation_tools
+from tools.infrastructure import register_infrastructure_tools
 
 # Create MCP server instance
 server = Server("home-server-management")
@@ -53,6 +54,7 @@ register_quality_check_tools(server)
 register_code_review_tools(server)
 register_service_debugging_tools(server)
 register_agent_documentation_tools(server)
+register_infrastructure_tools(server)
 
 
 async def main():

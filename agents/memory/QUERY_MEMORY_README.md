@@ -118,9 +118,9 @@ agents/memory/memory.db
 ## Integration with Documentation
 
 This script implements the fallback methods documented in:
-- `agents/docs/AGENT_PROMPT.md` - Fallback section
+- `agents/prompts/base.md` - Fallback section
 - `agents/docs/MCP_TOOL_DISCOVERY.md` - Memory Operations fallback
-- `agents/docs/SERVER_AGENT_PROMPT.md` - Memory System fallback
+- `agents/prompts/server.md` - Memory System fallback
 - `agents/docs/AGENT_WORKFLOW.md` - Memory fallback methods
 
 ## Examples

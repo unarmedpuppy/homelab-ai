@@ -59,17 +59,17 @@ A comprehensive review and improvement effort was completed across all agent sys
 
 ### 3. Prompt Consolidation
 
-**Problem**: Significant duplication between `AGENT_PROMPT.md` and `SERVER_AGENT_PROMPT.md` (1099 lines)
+**Problem**: Significant duplication between `prompts/base.md` and `SERVER_prompts/base.md` (1099 lines)
 
 **Solution**:
-- ✅ Streamlined `SERVER_AGENT_PROMPT.md` from 1099 to ~600 lines (45% reduction)
-- ✅ Removed duplication with `AGENT_PROMPT.md`
-- ✅ `SERVER_AGENT_PROMPT.md` now focuses ONLY on server-specific content
-- ✅ Added clear references to `AGENT_PROMPT.md` for common workflows
+- ✅ Streamlined `SERVER_prompts/base.md` from 1099 to ~600 lines (45% reduction)
+- ✅ Removed duplication with `prompts/base.md`
+- ✅ `SERVER_prompts/base.md` now focuses ONLY on server-specific content
+- ✅ Added clear references to `prompts/base.md` for common workflows
 - ✅ Preserved all server-specific context
 
 **Files Created/Modified**:
-- `agents/docs/SERVER_AGENT_PROMPT.md` (STREAMLINED)
+- `agents/prompts/server.md` (STREAMLINED)
 - `agents/docs/SERVER_AGENT_PROMPT_OLD.md` (BACKUP)
 
 **Impact**: Reduced maintenance burden, clearer structure
@@ -262,7 +262,7 @@ A comprehensive review and improvement effort was completed across all agent sys
 ### After Improvements
 - ✅ Single source of truth for status (monitoring DB)
 - ✅ Clear documentation hierarchy (organized, archived)
-- ✅ Consolidated prompts (45% reduction in SERVER_AGENT_PROMPT.md)
+- ✅ Consolidated prompts (45% reduction in SERVER_prompts/base.md)
 - ✅ Single clear entry point (QUICK_START.md)
 - ✅ Clear guidelines for communication channels
 - ✅ Unified data model documentation
@@ -289,7 +289,7 @@ A comprehensive review and improvement effort was completed across all agent sys
 ### Modified Files
 - `agents/README.md` - Enhanced entry point
 - `agents/docs/README.md` - Updated hierarchy
-- `agents/docs/SERVER_AGENT_PROMPT.md` - Streamlined (45% reduction)
+- `agents/prompts/server.md` - Streamlined (45% reduction)
 - `agents/docs/AGENT_SYSTEM_GAPS_AND_IMPROVEMENTS.md` - Updated completion status
 - `agents/docs/AGENT_SYSTEM_REVIEW_AND_IMPROVEMENT_PLAN.md` - Updated with results
 - `agents/apps/agent-mcp/tools/agent_management.py` - Added sync tool
@@ -306,7 +306,7 @@ A comprehensive review and improvement effort was completed across all agent sys
 
 ### For Agents
 1. **Start with `QUICK_START.md`** - 5-minute quick start
-2. **Read `AGENT_PROMPT.md`** - Complete guide
+2. **Read `prompts/base.md`** - Complete guide
 3. **Reference `SYSTEM_ARCHITECTURE.md`** - System overview
 4. **Use `COMMUNICATION_GUIDELINES.md`** - Channel usage
 

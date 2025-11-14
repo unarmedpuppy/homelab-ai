@@ -365,7 +365,7 @@ update_dev_docs(
 **Last Updated**: 2025-01-13  
 **Status**: Active  
 **See Also**:
-- `agents/docs/AGENT_PROMPT.md` - Main agent prompt
+- `agents/prompts/base.md` - Main agent prompt
 - `agents/docs/AGENT_WORKFLOW.md` - Workflow guide
 - `agents/docs/AGENT_SYSTEM_ENHANCEMENT_PLAN.md` - Enhancement plan
 

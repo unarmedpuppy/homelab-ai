@@ -266,6 +266,6 @@ suggest_relevant_skills(
 **Status**: Active  
 **See Also**:
 - `agents/skills/README.md` - Skills catalog
-- `agents/docs/AGENT_PROMPT.md` - Main agent prompt
+- `agents/prompts/base.md` - Main agent prompt
 - `agents/docs/AGENT_SYSTEM_ENHANCEMENT_PLAN.md` - Enhancement plan
 
