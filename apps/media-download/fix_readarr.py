@@ -432,14 +432,14 @@ def add_jackett_indexer(api_key, jackett_api_key):
                 "order": 0,
                 "name": "baseUrl",
                 "label": "URL",
-                "value": f"http://{JACKETT_HOST}:{JACKETT_PORT}/all",
+                "value": f"http://{JACKETT_HOST}:{JACKETT_PORT}",
                 "type": "textbox"
             },
             {
                 "order": 1,
                 "name": "apiPath",
                 "label": "API Path",
-                "value": "/api",
+                "value": "/api/v2.0/indexers/all/results/torznab",
                 "type": "textbox"
             },
             {
@@ -457,28 +457,28 @@ def add_jackett_indexer(api_key, jackett_api_key):
                 "type": "select"
             },
             {
-                "order": 4,
+                "order": 3,
                 "name": "animeCategories",
                 "label": "Anime Categories",
                 "value": [],
                 "type": "select"
             },
             {
-                "order": 5,
+                "order": 4,
                 "name": "removeYear",
                 "label": "Remove Year",
                 "value": False,
                 "type": "checkbox"
             },
             {
-                "order": 6,
+                "order": 5,
                 "name": "removeTitle",
                 "label": "Remove Title",
                 "value": False,
                 "type": "checkbox"
             },
             {
-                "order": 7,
+                "order": 6,
                 "name": "searchByTitle",
                 "label": "Search by Title",
                 "value": True,
