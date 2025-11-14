@@ -17,7 +17,8 @@ import {
   createStatsRouter,
   createTasksRouter,
   createInfluxDBRouter,
-  createSessionsRouter
+  createSessionsRouter,
+  createA2ARouter
 } from './routes';
 
 // Load environment variables
@@ -89,6 +90,7 @@ app.use('/api/stats', createStatsRouter(dbService));
 app.use('/api/tasks', createTasksRouter());
 app.use('/api/influxdb', createInfluxDBRouter(influxService));
 app.use('/api/sessions', createSessionsRouter(dbService));
+app.use('/a2a', createA2ARouter(dbService));
 
 // Health check
 app.get('/health', (_req, res) => {
@@ -110,6 +112,7 @@ app.get('/', (_req, res) => {
       stats: '/api/stats',
       tasks: '/api/tasks',
       influxdb: '/api/influxdb',
+      a2a: '/a2a',
       health: '/health'
     }
   });

@@ -11,10 +11,17 @@ The monitoring DB is the source of truth for agent status.
 
 import sys
 import sqlite3
-import yaml
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Optional, Any, Tuple
+
+# Try to import yaml (optional, but needed for parsing agent definitions)
+try:
+    import yaml
+    YAML_AVAILABLE = True
+except ImportError:
+    YAML_AVAILABLE = False
+    print("⚠️  Warning: PyYAML not installed. Agent definition parsing may fail.")
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent
@@ -26,6 +33,20 @@ DEFINITIONS_DIR = project_root / "agents" / "registry" / "agent-definitions"
 ACTIVE_DIR = project_root / "agents" / "active"
 ARCHIVE_DIR = project_root / "agents" / "archive"
 MONITORING_DB = project_root / "apps" / "agent-monitoring" / "data" / "agent_activity.db"
+
+# Import AgentCard and capability mapping
+try:
+    from agents.communication.a2a.agentcard import (
+        create_agentcard,
+        get_agentcard,
+        update_agentcard,
+        AgentCard
+    )
+    from agents.registry.capability_mapping import map_capabilities_to_agentcard
+    AGENTCARD_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️  Warning: AgentCard modules not available: {e}")
+    AGENTCARD_AVAILABLE = False
 
 
 def get_agent_status_from_db(agent_id: str) -> Optional[Dict[str, Any]]:
@@ -76,6 +97,10 @@ def parse_agent_definition(definition_path: Path) -> Optional[Dict[str, Any]]:
     if not definition_path.exists():
         return None
     
+    if not YAML_AVAILABLE:
+        print(f"⚠️  Warning: Cannot parse {definition_path.name} - PyYAML not installed")
+        return None
+    
     try:
         content = definition_path.read_text()
         
@@ -115,8 +140,95 @@ def get_agent_location(agent_id: str, specialization: str) -> Tuple[Optional[str
     return (None, "")
 
 
+def generate_agentcard_for_agent(
+    agent_id: str,
+    definition: Dict[str, Any],
+    db_status: Optional[Dict[str, Any]] = None
+) -> Optional[AgentCard]:
+    """
+    Generate or update AgentCard for an agent.
+    
+    Args:
+        agent_id: Agent identifier
+        definition: Agent definition metadata
+        db_status: Optional status from monitoring DB
+    
+    Returns:
+        AgentCard if successful, None otherwise
+    """
+    if not AGENTCARD_AVAILABLE:
+        return None
+    
+    try:
+        specialization = definition.get("specialization", "general")
+        created_by = definition.get("created_by", "unknown")
+        created_date = definition.get("created_date", "")
+        
+        # Get status
+        status = definition.get("status", "ready")
+        if db_status:
+            status = db_status.get("status", status)
+        
+        # Skip archived agents (don't create AgentCards for them)
+        if status == "archived":
+            return None
+        
+        # Generate agent name
+        specialization_display = specialization.replace("-", " ").title()
+        agent_name = f"{specialization_display} Agent"
+        
+        # Get capabilities
+        capabilities = map_capabilities_to_agentcard(specialization)
+        
+        # Default transports
+        transports = [
+            {
+                "type": "http",
+                "endpoint": "http://localhost:3001/a2a",
+                "methods": ["POST"]
+            }
+        ]
+        
+        # Metadata
+        metadata = {
+            "specialization": specialization,
+            "created_by": created_by,
+            "status": status,
+            "prompt": definition.get("prompt", "base.md"),
+            "created_date": created_date
+        }
+        
+        # Check if AgentCard already exists
+        existing_card = get_agentcard(agent_id)
+        
+        if existing_card:
+            # Update existing AgentCard
+            updates = {
+                "name": agent_name,
+                "capabilities": capabilities,
+                "transports": transports,
+                "metadata": metadata
+            }
+            updated_card = update_agentcard(agent_id, updates)
+            return updated_card
+        else:
+            # Create new AgentCard
+            card = create_agentcard(
+                agent_id=agent_id,
+                name=agent_name,
+                capabilities=capabilities,
+                transports=transports,
+                **metadata
+            )
+            return card
+    
+    except Exception as e:
+        print(f"⚠️  Warning: Failed to generate AgentCard for {agent_id}: {e}")
+        return None
+
+
 def sync_registry():
-    """Generate agent-registry.md from definitions and monitoring DB."""
+    """Generate agent-registry.md and AgentCards from definitions and monitoring DB."""
     
     # Get all agent definitions
     definitions = {}
@@ -134,6 +246,10 @@ def sync_registry():
     ready_agents = []
     archived_agents = []
     
+    # Track AgentCard generation
+    agentcards_created = 0
+    agentcards_updated = 0
+    
     for agent_id, definition in definitions.items():
         specialization = definition.get("specialization", "")
         created_by = definition.get("created_by", "unknown")
@@ -148,6 +264,16 @@ def sync_registry():
         
         # Get location
         location_type, location_path = get_agent_location(agent_id, specialization)
+        
+        # Generate AgentCard (if available)
+        if AGENTCARD_AVAILABLE:
+            existing_card = get_agentcard(agent_id)
+            card = generate_agentcard_for_agent(agent_id, definition, db_status)
+            if card:
+                if existing_card:
+                    agentcards_updated += 1
+                else:
+                    agentcards_created += 1
         
         # Determine category
         if status == "archived" or location_type == "archive":
@@ -276,7 +402,14 @@ Or use MCP tool: `sync_agent_registry()`
     
     # Write registry
     REGISTRY_PATH.write_text(registry_content)
+    
+    # Print summary
     print(f"✅ Registry synced: {len(active_agents)} active, {len(ready_agents)} ready, {len(archived_agents)} archived")
+    if AGENTCARD_AVAILABLE:
+        if agentcards_created > 0 or agentcards_updated > 0:
+            print(f"✅ AgentCards synced: {agentcards_created} created, {agentcards_updated} updated")
+        else:
+            print(f"ℹ️  AgentCards: No changes needed")
 
 
 if __name__ == "__main__":

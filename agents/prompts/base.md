@@ -1,5 +1,12 @@
 # Agent Prompt - Complete Guide
 
+## 👤 User Information
+
+**User Name**: shua  
+**When asked "what is my name" or similar questions, respond with "shua".**
+
+---
+
 ## 🚀 Start Here: Discovery Workflow
 
 **Before doing ANYTHING, follow this discovery workflow in order:**
@@ -7,19 +14,28 @@
 ### 0. Start Agent Infrastructure 🏗️
 **CRITICAL**: Ensure agent infrastructure is running before starting work.
 
+**⚠️ IMPORTANT**: The MCP server must be configured in Cursor/Claude Desktop for MCP tools to work. See `agents/apps/agent-mcp/README.md` for setup. Once configured, Cursor starts the MCP server automatically.
+
 **If MCP tools are available:**
 ```python
 # Check if infrastructure is running
 infra_status = await check_agent_infrastructure()
 
-# If not running, start it
+# If not running, start it (this will also start Docker Desktop if needed)
 if not infra_status.get("all_running"):
     await start_agent_infrastructure()
 ```
 
+**What `start_agent_infrastructure()` does:**
+1. Checks if Docker Desktop is running (starts it automatically on macOS if not)
+2. Waits for Docker to become available (up to 60 seconds)
+3. Starts monitoring services (backend, frontend, Grafana, InfluxDB) via docker-compose
+4. Waits for services to be healthy
+5. Returns success when all services are running
+
 **If MCP tools are NOT available** (fallback):
 ```bash
-# Run startup script directly
+# Run startup script directly (still starts Docker Desktop automatically)
 cd /Users/joshuajenquist/repos/personal/home-server
 ./agents/scripts/start-agent-infrastructure.sh
 ```
@@ -62,21 +78,23 @@ update_agent_status(
 
 **See**: `agents/apps/agent-monitoring/README.md` for dashboard access and `agents/apps/agent-monitoring/INTEGRATION_GUIDE.md` for complete integration guide.
 
-### 1. Check Memory First ⚡
+### 1. Check Memory First ⚡ **MANDATORY**
+**⚠️ CRITICAL: Memory checking is REQUIRED, not optional. Always query memory before making decisions or starting work.**
+
 Query previous decisions and patterns to learn from past work:
 
 **If MCP tools available:**
 ```python
-# Find related decisions
+# ALWAYS do this first - find related decisions
 memory_query_decisions(project="home-server", limit=5)
 
-# Find common patterns
+# ALWAYS check for common patterns
 memory_query_patterns(severity="high", limit=5)
 
-# Full-text search
+# ALWAYS search for related work
 memory_search("your search query")
 
-# Check recent context
+# ALWAYS check recent context
 memory_get_recent_context(limit=5)
 ```
 
@@ -88,7 +106,14 @@ sqlite3 memory.db "SELECT * FROM decisions ORDER BY created_at DESC LIMIT 5;"
 sqlite3 memory.db "SELECT * FROM patterns WHERE severity='high' LIMIT 5;"
 ```
 
-**Why**: Don't repeat past decisions. Learn from what worked before.
+**Why**: 
+- **Memory is the source of truth** for all architectural decisions and patterns
+- **Don't repeat past mistakes** - learn from what worked before
+- **Don't reinvent solutions** - use proven patterns
+- **Consistency** - follow established decisions and patterns
+- **Efficiency** - save time by leveraging past knowledge
+
+**⚠️ MANDATORY RULE**: If you make a decision without checking memory first, you may be repeating a past decision or ignoring an established pattern. **Always check memory before deciding.**
 
 ### 1.5. Check for Messages 📬
 **CRITICAL**: Check for messages from other agents at the start of your session:
@@ -203,34 +228,72 @@ Review `agents/apps/agent-mcp/README.md` for available operations:
 - **Visibility**: Your work is tracked and can be monitored
 - **Don't write custom commands** - They won't be visible in monitoring!
 
-## Memory System - How to Use
+## Memory System - How to Use **MANDATORY**
 
-### Before Starting Work
+**⚠️ CRITICAL: Memory is not optional. It is the source of truth for all decisions and patterns. You MUST use it.**
+
+### Automatic Memory Workflow
+
+**Memory usage is automatic and mandatory at these points:**
+
+1. **Before ANY decision** → Query memory first
+2. **After ANY decision** → Record decision immediately
+3. **When discovering patterns** → Record pattern immediately
+4. **During work** → Update context regularly
+5. **After work** → Save final context with status
+
+### Before Starting Work **MANDATORY**
+
+**⚠️ ALWAYS do this first - it's not optional:**
+
+```python
+# 1. ALWAYS check for previous decisions about your task
+memory_query_decisions(project="home-server", search_text="your task keywords", limit=5)
+
+# 2. ALWAYS check for common patterns related to your work
+memory_query_patterns(severity="high", tags="your,relevant,tags", limit=5)
+
+# 3. ALWAYS search for related work
+memory_search("your search query")
+
+# 4. ALWAYS check recent context for similar work
+memory_get_recent_context(limit=5)
+```
+
+**What to look for:**
+- Previous decisions about similar services/tasks
+- Common patterns or issues encountered
+- Port conflicts or configuration patterns
+- Established solutions to avoid reinventing
 
 **Example: Starting a new deployment task**
 
 ```python
 # Check for previous deployment decisions
-memory_query_decisions(project="home-server", search_text="deployment", limit=5)
+decisions = memory_query_decisions(project="home-server", search_text="deployment", limit=5)
+# Review decisions - if similar deployment exists, follow established pattern
 
 # Check for common deployment patterns
-memory_query_patterns(severity="high", tags="deployment,docker", limit=5)
+patterns = memory_query_patterns(severity="high", tags="deployment,docker", limit=5)
+# Review patterns - use proven solutions, avoid known issues
 
 # Search for related work
-memory_search("docker-compose setup")
+results = memory_search("docker-compose setup")
+# Review results - learn from past implementations
 ```
 
-**What to look for:**
-- Previous decisions about similar services
-- Common patterns or issues encountered
-- Port conflicts or configuration patterns
+**⚠️ If you skip this step, you may:**
+- Repeat past mistakes
+- Ignore established patterns
+- Make decisions that conflict with past decisions
+- Reinvent solutions that already exist
 
-### During Work
+### During Work **MANDATORY**
 
-**Example: Recording decisions as you make them**
+**⚠️ Record decisions and patterns AS YOU MAKE THEM - don't wait until the end:**
 
 ```python
-# Record important decisions
+# IMMEDIATELY after making any important decision:
 memory_record_decision(
     content="Use PostgreSQL for trading-journal database",
     rationale="Need ACID compliance, concurrent writes, and complex queries. SQLite doesn't support concurrent writes well.",
@@ -240,7 +303,7 @@ memory_record_decision(
     tags="database,architecture,postgresql"
 )
 
-# Record patterns when you discover them
+# IMMEDIATELY when you discover a pattern or issue:
 memory_record_pattern(
     name="Port Conflict Resolution",
     description="Services failing to start due to port conflicts. Common when adding new services without checking existing port usage.",
@@ -249,7 +312,7 @@ memory_record_pattern(
     tags="docker,networking,ports,troubleshooting"
 )
 
-# Update context regularly
+# REGULARLY update context (at least every major step):
 memory_save_context(
     agent_id="agent-001",
     task="T1.3",
@@ -259,12 +322,21 @@ memory_save_context(
 )
 ```
 
-### After Work
+**When to record:**
+- ✅ **Decision made** → Record immediately (don't wait)
+- ✅ **Pattern discovered** → Record immediately (don't wait)
+- ✅ **Issue encountered** → Record as pattern immediately
+- ✅ **Major step completed** → Update context
+- ✅ **Blockers encountered** → Update context with blockers
 
-**Example: Completing a task**
+**⚠️ Don't wait until the end to record - record as you go!**
+
+### After Work **MANDATORY**
+
+**⚠️ ALWAYS save final context - this is not optional:**
 
 ```python
-# Save final context
+# ALWAYS save final context when completing work:
 memory_save_context(
     agent_id="agent-001",
     task="T1.3",
@@ -273,6 +345,13 @@ memory_save_context(
     notes="Used port 5432 internally, exposed via docker network"
 )
 ```
+
+**What to include:**
+- Final status (completed, failed, blocked)
+- Summary of what was accomplished
+- Key decisions made (if not already recorded)
+- Patterns discovered (if not already recorded)
+- Notes for future reference
 
 **See**: `agents/memory/MEMORY_USAGE_EXAMPLES.md` for complete examples and best practices.
 
@@ -284,6 +363,7 @@ memory_save_context(
 **See**: 
 - `agents/memory/MCP_TOOLS_GUIDE.md` - Complete MCP tool reference
 - `agents/memory/MEMORY_USAGE_EXAMPLES.md` - Real-world usage examples and best practices
+- `agents/docs/MEMORY_MANDATORY_USAGE.md` ⚠️ **MANDATORY** - Memory usage requirements (read this!)
 
 ### ⚠️ Fallback: When MCP Tools Aren't Available
 
@@ -545,38 +625,48 @@ Check:
 
 ## Workflow Integration
 
-### Before Starting Work
+### Before Starting Work **MANDATORY CHECKLIST**
 
-1. ✅ **Start agent monitoring session** - `start_agent_session(agent_id)`
-2. ✅ **Update agent status** - `update_agent_status(agent_id, status="active", ...)`
-3. ✅ Query memory for related decisions
-4. ✅ Check for specialized agents
-5. ✅ Review relevant skills
-6. ✅ Check available MCP tools (PREFERRED - observable!)
-7. ✅ Read task details
+1. ✅ **Start agent monitoring session** - `start_agent_session(agent_id)` (MANDATORY)
+2. ✅ **Update agent status** - `update_agent_status(agent_id, status="active", ...)` (MANDATORY)
+3. ✅ **Query memory for related decisions** - `memory_query_decisions()` (MANDATORY - don't skip!)
+4. ✅ **Query memory for patterns** - `memory_query_patterns()` (MANDATORY - don't skip!)
+5. ✅ **Search memory for related work** - `memory_search()` (MANDATORY - don't skip!)
+6. ✅ **Check recent context** - `memory_get_recent_context()` (MANDATORY - don't skip!)
+7. ✅ Check for specialized agents
+8. ✅ Review relevant skills
+9. ✅ Check available MCP tools (PREFERRED - observable!)
+10. ✅ Read task details
 
-### During Work
+**⚠️ Memory steps (3-6) are MANDATORY. Skipping them means you may repeat past mistakes or ignore established patterns.**
+
+### During Work **MANDATORY CHECKLIST**
 
 1. ✅ **Update status regularly** - `update_agent_status()` with progress
 2. ✅ **Use MCP tools** - All MCP tool calls are automatically logged
 3. ✅ **Use dev docs for large tasks** - Create/update dev docs to preserve context
-4. ✅ Record important decisions in memory
-5. ✅ Record patterns discovered
-6. ✅ Update context regularly
+4. ✅ **Record decisions IMMEDIATELY** - `memory_record_decision()` when you make a decision (MANDATORY - don't wait!)
+5. ✅ **Record patterns IMMEDIATELY** - `memory_record_pattern()` when you discover a pattern (MANDATORY - don't wait!)
+6. ✅ **Update context regularly** - `memory_save_context()` at least every major step (MANDATORY - don't wait!)
 7. ✅ **Check relevant skills** - Use `suggest_relevant_skills()` if unsure
 8. ✅ Use skills for workflows (don't reinvent)
 9. ✅ Create specialized agents when needed
 10. ✅ **Never use custom commands** - Use MCP tools instead (they're observable!)
 11. ✅ **Run quality checks** - Check for errors after making edits
 
-### After Work
+**⚠️ Memory steps (4-6) are MANDATORY. Record decisions and patterns as you make them, not at the end.**
 
-1. ✅ **End agent session** - `end_agent_session(agent_id, session_id, ...)`
-2. ✅ **Update final status** - `update_agent_status(status="completed")`
-3. ✅ Save final context with status="completed"
-4. ✅ Update task status
-5. ✅ Document decisions made
-6. ✅ Commit and push changes
+### After Work **MANDATORY CHECKLIST**
+
+1. ✅ **Record any remaining decisions** - `memory_record_decision()` for any decisions not yet recorded (MANDATORY)
+2. ✅ **Record any remaining patterns** - `memory_record_pattern()` for any patterns not yet recorded (MANDATORY)
+3. ✅ **Save final context** - `memory_save_context(status="completed")` (MANDATORY - don't skip!)
+4. ✅ **End agent session** - `end_agent_session(agent_id, session_id, ...)`
+5. ✅ **Update final status** - `update_agent_status(status="completed")`
+6. ✅ Update task status
+7. ✅ Commit and push changes
+
+**⚠️ Memory steps (1-3) are MANDATORY. Always record decisions/patterns and save final context.**
 
 ## Quick Reference
 
@@ -1057,31 +1147,52 @@ read_agent_doc(agent_id="agent-001", doc_type="plan", doc_name="feature-x-implem
 
 ---
 
-## Important Principles
+## Important Principles **MANDATORY**
 
 0. **Start Infrastructure First** - Always ensure agent infrastructure is running before starting work
 1. **Be Observable** - Always use activity monitoring tools so your work is visible
 2. **Check Messages** - Check for messages from other agents at start of session
-3. **Memory First** - Always query memory before making decisions
+3. **Memory First** ⚡ **MANDATORY** - **ALWAYS query memory before making decisions. Memory is the source of truth.**
 4. **Use What Exists** - Skills and tools are your primary knowledge base
 5. **Don't Reinvent** - Use existing workflows and operations
-6. **Record Everything** - Document decisions and patterns in memory
+6. **Record Everything** ⚡ **MANDATORY** - **ALWAYS document decisions and patterns in memory. Record as you go, not at the end.**
 7. **Delegate When Needed** - Create specialized agents for domain expertise
 8. **Communicate Effectively** - Use communication protocol for coordination and help
 9. **Use MCP Tools** - Always prefer MCP tools over custom commands (they're observable!)
 
-## Decision Framework: When to Store, Create, or Add
+**⚠️ Memory Principles (3 & 6) are MANDATORY:**
+- **Before decisions**: Always query memory first
+- **After decisions**: Always record decisions immediately
+- **During work**: Always update context regularly
+- **After work**: Always save final context
 
-**CRITICAL**: Follow this framework for all work:
+**Memory is not optional - it's how knowledge is preserved and shared across all agents.**
 
-### Store in Memory (Always)
-- ✅ **Important decisions** - Technology choices, architecture decisions, configuration choices
-- ✅ **Patterns discovered** - Common issues and their solutions
-- ✅ **Context updates** - Current work status, progress, blockers
-- ✅ **Rationale** - Why decisions were made (for future reference)
+## Decision Framework: When to Store, Create, or Add **MANDATORY**
 
-**When**: After making any important decision or discovering a pattern
-**How**: Use `memory_record_decision()` or `memory_record_pattern()`
+**⚠️ CRITICAL: This framework is MANDATORY. You MUST follow it for all work.**
+
+### Store in Memory (Always) **MANDATORY**
+
+**⚠️ Memory is the source of truth. You MUST record:**
+
+- ✅ **Important decisions** - Technology choices, architecture decisions, configuration choices (MANDATORY)
+- ✅ **Patterns discovered** - Common issues and their solutions (MANDATORY)
+- ✅ **Context updates** - Current work status, progress, blockers (MANDATORY)
+- ✅ **Rationale** - Why decisions were made (for future reference) (MANDATORY)
+
+**When**: 
+- **IMMEDIATELY** after making any important decision (don't wait!)
+- **IMMEDIATELY** when discovering a pattern (don't wait!)
+- **REGULARLY** during work (at least every major step)
+- **ALWAYS** at the end of work (final context)
+
+**How**: 
+- Use `memory_record_decision()` for decisions
+- Use `memory_record_pattern()` for patterns
+- Use `memory_save_context()` for context updates
+
+**⚠️ Don't wait until the end - record as you go! Memory is the source of truth for all future agents.**
 
 ### Create a Skill (Reusable Workflows)
 - ✅ **Multi-step workflows** - Complete processes that combine multiple operations

@@ -6,11 +6,12 @@
 
 **New to agents?** Follow this path:
 
-1. **`docs/QUICK_START.md`** ⭐⭐⭐ - **5-MINUTE QUICK START** - Essential steps to get started
-2. **`prompts/base.md`** ⭐⭐ - **COMPLETE GUIDE** - Full agent prompt with discovery workflow
-3. **`docs/AGENT_WORKFLOW.md`** - Detailed workflow guide and best practices
-4. **`prompts/server.md`** - Server-specific agent context (if working on server)
-5. **`docs/MCP_TOOL_DISCOVERY.md`** - How to discover and use MCP tools
+1. **Start Infrastructure** - Run `agents/scripts/start-agent-infrastructure.sh` or use `start_agent_infrastructure()` MCP tool
+2. **`docs/QUICK_START.md`** ⭐⭐⭐ - **5-MINUTE QUICK START** - Essential steps to get started
+3. **`prompts/base.md`** ⭐⭐ - **COMPLETE GUIDE** - Full agent prompt with discovery workflow
+4. **`docs/AGENT_WORKFLOW.md`** - Detailed workflow guide and best practices
+5. **`prompts/server.md`** - Server-specific agent context (if working on server)
+6. **`docs/MCP_TOOL_DISCOVERY.md`** - How to discover and use MCP tools
 
 **For humans activating agents**: See `ACTIVATION_GUIDE.md`
 
@@ -18,30 +19,119 @@
 
 ```
 agents/
-├── README.md              # This file - main entry point
-├── prompts/               # Agent prompts (identity, role, workflow)
-│   ├── base.md           # Core agent prompt ⭐ START HERE
-│   └── server.md         # Server management extension
-├── docs/                  # Agent documentation
-│   ├── AGENT_WORKFLOW.md  # Workflow guide
-│   ├── MCP_TOOL_DISCOVERY.md
-│   └── templates/         # Workflow templates
-├── memory/                # Memory system (SQLite-based)
-│   ├── README.md          # Memory system overview
-│   ├── MCP_TOOLS_GUIDE.md # Memory MCP tools reference
-│   ├── sqlite_memory.py   # Memory implementation
-│   └── memory.db          # SQLite database
-├── registry/              # Agent registry
-│   ├── agent-registry.md  # Master registry
-│   ├── agent-definitions/ # Agent definition files
-│   └── agent-templates/   # Agent templates
-├── tasks/                 # Task coordination
-│   ├── registry.md        # Central task registry
-│   └── README.md          # Task coordination guide
-├── active/                # Active agent directories
-├── archive/               # Archived agents
-└── ACTIVATION_GUIDE.md     # How to activate agents
+├── README.md                    # This file - main entry point
+├── ACTIVATION_GUIDE.md           # How to activate agents (for humans)
+│
+├── prompts/                      # Agent prompts (identity, role, workflow)
+│   ├── base.md                  # Core agent prompt ⭐ START HERE
+│   ├── server.md                # Server management extension
+│   └── README.md                # Prompt system overview
+│
+├── docs/                         # Agent documentation
+│   ├── QUICK_START.md           # 5-minute quick start ⭐⭐⭐
+│   ├── AGENT_WORKFLOW.md        # Workflow guide
+│   ├── MCP_TOOL_DISCOVERY.md    # Tool discovery
+│   ├── COMPLETE_SYSTEM_VISUALIZATION.md  # Visual system guide
+│   ├── AGENT_SELF_DOCUMENTATION.md       # How agents organize docs
+│   └── templates/               # Workflow templates
+│
+├── apps/                         # Agent applications (run locally)
+│   ├── agent-mcp/               # MCP server (71 tools)
+│   │   ├── server.py            # Main MCP server
+│   │   ├── tools/               # All MCP tools (22 files)
+│   │   └── README.md            # Tool catalog
+│   │
+│   └── agent-monitoring/        # Monitoring dashboard (local-first)
+│       ├── backend/             # Node.js API (localhost:3001)
+│       ├── frontend/            # Next.js dashboard (localhost:3012)
+│       ├── activity_logger/     # Python logging module
+│       ├── docker-compose.yml   # Local infrastructure
+│       └── README.md            # Monitoring guide
+│
+├── memory/                       # Memory system (SQLite-based, local)
+│   ├── sqlite_memory.py         # Memory implementation
+│   ├── memory.db                # SQLite database (local)
+│   ├── README.md                # Memory system overview
+│   └── MCP_TOOLS_GUIDE.md       # Memory MCP tools reference
+│
+├── registry/                     # Agent registry
+│   ├── agent-registry.md        # Master registry
+│   ├── agent-definitions/       # Agent definition files
+│   ├── agent-templates/         # Agent templates
+│   └── sync_registry.py         # Auto-sync script
+│
+├── tasks/                        # Task coordination
+│   ├── registry.md               # Central task registry
+│   └── README.md                 # Task coordination guide
+│
+├── communication/                # Agent communication
+│   ├── messages/                 # Message files
+│   ├── protocol.md               # Communication protocol
+│   └── README.md                 # Communication guide
+│
+├── skills/                       # Reusable workflow skills
+│   ├── README.md                 # Skills catalog
+│   ├── standard-deployment/      # Deployment workflow
+│   ├── troubleshoot-container-failure/  # Troubleshooting
+│   └── [7+ skills]               # Other skills
+│
+├── scripts/                      # Utility scripts
+│   ├── start-agent-infrastructure.sh  # Start monitoring locally
+│   ├── query_tasks.sh           # Task query helper
+│   └── query_messages.sh        # Message query helper
+│
+├── active/                       # Active agent directories
+│   └── agent-001/               # Example: agent-001
+│       └── docs/                 # Agent-specific documentation
+│           ├── plans/            # Implementation plans
+│           ├── notes/            # Working notes, research
+│           ├── architecture/     # System designs
+│           └── references/       # External references
+│
+├── archive/                      # Archived agents and state
+│   ├── state/                    # Archived state files
+│   └── README.md                 # Archive documentation
+│
+└── lifecycle/                    # Lifecycle policies
+    ├── policy.md                 # Lifecycle management
+    └── pattern_learning.md       # Pattern learning system
 ```
+
+## Architecture Overview
+
+### Local-First Architecture
+
+**All agent infrastructure runs locally** on your machine:
+
+```
+Local Machine:
+├── Agent Infrastructure (localhost)
+│   ├── Backend API: localhost:3001
+│   ├── Frontend Dashboard: localhost:3012
+│   ├── Grafana: localhost:3011
+│   └── InfluxDB: localhost:8087
+│
+├── MCP Server (local Python)
+│   └── 71 tools (all operations)
+│
+├── Memory System (local SQLite)
+│   └── agents/memory/memory.db
+│
+└── Activity Logger → localhost:3001
+
+Server (192.168.86.47):
+└── Services only (Docker, media download, etc.)
+    └── Accessed via SSH/network from MCP tools
+```
+
+**Why Local-First?**
+- ✅ Workflow & memory tied to agent system
+- ✅ Simpler mental model (one database, one source of truth)
+- ✅ Faster (no network latency)
+- ✅ Better for development
+- ✅ Privacy (all agent data stays local)
+
+**Server Operations**: MCP tools use SSH/network for server operations (Docker, media download, etc.), but agent infrastructure is local.
 
 ## Core Features
 
@@ -50,60 +140,80 @@ agents/
 Agent prompts define identity, role, and workflow:
 - **`prompts/base.md`** - Core agent prompt with discovery workflow
 - **`prompts/server.md`** - Server management extension
+- **`prompts/README.md`** - Prompt system overview
 
-### 2. Agent Documentation (`docs/`)
+### 2. Agent Infrastructure (`apps/`)
 
-Complete documentation for agents:
-- **`AGENT_WORKFLOW.md`** - Detailed workflow guide
-- **`MCP_TOOL_DISCOVERY.md`** - Tool discovery guide
-- **`AGENT_SPAWNING_*.md`** - Agent spawning workflows
+**Agent Monitoring** (`apps/agent-monitoring/`):
+- Backend API (Node.js/TypeScript) - `localhost:3001`
+- Frontend Dashboard (Next.js) - `localhost:3012`
+- Grafana - `localhost:3011`
+- InfluxDB - `localhost:8087`
+- Activity Logger (Python) - Logs to local backend
 
-### 2. Memory System (`memory/`)
+**MCP Server** (`apps/agent-mcp/`):
+- 71 MCP tools across all categories
+- Runs locally (Python process)
+- Uses SSH for server operations
+- Automatic logging to monitoring dashboard
+
+**Start Infrastructure**:
+```bash
+# Option 1: Script
+./agents/scripts/start-agent-infrastructure.sh
+
+# Option 2: MCP Tool
+await start_agent_infrastructure()
+```
+
+### 3. Memory System (`memory/`)
 
 SQLite-based memory system for agents:
 - **9 MCP tools** for querying and recording memories
 - Stores decisions, patterns, and context
 - Full-text search capabilities
 - Markdown export for human review
+- **Local database**: `agents/memory/memory.db`
 
 **See**: `memory/README.md` for complete guide
 
-### 3. Agent Registry (`registry/`)
+### 4. Agent Registry (`registry/`)
 
 Central registry for all agents:
 - Track active, ready, and archived agents
 - Agent definitions and templates
 - Agent spawning support
+- Auto-sync script
 
 **See**: `registry/agent-registry.md` for registry
 
-### 4. Task Coordination (`tasks/`)
+### 5. Task Coordination (`tasks/`)
 
 Central task registry for coordinating work:
 - Register, claim, and update tasks
 - Track dependencies
 - Prevent conflicts
-- 5 MCP tools for task management
+- **6 MCP tools** for task management
 
 **See**: `tasks/README.md` for complete guide
 
-## Related Infrastructure
+### 6. Agent Communication (`communication/`)
 
-These are at the repository root (shared infrastructure):
+Inter-agent messaging system:
+- Structured message protocol
+- Message queue with status tracking
+- **5 MCP tools** for messaging
 
-- **`agents/apps/agent-mcp/`** - MCP server with 68 tools
-  - Activity monitoring (4 tools)
-  - Agent communication (5 tools)
-  - Memory tools (9 tools)
-  - Agent management tools (6 tools)
-  - Task coordination tools (6 tools)
-  - Skill management tools (5 tools)
-  - Server management tools (33 tools)
+**See**: `communication/README.md` for complete guide
 
-- **`agents/skills/`** - Reusable workflow skills
-  - Skills catalog
-  - Skill creation workflow
-  - 7 implemented skills
+### 7. Skills Library (`skills/`)
+
+Reusable workflow skills:
+- 7+ implemented skills
+- Skill creation workflow
+- Auto-proposal from patterns
+
+**See**: `skills/README.md` for catalog
 
 ## Getting Started
 
@@ -138,6 +248,71 @@ These are at the repository root (shared infrastructure):
 3. Track dependencies
 4. Update status regularly
 
+## MCP Tools (71 Total)
+
+### Infrastructure Management (3 tools) ⭐ NEW
+- `start_agent_infrastructure()` - Start all infrastructure services
+- `check_agent_infrastructure()` - Check service status
+- `stop_agent_infrastructure()` - Stop all services
+
+### Activity Monitoring (4 tools)
+- `start_agent_session()` - Start monitoring session
+- `update_agent_status()` - Update agent status
+- `get_agent_status()` - Get current status
+- `end_agent_session()` - End session
+
+### Agent Communication (5 tools)
+- `send_agent_message()` - Send message to agent
+- `get_agent_messages()` - Get pending messages
+- `acknowledge_message()` - Acknowledge message
+- `mark_message_resolved()` - Mark message resolved
+- `query_messages()` - Query messages
+
+### Memory Management (9 tools)
+- `memory_query_decisions()` - Query decisions
+- `memory_query_patterns()` - Query patterns
+- `memory_search()` - Full-text search
+- `memory_record_decision()` - Record decision
+- `memory_record_pattern()` - Record pattern
+- `memory_save_context()` - Save context
+- `memory_get_recent_context()` - Get recent context
+- `memory_get_context_by_task()` - Get task context
+- `memory_export_to_markdown()` - Export to markdown
+
+### Task Coordination (6 tools)
+- `register_task()` - Register new task
+- `query_tasks()` - Query tasks
+- `get_task()` - Get single task
+- `claim_task()` - Claim task
+- `update_task_status()` - Update task status
+- `check_task_dependencies()` - Check dependencies
+
+### Agent Management (6 tools)
+- `create_agent_definition()` - Create specialized agent
+- `query_agent_registry()` - Query registry
+- `assign_task_to_agent()` - Assign task
+- `archive_agent()` - Archive agent
+- `reactivate_agent()` - Reactivate agent
+- `sync_agent_registry()` - Sync registry
+
+### Skill Management (5 tools)
+- `propose_skill()` - Create skill proposal
+- `list_skill_proposals()` - List proposals
+- `query_skills()` - Query existing skills
+- `analyze_patterns_for_skills()` - Analyze patterns
+- `auto_propose_skill_from_pattern()` - Auto-create skill
+
+### Server Management (33 tools)
+- Docker Management (8 tools)
+- Media Download (13 tools)
+- System Monitoring (5 tools)
+- Troubleshooting (3 tools)
+- Git Operations (4 tools)
+- Networking (4 tools)
+- System Utilities (3 tools)
+
+**See**: `apps/agent-mcp/README.md` for complete tool reference
+
 ## Documentation Index
 
 ### Core Documentation
@@ -146,6 +321,7 @@ These are at the repository root (shared infrastructure):
 - `docs/AGENT_WORKFLOW.md` - Workflow guide
 - `prompts/server.md` - Server context (if working on server)
 - `docs/MCP_TOOL_DISCOVERY.md` - Tool discovery
+- `docs/COMPLETE_SYSTEM_VISUALIZATION.md` ⭐⭐⭐ - **Visual system guide with diagrams**
 
 ### Memory System
 - `memory/README.md` - Memory system overview
@@ -156,23 +332,38 @@ These are at the repository root (shared infrastructure):
 - `registry/agent-registry.md` - Agent registry
 - `ACTIVATION_GUIDE.md` - How to activate agents
 - `docs/AGENT_SPAWNING_WORKFLOW.md` - Spawning guide
+- `docs/AGENT_SELF_DOCUMENTATION.md` ⭐ - **How agents organize their own documentation**
 
 ### Task Coordination
 - `tasks/README.md` - Task coordination guide
 - `tasks/registry.md` - Central task registry
 
+### Infrastructure
+- `apps/agent-monitoring/README.md` - Monitoring dashboard
+- `apps/agent-mcp/README.md` - MCP tools catalog
+- `scripts/README.md` - Utility scripts
+
 ## Quick Reference
+
+### Infrastructure Startup
+```bash
+# Start all infrastructure
+./agents/scripts/start-agent-infrastructure.sh
+
+# Or use MCP tool
+await start_agent_infrastructure()
+```
 
 ### Memory Operations
 ```python
 # Query decisions
-memory_query_decisions(project="trading-journal", search_text="database")
+memory_query_decisions(project="home-server", search_text="deployment")
 
 # Record decision
 memory_record_decision(
     content="Use PostgreSQL for database",
     rationale="Need ACID compliance",
-    project="trading-journal",
+    project="home-server",
     importance=0.9
 )
 
@@ -186,7 +377,7 @@ memory_search("deployment workflow")
 register_task(
     title="Setup database",
     description="Create PostgreSQL schema",
-    project="trading-journal",
+    project="home-server",
     priority="high"
 )
 
@@ -211,30 +402,49 @@ create_agent_definition(
 query_agent_registry(specialization="database")
 ```
 
-## Status
+## Important Principles
 
-- ✅ **Documentation**: Complete and consolidated
-- ✅ **Memory System**: SQLite-based, 9 MCP tools
-- ✅ **Task Coordination**: Phase 2 complete, 5 MCP tools
-- ✅ **Agent Registry**: Active, ready, archived tracking
-- ✅ **Agent Spawning**: Manual creation workflow
+### Agent Documentation Namespacing ⚠️
+
+**All agent-specific documentation MUST go in your agent directory:**
+
+```
+agents/active/{agent-id}/docs/
+├── plans/          # Implementation plans
+├── notes/          # Working notes, research
+├── architecture/   # System designs
+└── references/     # External references
+```
+
+**Use MCP tools**:
+```python
+create_agent_doc(
+    agent_id="agent-001",
+    doc_type="plan",
+    doc_name="feature-x-implementation",
+    content="# Plan content..."
+)
+```
+
+**See**: `docs/AGENT_SELF_DOCUMENTATION.md` for complete guide
 
 ## Navigation Guide
 
 ### I'm a New Agent - Where Do I Start?
 
-1. **Read `docs/QUICK_START.md`** (5 minutes) - Essential steps
-2. **Read `prompts/base.md`** (15 minutes) - Complete guide
-3. **Start working** - Follow the discovery workflow
+1. **Start Infrastructure** - `./agents/scripts/start-agent-infrastructure.sh`
+2. **Read `docs/QUICK_START.md`** (5 minutes) - Essential steps
+3. **Read `prompts/base.md`** (15 minutes) - Complete guide
+4. **Start working** - Follow the discovery workflow
 
 ### I Need to Find Something
 
-- **Tools**: `docs/MCP_TOOL_DISCOVERY.md` or `agents/apps/agent-mcp/README.md`
-- **Workflows**: `agents/skills/README.md`
+- **Tools**: `docs/MCP_TOOL_DISCOVERY.md` or `apps/agent-mcp/README.md`
+- **Workflows**: `skills/README.md`
 - **Memory**: `memory/README.md`
 - **Tasks**: `tasks/README.md`
 - **Communication**: `communication/README.md`
-- **Monitoring**: `agents/apps/agent-monitoring/README.md`
+- **Monitoring**: `apps/agent-monitoring/README.md`
 
 ### I'm Working on Server Management
 
@@ -248,19 +458,21 @@ query_agent_registry(specialization="database")
 
 ## System Status
 
+- ✅ **Infrastructure**: Local-first architecture (localhost)
 - ✅ **Documentation**: Complete and organized
 - ✅ **Memory System**: SQLite-based, 9 MCP tools
 - ✅ **Task Coordination**: Central registry, 6 MCP tools
 - ✅ **Communication**: Protocol implemented, 5 MCP tools
 - ✅ **Monitoring**: Dashboard available, 4 MCP tools
-- ✅ **Agent Management**: Registry, lifecycle, 5 MCP tools
+- ✅ **Agent Management**: Registry, lifecycle, 6 MCP tools
 - ✅ **Skills**: Pattern learning, auto-creation, 5 MCP tools
+- ✅ **Infrastructure Management**: Startup/stop tools, 3 MCP tools
 
-**Total MCP Tools**: 67 tools available
+**Total MCP Tools**: 71 tools available
 
 ---
 
 **Last Updated**: 2025-01-13
 **Status**: Active Development
 **Quick Start**: `docs/QUICK_START.md` ⭐
-
+**Visual Guide**: `docs/COMPLETE_SYSTEM_VISUALIZATION.md` ⭐⭐⭐

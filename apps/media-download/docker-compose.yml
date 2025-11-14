@@ -243,16 +243,16 @@ services:
       - sonarr
       - radarr
 
-  # Books Automation
-  readarr:
-    image: ghcr.io/hotio/readarr:latest
-    container_name: media-download-readarr
+  # Books Automation (Bookshelf - Readarr fork)
+  bookshelf:
+    image: ghcr.io/bookshelf/bookshelf:latest
+    container_name: media-download-bookshelf
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=${TZ:-America/Chicago}
     volumes:
-      - ./readarr/config:/config
+      - ./bookshelf/config:/config
       - ${MEDIA_PATH:-/jenquist-cloud/archive/entertainment-media}/books:/books
       - ${DOWNLOAD_PATH:-./downloads}:/downloads
     ports:
@@ -265,7 +265,7 @@ services:
       - jackett
     labels:
       - "homepage.group=Media Download"
-      - "homepage.name=Readarr"
+      - "homepage.name=Bookshelf"
       - "homepage.href=http://192.168.86.47:8787"
       - "homepage.icon=readarr.svg"
 

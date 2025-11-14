@@ -45,6 +45,31 @@ class DatabaseService {
     `);
         return stmt.all(status);
     }
+    updateAgentStatus(agentId, status, currentTaskId, progress, blockers) {
+        // Check if status exists
+        const checkStmt = this.db.prepare('SELECT id FROM agent_status WHERE agent_id = ?');
+        const existing = checkStmt.get(agentId);
+        if (existing) {
+            // Update existing
+            const updateStmt = this.db.prepare(`
+        UPDATE agent_status
+        SET status = ?, current_task_id = ?, progress = ?, blockers = ?,
+            last_updated = CURRENT_TIMESTAMP
+        WHERE agent_id = ?
+      `);
+            updateStmt.run(status, currentTaskId || null, progress || null, blockers || null, agentId);
+            return existing.id;
+        }
+        else {
+            // Insert new
+            const insertStmt = this.db.prepare(`
+        INSERT INTO agent_status (agent_id, status, current_task_id, progress, blockers)
+        VALUES (?, ?, ?, ?, ?)
+      `);
+            const result = insertStmt.run(agentId, status, currentTaskId || null, progress || null, blockers || null);
+            return result.lastInsertRowid;
+        }
+    }
     // Action Operations
     getActions(options = {}) {
         const { limit = 100, offset = 0, agentId, actionType, toolName, startTime, endTime } = options;
@@ -119,6 +144,16 @@ class DatabaseService {
             parameters: action.parameters ? JSON.parse(action.parameters) : null
         }));
     }
+    addAction(agentId, actionType, toolName, parameters, resultStatus = 'success', durationMs, error) {
+        const stmt = this.db.prepare(`
+      INSERT INTO agent_actions 
+      (agent_id, action_type, tool_name, parameters, result_status, duration_ms, error)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `);
+        const paramsJson = parameters ? JSON.stringify(parameters) : null;
+        const result = stmt.run(agentId, actionType, toolName || null, paramsJson, resultStatus, durationMs || null, error || null);
+        return result.lastInsertRowid;
+    }
     // Tool Usage Statistics
     getToolUsage(agentId, limit = 20) {
         let query = `
@@ -169,6 +204,35 @@ class DatabaseService {
             total_tools_called: result?.total_tools_called || 0,
             avg_session_duration_minutes: result?.avg_session_duration_minutes || 0
         };
+    }
+    startSession(agentId) {
+        const stmt = this.db.prepare(`
+      INSERT INTO agent_sessions (agent_id, session_start)
+      VALUES (?, CURRENT_TIMESTAMP)
+    `);
+        const result = stmt.run(agentId);
+        return result.lastInsertRowid;
+    }
+    endSession(agentId, tasksCompleted = 0, toolsCalled = 0) {
+        // Find the most recent active session first
+        const findStmt = this.db.prepare(`
+      SELECT id FROM agent_sessions 
+      WHERE agent_id = ? AND session_end IS NULL
+      ORDER BY session_start DESC
+      LIMIT 1
+    `);
+        const session = findStmt.get(agentId);
+        if (session) {
+            // Update the found session
+            const updateStmt = this.db.prepare(`
+        UPDATE agent_sessions
+        SET session_end = CURRENT_TIMESTAMP,
+            tasks_completed = ?,
+            tools_called = ?
+        WHERE id = ?
+      `);
+            updateStmt.run(tasksCompleted, toolsCalled, session.id);
+        }
     }
     // System Statistics
     getSystemStats() {

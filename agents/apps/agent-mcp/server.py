@@ -1,5 +1,4 @@
 """Main MCP server for home server management."""
-import asyncio
 import sys
 from pathlib import Path
 
@@ -7,8 +6,7 @@ from pathlib import Path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
-from mcp.server import Server
-from mcp.server.stdio import stdio_server
+from mcp.server.fastmcp import FastMCP
 
 from tools.docker import register_docker_tools
 from tools.media_download import register_media_tools
@@ -30,9 +28,12 @@ from tools.code_review import register_code_review_tools
 from tools.service_debugging import register_service_debugging_tools
 from tools.agent_documentation import register_agent_documentation_tools
 from tools.infrastructure import register_infrastructure_tools
+from tools.learning import register_learning_tools
+from tools.critiquing import register_critiquing_tools
+from tools.evaluation import register_evaluation_tools
 
-# Create MCP server instance
-server = Server("home-server-management")
+# Create MCP server instance using FastMCP
+server = FastMCP("home-server-management")
 
 # Register all tool categories
 register_docker_tools(server)
@@ -55,18 +56,12 @@ register_code_review_tools(server)
 register_service_debugging_tools(server)
 register_agent_documentation_tools(server)
 register_infrastructure_tools(server)
-
-
-async def main():
-    """Run the MCP server."""
-    async with stdio_server() as (read_stream, write_stream):
-        await server.run(
-            read_stream,
-            write_stream,
-            server.create_initialization_options()
-        )
+register_learning_tools(server)
+register_critiquing_tools(server)
+register_evaluation_tools(server)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    """Run the MCP server."""
+    server.run(transport="stdio")
 

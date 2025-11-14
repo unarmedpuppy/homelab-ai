@@ -65,6 +65,32 @@ function createActionsRouter(dbService) {
             });
         }
     });
+    // POST /api/actions - Create a new action
+    router.post('/', (req, res) => {
+        try {
+            const { agent_id, action_type, tool_name, parameters, result_status = 'success', duration_ms, error } = req.body;
+            // Validate required fields
+            if (!agent_id || !action_type) {
+                res.status(400).json({
+                    status: 'error',
+                    message: 'agent_id and action_type are required'
+                });
+                return;
+            }
+            const actionId = dbService.addAction(agent_id, action_type, tool_name, parameters, result_status, duration_ms, error);
+            res.status(201).json({
+                status: 'success',
+                action_id: actionId,
+                message: 'Action logged successfully'
+            });
+        }
+        catch (error) {
+            res.status(500).json({
+                status: 'error',
+                message: error.message
+            });
+        }
+    });
     return router;
 }
 //# sourceMappingURL=actions.js.map

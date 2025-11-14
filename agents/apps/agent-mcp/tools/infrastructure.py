@@ -29,6 +29,9 @@ def register_infrastructure_tools(server: Server):
         This ensures all agent infrastructure is running before starting work.
         Services run locally on localhost.
         
+        **Note**: On macOS, Docker Desktop must be running first. If Docker is not running,
+        the script will provide instructions to start it.
+        
         Args:
             check_only: If True, only check if services are running (don't start them)
         
@@ -36,6 +39,49 @@ def register_infrastructure_tools(server: Server):
             Status of infrastructure services and URLs
         """
         try:
+            # First check if Docker is running
+            try:
+                import subprocess
+                result = subprocess.run(
+                    ["docker", "info"],
+                    capture_output=True,
+                    timeout=5
+                )
+                if result.returncode != 0:
+                    # Try to start Docker Desktop on macOS
+                    import platform
+                    if platform.system() == "Darwin":
+                        try:
+                            subprocess.run(
+                                ["open", "-a", "Docker"],
+                                timeout=5,
+                                check=False
+                            )
+                            return {
+                                "status": "info",
+                                "message": "Docker Desktop launch command sent",
+                                "instructions": "Waiting for Docker Desktop to start (30-60 seconds). Run this tool again once Docker is running.",
+                                "note": "Docker Desktop must be authorized/started manually on first launch"
+                            }
+                        except Exception:
+                            pass
+                    
+                    return {
+                        "status": "error",
+                        "message": "Docker daemon is not running",
+                        "instructions": {
+                            "macos": "Open Docker Desktop application, or run: open -a Docker",
+                            "linux": "Start Docker service: sudo systemctl start docker"
+                        },
+                        "suggestion": "Start Docker Desktop first, then run this tool again"
+                    }
+            except Exception as e:
+                return {
+                    "status": "error",
+                    "message": f"Could not check Docker status: {str(e)}",
+                    "suggestion": "Ensure Docker Desktop is installed and running"
+                }
+            
             script_path = project_root / "agents" / "scripts" / "start-agent-infrastructure.sh"
             
             if not script_path.exists():

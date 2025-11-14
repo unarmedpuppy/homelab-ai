@@ -22,7 +22,7 @@ A fully containerized, secure media automation system with VPN kill switch, DNS 
 - **Sonarr**: TV show library management and automatic downloading
 - **Radarr**: Movie library management and automatic downloading
 - **Lidarr**: Music library management and automatic downloading
-- **Readarr**: Book library management and automatic downloading (optional)
+- **Bookshelf**: Book library management and automatic downloading (Readarr fork - optional)
 
 ### Indexers & Aggregators
 - **NZBHydra2**: Usenet search aggregator

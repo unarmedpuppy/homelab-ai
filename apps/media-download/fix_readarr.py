@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Fix Readarr configuration:
+Fix Bookshelf (Readarr fork) configuration:
 1. Configure NZBGet download client with correct credentials
 2. Configure indexers (NZBHydra2 and Jackett)
 3. Test connections
@@ -11,8 +11,8 @@ import json
 import sys
 import xml.etree.ElementTree as ET
 
-# Readarr configuration
-READARR_URL = "http://192.168.86.47:8787/api/v1"
+# Bookshelf configuration (Readarr fork - same API structure)
+BOOKSHELF_URL = "http://192.168.86.47:8787/api/v1"
 # API key will be retrieved from system status or config
 
 # NZBGet configuration (from PIRATE_AGENT_CONTEXT.md)
@@ -30,11 +30,14 @@ JACKETT_HOST = "media-download-jackett"
 JACKETT_PORT = 9117
 
 
-def get_readarr_api_key():
-    """Get Readarr API key from config file or prompt."""
+def get_bookshelf_api_key():
+    """Get Bookshelf API key from config file or prompt."""
     # Try to get from config file (on server)
     config_paths = [
-        "readarr/config/config.xml",
+        "bookshelf/config/config.xml",
+        "../bookshelf/config/config.xml",
+        "./bookshelf/config/config.xml",
+        "readarr/config/config.xml",  # Fallback for migration
         "../readarr/config/config.xml",
         "./readarr/config/config.xml"
     ]
@@ -59,8 +62,8 @@ def get_readarr_api_key():
             return api_key
     
     # Prompt user
-    print("\nReadarr API key not found. Please provide it:")
-    print("You can find it in Readarr: Settings > General > Security > API Key")
+    print("\nBookshelf API key not found. Please provide it:")
+    print("You can find it in Bookshelf: Settings > General > Security > API Key")
     print("Or run this script with the API key as argument: python fix_readarr.py YOUR_API_KEY")
     api_key = input("API Key: ").strip()
     if not api_key:
@@ -72,7 +75,7 @@ def get_readarr_api_key():
 def get_download_clients(api_key):
     """Get current download clients."""
     response = requests.get(
-        f"{READARR_URL}/downloadClient",
+        f"{BOOKSHELF_URL}/downloadClient",
         headers={"X-Api-Key": api_key},
         timeout=10
     )
@@ -174,12 +177,12 @@ def add_nzbget_client(api_key):
     if nzbget_client:
         # Update existing client
         nzbget_config["id"] = nzbget_client["id"]
-        url = f"{READARR_URL}/downloadClient/{nzbget_client['id']}"
+        url = f"{BOOKSHELF_URL}/downloadClient/{nzbget_client['id']}"
         method = requests.put
         print(f"Updating existing NZBGet client (ID: {nzbget_client['id']})...")
     else:
         # Add new client
-        url = f"{READARR_URL}/downloadClient"
+        url = f"{BOOKSHELF_URL}/downloadClient"
         method = requests.post
         print("Adding new NZBGet download client...")
     
@@ -214,7 +217,7 @@ def test_nzbget_connection(api_key):
     
     # Test the connection
     response = requests.post(
-        f"{READARR_URL}/downloadClient/test",
+        f"{BOOKSHELF_URL}/downloadClient/test",
         headers={"X-Api-Key": api_key, "Content-Type": "application/json"},
         json=nzbget_client,
         timeout=10
@@ -241,7 +244,7 @@ def test_nzbget_connection(api_key):
 def get_indexers(api_key):
     """Get current indexers."""
     response = requests.get(
-        f"{READARR_URL}/indexer",
+        f"{BOOKSHELF_URL}/indexer",
         headers={"X-Api-Key": api_key},
         timeout=10
     )
@@ -371,12 +374,12 @@ def add_nzbhydra2_indexer(api_key, nzbhydra2_api_key):
     if nzbhydra2_indexer:
         # Update existing indexer
         nzbhydra2_config["id"] = nzbhydra2_indexer["id"]
-        url = f"{READARR_URL}/indexer/{nzbhydra2_indexer['id']}"
+        url = f"{BOOKSHELF_URL}/indexer/{nzbhydra2_indexer['id']}"
         method = requests.put
         print(f"Updating existing NZBHydra2 indexer (ID: {nzbhydra2_indexer['id']})...")
     else:
         # Add new indexer
-        url = f"{READARR_URL}/indexer"
+        url = f"{BOOKSHELF_URL}/indexer"
         method = requests.post
         print("Adding new NZBHydra2 indexer...")
     
@@ -433,16 +436,16 @@ def add_jackett_indexer(api_key, jackett_api_key):
     # First, try to get configured Jackett indexers from Jackett API
     jackett_indexers = get_jackett_indexers(jackett_api_key)
     
-    # Get existing Readarr indexers
-    readarr_indexers = get_indexers(api_key)
+    # Get existing Bookshelf indexers (reuse variable name for consistency)
+    bookshelf_indexers = get_indexers(api_key)
     
     # Find existing Torznab indexers that point to Jackett
     existing_jackett_indexers = []
-    for readarr_idx in readarr_indexers:
-        if readarr_idx.get("implementation") == "Torznab":
+    for bookshelf_idx in bookshelf_indexers:
+        if bookshelf_idx.get("implementation") == "Torznab":
             base_url = None
             api_path = None
-            for field in readarr_idx.get("fields", []):
+            for field in bookshelf_idx.get("fields", []):
                 if field.get("name") == "baseUrl":
                     base_url = field.get("value", "")
                 elif field.get("name") == "apiPath":
@@ -450,19 +453,19 @@ def add_jackett_indexer(api_key, jackett_api_key):
             
             # Check if this points to Jackett
             if base_url and JACKETT_HOST in base_url:
-                existing_jackett_indexers.append(readarr_idx)
+                existing_jackett_indexers.append(bookshelf_idx)
     
     # If we can't fetch from Jackett API, update existing indexers to use individual endpoints
     if not jackett_indexers:
         if existing_jackett_indexers:
-            print(f"Found {len(existing_jackett_indexers)} existing Jackett indexers in Readarr")
-            print("⚠ Cannot fetch from Jackett API - please manually configure indexers in Readarr UI")
+            print(f"Found {len(existing_jackett_indexers)} existing Jackett indexers in Bookshelf")
+            print("⚠ Cannot fetch from Jackett API - please manually configure indexers in Bookshelf UI")
             print("   Each indexer should use: /api/v2.0/indexers/{indexer_id}/results/torznab")
             print("   You can find indexer IDs in Jackett web UI at http://192.168.86.47:9117")
             return None
         else:
             print("⚠ No Jackett indexers found and cannot fetch from API")
-            print("   Please add indexers manually in Readarr UI")
+            print("   Please add indexers manually in Bookshelf UI")
             return None
     
     print(f"Found {len(jackett_indexers)} configured Jackett indexers")
@@ -475,9 +478,9 @@ def add_jackett_indexer(api_key, jackett_api_key):
         indexer_id = jackett_idx.get("id")
         indexer_name = jackett_idx.get("name", f"Jackett-{indexer_id}")
         
-        # Check if this indexer already exists in Readarr
+        # Check if this indexer already exists in Bookshelf
         existing_indexer = None
-        for readarr_idx in readarr_indexers:
+        for bookshelf_idx in readarr_indexers:
             if readarr_idx.get("implementation") == "Torznab":
                 # Check if this is the same Jackett indexer
                 base_url = None
@@ -566,13 +569,13 @@ def add_jackett_indexer(api_key, jackett_api_key):
         if existing_indexer:
             # Update existing indexer
             jackett_config["id"] = existing_indexer["id"]
-            url = f"{READARR_URL}/indexer/{existing_indexer['id']}"
+            url = f"{BOOKSHELF_URL}/indexer/{existing_indexer['id']}"
             method = requests.put
             print(f"  Updating {indexer_name} (ID: {existing_indexer['id']})...")
             updated_count += 1
         else:
             # Add new indexer
-            url = f"{READARR_URL}/indexer"
+            url = f"{BOOKSHELF_URL}/indexer"
             method = requests.post
             print(f"  Adding {indexer_name}...")
             added_count += 1
@@ -619,39 +622,39 @@ def get_jackett_api_key():
 
 def main():
     print("=" * 60)
-    print("Readarr Configuration Fix")
+    print("Bookshelf Configuration Fix")
     print("=" * 60)
     
-    # Get Readarr API key
-    print("\n[1/5] Getting Readarr API key...")
-    readarr_api_key = get_readarr_api_key()
-    if not readarr_api_key:
-        print("✗ Readarr API key required")
+    # Get Bookshelf API key
+    print("\n[1/5] Getting Bookshelf API key...")
+    bookshelf_api_key = get_bookshelf_api_key()
+    if not bookshelf_api_key:
+        print("✗ Bookshelf API key required")
         sys.exit(1)
-    print("✓ Readarr API key obtained")
+    print("✓ Bookshelf API key obtained")
     
     # Configure NZBGet download client
     print("\n[2/5] Configuring NZBGet download client...")
-    nzbget_result = add_nzbget_client(readarr_api_key)
+    nzbget_result = add_nzbget_client(bookshelf_api_key)
     if nzbget_result:
         # Test connection
         print("\n[3/5] Testing NZBGet connection...")
-        test_nzbget_connection(readarr_api_key)
+        test_nzbget_connection(bookshelf_api_key)
     
     # Configure indexers
     print("\n[4/5] Configuring indexers...")
     nzbhydra2_api_key = get_nzbhydra2_api_key()
-    add_nzbhydra2_indexer(readarr_api_key, nzbhydra2_api_key)
+    add_nzbhydra2_indexer(bookshelf_api_key, nzbhydra2_api_key)
     
     jackett_api_key = get_jackett_api_key()
-    add_jackett_indexer(readarr_api_key, jackett_api_key)
+    add_jackett_indexer(bookshelf_api_key, jackett_api_key)
     
     print("\n[5/5] Configuration complete!")
     print("\nNext steps:")
-    print("1. Verify download clients in Readarr: Settings > Download Clients")
-    print("2. Verify indexers in Readarr: Settings > Indexers")
-    print("3. Test a search in Readarr to verify indexers are working")
-    print("4. If issues persist, check Readarr logs")
+    print("1. Verify download clients in Bookshelf: Settings > Download Clients")
+    print("2. Verify indexers in Bookshelf: Settings > Indexers")
+    print("3. Test a search in Bookshelf to verify indexers are working")
+    print("4. If issues persist, check Bookshelf logs")
 
 
 if __name__ == "__main__":

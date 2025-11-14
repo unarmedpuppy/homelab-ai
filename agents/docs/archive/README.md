@@ -54,8 +54,20 @@ This directory contains completed proposals, plans, and historical documentation
   - **Reason**: Historical reference only
 
 - **`FINAL_REVIEW_CHECKLIST.md`** - Final review checklist
-  - **Status**: ✅ Review complete
-  - **Reason**: Historical reference only
+         - **Status**: ✅ Review complete
+         - **Reason**: Historical reference only
+
+- **`AGENT_SYSTEM_ENHANCEMENT_PLAN.md`** - Enhancement opportunities plan
+         - **Status**: ⚠️ Partially implemented
+         - **Reason**: Many enhancements (skill auto-activation, dev docs, quality checks) have been implemented. Archived as historical reference.
+
+- **`FRAMEWORK_PREFERENCES.md`** - Technology stack preferences
+         - **Status**: ⚠️ Not actively referenced
+         - **Reason**: Not referenced in any documentation or prompts. May be useful but not currently used.
+
+- **`QUICK_COMMANDS.md`** - Command reference shortcuts
+         - **Status**: ⚠️ Not actively referenced
+         - **Reason**: Not referenced in README or prompts. See `QUICK_START.md` for quick reference instead.
 
 ## Why Archived?
 

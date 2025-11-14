@@ -170,6 +170,48 @@ See `agents/skills/README.md` for complete catalog.
 - **When to use**: Adding HTTPS routing for a service
 - **MCP Tools**: `read_file`, `write_file`, `docker_compose_restart`, `test_connectivity`
 
+### Development Skills
+
+#### `architecture-analysis` ✅
+**Analyze system architecture, identify gaps, and create reality-checked implementation plans**
+
+- **When to use**: Reviewing new protocols/standards, auditing current system, identifying gaps, creating realistic plans
+- **MCP Tools**: `codebase_search`, `read_file`, `list_dir`, `grep`
+- **Purpose**: Ensure implementation plans are grounded in actual system capabilities
+- **Includes**: Architecture analysis workflow, reality checking, NOW vs. LATER identification
+
+#### `implementation-planning` ✅
+**Create detailed implementation plans with NOW vs. LATER designation for phased implementation**
+
+- **When to use**: Creating detailed plans, phasing features, preserving future plans, documenting migration paths
+- **MCP Tools**: `read_file`, `write`, `codebase_search`
+- **Purpose**: Create actionable NOW plans while preserving detailed LATER plans
+- **Includes**: NOW vs. LATER structure, migration paths, phased implementation
+
+#### `code-implementation` ✅
+**Implement code following existing patterns, testing as you go, and integrating with MCP tools**
+
+- **When to use**: Implementing features from plans, following existing patterns, creating MCP tools, integrating systems
+- **MCP Tools**: `read_file`, `write`, `codebase_search`, `grep`, `run_terminal_cmd`
+- **Purpose**: Ensure code follows established patterns and integrates properly
+- **Includes**: Pattern following, incremental implementation, MCP tool creation, testing
+
+#### `testing-validation` ✅
+**Test implementations incrementally, validate components, and verify integration**
+
+- **When to use**: Testing new implementations, validating functionality, verifying integration, checking for errors
+- **MCP Tools**: `run_terminal_cmd`, `read_file`, `read_lints`
+- **Purpose**: Ensure implementations are tested and validated before completion
+- **Includes**: Incremental testing, component validation, integration testing, error checking
+
+#### `documentation-creation` ✅
+**Create comprehensive documentation following established patterns and formats**
+
+- **When to use**: Documenting implementations, creating README files, writing usage guides, documenting decisions
+- **MCP Tools**: `write`, `read_file`
+- **Purpose**: Ensure documentation is comprehensive and follows patterns
+- **Includes**: Documentation structure, examples, integration points, test results
+
 ## Skill Structure
 
 Each skill follows this structure:
@@ -285,18 +327,15 @@ Skills **must** use MCP tools. They don't replace tools, they orchestrate them:
 
 ## Status
 
-- ✅ **8 skills implemented**:
-  - `standard-deployment` - Complete deployment workflow
-  - `troubleshoot-container-failure` - Container diagnostics
-  - `system-health-check` - Comprehensive system verification
-  - `troubleshoot-stuck-downloads` - Download queue issues
-  - `cleanup-disk-space` - Clean up disk space systematically
-  - `add-root-folder` - Add root folders to Sonarr/Radarr
-  - `add-subdomain` - Subdomain configuration
-  - `agent-self-documentation` - Agent documentation organization
+- ✅ **13 skills implemented**:
+  - **Deployment**: `standard-deployment`, `deploy-new-service`
+  - **Troubleshooting**: `troubleshoot-container-failure`, `troubleshoot-stuck-downloads`
+  - **Maintenance**: `system-health-check`, `cleanup-disk-space`
+  - **Configuration**: `add-subdomain`, `add-root-folder`, `agent-self-documentation`
+  - **Development**: `architecture-analysis`, `implementation-planning`, `code-implementation`, `testing-validation`, `documentation-creation`
 - ⏳ **5 skills planned**: See catalog above
 
-**Total**: 8 implemented, 5 planned = 13 skills
+**Total**: 13 implemented, 5 planned = 18 skills
 
 ## Contributing
 

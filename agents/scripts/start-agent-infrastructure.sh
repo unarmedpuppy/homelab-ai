@@ -30,6 +30,64 @@ if ! command -v docker-compose &> /dev/null && ! command -v docker &> /dev/null;
     exit 1
 fi
 
+# Check if Docker daemon is running
+if ! docker info &> /dev/null; then
+    echo -e "${YELLOW}Docker daemon is not running${NC}"
+    echo ""
+    
+    # Try to start Docker Desktop on macOS
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        echo "Attempting to start Docker Desktop..."
+        if open -a Docker &> /dev/null; then
+            echo -e "${GREEN}✓ Docker Desktop launch command sent${NC}"
+            echo ""
+            echo "Waiting for Docker to start (this may take 30-60 seconds)..."
+            
+            # Wait for Docker to become available (max 60 seconds)
+            local max_wait=60
+            local waited=0
+            while [ $waited -lt $max_wait ]; do
+                if docker info &> /dev/null; then
+                    echo -e "${GREEN}✓ Docker is now running!${NC}"
+                    echo ""
+                    break
+                fi
+                sleep 2
+                waited=$((waited + 2))
+                echo -n "."
+            done
+            echo ""
+            
+            if ! docker info &> /dev/null; then
+                echo -e "${RED}Error: Docker did not start within $max_wait seconds${NC}"
+                echo ""
+                echo "Please:"
+                echo "  1. Check if Docker Desktop is starting (look for whale icon in menu bar)"
+                echo "  2. Wait for Docker to fully start"
+                echo "  3. Run this script again"
+                echo ""
+                exit 1
+            fi
+        else
+            echo -e "${RED}Could not start Docker Desktop automatically${NC}"
+            echo ""
+            echo "Please start Docker Desktop manually:"
+            echo "  1. Open Docker Desktop application"
+            echo "  2. Wait for Docker to start (whale icon in menu bar)"
+            echo "  3. Run this script again"
+            echo ""
+            exit 1
+        fi
+    else
+        echo -e "${RED}Error: Docker daemon is not running${NC}"
+        echo ""
+        echo "Please start Docker service:"
+        echo "  sudo systemctl start docker"
+        echo ""
+        exit 1
+    fi
+fi
+
 # Use docker compose (v2) if available, otherwise docker-compose (v1)
 if docker compose version &> /dev/null; then
     DOCKER_COMPOSE="docker compose"

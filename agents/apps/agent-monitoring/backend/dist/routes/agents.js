@@ -43,6 +43,32 @@ function createAgentsRouter(dbService) {
             });
         }
     });
+    // POST /api/agents/status - Update agent status
+    router.post('/status', (req, res) => {
+        try {
+            const { agent_id, status, current_task_id, progress, blockers } = req.body;
+            // Validate required fields
+            if (!agent_id || !status) {
+                res.status(400).json({
+                    status: 'error',
+                    message: 'agent_id and status are required'
+                });
+                return;
+            }
+            const statusId = dbService.updateAgentStatus(agent_id, status, current_task_id, progress, blockers);
+            res.json({
+                status: 'success',
+                status_id: statusId,
+                message: 'Agent status updated successfully'
+            });
+        }
+        catch (error) {
+            res.status(500).json({
+                status: 'error',
+                message: error.message
+            });
+        }
+    });
     // GET /api/agents/:id - Get agent details
     router.get('/:id', (req, res) => {
         try {

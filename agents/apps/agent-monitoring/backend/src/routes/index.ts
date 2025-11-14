@@ -8,4 +8,5 @@ export { createStatsRouter } from './stats';
 export { createTasksRouter } from './tasks';
 export { createInfluxDBRouter } from './influxdb';
 export { createSessionsRouter } from './sessions';
+export { createA2ARouter } from './a2a';
 

@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "home-server": {
+      "command": "/opt/homebrew/bin/python3",
+      "args": [
+        "/Users/joshuajenquist/repos/personal/home-server/agents/apps/agent-mcp/server.py"
+      ],
+      "env": {
+        "AGENT_MONITORING_API_URL": "http://localhost:3001",
+        "PYTHONPATH": "/Users/joshuajenquist/repos/personal/home-server"
+      }
+    }
+  }
+}
+

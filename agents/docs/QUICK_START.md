@@ -1,10 +1,164 @@
 # Agent Quick Start Guide
 
-**5-minute guide to get started as an agent on the home server project.**
+**Complete guide to set up and get started as an agent on the home server project.**
+
+## 📋 Prerequisites
+
+Before starting, ensure you have:
+- ✅ **Docker Desktop** installed (will be started automatically if needed)
+- ✅ **Python 3.8+** installed
+- ✅ **Cursor** or **VS Code with Copilot** installed
+- ✅ **Git** installed
+
+## 🔧 Initial Setup (One-Time)
+
+### Step 1: Install MCP Server Dependencies
+
+**Why**: The MCP server runs **locally on your machine** (not in Docker) because Cursor uses stdio transport, which requires spawning the server as a subprocess. The server then connects to your remote server via SSH to execute commands.
+
+```bash
+cd /Users/joshuajenquist/repos/personal/home-server
+cd agents/apps/agent-mcp
+pip install -r requirements.txt
+```
+
+**Note**: The MCP server runs locally, but it connects to your remote server (192.168.86.47) via SSH to execute Docker commands and manage services. See `agents/apps/agent-mcp/DOCKER_SETUP.md` for Docker-based deployment (advanced, for server-side execution).
+
+### Step 2: Configure MCP Server in Cursor
+
+**For Cursor:**
+
+1. Open Cursor settings/preferences
+2. Find MCP server configuration (or edit config file directly)
+3. Add the MCP server configuration:
+
+**macOS**: Edit `~/Library/Application Support/Cursor/User/globalStorage/mcp.json` or check Cursor settings UI
+
+**Windows**: Edit `%APPDATA%\Cursor\User\globalStorage\mcp.json`
+
+**Linux**: Edit `~/.config/Cursor/User/globalStorage/mcp.json`
+
+**Configuration** (add to your MCP servers config):
+
+```json
+{
+  "mcpServers": {
+    "home-server": {
+      "command": "python",
+      "args": [
+        "/Users/joshuajenquist/repos/personal/home-server/agents/apps/agent-mcp/server.py"
+      ],
+      "env": {
+        "SONARR_API_KEY": "your-sonarr-api-key",
+        "RADARR_API_KEY": "your-radarr-api-key"
+      }
+    }
+  }
+}
+```
+
+**Note**: Replace the path with your actual project path, and add API keys if needed.
+
+### Step 3: Configure MCP Server in VS Code with Copilot
+
+**For VS Code with GitHub Copilot:**
+
+VS Code doesn't natively support MCP servers like Cursor does. You have two options:
+
+**Option A: Use Cursor** (Recommended - has native MCP support)
+
+**Option B: Run MCP server manually** (Advanced):
+```bash
+# In a terminal, run:
+cd /Users/joshuajenquist/repos/personal/home-server/agents/apps/agent-mcp
+python server.py
+# Then use MCP client tools or direct API calls
+```
+
+### Step 4: Restart Cursor/VS Code
+
+**Important**: After configuring the MCP server, restart Cursor/VS Code to load the configuration.
+
+### Step 5: Verify MCP Server is Running
+
+1. Open a new chat/conversation in Cursor
+2. Try calling an MCP tool (e.g., "List Docker containers")
+3. If tools are available, MCP server is working! ✅
+
+**If tools aren't available:**
+- Check Cursor logs for MCP server errors
+- Verify the path to `server.py` is correct
+- Ensure Python dependencies are installed
+- See `agents/apps/agent-mcp/README.md` for troubleshooting
+
+## 🚀 Starting Your First Agent Session
+
+### Option A: Using the Base Prompt (Recommended)
+
+**In Cursor, start a new chat and paste:**
+
+```
+I am an AI agent working on the home server project. 
+
+Please read and follow the agent prompt: agents/prompts/base.md
+
+I will start by following the discovery workflow in that prompt.
+```
+
+**The agent will automatically:**
+1. Read the base prompt
+2. Start infrastructure (Docker Desktop + monitoring services)
+3. Start monitoring session
+4. Check messages, memory, skills, etc.
+5. Begin work following all guidelines
+
+### Option B: Direct Instructions
+
+**In Cursor, start a new chat and say:**
+
+```
+I need to start working on the home server project. Please:
+
+1. Start the agent infrastructure (monitoring services)
+2. Start my monitoring session (agent-001)
+3. Check for messages from other agents
+4. Query memory for past decisions
+5. Check for relevant skills
+6. Show me available tasks
+
+Follow the workflow in agents/prompts/base.md
+```
+
+### Option C: Reference the Prompt File
+
+**In Cursor, start a new chat and say:**
+
+```
+@agents/prompts/base.md
+
+I am agent-001. Please follow this prompt and start the discovery workflow.
+```
 
 ## 🚀 Essential Steps (Do These First!)
 
-### Step 0: Start Monitoring (30 seconds)
+### Step 0: Start Infrastructure (30 seconds)
+
+**CRITICAL**: Start agent infrastructure before doing anything else.
+
+**Option A: Using MCP Tool** (if available):
+```python
+await start_agent_infrastructure()
+```
+
+**Option B: Using Script** (fallback):
+```bash
+cd /Users/joshuajenquist/repos/personal/home-server
+./agents/scripts/start-agent-infrastructure.sh
+```
+
+**Verify**: Check dashboard at `http://localhost:3012`
+
+### Step 0.5: Start Monitoring (30 seconds)
 
 **CRITICAL**: Make yourself visible before doing anything:
 

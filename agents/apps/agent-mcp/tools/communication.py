@@ -18,6 +18,15 @@ sys.path.insert(0, str(project_root))
 from mcp.server import Server
 from tools.logging_decorator import with_automatic_logging
 
+# Try to import A2A modules (optional)
+try:
+    sys.path.insert(0, str(project_root / "agents" / "communication"))
+    from a2a import to_a2a_format, from_a2a_format, validate_a2a_message
+    from a2a.agentcard import create_agentcard, get_agentcard, list_agentcards, update_agentcard
+    A2A_AVAILABLE = True
+except ImportError:
+    A2A_AVAILABLE = False
+
 
 # Paths for communication
 COMMUNICATION_DIR = project_root / "agents" / "communication"
@@ -508,3 +517,83 @@ def register_communication_tools(server: Server):
                 "message": str(e)
             }
 
+
+    # A2A Protocol Tools (if A2A modules available)
+    if A2A_AVAILABLE:
+        @server.tool()
+        @with_automatic_logging()
+        async def send_a2a_message(
+            from_agent: str,
+            to_agent: str,
+            type: str,
+            priority: str,
+            subject: str,
+            content: str,
+            related_task_id: Optional[str] = None,
+            related_message_id: Optional[str] = None
+        ) -> Dict[str, Any]:
+            """Send a message using A2A protocol format (JSON-RPC 2.0)."""
+            try:
+                import requests
+                a2a_request = {
+                    "jsonrpc": "2.0",
+                    "id": f"req-{datetime.now().isoformat()}",
+                    "method": "a2a.sendMessage",
+                    "params": {
+                        "from": from_agent,
+                        "to": to_agent,
+                        "type": type,
+                        "priority": priority,
+                        "subject": subject,
+                        "content": content,
+                        "metadata": {
+                            "related_task_id": related_task_id,
+                            "related_message_id": related_message_id
+                        }
+                    }
+                }
+                is_valid, error_msg = validate_a2a_message(a2a_request)
+                if not is_valid:
+                    return {"status": "error", "message": f"Invalid A2A format: {error_msg}"}
+                response = requests.post("http://localhost:3001/a2a", json=a2a_request, timeout=10)
+                if response.status_code == 200:
+                    result = response.json()
+                    return {
+                        "status": "success",
+                        "message_id": result.get("result", {}).get("message_id"),
+                        "message": f"Message sent via A2A to {to_agent}"
+                    }
+                return {"status": "error", "message": f"A2A error: {response.status_code}"}
+            except Exception as e:
+                return {"status": "error", "error_type": type(e).__name__, "message": str(e)}
+        
+        @server.tool()
+        @with_automatic_logging()
+        async def create_agentcard_tool(agent_id: str, name: str, capabilities: str) -> Dict[str, Any]:
+            """Create an AgentCard for A2A protocol agent discovery."""
+            try:
+                capabilities_list = [c.strip() for c in capabilities.split(",")]
+                card = create_agentcard(agent_id=agent_id, name=name, capabilities=capabilities_list)
+                return {"status": "success", "message": f"AgentCard created for {agent_id}", "agentcard": card.to_dict()}
+            except Exception as e:
+                return {"status": "error", "error_type": type(e).__name__, "message": str(e)}
+        
+        @server.tool()
+        @with_automatic_logging()
+        async def get_agentcard_tool(agent_id: str) -> Dict[str, Any]:
+            """Get AgentCard by agent ID."""
+            try:
+                card = get_agentcard(agent_id)
+                return {"status": "success", "agentcard": card.to_dict()} if card else {"status": "error", "message": f"AgentCard not found: {agent_id}"}
+            except Exception as e:
+                return {"status": "error", "error_type": type(e).__name__, "message": str(e)}
+        
+        @server.tool()
+        @with_automatic_logging()
+        async def list_agentcards_tool() -> Dict[str, Any]:
+            """List all available AgentCards."""
+            try:
+                cards = list_agentcards()
+                return {"status": "success", "count": len(cards), "agentcards": [card.to_dict() for card in cards]}
+            except Exception as e:
+                return {"status": "error", "error_type": type(e).__name__, "message": str(e)}

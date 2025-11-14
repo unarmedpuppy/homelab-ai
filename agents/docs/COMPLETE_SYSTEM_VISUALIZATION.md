@@ -24,49 +24,75 @@
 
 The agent system is a comprehensive, self-improving ecosystem for managing home server infrastructure through AI agents. It provides structured workflows, observability, and coordination mechanisms.
 
+**Architecture**: **Local-First** - All agent infrastructure runs locally on your machine.
+
 ```mermaid
 graph TB
-    subgraph "Entry Points"
-        A[New Agent Session] --> B[QUICK_START.md]
-        B --> C[prompts/base.md]
-        C --> D[SERVER_prompts/base.md]
+    subgraph "Local Machine"
+        subgraph "Entry Points"
+            A[New Agent Session] --> B[Start Infrastructure]
+            B --> C[QUICK_START.md]
+            C --> D[prompts/base.md]
+            D --> E[prompts/server.md]
+        end
+        
+        subgraph "Infrastructure Layer"
+            F[Agent Monitoring<br/>localhost:3001/3012]
+            G[Grafana<br/>localhost:3011]
+            H[InfluxDB<br/>localhost:8087]
+        end
+        
+        subgraph "Core Systems"
+            I[Task Coordination]
+            J[Agent Communication]
+            K[Memory System<br/>Local SQLite]
+            L[Agent Registry]
+        end
+        
+        subgraph "Tool Ecosystem"
+            M[MCP Server<br/>71 Tools<br/>Local Python]
+            N[Skills Library<br/>Reusable Workflows]
+        end
+        
+        subgraph "Observability"
+            O[Monitoring Dashboard<br/>localhost:3012]
+            P[Grafana Metrics<br/>localhost:3011]
+            Q[Activity Logs<br/>Local SQLite]
+        end
     end
     
-    subgraph "Core Systems"
-        E[Task Coordination]
-        F[Agent Communication]
-        G[Memory System]
-        H[Agent Monitoring]
-        I[Agent Registry]
+    subgraph "Server (192.168.86.47)"
+        R[Docker Services]
+        S[Media Download]
+        T[Other Services]
     end
     
-    subgraph "Tool Ecosystem"
-        J[MCP Server<br/>68 Tools]
-        K[Skills Library<br/>Reusable Workflows]
-    end
-    
-    subgraph "Observability"
-        L[Monitoring Dashboard]
-        M[Grafana Metrics]
-        N[Activity Logs]
-    end
-    
-    C --> E
-    C --> F
-    C --> G
-    C --> H
+    B --> F
+    C --> I
     C --> J
     C --> K
+    C --> M
+    C --> N
     
-    J --> H
-    K --> J
-    H --> L
-    H --> M
-    H --> N
+    M --> F
+    M --> K
+    N --> M
+    F --> O
+    F --> P
+    F --> Q
     
-    E --> I
-    F --> I
-    G --> I
+    I --> L
+    J --> L
+    K --> L
+    
+    M -.SSH/Network.-> R
+    M -.SSH/Network.-> S
+    M -.SSH/Network.-> T
+    
+    style B fill:#4caf50
+    style F fill:#2196f3
+    style M fill:#ff9800
+    style O fill:#4caf50
 ```
 
 ---
@@ -77,10 +103,12 @@ graph TB
 
 ```mermaid
 flowchart TD
-    Start([New Agent Session]) --> Step1[Read QUICK_START.md<br/>5-minute guide]
+    Start([New Agent Session]) --> Step0[Start Infrastructure<br/>start_agent_infrastructure]
+    Step0 --> Step0_5[Verify Services<br/>check_agent_infrastructure]
+    Step0_5 --> Step1[Read QUICK_START.md<br/>5-minute guide]
     Step1 --> Step2[Read prompts/base.md<br/>Complete guide]
     Step2 --> Step3{Server Management?}
-    Step3 -->|Yes| Step4[Read SERVER_prompts/base.md<br/>Server-specific context]
+    Step3 -->|Yes| Step4[Read prompts/server.md<br/>Server-specific context]
     Step3 -->|No| Step5[Start Monitoring Session]
     Step4 --> Step5
     
@@ -94,6 +122,8 @@ flowchart TD
     Step12 --> Step13[Start Working]
     
     style Start fill:#e1f5ff
+    style Step0 fill:#4caf50
+    style Step0_5 fill:#4caf50
     style Step13 fill:#c8e6c9
 ```
 
@@ -101,23 +131,26 @@ flowchart TD
 
 ```mermaid
 graph TD
-    A[agents/README.md<br/>Main Entry Point] --> B[QUICK_START.md<br/>5-minute guide]
-    A --> C[prompts/base.md<br/>Complete guide]
-    A --> D[docs/README.md<br/>Documentation index]
+    A[agents/README.md<br/>Main Entry Point] --> B[Start Infrastructure<br/>start-agent-infrastructure.sh]
+    A --> C[QUICK_START.md<br/>5-minute guide]
+    A --> D[prompts/base.md<br/>Complete guide]
+    A --> E[docs/README.md<br/>Documentation index]
     
     B --> C
-    C --> E[SERVER_prompts/base.md<br/>Server-specific]
-    C --> F[SYSTEM_ARCHITECTURE.md<br/>System overview]
-    C --> G[DATA_MODEL.md<br/>Data structure]
-    C --> H[COMMUNICATION_GUIDELINES.md<br/>Channel usage]
+    C --> D
+    D --> F[prompts/server.md<br/>Server-specific]
+    D --> G[SYSTEM_ARCHITECTURE.md<br/>System overview]
+    D --> H[DATA_MODEL.md<br/>Data structure]
+    D --> I[COMMUNICATION_GUIDELINES.md<br/>Channel usage]
     
-    D --> I[AGENT_WORKFLOW.md<br/>Workflow guide]
-    D --> J[MCP_TOOL_DISCOVERY.md<br/>Tool discovery]
-    D --> K[WORKFLOW_GENERATOR_PROMPT.md<br/>Meta-prompt]
+    E --> J[AGENT_WORKFLOW.md<br/>Workflow guide]
+    E --> K[MCP_TOOL_DISCOVERY.md<br/>Tool discovery]
+    E --> L[WORKFLOW_GENERATOR_PROMPT.md<br/>Meta-prompt]
     
     style A fill:#ffeb3b
     style B fill:#4caf50
-    style C fill:#2196f3
+    style C fill:#4caf50
+    style D fill:#2196f3
 ```
 
 ---
@@ -144,23 +177,26 @@ graph LR
         C2[Skills Library<br/>skills/]
     end
     
-    subgraph "Execution Layer"
-        D1[MCP Server<br/>68 Tools]
+    subgraph "Infrastructure Layer"
+        D0[Infrastructure Management<br/>3 Tools]
+        D1[MCP Server<br/>71 Tools<br/>Local Python]
         D2[Activity Monitoring<br/>4 Tools]
     end
     
     subgraph "Observability Layer"
-        E1[Monitoring Dashboard<br/>Next.js]
-        E2[Grafana<br/>Time-series]
-        E3[SQLite DB<br/>Activity Logs]
+        E1[Monitoring Dashboard<br/>Next.js<br/>localhost:3012]
+        E2[Grafana<br/>Time-series<br/>localhost:3011]
+        E3[SQLite DB<br/>Activity Logs<br/>Local]
     end
     
     A1 --> B1
     A1 --> B2
     A1 --> C1
+    A1 --> D0
     A1 --> D1
     A1 --> D2
     
+    D0 --> E1
     D1 --> E3
     D2 --> E3
     E3 --> E1
@@ -188,10 +224,16 @@ graph LR
 
 ## Tool Ecosystem
 
-### MCP Tools (68 Total)
+### MCP Tools (71 Total)
 
 ```mermaid
 graph TB
+    subgraph "Infrastructure Management - 3 Tools"
+        A0[start_agent_infrastructure]
+        A0_1[check_agent_infrastructure]
+        A0_2[stop_agent_infrastructure]
+    end
+    
     subgraph "Activity Monitoring - 4 Tools"
         A1[start_agent_session]
         A2[update_agent_status]
@@ -255,6 +297,7 @@ graph TB
         G7[System Utilities - 3 tools]
     end
     
+    style A0 fill:#4caf50
     style A1 fill:#4caf50
     style B1 fill:#2196f3
     style C1 fill:#ff9800
@@ -267,9 +310,11 @@ graph TB
 
 ```mermaid
 flowchart TD
-    Start([Agent Starts]) --> Step0[0. Start Monitoring<br/>start_agent_session]
-    Step0 --> Step0_5[0.5. Check Messages<br/>get_agent_messages]
-    Step0_5 --> Step1[1. Query Memory<br/>memory_query_*]
+    Start([Agent Starts]) --> Step0[0. Start Infrastructure<br/>start_agent_infrastructure]
+    Step0 --> Step0_25[0.25. Verify Services<br/>check_agent_infrastructure]
+    Step0_25 --> Step0_5[0.5. Start Monitoring<br/>start_agent_session]
+    Step0_5 --> Step0_75[0.75. Check Messages<br/>get_agent_messages]
+    Step0_75 --> Step1[1. Query Memory<br/>memory_query_*]
     Step1 --> Step2[2. Check Skills<br/>agents/skills/]
     Step2 --> Step3[3. Check MCP Tools<br/>agents/apps/agent-mcp/]
     Step3 --> Step4[4. Query Tasks<br/>query_tasks]
@@ -281,7 +326,9 @@ flowchart TD
     Step8 --> End([Work Complete])
     
     style Step0 fill:#4caf50
+    style Step0_25 fill:#4caf50
     style Step0_5 fill:#4caf50
+    style Step0_75 fill:#4caf50
     style Step1 fill:#ff9800
     style Step2 fill:#2196f3
     style Step3 fill:#2196f3
@@ -291,40 +338,49 @@ flowchart TD
 
 ## Observability Stack
 
-### Observability Architecture
+### Observability Architecture (Local-First)
 
 ```mermaid
 graph TB
-    subgraph "Agent Actions"
-        A1[MCP Tool Calls]
-        A2[Status Updates]
-        A3[Session Events]
-    end
-    
-    subgraph "Data Collection"
-        B1[Activity Monitoring Tools<br/>4 MCP Tools]
-        B2[Automatic Logging<br/>All MCP Tools]
-    end
-    
-    subgraph "Storage Layer"
-        C1[SQLite DB<br/>agent_activity.db]
-        C2[Agent Status Table]
-        C3[Agent Actions Table]
-        C4[Agent Sessions Table]
-    end
-    
-    subgraph "Visualization Layer"
-        D1[Next.js Dashboard<br/>localhost:3012]
-        D2[Grafana<br/>localhost:3011]
-        D3[InfluxDB<br/>Time-series]
+    subgraph "Local Machine"
+        subgraph "Agent Actions"
+            A1[MCP Tool Calls<br/>Local Python]
+            A2[Status Updates<br/>Local]
+            A3[Session Events<br/>Local]
+        end
+        
+        subgraph "Data Collection"
+            B1[Activity Monitoring Tools<br/>4 MCP Tools]
+            B2[Automatic Logging<br/>All 71 MCP Tools]
+            B3[Activity Logger<br/>Python Module]
+        end
+        
+        subgraph "Backend API (Local)"
+            E1[Node.js API<br/>localhost:3001]
+        end
+        
+        subgraph "Storage Layer (Local)"
+            C1[SQLite DB<br/>agent_activity.db<br/>Local File System]
+            C2[Agent Status Table]
+            C3[Agent Actions Table]
+            C4[Agent Sessions Table]
+        end
+        
+        subgraph "Visualization Layer (Local)"
+            D1[Next.js Dashboard<br/>localhost:3012]
+            D2[Grafana<br/>localhost:3011]
+            D3[InfluxDB<br/>localhost:8087]
+        end
     end
     
     A1 --> B2
     A2 --> B1
     A3 --> B1
     
-    B1 --> C1
-    B2 --> C1
+    B1 --> B3
+    B2 --> B3
+    B3 --> E1
+    E1 --> C1
     
     C1 --> C2
     C1 --> C3
@@ -336,8 +392,10 @@ graph TB
     C3 --> D3
     
     style A1 fill:#e1f5ff
+    style E1 fill:#2196f3
     style D1 fill:#4caf50
     style D2 fill:#ff9800
+    style C1 fill:#9c27b0
 ```
 
 ### Observability Flow
@@ -397,12 +455,12 @@ graph TB
         B2[Automatic Logging]
     end
     
-    subgraph "Data Storage"
-        C1[Monitoring DB<br/>agent_activity.db]
-        C2[Task Registry<br/>registry.md]
-        C3[Message Queue<br/>messages/*.md]
-        C4[Memory DB<br/>memory.db]
-        C5[Agent Registry<br/>agent-registry.md]
+    subgraph "Data Storage (Local)"
+        C1[Monitoring DB<br/>agent_activity.db<br/>Local SQLite]
+        C2[Task Registry<br/>registry.md<br/>Local Markdown]
+        C3[Message Queue<br/>messages/*.md<br/>Local Files]
+        C4[Memory DB<br/>memory.db<br/>Local SQLite]
+        C5[Agent Registry<br/>agent-registry.md<br/>Local Markdown]
     end
     
     subgraph "Sync & Generation"
@@ -780,9 +838,10 @@ flowchart TB
     Start([Agent Session Starts]) --> Onboard[Onboarding]
     
     subgraph Onboarding
+        O0[Start Infrastructure<br/>start_agent_infrastructure]
         O1[Read QUICK_START.md]
         O2[Read prompts/base.md]
-        O3[Read SERVER_prompts/base.md if needed]
+        O3[Read prompts/server.md if needed]
     end
     
     Onboard --> Monitor[Start Monitoring]
@@ -967,7 +1026,11 @@ graph TB
 ### Essential MCP Tools (Use First!)
 
 ```python
-# 1. Start Monitoring (DO THIS FIRST!)
+# 0. Start Infrastructure (DO THIS FIRST!)
+await start_agent_infrastructure()
+# Or: ./agents/scripts/start-agent-infrastructure.sh
+
+# 1. Start Monitoring (DO THIS SECOND!)
 start_agent_session(agent_id="your-agent-id")
 update_agent_status(agent_id="your-agent-id", status="active", current_task_id="T1.1")
 
@@ -1014,15 +1077,17 @@ end_agent_session(agent_id="your-agent-id", session_id="...", tasks_completed=1)
 
 ### Current System State
 
-- **Total MCP Tools**: 68 tools
+- **Total MCP Tools**: 71 tools
 - **Skills Available**: 7+ reusable workflows
 - **Documentation Files**: 30+ markdown files
-- **Active Systems**: 6 core systems
-- **Storage Locations**: 5 primary storage systems
-- **Observability**: 3 visualization layers
+- **Active Systems**: 7 core systems
+- **Storage Locations**: 5 primary storage systems (all local)
+- **Observability**: 3 visualization layers (all localhost)
+- **Architecture**: Local-first (all infrastructure runs locally)
 
 ### Tool Breakdown
 
+- Infrastructure Management: 3 tools ⭐ NEW
 - Activity Monitoring: 4 tools
 - Agent Communication: 5 tools
 - Memory Management: 9 tools
@@ -1037,23 +1102,28 @@ end_agent_session(agent_id="your-agent-id", session_id="...", tasks_completed=1)
 
 This agent system provides:
 
+✅ **Local-First Architecture** - All infrastructure runs locally (localhost)  
 ✅ **Structured Onboarding** - Clear entry points and documentation hierarchy  
-✅ **Comprehensive Tooling** - 68 MCP tools for all operations  
-✅ **Full Observability** - Dashboard, Grafana, and activity logs  
+✅ **Comprehensive Tooling** - 71 MCP tools for all operations  
+✅ **Full Observability** - Dashboard (localhost:3012), Grafana (localhost:3011), and activity logs  
 ✅ **Centralized Coordination** - Task, communication, and registry systems  
-✅ **Persistent Memory** - Learn from past decisions and patterns  
+✅ **Persistent Memory** - Learn from past decisions and patterns (local SQLite)  
 ✅ **Self-Improvement** - Pattern learning and auto-skill creation  
 ✅ **Lifecycle Management** - Archive/reactivate agents as needed  
+✅ **Infrastructure Management** - Startup/stop tools for local infrastructure  
 
-**All operations are observable, all data is human-readable, and all systems are integrated.**
+**All operations are observable, all data is human-readable, all systems are integrated, and everything runs locally.**
 
 ---
 
 **Last Updated**: 2025-01-13  
-**Status**: Active  
+**Status**: Active (Local-First Architecture)  
+**Architecture**: All infrastructure runs locally on localhost  
 **See Also**:
+- `agents/README.md` - Main entry point and directory structure
 - `agents/docs/SYSTEM_ARCHITECTURE.md` - Detailed architecture
 - `agents/docs/DATA_MODEL.md` - Data structure details
 - `agents/docs/COMMUNICATION_GUIDELINES.md` - Communication usage
 - `agents/docs/QUICK_START.md` - Quick start guide
+- `agents/scripts/start-agent-infrastructure.sh` - Infrastructure startup script
 

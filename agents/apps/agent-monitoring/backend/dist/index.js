@@ -14,6 +14,7 @@ const path_1 = __importDefault(require("path"));
 const database_1 = require("./services/database");
 const influxdb_1 = require("./services/influxdb");
 const metricExporter_1 = require("./services/metricExporter");
+const initDatabase_1 = require("./services/initDatabase");
 const routes_1 = require("./routes");
 // Load environment variables
 dotenv_1.default.config();
@@ -30,7 +31,7 @@ if (process.env.NODE_ENV !== 'production') {
     });
 }
 // Database service
-// Default path: apps/agent-monitoring/data/agent_activity.db
+// Default path: agents/apps/agent-monitoring/data/agent_activity.db
 // When running from dist/, __dirname is dist/, so we go up to backend, then to agent-monitoring
 let defaultDbPath = process.env.DATABASE_PATH;
 if (!defaultDbPath) {
@@ -40,6 +41,8 @@ if (!defaultDbPath) {
     // Resolve to absolute path
     defaultDbPath = path_1.default.resolve(defaultDbPath);
 }
+// Initialize database schema if needed
+(0, initDatabase_1.initializeDatabase)(defaultDbPath);
 const dbService = new database_1.DatabaseService(defaultDbPath);
 console.log(`📊 Database path: ${defaultDbPath}`);
 // InfluxDB service (optional)
@@ -67,6 +70,8 @@ app.use('/api/actions', (0, routes_1.createActionsRouter)(dbService));
 app.use('/api/stats', (0, routes_1.createStatsRouter)(dbService));
 app.use('/api/tasks', (0, routes_1.createTasksRouter)());
 app.use('/api/influxdb', (0, routes_1.createInfluxDBRouter)(influxService));
+app.use('/api/sessions', (0, routes_1.createSessionsRouter)(dbService));
+app.use('/a2a', (0, routes_1.createA2ARouter)(dbService));
 // Health check
 app.get('/health', (_req, res) => {
     res.json({
@@ -86,6 +91,7 @@ app.get('/', (_req, res) => {
             stats: '/api/stats',
             tasks: '/api/tasks',
             influxdb: '/api/influxdb',
+            a2a: '/a2a',
             health: '/health'
         }
     });
