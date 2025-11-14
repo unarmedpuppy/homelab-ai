@@ -430,16 +430,42 @@ def add_jackett_indexer(api_key, jackett_api_key):
         print("Skipping Jackett indexers (no API key provided)")
         return None
     
-    # Get configured Jackett indexers
+    # First, try to get configured Jackett indexers from Jackett API
     jackett_indexers = get_jackett_indexers(jackett_api_key)
-    if not jackett_indexers:
-        print("⚠ No configured Jackett indexers found. Skipping.")
-        return None
-    
-    print(f"Found {len(jackett_indexers)} configured Jackett indexers")
     
     # Get existing Readarr indexers
     readarr_indexers = get_indexers(api_key)
+    
+    # Find existing Torznab indexers that point to Jackett
+    existing_jackett_indexers = []
+    for readarr_idx in readarr_indexers:
+        if readarr_idx.get("implementation") == "Torznab":
+            base_url = None
+            api_path = None
+            for field in readarr_idx.get("fields", []):
+                if field.get("name") == "baseUrl":
+                    base_url = field.get("value", "")
+                elif field.get("name") == "apiPath":
+                    api_path = field.get("value", "")
+            
+            # Check if this points to Jackett
+            if base_url and JACKETT_HOST in base_url:
+                existing_jackett_indexers.append(readarr_idx)
+    
+    # If we can't fetch from Jackett API, update existing indexers to use individual endpoints
+    if not jackett_indexers:
+        if existing_jackett_indexers:
+            print(f"Found {len(existing_jackett_indexers)} existing Jackett indexers in Readarr")
+            print("⚠ Cannot fetch from Jackett API - please manually configure indexers in Readarr UI")
+            print("   Each indexer should use: /api/v2.0/indexers/{indexer_id}/results/torznab")
+            print("   You can find indexer IDs in Jackett web UI at http://192.168.86.47:9117")
+            return None
+        else:
+            print("⚠ No Jackett indexers found and cannot fetch from API")
+            print("   Please add indexers manually in Readarr UI")
+            return None
+    
+    print(f"Found {len(jackett_indexers)} configured Jackett indexers")
     
     # Track which indexers we've added/updated
     added_count = 0
