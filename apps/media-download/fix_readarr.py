@@ -323,46 +323,53 @@ def add_nzbhydra2_indexer(api_key, nzbhydra2_api_key):
                 "order": 0,
                 "name": "baseUrl",
                 "label": "URL",
-                "value": f"http://{NZBHYDRA2_HOST}:{NZBHYDRA2_PORT}/nzbhydra2",
+                "value": f"http://{NZBHYDRA2_HOST}:{NZBHYDRA2_PORT}",
                 "type": "textbox"
             },
             {
                 "order": 1,
+                "name": "apiPath",
+                "label": "API Path",
+                "value": "/api",
+                "type": "textbox"
+            },
+            {
+                "order": 2,
                 "name": "apiKey",
                 "label": "API Key",
                 "value": nzbhydra2_api_key,
                 "type": "textbox"
             },
             {
-                "order": 2,
+                "order": 3,
                 "name": "categories",
                 "label": "Categories",
                 "value": [3030, 7000, 7010, 7020, 7030, 7040, 7050, 7060],  # Book categories
                 "type": "select"
             },
             {
-                "order": 3,
+                "order": 4,
                 "name": "animeCategories",
                 "label": "Anime Categories",
                 "value": [],
                 "type": "select"
             },
             {
-                "order": 4,
+                "order": 5,
                 "name": "removeYear",
                 "label": "Remove Year",
                 "value": False,
                 "type": "checkbox"
             },
             {
-                "order": 5,
+                "order": 6,
                 "name": "removeTitle",
                 "label": "Remove Title",
                 "value": False,
                 "type": "checkbox"
             },
             {
-                "order": 6,
+                "order": 7,
                 "name": "searchByTitle",
                 "label": "Search by Title",
                 "value": True,
