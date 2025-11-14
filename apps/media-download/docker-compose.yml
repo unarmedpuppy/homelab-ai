@@ -243,21 +243,21 @@ services:
       - sonarr
       - radarr
 
-  # Books Automation (Bookshelf - Readarr fork)
-  # Using pennydreadful/bookshelf image (Readarr fork with active development)
-  bookshelf:
-    image: ghcr.io/pennydreadful/bookshelf:hardcover
-    container_name: media-download-bookshelf
+  # Books Automation (LazyLibrarian - no Goodreads dependency)
+  # LazyLibrarian works with Open Library and other metadata sources
+  lazylibrarian:
+    image: lscr.io/linuxserver/lazylibrarian:latest
+    container_name: media-download-lazylibrarian
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=${TZ:-America/Chicago}
     volumes:
-      - ./bookshelf/config:/config
+      - ./lazylibrarian/config:/config
       - ${MEDIA_PATH:-/jenquist-cloud/archive/entertainment-media}/books:/books
       - ${DOWNLOAD_PATH:-./downloads}:/downloads
     ports:
-      - "8787:8787"
+      - "8787:5299"
     restart: unless-stopped
     networks:
       - media-download-network
@@ -266,7 +266,7 @@ services:
       - jackett
     labels:
       - "homepage.group=Media Download"
-      - "homepage.name=Bookshelf"
+      - "homepage.name=LazyLibrarian"
       - "homepage.href=http://192.168.86.47:8787"
       - "homepage.icon=readarr.svg"
 
