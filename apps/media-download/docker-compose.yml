@@ -244,10 +244,9 @@ services:
       - radarr
 
   # Books Automation (Bookshelf - Readarr fork)
-  # Note: Using hotio readarr image as Bookshelf is a Readarr fork
-  # The config should be compatible. Update image when Bookshelf-specific image is available.
+  # Using pennydreadful/bookshelf image (Readarr fork with active development)
   bookshelf:
-    image: ghcr.io/hotio/readarr:latest
+    image: ghcr.io/pennydreadful/bookshelf:hardcover
     container_name: media-download-bookshelf
     environment:
       - PUID=1000
