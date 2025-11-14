@@ -395,122 +395,178 @@ def add_nzbhydra2_indexer(api_key, nzbhydra2_api_key):
         return None
 
 
+def get_jackett_indexers(jackett_api_key):
+    """Get list of configured Jackett indexers."""
+    # Try internal hostname first, fall back to external IP
+    jackett_urls = [
+        f"http://{JACKETT_HOST}:{JACKETT_PORT}/api/v2.0/indexers",
+        f"http://192.168.86.47:{JACKETT_PORT}/api/v2.0/indexers"
+    ]
+    
+    for jackett_url in jackett_urls:
+        try:
+            response = requests.get(
+                jackett_url,
+                params={"apikey": jackett_api_key},
+                timeout=10
+            )
+            if response.status_code == 200:
+                indexers = response.json()
+                # Return only configured indexers
+                return [i for i in indexers if i.get("configured")]
+            else:
+                continue  # Try next URL
+        except Exception as e:
+            continue  # Try next URL
+    
+    # If all URLs failed
+    print(f"⚠ Warning: Could not fetch Jackett indexers from any URL")
+    return []
+
+
 def add_jackett_indexer(api_key, jackett_api_key):
-    """Add or update Jackett indexer."""
+    """Add or update individual Jackett indexers."""
     if not jackett_api_key:
-        print("Skipping Jackett indexer (no API key provided)")
+        print("Skipping Jackett indexers (no API key provided)")
         return None
     
-    indexers = get_indexers(api_key)
+    # Get configured Jackett indexers
+    jackett_indexers = get_jackett_indexers(jackett_api_key)
+    if not jackett_indexers:
+        print("⚠ No configured Jackett indexers found. Skipping.")
+        return None
     
-    # Check if Jackett already exists (check for any Torznab indexer pointing to Jackett)
-    jackett_indexer = None
-    for indexer in indexers:
-        if indexer.get("implementation") == "Torznab":
-            # Check baseUrl in fields array
-            base_url = None
-            for field in indexer.get("fields", []):
-                if field.get("name") == "baseUrl":
-                    base_url = field.get("value", "")
-                    break
-            if base_url and JACKETT_HOST in base_url:
-                # Use the one named "Jackett" if it exists, otherwise use first one found
-                if indexer.get("name") == "Jackett" or jackett_indexer is None:
-                    jackett_indexer = indexer
+    print(f"Found {len(jackett_indexers)} configured Jackett indexers")
     
-    # Jackett configuration
-    jackett_config = {
-        "name": "Jackett",
-        "enable": True,
-        "protocol": "torrent",
-        "priority": 1,
-        "implementation": "Torznab",
-        "implementationName": "Torznab",
-        "configContract": "TorznabSettings",
-        "fields": [
-            {
-                "order": 0,
-                "name": "baseUrl",
-                "label": "URL",
-                "value": f"http://{JACKETT_HOST}:{JACKETT_PORT}",
-                "type": "textbox"
-            },
-            {
-                "order": 1,
-                "name": "apiPath",
-                "label": "API Path",
-                "value": "/api/v2.0/indexers/all/results/torznab",
-                "type": "textbox"
-            },
-            {
-                "order": 2,
-                "name": "apiKey",
-                "label": "API Key",
-                "value": jackett_api_key,
-                "type": "textbox"
-            },
-            {
-                "order": 3,
-                "name": "categories",
-                "label": "Categories",
-                "value": [3030, 7000, 7010, 7020, 7030, 7040, 7050, 7060],  # Book categories
-                "type": "select"
-            },
-            {
-                "order": 3,
-                "name": "animeCategories",
-                "label": "Anime Categories",
-                "value": [],
-                "type": "select"
-            },
-            {
-                "order": 4,
-                "name": "removeYear",
-                "label": "Remove Year",
-                "value": False,
-                "type": "checkbox"
-            },
-            {
-                "order": 5,
-                "name": "removeTitle",
-                "label": "Remove Title",
-                "value": False,
-                "type": "checkbox"
-            },
-            {
-                "order": 6,
-                "name": "searchByTitle",
-                "label": "Search by Title",
-                "value": True,
-                "type": "checkbox"
-            }
-        ]
-    }
+    # Get existing Readarr indexers
+    readarr_indexers = get_indexers(api_key)
     
-    if jackett_indexer:
-        # Update existing indexer
-        jackett_config["id"] = jackett_indexer["id"]
-        url = f"{READARR_URL}/indexer/{jackett_indexer['id']}"
-        method = requests.put
-        print(f"Updating existing Jackett indexer (ID: {jackett_indexer['id']})...")
+    # Track which indexers we've added/updated
+    added_count = 0
+    updated_count = 0
+    
+    for jackett_idx in jackett_indexers:
+        indexer_id = jackett_idx.get("id")
+        indexer_name = jackett_idx.get("name", f"Jackett-{indexer_id}")
+        
+        # Check if this indexer already exists in Readarr
+        existing_indexer = None
+        for readarr_idx in readarr_indexers:
+            if readarr_idx.get("implementation") == "Torznab":
+                # Check if this is the same Jackett indexer
+                base_url = None
+                api_path = None
+                for field in readarr_idx.get("fields", []):
+                    if field.get("name") == "baseUrl":
+                        base_url = field.get("value", "")
+                    elif field.get("name") == "apiPath":
+                        api_path = field.get("value", "")
+                
+                # Check if this matches our Jackett indexer
+                if base_url and JACKETT_HOST in base_url:
+                    if api_path and str(indexer_id) in api_path:
+                        existing_indexer = readarr_idx
+                        break
+        
+        # Build configuration for this indexer
+        jackett_config = {
+            "name": f"Jackett-{indexer_name}",
+            "enable": True,
+            "protocol": "torrent",
+            "priority": 1,
+            "implementation": "Torznab",
+            "implementationName": "Torznab",
+            "configContract": "TorznabSettings",
+            "fields": [
+                {
+                    "order": 0,
+                    "name": "baseUrl",
+                    "label": "URL",
+                    "value": f"http://{JACKETT_HOST}:{JACKETT_PORT}",
+                    "type": "textbox"
+                },
+                {
+                    "order": 1,
+                    "name": "apiPath",
+                    "label": "API Path",
+                    "value": f"/api/v2.0/indexers/{indexer_id}/results/torznab",
+                    "type": "textbox"
+                },
+                {
+                    "order": 2,
+                    "name": "apiKey",
+                    "label": "API Key",
+                    "value": jackett_api_key,
+                    "type": "textbox"
+                },
+                {
+                    "order": 3,
+                    "name": "categories",
+                    "label": "Categories",
+                    "value": [3030, 7000, 7010, 7020, 7030, 7040, 7050, 7060],  # Book categories
+                    "type": "select"
+                },
+                {
+                    "order": 4,
+                    "name": "animeCategories",
+                    "label": "Anime Categories",
+                    "value": [],
+                    "type": "select"
+                },
+                {
+                    "order": 5,
+                    "name": "removeYear",
+                    "label": "Remove Year",
+                    "value": False,
+                    "type": "checkbox"
+                },
+                {
+                    "order": 6,
+                    "name": "removeTitle",
+                    "label": "Remove Title",
+                    "value": False,
+                    "type": "checkbox"
+                },
+                {
+                    "order": 7,
+                    "name": "searchByTitle",
+                    "label": "Search by Title",
+                    "value": True,
+                    "type": "checkbox"
+                }
+            ]
+        }
+        
+        if existing_indexer:
+            # Update existing indexer
+            jackett_config["id"] = existing_indexer["id"]
+            url = f"{READARR_URL}/indexer/{existing_indexer['id']}"
+            method = requests.put
+            print(f"  Updating {indexer_name} (ID: {existing_indexer['id']})...")
+            updated_count += 1
+        else:
+            # Add new indexer
+            url = f"{READARR_URL}/indexer"
+            method = requests.post
+            print(f"  Adding {indexer_name}...")
+            added_count += 1
+        
+        response = method(
+            url,
+            headers={"X-Api-Key": api_key, "Content-Type": "application/json"},
+            json=jackett_config,
+            timeout=10
+        )
+        
+        if response.status_code in [200, 201, 202]:
+            print(f"    ✓ {indexer_name} configured successfully")
+        else:
+            print(f"    ✗ Error configuring {indexer_name}: {response.status_code} - {response.text[:200]}")
+    
+    if added_count > 0 or updated_count > 0:
+        print(f"✓ Jackett indexers configured: {added_count} added, {updated_count} updated")
+        return True
     else:
-        # Add new indexer
-        url = f"{READARR_URL}/indexer"
-        method = requests.post
-        print("Adding new Jackett indexer...")
-    
-    response = method(
-        url,
-        headers={"X-Api-Key": api_key, "Content-Type": "application/json"},
-        json=jackett_config,
-        timeout=10
-    )
-    
-    if response.status_code in [200, 201, 202]:
-        print(f"✓ Jackett indexer configured successfully")
-        return response.json()
-    else:
-        print(f"✗ Error configuring Jackett: {response.status_code} - {response.text}")
         return None
 
 
