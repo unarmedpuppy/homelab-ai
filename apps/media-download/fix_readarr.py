@@ -480,12 +480,12 @@ def add_jackett_indexer(api_key, jackett_api_key):
         
         # Check if this indexer already exists in Bookshelf
         existing_indexer = None
-        for bookshelf_idx in readarr_indexers:
-            if readarr_idx.get("implementation") == "Torznab":
+        for bookshelf_idx in bookshelf_indexers:
+            if bookshelf_idx.get("implementation") == "Torznab":
                 # Check if this is the same Jackett indexer
                 base_url = None
                 api_path = None
-                for field in readarr_idx.get("fields", []):
+                for field in bookshelf_idx.get("fields", []):
                     if field.get("name") == "baseUrl":
                         base_url = field.get("value", "")
                     elif field.get("name") == "apiPath":
@@ -494,7 +494,7 @@ def add_jackett_indexer(api_key, jackett_api_key):
                 # Check if this matches our Jackett indexer
                 if base_url and JACKETT_HOST in base_url:
                     if api_path and str(indexer_id) in api_path:
-                        existing_indexer = readarr_idx
+                        existing_indexer = bookshelf_idx
                         break
         
         # Build configuration for this indexer
