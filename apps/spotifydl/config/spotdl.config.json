@@ -28,7 +28,7 @@
     "--retry-sleep", "1",
     "--socket-timeout", "30",
     "--extractor-args", "youtube:player_client=android",
-    "-f", "bestaudio[ext=m4a]/bestaudio/best",
+    "-f", "18/bestaudio[ext=m4a]/bestaudio/best",
     "--audio-format", "mp3"
   ]
 }
