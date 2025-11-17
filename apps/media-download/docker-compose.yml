@@ -81,6 +81,28 @@ services:
       - "homepage.icon=jackett.svg"
     # NOT on VPN - only searches, doesn't download
 
+  # Unified Indexer Manager (Better alternative to NZBHydra2 + Jackett)
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: media-download-prowlarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ:-America/Chicago}
+    volumes:
+      - ./prowlarr/config:/config
+    ports:
+      - "9696:9696"
+    restart: unless-stopped
+    networks:
+      - media-download-network
+    labels:
+      - "homepage.group=Media Download"
+      - "homepage.name=Prowlarr"
+      - "homepage.href=http://192.168.86.47:9696"
+      - "homepage.icon=prowlarr.svg"
+    # NOT on VPN - only searches, doesn't download
+
   # Usenet Download Client
   nzbget:
     image: lscr.io/linuxserver/nzbget:latest
