@@ -4,12 +4,14 @@ services:
     container_name: spotdl
     image: spotdl/spotify-downloader:latest
     entrypoint: /bin/sh
-    command: -c "pip install --upgrade yt-dlp && apt-get update -qq && apt-get install -y -qq nodejs npm > /dev/null 2>&1 || true && uv run --project /app spotdl web --host 0.0.0.0 --web-use-output-dir"
+    command: -c "pip install --upgrade yt-dlp && uv run --project /app spotdl web --host 0.0.0.0 --web-use-output-dir"
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=America/Chicago
       - UMASK=002
+      - SPOTDL_CONFIG_DIR=/app/.config/spotdl
+      - SPOTDL_LOG_LEVEL=DEBUG
     ports:
       - 8800:8800
     volumes:
