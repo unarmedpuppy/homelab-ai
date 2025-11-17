@@ -178,6 +178,13 @@ def add_indexer(api_key, indexer_name, api_key_value, base_url=None):
                 "label": "Search by Title",
                 "value": True,
                 "type": "checkbox"
+            },
+            {
+                "order": 8,
+                "name": "redirect",
+                "label": "Redirect",
+                "value": True,
+                "type": "checkbox"
             }
         ]
     }
