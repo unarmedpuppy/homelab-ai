@@ -17,7 +17,7 @@ PROWLARR_API_KEY = None  # Will be read from config
 INDEXERS = {
     "NZBGeek": {
         "implementation": "Newznab",
-        "baseUrl": "https://api.nzbgeek.info/api",
+        "baseUrl": "https://api.nzbgeek.info",
         "description": "Most popular, good music coverage - $15 lifetime"
     },
     "DrunkenSlug": {
@@ -135,7 +135,7 @@ def add_indexer(api_key, indexer_name, api_key_value, base_url=None):
                 "order": 1,
                 "name": "apiPath",
                 "label": "API Path",
-                "value": "",
+                "value": "/api",
                 "type": "textbox"
             },
             {
