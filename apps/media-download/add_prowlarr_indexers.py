@@ -117,6 +117,8 @@ def add_indexer(api_key, indexer_name, api_key_value, base_url=None):
     newznab_config = {
         "name": indexer_name,
         "enable": True,
+        "appProfileId": 1,  # Required: App profile ID (default is 1)
+        "priority": 25,  # Required: Priority between 1-50 (25 is middle)
         "implementation": "Newznab",
         "implementationName": "Newznab",
         "configContract": "NewznabSettings",
