@@ -229,21 +229,39 @@ def test_indexer(api_key, indexer_id):
         return False
 
 
-def get_api_keys_interactive():
-    """Get API keys from user interactively."""
+def get_api_keys():
+    """Get API keys from command line arguments or environment."""
     api_keys = {}
-    print("\n" + "=" * 60)
-    print("Music Indexer API Keys")
-    print("=" * 60)
-    print("\nEnter API keys for the indexers you want to add.")
-    print("Press Enter to skip an indexer.\n")
     
-    for name, config in INDEXERS.items():
-        print(f"{name}: {config['description']}")
-        api_key = input(f"  API Key for {name} (or press Enter to skip): ").strip()
-        if api_key:
-            api_keys[name] = api_key
-        print()
+    # Try to get from command line arguments
+    # Format: --nzbgeek-key=KEY --drunken-key=KEY --nzbplanet-key=KEY
+    for arg in sys.argv[1:]:
+        if arg.startswith("--nzbgeek-key="):
+            api_keys["NZBGeek"] = arg.split("=", 1)[1]
+        elif arg.startswith("--drunken-key=") or arg.startswith("--drunken-slug-key="):
+            api_keys["DrunkenSlug"] = arg.split("=", 1)[1]
+        elif arg.startswith("--nzbplanet-key="):
+            api_keys["NZBPlanet"] = arg.split("=", 1)[1]
+    
+    # If no keys from command line, try interactive (if TTY)
+    if not api_keys and sys.stdin.isatty():
+        print("\n" + "=" * 60)
+        print("Music Indexer API Keys")
+        print("=" * 60)
+        print("\nEnter API keys for the indexers you want to add.")
+        print("Press Enter to skip an indexer.")
+        print("\nOr pass as arguments: --nzbgeek-key=KEY --drunken-key=KEY --nzbplanet-key=KEY\n")
+        
+        for name, config in INDEXERS.items():
+            print(f"{name}: {config['description']}")
+            try:
+                api_key = input(f"  API Key for {name} (or press Enter to skip): ").strip()
+                if api_key:
+                    api_keys[name] = api_key
+                print()
+            except (EOFError, KeyboardInterrupt):
+                print("\nSkipping interactive input...")
+                break
     
     return api_keys
 
@@ -263,7 +281,7 @@ def main():
     
     # Get indexer API keys
     print("\n[2/3] Getting indexer API keys...")
-    api_keys = get_api_keys_interactive()
+    api_keys = get_api_keys()
     
     if not api_keys:
         print("✗ No API keys provided. Exiting.")
