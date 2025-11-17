@@ -10,7 +10,7 @@ services:
       - TZ=America/Chicago
       - UMASK=002
       # yt-dlp options to improve YouTube Music compatibility
-      - SPOTDL_YTDL_OPTIONS={"retries": 10, "fragment_retries": 10, "file_access_retries": 3, "retry_sleep": 1, "socket_timeout": 30, "extractor_args": {"youtube": {"player_client": ["ios", "android", "web"]}}}
+      - 'SPOTDL_YTDL_OPTIONS={"retries": 10, "fragment_retries": 10, "file_access_retries": 3, "retry_sleep": 1, "socket_timeout": 30, "extractor_args": {"youtube": {"player_client": ["ios", "android", "web"]}}}'
     ports:
       - 8800:8800
     volumes:
