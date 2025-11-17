@@ -87,16 +87,19 @@ def wait_for_prowlarr(api_key, max_attempts=30):
 def get_applications(api_key):
     """Get current applications in Prowlarr."""
     try:
-        response = requests.get(
-            f"{PROWLARR_URL}/application",
-            headers={"X-Api-Key": api_key},
-            timeout=10
-        )
-        if response.status_code == 200:
-            return response.json()
-        else:
-            print(f"Error getting applications: {response.status_code} - {response.text}")
-            return []
+        # Try different possible endpoints
+        endpoints = ["/app", "/application", "/apps"]
+        for endpoint in endpoints:
+            response = requests.get(
+                f"{PROWLARR_URL}{endpoint}",
+                headers={"X-Api-Key": api_key},
+                timeout=10
+            )
+            if response.status_code == 200:
+                return response.json()
+        # If none worked, return empty list
+        print(f"Warning: Could not find applications endpoint (tried: {endpoints})")
+        return []
     except Exception as e:
         print(f"Error getting applications: {e}")
         return []
@@ -157,15 +160,32 @@ def add_lidarr_application(api_key):
         "syncLevel": "fullSync"
     }
     
+    # Try different possible endpoints
+    endpoints = ["/app", "/application", "/apps"]
+    base_url = None
+    for endpoint in endpoints:
+        test_response = requests.get(
+            f"{PROWLARR_URL}{endpoint}",
+            headers={"X-Api-Key": api_key},
+            timeout=5
+        )
+        if test_response.status_code == 200:
+            base_url = endpoint
+            break
+    
+    if not base_url:
+        print("✗ Could not determine correct API endpoint for applications")
+        return None
+    
     if lidarr_app:
         # Update existing application
         lidarr_config["id"] = lidarr_app["id"]
-        url = f"{PROWLARR_URL}/application/{lidarr_app['id']}"
+        url = f"{PROWLARR_URL}{base_url}/{lidarr_app['id']}"
         method = requests.put
         print(f"Updating existing Lidarr application (ID: {lidarr_app['id']})...")
     else:
         # Add new application
-        url = f"{PROWLARR_URL}/application"
+        url = f"{PROWLARR_URL}{base_url}"
         method = requests.post
         print("Adding Lidarr application to Prowlarr...")
     
@@ -197,13 +217,25 @@ def test_lidarr_connection(api_key):
         print("✗ Lidarr application not found")
         return False
     
-    # Test the connection
-    response = requests.post(
-        f"{PROWLARR_URL}/application/test",
-        headers={"X-Api-Key": api_key, "Content-Type": "application/json"},
-        json=lidarr_app,
-        timeout=10
-    )
+    # Test the connection - try different endpoints
+    test_endpoints = ["/app/test", "/application/test", "/apps/test"]
+    response = None
+    for test_endpoint in test_endpoints:
+        try:
+            response = requests.post(
+                f"{PROWLARR_URL}{test_endpoint}",
+                headers={"X-Api-Key": api_key, "Content-Type": "application/json"},
+                json=lidarr_app,
+                timeout=10
+            )
+            if response.status_code in [200, 201, 202]:
+                break
+        except:
+            continue
+    
+    if not response:
+        print("✗ Could not test connection - endpoint not found")
+        return False
     
     if response.status_code == 200:
         result = response.json() if response.text else {}
