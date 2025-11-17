@@ -1,0 +1,15 @@
+--extractor-args
+youtube:player_client=android
+-f
+18/bestaudio[ext=m4a]/bestaudio/best
+--retries
+10
+--fragment-retries
+10
+--file-access-retries
+3
+--retry-sleep
+1
+--socket-timeout
+30
+

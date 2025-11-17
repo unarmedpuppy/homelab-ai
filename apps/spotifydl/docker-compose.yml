@@ -17,6 +17,7 @@ services:
     volumes:
       - ./data:/music #must use the :/music for config to work.
       - ./config:/app/.config/spotdl
+      - ./yt-dlp-config:/root/.config/yt-dlp
     #network_mode: host
     restart: unless-stopped
     labels:
