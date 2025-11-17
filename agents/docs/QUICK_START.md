@@ -1,20 +1,41 @@
-# Agent Quick Start Guide
+# Quick Start Guide
 
-**Complete guide to set up and get started as an agent on the home server project.**
+**Instructions for using `agents/prompts/base.md` to start working as an agent.**
+
+This guide explains the prerequisites and how to prompt with `prompts/base.md` to get started.
 
 ## 📋 Prerequisites
 
-Before starting, ensure you have:
-- ✅ **Docker Desktop** installed (will be started automatically if needed)
-- ✅ **Python 3.8+** installed
-- ✅ **Cursor** or **VS Code with Copilot** installed
-- ✅ **Git** installed
+Before you can use `prompts/base.md`, ensure these are in place:
 
-## 🔧 Initial Setup (One-Time)
+### 1. Docker Desktop
 
-### Step 1: Install MCP Server Dependencies
+**Required**: Docker Desktop must be installed and running.
 
-**Why**: The MCP server runs **locally on your machine** (not in Docker) because Cursor uses stdio transport, which requires spawning the server as a subprocess. The server then connects to your remote server via SSH to execute commands.
+- **macOS/Windows**: Install Docker Desktop from [docker.com](https://www.docker.com/products/docker-desktop)
+- **Linux**: Install Docker Engine
+
+**Note**: The agent infrastructure startup script will automatically start Docker Desktop on macOS if it's not running. On other platforms, ensure Docker is running before starting.
+
+**Verify Docker is running**:
+```bash
+docker ps
+```
+
+### 2. Python 3.8+
+
+**Required**: Python 3.8 or higher must be installed.
+
+**Verify Python**:
+```bash
+python3 --version
+```
+
+### 3. MCP Server Setup
+
+**Required**: MCP server must be configured in Cursor/Claude Desktop.
+
+#### Install MCP Server Dependencies
 
 ```bash
 cd /Users/joshuajenquist/repos/personal/home-server
@@ -22,24 +43,15 @@ cd agents/apps/agent-mcp
 pip install -r requirements.txt
 ```
 
-**Note**: The MCP server runs locally, but it connects to your remote server (192.168.86.47) via SSH to execute Docker commands and manage services. See `agents/apps/agent-mcp/DOCKER_SETUP.md` for Docker-based deployment (advanced, for server-side execution).
+#### Configure MCP Server in Cursor
 
-### Step 2: Configure MCP Server in Cursor
-
-**For Cursor:**
-
-1. Open Cursor settings/preferences
-2. Find MCP server configuration (or edit config file directly)
-3. Add the MCP server configuration:
-
-**macOS**: Edit `~/Library/Application Support/Cursor/User/globalStorage/mcp.json` or check Cursor settings UI
+**macOS**: Edit `~/Library/Application Support/Cursor/User/globalStorage/mcp.json`
 
 **Windows**: Edit `%APPDATA%\Cursor\User\globalStorage\mcp.json`
 
 **Linux**: Edit `~/.config/Cursor/User/globalStorage/mcp.json`
 
-**Configuration** (add to your MCP servers config):
-
+**Add configuration**:
 ```json
 {
   "mcpServers": {
@@ -57,254 +69,231 @@ pip install -r requirements.txt
 }
 ```
 
-**Note**: Replace the path with your actual project path, and add API keys if needed.
+**Important**: Replace the path with your actual project path.
 
-### Step 3: Configure MCP Server in VS Code with Copilot
+#### Restart Cursor
 
-**For VS Code with GitHub Copilot:**
+After configuring, **restart Cursor** to load the MCP server configuration.
 
-VS Code doesn't natively support MCP servers like Cursor does. You have two options:
+#### Verify MCP Server
 
-**Option A: Use Cursor** (Recommended - has native MCP support)
+1. Open a new chat in Cursor
+2. Try: "List Docker containers" or "Check agent infrastructure status"
+3. If MCP tools are available, setup is complete! ✅
 
-**Option B: Run MCP server manually** (Advanced):
-```bash
-# In a terminal, run:
-cd /Users/joshuajenquist/repos/personal/home-server/agents/apps/agent-mcp
-python server.py
-# Then use MCP client tools or direct API calls
-```
-
-### Step 4: Restart Cursor/VS Code
-
-**Important**: After configuring the MCP server, restart Cursor/VS Code to load the configuration.
-
-### Step 5: Verify MCP Server is Running
-
-1. Open a new chat/conversation in Cursor
-2. Try calling an MCP tool (e.g., "List Docker containers")
-3. If tools are available, MCP server is working! ✅
-
-**If tools aren't available:**
+**If tools aren't available**:
 - Check Cursor logs for MCP server errors
 - Verify the path to `server.py` is correct
 - Ensure Python dependencies are installed
 - See `agents/apps/agent-mcp/README.md` for troubleshooting
 
-## 🚀 Starting Your First Agent Session
+### 4. Git
 
-### Option A: Using the Base Prompt (Recommended)
+**Required**: Git must be installed for deployment operations.
 
-**In Cursor, start a new chat and paste:**
+**Verify Git**:
+```bash
+git --version
+```
+
+---
+
+## 🚀 How to Use `prompts/base.md`
+
+### Method 1: Direct Reference (Recommended)
+
+**In Cursor, start a new chat and say**:
 
 ```
-I am an AI agent working on the home server project. 
+@agents/prompts/base.md
+
+I am an AI agent working on the home server project. Please follow this prompt and start the discovery workflow.
+```
+
+**What happens**:
+1. Agent reads `prompts/base.md` (complete guide with discovery workflow)
+2. Agent starts infrastructure (Docker Desktop + monitoring services)
+3. Agent starts monitoring session
+4. Agent follows discovery workflow (check messages, memory, skills, tasks)
+5. Agent begins work following all guidelines
+
+### Method 2: Explicit Instruction
+
+**In Cursor, start a new chat and say**:
+
+```
+I am an AI agent working on the home server project.
 
 Please read and follow the agent prompt: agents/prompts/base.md
 
 I will start by following the discovery workflow in that prompt.
 ```
 
-**The agent will automatically:**
-1. Read the base prompt
-2. Start infrastructure (Docker Desktop + monitoring services)
-3. Start monitoring session
-4. Check messages, memory, skills, etc.
-5. Begin work following all guidelines
+### Method 3: With Specific Task
 
-### Option B: Direct Instructions
-
-**In Cursor, start a new chat and say:**
-
-```
-I need to start working on the home server project. Please:
-
-1. Start the agent infrastructure (monitoring services)
-2. Start my monitoring session (agent-001)
-3. Check for messages from other agents
-4. Query memory for past decisions
-5. Check for relevant skills
-6. Show me available tasks
-
-Follow the workflow in agents/prompts/base.md
-```
-
-### Option C: Reference the Prompt File
-
-**In Cursor, start a new chat and say:**
+**In Cursor, start a new chat and say**:
 
 ```
 @agents/prompts/base.md
 
-I am agent-001. Please follow this prompt and start the discovery workflow.
+I am agent-001. I need to work on [your task description].
+
+Please follow this prompt and help me complete this task.
 ```
-
-## 🚀 Essential Steps (Do These First!)
-
-### Step 0: Start Infrastructure (30 seconds)
-
-**CRITICAL**: Start agent infrastructure before doing anything else.
-
-**Option A: Using MCP Tool** (if available):
-```python
-await start_agent_infrastructure()
-```
-
-**Option B: Using Script** (fallback):
-```bash
-cd /Users/joshuajenquist/repos/personal/home-server
-./agents/scripts/start-agent-infrastructure.sh
-```
-
-**Verify**: Check dashboard at `http://localhost:3012`
-
-### Step 0.5: Start Monitoring (30 seconds)
-
-**CRITICAL**: Make yourself visible before doing anything:
-
-```python
-# Start your session
-start_agent_session(agent_id="agent-001")
-
-# Update your status
-update_agent_status(
-    agent_id="agent-001",
-    status="active",
-    current_task_id="T1.1",  # Your task ID
-    progress="Starting work"
-)
-```
-
-**Why**: Your work is invisible without this! Dashboard: http://localhost:3012
-
-### Step 1: Check Messages (30 seconds)
-
-```python
-# Check for messages from other agents
-messages = await get_agent_messages(agent_id="agent-001", status="pending")
-
-# Acknowledge urgent messages
-for msg in messages["messages"]:
-    if msg["priority"] in ["urgent", "high"]:
-        await acknowledge_message(msg["message_id"], "agent-001")
-```
-
-### Step 2: Check Memory (1 minute)
-
-```python
-# Learn from past work
-memory_query_decisions(project="home-server", limit=5)
-memory_query_patterns(severity="high", limit=5)
-memory_search("your task keywords")
-```
-
-**Why**: Don't repeat past decisions. Learn from what worked.
-
-### Step 3: Check Skills (1 minute)
-
-Review `agents/skills/README.md` for workflows:
-- `standard-deployment` - Deploy code changes
-- `troubleshoot-container-failure` - Diagnose issues
-- `system-health-check` - System verification
-
-**Why**: Use tested workflows instead of starting from scratch.
-
-### Step 4: Check MCP Tools (1 minute)
-
-Review `agents/apps/agent-mcp/README.md` for available tools (68 tools total).
-
-**⚠️ CRITICAL**: Always prefer MCP tools over custom commands - they're observable!
-
-## 📚 Essential Resources
-
-### Must-Read Documents
-
-1. **`prompts/base.md`** ⭐ - Complete agent prompt (read this for full details)
-2. **`AGENT_WORKFLOW.md`** - Detailed workflow guide
-3. **`MCP_TOOL_DISCOVERY.md`** - How to find and use tools
-
-### Key Systems
-
-- **Memory**: `agents/memory/README.md` - Store/query decisions and patterns
-- **Tasks**: `agents/tasks/README.md` - Task coordination
-- **Communication**: `agents/communication/README.md` - Agent messaging
-- **Monitoring**: `agents/apps/agent-monitoring/README.md` - Activity dashboard
-
-## 🛠️ Common Operations
-
-### Record a Decision
-
-```python
-memory_record_decision(
-    content="Use PostgreSQL for database",
-    rationale="Need ACID compliance",
-    importance=0.9,
-    tags="database,architecture"
-)
-```
-
-### Register a Task
-
-```python
-register_task(
-    title="Setup database",
-    description="Create PostgreSQL schema",
-    project="home-server",
-    priority="high"
-)
-```
-
-### Send Message to Another Agent
-
-```python
-send_agent_message(
-    from_agent="agent-001",
-    to_agent="agent-002",
-    type="request",
-    priority="high",
-    subject="Need help with deployment",
-    content="I'm stuck on..."
-)
-```
-
-### Deploy Changes
-
-```python
-# Use the standard-deployment skill workflow
-# Or use MCP tools directly:
-git_deploy(commit_message="Update configuration")
-docker_compose_restart(app_path="apps/my-app", service="my-service")
-```
-
-## ⚠️ Important Rules
-
-1. **Always use MCP tools** - They're observable in the dashboard
-2. **Never use custom commands** - They're invisible
-3. **Check memory first** - Learn from past work
-4. **Use skills for workflows** - Don't reinvent common processes
-5. **Update status regularly** - Keep monitoring dashboard current
-6. **End session when done** - `end_agent_session(...)`
-
-## 🎯 Discovery Priority
-
-**Follow this order:**
-
-0. **Start Monitoring** → `start_agent_session()`
-1. **Check Messages** → `get_agent_messages()`
-2. **Check Memory** → `memory_query_*()`
-3. **Check Skills** → `agents/skills/README.md`
-4. **Check MCP Tools** → `agents/apps/agent-mcp/README.md`
-5. **Create New** → Only if nothing exists
-
-## 📖 Next Steps
-
-After this quick start:
-
-1. Read **`prompts/base.md`** for complete details
-2. Review **`AGENT_WORKFLOW.md`** for detailed workflows
-3. Explore **`MCP_TOOL_DISCOVERY.md`** for tool discovery
 
 ---
 
-**See**: `agents/docs/README.md` for complete documentation index
+## 📖 What `prompts/base.md` Contains
 
+The `prompts/base.md` file is the **complete agent prompt** that includes:
+
+1. **Discovery Workflow** - Step-by-step process to:
+   - Start infrastructure
+   - Start monitoring session
+   - Check messages from other agents
+   - Query memory for past decisions
+   - Check available skills
+   - Find available tasks
+   - Start work
+
+2. **Agent Identity** - Role, responsibilities, and guidelines
+
+3. **System Integration** - How to use:
+   - Memory system
+   - Task coordination
+   - Communication protocol
+   - Monitoring dashboard
+   - MCP tools
+
+4. **Best Practices** - Workflow patterns and standards
+
+5. **Tool Reference** - How to discover and use MCP tools
+
+**You don't need to read it manually** - just reference it in your prompt and the agent will read and follow it.
+
+---
+
+## 🔍 Understanding the Discovery Workflow
+
+When you use `prompts/base.md`, the agent follows this discovery workflow:
+
+### 0. Start Infrastructure
+- Checks if Docker Desktop is running (starts it on macOS if needed)
+- Starts monitoring services (backend, frontend, Grafana, InfluxDB)
+- Verifies all services are healthy
+
+### 0.5. Start Monitoring Session
+- Starts agent monitoring session
+- Updates agent status to "active"
+- Makes work visible in dashboard (`localhost:3012`)
+
+### 1. Check Messages
+- Checks for pending messages from other agents
+- Acknowledges urgent/high priority messages
+
+### 2. Check Memory
+- Queries recent decisions
+- Queries common patterns
+- Searches for related work
+
+### 3. Check Skills
+- Reviews available skills in `agents/skills/README.md`
+- Identifies relevant workflows
+
+### 4. Check MCP Tools
+- Reviews available MCP tools
+- Uses tools for all operations (observable!)
+
+### 5. Check Available Tasks
+- Queries task coordination system for available tasks
+- Claims tasks as needed
+
+### 6. Start Work
+- Follows established patterns
+- Uses MCP tools for all operations
+- Updates status regularly
+
+**See**: `agents/prompts/base.md` for the complete discovery workflow.
+
+---
+
+## 🎯 What Happens After Starting
+
+Once you've prompted with `prompts/base.md`, the agent will:
+
+1. **Automatically start infrastructure** (if not running)
+2. **Make itself visible** in the monitoring dashboard
+3. **Check for messages** from other agents
+4. **Learn from past work** by querying memory
+5. **Discover available capabilities** (skills, tools, tasks)
+6. **Begin work** following all guidelines
+
+**You can monitor progress** at:
+- **Dashboard**: `http://localhost:3012` - Real-time agent activity
+- **Grafana**: `http://localhost:3011` - Metrics and visualizations
+
+---
+
+## 📚 Additional Resources
+
+### Core Documentation
+- **`agents/docs/SYSTEM_ARCHITECTURE.md`** - Comprehensive system architecture (source of truth)
+- **`agents/prompts/base.md`** - Complete agent prompt (what you're using)
+- **`agents/docs/AGENT_WORKFLOW.md`** - Detailed workflow guide
+
+### System Components
+- **`agents/memory/README.md`** - Memory system documentation
+- **`agents/tasks/README.md`** - Task coordination guide
+- **`agents/communication/README.md`** - Communication protocol guide
+- **`agents/apps/agent-monitoring/README.md`** - Monitoring dashboard guide
+- **`agents/apps/agent-mcp/README.md`** - MCP tools catalog
+
+### Tool Discovery
+- **`agents/docs/MCP_TOOL_DISCOVERY.md`** - How to discover and use tools
+- **`agents/apps/agent-mcp/MCP_TOOLS_REFERENCE.md`** - Tool count reference
+- Use `list_tool_categories()` MCP tool - Get current tool count dynamically
+
+---
+
+## ⚠️ Important Notes
+
+1. **Docker must be running** - Infrastructure services run in Docker
+2. **MCP server must be configured** - Required for all MCP tools
+3. **Use `prompts/base.md`** - It contains the complete workflow
+4. **Monitor your work** - Dashboard at `localhost:3012`
+5. **Use MCP tools** - They're observable, custom commands are not
+
+---
+
+## 🆘 Troubleshooting
+
+### MCP Tools Not Available
+
+1. Check MCP server configuration in Cursor
+2. Verify Python dependencies are installed
+3. Restart Cursor after configuration changes
+4. Check Cursor logs for errors
+5. See `agents/apps/agent-mcp/README.md` for troubleshooting
+
+### Infrastructure Won't Start
+
+1. Ensure Docker Desktop is running
+2. Check Docker Desktop logs
+3. Verify ports are available (3001, 3012, 3011, 8087)
+4. Try running startup script manually: `./agents/scripts/start-agent-infrastructure.sh`
+
+### Agent Not Visible in Dashboard
+
+1. Ensure infrastructure is running
+2. Verify agent called `start_agent_session()`
+3. Check dashboard at `localhost:3012`
+4. Review monitoring logs
+
+---
+
+**Last Updated**: 2025-01-13  
+**Status**: Active  
+**See Also**: 
+- `agents/docs/SYSTEM_ARCHITECTURE.md` - Comprehensive system architecture
+- `agents/prompts/base.md` - Complete agent prompt
+- `agents/README.md` - Main entry point

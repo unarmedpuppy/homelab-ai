@@ -20,8 +20,10 @@ The main [`../README.md`](../README.md) includes:
 - **Guidelines**: `COMMUNICATION_GUIDELINES.md`, `AGENT_SELF_DOCUMENTATION.md`
 - **Agent Management**: `AGENT_SPAWNING_*`, `SKILL_AUTO_ACTIVATION.md`
 - **Workflow Tools**: `WORKFLOW_GENERATOR_*`, `DEV_DOCS_SYSTEM.md`
+- **MCP Documentation**: `MCP_*` - Setup, troubleshooting, and architecture docs
 - **Templates**: `templates/` - Review and workflow templates
-- **Archive**: `archive/` - Historical documentation
+- **Implementation Plans**: `IMPLEMENTATION_PLANS/` - Future work plans (see README in that directory)
+- **Archive**: `archive/` - Historical documentation (completed work, superseded docs)
 
 **See [`../README.md`](../README.md) for complete documentation index and navigation.**
 

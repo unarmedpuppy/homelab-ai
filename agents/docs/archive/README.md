@@ -1,79 +1,64 @@
-# Archived Documentation
+# Archive Directory
 
-This directory contains completed proposals, plans, and historical documentation that have been implemented or superseded.
+**Historical documentation and proposals that have been superseded or completed.**
 
-## Archived Files
+## Purpose
 
-### Implemented Proposals
+This directory contains archived documentation that is kept for historical reference. These documents may reference deprecated systems or patterns that have been replaced.
 
-- **`AGENT_DASHBOARD_PROPOSAL.md`** - Agent monitoring dashboard proposal
-  - **Status**: ✅ Implemented
-  - **Implementation**: `agents/apps/agent-monitoring/`
-  - **See**: `agents/apps/agent-monitoring/README.md` for current documentation
+## Deprecated Systems
 
-### Implemented Plans
+The following systems have been **removed** and replaced:
 
-- **`TASK_COORDINATION_PLAN.md`** - Task coordination system plan
-  - **Status**: ✅ Implemented (All 3 Phases)
-  - **Implementation**: `agents/tasks/`
-  - **See**: `agents/tasks/README.md` for current documentation
+### ❌ Per-Agent Files (REMOVED)
 
-- **`TASK_COORDINATION_PHASE4.md`** - Phase 4 details
-  - **Status**: ✅ Implemented
-  - **See**: `agents/tasks/README.md` for current documentation
+- **`TASKS.md`** → **Replaced by**: Task Coordination System (`agents/tasks/registry.md`)
+  - Use `register_task()`, `query_tasks()`, `claim_task()`, `update_task_status()` MCP tools
+  - Central registry for all tasks across all agents
+  - Dependency tracking and validation
 
-- **`AGENT_CONSOLIDATION_PLAN.md`** - Agent system consolidation plan
-  - **Status**: ✅ Implemented
-  - **See**: `agents/docs/archive/AGENT_SYSTEM_REVIEW_AND_IMPROVEMENT_PLAN.md` for details
+- **`STATUS.md`** → **Replaced by**: Monitoring System (dashboard at `localhost:3012`)
+  - Use `start_agent_session()`, `update_agent_status()`, `get_agent_status()` MCP tools
+  - Real-time visibility in monitoring dashboard
+  - Automatic logging of all agent activity
 
-- **`AGENT_MONITORING_STRUCTURE.md`** - Agent monitoring dashboard structure proposal
-  - **Status**: ✅ Implemented
-  - **Implementation**: `agents/apps/agent-monitoring/`
-  - **See**: `agents/apps/agent-monitoring/README.md` for current documentation
+- **`COMMUNICATION.md`** → **Replaced by**: Communication Protocol (`agents/communication/`)
+  - Use `send_agent_message()`, `get_agent_messages()`, `acknowledge_message()` MCP tools
+  - Structured messaging between agents
+  - Message queue with status tracking
 
-### Completed Summary Documents
+**See**: `agents/docs/SYSTEM_ARCHITECTURE.md` for current system architecture.
 
-- **`SERVER_AGENT_PROMPT_OLD.md`** - Old version of server agent prompt
-  - **Status**: ✅ Superseded by `SERVER_prompts/base.md`
-  - **Reason**: Streamlined version created (45% reduction)
+## Archive Contents
 
-- **`AGENT_SYSTEM_GAPS_AND_IMPROVEMENTS.md`** - Gaps and improvements document
-  - **Status**: ✅ All improvements completed
-  - **Reason**: Historical reference only
+### Recently Archived (2025-01-13)
 
-- **`IMPROVEMENTS_SUMMARY.md`** - Summary of all improvements
-  - **Status**: ✅ All phases complete
-  - **Reason**: Historical reference only
+**One-Time Summaries**:
+- `A2A_TESTING_COMPLETE.md` - A2A protocol testing completion summary
+- `A2A_TEST_RESULTS.md` - A2A protocol test results
+- `AUTO_SESSION_SUMMARY.md` - Auto agent session summary
+- `AUTO_AGENT_PRESERVATION.md` - Agent preservation and template
+- `REVIEW_AND_CLEANUP_ANALYSIS.md` - Documentation review analysis (superseded by CLEANUP_SUMMARY.md)
 
-- **`PHASE4_COMPLETE_SUMMARY.md`** - Phase 4 completion summary
-  - **Status**: ✅ All phases complete
-  - **Reason**: Historical reference only
+**Analysis/Audit Documents**:
+- `AGENT_ARCHITECTURE_AUDIT.md` - Agent architecture audit (recommendations implemented, see SYSTEM_ARCHITECTURE.md)
+- `A2A_MIGRATION_AUDIT.md` - A2A migration audit (migration complete, see communication/ for current implementation)
+- `AG_UI_INTEGRATION_ANALYSIS.md` - AG-UI integration analysis (future work if needed)
+- `AGENTIC_PROTOCOLS_LANDSCAPE_ANALYSIS.md` - Agentic protocols landscape analysis (future work if needed)
 
-- **`AGENT_SYSTEM_REVIEW_AND_IMPROVEMENT_PLAN.md`** - Review and improvement plan
-  - **Status**: ✅ All phases complete
-  - **Reason**: Historical reference only
+### Previously Archived
 
-- **`FINAL_REVIEW_CHECKLIST.md`** - Final review checklist
-         - **Status**: ✅ Review complete
-         - **Reason**: Historical reference only
+See individual files for details on what replaced them.
 
-- **`AGENT_SYSTEM_ENHANCEMENT_PLAN.md`** - Enhancement opportunities plan
-         - **Status**: ⚠️ Partially implemented
-         - **Reason**: Many enhancements (skill auto-activation, dev docs, quality checks) have been implemented. Archived as historical reference.
+## Archive Purpose
 
-- **`FRAMEWORK_PREFERENCES.md`** - Technology stack preferences
-         - **Status**: ⚠️ Not actively referenced
-         - **Reason**: Not referenced in any documentation or prompts. May be useful but not currently used.
+Documents in this directory are kept for:
+- Historical reference
+- Understanding evolution of the system
+- Learning from past decisions
 
-- **`QUICK_COMMANDS.md`** - Command reference shortcuts
-         - **Status**: ⚠️ Not actively referenced
-         - **Reason**: Not referenced in README or prompts. See `QUICK_START.md` for quick reference instead.
-
-## Why Archived?
-
-These documents are kept for historical reference but are no longer the source of truth. The actual implementations have their own documentation in their respective directories.
+**Note**: These documents may contain outdated information. Always refer to current documentation in `agents/docs/` for active systems.
 
 ---
 
 **Last Updated**: 2025-01-13
-

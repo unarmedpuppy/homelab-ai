@@ -249,22 +249,27 @@ Returns pending messages
 
 **Purpose**: Unified interface for all agent operations.
 
-**Total Tools**: 68 tools across categories:
-- Activity Monitoring (4)
-- Agent Communication (5)
-- Memory Management (9)
-- Task Coordination (6)
-- Agent Management (6)
-- Skill Management (5)
-- Docker Management (8)
-- Media Download (13)
-- System Monitoring (5)
-- Git Operations (4)
-- Troubleshooting (3)
-- Networking (4)
-- System Utilities (3)
+**Tool Count**: Dynamic based on enabled categories. Use `list_tool_categories()` MCP tool to get current count.
 
-**See**: `agents/apps/agent-mcp/README.md` for complete tool reference.
+**Tool Categories**:
+- **Core** (default enabled): Infrastructure, Activity Monitoring, Communication
+- **Docker** (default enabled): Container and compose management
+- **Monitoring** (default enabled): System health, resources, service monitoring
+- **Memory** (default enabled): Decision and pattern storage
+- **Agents** (default enabled): Agent creation, registry, lifecycle
+- **Tasks** (default enabled): Task registry and coordination
+- **Skills** (default enabled): Skill library and activation
+- **Media** (optional): Sonarr, Radarr, download client management
+- **Git** (optional): Repository management and deployment
+- **Networking** (optional): Network, VPN, DNS, port management
+- **Dev** (optional): Dev docs, quality checks, code review
+- **Learning** (optional): Agent learning, critiquing, evaluation
+- **Productivity** (optional): Personal productivity tools
+
+**See**: 
+- `agents/apps/agent-mcp/README.md` - Complete tool catalog
+- `agents/apps/agent-mcp/MCP_TOOLS_REFERENCE.md` - Tool count reference
+- Use `list_tool_categories()` MCP tool - Get current tool count dynamically
 
 ---
 
@@ -296,10 +301,10 @@ Need to coordinate with other agents?
 3. **Memory System** - For knowledge, decisions, patterns, context
 4. **Monitoring System** - For status, activity, progress
 
-**Deprecated/Simplified**:
-- Per-agent `TASKS.md` → Use task coordination registry
-- Per-agent `COMMUNICATION.md` → Use communication protocol
-- Per-agent `STATUS.md` → Use monitoring system (optional: auto-generate for readability)
+**Deprecated/Removed**:
+- ❌ Per-agent `TASKS.md` → **REMOVED** - Use Task Coordination System (`agents/tasks/registry.md`)
+- ❌ Per-agent `COMMUNICATION.md` → **REMOVED** - Use Communication Protocol (`agents/communication/`)
+- ❌ Per-agent `STATUS.md` → **REMOVED** - Use Monitoring System (dashboard at `localhost:3012`)
 
 **See**: `agents/docs/COMMUNICATION_GUIDELINES.md` for detailed usage guidelines.
 
@@ -309,36 +314,76 @@ Need to coordinate with other agents?
 
 ```
 agents/
+├── README.md                # Main entry point and navigation
+├── ACTIVATION_GUIDE.md      # How to activate agents (for humans)
+│
+├── prompts/                 # Agent prompts (identity, role, workflow)
+│   ├── base.md             # Core agent prompt ⭐ START HERE
+│   ├── server.md           # Server management extension
+│   └── README.md           # Prompt system overview
+│
 ├── docs/                    # Agent documentation
-│   ├── QUICK_START.md       # 5-minute quick start
-│   ├── prompts/base.md      # Main agent prompt
-│   ├── SERVER_prompts/base.md # Server-specific context
-│   ├── AGENT_WORKFLOW.md    # Workflow guide
-│   ├── SYSTEM_ARCHITECTURE.md # This file
+│   ├── QUICK_START.md      # Instructions for using prompts/base.md
+│   ├── SYSTEM_ARCHITECTURE.md # This file - comprehensive source of truth
+│   ├── AGENT_WORKFLOW.md   # Detailed workflow guide
+│   ├── WORKFLOW_GENERATOR_PROMPT.md # Meta-prompt for generating workflows
 │   ├── COMMUNICATION_GUIDELINES.md # Communication channel usage
-│   └── archive/             # Archived proposals/plans
-├── memory/                  # Memory system
-│   ├── memory.db            # SQLite database
-│   ├── sqlite_memory.py     # Memory API
-│   └── README.md            # Memory documentation
+│   ├── MCP_TOOL_DISCOVERY.md # How to discover and use tools
+│   └── archive/            # Archived proposals/plans
+│
+├── apps/                    # Agent applications (run locally)
+│   ├── agent-mcp/          # MCP server (all tools)
+│   │   ├── server.py       # Main MCP server
+│   │   ├── tools/          # All MCP tools
+│   │   ├── README.md       # Tool catalog
+│   │   └── MCP_TOOLS_REFERENCE.md # Tool count reference
+│   │
+│   └── agent-monitoring/    # Monitoring dashboard (local-first)
+│       ├── backend/        # Node.js API (localhost:3001)
+│       ├── frontend/       # Next.js dashboard (localhost:3012)
+│       ├── docker-compose.yml # Local infrastructure
+│       └── README.md       # Monitoring guide
+│
+├── memory/                  # Memory system (SQLite-based, local)
+│   ├── sqlite_memory.py    # Memory implementation
+│   ├── memory.db           # SQLite database (local)
+│   └── README.md           # Memory system overview
+│
 ├── tasks/                   # Task coordination
-│   ├── registry.md          # Task registry
-│   └── README.md            # Task coordination guide
+│   ├── registry.md         # Central task registry (source of truth)
+│   └── README.md           # Task coordination guide
+│
 ├── communication/           # Agent communication
-│   ├── protocol.md          # Protocol specification
-│   ├── messages/            # Message files
-│   └── README.md            # Communication guide
+│   ├── protocol.md         # Protocol specification
+│   ├── messages/           # Message files
+│   └── README.md           # Communication guide
+│
 ├── registry/                # Agent registry
-│   ├── agent-registry.md    # Master registry (auto-generated)
-│   ├── agent-definitions/   # Agent definitions
-│   ├── agent-templates/      # Agent templates
-│   └── sync_registry.py     # Registry sync script
+│   ├── agent-registry.md   # Master registry (auto-generated)
+│   ├── agent-definitions/  # Agent definition files
+│   ├── agent-templates/     # Agent templates
+│   └── sync_registry.py    # Registry sync script
+│
+├── skills/                  # Reusable workflow skills
+│   ├── README.md           # Skills catalog
+│   └── [skill-name]/        # Individual skills
+│
+├── scripts/                 # Utility scripts
+│   └── start-agent-infrastructure.sh # Start monitoring locally
+│
 ├── active/                  # Active agent directories
-├── archive/                 # Archived agents
-└── lifecycle/               # Lifecycle management
-    ├── policy.md            # Lifecycle policy
-    └── pattern_learning.md  # Pattern learning guide
+│   └── agent-XXX/          # Agent-specific documentation
+│       └── docs/            # Agent-specific docs (plans, notes, etc.)
+│
+├── archive/                 # Archived agents and state
+│   └── state/               # Archived state files
+│
+└── lifecycle/               # Lifecycle policies
+    ├── policy.md            # Lifecycle management
+    └── pattern_learning.md  # Pattern learning system
 ```
+
+**Note**: Per-agent `TASKS.md`, `COMMUNICATION.md`, and `STATUS.md` files are **removed**. Use centralized systems instead.
 
 ---
 
@@ -347,9 +392,12 @@ agents/
 ### Single Source of Truth
 
 - **Agent Status**: Monitoring DB (auto-generates registry markdown)
-- **Tasks**: Task registry markdown
+- **Tasks**: Task Coordination System (`agents/tasks/registry.md`) - **ONLY** source for task tracking
 - **Memory**: SQLite database (optional markdown exports)
-- **Messages**: Message markdown files + index.json
+- **Messages**: Communication Protocol (`agents/communication/messages/`) - **ONLY** source for agent messaging
+- **Agent Definitions**: Registry (`agents/registry/agent-registry.md`)
+
+**Removed**: Per-agent `TASKS.md`, `COMMUNICATION.md`, `STATUS.md` files are no longer created or used.
 
 ### Human Readability
 
@@ -359,23 +407,88 @@ agents/
 
 ### Observability
 
-- All MCP tools are automatically logged
-- Monitoring dashboard provides real-time visibility
-- Custom commands/scripts are NOT observable (avoid when possible)
+- **All MCP tools are automatically logged** - Use MCP tools for all operations
+- Monitoring dashboard provides real-time visibility (`localhost:3012`)
+- Custom commands/scripts are **NOT observable** - Avoid when possible
+- Always start monitoring session before work: `start_agent_session()`
 
 ### Consistency
 
 - Use MCP tools for all operations (when available)
 - Follow established patterns and workflows
 - Document decisions in memory system
+- Use centralized systems (Task Coordination, Communication Protocol) - not per-agent files
+
+## Agent Workflow
+
+### Standard Agent Startup Sequence
+
+1. **Start Infrastructure** (if not running):
+   ```python
+   await start_agent_infrastructure()
+   ```
+
+2. **Start Monitoring Session**:
+   ```python
+   start_agent_session(agent_id="agent-001")
+   update_agent_status(agent_id="agent-001", status="active", ...)
+   ```
+
+3. **Check Messages**:
+   ```python
+   messages = await get_agent_messages(agent_id="agent-001", status="pending")
+   ```
+
+4. **Check Memory**:
+   ```python
+   memory_query_decisions(project="home-server", limit=5)
+   memory_query_patterns(severity="high", limit=5)
+   ```
+
+5. **Check Skills**:
+   - Review `agents/skills/README.md`
+
+6. **Check Available Tasks**:
+   ```python
+   tasks = query_tasks(status="pending", project="home-server")
+   ```
+
+7. **Start Work**:
+   - Claim task: `claim_task(task_id="T1.1", agent_id="agent-001")`
+   - Update status: `update_task_status(task_id="T1.1", status="in_progress", ...)`
+
+8. **End Session**:
+   ```python
+   end_agent_session(agent_id="agent-001", session_id=..., ...)
+   ```
+
+**See**: `agents/prompts/base.md` for complete discovery workflow.
 
 ---
 
-**Last Updated**: 2025-01-13  
-**Status**: Active  
-**See Also**: 
-- `agents/docs/README.md` - Documentation index
-- `agents/docs/QUICK_START.md` - Quick start guide
-- `agents/docs/DATA_MODEL.md` - Data model and storage structure
-- `agents/docs/COMMUNICATION_GUIDELINES.md` - Communication channel usage
+## Related Documentation
+
+### Getting Started
+- **`agents/docs/QUICK_START.md`** - Instructions for using `prompts/base.md`
+- **`agents/prompts/base.md`** - Complete agent prompt with discovery workflow
+- **`agents/README.md`** - Main entry point and navigation
+
+### Detailed Guides
+- **`agents/docs/AGENT_WORKFLOW.md`** - Detailed workflow guide
+- **`agents/docs/MCP_TOOL_DISCOVERY.md`** - How to discover and use tools
+- **`agents/docs/COMMUNICATION_GUIDELINES.md`** - Communication channel usage
+- **`agents/docs/DATA_MODEL.md`** - Data model and storage structure
+
+### System Components
+- **`agents/memory/README.md`** - Memory system documentation
+- **`agents/tasks/README.md`** - Task coordination guide
+- **`agents/communication/README.md`** - Communication protocol guide
+- **`agents/apps/agent-monitoring/README.md`** - Monitoring dashboard guide
+- **`agents/apps/agent-mcp/README.md`** - MCP tools catalog
+
+---
+
+**Last Updated**: 2025-11-11  
+**Status**: Active - Comprehensive Source of Truth  
+**Maintained By**: This document is the authoritative reference for agent system architecture
 

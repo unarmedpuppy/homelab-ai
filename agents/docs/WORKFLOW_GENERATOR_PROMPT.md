@@ -201,14 +201,15 @@ After clarification and analysis, generate ALL of the following files in the `ag
     │   ├── GETTING_STARTED.md
     │   ├── CODING_STANDARDS.md
     │   ├── CODING_prompts/base.md
-    │   ├── REVIEW_prompts/base.md
-    │   └── TASKS.md
+    │   └── REVIEW_prompts/base.md
     ├── scripts/
     │   ├── pre-submit-check.sh
     │   └── [other project-specific scripts]
     └── archive/
         └── [for completed/stale docs]
 ```
+
+**Note**: Tasks are tracked in the **Task Coordination System** (`agents/tasks/registry.md`), not in per-agent files. Use `register_task()`, `query_tasks()`, and `claim_task()` MCP tools for task management.
 
 ### File 1: IMPLEMENTATION_PLAN_[FEATURE].md
 
@@ -425,7 +426,7 @@ KEY2=value2
 
 1. **`GETTING_STARTED.md`** - Essential information
 2. **`IMPLEMENTATION_PLAN_[FEATURE].md`** - Complete specification
-3. **`TASKS.md`** - Task tracking
+3. **Task Coordination System** - Query tasks using `query_tasks()` MCP tool (see `agents/tasks/registry.md`)
 4. **`CODING_STANDARDS.md`** - Coding standards
 5. **This document** - Your working guidelines
 
@@ -1053,11 +1054,11 @@ Use this structure:
 
 ### File 6: Task Coordination (Central Registry)
 
-**Purpose**: Task tracking with dependencies - Use Task Coordination System, not per-agent files
+**Purpose**: Task tracking with dependencies - Use Task Coordination System
 
 **Location**: `agents/tasks/registry.md` (central registry)
 
-**⚠️ IMPORTANT**: Per-agent `TASKS.md` files are deprecated. Use the Task Coordination System for all task management.
+**⚠️ IMPORTANT**: Per-agent `TASKS.md` files are **REMOVED**. Use the Task Coordination System for all task management.
 
 **How to Use**:
 - Register tasks using `register_task()` MCP tool
@@ -1074,53 +1075,26 @@ Use this structure:
 
 **See**: `agents/tasks/README.md` for complete task coordination guide.
 
-**Template Structure** (for reference - use MCP tools instead):
-```markdown
-# Tasks: [FEATURE_NAME]
+**Example Task Registration**:
+```python
+# Register a task
+result = register_task(
+    title="Setup database schema",
+    description="Create PostgreSQL schema with tables",
+    project="my-project",
+    priority="high",
+    dependencies="T1.1,T1.2",  # Optional: comma-separated task IDs
+    created_by="agent-001"
+)
 
-## Task Status Legend
-- `[PENDING]` - Not started
-- `[CLAIMED]` - Claimed by agent
-- `[IN PROGRESS]` - Currently being worked on
-- `[REVIEW]` - Submitted for review
-- `[COMPLETED]` - Approved and complete
-- `[BLOCKED]` - Cannot proceed (dependency issue)
+# Task ID is returned (e.g., "T1.3")
+task_id = result["task_id"]
 
-## Dependency Graph
+# Claim the task
+claim_task(task_id=task_id, agent_id="agent-001")
 
-\`\`\`
-[Visual representation of task dependencies]
-\`\`\`
-
-## Phase 1: [Phase Name]
-
-### T1.1: [Task Name]
-**Status**: `[PENDING]`  
-**Priority**: `[High/Medium/Low]`  
-**Estimated Time**: `[X hours]`  
-**Claimed By**: `[Agent identifier]`
-
-**Dependencies**:
-- `T[X].[Y]` - Must be `[COMPLETED]` (required)
-- `T[X].[Y]` - Should be `[COMPLETED]` (recommended)
-
-**Blocks**:
-- `T[X].[Y]` - This task blocks these tasks
-
-**Description**: 
-[Detailed description]
-
-**Acceptance Criteria**:
-- [ ] Criterion 1
-- [ ] Criterion 2
-
-**Files to Create/Modify**:
-- `path/to/file1`
-- `path/to/file2`
-
-**Completion Summary**: `[To be filled when completed]`
-
-[Repeat for all tasks]
+# Update status as work progresses
+update_task_status(task_id=task_id, status="in_progress", agent_id="agent-001")
 ```
 
 ### File 7: pre-submit-check.sh
@@ -1223,7 +1197,9 @@ After generation, provide:
 - ✅ CODING_STANDARDS.md
 - ✅ CODING_prompts/base.md
 - ✅ REVIEW_prompts/base.md
-- ✅ Task Coordination System (`agents/tasks/registry.md`)
+
+**Task Management**:
+- ✅ Task Coordination System (`agents/tasks/registry.md`) - Use MCP tools to register/claim/update tasks
 
 **Scripts** (`agents/scripts/`):
 - ✅ pre-submit-check.sh
@@ -1241,8 +1217,9 @@ After generation, provide:
 To start working:
 1. Read `agents/docs/GETTING_STARTED.md`
 2. Read `agents/docs/IMPLEMENTATION_PLAN_[FEATURE].md`
-3. Query available tasks using `query_tasks()` from the Task Coordination System
-4. Claim a task using `claim_task()` and start coding!
+3. Register tasks using `register_task()` MCP tool (if not already registered)
+4. Query available tasks using `query_tasks()` from the Task Coordination System
+5. Claim a task using `claim_task()` and start coding!
 ```
 
 ## Important Guidelines

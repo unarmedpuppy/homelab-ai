@@ -22,8 +22,9 @@ from tools.logging_decorator import with_automatic_logging
 def register_agent_management_tools(server: Server):
     """Register agent management tools with MCP server."""
     
-    @server.tool()
     @with_automatic_logging()
+
+    @server.tool()
     async def create_agent_definition(
         specialization: str,
         capabilities: str,
@@ -125,13 +126,13 @@ You are a specialized agent created to handle tasks requiring expertise in {spec
 
 ## Your Tasks
 
-**Primary Task Location**: `agents/active/{agent_id}-{specialization}/TASKS.md`
+**Task Management**: Use Task Coordination System (`agents/tasks/registry.md`)
 
 ### Initial Tasks
 
 {initial_tasks}
 
-Read your TASKS.md file to see all assigned tasks.
+Use `query_tasks()` MCP tool to see all assigned tasks.
 
 ## Your Prompt
 
@@ -145,7 +146,7 @@ The prompt defines your workflow, principles, and how to use systems (memory, sk
 ## How to Work
 
 1. **Read Your Prompt**: Read your agent prompt (see above)
-2. **Read Your Tasks**: Check `agents/active/{agent_id}-{specialization}/TASKS.md`
+2. **Check Your Tasks**: Use `query_tasks(assignee="{agent_id}")` MCP tool
 3. **Check Memory**: Query memory for related decisions and patterns
    - Use `memory_query_decisions()` for related decisions
    - Use `memory_query_patterns()` for common patterns
@@ -160,9 +161,9 @@ The prompt defines your workflow, principles, and how to use systems (memory, sk
 
 ### With Parent Agent ({parent_agent_id})
 
-- **Task Assignment**: Check TASKS.md for new tasks
-- **Status Updates**: Update STATUS.md regularly
-- **Guidance**: Check COMMUNICATION.md for parent guidance
+- **Task Assignment**: Use Task Coordination System (`query_tasks()` MCP tool)
+- **Status Updates**: Use Monitoring System (`update_agent_status()` MCP tool)
+- **Communication**: Use Communication Protocol (`get_agent_messages()` MCP tool)
 - **Results**: Document results in RESULTS.md
 
 ### File Structure
@@ -176,10 +177,12 @@ agents/active/{agent_id}-{specialization}/
 │   ├── notes/            # Working notes, research
 │   ├── architecture/     # System designs
 │   └── references/       # External references
-├── TASKS.md              # Your assigned tasks (deprecated - use task coordination)
-├── STATUS.md             # Your current status (deprecated - use monitoring)
-├── COMMUNICATION.md      # Parent-child communication (deprecated - use communication system)
 └── RESULTS.md            # Completed work results
+
+**Note**: Tasks, status, and communication are managed via centralized systems:
+- **Tasks**: Task Coordination System (`agents/tasks/registry.md`) - Use `query_tasks()` MCP tool
+- **Status**: Monitoring System (dashboard at `localhost:3012`) - Use `update_agent_status()` MCP tool
+- **Communication**: Communication Protocol (`agents/communication/`) - Use `get_agent_messages()` MCP tool
 ```
 
 **⚠️ IMPORTANT**: All your documentation, plans, and notes should go in `docs/` directory, NOT in `agents/docs/`. This ensures proper namespacing and automatic archiving.
@@ -192,7 +195,7 @@ Before starting work:
 2. **Check Memory**: Query previous decisions and patterns using memory MCP tools
 3. **Check Skills**: Review `agents/skills/README.md` for workflows
 4. **Check MCP Tools**: Review `agents/apps/agent-mcp/README.md` for available tools
-5. **Read Your Tasks**: Check TASKS.md or use task coordination tools
+5. **Check Your Tasks**: Use `query_tasks(assignee="{agent_id}")` MCP tool
 
 ## Memory Integration
 
@@ -221,87 +224,13 @@ Update STATUS.md regularly with:
         definition_path = definitions_dir / f"{agent_id}-{specialization}.md"
         definition_path.write_text(definition_content)
         
-        # Create TASKS.md
-        tasks_content = f"""# Tasks for {agent_id.upper()}
-
-## Assigned Tasks
-
-### Initial Task
-**Assigned By**: {parent_agent_id}
-**Created**: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-**Status**: PENDING
-
-**Description**:
-{initial_tasks}
-
-**Steps**:
-1. Review task description
-2. Check memory for related decisions
-3. Use specialized knowledge to complete task
-4. Update status as you work
-5. Mark complete when done
-
----
-
-**Last Updated**: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-"""
-        tasks_path = agent_dir / "TASKS.md"
-        tasks_path.write_text(tasks_content)
+        # Note: TASKS.md, STATUS.md, and COMMUNICATION.md are REMOVED
+        # Use centralized systems instead:
+        # - Task Coordination System (agents/tasks/registry.md) for tasks
+        # - Monitoring System (dashboard at localhost:3012) for status
+        # - Communication Protocol (agents/communication/) for messaging
         
-        # Create STATUS.md
-        status_content = f"""# Status for {agent_id.upper()}
-
-## Current Status
-
-**Agent ID**: {agent_id}
-**Specialization**: {specialization}
-**Status**: READY
-**Created**: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-
-## Current Task
-
-**Task**: Initial task assignment
-**Status**: PENDING
-**Progress**: 0%
-
-## Notes
-
-Waiting for activation...
-
----
-
-**Last Updated**: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-"""
-        status_path = agent_dir / "STATUS.md"
-        status_path.write_text(status_content)
-        
-        # Create COMMUNICATION.md
-        comm_content = f"""# Communication for {agent_id.upper()}
-
-## Messages from Parent Agent ({parent_agent_id})
-
-### Initial Assignment
-**From**: {parent_agent_id}
-**Date**: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-
-Welcome! You have been created to handle specialized tasks in {specialization.replace('-', ' ')}.
-
-Please review your TASKS.md file and begin work.
-
----
-
-## Messages to Parent Agent
-
-_Add messages here when you need to communicate with your parent agent._
-
----
-
-**Last Updated**: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-"""
-        comm_path = agent_dir / "COMMUNICATION.md"
-        comm_path.write_text(comm_content)
-        
-        # Create RESULTS.md
+        # Create RESULTS.md (still used for agent-specific results documentation)
         results_path = agent_dir / "RESULTS.md"
         results_path.write_text(f"# Results for {agent_id.upper()}\n\n## Completed Work\n\n_Results will be documented here._\n")
         
@@ -317,7 +246,7 @@ _Add messages here when you need to communicate with your parent agent._
                 table_marker = "| Agent ID | Specialization |"
                 if table_marker in registry_content:
                     # Insert new row after header
-                    new_row = f"| {agent_id} | {specialization} | {parent_agent_id} | {datetime.now().strftime('%Y-%m-%d')} | `agents/registry/agent-definitions/{agent_id}-{specialization}.md` | `agents/active/{agent_id}-{specialization}/TASKS.md` |\n"
+                    new_row = f"| {agent_id} | {specialization} | {parent_agent_id} | {datetime.now().strftime('%Y-%m-%d')} | `agents/registry/agent-definitions/{agent_id}-{specialization}.md` | Task Coordination System |\n"
                     registry_content = registry_content.replace(
                         table_marker + "\n|----------|",
                         table_marker + "\n" + new_row + "|----------|"
@@ -343,13 +272,12 @@ _Add messages here when you need to communicate with your parent agent._
             "agent_id": agent_id,
             "specialization": specialization,
             "definition_path": str(definition_path.relative_to(project_root)),
-            "tasks_path": str(tasks_path.relative_to(project_root)),
-            "status_path": str(status_path.relative_to(project_root)),
-            "message": f"Agent definition created: {agent_id} ({specialization})"
+            "message": f"Agent definition created: {agent_id} ({specialization}). Use Task Coordination System (agents/tasks/registry.md) for tasks."
         }
     
-    @server.tool()
     @with_automatic_logging()
+
+    @server.tool()
     async def query_agent_registry(
         specialization: Optional[str] = None,
         status: Optional[str] = None,
@@ -416,8 +344,9 @@ _Add messages here when you need to communicate with your parent agent._
             "agents": agents
         }
     
-    @server.tool()
     @with_automatic_logging()
+
+    @server.tool()
     async def assign_task_to_agent(
         agent_id: str,
         task_description: str,
@@ -448,25 +377,15 @@ _Add messages here when you need to communicate with your parent agent._
             }
         
         agent_dir = agent_dirs[0]
-        tasks_path = agent_dir / "TASKS.md"
         
-        if not tasks_path.exists():
-            return {
-                "status": "error",
-                "message": f"TASKS.md not found for agent {agent_id}"
-            }
-        
-        # Generate task ID if not provided
+        # Note: TASKS.md is REMOVED - use Task Coordination System instead
+        # Generate task ID if not provided (for registry)
         if not task_id:
-            # Read existing tasks to find next ID
-            tasks_content = tasks_path.read_text()
-            import re
-            task_matches = re.findall(r'### T(\d+)\.(\d+)', tasks_content)
-            if task_matches:
-                max_task = max([int(m[0]) * 100 + int(m[1]) for m in task_matches])
-                task_id = f"T{max_task // 100}.{(max_task % 100) + 1}"
-            else:
-                task_id = "T1.1"
+            # Use task coordination system to generate ID
+            from tools.task_coordination import _parse_registry, _generate_task_id
+            existing_tasks = _parse_registry()
+            project = "agent-tasks"  # Default project name
+            task_id = _generate_task_id(project, existing_tasks)
         
         # Also register in central task registry
         try:
@@ -485,7 +404,7 @@ _Add messages here when you need to communicate with your parent agent._
             # Parse existing tasks
             existing_tasks = _parse_registry()
             
-            # Generate task ID for registry (may differ from TASKS.md ID)
+            # Generate task ID for registry
             registry_task_id = _generate_task_id(project, existing_tasks)
             
             # Create task for registry
@@ -509,52 +428,26 @@ _Add messages here when you need to communicate with your parent agent._
             registry_registered = True
             registry_task_id_used = registry_task_id
         except Exception as e:
-            # If registry registration fails, continue with TASKS.md only
-            registry_registered = False
-            registry_task_id_used = None
+            # If registry registration fails, return error
+            return {
+                "status": "error",
+                "message": f"Failed to register task in Task Coordination System: {str(e)}",
+                "error_type": type(e).__name__
+            }
         
-        # Append new task to agent's TASKS.md
-        new_task = f"""
-### {task_id}: {task_description[:50]}...
-**Assigned By**: [Parent Agent]
-**Created**: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-**Priority**: {priority.upper()}
-**Status**: PENDING
-{f"**Registry Task ID**: {registry_task_id_used}" if registry_registered else ""}
-
-**Description**:
-{task_description}
-
-**Steps**:
-1. Review task description
-2. Check memory for related decisions
-3. Use specialized knowledge to complete task
-4. Update status as you work
-5. Mark complete when done
-
----
-"""
-        
-        # Append to tasks file
-        tasks_content = tasks_path.read_text()
-        tasks_content += new_task
-        tasks_path.write_text(tasks_content)
-        
+        # Note: TASKS.md is REMOVED - tasks are only in Task Coordination System
         result = {
             "status": "success",
             "agent_id": agent_id,
-            "task_id": task_id,
-            "message": f"Task {task_id} assigned to {agent_id}"
+            "task_id": registry_task_id_used,
+            "message": f"Task {registry_task_id_used} assigned to {agent_id} and registered in Task Coordination System (agents/tasks/registry.md)"
         }
-        
-        if registry_registered:
-            result["registry_task_id"] = registry_task_id_used
-            result["message"] += f" Also registered in central registry as {registry_task_id_used}."
         
         return result
     
-    @server.tool()
     @with_automatic_logging()
+
+    @server.tool()
     async def sync_agent_registry() -> Dict[str, Any]:
         """
         Sync agent registry markdown from monitoring DB and definition files.
@@ -605,8 +498,9 @@ _Add messages here when you need to communicate with your parent agent._
                 "message": str(e)
             }
     
-    @server.tool()
     @with_automatic_logging()
+
+    @server.tool()
     async def archive_agent(
         agent_id: str,
         reason: Optional[str] = None,
@@ -646,16 +540,15 @@ _Add messages here when you need to communicate with your parent agent._
             
             agent_dir = agent_dirs[0]
             
-            # Check for pending tasks (unless force)
+            # Check for pending tasks in Task Coordination System (unless force)
             if not force:
-                tasks_path = agent_dir / "TASKS.md"
-                if tasks_path.exists():
-                    tasks_content = tasks_path.read_text()
-                    # Simple check for pending tasks
-                    if "PENDING" in tasks_content or "IN PROGRESS" in tasks_content:
+                from tools.task_coordination import query_tasks
+                try:
+                    pending_tasks = query_tasks(assignee=agent_id, status="in_progress", limit=1)
+                    if pending_tasks.get("count", 0) > 0:
                         return {
                             "status": "error",
-                            "message": f"Agent {agent_id} has pending tasks. Use force=True to archive anyway.",
+                            "message": f"Agent {agent_id} has pending tasks in Task Coordination System. Use force=True to archive anyway.",
                             "action": "Complete or cancel tasks before archiving"
                         }
             
@@ -778,8 +671,9 @@ _Add messages here when you need to communicate with your parent agent._
                 "message": str(e)
             }
     
-    @server.tool()
     @with_automatic_logging()
+
+    @server.tool()
     async def reactivate_agent(
         agent_id: str,
         new_tasks: Optional[str] = None
@@ -876,7 +770,7 @@ _Add messages here when you need to communicate with your parent agent._
                     table_marker = "| Agent ID | Specialization |"
                     if table_marker in ready_section:
                         created_by = metadata.get("created_by", "unknown")
-                        new_row = f"| {agent_id} | {specialization} | {created_by} | {datetime.now().strftime('%Y-%m-%d')} | `agents/registry/agent-definitions/{agent_id}-{specialization}.md` | `agents/active/{agent_id}-{specialization}/TASKS.md` |\n"
+                        new_row = f"| {agent_id} | {specialization} | {created_by} | {datetime.now().strftime('%Y-%m-%d')} | `agents/registry/agent-definitions/{agent_id}-{specialization}.md` | Task Coordination System |\n"
                         ready_section = ready_section.replace(
                             table_marker + "\n|----------|",
                             table_marker + "\n" + new_row + "|----------|"
