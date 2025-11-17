@@ -4,7 +4,7 @@ services:
     container_name: spotdl
     image: spotdl/spotify-downloader:latest
     entrypoint: /bin/sh
-    command: -c "pip install --upgrade yt-dlp && uv run spotdl web --host 0.0.0.0 --web-use-output-dir"
+    command: -c "pip install --upgrade yt-dlp && poetry run spotdl web --host 0.0.0.0 --web-use-output-dir"
     environment:
       - PUID=1000
       - PGID=1000
