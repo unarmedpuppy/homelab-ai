@@ -27,7 +27,9 @@
     "--file-access-retries", "3",
     "--retry-sleep", "1",
     "--socket-timeout", "30",
-    "--extractor-args", "youtube:player_client=ios,android,web"
+    "--extractor-args", "youtube:player_client=web",
+    "-f", "bestaudio/best",
+    "--audio-format", "mp3"
   ]
 }
 
