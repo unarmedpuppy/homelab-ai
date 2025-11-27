@@ -58,6 +58,10 @@ services:
     environment:
       PAPERLESS_REDIS: redis://broker:6379
       PAPERLESS_DBHOST: db
+      PAPERLESS_DBNAME: paperless
+      PAPERLESS_DBUSER: paperless
+      PAPERLESS_DBPASS: paperless
+      PAPERLESS_PORT: 8200
     networks: [my-network]
     labels:
       - "traefik.enable=true"
