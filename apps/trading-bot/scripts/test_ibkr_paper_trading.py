@@ -408,6 +408,16 @@ class IBKRPaperTradingTests:
                 )
                 return TestResult.FAIL
 
+        except ImportError as e:
+            duration = time.time() - start
+            self.record_result(
+                "Historical Data",
+                TestResult.SKIP,
+                duration,
+                f"Skipped: {str(e)}"
+            )
+            return TestResult.SKIP
+
         except Exception as e:
             duration = time.time() - start
             self.record_result(

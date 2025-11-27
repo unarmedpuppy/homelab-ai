@@ -13,7 +13,11 @@ from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime, timedelta
 from dataclasses import dataclass
 from enum import Enum
-import pandas as pd
+
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
 
 try:
     from ib_insync import IB, util, Stock, MarketOrder, LimitOrder, Contract, Position, Order
@@ -348,12 +352,15 @@ class IBKRClient:
             logger.error(f"Error getting market data for {contract.symbol}: {e}")
             raise
     
-    async def get_historical_data(self, contract: Contract, duration: str = "1 D", 
-                                 bar_size: str = "1 min") -> pd.DataFrame:
-        """Get historical data for a contract"""
+    async def get_historical_data(self, contract: Contract, duration: str = "1 D",
+                                 bar_size: str = "1 min"):
+        """Get historical data for a contract. Returns pandas DataFrame if available."""
         if not self.connected:
             raise RuntimeError("Not connected to IBKR")
-        
+
+        if pd is None:
+            raise ImportError("pandas is required for historical data. Install with: pip install pandas")
+
         try:
             bars = self.ib.reqHistoricalData(
                 contract,
@@ -364,14 +371,14 @@ class IBKRClient:
                 useRTH=True,
                 formatDate=1
             )
-            
+
             if not bars:
                 raise RuntimeError("No historical data returned")
-            
+
             df = util.df(bars)
             df.set_index("date", inplace=True)
             df.index = pd.to_datetime(df.index)
-            
+
             return df
         except Exception as e:
             logger.error(f"Error getting historical data for {contract.symbol}: {e}")
