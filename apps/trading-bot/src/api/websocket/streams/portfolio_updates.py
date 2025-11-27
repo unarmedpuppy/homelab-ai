@@ -108,7 +108,7 @@ class PortfolioUpdateStream:
         
         # Update portfolio P/L metrics
         try:
-            from ....utils.metrics_business import update_portfolio_pnl, update_portfolio_value
+            from ....utils.metrics import update_portfolio_pnl, update_portfolio_value
             # Calculate portfolio total value (positions value + cash)
             # For now, we'll use total P&L as a proxy - can be enhanced with actual cash tracking
             portfolio_value = sum(

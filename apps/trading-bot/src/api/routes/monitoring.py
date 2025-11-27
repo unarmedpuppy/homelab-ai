@@ -380,7 +380,7 @@ async def get_metrics():
         
         # Update system health metrics (memory, CPU, disk)
         try:
-            from ...utils.metrics_system import update_system_metrics
+            from ...utils.metrics import update_system_metrics
             update_system_metrics()
         except Exception as e:
             logger.debug(f"Could not update system metrics: {e}")

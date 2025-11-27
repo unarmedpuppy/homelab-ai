@@ -283,7 +283,7 @@ class MetricsMiddleware(BaseHTTPMiddleware):
                 
                 # Also record in system error metrics
                 try:
-                    from ...utils.metrics_system import record_exception
+                    from ...utils.metrics import record_exception
                     is_critical = status_code >= 500  # 5xx errors are critical
                     record_exception(error_type, component="api", is_critical=is_critical)
                 except (ImportError, Exception) as sys_metrics_error:

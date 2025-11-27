@@ -39,38 +39,22 @@
 
 ## Phase 1: Code Quality & Cleanup (Priority: High)
 
-### T1: Consolidate Metrics System
+### T1: Consolidate Metrics System ✓ COMPLETED
 **Goal**: Reduce 8 metrics files to 3 well-organized modules
 
-**Current State**:
+**Result**:
 ```
-src/utils/
-├── metrics.py (14.8 KB) - Main registry
-├── metrics_business.py (5.4 KB)
-├── metrics_integration.py (5.1 KB)
-├── metrics_providers.py (16.3 KB)
-├── metrics_providers_helpers.py (3.9 KB)
-├── metrics_sentiment.py (6.3 KB)
-├── metrics_system.py (15.3 KB)
-└── metrics_trading.py (10.9 KB)
+src/utils/metrics/
+├── __init__.py   (172 lines) - Public API exports
+├── registry.py   (348 lines) - Core registry, get_or_create, decorators
+└── collectors.py (1014 lines) - All metric collection (trading, system, providers, business)
 ```
 
-**Target State**:
-```
-src/utils/
-├── metrics/
-│   ├── __init__.py      # Public API exports
-│   ├── registry.py      # Core registry, get_or_create functions
-│   ├── collectors.py    # All metric collection (trading, system, providers)
-│   └── exporters.py     # Prometheus/JSON export utilities
-```
-
-**Tasks**:
-- [ ] Create `src/utils/metrics/` directory structure
-- [ ] Extract core registry to `registry.py`
-- [ ] Consolidate all collectors into `collectors.py` with clear namespacing
-- [ ] Update all imports across codebase
-- [ ] Add tests for consolidated module
+**Summary**:
+- Consolidated 8 files (~2100 lines) → 3 files (~1534 lines)
+- Updated 25+ import sites across codebase
+- Removed legacy duplicate metrics
+- Clean single-source-of-truth for all metrics
 
 ### T2: Remove Backward Compatibility Duplication
 **Goal**: Clean up `src/core/strategy.py` wrapper

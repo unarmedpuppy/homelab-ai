@@ -103,7 +103,7 @@ class IBKRClient:
         
         # Import metrics helpers (optional, gracefully handle if metrics disabled)
         try:
-            from ...utils.metrics_trading import (
+            from ...utils.metrics import (
                 record_trade_executed,
                 record_trade_rejected,
                 record_order_fill_time,

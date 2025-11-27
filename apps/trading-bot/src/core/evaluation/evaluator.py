@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 # Import trading metrics helpers (optional, gracefully handle if metrics disabled)
 try:
-    from ...utils.metrics_trading import (
+    from ...utils.metrics import (
         record_signal_generated,
         record_strategy_evaluation
     )
@@ -552,7 +552,7 @@ class StrategyEvaluator:
         
         # Update strategy performance metrics if available
         try:
-            from ...utils.metrics_integration import calculate_and_update_strategy_win_rate
+            from ...utils.metrics import calculate_and_update_strategy_win_rate
             # This would ideally use actual trade history from database
             # For now, we'll just update based on signal success rate if we had trade data
             # Future: Query completed trades from database and calculate actual win rates

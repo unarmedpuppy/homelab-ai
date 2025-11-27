@@ -74,7 +74,7 @@ class OptionsFlowSentimentProvider:
         # Track provider availability
         is_available = self.is_available()
         try:
-            from ....utils.metrics_providers_helpers import track_provider_availability
+            from ....utils.metrics import track_provider_availability
             track_provider_availability("options", is_available)
         except (ImportError, Exception) as e:
             logger.debug(f"Could not record availability metric: {e}")
@@ -92,7 +92,7 @@ class OptionsFlowSentimentProvider:
                 logger.error(f"Options rate limit still exceeded after wait")
                 # Record rate limit hit metric
                 try:
-                    from ....utils.metrics_providers_helpers import track_rate_limit_hit
+                    from ....utils.metrics import track_rate_limit_hit
                     track_rate_limit_hit("options")
                 except (ImportError, Exception) as e:
                     logger.debug(f"Could not record rate limit metric: {e}")
@@ -110,7 +110,7 @@ class OptionsFlowSentimentProvider:
             logger.debug(f"Returning cached options sentiment for {symbol}")
             # Track data freshness
             try:
-                from ....utils.metrics_providers_helpers import track_cache_freshness
+                from ....utils.metrics import track_cache_freshness
                 track_cache_freshness("options", "get_sentiment", cached)
             except (ImportError, Exception) as e:
                 logger.debug(f"Could not record data freshness metric: {e}")
@@ -177,7 +177,7 @@ class OptionsFlowSentimentProvider:
             
             # Record API response time (already calculated above)
             try:
-                from ....utils.metrics_providers import record_provider_response_time
+                from ....utils.metrics import record_provider_response_time
                 record_provider_response_time("options", api_response_time)
             except (ImportError, Exception) as e:
                 logger.debug(f"Could not record response time metric: {e}")

@@ -50,7 +50,7 @@ from .models import Base
 # Instrument database queries with metrics if enabled
 if settings.metrics.enabled:
     try:
-        from ...utils.metrics_system import (
+        from ...utils.metrics import (
             record_database_query,
             update_connection_pool_usage,
             record_transaction
@@ -115,7 +115,7 @@ def get_db() -> Generator[Session, None, None]:
                 if hasattr(engine.pool, 'size') and hasattr(engine.pool, 'checkedout'):
                     pool_size = engine.pool.size()
                     checked_out = engine.pool.checkedout()
-                    from ...utils.metrics_system import update_connection_pool_usage
+                    from ...utils.metrics import update_connection_pool_usage
                     update_connection_pool_usage("default", checked_out, pool_size)
             except Exception:
                 pass  # Non-critical, skip if fails

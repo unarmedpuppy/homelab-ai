@@ -20,7 +20,7 @@ from ..api.routes import trading, backtesting, screening, monitoring, market_dat
 # Import from middleware package (which now exports from middleware.py)
 from ..api.middleware import LoggingMiddleware, RateLimitMiddleware
 from ..api.middleware.metrics_middleware import MetricsMiddleware
-from ..utils.metrics_system import update_system_metrics, get_app_start_time, initialize_system_metrics
+from ..utils.metrics import update_system_metrics, get_app_start_time, initialize_system_metrics
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -363,7 +363,7 @@ async def http_exception_handler(request, exc):
     # Record error metrics
     if settings.metrics.enabled:
         try:
-            from ..utils.metrics_system import record_error
+            from ..utils.metrics import record_error
             is_critical = exc.status_code >= 500
             record_error("http_error", component="api", is_critical=is_critical)
         except (ImportError, Exception) as e:
@@ -383,7 +383,7 @@ async def general_exception_handler(request, exc):
     # Record exception metrics
     if settings.metrics.enabled:
         try:
-            from ..utils.metrics_system import record_exception
+            from ..utils.metrics import record_exception
             exc_type = type(exc).__name__
             record_exception(exc_type, component="api", is_critical=True)
         except (ImportError, Exception) as e:

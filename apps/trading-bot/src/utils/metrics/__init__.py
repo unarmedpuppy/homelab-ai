@@ -1,12 +1,21 @@
-# Utils package
+"""
+Metrics Package
+===============
 
-from .cache import CacheManager, get_cache_manager, cached, cache_key
-from .rate_limiter import RateLimiter, RateLimitStatus, get_rate_limiter
-from .monitoring import UsageMonitor, SourceMetrics, get_usage_monitor
+Centralized Prometheus metrics for the trading bot.
 
-# Metrics - import from the consolidated metrics package
-from .metrics import (
-    # Registry
+Usage:
+    from src.utils.metrics import record_trade_executed, update_position_metrics
+
+    # Record a trade
+    record_trade_executed("momentum", "AAPL", "BUY")
+
+    # Update position
+    update_position_metrics("AAPL", 100, 150.50)
+"""
+
+# Core registry functions
+from .registry import (
     get_metrics_registry,
     get_or_create_counter,
     get_or_create_histogram,
@@ -19,7 +28,10 @@ from .metrics import (
     track_duration,
     track_call_count,
     track_duration_context,
-    # Trading metrics
+)
+
+# Trading metrics
+from .collectors import (
     record_trade_executed,
     record_trade_rejected,
     record_execution_duration,
@@ -30,7 +42,13 @@ from .metrics import (
     record_strategy_evaluation,
     record_signal_generated,
     update_strategy_win_rate,
-    # Provider metrics
+    get_trade_metrics,
+    get_position_metrics,
+    get_strategy_metrics,
+)
+
+# Provider metrics
+from .collectors import (
     record_provider_request,
     record_provider_response_time,
     record_provider_error,
@@ -43,7 +61,11 @@ from .metrics import (
     track_cache_freshness,
     track_provider_availability,
     track_provider_call,
-    # System metrics
+    get_provider_metrics,
+)
+
+# System metrics
+from .collectors import (
     initialize_system_metrics,
     update_system_metrics,
     record_error,
@@ -54,11 +76,23 @@ from .metrics import (
     record_redis_operation,
     update_redis_hit_rate,
     get_app_start_time,
-    # Business metrics
+    get_system_metrics,
+    get_error_metrics,
+    get_database_metrics,
+    get_redis_metrics,
+)
+
+# Business metrics
+from .collectors import (
     update_portfolio_pnl,
     update_portfolio_value,
     update_risk_metrics,
-    # Integration helpers
+    get_portfolio_metrics,
+    get_risk_metrics,
+)
+
+# Integration helpers
+from .collectors import (
     update_portfolio_metrics_from_positions,
     calculate_and_update_strategy_win_rate,
     update_risk_metrics_from_config,
@@ -67,20 +101,7 @@ from .metrics import (
 )
 
 __all__ = [
-    # Cache
-    "CacheManager",
-    "get_cache_manager",
-    "cached",
-    "cache_key",
-    # Rate limiter
-    "RateLimiter",
-    "RateLimitStatus",
-    "get_rate_limiter",
-    # Monitoring
-    "UsageMonitor",
-    "SourceMetrics",
-    "get_usage_monitor",
-    # Metrics registry
+    # Registry
     "get_metrics_registry",
     "get_or_create_counter",
     "get_or_create_histogram",
@@ -93,7 +114,7 @@ __all__ = [
     "track_duration",
     "track_call_count",
     "track_duration_context",
-    # Trading metrics
+    # Trading
     "record_trade_executed",
     "record_trade_rejected",
     "record_execution_duration",
@@ -104,7 +125,10 @@ __all__ = [
     "record_strategy_evaluation",
     "record_signal_generated",
     "update_strategy_win_rate",
-    # Provider metrics
+    "get_trade_metrics",
+    "get_position_metrics",
+    "get_strategy_metrics",
+    # Providers
     "record_provider_request",
     "record_provider_response_time",
     "record_provider_error",
@@ -117,7 +141,8 @@ __all__ = [
     "track_cache_freshness",
     "track_provider_availability",
     "track_provider_call",
-    # System metrics
+    "get_provider_metrics",
+    # System
     "initialize_system_metrics",
     "update_system_metrics",
     "record_error",
@@ -128,11 +153,17 @@ __all__ = [
     "record_redis_operation",
     "update_redis_hit_rate",
     "get_app_start_time",
-    # Business metrics
+    "get_system_metrics",
+    "get_error_metrics",
+    "get_database_metrics",
+    "get_redis_metrics",
+    # Business
     "update_portfolio_pnl",
     "update_portfolio_value",
     "update_risk_metrics",
-    # Integration helpers
+    "get_portfolio_metrics",
+    "get_risk_metrics",
+    # Integration
     "update_portfolio_metrics_from_positions",
     "calculate_and_update_strategy_win_rate",
     "update_risk_metrics_from_config",

@@ -468,7 +468,7 @@ class SECFilingsSentimentProvider:
         # Track provider availability
         is_available = self.is_available()
         try:
-            from ....utils.metrics_providers_helpers import track_provider_availability
+            from ....utils.metrics import track_provider_availability
             track_provider_availability("sec_filings", is_available)
         except (ImportError, Exception) as e:
             logger.debug(f"Could not record availability metric: {e}")
@@ -486,7 +486,7 @@ class SECFilingsSentimentProvider:
                 logger.error(f"SEC filings rate limit still exceeded after wait")
                 # Record rate limit hit metric
                 try:
-                    from ....utils.metrics_providers_helpers import track_rate_limit_hit
+                    from ....utils.metrics import track_rate_limit_hit
                     track_rate_limit_hit("sec_filings")
                 except (ImportError, Exception) as e:
                     logger.debug(f"Could not record rate limit metric: {e}")
@@ -504,7 +504,7 @@ class SECFilingsSentimentProvider:
             logger.debug(f"Returning cached SEC sentiment for {symbol}")
             # Track data freshness
             try:
-                from ....utils.metrics_providers_helpers import track_cache_freshness
+                from ....utils.metrics import track_cache_freshness
                 track_cache_freshness("sec_filings", "get_sentiment", cached)
             except (ImportError, Exception) as e:
                 logger.debug(f"Could not record data freshness metric: {e}")

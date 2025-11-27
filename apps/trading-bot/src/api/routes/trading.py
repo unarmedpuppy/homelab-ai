@@ -17,7 +17,7 @@ from ...data.brokers.ibkr_client import IBKRClient, IBKRManager, OrderSide
 from ...data.database.models import Trade, TradeSide, OrderStatus, Account, Position, PositionStatus, Strategy
 from ...data.database import SessionLocal, get_db
 from ...config.settings import settings
-from ...utils.metrics_integration import update_portfolio_metrics_from_positions
+from ...utils.metrics import update_portfolio_metrics_from_positions
 from ...core.risk import get_risk_manager, RiskManager
 from ...data.providers.market_data import DataProviderManager
 from ...core.confluence import ConfluenceCalculator
@@ -74,7 +74,7 @@ async def ibkr_connection_status():
     
     # Update broker connection status metric
     try:
-        from ...utils.metrics_trading import update_broker_connection_status
+        from ...utils.metrics import update_broker_connection_status
         update_broker_connection_status(is_connected)
     except Exception:
         pass
@@ -281,7 +281,7 @@ async def ibkr_positions():
             
             # Update position metrics
             try:
-                from ...utils.metrics_trading import update_position_metrics
+                from ...utils.metrics import update_position_metrics
                 update_position_metrics(
                     symbol=pos.symbol,
                     quantity=pos.quantity,
@@ -1304,10 +1304,11 @@ async def generate_signal(signal_request: SignalRequest):
         
         # Record signal generation metric
         try:
-            from ...utils.metrics_trading import record_signal_generated
+            from ...utils.metrics import record_signal_generated
             record_signal_generated(
-                symbol=symbol,
+                strategy="confluence",
                 signal_type=signal_type.value,
+                symbol=symbol,
                 confidence=confidence
             )
         except Exception:

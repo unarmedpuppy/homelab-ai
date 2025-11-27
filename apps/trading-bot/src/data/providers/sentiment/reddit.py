@@ -384,7 +384,7 @@ class RedditSentimentProvider:
         # Track provider availability
         is_available = self.is_available()
         try:
-            from ....utils.metrics_providers_helpers import track_provider_availability
+            from ....utils.metrics import track_provider_availability
             track_provider_availability("reddit", is_available)
         except (ImportError, Exception) as e:
             logger.debug(f"Could not record availability metric: {e}")
@@ -402,7 +402,7 @@ class RedditSentimentProvider:
                 logger.error(f"Reddit rate limit still exceeded after wait")
                 # Record rate limit hit metric
                 try:
-                    from ....utils.metrics_providers_helpers import track_rate_limit_hit
+                    from ....utils.metrics import track_rate_limit_hit
                     track_rate_limit_hit("reddit")
                 except (ImportError, Exception) as e:
                     logger.debug(f"Could not record rate limit metric: {e}")
@@ -419,7 +419,7 @@ class RedditSentimentProvider:
             logger.debug(f"Returning cached sentiment for {symbol}")
             # Track data freshness
             try:
-                from ....utils.metrics_providers_helpers import track_cache_freshness
+                from ....utils.metrics import track_cache_freshness
                 track_cache_freshness("reddit", "get_sentiment", cached)
             except (ImportError, Exception) as e:
                 logger.debug(f"Could not record data freshness metric: {e}")
@@ -595,7 +595,7 @@ class RedditSentimentProvider:
         # Record API response time
         api_response_time = time.time() - api_start_time
         try:
-            from ....utils.metrics_providers import record_provider_response_time
+            from ....utils.metrics import record_provider_response_time
             record_provider_response_time("reddit", api_response_time)
         except (ImportError, Exception) as e:
             logger.debug(f"Could not record response time metric: {e}")
