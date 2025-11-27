@@ -502,41 +502,43 @@ apps/trading-journal/
 ## Implementation Phases
 
 ### Phase 1: Foundation (Week 1)
-- [ ] Set up project structure
-- [ ] Configure Docker Compose with PostgreSQL
-- [ ] Create database schema and migrations
-- [ ] Set up FastAPI backend with basic structure
-- [ ] Set up React frontend with Vite
-- [ ] Implement basic API endpoints (CRUD for trades)
-- [ ] Create basic trade entry form
+- [x] Set up project structure
+- [x] Configure Docker Compose with PostgreSQL
+- [x] Create database schema and migrations
+- [x] Set up FastAPI backend with basic structure
+- [x] Set up React frontend with Vite
+- [x] Implement basic API endpoints (CRUD for trades)
+- [x] Create basic trade entry form
 
 ### Phase 2: Core Features (Week 2)
-- [ ] Implement dashboard view with KPIs
-- [ ] Create calendar view with daily summaries
-- [ ] Build daily journal view
-- [ ] Add P&L calculations (net P&L, ROI, R-multiple)
-- [ ] Implement trade list/table components
-- [ ] Add date filtering and navigation
+- [x] Implement dashboard view with KPIs
+- [x] Create calendar view with daily summaries
+- [x] Build daily journal view
+- [x] Add P&L calculations (net P&L, ROI, R-multiple)
+- [x] Implement trade list/table components
+- [x] Add date filtering and navigation
 
 ### Phase 3: Charts & Visualization (Week 3)
-- [ ] Integrate TradingView Lightweight Charts
-- [ ] Implement historical price data fetching
-- [ ] Create price chart component with trade overlays
-- [ ] Add P&L progression charts
-- [ ] Implement dashboard charts (cumulative P&L, daily P&L)
+- [x] Integrate TradingView Lightweight Charts
+- [x] Implement historical price data fetching
+- [x] Create price chart component with trade overlays
+- [x] Add P&L progression charts
+- [x] Implement dashboard charts (cumulative P&L, daily P&L)
 
 ### Phase 4: Polish & Optimization (Week 4)
-- [ ] Add responsive design for mobile
-- [ ] Implement price data caching
-- [ ] Add error handling and loading states
-- [ ] Optimize API queries and add pagination
-- [ ] Add data validation and error messages
-- [ ] Create README and documentation
+- [x] Add responsive design for mobile
+- [x] Implement price data caching
+- [x] Add error handling and loading states
+- [x] Optimize API queries and add pagination
+- [x] Add data validation and error messages
+- [x] Create README and documentation
+- [x] Implement Playbook Details view (Frontend)
+- [x] Implement Analytics Dashboard (Frontend)
+- [x] Implement CSV Import/Export
 
 ### Phase 5: Advanced Features (Future)
 - [ ] Robinhood integration (bonus feature)
-- [ ] Trade import/export (CSV)
-- [ ] Advanced analytics and reports (Sharpe ratio, Sortino ratio, etc.)
+- [ ] Advanced analytics and reports (Sharpe ratio, Sortino ratio, etc.) - *Backend Completed*
 - [ ] Trade tagging and categorization (already in schema)
 - [ ] Multi-leg strategies (spreads, iron condors, etc.)
 - [ ] Multi-account support

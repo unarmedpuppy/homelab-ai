@@ -10,7 +10,7 @@ from unittest.mock import Mock, patch
 from datetime import datetime
 import pandas as pd
 
-from src.core.strategies.range_bound_strategy import RangeBoundStrategy
+from src.core.strategy.range_bound import RangeBoundStrategy
 from src.core.strategy.base import TradingSignal, SignalType, Position
 from src.core.strategy.levels import PriceLevel, LevelType
 

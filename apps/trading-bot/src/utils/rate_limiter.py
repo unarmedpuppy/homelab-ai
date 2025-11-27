@@ -8,7 +8,7 @@ Rate limiting per data source/provider with Redis backing.
 import time
 import logging
 import threading
-from typing import Optional, Dict, Tuple
+from typing import Optional, Dict, Tuple, Any
 from datetime import datetime, timedelta
 from dataclasses import dataclass
 from collections import OrderedDict
@@ -44,7 +44,7 @@ class RateLimiter:
     Uses sliding window algorithm for rate limiting.
     """
     
-    def __init__(self, source: str, redis_client: Optional[redis.Redis] = None, max_memory_windows: int = 100):
+    def __init__(self, source: str, redis_client: Any = None, max_memory_windows: int = 100):
         """
         Initialize rate limiter for a data source
         

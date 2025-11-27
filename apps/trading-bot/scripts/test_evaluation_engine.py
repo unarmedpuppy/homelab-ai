@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Import required modules
 from src.core.evaluation import StrategyEvaluator
-from src.core.strategies import RangeBoundStrategy
+from src.core.strategy.range_bound import RangeBoundStrategy
 from src.core.strategy.registry import get_registry
 
 def create_sample_data():

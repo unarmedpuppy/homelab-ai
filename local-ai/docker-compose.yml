@@ -1,27 +1,32 @@
 services:
-  # Manager service for on-demand model starting/stopping
   manager:
-    image: python:3.11-slim
+    # Build the manager image from the Dockerfile in the ./manager directory
+    build: ./manager
     container_name: vllm-manager
     restart: unless-stopped
-    ports: 
+    ports:
       - "8000:8000"
     environment:
-      - IDLE_TIMEOUT=600     # seconds to auto-stop when idle
-      - START_TIMEOUT=180    # seconds to wait for model load
+      # Timeout for auto-stopping idle model containers (in seconds)
+      - IDLE_TIMEOUT=600
+      # Max time to wait for a model container to become ready (in seconds)
+      - START_TIMEOUT=180
+      # Path to the model configuration file inside the container
+      - MODELS_CONFIG_PATH=/app/models.json
     volumes:
+      # Mount the Docker socket to allow the manager to control other containers
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./manager:/app
+      # Mount the models config, allowing changes without rebuilding the image
+      - ./models.json:/app/models.json
+      # Mount model weights and cache from the host to persist them
       - ./models:/models
       - ./cache:/root/.cache/hf
-    working_dir: /app
-    command: >
-      bash -lc "apt-get update && apt-get install -y docker.io &&
-                pip install fastapi uvicorn requests &&
-                uvicorn manager:app --host 0.0.0.0 --port 8000"
     networks:
       - my-network
 
 networks:
   my-network:
+    # This configuration assumes you have an external network named 'my-network'.
+    # If not, you can create it with 'docker network create my-network'
+    # or change this to 'driver: bridge' to use a default bridge network.
     external: true

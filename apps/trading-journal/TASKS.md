@@ -947,26 +947,51 @@ This file tracks the status of all implementation tasks. Agents should update th
   - Traefik internal routing: `https://trading-journal.server.unarmedpuppy.com` (requires local network access)
 - Ready for future public exposure when needed (just need to add Cloudflare DDNS configuration)
 
----
-
-## How to Update This File
-
-When claiming a task:
-1. Change status to `[CLAIMED]` or `[IN PROGRESS]`
-2. Add your name/identifier to "Claimed By"
-3. Add a comment with your plan
-
-When completing a task:
-1. Change status to `[COMPLETED]`
-2. Add completion date
-3. Add brief summary of what was done
-
-Example:
-```markdown
-### T1.1: Project Structure Setup
+### T4.10: Playbook Details Frontend
 **Status**: `[COMPLETED]`
-**Claimed By**: Agent-001
-**Completed**: 2025-01-15
-**Summary**: Created project structure, .gitignore, and README.md
-```
+**Claimed By**: Auto (AI Agent)
+**Completed**: 2025-11-19
+**Priority**: Medium
+**Dependencies**: T1.8
+**Summary**:
+- Created `frontend/src/pages/PlaybookDetails.tsx`:
+  - Playbook header with name, description, and status
+  - Performance metrics cards (Net P&L, Win Rate, Profit Factor, Total Trades)
+  - Cumulative P&L chart for the playbook
+  - List of trades associated with the playbook
+  - Edit/Delete functionality with dialogs
+- Updated `frontend/src/App.tsx` to include `/playbooks/:id` route
+- Updated `frontend/src/pages/Playbooks.tsx` to navigate to details page
 
+### T4.11: Analytics Dashboard Frontend
+**Status**: `[COMPLETED]`
+**Claimed By**: Auto (AI Agent)
+**Completed**: 2025-11-19
+**Priority**: Medium
+**Dependencies**: T4.6
+**Summary**:
+- Created `frontend/src/types/analytics.ts` and `frontend/src/api/analytics.ts`
+- Created `frontend/src/pages/Analytics.tsx`:
+  - Tabbed interface: Overview, By Ticker, By Type, By Playbook
+  - Overview tab: Comprehensive KPI cards (Sharpe, Sortino, Drawdown, etc.)
+  - Breakdown tabs: Detailed tables with performance metrics
+  - Date range filtering
+- Updated `frontend/src/App.tsx` to include `/analytics` route
+- Updated `frontend/src/components/layout/Sidebar.tsx` to include Analytics link
+
+### T4.12: Import/Export Functionality
+**Status**: `[COMPLETED]`
+**Claimed By**: Auto (AI Agent)
+**Completed**: 2025-11-19
+**Priority**: Low
+**Dependencies**: T1.7
+**Summary**:
+- Backend:
+  - Created `app/services/import_export_service.py` for CSV handling
+  - Created `app/api/routes/import_export.py` with export/import endpoints
+  - Registered router in `main.py`
+- Frontend:
+  - Updated `api/trades.ts` with export/import functions
+  - Updated `pages/Dashboard.tsx` with Import/Export buttons
+  - Added Import Dialog with file upload and error handling
+  - Added Export functionality with automatic file download

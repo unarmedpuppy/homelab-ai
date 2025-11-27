@@ -17,6 +17,7 @@ import BookIcon from '@mui/icons-material/Book'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
 import ShowChartIcon from '@mui/icons-material/ShowChart'
 import MenuBookIcon from '@mui/icons-material/MenuBook'
+import AssessmentIcon from '@mui/icons-material/Assessment'
 
 const drawerWidth = 240
 
@@ -25,6 +26,7 @@ const menuItems = [
   { text: 'Calendar', icon: <CalendarMonthIcon />, path: '/calendar' },
   { text: 'Daily Journal', icon: <BookIcon />, path: '/daily' },
   { text: 'Playbooks', icon: <MenuBookIcon />, path: '/playbooks' },
+  { text: 'Analytics', icon: <AssessmentIcon />, path: '/analytics' },
   { text: 'Trade Entry', icon: <AddCircleIcon />, path: '/trade-entry' },
   { text: 'Charts', icon: <ShowChartIcon />, path: '/charts' },
 ]

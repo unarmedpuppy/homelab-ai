@@ -323,7 +323,7 @@ def add_nzbhydra2_indexer(api_key, nzbhydra2_api_key):
                 "order": 0,
                 "name": "baseUrl",
                 "label": "URL",
-                "value": f"http://{NZBHYDRA2_HOST}:{NZBHYDRA2_PORT}/nzbhydra2",
+                "value": f"http://{NZBHYDRA2_HOST}:{NZBHYDRA2_PORT}",
                 "type": "textbox"
             },
             {

@@ -13,6 +13,7 @@ from datetime import datetime
 import logging
 
 from .base import BaseStrategy, TradingSignal, Position, SignalType, ExitReason
+from .registry import register_strategy
 
 if TYPE_CHECKING:
     from ...data.providers.sentiment.aggregator import AggregatedSentiment
@@ -20,6 +21,30 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+@register_strategy('momentum', {
+    'description': 'Momentum trading strategy using RSI, MACD, ROC, and volume',
+    'supports_levels': False,
+    'example_config': {
+        'symbol': 'SPY',
+        'timeframe': '5m',
+        'momentum': {
+            'rsi_period': 14,
+            'rsi_overbought': 70,
+            'rsi_oversold': 30,
+            'macd_fast': 12,
+            'macd_slow': 26,
+            'macd_signal': 9,
+            'roc_period': 10,
+            'min_volume_increase': 1.2
+        },
+        'stop_loss': {
+            'pct': 0.02
+        },
+        'take_profit': {
+            'pct': 0.05
+        }
+    }
+})
 class MomentumStrategy(BaseStrategy):
     """
     Momentum trading strategy
@@ -416,4 +441,3 @@ class MomentumStrategy(BaseStrategy):
                         return True, ExitReason.TRAILING_STOP
         
         return False, ExitReason.MANUAL
-

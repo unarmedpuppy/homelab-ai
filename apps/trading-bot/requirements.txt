@@ -8,3 +8,11 @@ pandas
 numpy
 pydantic
 python-dotenv
+praw
+tweepy
+vaderSentiment
+prometheus_client
+redis
+psutil
+aiohttp
+sec-edgar-downloader

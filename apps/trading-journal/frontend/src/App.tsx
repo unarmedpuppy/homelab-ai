@@ -5,6 +5,8 @@ import Dashboard from './pages/Dashboard'
 import Calendar from './pages/Calendar'
 import DailyJournal from './pages/DailyJournal'
 import Playbooks from './pages/Playbooks'
+import PlaybookDetails from './pages/PlaybookDetails'
+import Analytics from './pages/Analytics'
 import TradeEntry from './pages/TradeEntry'
 import Charts from './pages/Charts'
 
@@ -18,6 +20,8 @@ function App() {
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/daily/:date?" element={<DailyJournal />} />
             <Route path="/playbooks" element={<Playbooks />} />
+            <Route path="/playbooks/:id" element={<PlaybookDetails />} />
+            <Route path="/analytics" element={<Analytics />} />
             <Route path="/trade-entry" element={<TradeEntry />} />
             <Route path="/charts/:ticker?" element={<Charts />} />
             <Route path="/charts/trade/:tradeId" element={<Charts />} />

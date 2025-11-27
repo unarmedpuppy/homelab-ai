@@ -29,6 +29,9 @@ from .models import SymbolSentiment, SentimentLevel, Tweet, TweetSentiment
 from .sentiment_analyzer import SentimentAnalyzer
 from .repository import SentimentRepository
 from .volume_trend import calculate_volume_trend_from_repository
+from ....utils.cache import get_cache_manager
+from ....utils.rate_limiter import get_rate_limiter
+from ....utils.monitoring import get_usage_monitor
 
 logger = logging.getLogger(__name__)
 
@@ -86,6 +89,8 @@ class NewsClient:
         if not self.config.enabled:
             logger.warning("News provider is disabled in configuration")
             self.available = False
+            self.newsapi_client = None
+            self.rss_feeds = []
             return
         
         self.available = True

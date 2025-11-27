@@ -1,0 +1,18 @@
+{
+    "llama3-8b": {
+        "container": "vllm-llama3-8b",
+        "port": 8001
+    },
+    "qwen2.5-14b-awq": {
+        "container": "vllm-qwen14b-awq",
+        "port": 8002
+    },
+    "deepseek-coder": {
+        "container": "vllm-coder7b",
+        "port": 8003
+    },
+    "qwen-image-edit": {
+        "container": "vllm-qwen-image",
+        "port": 8004
+    }
+}

@@ -3,6 +3,7 @@
  */
 
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Box,
   Typography,
@@ -47,6 +48,7 @@ import ErrorAlert from '../components/common/ErrorAlert'
 import { formatCurrency, formatPercent } from '../utils/formatting'
 
 export default function Playbooks() {
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [searchTerm, setSearchTerm] = useState('')
   const [isActiveFilter, setIsActiveFilter] = useState<boolean | undefined>(undefined)
@@ -145,8 +147,7 @@ export default function Playbooks() {
   }
 
   const handleViewDetails = (playbook: PlaybookResponse) => {
-    // TODO: Navigate to playbook details page
-    console.log('View details for playbook:', playbook.id)
+    navigate(`/playbooks/${playbook.id}`)
   }
 
   if (isLoading) {

@@ -13,7 +13,7 @@ import pandas as pd
 
 from src.core.strategy.base import Position, ExitReason
 from src.core.strategy.levels import PriceLevel, LevelType
-from src.core.strategies.range_bound_strategy import RangeBoundStrategy
+from src.core.strategy.range_bound import RangeBoundStrategy
 from src.core.strategy.level_based import LevelBasedStrategy
 
 

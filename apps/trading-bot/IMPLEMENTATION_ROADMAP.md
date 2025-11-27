@@ -1,212 +1,330 @@
 # Trading Bot Implementation Roadmap
 
-## 🎯 **Remaining Tasks & Priorities**
+*Last Updated: 2024-11-27*
 
-### **🔥 High Priority (Core Functionality)**
+## Current State Assessment
 
-#### **1. Data Sources & Integrations** ✅ **COMPLETED**
-- ✅ **Multiple Data Providers**: Yahoo Finance, Alpha Vantage, Polygon.io
-- ✅ **IBKR Integration**: Production-ready broker client with reconnection
-- ✅ **Unusual Whales**: Options flow and market sentiment data
-- ✅ **Fallback System**: Automatic failover between data sources
+### What's Working Well
+- **Core Strategy System**: BaseStrategy with 3 concrete implementations (Momentum, RangeBound, LevelBased)
+- **Risk Management**: Complete suite (position sizing, stop loss, profit taking, compliance, account monitoring)
+- **Sentiment Analysis**: 13+ providers with aggregation
+- **Backtesting Engine**: Event-driven with metrics calculator
+- **API Layer**: 17 route modules, comprehensive REST API
+- **Test Coverage**: 59 test files covering strategies, risk, providers, and API
 
-#### **2. Database & Models** ✅ **COMPLETED**
-- ✅ **Comprehensive Models**: Users, accounts, trades, positions, backtests
-- ✅ **Risk Management**: Risk limits, alerts, performance metrics
-- ✅ **Audit Trail**: System logs, API logs, trade history
+### Issues Identified
 
-#### **3. Real-time Data Feeds** 🔄 **IN PROGRESS**
-- **WebSocket Integration**: Live price updates
-- **Market Data Streaming**: Real-time OHLCV data
-- **Options Flow Streaming**: Live unusual activity
-- **Portfolio Updates**: Real-time P&L tracking
+#### 1. Code Redundancy
+| Issue | Location | Impact |
+|-------|----------|--------|
+| Metrics fragmentation | `src/utils/metrics*.py` (8 files, 57KB) | Hard to maintain, no single source of truth |
+| Backward compat layer | `src/core/strategy.py` | Duplicates enums from `strategy/base.py` |
+| Sentiment provider pattern | `src/data/providers/sentiment/` (13 files) | Similar boilerplate in each provider |
 
-### **🚀 Medium Priority (Enhanced Features)**
+#### 2. Style Inconsistencies
+| Issue | Examples |
+|-------|----------|
+| Import patterns | Mixed relative depths (`...config` vs `..strategy`) |
+| Type hints | Some functions missing hints (e.g., `sentiment=None` without type) |
+| Error handling | Mix of broad `except Exception` and specific catches |
+| Naming | `pdh/pdl` abbreviations vs `current_price` full names |
 
-#### **4. Backtesting Engine**
-- **Event-driven Backtesting**: Historical strategy testing
-- **Performance Metrics**: Sharpe ratio, drawdown, win rate
-- **Monte Carlo Simulation**: Risk analysis
-- **Walk-forward Analysis**: Out-of-sample testing
+#### 3. Missing/Incomplete
+- WebSocket data producers not connected to streams
+- Live execution needs integration testing
+- No WebSocket tests
+- UI not connected to real-time data
 
-#### **5. Advanced Strategies**
-- **Momentum Strategy**: Price momentum signals
-- **Mean Reversion**: Bollinger Bands, RSI strategies
-- **Breakout Strategy**: Support/resistance levels
-- **Multi-timeframe**: Higher timeframe confirmation
+---
 
-#### **6. Risk Management**
-- **Position Sizing**: Kelly criterion, fixed fractional
-- **Portfolio Risk**: Correlation limits, sector exposure
-- **Dynamic Stops**: ATR-based, trailing stops
-- **Risk Alerts**: Real-time risk monitoring
+## Phase 1: Code Quality & Cleanup (Priority: High)
 
-### **📊 Lower Priority (Nice to Have)**
+### T1: Consolidate Metrics System
+**Goal**: Reduce 8 metrics files to 3 well-organized modules
 
-#### **7. Additional Data Sources**
-- **News Sentiment**: Financial news analysis
-- **Social Media**: Twitter/Reddit sentiment
-- **Economic Data**: Fed announcements, earnings
-- **Alternative Data**: Satellite data, credit card spending
-
-#### **8. Advanced Analytics**
-- **Machine Learning**: Signal prediction models
-- **Pattern Recognition**: Chart pattern detection
-- **Market Regime Detection**: Bull/bear market identification
-- **Volatility Forecasting**: VIX prediction models
-
-## 🛠️ **Implementation Steps**
-
-### **Phase 1: Core Infrastructure (Week 1-2)**
-1. **Database Setup**: Create tables, migrations, indexes
-2. **API Integration**: Connect all data providers
-3. **Basic UI**: Real-time dashboard with live data
-4. **Testing Framework**: Unit tests, integration tests
-
-### **Phase 2: Trading Engine (Week 3-4)**
-1. **Strategy Engine**: Implement SMA and additional strategies
-2. **Order Management**: Order routing, execution, tracking
-3. **Position Management**: Real-time position tracking
-4. **Risk Controls**: Basic risk management rules
-
-### **Phase 3: Advanced Features (Week 5-6)**
-1. **Backtesting**: Historical strategy testing
-2. **Screening**: Stock filtering and universe management
-3. **Portfolio Analytics**: Performance metrics, reporting
-4. **Alerts & Notifications**: Email, SMS, webhook alerts
-
-### **Phase 4: Production Deployment (Week 7-8)**
-1. **Docker Deployment**: Production containers
-2. **Monitoring**: Prometheus, Grafana dashboards
-3. **Security**: Authentication, rate limiting, HTTPS
-4. **Documentation**: API docs, user guides
-
-## 📋 **Detailed Task List**
-
-### **Immediate Next Steps:**
-
-#### **1. Database Setup** (2-3 hours)
-```bash
-# Create database migrations
-alembic init migrations
-alembic revision --autogenerate -m "Initial migration"
-alembic upgrade head
+**Current State**:
+```
+src/utils/
+├── metrics.py (14.8 KB) - Main registry
+├── metrics_business.py (5.4 KB)
+├── metrics_integration.py (5.1 KB)
+├── metrics_providers.py (16.3 KB)
+├── metrics_providers_helpers.py (3.9 KB)
+├── metrics_sentiment.py (6.3 KB)
+├── metrics_system.py (15.3 KB)
+└── metrics_trading.py (10.9 KB)
 ```
 
-#### **2. Data Provider Testing** (3-4 hours)
+**Target State**:
+```
+src/utils/
+├── metrics/
+│   ├── __init__.py      # Public API exports
+│   ├── registry.py      # Core registry, get_or_create functions
+│   ├── collectors.py    # All metric collection (trading, system, providers)
+│   └── exporters.py     # Prometheus/JSON export utilities
+```
+
+**Tasks**:
+- [ ] Create `src/utils/metrics/` directory structure
+- [ ] Extract core registry to `registry.py`
+- [ ] Consolidate all collectors into `collectors.py` with clear namespacing
+- [ ] Update all imports across codebase
+- [ ] Add tests for consolidated module
+
+### T2: Remove Backward Compatibility Duplication
+**Goal**: Clean up `src/core/strategy.py` wrapper
+
+**Current**: File re-exports from `strategy/base.py` AND duplicates `SignalType`, `ExitReason` enums
+
+**Action**:
+- [ ] Remove duplicate enum definitions (lines 35-50)
+- [ ] Keep re-exports for backward compatibility OR migrate all imports to `strategy.base`
+- [ ] Update any files still importing from `src/core/strategy.py`
+
+### T3: Standardize Import Patterns
+**Goal**: Consistent relative imports across codebase
+
+**Convention**:
 ```python
-# Test each data provider
-async def test_providers():
-    providers = [
-        (DataProviderType.YAHOO_FINANCE, None),
-        (DataProviderType.ALPHA_VANTAGE, "your_api_key"),
-        (DataProviderType.POLYGON, "your_api_key")
-    ]
-    
-    manager = DataProviderManager(providers)
-    
-    # Test quote
-    quote = await manager.get_quote("AAPL")
-    print(f"AAPL: ${quote.price}")
-    
-    # Test historical data
-    data = await manager.get_historical_data("AAPL", start_date, end_date)
-    print(f"Got {len(data)} bars")
+# Within same package
+from .module import Class
+
+# Parent package
+from ..package.module import Class
+
+# Always use absolute for external packages
+from fastapi import APIRouter
 ```
 
-#### **3. IBKR Connection Test** (2-3 hours)
+**Files to update**: Focus on `src/data/providers/sentiment/` which has deepest nesting
+
+### T4: Add Missing Type Hints
+**Goal**: 100% type hint coverage on public functions
+
+**Priority files**:
+- `src/core/strategy/range_bound.py` - `sentiment` parameter
+- `src/data/providers/sentiment/*.py` - Return types
+- `src/utils/*.py` - Helper functions
+
+### T5: Standardize Error Handling
+**Goal**: Replace broad `except Exception` with specific exceptions
+
+**Pattern to follow**:
 ```python
-# Test IBKR connection
-async def test_ibkr():
-    async with IBKRClient("127.0.0.1", 7497, 9) as client:
-        contract = client.create_contract("AAPL")
-        market_data = await client.get_market_data(contract)
-        print(f"AAPL market data: {market_data}")
+# Bad
+except Exception as e:
+    logger.error(f"Error: {e}")
+
+# Good
+except (ConnectionError, TimeoutError) as e:
+    logger.error(f"Network error: {e}")
+    raise DataProviderError(f"Failed to fetch data: {e}") from e
+except ValueError as e:
+    logger.warning(f"Invalid data: {e}")
+    return default_value
 ```
 
-#### **4. Unusual Whales Integration** (2-3 hours)
+---
+
+## Phase 2: Real-time Infrastructure (Priority: High)
+
+### T6: WebSocket Data Producer Integration
+**Goal**: Connect data sources to WebSocket streams
+
+**Current State**:
+- WebSocket manager exists (`src/api/websocket/manager.py`)
+- 6 stream types defined but not connected to data producers
+
+**Tasks**:
+- [ ] Create background tasks that poll/stream data
+- [ ] Connect IBKR market data to `price_updates` stream
+- [ ] Connect sentiment aggregator to `sentiment_updates` stream
+- [ ] Connect options flow to `options_flow` stream
+- [ ] Add health checks to WebSocket connections
+
+### T7: UI WebSocket Integration
+**Goal**: Dashboard receives and displays real-time data
+
+**Tasks**:
+- [ ] Update `dashboard.html` JavaScript to handle WebSocket messages
+- [ ] Implement reconnection logic with exponential backoff
+- [ ] Add visual indicators for connection status
+- [ ] Display real-time price updates in UI
+
+### T8: WebSocket Testing
+**Goal**: Add test coverage for real-time streaming
+
+**Tasks**:
+- [ ] Create `tests/integration/test_websocket.py`
+- [ ] Test connection lifecycle (connect, disconnect, reconnect)
+- [ ] Test message broadcasting
+- [ ] Test error handling and recovery
+
+---
+
+## Phase 3: Live Trading Pipeline (Priority: High)
+
+### T9: IBKR Integration Testing
+**Goal**: Verify live execution pipeline end-to-end
+
+**Tasks**:
+- [ ] Create paper trading test script
+- [ ] Test order submission, modification, cancellation
+- [ ] Test position sync accuracy
+- [ ] Test error handling for network failures
+- [ ] Document required IBKR permissions
+
+### T10: Strategy-to-Execution Pipeline
+**Goal**: Connect strategy signals to order execution
+
+**Tasks**:
+- [ ] Create `src/core/executor.py` - Signal to order translator
+- [ ] Implement safety checks before execution:
+  - Max daily loss limit
+  - Max position size
+  - Trading hours validation
+  - Cash availability check
+- [ ] Add execution logging and audit trail
+- [ ] Test with paper account
+
+---
+
+## Phase 4: Enhanced Features (Priority: Medium)
+
+### T11: Sentiment Provider Base Class
+**Goal**: Reduce boilerplate in sentiment providers
+
+**Current**: Each provider has similar init, error handling, caching
+
+**Target**:
 ```python
-# Test Unusual Whales
-async def test_uw():
-    async with UnusualWhalesClient("your_api_key") as client:
-        data = await client.get_comprehensive_data("AAPL")
-        print(f"Market tide: {data.market_tide.level}")
-        print(f"Flow ratio: {data.flow_ratio}")
+class BaseSentimentProvider(ABC):
+    def __init__(self, config: dict):
+        self.cache = get_cache_manager()
+        self.rate_limiter = RateLimiter(config.get('rate_limit', 60))
+
+    @abstractmethod
+    async def fetch_raw_data(self, symbol: str) -> dict: ...
+
+    async def get_sentiment(self, symbol: str) -> SentimentResult:
+        # Common caching, rate limiting, error handling
+        ...
 ```
 
-### **Configuration Setup:**
+**Tasks**:
+- [ ] Create `BaseSentimentProvider` abstract class
+- [ ] Migrate Twitter provider as template
+- [ ] Migrate remaining providers
+- [ ] Update aggregator to use new interface
 
-#### **Environment Variables**
-```env
-# Data Providers
-ALPHA_VANTAGE_API_KEY=your_key_here
-POLYGON_API_KEY=your_key_here
-UW_API_KEY=your_key_here
+### T12: Parameter Optimization
+**Goal**: Automated strategy parameter tuning
 
-# IBKR
-IBKR_HOST=127.0.0.1
-IBKR_PORT=7497
-IBKR_CLIENT_ID=9
+**Tasks**:
+- [ ] Implement grid search optimizer
+- [ ] Add genetic algorithm option
+- [ ] Create parameter space configuration
+- [ ] Add walk-forward validation
+- [ ] UI for viewing optimization results
 
-# Database
-DATABASE_URL=postgresql://user:pass@localhost:5432/tradingbot
+### T13: Backtest Visualization
+**Goal**: Interactive charts for backtest results
 
-# Redis
-REDIS_URL=redis://localhost:6379/0
+**Tasks**:
+- [ ] Add equity curve chart
+- [ ] Add trade markers on price chart
+- [ ] Add drawdown visualization
+- [ ] Export to HTML report
+
+---
+
+## Phase 5: Advanced Analytics (Priority: Low)
+
+### T14: Market Regime Detection
+**Goal**: Identify bull/bear/sideways markets
+
+**Tasks**:
+- [ ] Implement regime classifier (volatility + trend)
+- [ ] Adjust strategy parameters per regime
+- [ ] Backtest regime-aware strategies
+
+### T15: Pattern Recognition
+**Goal**: Detect chart patterns
+
+**Tasks**:
+- [ ] Implement head & shoulders detection
+- [ ] Implement double top/bottom
+- [ ] Implement triangle patterns
+- [ ] Integrate patterns into signal generation
+
+### T16: ML Signal Enhancement
+**Goal**: Machine learning for signal prediction
+
+**Tasks**:
+- [ ] Feature engineering from existing indicators
+- [ ] Train classifier for signal quality
+- [ ] A/B test ML-enhanced vs base strategy
+
+---
+
+## Immediate Next Steps
+
+1. **T1: Consolidate Metrics** - Biggest code quality win
+2. **T6: WebSocket Producers** - Enable real-time features
+3. **T9: IBKR Testing** - Validate live trading readiness
+
+---
+
+## Style Guide Reference
+
+### Imports
+```python
+# Standard library
+import os
+from typing import Optional, List
+
+# Third party
+import pandas as pd
+from fastapi import APIRouter
+
+# Local - absolute for cross-package
+from src.config.settings import settings
+
+# Local - relative for same package
+from .base import BaseStrategy
+from ..utils.cache import CacheManager
 ```
 
-#### **API Keys Setup**
-1. **Alpha Vantage**: Free tier (5 calls/minute, 500 calls/day)
-2. **Polygon.io**: Free tier (5 calls/minute)
-3. **Unusual Whales**: Paid service (check pricing)
-4. **IEX Cloud**: Free tier (50,000 calls/month)
-5. **Twelve Data**: Free tier (800 calls/day)
+### Type Hints
+```python
+def calculate_signal(
+    self,
+    data: pd.DataFrame,
+    position: Optional[Position] = None,
+    sentiment: Optional[AggregatedSentiment] = None,
+) -> TradingSignal:
+```
 
-## 🎯 **Recommended Implementation Order**
+### Error Handling
+```python
+try:
+    result = await self.fetch_data(symbol)
+except aiohttp.ClientError as e:
+    logger.error(f"Network error fetching {symbol}: {e}")
+    raise DataProviderError(f"Failed to fetch {symbol}") from e
+except ValidationError as e:
+    logger.warning(f"Invalid data for {symbol}: {e}")
+    return None
+```
 
-### **Start Here:**
-1. **Database Models** → Create and test database schema
-2. **Data Providers** → Test Yahoo Finance (no API key needed)
-3. **Basic API** → Get quotes and historical data working
-4. **Simple UI** → Display real-time prices
+### Logging
+```python
+import logging
+logger = logging.getLogger(__name__)
 
-### **Then Add:**
-1. **IBKR Integration** → Connect to TWS/Gateway
-2. **Unusual Whales** → Add options flow data
-3. **Strategy Engine** → Implement SMA strategy
-4. **Backtesting** → Test strategies historically
-
-### **Finally:**
-1. **Advanced Strategies** → Add more trading strategies
-2. **Risk Management** → Implement position sizing
-3. **Production Deployment** → Docker, monitoring
-4. **Documentation** → User guides, API docs
-
-## 💡 **Pro Tips**
-
-### **Data Source Strategy:**
-- **Start with Yahoo Finance** (free, reliable)
-- **Add Alpha Vantage** for redundancy
-- **Use Polygon for real-time** data
-- **Unusual Whales for options** flow
-
-### **Development Approach:**
-- **Paper trade first** - Never risk real money initially
-- **Test with small positions** - Start with 1-10 shares
-- **Monitor everything** - Log all trades and decisions
-- **Backtest thoroughly** - Test strategies on historical data
-
-### **Risk Management:**
-- **Set position limits** - Never risk more than 2% per trade
-- **Use stop losses** - Always have an exit strategy
-- **Diversify** - Don't put all money in one stock
-- **Monitor correlation** - Avoid highly correlated positions
-
-Would you like me to start implementing any of these components? I recommend starting with:
-
-1. **Database setup** - Create the tables and test the models
-2. **Data provider testing** - Get Yahoo Finance working first
-3. **Basic API endpoints** - Simple quote and historical data
-4. **Simple UI** - Real-time price display
-
-Which would you like to tackle first?
+logger.debug("Detailed info for debugging")
+logger.info("Normal operation events")
+logger.warning("Unexpected but handled")
+logger.error("Failed operation", exc_info=True)
+```

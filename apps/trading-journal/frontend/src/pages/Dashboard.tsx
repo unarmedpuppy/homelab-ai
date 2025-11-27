@@ -2,8 +2,22 @@
  * Dashboard page component.
  */
 
-import { Box, Grid, Typography } from '@mui/material'
+import { useState, useRef } from 'react'
+import {
+  Box,
+  Grid,
+  Typography,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Alert,
+  CircularProgress,
+} from '@mui/material'
+import { FileUpload, FileDownload } from '@mui/icons-material'
 import { useDashboardStats, useRecentTrades } from '../hooks/useDashboard'
+import { exportTrades, importTrades } from '../api/trades'
 import KPICard from '../components/dashboard/KPICard'
 import RecentTrades from '../components/dashboard/RecentTrades'
 import CumulativePnLChart from '../components/dashboard/CumulativePnLChart'
@@ -19,6 +33,66 @@ export default function Dashboard() {
     isLoading: tradesLoading,
     error: tradesError,
   } = useRecentTrades(10)
+
+  const [importDialogOpen, setImportDialogOpen] = useState(false)
+  const [importFile, setImportFile] = useState<File | null>(null)
+  const [importing, setImporting] = useState(false)
+  const [importResult, setImportResult] = useState<{ success: number; errors: string[] } | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleExport = async () => {
+    try {
+      const blob = await exportTrades()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `trades_export_${new Date().toISOString().split('T')[0]}.csv`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (error) {
+      console.error('Failed to export trades:', error)
+      alert('Failed to export trades. Please try again.')
+    }
+  }
+
+  const handleImportClick = () => {
+    setImportDialogOpen(true)
+    setImportResult(null)
+    setImportFile(null)
+  }
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      setImportFile(event.target.files[0])
+    }
+  }
+
+  const handleImportSubmit = async () => {
+    if (!importFile) return
+
+    setImporting(true)
+    try {
+      const result = await importTrades(importFile)
+      setImportResult({
+        success: result.success_count,
+        errors: result.errors,
+      })
+      if (result.success_count > 0) {
+        // Reload page to show new data after short delay
+        setTimeout(() => window.location.reload(), 2000)
+      }
+    } catch (error) {
+      console.error('Failed to import trades:', error)
+      setImportResult({
+        success: 0,
+        errors: ['Failed to upload file. Please check the format and try again.'],
+      })
+    } finally {
+      setImporting(false)
+    }
+  }
 
   if (statsLoading) {
     return <LoadingSpinner message="Loading dashboard statistics..." />
@@ -49,9 +123,27 @@ export default function Dashboard() {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom sx={{ mb: { xs: 2, sm: 3 } }}>
-        Dashboard
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: { xs: 2, sm: 3 } }}>
+        <Typography variant="h4" component="h1">
+          Dashboard
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button
+            variant="outlined"
+            startIcon={<FileUpload />}
+            onClick={handleImportClick}
+          >
+            Import
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<FileDownload />}
+            onClick={handleExport}
+          >
+            Export
+          </Button>
+        </Box>
+      </Box>
 
       {/* KPI Cards */}
       {stats && (
@@ -162,6 +254,73 @@ export default function Dashboard() {
           error={tradesError as Error | null}
         />
       </Box>
+
+      {/* Import Dialog */}
+      <Dialog open={importDialogOpen} onClose={() => setImportDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Import Trades</DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              Upload a CSV file to import trades. The CSV should match the export format.
+            </Typography>
+            
+            <Button
+              variant="outlined"
+              component="label"
+              startIcon={<FileUpload />}
+            >
+              Select File
+              <input
+                type="file"
+                hidden
+                accept=".csv"
+                onChange={handleFileChange}
+                ref={fileInputRef}
+              />
+            </Button>
+            
+            {importFile && (
+              <Typography variant="body2">
+                Selected: {importFile.name}
+              </Typography>
+            )}
+
+            {importResult && (
+              <Box sx={{ mt: 2 }}>
+                {importResult.success > 0 && (
+                  <Alert severity="success" sx={{ mb: 1 }}>
+                    Successfully imported {importResult.success} trades.
+                  </Alert>
+                )}
+                {importResult.errors.length > 0 && (
+                  <Alert severity="warning">
+                    {importResult.errors.length} errors occurred:
+                    <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
+                      {importResult.errors.slice(0, 5).map((err, i) => (
+                        <li key={i}>{err}</li>
+                      ))}
+                      {importResult.errors.length > 5 && (
+                        <li>...and {importResult.errors.length - 5} more</li>
+                      )}
+                    </ul>
+                  </Alert>
+                )}
+              </Box>
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setImportDialogOpen(false)}>Close</Button>
+          <Button
+            variant="contained"
+            onClick={handleImportSubmit}
+            disabled={!importFile || importing}
+            startIcon={importing ? <CircularProgress size={20} /> : null}
+          >
+            {importing ? 'Importing...' : 'Import'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }

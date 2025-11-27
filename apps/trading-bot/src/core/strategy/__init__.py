@@ -23,6 +23,7 @@ from .levels import (
 
 from .level_based import LevelBasedStrategy
 from .momentum import MomentumStrategy
+from .range_bound import RangeBoundStrategy
 
 __all__ = [
     'BaseStrategy',
@@ -36,5 +37,5 @@ __all__ = [
     'LevelDetector',
     'LevelBasedStrategy',
     'MomentumStrategy',
+    'RangeBoundStrategy',
 ]
-

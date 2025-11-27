@@ -32,14 +32,14 @@ class TestGoogleTrendsClient:
         """Create GoogleTrendsClient instance"""
         mock_instance = Mock()
         mock_pytrends.return_value = mock_instance
-        with patch.object(pytest.importorskip('src.config.settings').google_trends, 'enabled', True):
+        with patch('src.config.settings.settings.google_trends.enabled', True):
             return GoogleTrendsClient()
     
     def test_client_initialization(self, mock_pytrends):
         """Test client initialization"""
         mock_instance = Mock()
         mock_pytrends.return_value = mock_instance
-        with patch.object(pytest.importorskip('src.config.settings').google_trends, 'enabled', True):
+        with patch('src.config.settings.settings.google_trends.enabled', True):
             client = GoogleTrendsClient()
             assert client.pytrends is not None
     

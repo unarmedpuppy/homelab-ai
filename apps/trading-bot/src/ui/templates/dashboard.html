@@ -598,6 +598,9 @@
                         // Subscribe to price updates for current symbol
                         this.subscribeToPrice(this.currentSymbol);
                         
+                        // Subscribe to market data for current symbol (default 5m)
+                        this.subscribeToMarketData(this.currentSymbol, '5m');
+                        
                         // Portfolio and signals are auto-subscribed by server
                         // But we can explicitly subscribe for clarity
                         this.ws.send(JSON.stringify({
@@ -608,6 +611,11 @@
                         this.ws.send(JSON.stringify({
                             type: 'subscribe',
                             channel: 'signals'
+                        }));
+                        
+                        this.ws.send(JSON.stringify({
+                            type: 'subscribe',
+                            channel: 'options_flow'
                         }));
                         
                         // Stop polling fallback when WebSocket is connected
@@ -679,6 +687,16 @@
                 console.log(`Subscribed to price updates for ${this.currentSymbol}`);
             }
 
+            subscribeToMarketData(symbol, timeframe) {
+                if (!this.isConnected || !this.ws) return;
+                
+                this.ws.send(JSON.stringify({
+                    type: 'subscribe',
+                    channel: `market_data:${symbol.toUpperCase()}:${timeframe}`
+                }));
+                console.log(`Subscribed to market data for ${symbol.toUpperCase()} (${timeframe})`);
+            }
+
             unsubscribeFromPrice(symbol) {
                 if (!this.isConnected || !this.ws) return;
                 
@@ -723,6 +741,12 @@
                     case 'trade_executed':
                         // Reload trades when a new trade is executed
                         this.loadRecentTrades();
+                        break;
+                    case 'market_data':
+                        this.handleMarketData(data);
+                        break;
+                    case 'options_flow':
+                        this.handleOptionsFlow(data);
                         break;
                     case 'pong':
                         // Heartbeat response
@@ -872,6 +896,27 @@
                 
                 // Add to live signal feed
                 this.addSignalToFeed(signalData);
+            }
+
+            handleMarketData(data) {
+                // Update price display if it matches current symbol
+                if (data.data && data.data.symbol === this.currentSymbol) {
+                    this.updatePriceDisplay({
+                        price: data.data.close
+                    });
+                }
+                console.log('Market data received:', data);
+            }
+
+            handleOptionsFlow(data) {
+                console.log('Options flow received:', data);
+                // Show toast for significant flow
+                if (data.data && data.data.premium > 100000) {
+                    const flow = data.data;
+                    const type = flow.option_type.toUpperCase();
+                    const premium = (flow.premium / 1000).toFixed(1);
+                    console.log(`Large Options Flow: ${flow.symbol} ${type} $${premium}k`);
+                }
             }
 
             addSignalToFeed(signalData) {

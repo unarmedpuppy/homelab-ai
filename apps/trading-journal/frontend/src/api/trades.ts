@@ -23,6 +23,12 @@ export interface TradeSearchParams {
   limit?: number
 }
 
+export interface ImportResult {
+  success_count: number
+  error_count: number
+  errors: string[]
+}
+
 /**
  * Get paginated list of trades with optional filters.
  */
@@ -86,3 +92,27 @@ export const searchTrades = async (params: TradeSearchParams): Promise<TradeList
   return response.data
 }
 
+/**
+ * Export trades to CSV.
+ */
+export const exportTrades = async (): Promise<Blob> => {
+  const response = await apiClient.get('/trades/export', {
+    responseType: 'blob',
+  })
+  return response.data
+}
+
+/**
+ * Import trades from CSV.
+ */
+export const importTrades = async (file: File): Promise<ImportResult> => {
+  const formData = new FormData()
+  formData.append('file', file)
+  
+  const response = await apiClient.post<ImportResult>('/trades/import', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  })
+  return response.data
+}

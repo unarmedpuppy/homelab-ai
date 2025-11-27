@@ -16,7 +16,7 @@ from ...config.settings import settings
 
 # Import strategies module to trigger registration
 try:
-    from ...core.strategies import *  # This triggers strategy registration
+    from ...core.strategy import *  # This triggers strategy registration
 except ImportError:
     pass  # Strategies may not be available in all environments
 

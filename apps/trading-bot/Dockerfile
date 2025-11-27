@@ -46,7 +46,9 @@ WORKDIR /app
 
 # Copy application code
 COPY src/ ./src/
-COPY main.py ./
+COPY tests/ ./tests/
+COPY scripts/ ./scripts/
+COPY main.py pytest.ini ./
 COPY alembic.ini ./
 COPY migrations/ ./migrations/
 

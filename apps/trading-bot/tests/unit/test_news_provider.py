@@ -29,7 +29,7 @@ class TestNewsClient:
     @pytest.fixture
     def client(self, mock_feedparser):
         """Create NewsClient instance"""
-        with patch.object(pytest.importorskip('src.config.settings').news, 'enabled', True):
+        with patch('src.config.settings.settings.news.enabled', True):
             return NewsClient()
     
     def test_client_initialization(self, client):
@@ -49,7 +49,8 @@ class TestNewsClient:
         mock_feed.entries = [mock_entry]
         mock_feedparser.parse.return_value = mock_feed
         
-        articles = client.fetch_from_rss(symbol="AAPL", hours=24)
+        with patch('src.config.settings.settings.news.enabled', True):
+            articles = client.fetch_from_rss(symbol="AAPL", hours=24)
         
         assert len(articles) > 0
         assert articles[0].title == "AAPL stock news"
@@ -71,7 +72,8 @@ class TestNewsClient:
         
         client.newsapi_client = mock_newsapi
         
-        articles = client.fetch_from_newsapi(symbol="AAPL", hours=24)
+        with patch('src.config.settings.settings.news.enabled', True):
+            articles = client.fetch_from_newsapi(symbol="AAPL", hours=24)
         
         assert len(articles) > 0
 
