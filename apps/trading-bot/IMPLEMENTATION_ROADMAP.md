@@ -113,19 +113,22 @@ except ValueError as e:
 
 ## Phase 2: Real-time Infrastructure (Priority: High)
 
-### T6: WebSocket Data Producer Integration
+### T6: WebSocket Data Producer Integration ✅
 **Goal**: Connect data sources to WebSocket streams
 
-**Current State**:
-- WebSocket manager exists (`src/api/websocket/manager.py`)
-- 6 stream types defined but not connected to data producers
+**Completed**:
+- Background polling tasks in all stream classes (PriceUpdateStream, SentimentUpdateStream, OptionsFlowStream, etc.)
+- IBKR/market data connected via `DataProviderManager` in `price_updates.py`
+- Sentiment aggregator connected via `SentimentUpdateStream` in `sentiment_updates.py`
+- Options flow connected via `UnusualWhalesClient` in `options_flow.py`
+- Health monitoring via `StreamHealthMonitor` in `health.py`
 
 **Tasks**:
-- [ ] Create background tasks that poll/stream data
-- [ ] Connect IBKR market data to `price_updates` stream
-- [ ] Connect sentiment aggregator to `sentiment_updates` stream
-- [ ] Connect options flow to `options_flow` stream
-- [ ] Add health checks to WebSocket connections
+- [x] Create background tasks that poll/stream data
+- [x] Connect IBKR market data to `price_updates` stream
+- [x] Connect sentiment aggregator to `sentiment_updates` stream
+- [x] Connect options flow to `options_flow` stream
+- [x] Add health checks to WebSocket connections
 
 ### T7: UI WebSocket Integration
 **Goal**: Dashboard receives and displays real-time data

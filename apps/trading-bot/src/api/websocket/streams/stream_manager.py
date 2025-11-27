@@ -14,6 +14,7 @@ from .portfolio_updates import PortfolioUpdateStream
 from .signal_broadcast import SignalBroadcastStream
 from .market_data import MarketDataStream
 from .options_flow import OptionsFlowStream
+from .sentiment_updates import SentimentUpdateStream
 from ....config.settings import settings
 from ....core.evaluation.evaluator import StrategyEvaluator
 
@@ -35,6 +36,7 @@ class StreamManager:
         self.signal_stream: Optional[SignalBroadcastStream] = None
         self.market_data_stream: Optional[MarketDataStream] = None
         self.options_stream: Optional[OptionsFlowStream] = None
+        self.sentiment_stream: Optional[SentimentUpdateStream] = None
         
         self._initialized = False
         
@@ -69,7 +71,8 @@ class StreamManager:
         
         self.market_data_stream = MarketDataStream()
         self.options_stream = OptionsFlowStream()
-        
+        self.sentiment_stream = SentimentUpdateStream()
+
         self._initialized = True
         logger.info("StreamManager initialized all streams")
     
@@ -129,7 +132,16 @@ class StreamManager:
             except Exception as e:
                 logger.error(f"Failed to start options flow stream: {e}", exc_info=True)
                 streams_failed.append("options_flow")
-        
+
+        # Start sentiment stream
+        if self.sentiment_stream:
+            try:
+                await self.sentiment_stream.start()
+                streams_started += 1
+            except Exception as e:
+                logger.error(f"Failed to start sentiment stream: {e}", exc_info=True)
+                streams_failed.append("sentiment")
+
         if streams_failed:
             logger.warning(f"Started {streams_started} streams, {len(streams_failed)} failed: {streams_failed}")
         else:
@@ -158,7 +170,11 @@ class StreamManager:
         if self.options_stream and self.options_stream.is_running():
             await self.options_stream.stop()
             streams_stopped += 1
-        
+
+        if self.sentiment_stream and self.sentiment_stream.is_running():
+            await self.sentiment_stream.stop()
+            streams_stopped += 1
+
         logger.info(f"Stopped {streams_stopped} WebSocket data streams")
     
     def is_running(self) -> bool:
@@ -168,7 +184,8 @@ class StreamManager:
             (self.portfolio_stream and self.portfolio_stream.is_running()) or
             (self.signal_stream and self.signal_stream.is_running()) or
             (self.market_data_stream and self.market_data_stream.is_running()) or
-            (self.options_stream and self.options_stream.is_running())
+            (self.options_stream and self.options_stream.is_running()) or
+            (self.sentiment_stream and self.sentiment_stream.is_running())
         )
 
 
