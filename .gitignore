@@ -24,6 +24,9 @@ apps/media-download/calibre/config/.cache/
 apps/media-download/calibre/config/.dbus/
 apps/media-download/overseerr/config/db/*.sqlite3*
 apps/media-download/overseerr/config/logs/
+# IB Gateway data
+apps/trading-bot/ib-gateway-data/
+
 # Agent state files
 agents/memory/memory.db
 agents/memory/memory/export/

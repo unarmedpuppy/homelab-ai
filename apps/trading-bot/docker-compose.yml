@@ -12,13 +12,12 @@ services:
       TWS_ACCEPT_INCOMING: "accept"
       READ_ONLY_API: ${IBKR_READ_ONLY:-no}  # 'yes' for read-only, 'no' for trading
       VNC_SERVER_PASSWORD: ${VNC_PASSWORD:-}  # Optional: set for VNC access
-      TWS_SETTINGS_PATH: /root/Jts
     ports:
       - "4001:4001"   # Live trading API
       - "4002:4002"   # Paper trading API
       - "5900:5900"   # VNC (optional, for debugging)
     volumes:
-      - ib-gateway-data:/root/Jts
+      - ./ib-gateway-data:/home/ibgateway/Jts
     networks:
       - trading-bot-network
     healthcheck:
@@ -235,7 +234,6 @@ networks:
     driver: bridge
 
 volumes:
-  ib-gateway-data:
   prometheus-data:
   grafana-data:
   alertmanager-data:
