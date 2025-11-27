@@ -8,16 +8,89 @@ This guide covers the required setup, permissions, and configuration for using I
    - Paper trading account for testing
    - Live account for production (with appropriate funding)
 
-2. **TWS or IB Gateway**
-   - Download from: https://www.interactivebrokers.com/en/trading/tws.php
-   - IB Gateway is recommended for automated trading (more stable, lower resource usage)
+2. **IB Gateway** (included in Docker setup) or TWS
 
-3. **Python Dependencies**
-   ```bash
-   pip install ib-insync
-   ```
+## Quick Start (Docker - Recommended)
 
-## TWS/Gateway Configuration
+The trading bot includes IB Gateway as a Docker container. This is the easiest way to get started:
+
+### 1. Configure Environment
+
+Copy the example environment file and fill in your IBKR credentials:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your IBKR credentials:
+
+```env
+# IBKR Account Credentials (REQUIRED)
+IBKR_USERNAME=your_ibkr_username
+IBKR_PASSWORD=your_ibkr_password
+
+# Trading Mode: 'paper' or 'live'
+IBKR_TRADING_MODE=paper
+
+# API Port: 4002 for paper, 4001 for live
+IBKR_PORT=4002
+```
+
+### 2. Start the Services
+
+```bash
+docker-compose up -d
+```
+
+This starts:
+- **ib-gateway**: IB Gateway container (ports 4001/4002)
+- **bot**: Trading bot API (port 8021)
+- **prometheus**: Metrics collection
+- **grafana**: Dashboards
+- **alertmanager**: Alerts
+
+### 3. Verify Connection
+
+Wait ~2 minutes for IB Gateway to initialize, then:
+
+```bash
+# Check container status
+docker-compose ps
+
+# Check IB Gateway logs
+docker-compose logs ib-gateway
+
+# Test connection from bot
+docker-compose exec bot python scripts/test_ibkr_connection.py
+```
+
+### 4. Access VNC (Optional)
+
+For debugging, you can connect to IB Gateway's display via VNC:
+- Host: `localhost:5900`
+- Password: Set `VNC_PASSWORD` in `.env`
+
+Use any VNC client (e.g., TigerVNC, RealVNC Viewer).
+
+---
+
+## Manual Setup (Without Docker)
+
+If you prefer to run IB Gateway or TWS manually:
+
+### Install Python Dependencies
+
+```bash
+pip install ib-insync pandas
+```
+
+### Download TWS/Gateway
+
+Download from: https://www.interactivebrokers.com/en/trading/tws.php
+
+IB Gateway is recommended for automated trading (more stable, lower resource usage).
+
+## TWS/Gateway Configuration (Manual Setup)
 
 ### Enable API Access
 
