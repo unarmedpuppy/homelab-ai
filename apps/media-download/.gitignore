@@ -10,6 +10,7 @@ radarr/config/
 lidarr/config/
 bazarr/config/
 readarr/config/
+prowlarr/config/
 
 # Downloaded content
 downloads/
