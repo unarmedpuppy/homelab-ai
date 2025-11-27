@@ -12,12 +12,13 @@ services:
       TWS_ACCEPT_INCOMING: "accept"
       READ_ONLY_API: ${IBKR_READ_ONLY:-no}  # 'yes' for read-only, 'no' for trading
       VNC_SERVER_PASSWORD: ${VNC_PASSWORD:-}  # Optional: set for VNC access
+      TWS_SETTINGS_PATH: /home/ibgateway/tws_settings  # Persist settings here
     ports:
       - "4001:4001"   # Live trading API
       - "4002:4002"   # Paper trading API
       - "5900:5900"   # VNC (optional, for debugging)
     volumes:
-      - ./ib-gateway-data:/home/ibgateway/Jts
+      - ./ib-gateway-data:/home/ibgateway/tws_settings
     networks:
       - trading-bot-network
     healthcheck:
