@@ -56,15 +56,15 @@ src/utils/metrics/
 - Removed legacy duplicate metrics
 - Clean single-source-of-truth for all metrics
 
-### T2: Remove Backward Compatibility Duplication
+### T2: Remove Backward Compatibility Duplication ✓ COMPLETED
 **Goal**: Clean up `src/core/strategy.py` wrapper
 
-**Current**: File re-exports from `strategy/base.py` AND duplicates `SignalType`, `ExitReason` enums
-
-**Action**:
-- [ ] Remove duplicate enum definitions (lines 35-50)
-- [ ] Keep re-exports for backward compatibility OR migrate all imports to `strategy.base`
-- [ ] Update any files still importing from `src/core/strategy.py`
+**Result**:
+- Removed 270+ lines of duplicate class/enum definitions
+- Now a clean re-export module (~57 lines)
+- Removed legacy `SMAStrategy` (unused, replaced by MomentumStrategy)
+- Removed `StrategyFactory` (functionality in registry)
+- All imports still work via backward-compatible re-exports
 
 ### T3: Standardize Import Patterns
 **Goal**: Consistent relative imports across codebase
