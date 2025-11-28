@@ -14,15 +14,15 @@ services:
       VNC_SERVER_PASSWORD: ${VNC_PASSWORD:-}  # Optional: set for VNC access
       TWS_SETTINGS_PATH: /home/ibgateway/tws_settings  # Persist settings here
     ports:
-      - "4001:4001"   # Live trading API
-      - "4002:4002"   # Paper trading API
+      - "4001:4003"   # Live trading API (socat listens on 4003, relays to internal 4001)
+      - "4002:4004"   # Paper trading API (socat listens on 4004, relays to internal 4002)
       - "5900:5900"   # VNC (optional, for debugging)
     volumes:
       - ./ib-gateway-data:/home/ibgateway/tws_settings
     networks:
       - trading-bot-network
     healthcheck:
-      test: ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/localhost/4002' || exit 1"]
+      test: ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/localhost/4004' || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
