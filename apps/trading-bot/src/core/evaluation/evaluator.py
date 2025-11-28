@@ -204,10 +204,10 @@ class StrategyEvaluator:
         if self.data_provider:
             # Use data provider if available
             try:
-                data = await self.data_provider.get_historical_data(
+                data = await self.data_provider.get_historical_data_df(
                     symbol=symbol,
                     timeframe=timeframe,
-                    lookback=lookback_bars
+                    lookback_bars=lookback_bars
                 )
                 return data
             except Exception as e:

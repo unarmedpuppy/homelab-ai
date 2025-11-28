@@ -222,7 +222,7 @@ class TradingScheduler:
                     try:
                         # Fetch historical data for strategy evaluation
                         # Using default timeframe of 5m and 100 bars
-                        data = await self.data_provider.get_historical_data(
+                        data = await self.data_provider.get_historical_data_df(
                             symbol=symbol,
                             timeframe="5m",
                             lookback_bars=100

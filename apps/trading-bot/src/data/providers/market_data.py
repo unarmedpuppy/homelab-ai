@@ -404,11 +404,11 @@ class DataProviderManager:
         """Get multiple quotes with fallback"""
         quotes = {}
         failed_symbols = symbols.copy()
-        
+
         for provider in self.providers:
             if not failed_symbols:
                 break
-            
+
             try:
                 provider_quotes = await provider.get_multiple_quotes(failed_symbols)
                 quotes.update(provider_quotes)
@@ -416,5 +416,79 @@ class DataProviderManager:
             except Exception as e:
                 logger.warning(f"Provider {provider.__class__.__name__} failed: {e}")
                 continue
-        
+
         return quotes
+
+    async def get_historical_data_df(
+        self,
+        symbol: str,
+        timeframe: str = "5m",
+        lookback_bars: int = 100
+    ) -> pd.DataFrame:
+        """
+        Get historical data as a DataFrame with lookback_bars interface.
+
+        This is the interface expected by the TradingScheduler and StrategyEvaluator.
+
+        Args:
+            symbol: Stock symbol
+            timeframe: Timeframe string (1m, 5m, 15m, 1h, 1d)
+            lookback_bars: Number of bars to fetch
+
+        Returns:
+            DataFrame with columns: open, high, low, close, volume
+        """
+        # Convert timeframe to interval and calculate date range
+        interval_map = {
+            "1m": ("1m", timedelta(minutes=lookback_bars)),
+            "5m": ("5m", timedelta(minutes=5 * lookback_bars)),
+            "15m": ("15m", timedelta(minutes=15 * lookback_bars)),
+            "30m": ("30m", timedelta(minutes=30 * lookback_bars)),
+            "1h": ("1h", timedelta(hours=lookback_bars)),
+            "1d": ("1d", timedelta(days=lookback_bars)),
+        }
+
+        interval, lookback_delta = interval_map.get(timeframe, ("1d", timedelta(days=lookback_bars)))
+
+        end_date = datetime.now()
+        start_date = end_date - lookback_delta
+
+        try:
+            ohlcv_data = await self.get_historical_data(symbol, start_date, end_date, interval)
+
+            if not ohlcv_data:
+                return pd.DataFrame()
+
+            # Convert to DataFrame
+            df = pd.DataFrame([
+                {
+                    'timestamp': d.timestamp,
+                    'open': d.open,
+                    'high': d.high,
+                    'low': d.low,
+                    'close': d.close,
+                    'volume': d.volume
+                }
+                for d in ohlcv_data
+            ])
+
+            if not df.empty:
+                df.set_index('timestamp', inplace=True)
+                df.sort_index(inplace=True)
+
+            return df
+
+        except Exception as e:
+            logger.error(f"Error fetching historical data for {symbol}: {e}")
+            return pd.DataFrame()
+
+
+def get_default_data_provider() -> DataProviderManager:
+    """
+    Create a default DataProviderManager with Yahoo Finance (free, no API key).
+
+    This is used by the TradingScheduler when no data provider is specified.
+    """
+    return DataProviderManager([
+        (DataProviderType.YAHOO_FINANCE, None),
+    ])
