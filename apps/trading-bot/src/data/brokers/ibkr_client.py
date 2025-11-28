@@ -20,8 +20,7 @@ except ImportError:
     pd = None
 
 try:
-    from ib_insync import IB, util, Stock, MarketOrder, LimitOrder, Contract, Position, Order
-    from ib_insync.objects import Trade, Fill
+    from ib_insync import IB, util, Stock, MarketOrder, LimitOrder, Contract, Position, Order, Trade, Fill
 except ImportError:
     IB = None
     util = None
