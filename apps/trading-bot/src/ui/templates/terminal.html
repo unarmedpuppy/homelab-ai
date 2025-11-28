@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Terminal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0a0a0a;
+            --bg-panel: #111111;
+            --bg-widget: #1a1a1a;
+            --border: #333333;
+            --text-primary: #00ff00;
+            --text-secondary: #888888;
+            --text-dim: #555555;
+            --accent-green: #00ff00;
+            --accent-red: #ff4444;
+            --accent-yellow: #ffff00;
+            --accent-cyan: #00ffff;
+            --accent-blue: #4488ff;
+            --accent-purple: #aa44ff;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* Grid Layout */
+        .terminal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: auto 1fr 1fr 200px;
+            gap: 2px;
+            height: 100vh;
+            padding: 2px;
+            background: var(--border);
+        }
+
+        /* Header spans full width */
+        .header {
+            grid-column: 1 / -1;
+            background: var(--bg-panel);
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-title {
+            color: var(--accent-cyan);
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .header-status {
+            display: flex;
+            gap: 20px;
+            font-size: 11px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-dim);
+        }
+
+        .status-dot.connected { background: var(--accent-green); }
+        .status-dot.disconnected { background: var(--accent-red); }
+        .status-dot.pending { background: var(--accent-yellow); animation: blink 1s infinite; }
+
+        @keyframes blink {
+            50% { opacity: 0.3; }
+        }
+
+        /* Widget Base */
+        .widget {
+            background: var(--bg-widget);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .widget-header {
+            background: var(--bg-panel);
+            padding: 6px 10px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .widget-title {
+            color: var(--accent-cyan);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .widget-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            background: var(--bg-dark);
+        }
+
+        .widget-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .widget-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .widget-content::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        .widget-content::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        /* Price Ticker Widget */
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid var(--bg-dark);
+        }
+
+        .price-symbol {
+            color: var(--accent-cyan);
+            font-weight: bold;
+            width: 60px;
+        }
+
+        .price-value {
+            text-align: right;
+            width: 80px;
+        }
+
+        .price-change {
+            text-align: right;
+            width: 80px;
+        }
+
+        .price-change.up { color: var(--accent-green); }
+        .price-change.down { color: var(--accent-red); }
+
+        /* Signal Log Widget */
+        .signal-entry {
+            padding: 6px 0;
+            border-bottom: 1px solid var(--bg-dark);
+            font-size: 11px;
+        }
+
+        .signal-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2px;
+        }
+
+        .signal-type {
+            font-weight: bold;
+            padding: 1px 6px;
+            border-radius: 2px;
+        }
+
+        .signal-type.BUY { background: var(--accent-green); color: #000; }
+        .signal-type.SELL { background: var(--accent-red); color: #fff; }
+        .signal-type.HOLD { background: var(--text-dim); color: #fff; }
+
+        .signal-time {
+            color: var(--text-dim);
+        }
+
+        .signal-details {
+            color: var(--text-secondary);
+        }
+
+        .signal-confidence {
+            display: inline-block;
+            width: 60px;
+            height: 4px;
+            background: var(--bg-dark);
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .signal-confidence-fill {
+            height: 100%;
+            background: var(--accent-green);
+        }
+
+        /* Portfolio Widget */
+        .position-row {
+            display: grid;
+            grid-template-columns: 60px 1fr 80px 80px;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--bg-dark);
+            font-size: 11px;
+        }
+
+        .position-symbol {
+            color: var(--accent-cyan);
+            font-weight: bold;
+        }
+
+        .position-qty {
+            color: var(--text-secondary);
+        }
+
+        .position-value {
+            text-align: right;
+        }
+
+        .position-pnl {
+            text-align: right;
+        }
+
+        .position-pnl.profit { color: var(--accent-green); }
+        .position-pnl.loss { color: var(--accent-red); }
+
+        /* Sentiment Widget */
+        .sentiment-row {
+            display: flex;
+            align-items: center;
+            padding: 4px 0;
+            gap: 10px;
+        }
+
+        .sentiment-symbol {
+            width: 50px;
+            color: var(--accent-cyan);
+        }
+
+        .sentiment-bar-container {
+            flex: 1;
+            height: 12px;
+            background: var(--bg-dark);
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .sentiment-bar {
+            position: absolute;
+            height: 100%;
+            transition: width 0.3s;
+        }
+
+        .sentiment-bar.bearish {
+            right: 50%;
+            background: linear-gradient(to left, transparent, var(--accent-red));
+        }
+
+        .sentiment-bar.bullish {
+            left: 50%;
+            background: linear-gradient(to right, transparent, var(--accent-green));
+        }
+
+        .sentiment-center {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: var(--text-dim);
+        }
+
+        .sentiment-value {
+            width: 50px;
+            text-align: right;
+            font-size: 10px;
+        }
+
+        /* Strategy Widget */
+        .strategy-row {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--bg-dark);
+        }
+
+        .strategy-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .strategy-name {
+            color: var(--accent-purple);
+            font-weight: bold;
+        }
+
+        .strategy-status {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 2px;
+        }
+
+        .strategy-status.enabled { background: var(--accent-green); color: #000; }
+        .strategy-status.disabled { background: var(--text-dim); color: #fff; }
+
+        .strategy-details {
+            color: var(--text-secondary);
+            font-size: 10px;
+        }
+
+        .strategy-stats {
+            display: flex;
+            gap: 15px;
+            margin-top: 4px;
+            font-size: 10px;
+            color: var(--text-dim);
+        }
+
+        /* Account Stats Widget */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .stat-item {
+            padding: 8px;
+            background: var(--bg-dark);
+            border-radius: 4px;
+        }
+
+        .stat-label {
+            font-size: 9px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .stat-value.positive { color: var(--accent-green); }
+        .stat-value.negative { color: var(--accent-red); }
+
+        /* System Log Widget - spans full width at bottom */
+        .system-log {
+            grid-column: 1 / -1;
+        }
+
+        .log-entry {
+            padding: 2px 0;
+            font-size: 11px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .log-time {
+            color: var(--text-dim);
+            width: 80px;
+            flex-shrink: 0;
+        }
+
+        .log-level {
+            width: 50px;
+            flex-shrink: 0;
+        }
+
+        .log-level.INFO { color: var(--accent-blue); }
+        .log-level.WARN { color: var(--accent-yellow); }
+        .log-level.ERROR { color: var(--accent-red); }
+        .log-level.SIGNAL { color: var(--accent-green); }
+        .log-level.TRADE { color: var(--accent-purple); }
+
+        .log-message {
+            flex: 1;
+            color: var(--text-secondary);
+        }
+
+        /* Empty state */
+        .empty-state {
+            color: var(--text-dim);
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-grid">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-title">TRADING TERMINAL v1.0</div>
+            <div class="header-status">
+                <div class="status-item">
+                    <span class="status-dot pending" id="ws-status"></span>
+                    <span>WebSocket</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-dot disconnected" id="ibkr-status"></span>
+                    <span>IBKR</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-dot disconnected" id="scheduler-status"></span>
+                    <span>Scheduler</span>
+                </div>
+                <div class="status-item" style="color: var(--text-dim);">
+                    <span id="clock">--:--:--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Price Ticker -->
+        <div class="widget">
+            <div class="widget-header">
+                <span class="widget-title">Market Data</span>
+                <span class="widget-badge" id="price-count">0 symbols</span>
+            </div>
+            <div class="widget-content" id="price-ticker">
+                <div class="empty-state">Waiting for market data...</div>
+            </div>
+        </div>
+
+        <!-- Signal Log -->
+        <div class="widget">
+            <div class="widget-header">
+                <span class="widget-title">Signals</span>
+                <span class="widget-badge" id="signal-count">0</span>
+            </div>
+            <div class="widget-content" id="signal-log">
+                <div class="empty-state">No signals yet...</div>
+            </div>
+        </div>
+
+        <!-- Account Stats -->
+        <div class="widget">
+            <div class="widget-header">
+                <span class="widget-title">Account</span>
+                <span class="widget-badge" id="account-id">--</span>
+            </div>
+            <div class="widget-content">
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">Portfolio Value</div>
+                        <div class="stat-value" id="portfolio-value">$--</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Cash Balance</div>
+                        <div class="stat-value" id="cash-balance">$--</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Day P&L</div>
+                        <div class="stat-value" id="day-pnl">$--</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Unrealized P&L</div>
+                        <div class="stat-value" id="unrealized-pnl">$--</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Portfolio Positions -->
+        <div class="widget">
+            <div class="widget-header">
+                <span class="widget-title">Positions</span>
+                <span class="widget-badge" id="position-count">0</span>
+            </div>
+            <div class="widget-content" id="positions">
+                <div class="empty-state">No open positions</div>
+            </div>
+        </div>
+
+        <!-- Sentiment -->
+        <div class="widget">
+            <div class="widget-header">
+                <span class="widget-title">Sentiment</span>
+                <span class="widget-badge">Aggregated</span>
+            </div>
+            <div class="widget-content" id="sentiment">
+                <div class="empty-state">No sentiment data...</div>
+            </div>
+        </div>
+
+        <!-- Active Strategies -->
+        <div class="widget">
+            <div class="widget-header">
+                <span class="widget-title">Strategies</span>
+                <span class="widget-badge" id="strategy-count">0 active</span>
+            </div>
+            <div class="widget-content" id="strategies">
+                <div class="empty-state">No strategies configured</div>
+            </div>
+        </div>
+
+        <!-- System Log - spans full width -->
+        <div class="widget system-log">
+            <div class="widget-header">
+                <span class="widget-title">System Log</span>
+                <span class="widget-badge" id="log-count">0 entries</span>
+            </div>
+            <div class="widget-content" id="system-log">
+                <div class="log-entry">
+                    <span class="log-time">--:--:--</span>
+                    <span class="log-level INFO">INFO</span>
+                    <span class="log-message">Terminal initializing...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        const state = {
+            prices: {},
+            signals: [],
+            positions: [],
+            sentiment: {},
+            strategies: [],
+            logs: [],
+            connected: {
+                ws: false,
+                ibkr: false,
+                scheduler: false
+            }
+        };
+
+        // Utilities
+        function formatCurrency(value) {
+            if (value === null || value === undefined) return '$--';
+            return '$' + value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function formatPercent(value) {
+            if (value === null || value === undefined) return '--%';
+            const sign = value >= 0 ? '+' : '';
+            return sign + value.toFixed(2) + '%';
+        }
+
+        function formatTime(date) {
+            return date.toLocaleTimeString('en-US', { hour12: false });
+        }
+
+        function log(level, message) {
+            const entry = {
+                time: new Date(),
+                level: level,
+                message: message
+            };
+            state.logs.unshift(entry);
+            if (state.logs.length > 100) state.logs.pop();
+            renderLogs();
+        }
+
+        // Renderers
+        function renderPrices() {
+            const container = document.getElementById('price-ticker');
+            const symbols = Object.keys(state.prices);
+            document.getElementById('price-count').textContent = symbols.length + ' symbols';
+
+            if (symbols.length === 0) {
+                container.innerHTML = '<div class="empty-state">Waiting for market data...</div>';
+                return;
+            }
+
+            container.innerHTML = symbols.map(symbol => {
+                const data = state.prices[symbol];
+                const changeClass = data.change >= 0 ? 'up' : 'down';
+                const changeSign = data.change >= 0 ? '+' : '';
+                return `
+                    <div class="price-row">
+                        <span class="price-symbol">${symbol}</span>
+                        <span class="price-value">${formatCurrency(data.price)}</span>
+                        <span class="price-change ${changeClass}">${changeSign}${data.change?.toFixed(2) || '--'} (${formatPercent(data.changePct)})</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderSignals() {
+            const container = document.getElementById('signal-log');
+            document.getElementById('signal-count').textContent = state.signals.length;
+
+            if (state.signals.length === 0) {
+                container.innerHTML = '<div class="empty-state">No signals yet...</div>';
+                return;
+            }
+
+            container.innerHTML = state.signals.slice(0, 20).map(signal => {
+                const confidencePct = (signal.confidence * 100).toFixed(0);
+                return `
+                    <div class="signal-entry">
+                        <div class="signal-header">
+                            <span>
+                                <span class="signal-type ${signal.type}">${signal.type}</span>
+                                <span style="color: var(--accent-cyan); margin-left: 8px;">${signal.symbol}</span>
+                                @ ${formatCurrency(signal.price)}
+                            </span>
+                            <span class="signal-time">${formatTime(new Date(signal.timestamp))}</span>
+                        </div>
+                        <div class="signal-details">
+                            Confidence: ${confidencePct}%
+                            <span class="signal-confidence">
+                                <span class="signal-confidence-fill" style="width: ${confidencePct}%"></span>
+                            </span>
+                            ${signal.strategy ? `| Strategy: ${signal.strategy}` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderPositions() {
+            const container = document.getElementById('positions');
+            document.getElementById('position-count').textContent = state.positions.length;
+
+            if (state.positions.length === 0) {
+                container.innerHTML = '<div class="empty-state">No open positions</div>';
+                return;
+            }
+
+            container.innerHTML = state.positions.map(pos => {
+                const pnlClass = pos.unrealizedPnl >= 0 ? 'profit' : 'loss';
+                return `
+                    <div class="position-row">
+                        <span class="position-symbol">${pos.symbol}</span>
+                        <span class="position-qty">${pos.quantity} @ ${formatCurrency(pos.avgPrice)}</span>
+                        <span class="position-value">${formatCurrency(pos.marketValue)}</span>
+                        <span class="position-pnl ${pnlClass}">${formatCurrency(pos.unrealizedPnl)} (${formatPercent(pos.unrealizedPnlPct)})</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderSentiment() {
+            const container = document.getElementById('sentiment');
+            const symbols = Object.keys(state.sentiment);
+
+            if (symbols.length === 0) {
+                container.innerHTML = '<div class="empty-state">No sentiment data...</div>';
+                return;
+            }
+
+            container.innerHTML = symbols.map(symbol => {
+                const data = state.sentiment[symbol];
+                const score = data.score || 0;
+                const absScore = Math.abs(score) * 50; // Scale to 0-50%
+                const barClass = score >= 0 ? 'bullish' : 'bearish';
+                const valueColor = score >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+                return `
+                    <div class="sentiment-row">
+                        <span class="sentiment-symbol">${symbol}</span>
+                        <div class="sentiment-bar-container">
+                            <span class="sentiment-center"></span>
+                            <span class="sentiment-bar ${barClass}" style="width: ${absScore}%"></span>
+                        </div>
+                        <span class="sentiment-value" style="color: ${valueColor}">${score >= 0 ? '+' : ''}${(score * 100).toFixed(0)}%</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderStrategies() {
+            const container = document.getElementById('strategies');
+            const activeCount = state.strategies.filter(s => s.enabled).length;
+            document.getElementById('strategy-count').textContent = activeCount + ' active';
+
+            if (state.strategies.length === 0) {
+                container.innerHTML = '<div class="empty-state">No strategies configured</div>';
+                return;
+            }
+
+            container.innerHTML = state.strategies.map(strategy => {
+                const statusClass = strategy.enabled ? 'enabled' : 'disabled';
+                return `
+                    <div class="strategy-row">
+                        <div class="strategy-header">
+                            <span class="strategy-name">${strategy.name}</span>
+                            <span class="strategy-status ${statusClass}">${strategy.enabled ? 'ENABLED' : 'DISABLED'}</span>
+                        </div>
+                        <div class="strategy-details">
+                            Symbol: ${strategy.symbol} | Timeframe: ${strategy.timeframe || '5m'}
+                        </div>
+                        <div class="strategy-stats">
+                            <span>Evaluations: ${strategy.evaluations || 0}</span>
+                            <span>Signals: ${strategy.signals || 0}</span>
+                            <span>Last: ${strategy.lastEvaluation || 'Never'}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderLogs() {
+            const container = document.getElementById('system-log');
+            document.getElementById('log-count').textContent = state.logs.length + ' entries';
+
+            container.innerHTML = state.logs.slice(0, 50).map(entry => `
+                <div class="log-entry">
+                    <span class="log-time">${formatTime(entry.time)}</span>
+                    <span class="log-level ${entry.level}">${entry.level}</span>
+                    <span class="log-message">${entry.message}</span>
+                </div>
+            `).join('');
+        }
+
+        function updateStatus(type, connected) {
+            const dot = document.getElementById(type + '-status');
+            if (dot) {
+                dot.className = 'status-dot ' + (connected ? 'connected' : 'disconnected');
+            }
+            state.connected[type.replace('-', '')] = connected;
+        }
+
+        function updateClock() {
+            document.getElementById('clock').textContent = formatTime(new Date());
+        }
+
+        // WebSocket Connection
+        let ws = null;
+        let reconnectAttempts = 0;
+
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws`;
+
+            log('INFO', `Connecting to WebSocket at ${wsUrl}...`);
+            updateStatus('ws', false);
+
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                log('INFO', 'WebSocket connected');
+                updateStatus('ws', true);
+                reconnectAttempts = 0;
+
+                // Subscribe to channels
+                ws.send(JSON.stringify({ type: 'subscribe', channel: 'signals' }));
+                ws.send(JSON.stringify({ type: 'subscribe', channel: 'portfolio' }));
+                ws.send(JSON.stringify({ type: 'subscribe', channel: 'sentiment_updates' }));
+
+                // Fetch initial data
+                fetchInitialData();
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const msg = JSON.parse(event.data);
+                    handleWebSocketMessage(msg);
+                } catch (e) {
+                    console.error('Failed to parse WebSocket message:', e);
+                }
+            };
+
+            ws.onclose = () => {
+                log('WARN', 'WebSocket disconnected');
+                updateStatus('ws', false);
+
+                // Reconnect with backoff
+                reconnectAttempts++;
+                const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+                setTimeout(connectWebSocket, delay);
+            };
+
+            ws.onerror = (error) => {
+                log('ERROR', 'WebSocket error');
+                console.error('WebSocket error:', error);
+            };
+        }
+
+        function handleWebSocketMessage(msg) {
+            switch (msg.type) {
+                case 'price_update':
+                    if (msg.data) {
+                        state.prices[msg.data.symbol] = {
+                            price: msg.data.price,
+                            change: msg.data.change,
+                            changePct: msg.data.change_pct || msg.data.changePct,
+                            volume: msg.data.volume
+                        };
+                        renderPrices();
+                    }
+                    break;
+
+                case 'signal':
+                    if (msg.data) {
+                        const signal = {
+                            type: msg.data.signal_type || msg.data.signalType || msg.data.type,
+                            symbol: msg.data.symbol,
+                            price: msg.data.price,
+                            confidence: msg.data.confidence || 0,
+                            strategy: msg.data.strategy,
+                            timestamp: msg.data.timestamp || new Date().toISOString()
+                        };
+                        state.signals.unshift(signal);
+                        if (state.signals.length > 50) state.signals.pop();
+                        renderSignals();
+                        log('SIGNAL', `${signal.type} ${signal.symbol} @ ${formatCurrency(signal.price)} (${(signal.confidence * 100).toFixed(0)}%)`);
+                    }
+                    break;
+
+                case 'portfolio_update':
+                    if (msg.data) {
+                        if (msg.data.positions) {
+                            state.positions = msg.data.positions.map(p => ({
+                                symbol: p.symbol,
+                                quantity: p.quantity,
+                                avgPrice: p.average_price || p.avgPrice,
+                                marketValue: p.market_value || p.marketValue,
+                                unrealizedPnl: p.unrealized_pnl || p.unrealizedPnl,
+                                unrealizedPnlPct: p.unrealized_pnl_pct || p.unrealizedPnlPct
+                            }));
+                            renderPositions();
+                        }
+                        if (msg.data.totalPnL !== undefined) {
+                            document.getElementById('unrealized-pnl').textContent = formatCurrency(msg.data.totalPnL);
+                            document.getElementById('unrealized-pnl').className = 'stat-value ' + (msg.data.totalPnL >= 0 ? 'positive' : 'negative');
+                        }
+                    }
+                    break;
+
+                case 'sentiment_update':
+                    if (msg.data && msg.data.symbol) {
+                        state.sentiment[msg.data.symbol] = {
+                            score: msg.data.score || msg.data.unified_sentiment || 0,
+                            sources: msg.data.sources
+                        };
+                        renderSentiment();
+                    }
+                    break;
+
+                case 'pong':
+                    // Heartbeat response
+                    break;
+
+                default:
+                    console.log('Unknown message type:', msg.type, msg);
+            }
+        }
+
+        // Fetch initial data from REST API
+        async function fetchInitialData() {
+            try {
+                // Fetch IBKR status
+                const ibkrRes = await fetch('/api/trading/ibkr/status');
+                const ibkrData = await ibkrRes.json();
+                updateStatus('ibkr', ibkrData.connected);
+                if (ibkrData.connected) {
+                    log('INFO', 'IBKR connected');
+                }
+
+                // Fetch account data
+                if (ibkrData.connected) {
+                    try {
+                        const accountRes = await fetch('/api/trading/ibkr/account');
+                        const accountData = await accountRes.json();
+                        if (accountData.status === 'success' && accountData.account) {
+                            document.getElementById('portfolio-value').textContent = formatCurrency(accountData.account.net_liquidation || accountData.account.NetLiquidation);
+                            document.getElementById('cash-balance').textContent = formatCurrency(accountData.account.available_funds || accountData.account.AvailableFunds);
+                            document.getElementById('account-id').textContent = accountData.account.account_id || 'Connected';
+                        }
+                    } catch (e) {
+                        console.error('Failed to fetch account:', e);
+                    }
+
+                    // Fetch positions
+                    try {
+                        const posRes = await fetch('/api/trading/ibkr/positions');
+                        const posData = await posRes.json();
+                        if (posData.status === 'success' && posData.positions) {
+                            state.positions = posData.positions.map(p => ({
+                                symbol: p.symbol,
+                                quantity: p.quantity,
+                                avgPrice: p.average_price,
+                                marketValue: p.market_price * p.quantity,
+                                unrealizedPnl: p.unrealized_pnl,
+                                unrealizedPnlPct: p.unrealized_pnl_pct
+                            }));
+                            renderPositions();
+                        }
+                    } catch (e) {
+                        console.error('Failed to fetch positions:', e);
+                    }
+                }
+
+                // Fetch scheduler status
+                const schedulerRes = await fetch('/api/scheduler/status');
+                const schedulerData = await schedulerRes.json();
+                updateStatus('scheduler', schedulerData.state === 'running');
+                if (schedulerData.state === 'running') {
+                    log('INFO', 'Scheduler running');
+                }
+
+                // Fetch active strategies
+                const strategiesRes = await fetch('/api/strategies/active');
+                const strategiesData = await strategiesRes.json();
+                if (strategiesData.strategies) {
+                    state.strategies = strategiesData.strategies.map(s => ({
+                        name: s.strategy_id || s.name,
+                        symbol: s.symbol,
+                        enabled: s.enabled,
+                        timeframe: s.timeframe,
+                        evaluations: s.evaluations,
+                        signals: s.signals_generated,
+                        lastEvaluation: s.last_evaluation ? new Date(s.last_evaluation).toLocaleTimeString() : 'Never'
+                    }));
+                    renderStrategies();
+                }
+
+            } catch (e) {
+                log('ERROR', 'Failed to fetch initial data: ' + e.message);
+                console.error('Failed to fetch initial data:', e);
+            }
+        }
+
+        // Heartbeat
+        setInterval(() => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'ping' }));
+            }
+        }, 30000);
+
+        // Clock update
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Periodic refresh
+        setInterval(fetchInitialData, 30000);
+
+        // Initialize
+        log('INFO', 'Trading Terminal v1.0 initialized');
+        connectWebSocket();
+    </script>
+</body>
+</html>

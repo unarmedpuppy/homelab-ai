@@ -348,6 +348,13 @@ async def scheduler_dashboard():
     """Scheduler dashboard endpoint"""
     return templates.TemplateResponse("scheduler_dashboard.html", {"request": {}})
 
+
+@app.get("/terminal", response_class=HTMLResponse)
+async def terminal_dashboard():
+    """Terminal-style dashboard with real-time visualizations"""
+    return templates.TemplateResponse("terminal.html", {"request": {}})
+
+
 @app.get("/health")
 async def health():
     """Health check endpoint"""
