@@ -22,7 +22,7 @@ services:
     networks:
       - trading-bot-network
     healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "4002"]
+      test: ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/localhost/4002' || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
