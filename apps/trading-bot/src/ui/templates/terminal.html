@@ -406,6 +406,8 @@
             font-style: italic;
         }
     </style>
+    <!-- TradingView Widget Library - must load before widget init -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 </head>
 <body>
     <div class="terminal-grid">
@@ -431,14 +433,24 @@
             </div>
         </div>
 
-        <!-- Price Ticker -->
-        <div class="widget">
+        <!-- TradingView Chart -->
+        <div class="widget chart-widget" style="grid-column: span 2; grid-row: span 2;">
             <div class="widget-header">
-                <span class="widget-title">Market Data</span>
-                <span class="widget-badge" id="price-count">0 symbols</span>
+                <span class="widget-title">Chart</span>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="text" id="chart-symbol-input" value="SPY"
+                           style="background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-primary); padding: 2px 6px; width: 80px; font-family: inherit; font-size: 11px;"
+                           placeholder="Symbol">
+                    <button onclick="updateChart()" style="background: var(--accent-blue); border: none; color: #000; padding: 2px 8px; cursor: pointer; font-size: 11px;">Load</button>
+                    <span class="widget-badge" id="chart-symbol">SPY</span>
+                </div>
             </div>
-            <div class="widget-content" id="price-ticker">
-                <div class="empty-state">Waiting for market data...</div>
+            <div class="widget-content" id="tradingview-chart" style="padding: 0; height: 100%;">
+                <!-- TradingView Widget BEGIN -->
+                <div class="tradingview-widget-container" style="height: 100%; width: 100%;">
+                    <div id="tradingview_chart" style="height: 100%; width: 100%;"></div>
+                </div>
+                <!-- TradingView Widget END -->
             </div>
         </div>
 
@@ -990,9 +1002,77 @@
         // Periodic refresh
         setInterval(fetchInitialData, 30000);
 
+        // TradingView Chart
+        let tvWidget = null;
+
+        function initTradingViewChart(symbol = 'SPY') {
+            const container = document.getElementById('tradingview_chart');
+            if (!container) return;
+
+            // Clear existing widget
+            container.innerHTML = '';
+
+            // Create new TradingView widget
+            tvWidget = new TradingView.widget({
+                "autosize": true,
+                "symbol": symbol,
+                "interval": "5",
+                "timezone": "America/New_York",
+                "theme": "dark",
+                "style": "1",
+                "locale": "en",
+                "toolbar_bg": "#1a1a1a",
+                "enable_publishing": false,
+                "hide_top_toolbar": false,
+                "hide_legend": false,
+                "save_image": false,
+                "container_id": "tradingview_chart",
+                "hide_side_toolbar": true,
+                "allow_symbol_change": true,
+                "studies": [
+                    { id: "MASimple@tv-basicstudies", inputs: { length: 20 } },
+                    { id: "MASimple@tv-basicstudies", inputs: { length: 200 } },
+                    { id: "Volume@tv-basicstudies" }
+                ],
+                "overrides": {
+                    "mainSeriesProperties.candleStyle.upColor": "#00ff00",
+                    "mainSeriesProperties.candleStyle.downColor": "#ff4444",
+                    "mainSeriesProperties.candleStyle.borderUpColor": "#00ff00",
+                    "mainSeriesProperties.candleStyle.borderDownColor": "#ff4444",
+                    "mainSeriesProperties.candleStyle.wickUpColor": "#00ff00",
+                    "mainSeriesProperties.candleStyle.wickDownColor": "#ff4444",
+                    "paneProperties.background": "#0a0a0a",
+                    "paneProperties.vertGridProperties.color": "#1a1a1a",
+                    "paneProperties.horzGridProperties.color": "#1a1a1a",
+                    "scalesProperties.textColor": "#888888"
+                }
+            });
+
+            document.getElementById('chart-symbol').textContent = symbol;
+            log('INFO', `Chart loaded: ${symbol}`);
+        }
+
+        function updateChart() {
+            const input = document.getElementById('chart-symbol-input');
+            const symbol = input.value.toUpperCase().trim();
+            if (symbol) {
+                initTradingViewChart(symbol);
+            }
+        }
+
+        // Handle Enter key in symbol input
+        document.getElementById('chart-symbol-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                updateChart();
+            }
+        });
+
         // Initialize
         log('INFO', 'Trading Terminal v1.0 initialized');
         connectWebSocket();
+
+        // Initialize TradingView chart after DOM is ready
+        setTimeout(() => initTradingViewChart('SPY'), 500);
     </script>
 </body>
 </html>
