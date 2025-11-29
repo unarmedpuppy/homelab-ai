@@ -141,6 +141,7 @@ class StockTwitsSettings(BaseSettings):
     cache_ttl: int = Field(default=300, description="Cache TTL in seconds")
     max_results: int = Field(default=30, description="Maximum messages per request (API max is 30)")
     timeout: int = Field(default=30, description="API request timeout in seconds")
+    enable_vader: bool = Field(default=False, description="Enable VADER sentiment enhancement")
 
     @validator('max_results')
     def validate_max_results(cls, v):
