@@ -546,6 +546,7 @@
             positions: [],
             sentiment: {},
             strategies: [],
+            availableStrategies: [],
             logs: [],
             connected: {
                 ws: false,
@@ -676,14 +677,21 @@
                 const absScore = Math.abs(score) * 50; // Scale to 0-50%
                 const barClass = score >= 0 ? 'bullish' : 'bearish';
                 const valueColor = score >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+                const confidence = data.confidence || 0;
+                const confidencePct = (confidence * 100).toFixed(0);
+                const level = (data.level || 'neutral').toUpperCase().replace('_', ' ');
+                const mentions = data.mentions || 0;
                 return `
-                    <div class="sentiment-row">
+                    <div class="sentiment-row" style="flex-wrap: wrap;">
                         <span class="sentiment-symbol">${symbol}</span>
                         <div class="sentiment-bar-container">
                             <span class="sentiment-center"></span>
                             <span class="sentiment-bar ${barClass}" style="width: ${absScore}%"></span>
                         </div>
                         <span class="sentiment-value" style="color: ${valueColor}">${score >= 0 ? '+' : ''}${(score * 100).toFixed(0)}%</span>
+                        <div style="width: 100%; font-size: 9px; color: var(--text-dim); margin-top: 2px; padding-left: 60px;">
+                            ${level} | ${confidencePct}% conf | ${mentions} mentions
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -701,17 +709,20 @@
 
             container.innerHTML = state.strategies.map(strategy => {
                 const statusClass = strategy.enabled ? 'enabled' : 'disabled';
+                const positionIndicator = strategy.hasPosition
+                    ? '<span style="color: var(--accent-yellow); margin-left: 6px;">● IN POSITION</span>'
+                    : '';
                 return `
                     <div class="strategy-row">
                         <div class="strategy-header">
-                            <span class="strategy-name">${strategy.name}</span>
+                            <span class="strategy-name">${strategy.name}${positionIndicator}</span>
                             <span class="strategy-status ${statusClass}">${strategy.enabled ? 'ENABLED' : 'DISABLED'}</span>
                         </div>
                         <div class="strategy-details">
-                            Symbol: ${strategy.symbol} | Timeframe: ${strategy.timeframe || '5m'}
+                            Symbol: <span style="color: var(--accent-cyan);">${strategy.symbol}</span> | Timeframe: ${strategy.timeframe || '5m'}
                         </div>
                         <div class="strategy-stats">
-                            <span>Evaluations: ${strategy.evaluations || 0}</span>
+                            <span>Evals: ${strategy.evaluations || 0}</span>
                             <span>Signals: ${strategy.signals || 0}</span>
                             <span>Last: ${strategy.lastEvaluation || 'Never'}</span>
                         </div>
@@ -874,10 +885,27 @@
                 case 'sentiment_update':
                     if (msg.data && msg.data.symbol) {
                         state.sentiment[msg.data.symbol] = {
-                            score: msg.data.score || msg.data.unified_sentiment || 0,
-                            sources: msg.data.sources
+                            score: msg.data.overall_score || msg.data.unified_sentiment || 0,
+                            confidence: msg.data.confidence || 0,
+                            level: msg.data.overall_level || msg.data.sentiment_level || 'neutral',
+                            sources: msg.data.providers || [],
+                            mentions: msg.data.total_mentions || 0
                         };
                         renderSentiment();
+                    }
+                    break;
+
+                case 'trade_executed':
+                    // Trade execution notification
+                    if (msg.data) {
+                        const trade = msg.data;
+                        const side = trade.side || trade.action || 'TRADE';
+                        const symbol = trade.symbol || 'UNKNOWN';
+                        const qty = trade.quantity || trade.shares || 0;
+                        const price = trade.price || trade.fill_price || 0;
+                        log('TRADE', `${side} ${qty} ${symbol} @ ${formatCurrency(price)}`);
+                        // Refresh positions after trade
+                        fetchInitialData();
                     }
                     break;
 
@@ -958,27 +986,55 @@
                 }
 
                 // Fetch scheduler status
-                const schedulerRes = await fetch('/api/scheduler/status');
-                const schedulerData = await schedulerRes.json();
-                updateStatus('scheduler', schedulerData.state === 'running');
-                if (schedulerData.state === 'running') {
-                    log('INFO', 'Scheduler running');
+                try {
+                    const schedulerRes = await fetch('/api/scheduler/status');
+                    const schedulerData = await schedulerRes.json();
+                    updateStatus('scheduler', schedulerData.state === 'running');
+                    if (schedulerData.state === 'running') {
+                        const stats = schedulerData.stats || {};
+                        log('INFO', `Scheduler running | Cycles: ${stats.total_cycles || 0} | Evals: ${stats.evaluations || 0}`);
+                    } else {
+                        log('WARN', `Scheduler state: ${schedulerData.state}`);
+                    }
+                } catch (e) {
+                    log('ERROR', 'Failed to fetch scheduler status');
+                    console.error('Scheduler status error:', e);
                 }
 
                 // Fetch active strategies
-                const strategiesRes = await fetch('/api/strategies/active');
-                const strategiesData = await strategiesRes.json();
-                if (strategiesData.strategies) {
-                    state.strategies = strategiesData.strategies.map(s => ({
-                        name: s.strategy_id || s.name,
-                        symbol: s.symbol,
-                        enabled: s.enabled,
-                        timeframe: s.timeframe,
-                        evaluations: s.evaluations,
-                        signals: s.signals_generated,
-                        lastEvaluation: s.last_evaluation ? new Date(s.last_evaluation).toLocaleTimeString() : 'Never'
-                    }));
-                    renderStrategies();
+                try {
+                    const strategiesRes = await fetch('/api/strategies/active');
+                    const strategiesData = await strategiesRes.json();
+                    if (strategiesData.strategies) {
+                        state.strategies = strategiesData.strategies.map(s => ({
+                            name: s.strategy_id || s.name,
+                            symbol: s.symbol,
+                            enabled: s.enabled,
+                            timeframe: s.timeframe,
+                            evaluations: s.evaluations,
+                            signals: s.signals_generated,
+                            lastEvaluation: s.last_evaluation ? new Date(s.last_evaluation).toLocaleTimeString() : 'Never',
+                            hasPosition: s.has_position
+                        }));
+                        renderStrategies();
+                        if (state.strategies.length > 0) {
+                            log('INFO', `Loaded ${state.strategies.length} active strategies`);
+                        }
+                    }
+                } catch (e) {
+                    console.error('Failed to fetch strategies:', e);
+                }
+
+                // Fetch available strategy types
+                try {
+                    const availableRes = await fetch('/api/strategies/strategies');
+                    const availableData = await availableRes.json();
+                    if (availableData.strategies) {
+                        state.availableStrategies = availableData.strategies;
+                        log('INFO', `${availableData.strategies.length} strategy types available`);
+                    }
+                } catch (e) {
+                    console.debug('Could not fetch available strategies:', e);
                 }
 
                 // Fetch recent signals
@@ -1002,6 +1058,32 @@
                     }
                 } catch (e) {
                     console.error('Failed to fetch recent signals:', e);
+                }
+
+                // Fetch sentiment data for watchlist symbols
+                const sentimentSymbols = ['SPY', 'QQQ', 'AAPL', 'MSFT', 'NVDA'];
+                for (const sym of sentimentSymbols) {
+                    try {
+                        const sentRes = await fetch(`/api/sentiment/aggregated/${sym}?hours=24`);
+                        if (sentRes.ok) {
+                            const sentData = await sentRes.json();
+                            state.sentiment[sym] = {
+                                score: sentData.unified_sentiment || 0,
+                                confidence: sentData.confidence || 0,
+                                level: sentData.sentiment_level || 'neutral',
+                                sources: sentData.providers_used || [],
+                                mentions: sentData.total_mentions || 0,
+                                breakdown: sentData.source_breakdown || {}
+                            };
+                        }
+                    } catch (e) {
+                        console.debug(`No sentiment data for ${sym}`);
+                    }
+                }
+                renderSentiment();
+                const loadedCount = Object.keys(state.sentiment).length;
+                if (loadedCount > 0) {
+                    log('INFO', `Loaded sentiment for ${loadedCount} symbols`);
                 }
 
             } catch (e) {
