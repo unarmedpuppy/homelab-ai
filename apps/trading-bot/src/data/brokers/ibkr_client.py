@@ -145,22 +145,24 @@ class IBKRClient:
         try:
             if self.ib is None:
                 self.ib = IB()
-            
-            # Start the event loop
-            util.startLoop()
-            
+
+            # Note: We don't call util.startLoop() here because:
+            # 1. We're already running in an async context (FastAPI/uvicorn)
+            # 2. util.startLoop() uses nest_asyncio which is incompatible with uvloop
+            # The connectAsync() method works fine without it in an existing event loop
+
             # Connect
             await self.ib.connectAsync(self.host, self.port, clientId=self.client_id)
-            
+
             self.connected = True
             self.reconnect_attempts = 0
-            
+
             # Set up event handlers
             self._setup_event_handlers()
-            
+
             logger.info(f"Connected to IBKR at {self.host}:{self.port}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to connect to IBKR: {e}")
             self.connected = False
