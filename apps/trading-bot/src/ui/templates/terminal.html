@@ -406,8 +406,8 @@
             font-style: italic;
         }
     </style>
-    <!-- Lightweight Charts by TradingView - fully customizable -->
-    <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+    <!-- TradingView Widget Script -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 </head>
 <body>
     <div class="terminal-grid">
@@ -1106,179 +1106,59 @@
         // Periodic refresh
         setInterval(fetchInitialData, 30000);
 
-        // Lightweight Charts
-        let chart = null;
-        let candleSeries = null;
-        let volumeSeries = null;
-        let sma20Series = null;
-        let sma200Series = null;
+        // TradingView Widget
+        let tvWidget = null;
         let currentSymbol = 'SPY';
 
-        // Calculate SMA from candle data
-        function calculateSMA(data, period) {
-            const smaData = [];
-            for (let i = period - 1; i < data.length; i++) {
-                let sum = 0;
-                for (let j = 0; j < period; j++) {
-                    sum += data[i - j].close;
-                }
-                smaData.push({
-                    time: data[i].time,
-                    value: sum / period
-                });
-            }
-            return smaData;
-        }
-
-        async function fetchChartData(symbol) {
-            // Fetch from API - tries IBKR, then Yahoo Finance, then data providers
-            try {
-                const res = await fetch(`/api/market-data/historical/${symbol}?interval=5m&range=5d`);
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.candles && data.candles.length > 0) {
-                        log('INFO', `Chart data: ${data.count} bars from ${data.source || 'api'}`);
-                        return data.candles;
-                    }
-                }
-            } catch (e) {
-                console.log('API request failed:', e);
-            }
-
-            // Fallback: Generate sample data for demo
-            log('WARN', `No market data for ${symbol} - using sample data`);
-            const now = Math.floor(Date.now() / 1000);
-            const data = [];
-            let price = 450 + Math.random() * 50;
-            for (let i = 200; i >= 0; i--) {
-                const time = now - i * 300; // 5 min intervals
-                const open = price;
-                const change = (Math.random() - 0.48) * 3;
-                price = Math.max(400, Math.min(550, price + change));
-                const high = Math.max(open, price) + Math.random() * 1;
-                const low = Math.min(open, price) - Math.random() * 1;
-                const volume = Math.floor(50000 + Math.random() * 200000);
-                data.push({ time, open, high, low, close: price, volume });
-            }
-            return data;
-        }
-
-        async function initChart(symbol = 'SPY') {
+        function initChart(symbol = 'SPY') {
             const container = document.getElementById('chart');
             if (!container) return;
 
-            currentSymbol = symbol;
+            currentSymbol = symbol.toUpperCase();
 
-            // Remove existing chart
-            if (chart) {
-                chart.remove();
-            }
+            // Clear existing content
+            container.innerHTML = '';
 
-            // Create chart with dark theme matching terminal
-            chart = LightweightCharts.createChart(container, {
-                width: container.clientWidth,
-                height: container.clientHeight,
-                layout: {
-                    background: { type: 'solid', color: '#0a0a0a' },
-                    textColor: '#888888',
-                },
-                grid: {
-                    vertLines: { color: '#1a1a1a' },
-                    horzLines: { color: '#1a1a1a' },
-                },
-                crosshair: {
-                    mode: LightweightCharts.CrosshairMode.Normal,
-                    vertLine: { color: '#444444', width: 1, style: 2 },
-                    horzLine: { color: '#444444', width: 1, style: 2 },
-                },
-                rightPriceScale: {
-                    borderColor: '#333333',
-                    scaleMargins: { top: 0.1, bottom: 0.2 },
-                },
-                timeScale: {
-                    borderColor: '#333333',
-                    timeVisible: true,
-                    secondsVisible: false,
-                },
-            });
-
-            // Candlestick series - white up, gray down, white borders
-            candleSeries = chart.addCandlestickSeries({
-                upColor: '#ffffff',
-                downColor: '#666666',
-                borderUpColor: '#ffffff',
-                borderDownColor: '#ffffff',
-                wickUpColor: '#ffffff',
-                wickDownColor: '#ffffff',
-            });
-
-            // Volume series - gray bars at bottom
-            volumeSeries = chart.addHistogramSeries({
-                color: '#444444',
-                priceFormat: { type: 'volume' },
-                priceScaleId: '',
-                scaleMargins: { top: 0.85, bottom: 0 },
-            });
-
-            // 20 SMA - 2px solid white
-            sma20Series = chart.addLineSeries({
-                color: '#ffffff',
-                lineWidth: 2,
-                lineStyle: LightweightCharts.LineStyle.Solid,
-                priceLineVisible: false,
-                lastValueVisible: false,
-            });
-
-            // 200 SMA - 2px dashed white (slightly dimmer)
-            sma200Series = chart.addLineSeries({
-                color: '#aaaaaa',
-                lineWidth: 2,
-                lineStyle: LightweightCharts.LineStyle.Dashed,
-                priceLineVisible: false,
-                lastValueVisible: false,
-            });
-
-            // Fetch and set data
-            const data = await fetchChartData(symbol);
-
-            // Set candlestick data
-            candleSeries.setData(data.map(d => ({
-                time: d.time,
-                open: d.open,
-                high: d.high,
-                low: d.low,
-                close: d.close
-            })));
-
-            // Set volume data with color based on candle direction
-            volumeSeries.setData(data.map(d => ({
-                time: d.time,
-                value: d.volume,
-                color: d.close >= d.open ? '#555555' : '#444444'
-            })));
-
-            // Calculate and set SMAs
-            if (data.length >= 20) {
-                sma20Series.setData(calculateSMA(data, 20));
-            }
-            if (data.length >= 200) {
-                sma200Series.setData(calculateSMA(data, 200));
-            }
-
-            // Fit content
-            chart.timeScale().fitContent();
-
-            // Handle resize
-            const resizeObserver = new ResizeObserver(entries => {
-                if (chart) {
-                    const { width, height } = entries[0].contentRect;
-                    chart.applyOptions({ width, height });
+            // Create TradingView widget
+            tvWidget = new TradingView.widget({
+                "width": "100%",
+                "height": "100%",
+                "symbol": currentSymbol,
+                "interval": "5",
+                "timezone": "America/New_York",
+                "theme": "dark",
+                "style": "1",
+                "locale": "en",
+                "toolbar_bg": "#0a0a0a",
+                "enable_publishing": false,
+                "hide_top_toolbar": true,
+                "hide_legend": false,
+                "save_image": false,
+                "container_id": "chart",
+                "hide_side_toolbar": true,
+                "allow_symbol_change": false,
+                "studies": [
+                    "MASimple@tv-basicstudies",
+                    "Volume@tv-basicstudies"
+                ],
+                "overrides": {
+                    "paneProperties.background": "#0a0a0a",
+                    "paneProperties.backgroundType": "solid",
+                    "paneProperties.vertGridProperties.color": "#1a1a1a",
+                    "paneProperties.horzGridProperties.color": "#1a1a1a",
+                    "scalesProperties.textColor": "#888888",
+                    "scalesProperties.lineColor": "#333333",
+                    "mainSeriesProperties.candleStyle.upColor": "#00ff00",
+                    "mainSeriesProperties.candleStyle.downColor": "#ff4444",
+                    "mainSeriesProperties.candleStyle.wickUpColor": "#00ff00",
+                    "mainSeriesProperties.candleStyle.wickDownColor": "#ff4444",
+                    "mainSeriesProperties.candleStyle.borderUpColor": "#00ff00",
+                    "mainSeriesProperties.candleStyle.borderDownColor": "#ff4444"
                 }
             });
-            resizeObserver.observe(container);
 
-            document.getElementById('chart-symbol').textContent = symbol;
-            log('INFO', `Chart loaded: ${symbol}`);
+            document.getElementById('chart-symbol').textContent = currentSymbol;
+            log('INFO', `Chart loaded: ${currentSymbol} (TradingView)`);
         }
 
         function updateChart() {
