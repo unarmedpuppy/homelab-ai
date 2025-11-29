@@ -406,8 +406,8 @@
             font-style: italic;
         }
     </style>
-    <!-- TradingView Widget Library - must load before widget init -->
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <!-- Lightweight Charts by TradingView - fully customizable -->
+    <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
     <div class="terminal-grid">
@@ -445,12 +445,8 @@
                     <span class="widget-badge" id="chart-symbol">SPY</span>
                 </div>
             </div>
-            <div class="widget-content" id="tradingview-chart" style="padding: 0; height: 100%;">
-                <!-- TradingView Widget BEGIN -->
-                <div class="tradingview-widget-container" style="height: 100%; width: 100%;">
-                    <div id="tradingview_chart" style="height: 100%; width: 100%;"></div>
-                </div>
-                <!-- TradingView Widget END -->
+            <div class="widget-content" id="chart-container" style="padding: 0; height: 100%; position: relative;">
+                <div id="chart" style="height: 100%; width: 100%;"></div>
             </div>
         </div>
 
@@ -1028,68 +1024,173 @@
         // Periodic refresh
         setInterval(fetchInitialData, 30000);
 
-        // TradingView Chart
-        let tvWidget = null;
+        // Lightweight Charts
+        let chart = null;
+        let candleSeries = null;
+        let volumeSeries = null;
+        let sma20Series = null;
+        let sma200Series = null;
+        let currentSymbol = 'SPY';
 
-        function initTradingViewChart(symbol = 'SPY') {
-            const container = document.getElementById('tradingview_chart');
+        // Calculate SMA from candle data
+        function calculateSMA(data, period) {
+            const smaData = [];
+            for (let i = period - 1; i < data.length; i++) {
+                let sum = 0;
+                for (let j = 0; j < period; j++) {
+                    sum += data[i - j].close;
+                }
+                smaData.push({
+                    time: data[i].time,
+                    value: sum / period
+                });
+            }
+            return smaData;
+        }
+
+        async function fetchChartData(symbol) {
+            // Fetch from Yahoo Finance via our API or directly
+            // For now, use a proxy endpoint or sample data
+            try {
+                const res = await fetch(`/api/market-data/historical/${symbol}?interval=5m&range=5d`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.candles) return data.candles;
+                }
+            } catch (e) {
+                console.log('Using sample data - API not available');
+            }
+
+            // Fallback: Generate sample data for demo
+            const now = Math.floor(Date.now() / 1000);
+            const data = [];
+            let price = 450 + Math.random() * 50;
+            for (let i = 200; i >= 0; i--) {
+                const time = now - i * 300; // 5 min intervals
+                const open = price;
+                const change = (Math.random() - 0.48) * 3;
+                price = Math.max(400, Math.min(550, price + change));
+                const high = Math.max(open, price) + Math.random() * 1;
+                const low = Math.min(open, price) - Math.random() * 1;
+                const volume = Math.floor(50000 + Math.random() * 200000);
+                data.push({ time, open, high, low, close: price, volume });
+            }
+            return data;
+        }
+
+        async function initChart(symbol = 'SPY') {
+            const container = document.getElementById('chart');
             if (!container) return;
 
-            // Clear existing widget
-            container.innerHTML = '';
+            currentSymbol = symbol;
 
-            // Create new TradingView widget
-            // Note: TradingView free widget has limited customization
-            // Using overrides where possible for candle/volume styling
-            tvWidget = new TradingView.widget({
-                "autosize": true,
-                "symbol": symbol,
-                "interval": "5",
-                "timezone": "America/New_York",
-                "theme": "dark",
-                "style": "1",
-                "locale": "en",
-                "toolbar_bg": "#0a0a0a",
-                "enable_publishing": false,
-                "hide_top_toolbar": false,
-                "hide_legend": false,
-                "save_image": false,
-                "container_id": "tradingview_chart",
-                "hide_side_toolbar": true,
-                "allow_symbol_change": true,
-                "studies": [
-                    // 20 SMA - solid white line
-                    { id: "MASimple@tv-basicstudies", inputs: { length: 20 } },
-                    // 200 SMA - will style as dashed in overrides
-                    { id: "MASimple@tv-basicstudies", inputs: { length: 200 } }
-                    // Volume is shown by default, no need to add duplicate
-                ],
-                "overrides": {
-                    // Candles: white for up, gray for down, white borders/wicks
-                    "mainSeriesProperties.candleStyle.upColor": "#ffffff",
-                    "mainSeriesProperties.candleStyle.downColor": "#666666",
-                    "mainSeriesProperties.candleStyle.borderUpColor": "#ffffff",
-                    "mainSeriesProperties.candleStyle.borderDownColor": "#ffffff",
-                    "mainSeriesProperties.candleStyle.wickUpColor": "#ffffff",
-                    "mainSeriesProperties.candleStyle.wickDownColor": "#ffffff",
-                    // Background and grid
-                    "paneProperties.background": "#0a0a0a",
-                    "paneProperties.vertGridProperties.color": "#1a1a1a",
-                    "paneProperties.horzGridProperties.color": "#1a1a1a",
-                    "scalesProperties.textColor": "#888888",
-                    // Volume styling - gray bars
-                    "volumePaneSize": "medium",
-                    "mainSeriesProperties.showVolume": true
+            // Remove existing chart
+            if (chart) {
+                chart.remove();
+            }
+
+            // Create chart with dark theme matching terminal
+            chart = LightweightCharts.createChart(container, {
+                width: container.clientWidth,
+                height: container.clientHeight,
+                layout: {
+                    background: { type: 'solid', color: '#0a0a0a' },
+                    textColor: '#888888',
                 },
-                "studies_overrides": {
-                    // 20 SMA - 2px solid white
-                    "moving average.plot.color": "#ffffff",
-                    "moving average.plot.linewidth": 2,
-                    // Volume - gray color
-                    "volume.volume.color.0": "#444444",
-                    "volume.volume.color.1": "#666666"
+                grid: {
+                    vertLines: { color: '#1a1a1a' },
+                    horzLines: { color: '#1a1a1a' },
+                },
+                crosshair: {
+                    mode: LightweightCharts.CrosshairMode.Normal,
+                    vertLine: { color: '#444444', width: 1, style: 2 },
+                    horzLine: { color: '#444444', width: 1, style: 2 },
+                },
+                rightPriceScale: {
+                    borderColor: '#333333',
+                    scaleMargins: { top: 0.1, bottom: 0.2 },
+                },
+                timeScale: {
+                    borderColor: '#333333',
+                    timeVisible: true,
+                    secondsVisible: false,
+                },
+            });
+
+            // Candlestick series - white up, gray down, white borders
+            candleSeries = chart.addCandlestickSeries({
+                upColor: '#ffffff',
+                downColor: '#666666',
+                borderUpColor: '#ffffff',
+                borderDownColor: '#ffffff',
+                wickUpColor: '#ffffff',
+                wickDownColor: '#ffffff',
+            });
+
+            // Volume series - gray bars at bottom
+            volumeSeries = chart.addHistogramSeries({
+                color: '#444444',
+                priceFormat: { type: 'volume' },
+                priceScaleId: '',
+                scaleMargins: { top: 0.85, bottom: 0 },
+            });
+
+            // 20 SMA - 2px solid white
+            sma20Series = chart.addLineSeries({
+                color: '#ffffff',
+                lineWidth: 2,
+                lineStyle: LightweightCharts.LineStyle.Solid,
+                priceLineVisible: false,
+                lastValueVisible: false,
+            });
+
+            // 200 SMA - 2px dashed white (slightly dimmer)
+            sma200Series = chart.addLineSeries({
+                color: '#aaaaaa',
+                lineWidth: 2,
+                lineStyle: LightweightCharts.LineStyle.Dashed,
+                priceLineVisible: false,
+                lastValueVisible: false,
+            });
+
+            // Fetch and set data
+            const data = await fetchChartData(symbol);
+
+            // Set candlestick data
+            candleSeries.setData(data.map(d => ({
+                time: d.time,
+                open: d.open,
+                high: d.high,
+                low: d.low,
+                close: d.close
+            })));
+
+            // Set volume data with color based on candle direction
+            volumeSeries.setData(data.map(d => ({
+                time: d.time,
+                value: d.volume,
+                color: d.close >= d.open ? '#555555' : '#444444'
+            })));
+
+            // Calculate and set SMAs
+            if (data.length >= 20) {
+                sma20Series.setData(calculateSMA(data, 20));
+            }
+            if (data.length >= 200) {
+                sma200Series.setData(calculateSMA(data, 200));
+            }
+
+            // Fit content
+            chart.timeScale().fitContent();
+
+            // Handle resize
+            const resizeObserver = new ResizeObserver(entries => {
+                if (chart) {
+                    const { width, height } = entries[0].contentRect;
+                    chart.applyOptions({ width, height });
                 }
             });
+            resizeObserver.observe(container);
 
             document.getElementById('chart-symbol').textContent = symbol;
             log('INFO', `Chart loaded: ${symbol}`);
@@ -1099,7 +1200,7 @@
             const input = document.getElementById('chart-symbol-input');
             const symbol = input.value.toUpperCase().trim();
             if (symbol) {
-                initTradingViewChart(symbol);
+                initChart(symbol);
             }
         }
 
@@ -1114,8 +1215,8 @@
         log('INFO', 'Trading Terminal v1.0 initialized');
         connectWebSocket();
 
-        // Initialize TradingView chart after DOM is ready
-        setTimeout(() => initTradingViewChart('SPY'), 500);
+        // Initialize chart after DOM is ready
+        setTimeout(() => initChart('SPY'), 500);
     </script>
 </body>
 </html>
