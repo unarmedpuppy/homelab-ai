@@ -367,6 +367,13 @@
         /* System Log Widget - spans full width at bottom */
         .system-log {
             grid-column: 1 / -1;
+            max-height: 200px;
+            overflow: hidden;
+        }
+
+        .system-log .widget-content {
+            max-height: calc(200px - 32px);
+            overflow-y: auto;
         }
 
         .log-entry {
