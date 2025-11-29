@@ -223,22 +223,51 @@ async def remove_strategy(strategy_id: str):
     }
 
 
+@router.get("/strategies/signals/recent")
+async def get_recent_signals():
+    """Get recent signals from all strategies"""
+    evaluator = get_evaluator()
+
+    signals = []
+    for strategy_id in evaluator.list_strategies():
+        state = evaluator.get_strategy_state(strategy_id)
+        if state and state.last_signal:
+            sig = state.last_signal
+            signals.append({
+                'strategy_id': strategy_id,
+                'signal_type': sig.signal_type.value,
+                'symbol': sig.symbol,
+                'price': sig.price,
+                'quantity': sig.quantity,
+                'confidence': sig.confidence,
+                'timestamp': sig.timestamp.isoformat() if sig.timestamp else None
+            })
+
+    # Sort by timestamp descending
+    signals.sort(key=lambda x: x['timestamp'] or '', reverse=True)
+
+    return {
+        "status": "success",
+        "signals": signals[:20]  # Return last 20 signals
+    }
+
+
 @router.post("/strategies/evaluate")
 async def evaluate_strategies(request: EvaluateRequest):
     """
     Evaluate all active strategies
-    
+
     Note: This is a simplified endpoint. In production, you'd want to:
     - Fetch real market data
     - Handle async data fetching
     - Return more detailed results
     """
     evaluator = get_evaluator()
-    
+
     # This would need market data to evaluate
     # For now, return evaluation stats
     stats = evaluator.get_evaluation_stats()
-    
+
     return {
         "status": "success",
         "message": "Evaluation would be performed with market data",

@@ -816,14 +816,17 @@
                     break;
 
                 case 'signal':
-                    if (msg.data) {
+                    // Handle both root-level fields (from SignalBroadcastStream) and msg.data format
+                    const sigData = msg.data || msg;
+                    if (sigData.symbol) {
                         const signal = {
-                            type: msg.data.signal_type || msg.data.signalType || msg.data.type,
-                            symbol: msg.data.symbol,
-                            price: msg.data.price,
-                            confidence: msg.data.confidence || 0,
-                            strategy: msg.data.strategy,
-                            timestamp: msg.data.timestamp || new Date().toISOString()
+                            type: sigData.signal_type || sigData.signalType || sigData.type || 'SIGNAL',
+                            symbol: sigData.symbol,
+                            price: sigData.price,
+                            confidence: sigData.confidence || 0,
+                            quantity: sigData.quantity || 0,
+                            strategy: sigData.strategy,
+                            timestamp: sigData.timestamp || new Date().toISOString()
                         };
                         state.signals.unshift(signal);
                         if (state.signals.length > 50) state.signals.pop();
@@ -980,6 +983,29 @@
                         lastEvaluation: s.last_evaluation ? new Date(s.last_evaluation).toLocaleTimeString() : 'Never'
                     }));
                     renderStrategies();
+                }
+
+                // Fetch recent signals
+                try {
+                    const signalsRes = await fetch('/api/strategies/signals/recent');
+                    const signalsData = await signalsRes.json();
+                    if (signalsData.status === 'success' && signalsData.signals) {
+                        state.signals = signalsData.signals.map(s => ({
+                            type: s.signal_type,
+                            symbol: s.symbol,
+                            price: s.price,
+                            confidence: s.confidence || 0,
+                            quantity: s.quantity || 0,
+                            strategy: s.strategy_id,
+                            timestamp: s.timestamp || new Date().toISOString()
+                        }));
+                        renderSignals();
+                        if (state.signals.length > 0) {
+                            log('INFO', `Loaded ${state.signals.length} recent signals`);
+                        }
+                    }
+                } catch (e) {
+                    console.error('Failed to fetch recent signals:', e);
                 }
 
             } catch (e) {
