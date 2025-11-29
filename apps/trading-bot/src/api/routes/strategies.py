@@ -66,7 +66,7 @@ async def list_strategies():
     """List all available strategy types"""
     registry = get_registry()
     strategies = registry.list_strategies()
-    
+
     result = []
     for strategy_name in strategies:
         info = registry.get_strategy_info(strategy_name)
@@ -75,11 +75,46 @@ async def list_strategies():
             'description': info.get('description', ''),
             'metadata': info
         })
-    
+
     return {
         "status": "success",
         "strategies": result
     }
+
+
+# NOTE: Static routes like /strategies/active must be defined BEFORE
+# parameterized routes like /strategies/{strategy_name} to avoid conflicts
+@router.get("/strategies/active")
+async def list_active_strategies():
+    """List all active strategies in the evaluator"""
+    evaluator = get_evaluator()
+    strategy_ids = evaluator.list_strategies()
+
+    strategies = []
+    for strategy_id in strategy_ids:
+        state = evaluator.get_strategy_state(strategy_id)
+        if state:
+            strategies.append({
+                'strategy_id': strategy_id,
+                'symbol': state.symbol,
+                'enabled': state.enabled,
+                'evaluations': state.evaluation_count,
+                'signals_generated': state.signals_generated,
+                'last_evaluation': state.last_evaluation.isoformat() if state.last_evaluation else None,
+                'has_position': state.current_position is not None
+            })
+
+    return {
+        "status": "success",
+        "strategies": strategies
+    }
+
+
+@router.get("/strategies/stats")
+async def get_strategy_stats():
+    """Get statistics for all strategies"""
+    evaluator = get_evaluator()
+    return evaluator.get_stats()
 
 
 @router.get("/strategies/{strategy_name}")
@@ -129,32 +164,6 @@ async def add_strategy(request: StrategyRequest):
     except Exception as e:
         logger.error(f"Error adding strategy: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error adding strategy: {str(e)}")
-
-
-@router.get("/strategies/active")
-async def list_active_strategies():
-    """List all active strategies in the evaluator"""
-    evaluator = get_evaluator()
-    strategy_ids = evaluator.list_strategies()
-    
-    strategies = []
-    for strategy_id in strategy_ids:
-        state = evaluator.get_strategy_state(strategy_id)
-        if state:
-            strategies.append({
-                'strategy_id': strategy_id,
-                'symbol': state.symbol,
-                'enabled': state.enabled,
-                'evaluations': state.evaluation_count,
-                'signals_generated': state.signals_generated,
-                'last_evaluation': state.last_evaluation.isoformat() if state.last_evaluation else None,
-                'has_position': state.current_position is not None
-            })
-    
-    return {
-        "status": "success",
-        "strategies": strategies
-    }
 
 
 @router.post("/strategies/{strategy_id}/enable")
@@ -233,18 +242,6 @@ async def evaluate_strategies(request: EvaluateRequest):
     return {
         "status": "success",
         "message": "Evaluation would be performed with market data",
-        "stats": stats
-    }
-
-
-@router.get("/strategies/stats")
-async def get_evaluation_stats():
-    """Get evaluation statistics"""
-    evaluator = get_evaluator()
-    stats = evaluator.get_evaluation_stats()
-    
-    return {
-        "status": "success",
         "stats": stats
     }
 
