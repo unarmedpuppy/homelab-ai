@@ -56,6 +56,11 @@ try:
 except ImportError:
     GoogleTrendsSentimentProvider = None
 
+try:
+    from .analyst_ratings import AnalystRatingsSentimentProvider
+except ImportError:
+    AnalystRatingsSentimentProvider = None
+
 logger = logging.getLogger(__name__)
 
 
