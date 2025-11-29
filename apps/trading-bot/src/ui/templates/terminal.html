@@ -1131,19 +1131,22 @@
         }
 
         async function fetchChartData(symbol) {
-            // Fetch from Yahoo Finance via our API or directly
-            // For now, use a proxy endpoint or sample data
+            // Fetch from API - tries IBKR, then Yahoo Finance, then data providers
             try {
                 const res = await fetch(`/api/market-data/historical/${symbol}?interval=5m&range=5d`);
                 if (res.ok) {
                     const data = await res.json();
-                    if (data.candles) return data.candles;
+                    if (data.candles && data.candles.length > 0) {
+                        log('INFO', `Chart data: ${data.count} bars from ${data.source || 'api'}`);
+                        return data.candles;
+                    }
                 }
             } catch (e) {
-                console.log('Using sample data - API not available');
+                console.log('API request failed:', e);
             }
 
             // Fallback: Generate sample data for demo
+            log('WARN', `No market data for ${symbol} - using sample data`);
             const now = Math.floor(Date.now() / 1000);
             const data = [];
             let price = 450 + Math.random() * 50;

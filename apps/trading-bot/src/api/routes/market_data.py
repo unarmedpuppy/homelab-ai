@@ -188,8 +188,6 @@ async def get_historical_data(
 ):
     """Get historical data for a symbol - returns candles for charting"""
     try:
-        manager = get_data_manager()
-
         # Parse range if provided, otherwise use days
         if range:
             range_map = {
@@ -207,28 +205,103 @@ async def get_historical_data(
 
         end_date = datetime.now()
         start_date = end_date - timedelta(days=num_days)
-
-        historical_data = await manager.get_historical_data(
-            symbol.upper(), start_date, end_date, interval
-        )
-
-        # Convert to candles format for Lightweight Charts (unix timestamp)
         candles = []
-        for bar in historical_data:
-            candles.append({
-                "time": int(bar.timestamp.timestamp()),
-                "open": bar.open,
-                "high": bar.high,
-                "low": bar.low,
-                "close": bar.close,
-                "volume": bar.volume
-            })
+        source = "unknown"
+
+        # Try IBKR first if connected
+        try:
+            from ...data.brokers.ibkr_client import IBKRManager
+            from ...api.routes.trading import get_ibkr_manager
+            ibkr_manager = get_ibkr_manager()
+
+            if ibkr_manager and ibkr_manager.is_connected:
+                client = await ibkr_manager.get_client()
+                contract = client.create_contract(symbol.upper())
+
+                # Map interval to IBKR bar size
+                bar_size_map = {
+                    "1m": "1 min",
+                    "5m": "5 mins",
+                    "15m": "15 mins",
+                    "1h": "1 hour",
+                    "1d": "1 day"
+                }
+                bar_size = bar_size_map.get(interval, "5 mins")
+                duration = f"{num_days} D"
+
+                df = await client.get_historical_data(contract, duration=duration, bar_size=bar_size)
+
+                if df is not None and len(df) > 0:
+                    for idx, row in df.iterrows():
+                        candles.append({
+                            "time": int(idx.timestamp()),
+                            "open": float(row['open']),
+                            "high": float(row['high']),
+                            "low": float(row['low']),
+                            "close": float(row['close']),
+                            "volume": int(row['volume'])
+                        })
+                    source = "ibkr"
+                    logger.info(f"Got {len(candles)} bars from IBKR for {symbol}")
+        except Exception as ibkr_error:
+            logger.debug(f"IBKR historical data failed: {ibkr_error}")
+
+        # Fall back to Yahoo Finance using yf.download (more reliable)
+        if not candles:
+            try:
+                import yfinance as yf
+
+                # Use download function which is more reliable than Ticker.history
+                df = yf.download(
+                    symbol.upper(),
+                    start=start_date,
+                    end=end_date,
+                    interval=interval,
+                    progress=False,
+                    timeout=10
+                )
+
+                if df is not None and len(df) > 0:
+                    for idx, row in df.iterrows():
+                        candles.append({
+                            "time": int(idx.timestamp()),
+                            "open": float(row['Open']),
+                            "high": float(row['High']),
+                            "low": float(row['Low']),
+                            "close": float(row['Close']),
+                            "volume": int(row['Volume'])
+                        })
+                    source = "yahoo"
+                    logger.info(f"Got {len(candles)} bars from Yahoo for {symbol}")
+            except Exception as yf_error:
+                logger.warning(f"Yahoo Finance failed for {symbol}: {yf_error}")
+
+        # Fall back to data provider manager
+        if not candles:
+            try:
+                manager = get_data_manager()
+                historical_data = await manager.get_historical_data(
+                    symbol.upper(), start_date, end_date, interval
+                )
+                for bar in historical_data:
+                    candles.append({
+                        "time": int(bar.timestamp.timestamp()),
+                        "open": bar.open,
+                        "high": bar.high,
+                        "low": bar.low,
+                        "close": bar.close,
+                        "volume": bar.volume
+                    })
+                source = "provider"
+            except Exception as provider_error:
+                logger.warning(f"Data provider failed for {symbol}: {provider_error}")
 
         return {
             "symbol": symbol.upper(),
             "interval": interval,
             "range": range or f"{num_days}d",
             "count": len(candles),
+            "source": source,
             "candles": candles
         }
 
