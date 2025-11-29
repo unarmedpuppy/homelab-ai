@@ -822,6 +822,7 @@
 
                 case 'portfolio_update':
                     if (msg.data) {
+                        // Update positions if provided
                         if (msg.data.positions) {
                             state.positions = msg.data.positions.map(p => ({
                                 symbol: p.symbol,
@@ -833,9 +834,28 @@
                             }));
                             renderPositions();
                         }
-                        if (msg.data.totalPnL !== undefined) {
-                            document.getElementById('unrealized-pnl').textContent = formatCurrency(msg.data.totalPnL);
-                            document.getElementById('unrealized-pnl').className = 'stat-value ' + (msg.data.totalPnL >= 0 ? 'positive' : 'negative');
+
+                        // Update account stats if provided
+                        if (msg.data.net_liquidation !== undefined) {
+                            document.getElementById('portfolio-value').textContent = formatCurrency(msg.data.net_liquidation);
+                        }
+                        if (msg.data.total_value !== undefined) {
+                            document.getElementById('portfolio-value').textContent = formatCurrency(msg.data.total_value);
+                        }
+                        if (msg.data.cash_balance !== undefined) {
+                            document.getElementById('cash-balance').textContent = formatCurrency(msg.data.cash_balance);
+                        }
+                        if (msg.data.totalPnL !== undefined || msg.data.unrealized_pnl !== undefined) {
+                            const unrealizedPnl = msg.data.totalPnL ?? msg.data.unrealized_pnl ?? 0;
+                            const el = document.getElementById('unrealized-pnl');
+                            el.textContent = formatCurrency(unrealizedPnl);
+                            el.className = 'stat-value ' + (unrealizedPnl >= 0 ? 'positive' : 'negative');
+                        }
+                        if (msg.data.daily_pnl !== undefined || msg.data.realized_pnl !== undefined) {
+                            const dayPnl = msg.data.daily_pnl ?? msg.data.realized_pnl ?? 0;
+                            const el = document.getElementById('day-pnl');
+                            el.textContent = formatCurrency(dayPnl);
+                            el.className = 'stat-value ' + (dayPnl >= 0 ? 'positive' : 'negative');
                         }
                     }
                     break;
@@ -876,12 +896,34 @@
                         const accountRes = await fetch('/api/trading/ibkr/account');
                         const accountData = await accountRes.json();
                         if (accountData.status === 'success' && accountData.account) {
-                            document.getElementById('portfolio-value').textContent = formatCurrency(accountData.account.net_liquidation || accountData.account.NetLiquidation);
-                            document.getElementById('cash-balance').textContent = formatCurrency(accountData.account.available_funds || accountData.account.AvailableFunds);
-                            document.getElementById('account-id').textContent = accountData.account.account_id || 'Connected';
+                            const acct = accountData.account;
+
+                            // Portfolio Value (Net Liquidation)
+                            document.getElementById('portfolio-value').textContent = formatCurrency(acct.net_liquidation);
+
+                            // Cash Balance
+                            document.getElementById('cash-balance').textContent = formatCurrency(acct.cash_balance);
+
+                            // Day P&L (Realized P&L for the day)
+                            const dayPnl = acct.realized_pnl || 0;
+                            const dayPnlEl = document.getElementById('day-pnl');
+                            dayPnlEl.textContent = formatCurrency(dayPnl);
+                            dayPnlEl.className = 'stat-value ' + (dayPnl >= 0 ? 'positive' : 'negative');
+
+                            // Unrealized P&L
+                            const unrealizedPnl = acct.unrealized_pnl || 0;
+                            const unrealizedPnlEl = document.getElementById('unrealized-pnl');
+                            unrealizedPnlEl.textContent = formatCurrency(unrealizedPnl);
+                            unrealizedPnlEl.className = 'stat-value ' + (unrealizedPnl >= 0 ? 'positive' : 'negative');
+
+                            // Account ID badge
+                            document.getElementById('account-id').textContent = acct.account_id || 'Connected';
+
+                            log('INFO', `Account loaded: ${formatCurrency(acct.net_liquidation)} NLV`);
                         }
                     } catch (e) {
                         console.error('Failed to fetch account:', e);
+                        log('ERROR', 'Failed to fetch account data');
                     }
 
                     // Fetch positions

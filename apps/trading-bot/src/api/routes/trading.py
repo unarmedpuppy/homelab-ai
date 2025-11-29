@@ -230,21 +230,49 @@ async def ibkr_test_connection(request: Optional[ConnectionTestRequest] = None):
 
 @router.get("/ibkr/account")
 async def ibkr_account_summary():
-    """Get IBKR account summary"""
+    """Get IBKR account summary with structured data"""
     manager = get_ibkr_manager()
-    
+
     if not manager or not manager.is_connected:
         raise HTTPException(
             status_code=503,
             detail="IBKR not connected. Please connect first using /api/trading/ibkr/connect"
         )
-    
+
     try:
         client = await manager.get_client()
-        account_summary = await client.get_account_summary()
+        raw_summary = await client.get_account_summary()
+
+        # Helper to extract float value from raw summary
+        def get_value(tag: str, default: float = 0.0) -> float:
+            if tag in raw_summary:
+                try:
+                    return float(raw_summary[tag].get("value", default))
+                except (ValueError, TypeError):
+                    return default
+            return default
+
+        # Extract key account metrics
+        account = {
+            "account_id": client.account_id if hasattr(client, 'account_id') else None,
+            "net_liquidation": get_value("NetLiquidation"),
+            "available_funds": get_value("AvailableFunds"),
+            "buying_power": get_value("BuyingPower"),
+            "cash_balance": get_value("TotalCashValue"),
+            "unrealized_pnl": get_value("UnrealizedPnL"),
+            "realized_pnl": get_value("RealizedPnL"),
+            "day_trades_remaining": get_value("DayTradesRemaining", 0),
+            "gross_position_value": get_value("GrossPositionValue"),
+            "maintenance_margin": get_value("MaintMarginReq"),
+            "initial_margin": get_value("InitMarginReq"),
+            "excess_liquidity": get_value("ExcessLiquidity"),
+            "currency": "USD"
+        }
+
         return {
             "status": "success",
-            "account_data": account_summary
+            "account": account,
+            "raw_data": raw_summary  # Include raw data for debugging
         }
     except Exception as e:
         logger.error(f"Error getting account summary: {e}")
