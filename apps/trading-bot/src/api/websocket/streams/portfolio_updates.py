@@ -85,9 +85,11 @@ class PortfolioUpdateStream:
         ibkr_manager = get_ibkr_manager()
         if not ibkr_manager or not ibkr_manager.is_connected:
             return {}
-        
+
         try:
-            positions = await ibkr_manager.get_positions()
+            # Get the client from manager, then get positions
+            client = await ibkr_manager.get_client()
+            positions = await client.get_positions()
             return {pos.symbol: pos for pos in positions}
         except Exception as e:
             logger.error(f"Error getting positions: {e}")
