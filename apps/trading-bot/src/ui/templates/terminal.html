@@ -1039,6 +1039,8 @@
             container.innerHTML = '';
 
             // Create new TradingView widget
+            // Note: TradingView free widget has limited customization
+            // Using overrides where possible for candle/volume styling
             tvWidget = new TradingView.widget({
                 "autosize": true,
                 "symbol": symbol,
@@ -1047,7 +1049,7 @@
                 "theme": "dark",
                 "style": "1",
                 "locale": "en",
-                "toolbar_bg": "#1a1a1a",
+                "toolbar_bg": "#0a0a0a",
                 "enable_publishing": false,
                 "hide_top_toolbar": false,
                 "hide_legend": false,
@@ -1056,21 +1058,36 @@
                 "hide_side_toolbar": true,
                 "allow_symbol_change": true,
                 "studies": [
+                    // 20 SMA - solid white line
                     { id: "MASimple@tv-basicstudies", inputs: { length: 20 } },
-                    { id: "MASimple@tv-basicstudies", inputs: { length: 200 } },
-                    { id: "Volume@tv-basicstudies" }
+                    // 200 SMA - will style as dashed in overrides
+                    { id: "MASimple@tv-basicstudies", inputs: { length: 200 } }
+                    // Volume is shown by default, no need to add duplicate
                 ],
                 "overrides": {
-                    "mainSeriesProperties.candleStyle.upColor": "#00ff00",
-                    "mainSeriesProperties.candleStyle.downColor": "#ff4444",
-                    "mainSeriesProperties.candleStyle.borderUpColor": "#00ff00",
-                    "mainSeriesProperties.candleStyle.borderDownColor": "#ff4444",
-                    "mainSeriesProperties.candleStyle.wickUpColor": "#00ff00",
-                    "mainSeriesProperties.candleStyle.wickDownColor": "#ff4444",
+                    // Candles: white for up, gray for down, white borders/wicks
+                    "mainSeriesProperties.candleStyle.upColor": "#ffffff",
+                    "mainSeriesProperties.candleStyle.downColor": "#666666",
+                    "mainSeriesProperties.candleStyle.borderUpColor": "#ffffff",
+                    "mainSeriesProperties.candleStyle.borderDownColor": "#ffffff",
+                    "mainSeriesProperties.candleStyle.wickUpColor": "#ffffff",
+                    "mainSeriesProperties.candleStyle.wickDownColor": "#ffffff",
+                    // Background and grid
                     "paneProperties.background": "#0a0a0a",
                     "paneProperties.vertGridProperties.color": "#1a1a1a",
                     "paneProperties.horzGridProperties.color": "#1a1a1a",
-                    "scalesProperties.textColor": "#888888"
+                    "scalesProperties.textColor": "#888888",
+                    // Volume styling - gray bars
+                    "volumePaneSize": "medium",
+                    "mainSeriesProperties.showVolume": true
+                },
+                "studies_overrides": {
+                    // 20 SMA - 2px solid white
+                    "moving average.plot.color": "#ffffff",
+                    "moving average.plot.linewidth": 2,
+                    // Volume - gray color
+                    "volume.volume.color.0": "#444444",
+                    "volume.volume.color.1": "#666666"
                 }
             });
 
