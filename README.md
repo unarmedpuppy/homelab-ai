@@ -831,6 +831,54 @@ SHOW MEASUREMENTS
 
 **Dashboard**: Import `Grafana_Dashboard_Template.json` in Grafana.
 
+**Auto-Login and Fullscreen Dashboard Setup**:
+
+Configure the server to auto-login on boot and automatically open Grafana in fullscreen:
+
+1. **Configure GDM3 Auto-Login**:
+   ```bash
+   sudo nano /etc/gdm3/custom.conf
+   ```
+   Add or update the `[daemon]` section:
+   ```ini
+   [daemon]
+   AutomaticLogin=unarmedpuppy
+   AutomaticLoginEnable=true
+   ```
+
+2. **Autostart Entry** (already created):
+   - Location: `~/.config/autostart/grafana-dashboard.desktop`
+   - Launches Firefox in kiosk mode with Grafana dashboard
+
+3. **Startup Script** (backup method):
+   - Location: `~/.xprofile`
+   - Automatically launches browser on login
+
+4. **Restart GDM**:
+   ```bash
+   sudo systemctl restart gdm3
+   ```
+   Or reboot: `sudo reboot`
+
+**Quick Setup Script**:
+```bash
+# Copy setup script to server
+scp -P 4242 scripts/setup-auto-login-grafana.sh unarmedpuppy@192.168.86.47:~/
+
+# Run on server (requires sudo password)
+ssh -p 4242 unarmedpuppy@192.168.86.47 "sudo bash ~/setup-auto-login-grafana.sh"
+```
+
+**Manual Browser Launch** (for testing):
+```bash
+firefox -kiosk http://192.168.86.47:3010/
+```
+
+**Disable Auto-Login**:
+Edit `/etc/gdm3/custom.conf` and comment out or remove the `AutomaticLogin` lines, then restart GDM.
+
+For detailed setup instructions, see [AUTO_LOGIN_GRAFANA_SETUP.md](./docs/AUTO_LOGIN_GRAFANA_SETUP.md).
+
 #### Game Servers
 
 **Rust Server**:

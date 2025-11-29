@@ -134,19 +134,20 @@ class NewsSettings(BaseSettings):
 class StockTwitsSettings(BaseSettings):
     """StockTwits API configuration"""
     enabled: bool = Field(default=True, description="Enable StockTwits sentiment provider")
+    base_url: str = Field(default="https://api.stocktwits.com/api/2", description="StockTwits API base URL")
     access_token: Optional[str] = Field(default=None, description="StockTwits access token (optional, increases rate limits)")
     user_agent: str = Field(default="TradingBot/1.0", description="User agent for API requests")
     rate_limit_enabled: bool = Field(default=True, description="Enable rate limiting")
     cache_ttl: int = Field(default=300, description="Cache TTL in seconds")
     max_results: int = Field(default=30, description="Maximum messages per request (API max is 30)")
     timeout: int = Field(default=30, description="API request timeout in seconds")
-    
+
     @validator('max_results')
     def validate_max_results(cls, v):
         if not 10 <= v <= 30:
             raise ValueError('max_results must be between 10 and 30')
         return v
-    
+
     class Config:
         env_prefix = "STOCKTWITS_"
 
@@ -157,7 +158,12 @@ class GoogleTrendsSettings(BaseSettings):
     cache_ttl: int = Field(default=3600, description="Cache TTL in seconds (1 hour default)")
     default_geo: str = Field(default="US", description="Default geographic location")
     request_delay: float = Field(default=1.0, description="Delay between requests in seconds")
-    
+
+    @property
+    def geo(self) -> str:
+        """Alias for default_geo for compatibility"""
+        return self.default_geo
+
     class Config:
         env_prefix = "GOOGLE_TRENDS_"
 
