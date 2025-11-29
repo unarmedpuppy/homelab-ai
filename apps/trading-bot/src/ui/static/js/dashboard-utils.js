@@ -213,9 +213,30 @@ function showErrorMessage(message, error = null, container = null) {
  */
 function showSuccessMessage(message, container = null) {
     const targetContainer = container || document.body;
-    
+
+    // Limit concurrent success messages to prevent page growth
+    const existingSuccess = targetContainer.querySelectorAll('.success-alert-toast');
+    const MAX_SUCCESS = 3;
+
+    // Remove oldest messages if we're at the limit
+    if (existingSuccess.length >= MAX_SUCCESS) {
+        existingSuccess[existingSuccess.length - 1].remove();
+    }
+
+    // Check if this exact message is already displayed (prevent duplicates)
+    const allSuccessMessages = Array.from(targetContainer.querySelectorAll('.success-alert-toast'));
+    const isDuplicate = allSuccessMessages.some(el => {
+        const msgEl = el.querySelector('.font-medium');
+        return msgEl && msgEl.textContent === message;
+    });
+
+    if (isDuplicate) {
+        // Don't show duplicate messages
+        return;
+    }
+
     const alert = document.createElement('div');
-    alert.className = 'fixed top-4 right-4 bg-green-50 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-lg z-50 max-w-md';
+    alert.className = 'success-alert-toast fixed top-4 right-4 bg-green-50 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-lg z-50 max-w-md';
     alert.innerHTML = `
         <div class="flex items-start">
             <div class="flex-shrink-0">
@@ -225,16 +246,20 @@ function showSuccessMessage(message, container = null) {
                 <p class="font-medium">${escapeHtml(message)}</p>
             </div>
             <div class="ml-4">
-                <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+                <button onclick="this.parentElement.parentElement.parentElement.remove()"
                         class="text-green-500 hover:text-green-700">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
         </div>
     `;
-    
+
+    // Position based on existing success messages
+    const topOffset = 4 + (existingSuccess.length * 80); // 80px per message
+    alert.style.top = `${topOffset}px`;
+
     targetContainer.appendChild(alert);
-    
+
     setTimeout(() => {
         if (alert.parentNode) {
             alert.remove();
