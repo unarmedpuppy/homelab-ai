@@ -182,41 +182,56 @@ async def get_multiple_quotes(symbols: str = Query(..., description="Comma-separ
 @router.get("/historical/{symbol}")
 async def get_historical_data(
     symbol: str,
-    days: int = Query(30, ge=1, le=365, description="Number of days of historical data"),
-    interval: str = Query("1d", description="Data interval (1d, 1h, 5m)")
+    days: int = Query(None, ge=1, le=365, description="Number of days of historical data"),
+    range: str = Query(None, description="Range string (1d, 5d, 1mo, 3mo, 6mo, 1y)"),
+    interval: str = Query("1d", description="Data interval (1m, 5m, 15m, 1h, 1d)")
 ):
-    """Get historical data for a symbol"""
+    """Get historical data for a symbol - returns candles for charting"""
     try:
         manager = get_data_manager()
-        
+
+        # Parse range if provided, otherwise use days
+        if range:
+            range_map = {
+                "1d": 1,
+                "5d": 5,
+                "1mo": 30,
+                "3mo": 90,
+                "6mo": 180,
+                "1y": 365,
+                "2y": 730,
+            }
+            num_days = range_map.get(range, 5)
+        else:
+            num_days = days or 5
+
         end_date = datetime.now()
-        start_date = end_date - timedelta(days=days)
-        
+        start_date = end_date - timedelta(days=num_days)
+
         historical_data = await manager.get_historical_data(
             symbol.upper(), start_date, end_date, interval
         )
-        
-        # Convert to dict format for JSON response
-        data = []
+
+        # Convert to candles format for Lightweight Charts (unix timestamp)
+        candles = []
         for bar in historical_data:
-            data.append({
-                "timestamp": bar.timestamp.isoformat(),
+            candles.append({
+                "time": int(bar.timestamp.timestamp()),
                 "open": bar.open,
                 "high": bar.high,
                 "low": bar.low,
                 "close": bar.close,
                 "volume": bar.volume
             })
-        
+
         return {
             "symbol": symbol.upper(),
             "interval": interval,
-            "start_date": start_date.isoformat(),
-            "end_date": end_date.isoformat(),
-            "count": len(data),
-            "data": data
+            "range": range or f"{num_days}d",
+            "count": len(candles),
+            "candles": candles
         }
-        
+
     except Exception as e:
         logger.error(f"Error getting historical data for {symbol}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
