@@ -77,15 +77,24 @@ async def lifespan(app: FastAPI):
             # Start background task
             asyncio.create_task(periodic_system_metrics())
         
+        # Initialize strategies before WebSocket streams
+        from ..api.routes.strategies import get_evaluator
+        from ..core.strategy.startup import initialize_strategies
+
+        evaluator = get_evaluator()
+        strategy_init_result = initialize_strategies(evaluator)
+        logger.info(
+            f"Strategies initialized: {strategy_init_result['registered_count']} registered, "
+            f"{strategy_init_result['total_active']} active"
+        )
+
         # Start WebSocket streams if enabled
         if settings.websocket.enabled:
             from ..api.websocket.streams import get_stream_manager
-            from ..api.routes.strategies import get_evaluator
             from ..api.routes.trading import get_ibkr_manager
             from ..api.routes.trade_publisher import get_trade_publisher
-            
+
             stream_manager = get_stream_manager()
-            evaluator = get_evaluator()
             stream_manager.initialize(evaluator)
             
             # Integrate TradePublisher with IBKR client for trade execution notifications

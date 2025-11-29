@@ -24,6 +24,7 @@ from .levels import (
 from .level_based import LevelBasedStrategy
 from .momentum import MomentumStrategy
 from .range_bound import RangeBoundStrategy
+from .startup import initialize_strategies, register_default_strategies
 
 __all__ = [
     'BaseStrategy',
@@ -38,4 +39,6 @@ __all__ = [
     'LevelBasedStrategy',
     'MomentumStrategy',
     'RangeBoundStrategy',
+    'initialize_strategies',
+    'register_default_strategies',
 ]
