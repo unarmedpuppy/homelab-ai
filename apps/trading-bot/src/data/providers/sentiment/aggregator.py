@@ -61,6 +61,21 @@ try:
 except ImportError:
     AnalystRatingsSentimentProvider = None
 
+try:
+    from .insider_trading import InsiderTradingSentimentProvider
+except ImportError:
+    InsiderTradingSentimentProvider = None
+
+try:
+    from .dark_pool import DarkPoolSentimentProvider
+except ImportError:
+    DarkPoolSentimentProvider = None
+
+try:
+    from .options_flow import OptionsFlowSentimentProvider
+except ImportError:
+    OptionsFlowSentimentProvider = None
+
 logger = logging.getLogger(__name__)
 
 
