@@ -141,9 +141,9 @@ def register_default_strategies(evaluator) -> int:
                 **strategy_def.extra_config,
             }
 
-            # Add to evaluator
+            # Add to evaluator - uses strategy_name (not strategy_type)
             evaluator.add_strategy(
-                strategy_type=strategy_def.strategy_type,
+                strategy_name=strategy_def.strategy_type,
                 config=config,
                 enabled=strategy_def.enabled,
             )
