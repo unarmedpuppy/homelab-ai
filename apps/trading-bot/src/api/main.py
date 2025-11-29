@@ -367,6 +367,8 @@ async def health():
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request, exc):
     """Handle HTTP exceptions with metrics tracking"""
+    from fastapi.responses import JSONResponse
+
     # Record error metrics
     if settings.metrics.enabled:
         try:
@@ -375,18 +377,23 @@ async def http_exception_handler(request, exc):
             record_error("http_error", component="api", is_critical=is_critical)
         except (ImportError, Exception) as e:
             logger.debug(f"Could not record HTTP exception metric: {e}")
-    
-    return {
-        "error": exc.detail,
-        "status_code": exc.status_code,
-        "timestamp": datetime.now().isoformat()
-    }
+
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": exc.detail,
+            "status_code": exc.status_code,
+            "timestamp": datetime.now().isoformat()
+        }
+    )
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request, exc):
     """Handle general exceptions with metrics tracking"""
+    from fastapi.responses import JSONResponse
+
     logger.error(f"Unhandled exception: {exc}", exc_info=True)
-    
+
     # Record exception metrics
     if settings.metrics.enabled:
         try:
@@ -395,12 +402,15 @@ async def general_exception_handler(request, exc):
             record_exception(exc_type, component="api", is_critical=True)
         except (ImportError, Exception) as e:
             logger.debug(f"Could not record exception metric: {e}")
-    
-    return {
-        "error": "Internal server error",
-        "status_code": 500,
-        "timestamp": datetime.now().isoformat()
-    }
+
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "Internal server error",
+            "status_code": 500,
+            "timestamp": datetime.now().isoformat()
+        }
+    )
 
 if __name__ == "__main__":
     import uvicorn

@@ -189,19 +189,20 @@ class IBKRClient:
         """Set up IBKR event handlers"""
         if not self.ib:
             return
-        
-        # Order filled events
-        self.ib.orderFilledEvent += self._on_order_filled
-        
+
+        # Execution details event - fires when order is filled
+        # Signature: (trade: Trade, fill: Fill)
+        self.ib.execDetailsEvent += self._on_order_filled
+
         # Position update events
         self.ib.positionEvent += self._on_position_update
-        
+
         # Error events
         self.ib.errorEvent += self._on_error
     
-    def _on_order_filled(self, trade: Trade):
-        """Handle order filled events"""
-        logger.info(f"Order filled: {trade}")
+    def _on_order_filled(self, trade: Trade, fill: Fill):
+        """Handle order filled events (execDetailsEvent callback)"""
+        logger.info(f"Order filled: {trade}, fill: {fill}")
         
         # Calculate order fill time
         order_id = trade.order.orderId
@@ -498,17 +499,18 @@ class IBKRClient:
         """Get account summary"""
         if not self.connected:
             raise RuntimeError("Not connected to IBKR")
-        
+
         try:
-            summary = self.ib.accountSummary()
+            # Use async version to avoid blocking the event loop
+            summary = await self.ib.accountSummaryAsync()
             account_data = {}
-            
+
             for item in summary:
                 account_data[item.tag] = {
                     "value": item.value,
                     "currency": item.currency
                 }
-            
+
             return account_data
         except Exception as e:
             logger.error(f"Error getting account summary: {e}")
