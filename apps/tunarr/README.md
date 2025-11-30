@@ -55,6 +55,29 @@ To add Tunarr as a Live TV tuner in Plex:
 
 **Note**: Since both Plex and Tunarr are on the same Docker network (`my-network`), using the container hostname `tunarr:8000` is recommended for better reliability.
 
+### Refreshing Channel Schedules and Names
+
+If channel schedules or names are not showing in Plex:
+
+1. **Manual Guide Refresh**:
+   - Go to Plex Settings > Live TV & DVR
+   - Click "Refresh Guide" or "Refresh EPG" button
+   - Wait a few minutes for the guide to update
+
+2. **Verify XMLTV URL**:
+   - In Plex Settings > Live TV & DVR > DVR
+   - Check that the XMLTV/EPG URL is set to: `http://tunarr:8000/api/xmltv.xml`
+   - If using host IP, use: `http://192.168.86.47:8001/api/xmltv.xml`
+
+3. **Rescan Channels** (if needed):
+   - In Plex Settings > Live TV & DVR > DVR
+   - Click "Scan for Channels" to detect all Tunarr channels
+
+4. **Check Scheduled Tasks**:
+   - Go to Plex Settings > Scheduled Tasks
+   - Ensure "Refresh Guide Data" is enabled and has a sufficient time window
+   - The guide typically refreshes automatically, but you can trigger it manually
+
 ## Troubleshooting
 
 ### "ECONNREFUSED" or Connection Errors
