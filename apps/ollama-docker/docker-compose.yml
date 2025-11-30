@@ -53,6 +53,12 @@ services:
     restart: unless-stopped
     networks:
       - ollama-docker
+    labels:
+      - "homepage.group=AI & Machine Learning"
+      - "homepage.name=Ollama WebUI"
+      - "homepage.icon=si-openai"
+      - "homepage.href=http://192.168.86.47:8091"
+      - "homepage.description=Ollama AI model interface"
 
 networks:
   ollama-docker:

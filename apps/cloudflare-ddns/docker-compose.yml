@@ -20,7 +20,7 @@ services:
       - PGID=1000
       - IP6_PROVIDER=none # disbale IPv6
     labels:
-      - "homepage.group=Services"
+      - "homepage.group=Infrastructure & Services"
       - "homepage.name=Cloudflare DDNS"
       - "homepage.icon=si-cloudflare"
       - "homepage.description=Dynamic DNS updating"

@@ -38,7 +38,7 @@ services:
       - "traefik.http.routers.local-ai-local.rule=Host(`local-ai.local.unarmedpuppy.com`)"
       - "traefik.http.routers.local-ai-local.entrypoints=web"
       # Homepage labels
-      - "homepage.group=AI & ML"
+      - "homepage.group=AI & Machine Learning"
       - "homepage.name=Local AI Chat"
       - "homepage.icon=si-openai"
       - "homepage.href=https://local-ai.server.unarmedpuppy.com"

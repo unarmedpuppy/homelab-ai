@@ -1,5 +1,8 @@
 version: '3.7'
 
+# Auto-start configuration: disabled - Rust server should be started manually
+x-enabled: false
+
 services:
   rust-server:
     image: didstopia/rust-server

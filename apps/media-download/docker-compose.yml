@@ -53,7 +53,7 @@ services:
     networks:
       - media-download-network
     labels:
-      - "homepage.group=Media Download"
+      - "homepage.group=Media Management"
       - "homepage.name=NZBHydra2"
       - "homepage.href=http://192.168.86.47:5076"
       - "homepage.icon=nzbhydra2.svg"
@@ -75,7 +75,7 @@ services:
     networks:
       - media-download-network
     labels:
-      - "homepage.group=Media Download"
+      - "homepage.group=Media Management"
       - "homepage.name=Jackett"
       - "homepage.href=http://192.168.86.47:9117"
       - "homepage.icon=jackett.svg"
@@ -97,7 +97,7 @@ services:
     networks:
       - media-download-network
     labels:
-      - "homepage.group=Media Download"
+      - "homepage.group=Media Management"
       - "homepage.name=Prowlarr"
       - "homepage.href=http://192.168.86.47:9696"
       - "homepage.icon=prowlarr.svg"
@@ -155,7 +155,7 @@ services:
     networks:
       - media-download-network
     labels:
-      - "homepage.group=Media Download"
+      - "homepage.group=Media Management"
       - "homepage.name=Sonarr"
       - "homepage.href=http://192.168.86.47:8989"
       - "homepage.icon=sonarr.svg"
@@ -181,7 +181,7 @@ services:
     networks:
       - media-download-network
     labels:
-      - "homepage.group=Media Download"
+      - "homepage.group=Media Management"
       - "homepage.name=Radarr"
       - "homepage.href=http://192.168.86.47:7878"
       - "homepage.icon=radarr.svg"
@@ -207,7 +207,7 @@ services:
     networks:
       - media-download-network
     labels:
-      - "homepage.group=Media Download"
+      - "homepage.group=Media Management"
       - "homepage.name=Lidarr"
       - "homepage.href=http://192.168.86.47:8686"
       - "homepage.icon=lidarr.svg"
@@ -232,7 +232,7 @@ services:
     networks:
       - media-download-network
     labels:
-      - "homepage.group=Media Download"
+      - "homepage.group=Media Management"
       - "homepage.name=Bazarr"
       - "homepage.href=http://192.168.86.47:6767"
       - "homepage.icon=bazarr.svg"
@@ -257,7 +257,7 @@ services:
       - media-download-network
     restart: unless-stopped
     labels:
-      - "homepage.group=Media Download"
+      - "homepage.group=Media Management"
       - "homepage.name=Overseerr"
       - "homepage.href=http://192.168.86.47:5055"
       - "homepage.icon=overseerr.svg"
@@ -287,7 +287,7 @@ services:
       - nzbhydra2
       - jackett
     labels:
-      - "homepage.group=Media Download"
+      - "homepage.group=Media Management"
       - "homepage.name=LazyLibrarian"
       - "homepage.href=http://192.168.86.47:8787"
       - "homepage.icon=readarr.svg"
@@ -309,7 +309,7 @@ services:
     networks:
       - media-download-network
     labels:
-      - "homepage.group=Media Download"
+      - "homepage.group=Media Management"
       - "homepage.name=Calibre"
       - "homepage.href=http://192.168.86.47:8085"
       - "homepage.icon=calibre.svg"
@@ -333,7 +333,7 @@ services:
     depends_on:
       - calibre
     labels:
-      - "homepage.group=Media Download"
+      - "homepage.group=Media Management"
       - "homepage.name=Calibre-Web"
       - "homepage.href=http://192.168.86.47:8084"
       - "homepage.icon=calibre.svg"
@@ -357,7 +357,7 @@ services:
     profiles:
       - alternative
     labels:
-      - "homepage.group=Media Download"
+      - "homepage.group=Media Management"
       - "homepage.name=SABnzbd"
       - "homepage.href=http://192.168.86.47:8079"
       - "homepage.icon=sabnzbd.svg"

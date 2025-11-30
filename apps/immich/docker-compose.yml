@@ -37,7 +37,7 @@ services:
       - "traefik.http.routers.photos.tls.certresolver=myresolver"
       - "traefik.http.routers.photos.tls=true"
       - "traefik.http.services.photos.loadbalancer.server.port=2283"
-      - "homepage.group=Apps"
+      - "homepage.group=Media & Entertainment"
       - "homepage.name=Immich"
       - "homepage.icon=si-googlephotos"
       - "homepage.href=https://photos.server.unarmedpuppy.com"

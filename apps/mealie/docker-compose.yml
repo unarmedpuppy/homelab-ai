@@ -37,7 +37,7 @@ services:
       #local DNS
       - "traefik.http.routers.recipes-local.rule=Host(`recipes.local.unarmedpuppy.com`)"
       - "traefik.http.routers.recipes-local.entrypoints=web"
-      - "homepage.group=Apps"
+      - "homepage.group=Productivity & Organization"
       - "homepage.name=Mealie"
       - "homepage.icon=si-aldinord"
       - "homepage.href=https://recipes.server.unarmedpuppy.com"

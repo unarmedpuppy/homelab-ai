@@ -30,7 +30,7 @@ services:
       - "traefik.http.routers.vaultwarden.rule=Host(`vaultwarden.server.unarmedpuppy.com`)"
       - "traefik.http.routers.vaultwarden.entrypoints=websecure" # your https endpoint
       - "traefik.http.routers.vaultwarden.tls.certresolver=myresolver" # your cert resolver
-      - "homepage.group=Apps"
+      - "homepage.group=Security & Privacy"
       - "homepage.name=Vaultwarden"
       - "homepage.icon=si-1password"
       - "homepage.description=passwords"

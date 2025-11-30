@@ -28,7 +28,7 @@ services:
       retries: 5
       start_period: 120s  # IB Gateway takes time to start
     labels:
-      - "homepage.group=Trading Bot"
+      - "homepage.group=Finance & Trading"
       - "homepage.name=IB Gateway"
       - "homepage.icon=si-interactivebrokers"
       - "homepage.description=Interactive Brokers Gateway for API trading"
@@ -154,7 +154,7 @@ services:
       ib-gateway:
         condition: service_healthy
     labels:
-      - "homepage.group=Trading Bot"
+      - "homepage.group=Finance & Trading"
       - "homepage.name=Trading Bot API"
       - "homepage.icon=si-tradingview"
       - "homepage.href=http://192.168.86.47:8021"
@@ -182,7 +182,7 @@ services:
     depends_on:
       - bot
     labels:
-      - "homepage.group=Trading Bot"
+      - "homepage.group=Finance & Trading"
       - "homepage.name=Prometheus"
       - "homepage.icon=si-prometheus"
       - "homepage.href=http://192.168.86.47:9091"
@@ -208,7 +208,7 @@ services:
     depends_on:
       - prometheus
     labels:
-      - "homepage.group=Trading Bot"
+      - "homepage.group=Finance & Trading"
       - "homepage.name=Grafana"
       - "homepage.icon=si-grafana"
       - "homepage.href=http://192.168.86.47:3002"
@@ -232,7 +232,7 @@ services:
     depends_on:
       - prometheus
     labels:
-      - "homepage.group=Trading Bot"
+      - "homepage.group=Finance & Trading"
       - "homepage.name=Alertmanager"
       - "homepage.icon=si-bell"
       - "homepage.href=http://192.168.86.47:9094"

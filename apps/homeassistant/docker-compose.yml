@@ -19,7 +19,7 @@ services:
       - "traefik.http.routers.homeassistant.tls.certresolver=myresolver"
       #- "traefik.http.routers.homeassistant.middlewares=auth"
       #- "traefik.http.middlewares.auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
-      - "homepage.group=Apps"
+      - "homepage.group=Automation & Workflows"
       - "homepage.name=Home Assistant"
       - "homepage.icon=si-homeassistant"
       - "homepage.href=https://homeassistant.server.unarmedpuppy.com"

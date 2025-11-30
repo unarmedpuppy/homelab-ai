@@ -14,7 +14,7 @@ services:
       # Increased retries and timeout for better connection handling
       YTDL_OPTIONS: '{"retries": 10, "fragment_retries": 10, "file_access_retries": 3, "retry_sleep": 1, "socket_timeout": 30, "ignoreerrors": false, "no_warnings": false}'
     labels:
-      - "homepage.group=Apps"
+      - "homepage.group=Media & Entertainment"
       - "homepage.name=MyTube"
       - "homepage.icon=si-youtubekids"
       - "homepage.href=http://192.168.86.47:8020"

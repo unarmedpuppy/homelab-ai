@@ -18,18 +18,10 @@ services:
     networks:
       - my-network
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.tunarr.rule=Host(`tunarr.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.tunarr.entrypoints=websecure"
-      - "traefik.http.routers.tunarr.tls.certresolver=myresolver"
-      - "traefik.http.routers.tunarr.service=tunarr"
-      - "traefik.http.services.tunarr.loadbalancer.server.port=8000"
-      - "traefik.http.middlewares.tunarr-https-redirect.redirectscheme.scheme=https"
-      - "traefik.http.routers.tunarr.middlewares=tunarr-https-redirect"
-      - "homepage.group=Apps"
+      - "homepage.group=Media & Entertainment"
       - "homepage.name=Tunarr"
       - "homepage.icon=si-tvtime"
-      - "homepage.href=https://tunarr.server.unarmedpuppy.com"
+      - "homepage.href=http://192.168.86.47:8001"
       - "homepage.description=Live TV streaming from Plex media"
 
 networks:

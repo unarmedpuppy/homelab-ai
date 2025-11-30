@@ -15,7 +15,7 @@ services:
     volumes:
       - freshrss-data:/var/www/FreshRSS/data
     labels:
-      - "homepage.group=Apps"
+      - "homepage.group=Communication & Social"
       - "homepage.name=FreshRSS"
       - "homepage.icon=si-rss"
       - "homepage.description=RSS reader"

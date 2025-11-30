@@ -36,7 +36,7 @@ services:
       - "traefik.http.routers.open-health.service=open-health"
       - "traefik.http.services.open-health.loadbalancer.server.port=3000"
       # Homepage labels
-      - "homepage.group=Health & Wellness"
+      - "homepage.group=AI & Machine Learning"
       - "homepage.name=OpenHealth"
       - "homepage.icon=si-heart"
       - "homepage.href=http://192.168.86.47:8095"

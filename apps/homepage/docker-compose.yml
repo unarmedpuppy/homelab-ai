@@ -17,6 +17,7 @@ services:
       - ./assets/images:/app/public/images
       - /var/run/docker.sock:/var/run/docker.sock:ro
     labels:
+      - "homepage.group=Infrastructure & Services"
       - "traefik.enable=true"
       - "traefik.http.routers.homepage.rule=Host(`server.unarmedpuppy.com`) && ClientIP(`76.156.139.101`)"
       - "traefik.http.routers.homepage.entrypoints=websecure"

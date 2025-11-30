@@ -57,6 +57,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    labels:
+      - "homepage.group=Finance & Trading"
+      - "homepage.name=Maybe"
+      - "homepage.icon=si-money"
+      - "homepage.href=http://192.168.86.47:3054"
+      - "homepage.description=Personal finance management"
 
   worker:
     image: ghcr.io/maybe-finance/maybe:latest
