@@ -419,15 +419,22 @@ class UWBrowserSession:
             # Human-like pause before clicking login
             await self._human_delay(800, 2000)
 
-            # Click login button
+            # Click login button - try multiple approaches
             login_button = await self._page.query_selector(
-                'button[type="submit"], button:has-text("Log in"), button:has-text("Sign in")'
+                'button:has-text("Sign in"), button:has-text("Log in"), button[type="submit"]'
             )
             if login_button:
-                await self._human_click(login_button)
+                # Use standard click instead of human_click for reliability
+                await login_button.click()
+                logger.debug("Clicked login button")
             else:
-                # Try pressing Enter instead
+                # Try pressing Enter on password field
+                logger.debug("No login button found, pressing Enter")
                 await password_input.press("Enter")
+
+            # Also try pressing Enter after a short delay as backup
+            await self._human_delay(500, 1000)
+            await password_input.press("Enter")
 
             # Wait for navigation with longer timeout
             await self._page.wait_for_load_state("networkidle", timeout=60000)
