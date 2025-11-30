@@ -458,6 +458,38 @@ class UWBrowserSession:
             box = await sign_in_button.bounding_box()
             logger.info(f"Button state: visible={is_visible}, enabled={is_enabled}, box={box}")
 
+            # Inspect form for hidden fields or CSRF tokens
+            form_info = await self._page.evaluate('''
+                () => {
+                    const form = document.querySelector('form');
+                    if (!form) return { error: 'no form found' };
+
+                    const inputs = Array.from(form.querySelectorAll('input'));
+                    const buttons = Array.from(form.querySelectorAll('button'));
+
+                    return {
+                        action: form.action,
+                        method: form.method,
+                        inputs: inputs.map(i => ({
+                            name: i.name,
+                            type: i.type,
+                            value: i.type !== 'password' ? i.value : '***',
+                            id: i.id
+                        })),
+                        buttons: buttons.map(b => ({
+                            type: b.type,
+                            text: b.innerText,
+                            disabled: b.disabled,
+                            onclick: !!b.onclick
+                        })),
+                        hasOnSubmit: !!form.onsubmit,
+                        formListeners: window.getEventListeners ?
+                            Object.keys(window.getEventListeners(form) || {}) : 'unknown'
+                    };
+                }
+            ''')
+            logger.info(f"Form inspection: {form_info}")
+
             # Method 1: Use CDP to dispatch trusted input events
             if box:
                 x = box['x'] + box['width'] / 2
