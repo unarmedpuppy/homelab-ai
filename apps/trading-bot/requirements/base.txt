@@ -45,6 +45,10 @@ sec-edgar-downloader==5.0.3
 aiohttp==3.9.1
 requests==2.31.0
 
+# Browser Automation (for web scraping)
+playwright==1.40.0
+aiofiles==23.2.1
+
 # Background Tasks
 celery==5.3.4
 redis==5.0.1
