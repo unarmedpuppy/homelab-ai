@@ -4,6 +4,7 @@ Unusual Whales Browser Session Manager
 
 Playwright-based browser automation for scraping Unusual Whales.
 Handles authentication, session management, and page navigation.
+Uses stealth techniques to avoid bot detection.
 """
 
 import asyncio
@@ -22,6 +23,13 @@ from playwright.async_api import (
     TimeoutError as PlaywrightTimeoutError,
 )
 
+try:
+    from playwright_stealth import stealth_async
+    STEALTH_AVAILABLE = True
+except ImportError:
+    STEALTH_AVAILABLE = False
+    stealth_async = None
+
 from .config import get_settings, UWScraperSettings
 from .cache import UWScraperCache
 from .models import ScraperStatus, ScraperStatusCode, AuthCredentials
@@ -29,16 +37,51 @@ from .models import ScraperStatus, ScraperStatusCode, AuthCredentials
 logger = logging.getLogger(__name__)
 
 
+# Stealth browser launch args to avoid detection
+STEALTH_ARGS = [
+    "--disable-blink-features=AutomationControlled",
+    "--disable-features=IsolateOrigins,site-per-process",
+    "--disable-dev-shm-usage",
+    "--disable-accelerated-2d-canvas",
+    "--no-first-run",
+    "--no-zygote",
+    "--disable-gpu",
+    "--hide-scrollbars",
+    "--mute-audio",
+    "--disable-background-networking",
+    "--disable-background-timer-throttling",
+    "--disable-backgrounding-occluded-windows",
+    "--disable-breakpad",
+    "--disable-component-extensions-with-background-pages",
+    "--disable-component-update",
+    "--disable-default-apps",
+    "--disable-extensions",
+    "--disable-features=TranslateUI",
+    "--disable-hang-monitor",
+    "--disable-ipc-flooding-protection",
+    "--disable-popup-blocking",
+    "--disable-prompt-on-repost",
+    "--disable-renderer-backgrounding",
+    "--disable-sync",
+    "--force-color-profile=srgb",
+    "--metrics-recording-only",
+    "--no-default-browser-check",
+    "--password-store=basic",
+    "--use-mock-keychain",
+]
+
+
 class UWBrowserSession:
     """
     Browser session manager for Unusual Whales scraping.
 
     Handles:
-    - Playwright browser initialization
+    - Playwright browser initialization with stealth mode
     - Authentication with username/password
     - Session cookie management
     - Page navigation with retry logic
     - Rate limiting between requests
+    - Human-like behavior to avoid bot detection
     """
 
     def __init__(
@@ -75,38 +118,141 @@ class UWBrowserSession:
         """Get current scraper status"""
         return self._status
 
+    async def _human_delay(self, min_ms: int = 100, max_ms: int = 500):
+        """Add a random human-like delay"""
+        delay = random.uniform(min_ms / 1000, max_ms / 1000)
+        await asyncio.sleep(delay)
+
+    async def _human_type(self, element, text: str, delay_range: tuple = (50, 150)):
+        """Type text with human-like delays between keystrokes"""
+        for char in text:
+            await element.type(char, delay=random.randint(*delay_range))
+            # Occasionally pause slightly longer
+            if random.random() < 0.1:
+                await self._human_delay(200, 500)
+
+    async def _human_click(self, element):
+        """Click with human-like behavior - move to element then click"""
+        # Get element bounding box
+        box = await element.bounding_box()
+        if box:
+            # Click at a random position within the element
+            x = box["x"] + random.uniform(box["width"] * 0.2, box["width"] * 0.8)
+            y = box["y"] + random.uniform(box["height"] * 0.2, box["height"] * 0.8)
+            await self._page.mouse.click(x, y)
+        else:
+            await element.click()
+
+    async def _apply_stealth_patches(self, page: Page):
+        """Apply additional stealth patches via JavaScript"""
+        # Override navigator.webdriver
+        await page.add_init_script("""
+            Object.defineProperty(navigator, 'webdriver', {
+                get: () => undefined,
+            });
+
+            // Override plugins to look more realistic
+            Object.defineProperty(navigator, 'plugins', {
+                get: () => [1, 2, 3, 4, 5],
+            });
+
+            // Override languages
+            Object.defineProperty(navigator, 'languages', {
+                get: () => ['en-US', 'en'],
+            });
+
+            // Override permissions
+            const originalQuery = window.navigator.permissions.query;
+            window.navigator.permissions.query = (parameters) => (
+                parameters.name === 'notifications' ?
+                    Promise.resolve({ state: Notification.permission }) :
+                    originalQuery(parameters)
+            );
+
+            // Remove Playwright/Puppeteer artifacts
+            delete window.__playwright;
+            delete window.__PW_inspect;
+
+            // Override Chrome runtime
+            window.chrome = {
+                runtime: {},
+            };
+
+            // Add missing WebGL fingerprint properties
+            const getParameter = WebGLRenderingContext.prototype.getParameter;
+            WebGLRenderingContext.prototype.getParameter = function(parameter) {
+                if (parameter === 37445) {
+                    return 'Intel Inc.';
+                }
+                if (parameter === 37446) {
+                    return 'Intel Iris OpenGL Engine';
+                }
+                return getParameter.apply(this, arguments);
+            };
+        """)
+
     async def start(self):
-        """Start the browser session"""
-        logger.info("Starting browser session...")
+        """Start the browser session with stealth mode"""
+        logger.info("Starting browser session with stealth mode...")
 
         try:
             # Initialize Playwright
             self._playwright = await async_playwright().start()
 
-            # Launch browser
+            # Launch browser with stealth args
             self._browser = await self._playwright.chromium.launch(
                 headless=self.settings.headless,
+                args=STEALTH_ARGS,
             )
 
-            # Create browser context with custom user agent
+            # Create browser context with realistic settings
             self._context = await self._browser.new_context(
                 user_agent=self.settings.user_agent,
                 viewport={"width": 1920, "height": 1080},
                 locale="en-US",
+                timezone_id="America/New_York",
+                geolocation={"latitude": 40.7128, "longitude": -74.0060},
+                permissions=["geolocation"],
+                color_scheme="light",
+                has_touch=False,
+                is_mobile=False,
+                extra_http_headers={
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+                    "Accept-Language": "en-US,en;q=0.9",
+                    "Accept-Encoding": "gzip, deflate, br",
+                    "Connection": "keep-alive",
+                    "Upgrade-Insecure-Requests": "1",
+                    "Sec-Fetch-Dest": "document",
+                    "Sec-Fetch-Mode": "navigate",
+                    "Sec-Fetch-Site": "none",
+                    "Sec-Fetch-User": "?1",
+                    "Cache-Control": "max-age=0",
+                },
             )
 
-            # Set default timeouts
-            self._context.set_default_timeout(self.settings.page_load_timeout)
-            self._context.set_default_navigation_timeout(self.settings.navigation_timeout)
+            # Longer timeouts for bot-protected sites
+            self._context.set_default_timeout(60000)  # 60 seconds
+            self._context.set_default_navigation_timeout(90000)  # 90 seconds
 
             # Create initial page
             self._page = await self._context.new_page()
+
+            # Apply stealth - use playwright-stealth if available
+            if STEALTH_AVAILABLE:
+                await stealth_async(self._page)
+                logger.info("Applied playwright-stealth patches")
+            else:
+                logger.warning("playwright-stealth not available, using manual patches")
+
+            # Apply additional manual stealth patches
+            await self._apply_stealth_patches(self._page)
 
             # Try to restore session from cache
             await self._restore_session()
 
             logger.info(
                 f"Browser session started (headless={self.settings.headless}, "
+                f"stealth={'playwright-stealth' if STEALTH_AVAILABLE else 'manual'}, "
                 f"authenticated={self._is_authenticated})"
             )
 
@@ -161,6 +307,9 @@ class UWBrowserSession:
             if cookies:
                 await self._context.add_cookies(cookies)
 
+                # Add delay before navigation
+                await self._human_delay(1000, 2000)
+
                 # Verify session is still valid
                 await self._page.goto(self.settings.market_tide_url)
                 await self._page.wait_for_load_state("networkidle")
@@ -197,7 +346,7 @@ class UWBrowserSession:
         password: Optional[str] = None,
     ) -> bool:
         """
-        Authenticate with Unusual Whales.
+        Authenticate with Unusual Whales using human-like behavior.
 
         Args:
             username: Login username (email). Uses settings if not specified.
@@ -220,53 +369,68 @@ class UWBrowserSession:
         logger.info(f"Authenticating as {username}...")
 
         try:
-            # Navigate to login page
+            # Navigate to login page with human-like delay
+            await self._human_delay(500, 1500)
             await self._page.goto(self.settings.login_url)
             await self._page.wait_for_load_state("networkidle")
 
-            # Wait for login form
-            await self._page.wait_for_selector('input[type="email"], input[name="email"]')
+            # Wait a bit after page load (like a human reading the page)
+            await self._human_delay(1500, 3000)
 
-            # Fill in credentials
-            # Try different possible selectors for email/username field
+            # Wait for login form
+            await self._page.wait_for_selector('input[type="email"], input[name="email"]', timeout=30000)
+
+            # Find email input
             email_input = await self._page.query_selector(
                 'input[type="email"], input[name="email"], input[placeholder*="email" i]'
             )
-            if email_input:
-                await email_input.fill(username)
-            else:
+            if not email_input:
                 logger.error("Could not find email input field")
+                await self._take_error_screenshot("auth_no_email_field")
                 return False
 
-            # Fill password
+            # Click on email field first (human behavior)
+            await self._human_click(email_input)
+            await self._human_delay(200, 500)
+
+            # Type username with human-like delays
+            await self._human_type(email_input, username)
+            await self._human_delay(300, 800)
+
+            # Find password input
             password_input = await self._page.query_selector(
                 'input[type="password"], input[name="password"]'
             )
-            if password_input:
-                await password_input.fill(password)
-            else:
+            if not password_input:
                 logger.error("Could not find password input field")
+                await self._take_error_screenshot("auth_no_password_field")
                 return False
 
-            # Add random delay to appear more human-like
-            await asyncio.sleep(random.uniform(0.5, 1.5))
+            # Click on password field
+            await self._human_click(password_input)
+            await self._human_delay(200, 500)
+
+            # Type password with human-like delays
+            await self._human_type(password_input, password)
+
+            # Human-like pause before clicking login
+            await self._human_delay(800, 2000)
 
             # Click login button
             login_button = await self._page.query_selector(
                 'button[type="submit"], button:has-text("Log in"), button:has-text("Sign in")'
             )
             if login_button:
-                await login_button.click()
+                await self._human_click(login_button)
             else:
                 # Try pressing Enter instead
                 await password_input.press("Enter")
 
-            # Wait for navigation
-            await self._page.wait_for_load_state("networkidle")
-            await asyncio.sleep(2)  # Extra wait for any redirects
+            # Wait for navigation with longer timeout
+            await self._page.wait_for_load_state("networkidle", timeout=60000)
+            await self._human_delay(2000, 4000)  # Extra wait for any redirects
 
             # Check if login was successful
-            # Look for common indicators of being logged in
             current_url = self._page.url
 
             # Check if we're no longer on the login page
@@ -290,10 +454,10 @@ class UWBrowserSession:
                     f"Login failed: {error_text}"
                 )
             else:
-                logger.error("Login failed: Unknown reason")
+                logger.error("Login failed: Unknown reason (possibly bot detection)")
                 self._status.record_failure(
                     ScraperStatusCode.AUTH_FAILED,
-                    "Login failed: Unknown reason"
+                    "Login failed: Unknown reason (possibly bot detection)"
                 )
 
             # Take screenshot for debugging
@@ -330,15 +494,18 @@ class UWBrowserSession:
             try:
                 logger.debug(f"Navigating to {url} (attempt {attempt + 1})")
 
+                # Human-like delay before navigation
+                await self._human_delay(500, 1500)
+
                 await self._page.goto(url)
                 await self._page.wait_for_load_state("networkidle")
 
                 # Wait for specific selector if provided
                 if wait_for_selector:
-                    await self._page.wait_for_selector(wait_for_selector)
+                    await self._page.wait_for_selector(wait_for_selector, timeout=30000)
 
-                # Add small random delay
-                await asyncio.sleep(random.uniform(0.5, 1.5))
+                # Human-like delay after page load
+                await self._human_delay(1000, 2500)
 
                 self._last_request_time = datetime.now()
                 logger.debug(f"Navigation successful: {url}")
@@ -372,8 +539,8 @@ class UWBrowserSession:
 
             if elapsed < min_spacing:
                 wait_time = min_spacing - elapsed
-                # Add some jitter
-                wait_time += random.uniform(0, 5)
+                # Add some jitter for human-like behavior
+                wait_time += random.uniform(2, 10)
                 logger.debug(f"Rate limiting: waiting {wait_time:.1f}s")
                 await asyncio.sleep(wait_time)
 

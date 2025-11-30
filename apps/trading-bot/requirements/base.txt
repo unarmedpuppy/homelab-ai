@@ -47,6 +47,7 @@ requests==2.31.0
 
 # Browser Automation (for web scraping)
 playwright==1.40.0
+playwright-stealth==1.0.6
 aiofiles==23.2.1
 
 # Background Tasks
