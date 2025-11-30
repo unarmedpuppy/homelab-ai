@@ -377,12 +377,15 @@ class UWBrowserSession:
             # Wait a bit after page load (like a human reading the page)
             await self._human_delay(1500, 3000)
 
-            # Wait for login form
-            await self._page.wait_for_selector('input[type="email"], input[name="email"]', timeout=30000)
+            # Wait for login form - look for email field with various selectors
+            await self._page.wait_for_selector(
+                'input[placeholder*="address.com"], input[placeholder*="email" i], input[type="email"]',
+                timeout=30000
+            )
 
-            # Find email input
+            # Find email input - try multiple possible selectors
             email_input = await self._page.query_selector(
-                'input[type="email"], input[name="email"], input[placeholder*="email" i]'
+                'input[placeholder*="address.com"], input[placeholder*="email" i], input[type="email"], input[name="email"]'
             )
             if not email_input:
                 logger.error("Could not find email input field")
@@ -399,7 +402,7 @@ class UWBrowserSession:
 
             # Find password input
             password_input = await self._page.query_selector(
-                'input[type="password"], input[name="password"]'
+                'input[type="password"], input[placeholder*="password" i], input[name="password"]'
             )
             if not password_input:
                 logger.error("Could not find password input field")
