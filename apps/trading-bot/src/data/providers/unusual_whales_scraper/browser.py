@@ -430,80 +430,137 @@ class UWBrowserSession:
                 btn_type = await btn.get_attribute('type')
                 logger.debug(f"  Button {i}: text='{btn_text}', type='{btn_type}'")
 
-            # Try to click the Sign in button using Playwright's locator API
-            # This is the most reliable method for React/Next.js apps
+            # Try to click the Sign in button
             login_url = self._page.url
-            logger.info("Attempting to click Sign in button using Playwright locator")
+            logger.info("Attempting form submission")
 
+            # Get button bounding box for precise mouse click
+            sign_in_button = self._page.locator('button:has-text("Sign in")')
+            await sign_in_button.wait_for(state='visible', timeout=10000)
+
+            # Log button state
+            is_visible = await sign_in_button.is_visible()
+            is_enabled = await sign_in_button.is_enabled()
+            box = await sign_in_button.bounding_box()
+            logger.info(f"Button state: visible={is_visible}, enabled={is_enabled}, box={box}")
+
+            # Method 1: Mouse click at exact coordinates with proper event sequence
+            if box:
+                x = box['x'] + box['width'] / 2
+                y = box['y'] + box['height'] / 2
+                logger.info(f"Clicking at coordinates ({x}, {y})")
+
+                # Move mouse to button first (like a real user)
+                await self._page.mouse.move(x, y)
+                await self._human_delay(100, 200)
+
+                # Perform full mouse click sequence
+                await self._page.mouse.down()
+                await self._human_delay(50, 100)
+                await self._page.mouse.up()
+                logger.info("Performed mouse down/up sequence")
+
+            # Wait for navigation
             try:
-                # Use Playwright's recommended locator approach - exact text match
-                sign_in_button = self._page.locator('button:has-text("Sign in")')
+                await self._page.wait_for_url(
+                    lambda url: '/login' not in url.lower(),
+                    timeout=10000
+                )
+                logger.info("Navigation detected after mouse click")
+            except:
+                logger.debug("No navigation after mouse click")
 
-                # Wait for the button to be visible and enabled
-                await sign_in_button.wait_for(state='visible', timeout=10000)
+            await self._human_delay(1000, 2000)
 
-                # Ensure button is in viewport
-                await sign_in_button.scroll_into_view_if_needed()
-                await self._human_delay(300, 600)
-
-                # Log button state
-                is_visible = await sign_in_button.is_visible()
-                is_enabled = await sign_in_button.is_enabled()
-                logger.info(f"Button state: visible={is_visible}, enabled={is_enabled}")
-
-                # Use Playwright's click which handles all the event dispatching
-                await sign_in_button.click(timeout=10000)
-                logger.info("Clicked Sign in button with Playwright locator")
-
-                # Wait for navigation - Playwright's recommended approach
-                try:
-                    await self._page.wait_for_url(
-                        lambda url: '/login' not in url.lower(),
-                        timeout=15000
-                    )
-                    logger.info("Navigation detected - URL changed from login page")
-                except Exception as nav_error:
-                    logger.debug(f"URL wait failed: {nav_error}")
-                    # Fallback: wait for network to settle
-                    await self._page.wait_for_load_state("networkidle", timeout=10000)
-
-            except Exception as e:
-                logger.warning(f"Primary click method failed: {e}")
-
-                # Fallback: Try using page.click with CSS selector
-                logger.info("Attempting fallback: page.click with selector")
-                try:
-                    await self._page.click(
-                        'button:has-text("Sign in")',
-                        timeout=5000
-                    )
-                    await self._page.wait_for_load_state("networkidle", timeout=15000)
-                except Exception as e2:
-                    logger.warning(f"Fallback click failed: {e2}")
-
-            await self._human_delay(2000, 4000)
-
-            # Check if still on login page and try Enter key as last resort
+            # Method 2: If still on login, try using keyboard navigation
             if "/login" in self._page.url.lower():
-                logger.info("Still on login page, trying Enter key submission")
+                logger.info("Trying Tab + Enter approach")
                 try:
+                    # Focus on password field, then Tab to button, then Enter
                     password_input = await self._page.query_selector('input[type="password"]')
                     if password_input:
                         await password_input.focus()
                         await self._human_delay(100, 200)
+                        # Tab to the Sign in button
+                        await self._page.keyboard.press("Tab")
+                        await self._human_delay(100, 200)
+                        # Press Enter or Space on the button
                         await self._page.keyboard.press("Enter")
-                        logger.info("Pressed Enter key")
+                        logger.info("Tab + Enter pressed")
 
-                        # Wait for potential navigation
                         try:
                             await self._page.wait_for_url(
                                 lambda url: '/login' not in url.lower(),
                                 timeout=10000
                             )
+                            logger.info("Navigation detected after Tab+Enter")
                         except:
-                            await self._page.wait_for_load_state("networkidle", timeout=10000)
+                            pass
                 except Exception as e:
-                    logger.warning(f"Enter key submission failed: {e}")
+                    logger.warning(f"Tab+Enter approach failed: {e}")
+
+            await self._human_delay(1000, 2000)
+
+            # Method 3: Direct React event simulation
+            if "/login" in self._page.url.lower():
+                logger.info("Trying React synthetic event simulation")
+                try:
+                    # Find the button and trigger its onClick handler directly via React internals
+                    result = await self._page.evaluate('''
+                        () => {
+                            const btn = document.querySelector('button');
+                            if (!btn) return 'no button found';
+
+                            // Find all buttons and look for Sign in
+                            const buttons = Array.from(document.querySelectorAll('button'));
+                            const signInBtn = buttons.find(b => b.innerText.toLowerCase().includes('sign in'));
+
+                            if (!signInBtn) return 'no sign in button found';
+
+                            // Create a proper MouseEvent
+                            const mouseEvent = new MouseEvent('click', {
+                                view: window,
+                                bubbles: true,
+                                cancelable: true,
+                                buttons: 1
+                            });
+
+                            signInBtn.dispatchEvent(mouseEvent);
+                            return 'dispatched click event';
+                        }
+                    ''')
+                    logger.info(f"React event simulation result: {result}")
+
+                    try:
+                        await self._page.wait_for_url(
+                            lambda url: '/login' not in url.lower(),
+                            timeout=10000
+                        )
+                    except:
+                        pass
+                except Exception as e:
+                    logger.warning(f"React simulation failed: {e}")
+
+            await self._human_delay(1000, 2000)
+
+            # Method 4: Focus button and press Space (accessibility click)
+            if "/login" in self._page.url.lower():
+                logger.info("Trying focus + Space approach")
+                try:
+                    await sign_in_button.focus()
+                    await self._human_delay(100, 200)
+                    await self._page.keyboard.press("Space")
+                    logger.info("Space pressed on focused button")
+
+                    try:
+                        await self._page.wait_for_url(
+                            lambda url: '/login' not in url.lower(),
+                            timeout=10000
+                        )
+                    except:
+                        await self._page.wait_for_load_state("networkidle", timeout=5000)
+                except Exception as e:
+                    logger.warning(f"Focus+Space failed: {e}")
 
             await self._human_delay(1000, 2000)
 
