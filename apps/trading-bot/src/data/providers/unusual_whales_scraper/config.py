@@ -50,7 +50,7 @@ class UWScraperSettings:
     # Cache directory
     cache_dir: Path = field(
         default_factory=lambda: Path(
-            os.getenv("UW_SCRAPER_CACHE_DIR", "/app/data/uw_scraper_cache")
+            os.getenv("UW_SCRAPER_CACHE_DIR", "/data/uw_scraper_cache")
         )
     )
 
@@ -113,7 +113,7 @@ class UWScraperSettings:
     )
     screenshot_dir: Path = field(
         default_factory=lambda: Path(
-            os.getenv("UW_SCRAPER_SCREENSHOT_DIR", "/app/data/uw_scraper_screenshots")
+            os.getenv("UW_SCRAPER_SCREENSHOT_DIR", "/data/uw_scraper_screenshots")
         )
     )
 
