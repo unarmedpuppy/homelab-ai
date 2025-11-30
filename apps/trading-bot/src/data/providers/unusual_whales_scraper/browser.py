@@ -458,21 +458,42 @@ class UWBrowserSession:
             box = await sign_in_button.bounding_box()
             logger.info(f"Button state: visible={is_visible}, enabled={is_enabled}, box={box}")
 
-            # Method 1: Mouse click at exact coordinates with proper event sequence
+            # Method 1: Use CDP to dispatch trusted input events
             if box:
                 x = box['x'] + box['width'] / 2
                 y = box['y'] + box['height'] / 2
                 logger.info(f"Clicking at coordinates ({x}, {y})")
 
-                # Move mouse to button first (like a real user)
-                await self._page.mouse.move(x, y)
+                # Get CDP session for trusted events
+                cdp = await self._context.new_cdp_session(self._page)
+
+                # Move mouse to button (generates trusted events)
+                await cdp.send('Input.dispatchMouseEvent', {
+                    'type': 'mouseMoved',
+                    'x': x,
+                    'y': y,
+                })
                 await self._human_delay(100, 200)
 
-                # Perform full mouse click sequence
-                await self._page.mouse.down()
+                # Mouse down
+                await cdp.send('Input.dispatchMouseEvent', {
+                    'type': 'mousePressed',
+                    'x': x,
+                    'y': y,
+                    'button': 'left',
+                    'clickCount': 1,
+                })
                 await self._human_delay(50, 100)
-                await self._page.mouse.up()
-                logger.info("Performed mouse down/up sequence")
+
+                # Mouse up
+                await cdp.send('Input.dispatchMouseEvent', {
+                    'type': 'mouseReleased',
+                    'x': x,
+                    'y': y,
+                    'button': 'left',
+                    'clickCount': 1,
+                })
+                logger.info("Performed CDP trusted mouse click sequence")
 
             # Wait for navigation
             try:
