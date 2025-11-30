@@ -142,14 +142,24 @@ async def lifespan(app: FastAPI):
             try:
                 from ..core.scheduler import get_scheduler
                 scheduler = get_scheduler()
-                
+
                 # Start scheduler if enabled in config
                 if settings.scheduler.enabled:
                     await scheduler.start()
                     logger.info("Trading scheduler started")
             except Exception as e:
                 logger.warning(f"Could not start trading scheduler: {e}", exc_info=True)
-        
+
+        # Start Unusual Whales scraper if enabled
+        try:
+            from ..data.providers.unusual_whales_scraper import get_settings as get_uw_settings, start_provider as start_uw_provider
+            uw_settings = get_uw_settings()
+            if uw_settings.enabled:
+                await start_uw_provider()
+                logger.info(f"Unusual Whales scraper started (symbols: {uw_settings.ticker_flow_symbols})")
+        except Exception as e:
+            logger.warning(f"Could not start Unusual Whales scraper: {e}", exc_info=True)
+
         logger.info("Trading Bot API started successfully")
         yield
         
@@ -158,6 +168,14 @@ async def lifespan(app: FastAPI):
         raise
     finally:
         # Shutdown tasks
+        # Stop Unusual Whales scraper
+        try:
+            from ..data.providers.unusual_whales_scraper import stop_provider as stop_uw_provider
+            await stop_uw_provider()
+            logger.info("Unusual Whales scraper stopped")
+        except Exception as e:
+            logger.warning(f"Error stopping Unusual Whales scraper: {e}")
+
         # Stop trading scheduler
         try:
             from ..core.scheduler import get_scheduler
