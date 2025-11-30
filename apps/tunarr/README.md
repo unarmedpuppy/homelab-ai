@@ -21,10 +21,11 @@ Tunarr is a live TV streaming server that creates virtual channels from your Ple
 
 3. Configure Plex connection:
    - Go to Settings > Media Sources
-   - Add a new Plex server
-   - Server URL: `http://plex:32400` (using Docker network hostname)
-   - Or use: `http://192.168.86.47:32400` (using host IP)
+   - Add a new Plex server or edit existing one
+   - **IMPORTANT**: Use `http://plex:32400` (using Docker network hostname) - NOT the Plex remote access URL
+   - Do NOT use `https://192-168-160-7.plex.direct:32400` or similar remote access URLs
    - Enter your Plex token (found in Plex settings)
+   - If you see "ECONNREFUSED" errors, check that the Server URL uses `http://plex:32400`
 
 ## Configuration
 
@@ -54,10 +55,26 @@ To add Tunarr as a Live TV tuner in Plex:
 
 **Note**: Since both Plex and Tunarr are on the same Docker network (`my-network`), using the container hostname `tunarr:8000` is recommended for better reliability.
 
+## Troubleshooting
+
+### "ECONNREFUSED" or Connection Errors
+- **Problem**: Tunarr can't connect to Plex
+- **Solution**: 
+  1. Go to Tunarr Settings > Media Sources
+  2. Edit your Plex server configuration
+  3. Change Server URL to: `http://plex:32400` (must use container hostname, not remote access URL)
+  4. Save and test the connection
+
+### Software Transcoding Not Working
+- Ensure Hardware Acceleration is set to "Software" in Settings > FFmpeg
+- Check that FFmpeg path is correct (should be `/usr/local/bin/ffmpeg` in Docker)
+- Verify Plex connection is working first (see above)
+
 ## Notes
 
 - Tunarr needs access to your Plex server to read media libraries
-- Since both are on the `my-network` Docker network, Tunarr can access Plex using the container name `plex` or the host IP
+- Since both are on the `my-network` Docker network, Tunarr must use `http://plex:32400` (container hostname)
+- Do NOT use Plex remote access URLs (`plex.direct`) - these won't work from within Docker network
 - The Plex token can be found in Plex Settings > Network > Show Advanced > Manual Port Configuration (or use a tool to extract it)
 - If Plex can't discover the tuner automatically, manually enter the device address using the container hostname format
 
