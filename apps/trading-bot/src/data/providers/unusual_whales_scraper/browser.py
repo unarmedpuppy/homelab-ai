@@ -430,110 +430,82 @@ class UWBrowserSession:
                 btn_type = await btn.get_attribute('type')
                 logger.debug(f"  Button {i}: text='{btn_text}', type='{btn_type}'")
 
-            # Try multiple submission methods
-            login_url = self._page.url  # Save current URL to detect navigation
+            # Try to click the Sign in button using Playwright's locator API
+            # This is the most reliable method for React/Next.js apps
+            login_url = self._page.url
+            logger.info("Attempting to click Sign in button using Playwright locator")
 
-            # Method 1: Find and click the Sign in button using JavaScript click
-            logger.info("Attempting Method 1: JavaScript button click")
             try:
-                clicked = await self._page.evaluate('''
-                    const buttons = document.querySelectorAll('button');
-                    for (const btn of buttons) {
-                        const text = btn.innerText.toLowerCase();
-                        if (text.includes('sign in') || text.includes('log in') || text.includes('login')) {
-                            btn.click();
-                            return true;
-                        }
-                    }
-                    // Also try submit button
-                    const submitBtn = document.querySelector('button[type="submit"]');
-                    if (submitBtn) {
-                        submitBtn.click();
-                        return true;
-                    }
-                    return false;
-                ''')
-                logger.info(f"JavaScript button click result: {clicked}")
-            except Exception as e:
-                logger.warning(f"Method 1 failed: {e}")
+                # Use Playwright's recommended locator approach - exact text match
+                sign_in_button = self._page.locator('button:has-text("Sign in")')
 
-            # Wait a bit to see if navigation happens
-            await self._human_delay(2000, 3000)
+                # Wait for the button to be visible and enabled
+                await sign_in_button.wait_for(state='visible', timeout=10000)
 
-            # Check if URL changed (indicating successful navigation)
-            if self._page.url != login_url and "/login" not in self._page.url.lower():
-                logger.info("Navigation detected after Method 1")
-            else:
-                # Method 2: Try Enter key on password field
-                logger.info("Attempting Method 2: Enter key on password field")
+                # Ensure button is in viewport
+                await sign_in_button.scroll_into_view_if_needed()
+                await self._human_delay(300, 600)
+
+                # Log button state
+                is_visible = await sign_in_button.is_visible()
+                is_enabled = await sign_in_button.is_enabled()
+                logger.info(f"Button state: visible={is_visible}, enabled={is_enabled}")
+
+                # Use Playwright's click which handles all the event dispatching
+                await sign_in_button.click(timeout=10000)
+                logger.info("Clicked Sign in button with Playwright locator")
+
+                # Wait for navigation - Playwright's recommended approach
                 try:
-                    # Re-find password field in case page updated
-                    password_input = await self._page.query_selector(
-                        'input[type="password"]'
+                    await self._page.wait_for_url(
+                        lambda url: '/login' not in url.lower(),
+                        timeout=15000
                     )
+                    logger.info("Navigation detected - URL changed from login page")
+                except Exception as nav_error:
+                    logger.debug(f"URL wait failed: {nav_error}")
+                    # Fallback: wait for network to settle
+                    await self._page.wait_for_load_state("networkidle", timeout=10000)
+
+            except Exception as e:
+                logger.warning(f"Primary click method failed: {e}")
+
+                # Fallback: Try using page.click with CSS selector
+                logger.info("Attempting fallback: page.click with selector")
+                try:
+                    await self._page.click(
+                        'button:has-text("Sign in")',
+                        timeout=5000
+                    )
+                    await self._page.wait_for_load_state("networkidle", timeout=15000)
+                except Exception as e2:
+                    logger.warning(f"Fallback click failed: {e2}")
+
+            await self._human_delay(2000, 4000)
+
+            # Check if still on login page and try Enter key as last resort
+            if "/login" in self._page.url.lower():
+                logger.info("Still on login page, trying Enter key submission")
+                try:
+                    password_input = await self._page.query_selector('input[type="password"]')
                     if password_input:
                         await password_input.focus()
                         await self._human_delay(100, 200)
-                        await password_input.press("Enter")
-                        logger.info("Pressed Enter on password field")
+                        await self._page.keyboard.press("Enter")
+                        logger.info("Pressed Enter key")
+
+                        # Wait for potential navigation
+                        try:
+                            await self._page.wait_for_url(
+                                lambda url: '/login' not in url.lower(),
+                                timeout=10000
+                            )
+                        except:
+                            await self._page.wait_for_load_state("networkidle", timeout=10000)
                 except Exception as e:
-                    logger.warning(f"Method 2 failed: {e}")
+                    logger.warning(f"Enter key submission failed: {e}")
 
-                await self._human_delay(2000, 3000)
-
-            # Check again
-            if self._page.url != login_url and "/login" not in self._page.url.lower():
-                logger.info("Navigation detected after Method 2")
-            else:
-                # Method 3: Dispatch submit event on form
-                logger.info("Attempting Method 3: Form submit event dispatch")
-                try:
-                    await self._page.evaluate('''
-                        const form = document.querySelector('form');
-                        if (form) {
-                            // Create and dispatch submit event
-                            const submitEvent = new Event('submit', {
-                                bubbles: true,
-                                cancelable: true
-                            });
-                            form.dispatchEvent(submitEvent);
-                            // Also try requestSubmit for modern browsers
-                            if (form.requestSubmit) {
-                                form.requestSubmit();
-                            }
-                        }
-                    ''')
-                    logger.info("Dispatched form submit event")
-                except Exception as e:
-                    logger.warning(f"Method 3 failed: {e}")
-
-                await self._human_delay(2000, 3000)
-
-            # Method 4: Try clicking with Playwright's standard click (with wait)
-            if "/login" in self._page.url.lower():
-                logger.info("Attempting Method 4: Playwright button click with actionability")
-                try:
-                    # Wait for button to be visible and click
-                    login_button = await self._page.wait_for_selector(
-                        'button:has-text("Sign in"), button:has-text("Log in"), button[type="submit"]',
-                        state='visible',
-                        timeout=5000
-                    )
-                    if login_button:
-                        await login_button.scroll_into_view_if_needed()
-                        await self._human_delay(200, 400)
-                        await login_button.click()
-                        logger.info("Clicked button with Playwright")
-                except Exception as e:
-                    logger.warning(f"Method 4 failed: {e}")
-
-            # Wait for navigation or page state change
-            try:
-                await self._page.wait_for_load_state("networkidle", timeout=30000)
-            except Exception as e:
-                logger.debug(f"networkidle wait timed out: {e}")
-
-            await self._human_delay(2000, 4000)  # Extra wait for any redirects
+            await self._human_delay(1000, 2000)
 
             # Take screenshot after submission attempts
             await self._take_error_screenshot("after_submit")
