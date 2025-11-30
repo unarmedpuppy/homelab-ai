@@ -434,6 +434,20 @@ class UWBrowserSession:
             login_url = self._page.url
             logger.info("Attempting form submission")
 
+            # Set up network request logging to see if form is being submitted
+            network_requests = []
+
+            async def log_request(request):
+                if 'login' in request.url.lower() or 'auth' in request.url.lower() or 'api' in request.url.lower():
+                    network_requests.append({
+                        'url': request.url,
+                        'method': request.method,
+                        'post_data': request.post_data
+                    })
+                    logger.info(f"Network request: {request.method} {request.url}")
+
+            self._page.on('request', log_request)
+
             # Get button bounding box for precise mouse click
             sign_in_button = self._page.locator('button:has-text("Sign in")')
             await sign_in_button.wait_for(state='visible', timeout=10000)
@@ -561,6 +575,71 @@ class UWBrowserSession:
                         await self._page.wait_for_load_state("networkidle", timeout=5000)
                 except Exception as e:
                     logger.warning(f"Focus+Space failed: {e}")
+
+            await self._human_delay(1000, 2000)
+
+            # Method 5: Try direct API login if button click doesn't work
+            if "/login" in self._page.url.lower():
+                logger.info("Trying direct API login")
+                try:
+                    # Make a direct fetch call to the login endpoint
+                    result = await self._page.evaluate('''
+                        async (credentials) => {
+                            try {
+                                // Try common login endpoints
+                                const endpoints = [
+                                    '/api/auth/login',
+                                    '/api/login',
+                                    '/api/v1/auth/login',
+                                    '/auth/login',
+                                    '/login'
+                                ];
+
+                                for (const endpoint of endpoints) {
+                                    try {
+                                        const response = await fetch(endpoint, {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                            },
+                                            body: JSON.stringify({
+                                                email: credentials.email,
+                                                password: credentials.password
+                                            }),
+                                            credentials: 'include'
+                                        });
+
+                                        if (response.ok || response.status === 302) {
+                                            const data = await response.json().catch(() => ({}));
+                                            return { success: true, endpoint, status: response.status, data };
+                                        }
+                                    } catch (e) {
+                                        // Continue to next endpoint
+                                    }
+                                }
+
+                                return { success: false, error: 'No working endpoint found' };
+                            } catch (e) {
+                                return { success: false, error: e.toString() };
+                            }
+                        }
+                    ''', {'email': username, 'password': password})
+                    logger.info(f"Direct API login result: {result}")
+
+                    if result.get('success'):
+                        # Refresh the page to pick up the session
+                        await self._page.reload()
+                        await self._page.wait_for_load_state("networkidle")
+                except Exception as e:
+                    logger.warning(f"Direct API login failed: {e}")
+
+            # Log network requests captured
+            if network_requests:
+                logger.info(f"Captured {len(network_requests)} network requests during login attempts")
+                for req in network_requests:
+                    logger.debug(f"  Request: {req}")
+            else:
+                logger.warning("No login-related network requests captured - form not submitting")
 
             await self._human_delay(1000, 2000)
 
