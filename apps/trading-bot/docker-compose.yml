@@ -150,9 +150,9 @@ services:
       start_period: 40s
     networks:
       - trading-bot-network
-    depends_on:
-      ib-gateway:
-        condition: service_healthy
+    # depends_on:
+    #   ib-gateway:
+    #     condition: service_healthy
     labels:
       - "homepage.group=Finance & Trading"
       - "homepage.name=Trading Dashboard"
