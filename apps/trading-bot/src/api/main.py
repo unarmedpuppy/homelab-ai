@@ -373,6 +373,13 @@ async def root():
     """Root endpoint - serve dashboard"""
     return templates.TemplateResponse("dashboard.html", {"request": {}})
 
+
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard():
+    """Dashboard endpoint - explicit URL for homepage integration"""
+    return templates.TemplateResponse("dashboard.html", {"request": {}})
+
+
 @app.get("/scheduler", response_class=HTMLResponse)
 async def scheduler_dashboard():
     """Scheduler dashboard endpoint"""
