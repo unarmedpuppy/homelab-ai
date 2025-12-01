@@ -796,3 +796,84 @@ class ConfluenceScore(Base):
         Index('idx_confluence_meets_thresholds', 'meets_minimum_threshold', 'meets_high_threshold'),
         {"mysql_engine": "InnoDB"},
     )
+
+
+# Execution Logging Models (T10: Strategy-to-Execution Pipeline)
+class ExecutionStatus(PyEnum):
+    """Execution outcome status"""
+    SUCCESS = "success"
+    REJECTED_VALIDATION = "rejected_validation"
+    REJECTED_COMPLIANCE = "rejected_compliance"
+    REJECTED_RISK = "rejected_risk"
+    REJECTED_DRY_RUN = "rejected_dry_run"
+    FAILED_ORDER = "failed_order"
+    FAILED_BROKER = "failed_broker"
+
+
+class ExecutionLog(Base):
+    """
+    Execution audit log for signal-to-order pipeline (T10).
+
+    Records the full decision chain: Signal -> Validation -> Risk Check -> Order -> Result
+    """
+    __tablename__ = "execution_logs"
+
+    id = Column(Integer, primary_key=True)
+    account_id = Column(Integer, ForeignKey("accounts.id"), nullable=False, index=True)
+
+    # Signal information
+    symbol = Column(String(20), nullable=False, index=True)
+    signal_type = Column(String(10), nullable=False)  # BUY, SELL
+    signal_price = Column(Float, nullable=False)
+    signal_quantity = Column(Integer, nullable=False)
+    signal_confidence = Column(Float)
+    signal_stop_loss = Column(Float)
+    signal_take_profit = Column(Float)
+
+    # Context information
+    strategy_name = Column(String(100), nullable=False, index=True)
+    order_type = Column(String(20), default="MARKET")  # MARKET, LIMIT
+    limit_price = Column(Float)
+    dry_run = Column(Boolean, default=False, index=True)
+
+    # Execution status
+    status = Column(Enum(ExecutionStatus), nullable=False, index=True)
+
+    # Validation results
+    validation_passed = Column(Boolean, default=False)
+    validation_messages = Column(Text)  # JSON array of messages
+
+    # Risk check results
+    risk_check_passed = Column(Boolean, default=False)
+    risk_score = Column(Float, default=0.0)
+    adjusted_quantity = Column(Integer)  # If position was reduced by risk checks
+    compliance_details = Column(Text)  # JSON compliance check details
+    portfolio_risk_details = Column(Text)  # JSON portfolio risk details
+
+    # Order execution results
+    order_placed = Column(Boolean, default=False)
+    order_id = Column(Integer)  # IBKR order ID
+    final_quantity = Column(Integer)
+    final_price = Column(Float)
+
+    # Error information
+    error_message = Column(Text)
+
+    # Timing
+    execution_time_ms = Column(Float, default=0.0)
+    created_at = Column(DateTime, nullable=False, server_default=func.now(), index=True)
+
+    # Full audit data (JSON blob for complete context)
+    audit_data = Column(JSON)  # Full ExecutionAuditLog.to_dict() output
+
+    # Relationships
+    account = relationship("Account")
+
+    # Indexes for common queries
+    __table_args__ = (
+        Index('idx_execution_account_timestamp', 'account_id', 'created_at'),
+        Index('idx_execution_symbol_timestamp', 'symbol', 'created_at'),
+        Index('idx_execution_strategy_timestamp', 'strategy_name', 'created_at'),
+        Index('idx_execution_status_timestamp', 'status', 'created_at'),
+        {"mysql_engine": "InnoDB"},
+    )
