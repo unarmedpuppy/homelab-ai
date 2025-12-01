@@ -155,10 +155,10 @@ services:
         condition: service_healthy
     labels:
       - "homepage.group=Finance & Trading"
-      - "homepage.name=Trading Bot API"
+      - "homepage.name=Trading Dashboard"
       - "homepage.icon=si-tradingview"
-      - "homepage.href=http://192.168.86.47:8021"
-      - "homepage.description=Trading bot API and dashboard"
+      - "homepage.href=http://192.168.86.47:8021/dashboard"
+      - "homepage.description=Trading bot dashboard with signals, debates, and portfolio"
 
   prometheus:
     image: prom/prometheus:latest

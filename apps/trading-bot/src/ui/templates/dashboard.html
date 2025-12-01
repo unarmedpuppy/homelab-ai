@@ -295,6 +295,48 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Execution Activity -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Execution Activity</h3>
+                        <div class="flex items-center space-x-2">
+                            <select id="execution-filter" class="text-xs border rounded px-2 py-1 text-gray-600">
+                                <option value="all">All</option>
+                                <option value="success">Success</option>
+                                <option value="rejected">Rejected</option>
+                                <option value="failed">Failed</option>
+                            </select>
+                            <button id="refresh-executions" class="text-sm text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="execution-feed" class="space-y-2 max-h-96 overflow-y-auto">
+                        <div class="text-center text-gray-400 py-4 text-sm">
+                            <i class="fas fa-cogs mr-2"></i>Loading execution history...
+                        </div>
+                    </div>
+                    <!-- Execution Stats Summary -->
+                    <div id="execution-stats" class="mt-4 pt-4 border-t border-gray-200 grid grid-cols-4 gap-2 text-center text-xs">
+                        <div>
+                            <span class="block text-gray-500">Total</span>
+                            <span id="exec-total" class="font-semibold text-gray-900">-</span>
+                        </div>
+                        <div>
+                            <span class="block text-gray-500">Success</span>
+                            <span id="exec-success" class="font-semibold text-green-600">-</span>
+                        </div>
+                        <div>
+                            <span class="block text-gray-500">Rejected</span>
+                            <span id="exec-rejected" class="font-semibold text-yellow-600">-</span>
+                        </div>
+                        <div>
+                            <span class="block text-gray-500">Failed</span>
+                            <span id="exec-failed" class="font-semibold text-red-600">-</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -310,6 +352,80 @@
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Trade Distribution</h3>
                 <canvas id="trade-distribution-chart" width="400" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- Debate Room Section (T8) -->
+        <div class="mt-8 bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">🏛️ Debate Room</h3>
+                <div class="flex items-center space-x-3">
+                    <input type="text" id="debate-symbol-input" placeholder="Symbol (e.g., AAPL)"
+                           class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500" />
+                    <button onclick="startDebate()"
+                            class="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700 transition-colors">
+                        Start Debate
+                    </button>
+                    <button onclick="loadDebateHistory()"
+                            class="px-3 py-2 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200 transition-colors">
+                        History
+                    </button>
+                </div>
+            </div>
+
+            <!-- Active Debate Display -->
+            <div id="active-debate" class="hidden">
+                <div class="mb-4 p-4 bg-gradient-to-r from-green-50 via-gray-50 to-red-50 rounded-lg border">
+                    <div class="flex justify-between items-center mb-2">
+                        <span id="debate-symbol" class="text-lg font-bold text-gray-900"></span>
+                        <span id="debate-status" class="px-2 py-1 text-xs font-medium rounded-full"></span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div class="text-green-600">
+                            <div class="text-xl font-bold" id="bull-score">0</div>
+                            <div class="text-sm">🐂 Bull</div>
+                        </div>
+                        <div class="text-gray-600">
+                            <div class="text-xl font-bold" id="round-count">0/3</div>
+                            <div class="text-sm">Round</div>
+                        </div>
+                        <div class="text-red-600">
+                            <div class="text-xl font-bold" id="bear-score">0</div>
+                            <div class="text-sm">🐻 Bear</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Verdict Display -->
+                <div id="debate-verdict" class="hidden mb-4 p-4 rounded-lg border-2">
+                    <div class="text-center">
+                        <div class="text-lg font-bold" id="verdict-text"></div>
+                        <div class="text-sm text-gray-600" id="verdict-reasoning"></div>
+                        <div class="mt-2 text-sm" id="verdict-confidence"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Debate Feed (Arguments & Rounds) -->
+            <div id="debate-feed" class="space-y-3 max-h-96 overflow-y-auto">
+                <div class="text-center text-gray-500 py-8">
+                    <div class="text-4xl mb-2">🏛️</div>
+                    <p>Enter a symbol and click "Start Debate" to begin</p>
+                    <p class="text-sm mt-1">Analysts will debate bull vs bear case</p>
+                </div>
+            </div>
+
+            <!-- Debate History Modal -->
+            <div id="debate-history-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+                <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden">
+                    <div class="flex justify-between items-center p-4 border-b">
+                        <h4 class="text-lg font-semibold">Debate History</h4>
+                        <button onclick="closeDebateHistory()" class="text-gray-500 hover:text-gray-700">&times;</button>
+                    </div>
+                    <div id="debate-history-list" class="p-4 overflow-y-auto max-h-[60vh]">
+                        <div class="text-center text-gray-500 py-8">Loading...</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -502,6 +618,7 @@
                 this.initializeCharts();  // This will also load chart data
                 this.loadRecentTrades();  // Load trades on page load
                 this.loadPortfolioSummary(); // Load portfolio summary on page load
+                this.loadExecutionHistory(); // Load execution history on page load
                 this.setupPollingFallback(); // Fallback to polling if WebSocket fails
                 
                 // Fetch initial price on page load
@@ -617,7 +734,12 @@
                             type: 'subscribe',
                             channel: 'options_flow'
                         }));
-                        
+
+                        this.ws.send(JSON.stringify({
+                            type: 'subscribe',
+                            channel: 'execution'
+                        }));
+
                         // Stop polling fallback when WebSocket is connected
                         this.stopPollingFallback();
                         
@@ -742,11 +864,20 @@
                         // Reload trades when a new trade is executed
                         this.loadRecentTrades();
                         break;
+                    case 'execution':
+                    case 'execution_update':
+                        // Handle execution activity update (new execution or status change)
+                        this.handleExecutionUpdate(data);
+                        break;
                     case 'market_data':
                         this.handleMarketData(data);
                         break;
                     case 'options_flow':
                         this.handleOptionsFlow(data);
+                        break;
+                    case 'debate':
+                    case 'debate_update':
+                        this.handleDebateUpdate(data);
                         break;
                     case 'pong':
                         // Heartbeat response
@@ -916,6 +1047,160 @@
                     const type = flow.option_type.toUpperCase();
                     const premium = (flow.premium / 1000).toFixed(1);
                     console.log(`Large Options Flow: ${flow.symbol} ${type} $${premium}k`);
+                }
+            }
+
+            handleDebateUpdate(data) {
+                console.log('Debate update received:', data);
+                const debateData = data.data || data;
+
+                // Show active debate panel
+                const activeDebate = document.getElementById('active-debate');
+                if (activeDebate) {
+                    activeDebate.classList.remove('hidden');
+                }
+
+                // Update symbol
+                const symbolEl = document.getElementById('debate-symbol');
+                if (symbolEl && debateData.symbol) {
+                    symbolEl.textContent = debateData.symbol;
+                }
+
+                // Update status
+                const statusEl = document.getElementById('debate-status');
+                if (statusEl && debateData.status) {
+                    const statusColors = {
+                        'in_progress': 'bg-yellow-100 text-yellow-800',
+                        'completed': 'bg-green-100 text-green-800',
+                        'failed': 'bg-red-100 text-red-800'
+                    };
+                    statusEl.className = `px-2 py-1 text-xs font-medium rounded-full ${statusColors[debateData.status] || 'bg-gray-100 text-gray-800'}`;
+                    statusEl.textContent = debateData.status.replace('_', ' ').toUpperCase();
+                }
+
+                // Update scores
+                if (debateData.bull_score !== undefined) {
+                    const bullScore = document.getElementById('bull-score');
+                    if (bullScore) bullScore.textContent = debateData.bull_score.toFixed(1);
+                }
+                if (debateData.bear_score !== undefined) {
+                    const bearScore = document.getElementById('bear-score');
+                    if (bearScore) bearScore.textContent = debateData.bear_score.toFixed(1);
+                }
+
+                // Update round count
+                if (debateData.current_round !== undefined && debateData.total_rounds !== undefined) {
+                    const roundCount = document.getElementById('round-count');
+                    if (roundCount) roundCount.textContent = `${debateData.current_round}/${debateData.total_rounds}`;
+                }
+
+                // Add round/argument to feed
+                if (debateData.round || debateData.argument) {
+                    this.addDebateItemToFeed(debateData);
+                }
+
+                // Show verdict if completed
+                if (debateData.verdict) {
+                    this.showDebateVerdict(debateData.verdict);
+                }
+            }
+
+            addDebateItemToFeed(debateData) {
+                const feed = document.getElementById('debate-feed');
+                if (!feed) return;
+
+                // Clear placeholder if present
+                if (feed.querySelector('.text-gray-500')) {
+                    feed.innerHTML = '';
+                }
+
+                const item = document.createElement('div');
+                item.className = 'p-3 rounded-lg border';
+
+                if (debateData.round) {
+                    const round = debateData.round;
+                    const roundType = round.round_type || 'round';
+                    item.className += ' bg-gray-50';
+                    item.innerHTML = `
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-semibold text-gray-900">Round ${round.round_number}: ${roundType}</span>
+                            <span class="text-xs text-gray-500">${new Date().toLocaleTimeString()}</span>
+                        </div>
+                        ${round.bull_arguments ? `
+                        <div class="mb-2">
+                            <span class="text-green-600 font-medium">🐂 Bull:</span>
+                            <ul class="ml-4 text-sm text-gray-700">
+                                ${round.bull_arguments.map(arg => `<li>• ${arg.content || arg}</li>`).join('')}
+                            </ul>
+                        </div>` : ''}
+                        ${round.bear_arguments ? `
+                        <div>
+                            <span class="text-red-600 font-medium">🐻 Bear:</span>
+                            <ul class="ml-4 text-sm text-gray-700">
+                                ${round.bear_arguments.map(arg => `<li>• ${arg.content || arg}</li>`).join('')}
+                            </ul>
+                        </div>` : ''}
+                    `;
+                } else if (debateData.argument) {
+                    const arg = debateData.argument;
+                    const isBull = arg.position === 'bull';
+                    item.className += isBull ? ' bg-green-50 border-green-200' : ' bg-red-50 border-red-200';
+                    item.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="${isBull ? 'text-green-600' : 'text-red-600'} font-medium">
+                                    ${isBull ? '🐂' : '🐻'} ${arg.analyst || (isBull ? 'Bull' : 'Bear')}
+                                </span>
+                                <p class="text-sm text-gray-700 mt-1">${arg.content}</p>
+                            </div>
+                            <span class="text-xs text-gray-500">${arg.type || 'argument'}</span>
+                        </div>
+                        ${arg.effectiveness ? `<div class="mt-1 text-xs text-gray-500">Effectiveness: ${(arg.effectiveness * 100).toFixed(0)}%</div>` : ''}
+                    `;
+                }
+
+                // Prepend to show newest first
+                feed.insertBefore(item, feed.firstChild);
+
+                // Limit feed items
+                while (feed.children.length > 20) {
+                    feed.removeChild(feed.lastChild);
+                }
+            }
+
+            showDebateVerdict(verdict) {
+                const verdictEl = document.getElementById('debate-verdict');
+                if (!verdictEl) return;
+
+                verdictEl.classList.remove('hidden');
+
+                // Set colors based on verdict
+                const verdictColors = {
+                    'strong_bull': 'border-green-500 bg-green-50',
+                    'bull': 'border-green-300 bg-green-50',
+                    'lean_bull': 'border-green-200 bg-green-50',
+                    'neutral': 'border-gray-300 bg-gray-50',
+                    'lean_bear': 'border-red-200 bg-red-50',
+                    'bear': 'border-red-300 bg-red-50',
+                    'strong_bear': 'border-red-500 bg-red-50'
+                };
+
+                const colorClass = verdictColors[verdict.verdict_type] || 'border-gray-300 bg-gray-50';
+                verdictEl.className = `mb-4 p-4 rounded-lg border-2 ${colorClass}`;
+
+                const verdictText = document.getElementById('verdict-text');
+                const verdictReasoning = document.getElementById('verdict-reasoning');
+                const verdictConfidence = document.getElementById('verdict-confidence');
+
+                if (verdictText) {
+                    const emoji = verdict.verdict_type.includes('bull') ? '🐂' : verdict.verdict_type.includes('bear') ? '🐻' : '⚖️';
+                    verdictText.textContent = `${emoji} ${verdict.verdict_type.replace(/_/g, ' ').toUpperCase()}`;
+                }
+                if (verdictReasoning && verdict.reasoning) {
+                    verdictReasoning.textContent = verdict.reasoning;
+                }
+                if (verdictConfidence && verdict.confidence !== undefined) {
+                    verdictConfidence.textContent = `Confidence: ${(verdict.confidence * 100).toFixed(0)}%`;
                 }
             }
 
@@ -1280,6 +1565,25 @@
                         this.clearSignalFeed();
                     });
                 }
+
+                // Execution activity controls
+                const executionFilter = document.getElementById('execution-filter');
+                if (executionFilter) {
+                    executionFilter.addEventListener('change', () => {
+                        this.loadExecutionHistory();
+                    });
+                }
+
+                const refreshExecutionsBtn = document.getElementById('refresh-executions');
+                if (refreshExecutionsBtn) {
+                    refreshExecutionsBtn.addEventListener('click', async () => {
+                        refreshExecutionsBtn.classList.add('fa-spin');
+                        await this.loadExecutionHistory();
+                        setTimeout(() => {
+                            refreshExecutionsBtn.classList.remove('fa-spin');
+                        }, 500);
+                    });
+                }
             }
 
             clearSignalFeed() {
@@ -1290,6 +1594,233 @@
                             <i class="fas fa-signal mr-2"></i>Signal feed cleared
                         </div>
                     `;
+                }
+            }
+
+            /**
+             * Load execution history from API
+             */
+            async loadExecutionHistory(limit = 20) {
+                try {
+                    const filterEl = document.getElementById('execution-filter');
+                    const filter = filterEl ? filterEl.value : 'all';
+
+                    // Build query params
+                    let url = `/api/execution/history?limit=${limit}`;
+                    if (filter !== 'all') {
+                        // Map filter value to status
+                        const statusMap = {
+                            'success': 'success',
+                            'rejected': 'rejected_validation,rejected_compliance,rejected_risk,rejected_dry_run',
+                            'failed': 'failed_order,failed_broker'
+                        };
+                        if (statusMap[filter]) {
+                            url += `&status=${statusMap[filter]}`;
+                        }
+                    }
+
+                    const result = await apiCall(url);
+
+                    if (result.ok && result.data) {
+                        this.renderExecutionList(result.data.logs || []);
+                        this.updateExecutionStats(result.data.stats || {});
+                        return result.data;
+                    } else {
+                        throw new Error(result.error || 'Failed to load execution history');
+                    }
+                } catch (error) {
+                    console.error('Error loading execution history:', error);
+                    const executionFeed = document.getElementById('execution-feed');
+                    if (executionFeed) {
+                        executionFeed.innerHTML = `
+                            <div class="text-center text-gray-400 py-4 text-sm">
+                                <i class="fas fa-info-circle mr-2"></i>No execution data available
+                            </div>
+                        `;
+                    }
+                    // Reset stats
+                    this.updateExecutionStats({});
+                    return null;
+                }
+            }
+
+            /**
+             * Render execution list
+             */
+            renderExecutionList(executions) {
+                const executionFeed = document.getElementById('execution-feed');
+                if (!executionFeed) return;
+
+                if (!executions || executions.length === 0) {
+                    executionFeed.innerHTML = `
+                        <div class="text-center text-gray-400 py-4 text-sm">
+                            <i class="fas fa-cogs mr-2"></i>No executions yet
+                        </div>
+                    `;
+                    return;
+                }
+
+                executionFeed.innerHTML = executions.map(exec => this.renderExecutionCard(exec)).join('');
+            }
+
+            /**
+             * Render a single execution card
+             */
+            renderExecutionCard(exec) {
+                const status = exec.status || 'unknown';
+                const symbol = exec.symbol || 'N/A';
+                const signalType = exec.signal_type || 'N/A';
+                const strategy = exec.strategy_name || 'manual';
+                const timestamp = exec.created_at || exec.timestamp;
+
+                // Determine status styling
+                let statusColor, statusIcon, statusText, borderColor;
+                if (status === 'success') {
+                    statusColor = 'text-green-600';
+                    statusIcon = 'fa-check-circle';
+                    statusText = 'Executed';
+                    borderColor = 'border-green-500';
+                } else if (status.startsWith('rejected')) {
+                    statusColor = 'text-yellow-600';
+                    statusIcon = 'fa-exclamation-triangle';
+                    // Extract rejection reason
+                    const reason = status.replace('rejected_', '').replace('_', ' ');
+                    statusText = `Rejected (${reason})`;
+                    borderColor = 'border-yellow-500';
+                } else if (status.startsWith('failed')) {
+                    statusColor = 'text-red-600';
+                    statusIcon = 'fa-times-circle';
+                    const reason = status.replace('failed_', '').replace('_', ' ');
+                    statusText = `Failed (${reason})`;
+                    borderColor = 'border-red-500';
+                } else {
+                    statusColor = 'text-gray-600';
+                    statusIcon = 'fa-question-circle';
+                    statusText = status;
+                    borderColor = 'border-gray-300';
+                }
+
+                // Format timestamp
+                let timeText = 'Just now';
+                if (timestamp) {
+                    try {
+                        const execTime = new Date(timestamp);
+                        const now = new Date();
+                        const diffMs = now - execTime;
+                        const diffMins = Math.floor(diffMs / 60000);
+
+                        if (diffMins < 1) {
+                            timeText = 'Just now';
+                        } else if (diffMins < 60) {
+                            timeText = `${diffMins}m ago`;
+                        } else {
+                            const diffHours = Math.floor(diffMins / 60);
+                            if (diffHours < 24) {
+                                timeText = `${diffHours}h ago`;
+                            } else {
+                                timeText = execTime.toLocaleDateString();
+                            }
+                        }
+                    } catch (e) {
+                        timeText = 'Unknown';
+                    }
+                }
+
+                const isBuy = signalType.toUpperCase() === 'BUY';
+                const sideColor = isBuy ? 'text-green-600' : 'text-red-600';
+
+                return `
+                    <div class="p-3 bg-gray-50 rounded-md border-l-4 ${borderColor}">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <span class="font-semibold ${sideColor}">${signalType}</span>
+                                    <span class="font-medium text-gray-900">${symbol}</span>
+                                    ${exec.quantity ? `<span class="text-sm text-gray-500">x${exec.quantity}</span>` : ''}
+                                </div>
+                                <div class="flex items-center space-x-2 text-xs text-gray-500">
+                                    <span><i class="fas ${statusIcon} ${statusColor} mr-1"></i>${statusText}</span>
+                                    <span class="text-gray-400">|</span>
+                                    <span>${strategy}</span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs text-gray-500">${timeText}</span>
+                                ${exec.fill_price ? `<div class="text-sm font-medium text-gray-900">$${parseFloat(exec.fill_price).toFixed(2)}</div>` : ''}
+                            </div>
+                        </div>
+                        ${exec.rejection_reason ? `
+                        <div class="mt-2 text-xs text-gray-600 bg-gray-100 rounded px-2 py-1">
+                            <i class="fas fa-info-circle mr-1"></i>${escapeHtml(exec.rejection_reason)}
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+
+            /**
+             * Update execution stats summary
+             */
+            updateExecutionStats(stats) {
+                const totalEl = document.getElementById('exec-total');
+                const successEl = document.getElementById('exec-success');
+                const rejectedEl = document.getElementById('exec-rejected');
+                const failedEl = document.getElementById('exec-failed');
+
+                if (totalEl) totalEl.textContent = stats.total || '-';
+                if (successEl) successEl.textContent = stats.success || '-';
+                if (rejectedEl) rejectedEl.textContent = stats.rejected || '-';
+                if (failedEl) failedEl.textContent = stats.failed || '-';
+            }
+
+            /**
+             * Handle real-time execution update from WebSocket
+             */
+            handleExecutionUpdate(data) {
+                console.log('Execution update received:', data);
+
+                // Add execution to feed
+                const execData = data.data || data;
+                if (execData) {
+                    this.addExecutionToFeed(execData);
+                }
+
+                // Refresh stats
+                this.loadExecutionHistory();
+            }
+
+            /**
+             * Add a single execution to the feed (for real-time updates)
+             */
+            addExecutionToFeed(execData) {
+                const executionFeed = document.getElementById('execution-feed');
+                if (!executionFeed || !execData) return;
+
+                // Remove "no executions" message if present
+                if (executionFeed.children.length === 1 &&
+                    executionFeed.children[0].textContent.includes('No execution')) {
+                    executionFeed.innerHTML = '';
+                }
+
+                // Create execution card
+                const cardHtml = this.renderExecutionCard(execData);
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = cardHtml;
+                const cardElement = tempDiv.firstElementChild;
+
+                // Add pulse animation for new items
+                cardElement.classList.add('pulse-animation');
+                setTimeout(() => {
+                    cardElement.classList.remove('pulse-animation');
+                }, 2000);
+
+                // Add to top of feed
+                executionFeed.insertBefore(cardElement, executionFeed.firstChild);
+
+                // Limit feed size
+                const maxItems = 50;
+                while (executionFeed.children.length > maxItems) {
+                    executionFeed.removeChild(executionFeed.lastChild);
                 }
             }
 
@@ -2362,7 +2893,135 @@
                 dashboard.cleanup();
             }
         });
-        
+
+        // ==========================================
+        // Debate Room Functions (T8)
+        // ==========================================
+
+        // Start a new debate for a symbol
+        window.startDebate = async function() {
+            const symbolInput = document.getElementById('debate-symbol-input');
+            const symbol = symbolInput ? symbolInput.value.trim().toUpperCase() : '';
+
+            if (!symbol) {
+                alert('Please enter a symbol');
+                return;
+            }
+
+            console.log('Starting debate for:', symbol);
+
+            // Reset UI
+            document.getElementById('active-debate').classList.remove('hidden');
+            document.getElementById('debate-symbol').textContent = symbol;
+            document.getElementById('debate-status').textContent = 'STARTING...';
+            document.getElementById('debate-status').className = 'px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800';
+            document.getElementById('bull-score').textContent = '0';
+            document.getElementById('bear-score').textContent = '0';
+            document.getElementById('round-count').textContent = '0/3';
+            document.getElementById('debate-verdict').classList.add('hidden');
+            document.getElementById('debate-feed').innerHTML = '<div class="text-center text-gray-500 py-4">Starting debate...</div>';
+
+            try {
+                const response = await apiCall(`/api/debate/start/${symbol}`, {
+                    method: 'POST'
+                });
+
+                if (response && response.debate_id) {
+                    console.log('Debate started:', response.debate_id);
+                    // UI will be updated via WebSocket
+                } else if (response && response.error) {
+                    document.getElementById('debate-feed').innerHTML = `<div class="text-center text-red-500 py-4">Error: ${response.error}</div>`;
+                }
+            } catch (error) {
+                console.error('Error starting debate:', error);
+                document.getElementById('debate-feed').innerHTML = `<div class="text-center text-red-500 py-4">Failed to start debate: ${error.message}</div>`;
+            }
+        };
+
+        // Load debate history
+        window.loadDebateHistory = async function() {
+            const modal = document.getElementById('debate-history-modal');
+            const listEl = document.getElementById('debate-history-list');
+
+            if (modal) modal.classList.remove('hidden');
+            if (listEl) listEl.innerHTML = '<div class="text-center text-gray-500 py-8">Loading...</div>';
+
+            try {
+                const response = await apiCall('/api/debate/history?limit=20');
+                const debates = response.debates || response || [];
+
+                if (!debates.length) {
+                    listEl.innerHTML = '<div class="text-center text-gray-500 py-8">No debate history found</div>';
+                    return;
+                }
+
+                listEl.innerHTML = debates.map(debate => {
+                    const verdictColors = {
+                        'strong_bull': 'text-green-600 bg-green-50',
+                        'bull': 'text-green-500 bg-green-50',
+                        'lean_bull': 'text-green-400 bg-green-50',
+                        'neutral': 'text-gray-600 bg-gray-50',
+                        'lean_bear': 'text-red-400 bg-red-50',
+                        'bear': 'text-red-500 bg-red-50',
+                        'strong_bear': 'text-red-600 bg-red-50'
+                    };
+                    const verdictType = debate.verdict?.verdict_type || 'neutral';
+                    const colorClass = verdictColors[verdictType] || 'text-gray-600 bg-gray-50';
+                    const emoji = verdictType.includes('bull') ? '🐂' : verdictType.includes('bear') ? '🐻' : '⚖️';
+
+                    return `
+                        <div class="p-4 border rounded-lg mb-3 hover:bg-gray-50 cursor-pointer" onclick="loadDebateDetails('${debate.debate_id}')">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <span class="font-bold text-lg">${debate.symbol}</span>
+                                    <span class="ml-2 text-xs text-gray-500">${new Date(debate.timestamp || debate.started_at).toLocaleString()}</span>
+                                </div>
+                                <span class="px-2 py-1 rounded text-sm font-medium ${colorClass}">
+                                    ${emoji} ${verdictType.replace(/_/g, ' ')}
+                                </span>
+                            </div>
+                            <div class="mt-2 text-sm text-gray-600 grid grid-cols-3 gap-2">
+                                <div>🐂 Bull: ${(debate.bull_score || 0).toFixed(1)}</div>
+                                <div>${debate.rounds?.length || 0} rounds</div>
+                                <div>🐻 Bear: ${(debate.bear_score || 0).toFixed(1)}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading debate history:', error);
+                listEl.innerHTML = `<div class="text-center text-red-500 py-8">Error loading history: ${error.message}</div>`;
+            }
+        };
+
+        // Load specific debate details
+        window.loadDebateDetails = async function(debateId) {
+            closeDebateHistory();
+
+            try {
+                const response = await apiCall(`/api/debate/${debateId}`);
+                if (response) {
+                    // Simulate the debate playback in the UI
+                    if (dashboard && dashboard.handleDebateUpdate) {
+                        dashboard.handleDebateUpdate({ data: response });
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading debate details:', error);
+            }
+        };
+
+        // Close debate history modal
+        window.closeDebateHistory = function() {
+            const modal = document.getElementById('debate-history-modal');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        // Close modal on background click
+        document.getElementById('debate-history-modal')?.addEventListener('click', function(e) {
+            if (e.target === this) closeDebateHistory();
+        });
+
         console.log('=== END OF DASHBOARD SCRIPT ===');
         } // End of loadDashboardScript function
     </script>

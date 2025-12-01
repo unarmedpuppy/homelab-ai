@@ -83,7 +83,9 @@ async def websocket_endpoint(websocket: WebSocket, client_id: Optional[str] = Qu
         await manager.subscribe(ws_client_id, "signals")
         await manager.subscribe(ws_client_id, "portfolio")
         await manager.subscribe(ws_client_id, "options_flow")
-        logger.debug(f"Auto-subscribed client {ws_client_id} to broadcast channels (signals, portfolio, options_flow)")
+        await manager.subscribe(ws_client_id, "execution")
+        await manager.subscribe(ws_client_id, "debate")
+        logger.debug(f"Auto-subscribed client {ws_client_id} to broadcast channels (signals, portfolio, options_flow, execution, debate)")
     except Exception as e:
         logger.warning(f"Error auto-subscribing client {ws_client_id}: {e}")
     
