@@ -1,6 +1,6 @@
 # Trading Bot Implementation Roadmap
 
-*Last Updated: 2024-11-27*
+*Last Updated: 2024-11-30*
 
 ## Current State Assessment
 
@@ -235,17 +235,376 @@ class BaseSentimentProvider(ABC):
 
 ---
 
-## Phase 5: Advanced Analytics (Priority: Low)
+## Phase 5: Multi-Agent Trading Architecture (Priority: High)
 
-### T14: Market Regime Detection
+*Inspired by [TradingAgents](https://github.com/TauricResearch/TradingAgents) multi-agent framework*
+
+### T17: Risk Manager Agent ✅ COMPLETED
+**Goal**: Add a risk management layer as final approval gate before trade execution
+
+**Location**: `src/core/risk/portfolio_risk.py`, `src/core/risk/manager.py`
+
+**Result**:
+```
+src/core/risk/
+├── portfolio_risk.py  (~767 lines) - Portfolio-level risk checks
+├── manager.py         (~441 lines) - Unified risk manager with T17 integration
+└── __init__.py        - Exports all portfolio risk types
+```
+
+**Implemented**:
+- `PortfolioRiskChecker` class with configurable settings via `PortfolioRiskSettings`
+- Position concentration check (max 5% per position)
+- Symbol exposure check (max 10% per symbol across positions)
+- Sector exposure check (max 25% per sector)
+- Correlation check with existing positions (sector-based proxy)
+- Daily loss circuit breaker (2% max, with cooldown)
+- Market regime detector (bull/bear/sideways/high_vol)
+- Integrated into `RiskManager.validate_trade()` as final approval gate
+- Prometheus metrics: `portfolio_risk_checks_total`, `portfolio_risk_score`, `portfolio_risk_circuit_breaker_*`, `portfolio_risk_trade_decisions_total`
+- API endpoints: `/api/risk/status`, `/api/risk/portfolio-risk`, `/api/risk/portfolio-risk/evaluate`, `/api/risk/portfolio-risk/reset-circuit-breaker`
+- Config in `settings.py`: `portfolio_risk_enabled`, `portfolio_risk_strict_mode`
+
+---
+
+### T18: Bull/Bear Debate Mechanism
+**Goal**: Reduce confirmation bias by having opposing viewpoints argue before trade decisions
+
+**Location**: `src/core/agents/researchers.py`
+
+**Implementation**:
+```python
+@dataclass
+class ResearchReport:
+    stance: Literal["bullish", "bearish"]
+    confidence: float  # 0.0 to 1.0
+    arguments: List[str]
+    supporting_data: Dict[str, Any]
+    risk_factors: List[str]
+
+class BullResearcher:
+    """Finds and presents bullish case for a symbol."""
+
+    async def research(self, symbol: str, data: MarketData) -> ResearchReport:
+        arguments = []
+        confidence = 0.0
+
+        # Check technical bullish signals
+        if data.rsi < 30:
+            arguments.append(f"RSI oversold at {data.rsi:.1f}")
+            confidence += 0.15
+
+        # Check sentiment
+        if data.sentiment.score > 0.6:
+            arguments.append(f"Positive sentiment: {data.sentiment.score:.2f}")
+            confidence += 0.20
+
+        # Check options flow
+        if data.options_flow.call_put_ratio > 1.5:
+            arguments.append(f"Bullish options flow: {data.options_flow.call_put_ratio:.2f} C/P ratio")
+            confidence += 0.25
+
+        return ResearchReport(
+            stance="bullish",
+            confidence=min(confidence, 1.0),
+            arguments=arguments,
+            ...
+        )
+
+class BearResearcher:
+    """Finds and presents bearish case for a symbol."""
+    # Mirror implementation looking for bearish signals
+
+class DebateArbiter:
+    """Synthesizes bull/bear reports into final decision."""
+
+    async def arbitrate(
+        self,
+        bull_report: ResearchReport,
+        bear_report: ResearchReport
+    ) -> TradeDecision:
+        # Weight by confidence and argument count
+        bull_score = bull_report.confidence * len(bull_report.arguments)
+        bear_score = bear_report.confidence * len(bear_report.arguments)
+
+        net_score = bull_score - bear_score
+
+        if abs(net_score) < self.min_conviction_threshold:
+            return TradeDecision(action="hold", reason="Insufficient conviction")
+
+        return TradeDecision(
+            action="buy" if net_score > 0 else "sell",
+            confidence=abs(net_score) / (bull_score + bear_score),
+            bull_arguments=bull_report.arguments,
+            bear_arguments=bear_report.arguments,
+        )
+```
+
+**Tasks**:
+- [ ] Create `BullResearcher` class that aggregates bullish signals from all data sources
+- [ ] Create `BearResearcher` class that aggregates bearish signals from all data sources
+- [ ] Implement `DebateArbiter` to synthesize opposing views into weighted decision
+- [ ] Add configurable conviction threshold (minimum net score to act)
+- [ ] Create debate history logging for backtesting analysis
+- [ ] Add `/api/debate/{symbol}` endpoint to view current bull/bear arguments
+- [ ] Create Prometheus metrics (`debate_outcomes`, `conviction_scores`)
+
+---
+
+### T19: Analyst Agent Abstraction
+**Goal**: Refactor data providers into specialized analyst agents with common interface
+
+**Location**: `src/core/agents/analysts/`
+
+**Implementation**:
+```python
+# src/core/agents/analysts/base.py
+class BaseAnalyst(ABC):
+    """Abstract base class for all analyst agents."""
+
+    name: str
+    weight: float = 1.0  # Relative importance in aggregation
+
+    @abstractmethod
+    async def analyze(self, symbol: str) -> AnalystSignal:
+        """Produce a signal for the given symbol."""
+        ...
+
+    @abstractmethod
+    def get_signal_components(self) -> List[str]:
+        """List of data points this analyst considers."""
+        ...
+
+@dataclass
+class AnalystSignal:
+    analyst_name: str
+    symbol: str
+    signal: Literal["strong_buy", "buy", "hold", "sell", "strong_sell"]
+    confidence: float
+    components: Dict[str, Any]  # Supporting data
+    timestamp: datetime
+
+# src/core/agents/analysts/sentiment.py
+class SentimentAnalyst(BaseAnalyst):
+    """Aggregates sentiment from Twitter, Reddit, StockTwits, news."""
+
+    name = "sentiment"
+    weight = 0.15
+
+    def __init__(self):
+        self.providers = [
+            TwitterProvider(),
+            RedditProvider(),
+            StockTwitsProvider(),
+            NewsProvider(),
+        ]
+
+    async def analyze(self, symbol: str) -> AnalystSignal:
+        sentiments = await asyncio.gather(*[
+            p.get_sentiment(symbol) for p in self.providers
+        ])
+        aggregated = self._aggregate(sentiments)
+        return AnalystSignal(
+            analyst_name=self.name,
+            symbol=symbol,
+            signal=self._score_to_signal(aggregated.score),
+            confidence=aggregated.confidence,
+            components={"twitter": ..., "reddit": ..., ...}
+        )
+
+# src/core/agents/analysts/flow.py
+class FlowAnalyst(BaseAnalyst):
+    """Analyzes options flow from Unusual Whales data."""
+
+    name = "options_flow"
+    weight = 0.25
+
+    async def analyze(self, symbol: str) -> AnalystSignal:
+        flow_data = await self.uw_client.get_ticker_flow(symbol)
+        # Analyze call/put ratio, premium, sweep activity
+        ...
+
+# src/core/agents/analysts/fundamental.py
+class FundamentalAnalyst(BaseAnalyst):
+    """Analyzes insider trading, institutional holdings, analyst ratings."""
+
+    name = "fundamental"
+    weight = 0.20
+
+    async def analyze(self, symbol: str) -> AnalystSignal:
+        insider = await self.insider_provider.get_activity(symbol)
+        institutional = await self.institutional_provider.get_holdings(symbol)
+        ratings = await self.ratings_provider.get_ratings(symbol)
+        ...
+
+# src/core/agents/analysts/technical.py
+class TechnicalAnalyst(BaseAnalyst):
+    """Analyzes price action, indicators, and patterns."""
+
+    name = "technical"
+    weight = 0.40
+
+    async def analyze(self, symbol: str) -> AnalystSignal:
+        data = await self.market_data.get_ohlcv(symbol)
+        rsi = calculate_rsi(data)
+        macd = calculate_macd(data)
+        ...
+```
+
+**Aggregation Layer**:
+```python
+# src/core/agents/analysts/aggregator.py
+class AnalystAggregator:
+    """Combines signals from all analysts into unified recommendation."""
+
+    def __init__(self, analysts: List[BaseAnalyst]):
+        self.analysts = analysts
+
+    async def get_consensus(self, symbol: str) -> ConsensusSignal:
+        signals = await asyncio.gather(*[
+            a.analyze(symbol) for a in self.analysts
+        ])
+
+        # Weighted average of signals
+        weighted_score = sum(
+            s.confidence * self._signal_to_score(s.signal) * a.weight
+            for s, a in zip(signals, self.analysts)
+        ) / sum(a.weight for a in self.analysts)
+
+        return ConsensusSignal(
+            symbol=symbol,
+            recommendation=self._score_to_signal(weighted_score),
+            confidence=...,
+            breakdown={s.analyst_name: s for s in signals}
+        )
+```
+
+**Tasks**:
+- [ ] Create `BaseAnalyst` abstract class with common interface in `src/core/agents/analysts/base.py`
+- [ ] Implement `SentimentAnalyst` wrapping Twitter, Reddit, StockTwits, news providers
+- [ ] Implement `FlowAnalyst` wrapping Unusual Whales scraper data
+- [ ] Implement `FundamentalAnalyst` wrapping insider, institutional, ratings providers
+- [ ] Implement `TechnicalAnalyst` wrapping existing indicator calculations
+- [ ] Create `AnalystAggregator` for weighted signal combination
+- [ ] Add analyst weights to config (allow per-analyst weight tuning)
+- [ ] Create `/api/analysts/{symbol}` endpoint showing breakdown by analyst
+- [ ] Add Prometheus metrics per analyst (`analyst_signals`, `analyst_confidence`)
+
+---
+
+### T20: LLM Synthesis Layer (Optional)
+**Goal**: Use LLM for natural language trade explanations and anomaly detection
+
+**Location**: `src/core/agents/llm/`
+
+**Implementation**:
+```python
+# src/core/agents/llm/synthesizer.py
+class TradeRationaleSynthesizer:
+    """Uses LLM to generate human-readable trade explanations."""
+
+    def __init__(self, client: OpenAI | Anthropic):
+        self.client = client
+        self.model = settings.llm.model  # "gpt-4o-mini" or "claude-3-haiku"
+
+    async def explain_trade(
+        self,
+        signal: TradingSignal,
+        analyst_breakdown: Dict[str, AnalystSignal],
+        debate_result: Optional[DebateResult] = None
+    ) -> str:
+        prompt = f"""
+        Explain this trading decision in 2-3 sentences:
+
+        Action: {signal.action} {signal.symbol}
+
+        Analyst signals:
+        {self._format_analysts(analyst_breakdown)}
+
+        Bull/Bear debate:
+        {self._format_debate(debate_result)}
+
+        Provide a concise explanation focusing on the key factors.
+        """
+
+        response = await self.client.chat.completions.create(
+            model=self.model,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=150
+        )
+        return response.choices[0].message.content
+
+class SignalContradictionDetector:
+    """Detects when analyst signals strongly contradict each other."""
+
+    async def detect_contradictions(
+        self,
+        signals: Dict[str, AnalystSignal]
+    ) -> List[Contradiction]:
+        # Find pairs where one is bullish and other is bearish with high confidence
+        contradictions = []
+        for a1, s1 in signals.items():
+            for a2, s2 in signals.items():
+                if a1 >= a2:
+                    continue
+                if self._is_opposite(s1.signal, s2.signal):
+                    if s1.confidence > 0.7 and s2.confidence > 0.7:
+                        contradictions.append(Contradiction(
+                            analyst1=a1, signal1=s1,
+                            analyst2=a2, signal2=s2,
+                        ))
+        return contradictions
+
+class UnusualConditionAlert:
+    """Uses LLM to detect and explain unusual market conditions."""
+
+    async def check_conditions(self, market_data: MarketData) -> Optional[Alert]:
+        # Check for unusual patterns
+        if self._is_unusual(market_data):
+            explanation = await self._explain_with_llm(market_data)
+            return Alert(
+                severity="warning",
+                message=explanation,
+                data=market_data
+            )
+        return None
+```
+
+**Tasks**:
+- [ ] Add OpenAI/Anthropic API configuration to settings
+- [ ] Create `TradeRationaleSynthesizer` for natural language trade explanations
+- [ ] Create `SignalContradictionDetector` to flag conflicting high-confidence signals
+- [ ] Create `UnusualConditionAlert` for LLM-powered anomaly detection
+- [ ] Add `/api/explain/{trade_id}` endpoint for trade explanations
+- [ ] Make LLM layer optional (gracefully disabled if no API key)
+- [ ] Add cost tracking for LLM API calls
+
+**Config**:
+```python
+class LLMSettings(BaseSettings):
+    enabled: bool = False
+    provider: Literal["openai", "anthropic"] = "openai"
+    model: str = "gpt-4o-mini"
+    api_key: Optional[str] = None
+    max_tokens_per_explanation: int = 150
+    monthly_budget_usd: float = 10.0
+```
+
+---
+
+## Phase 6: Advanced Analytics (Priority: Low)
+
+### T21: Market Regime Detection
 **Goal**: Identify bull/bear/sideways markets
+
+*Note: This overlaps with T17 (Risk Manager) which includes regime detection for risk adjustment.*
 
 **Tasks**:
 - [ ] Implement regime classifier (volatility + trend)
 - [ ] Adjust strategy parameters per regime
 - [ ] Backtest regime-aware strategies
 
-### T15: Pattern Recognition
+### T22: Pattern Recognition
 **Goal**: Detect chart patterns
 
 **Tasks**:
@@ -254,7 +613,7 @@ class BaseSentimentProvider(ABC):
 - [ ] Implement triangle patterns
 - [ ] Integrate patterns into signal generation
 
-### T16: ML Signal Enhancement
+### T23: ML Signal Enhancement
 **Goal**: Machine learning for signal prediction
 
 **Tasks**:
@@ -266,9 +625,20 @@ class BaseSentimentProvider(ABC):
 
 ## Immediate Next Steps
 
-1. **T1: Consolidate Metrics** - Biggest code quality win
-2. **T6: WebSocket Producers** - Enable real-time features
-3. **T9: IBKR Testing** - Validate live trading readiness
+### Completed
+- ✅ **T1: Consolidate Metrics** - Reduced 8 files to 3
+- ✅ **T2: Remove Backward Compatibility** - Clean re-exports
+- ✅ **T6: WebSocket Producers** - Real-time data connected
+- ✅ **T9: IBKR Testing** - Paper trading validated
+- ✅ **T17: Risk Manager Agent** - Portfolio risk checks, circuit breaker, market regime
+- ✅ **T7/T8: Analyst Agents & Debate Room** - Bull/Bear debate UI with multi-analyst integration
+
+### Priority 1: Trading Safety (Before Live Trading)
+1. **T10: Strategy-to-Execution Pipeline** - Connect signals to orders
+
+### Priority 2: Enhanced Features
+2. **T20: LLM Synthesis** - Optional trade explanations
+3. **UI WebSocket Integration** - Real-time price/sentiment updates in dashboard
 
 ---
 

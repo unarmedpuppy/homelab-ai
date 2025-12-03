@@ -47,8 +47,12 @@ class TradeValidationResponse(BaseModel):
     compliance_result: str
     compliance_message: str
     position_size: Optional[Dict[str, Any]] = None
+    portfolio_risk: Optional[Dict[str, Any]] = None
+    risk_score: float = 0.0
+    market_regime: str = "unknown"
+    adjusted_quantity: Optional[int] = None
     messages: list = []
-    
+
     class Config:
         from_attributes = True
 
@@ -89,12 +93,28 @@ async def validate_trade(
                 "max_size_hit": result.position_size.max_size_hit
             }
         
+        # Build portfolio risk dict
+        portfolio_risk_dict = None
+        if result.portfolio_risk:
+            portfolio_risk_dict = {
+                "approved": result.portfolio_risk.approved,
+                "reason": result.portfolio_risk.reason,
+                "risk_score": result.portfolio_risk.risk_score,
+                "market_regime": result.portfolio_risk.market_regime.value,
+                "failed_checks": [c.name for c in result.portfolio_risk.failed_checks],
+                "warning_checks": [c.name for c in result.portfolio_risk.warning_checks],
+            }
+
         return TradeValidationResponse(
             is_valid=result.is_valid,
             can_proceed=result.can_proceed,
             compliance_result=result.compliance_check.result.value,
             compliance_message=result.compliance_check.message,
             position_size=position_size_dict,
+            portfolio_risk=portfolio_risk_dict,
+            risk_score=result.risk_score,
+            market_regime=result.market_regime.value,
+            adjusted_quantity=result.adjusted_quantity,
             messages=result.messages
         )
     except Exception as e:
@@ -109,15 +129,16 @@ async def get_risk_status(
 ):
     """
     Get current risk management status for an account
-    
+
     Returns:
     - Account balance and cash account mode
     - Compliance status (PDT, trade frequency)
     - Available settled cash
+    - Portfolio risk status (T17)
     """
     try:
         status = await risk_manager.get_risk_status(account_id)
-        
+
         return {
             "account_id": status.account_id,
             "account_balance": status.account_status.balance,
@@ -131,6 +152,12 @@ async def get_risk_status(
                 "daily_limit": status.compliance_summary["daily_limit"],
                 "weekly_trades": status.weekly_trade_count,
                 "weekly_limit": status.compliance_summary["weekly_limit"]
+            },
+            "portfolio_risk": {
+                "enabled": status.portfolio_risk_enabled,
+                "circuit_breaker_triggered": status.circuit_breaker_triggered,
+                "market_regime": status.market_regime.value,
+                "settings": status.portfolio_risk_summary.get("settings", {}) if status.portfolio_risk_summary else {},
             },
             "last_checked": status.account_status.last_checked.isoformat() if status.account_status.last_checked else None
         }
@@ -218,3 +245,111 @@ async def get_account_mode(
         logger.error(f"Error getting account mode: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error getting account mode: {str(e)}")
 
+
+@router.get("/portfolio-risk")
+async def get_portfolio_risk_status(
+    risk_manager: RiskManager = Depends(get_risk_manager)
+):
+    """
+    Get portfolio-level risk status (T17: Risk Manager Agent)
+
+    Returns:
+    - Circuit breaker status
+    - Market regime
+    - Risk settings and limits
+    """
+    try:
+        status = risk_manager.portfolio_risk.get_status()
+
+        return {
+            "enabled": status.get("enabled", True),
+            "circuit_breaker": {
+                "triggered": status.get("circuit_breaker_triggered", False),
+                "triggered_at": status.get("circuit_breaker_triggered_at"),
+            },
+            "market_regime": status.get("market_regime", "unknown"),
+            "regime_updated_at": status.get("regime_updated_at"),
+            "settings": status.get("settings", {}),
+        }
+    except Exception as e:
+        logger.error(f"Error getting portfolio risk status: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error getting portfolio risk status: {str(e)}")
+
+
+@router.post("/portfolio-risk/reset-circuit-breaker")
+async def reset_circuit_breaker(
+    risk_manager: RiskManager = Depends(get_risk_manager)
+):
+    """
+    Manually reset the circuit breaker
+
+    Use this to resume trading after a circuit breaker has been triggered.
+    Exercise caution - this should only be done after reviewing the situation.
+    """
+    try:
+        risk_manager.portfolio_risk.reset_circuit_breaker()
+
+        return {
+            "success": True,
+            "message": "Circuit breaker has been reset. Trading may resume.",
+        }
+    except Exception as e:
+        logger.error(f"Error resetting circuit breaker: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error resetting circuit breaker: {str(e)}")
+
+
+class PortfolioRiskEvaluationRequest(BaseModel):
+    """Request for portfolio risk evaluation"""
+    symbol: str
+    side: str  # "BUY" or "SELL"
+    quantity: int
+    price: float
+    account_id: int = 1
+
+
+@router.post("/portfolio-risk/evaluate")
+async def evaluate_portfolio_risk(
+    request: PortfolioRiskEvaluationRequest,
+    risk_manager: RiskManager = Depends(get_risk_manager)
+):
+    """
+    Evaluate a trade against portfolio risk rules
+
+    Returns detailed risk check results including:
+    - Position concentration
+    - Symbol/sector exposure
+    - Correlation with existing positions
+    - Circuit breaker status
+    - Market regime
+    """
+    try:
+        decision = await risk_manager.portfolio_risk.evaluate(
+            symbol=request.symbol,
+            side=request.side,
+            quantity=request.quantity,
+            price=request.price,
+            account_id=request.account_id,
+        )
+
+        return {
+            "approved": decision.approved,
+            "reason": decision.reason,
+            "risk_score": decision.risk_score,
+            "market_regime": decision.market_regime.value,
+            "adjusted_size": decision.adjusted_size,
+            "checks": [
+                {
+                    "name": c.name,
+                    "result": c.result.value,
+                    "message": c.message,
+                    "value": c.value,
+                    "threshold": c.threshold,
+                }
+                for c in decision.checks
+            ],
+            "failed_checks": [c.name for c in decision.failed_checks],
+            "warning_checks": [c.name for c in decision.warning_checks],
+        }
+    except Exception as e:
+        logger.error(f"Error evaluating portfolio risk: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error evaluating portfolio risk: {str(e)}")
