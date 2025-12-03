@@ -3,17 +3,42 @@ Risk Manager
 ============
 
 Unified interface for all risk management components.
-Coordinates account monitoring, compliance, position sizing, and profit taking.
+Coordinates account monitoring, compliance, position sizing, profit taking,
+and portfolio-level risk checks (T17: Risk Manager Agent).
 """
 
 import logging
-from typing import Optional, Dict, Any
-from dataclasses import dataclass
+from typing import Optional, Dict, Any, List
+from dataclasses import dataclass, field
 
 from .account_monitor import AccountMonitor, AccountStatus
 from .compliance import ComplianceManager, ComplianceCheck, ComplianceResult
 from .position_sizing import PositionSizingManager, PositionSizeResult, ConfidenceLevel
 from .profit_taking import ProfitTakingManager, ProfitExitPlan, ProfitCheckResult
+from .portfolio_risk import (
+    PortfolioRiskChecker,
+    PortfolioRiskDecision,
+    PortfolioRiskSettings,
+    RiskCheck,
+    RiskCheckResult,
+    MarketRegime,
+)
+
+# Lazy import for metrics to avoid circular dependencies
+_metrics_module = None
+
+
+def _get_metrics():
+    """Lazy load metrics module."""
+    global _metrics_module
+    if _metrics_module is None:
+        try:
+            from ...utils import metrics as m
+            _metrics_module = m
+        except ImportError:
+            _metrics_module = None
+    return _metrics_module
+
 
 logger = logging.getLogger(__name__)
 
@@ -25,11 +50,11 @@ class PreTradeValidationResult:
     can_proceed: bool
     compliance_check: ComplianceCheck
     position_size: Optional[PositionSizeResult] = None
-    messages: list = None
-    
-    def __post_init__(self):
-        if self.messages is None:
-            self.messages = []
+    portfolio_risk: Optional[PortfolioRiskDecision] = None
+    messages: List[str] = field(default_factory=list)
+    risk_score: float = 0.0
+    market_regime: MarketRegime = MarketRegime.UNKNOWN
+    adjusted_quantity: Optional[int] = None  # Reduced quantity from portfolio risk
 
 
 @dataclass
@@ -43,42 +68,56 @@ class RiskStatus:
     daily_trade_count: int
     weekly_trade_count: int
     compliance_summary: Dict[str, Any]
+    # Portfolio risk status (T17)
+    portfolio_risk_enabled: bool = True
+    circuit_breaker_triggered: bool = False
+    market_regime: MarketRegime = MarketRegime.UNKNOWN
+    portfolio_risk_summary: Optional[Dict[str, Any]] = None
 
 
 class RiskManager:
     """
     Unified risk management interface
-    
+
     Coordinates:
     - Account monitoring and cash account mode detection
     - Compliance checks (PDT, settlement, frequency)
     - Position sizing based on confidence
     - Profit taking rules
+    - Portfolio-level risk checks (T17: Risk Manager Agent)
     """
-    
+
     def __init__(
         self,
         account_monitor: Optional[AccountMonitor] = None,
         compliance_manager: Optional[ComplianceManager] = None,
         position_sizing_manager: Optional[PositionSizingManager] = None,
-        profit_taking_manager: Optional[ProfitTakingManager] = None
+        profit_taking_manager: Optional[ProfitTakingManager] = None,
+        portfolio_risk_checker: Optional[PortfolioRiskChecker] = None,
+        ibkr_client: Optional[Any] = None,
     ):
         """
         Initialize risk manager
-        
+
         Args:
             account_monitor: Optional AccountMonitor instance
             compliance_manager: Optional ComplianceManager instance
             position_sizing_manager: Optional PositionSizingManager instance
             profit_taking_manager: Optional ProfitTakingManager instance
+            portfolio_risk_checker: Optional PortfolioRiskChecker instance
+            ibkr_client: Optional IBKR client for live data
         """
         # Initialize or use provided instances
         self.account_monitor = account_monitor or AccountMonitor()
         self.compliance = compliance_manager or ComplianceManager(account_monitor=self.account_monitor)
         self.position_sizing = position_sizing_manager or PositionSizingManager(account_monitor=self.account_monitor)
         self.profit_taking = profit_taking_manager or ProfitTakingManager()
-        
-        logger.info("RiskManager initialized")
+
+        # T17: Portfolio Risk Checker
+        self.portfolio_risk = portfolio_risk_checker or PortfolioRiskChecker(ibkr_client=ibkr_client)
+        self._ibkr_client = ibkr_client
+
+        logger.info("RiskManager initialized with portfolio risk checks enabled")
     
     async def validate_trade(
         self,
@@ -182,13 +221,72 @@ class RiskManager:
                     f"Warning: Requested quantity ({quantity}) exceeds recommended size "
                     f"({position_size.size_shares} shares)"
                 )
-        
+
+        # 3. Portfolio risk checks (T17: Risk Manager Agent)
+        portfolio_risk_decision = None
+        adjusted_quantity = None
+        risk_score = 0.0
+        market_regime = MarketRegime.UNKNOWN
+
+        if quantity and price_per_share:
+            portfolio_risk_decision = await self.portfolio_risk.evaluate(
+                symbol=symbol,
+                side=side if isinstance(side, str) else side.value,
+                quantity=quantity,
+                price=price_per_share,
+                account_id=account_id,
+            )
+
+            risk_score = portfolio_risk_decision.risk_score
+            market_regime = portfolio_risk_decision.market_regime
+
+            # Record metrics for portfolio risk evaluation
+            metrics = _get_metrics()
+            if metrics:
+                try:
+                    metrics.record_portfolio_risk_evaluation(portfolio_risk_decision)
+                except Exception as e:
+                    logger.debug(f"Error recording portfolio risk metrics: {e}")
+
+            if not portfolio_risk_decision.approved:
+                messages.append(f"Portfolio risk check failed: {portfolio_risk_decision.reason}")
+                return PreTradeValidationResult(
+                    is_valid=False,
+                    can_proceed=False,
+                    compliance_check=compliance_check,
+                    position_size=position_size,
+                    portfolio_risk=portfolio_risk_decision,
+                    messages=messages,
+                    risk_score=risk_score,
+                    market_regime=market_regime,
+                )
+
+            # Check if position size should be adjusted
+            if portfolio_risk_decision.adjusted_size is not None:
+                adjusted_quantity = portfolio_risk_decision.adjusted_size
+                messages.append(
+                    f"Position size adjusted from {quantity} to {adjusted_quantity} shares "
+                    f"due to portfolio risk ({portfolio_risk_decision.reason})"
+                )
+
+            # Add warning messages from portfolio risk checks
+            for check in portfolio_risk_decision.warning_checks:
+                messages.append(f"Portfolio risk warning: {check.message}")
+
+            messages.append(
+                f"Portfolio risk check passed (score: {risk_score:.2f}, regime: {market_regime.value})"
+            )
+
         return PreTradeValidationResult(
             is_valid=True,
             can_proceed=True,
             compliance_check=compliance_check,
             position_size=position_size,
-            messages=messages
+            portfolio_risk=portfolio_risk_decision,
+            messages=messages,
+            risk_score=risk_score,
+            market_regime=market_regime,
+            adjusted_quantity=adjusted_quantity,
         )
     
     async def get_risk_status(self, account_id: int) -> RiskStatus:
@@ -225,7 +323,10 @@ class RiskManager:
             "weekly_limit": self.compliance.weekly_limit,
             "available_settled_cash": available_settled
         }
-        
+
+        # Get portfolio risk status (T17)
+        portfolio_risk_status = self.portfolio_risk.get_status()
+
         return RiskStatus(
             account_id=account_id,
             account_status=account_status,
@@ -234,7 +335,11 @@ class RiskManager:
             day_trade_count=day_trade_count,
             daily_trade_count=daily_count,
             weekly_trade_count=weekly_count,
-            compliance_summary=compliance_summary
+            compliance_summary=compliance_summary,
+            portfolio_risk_enabled=portfolio_risk_status.get("enabled", True),
+            circuit_breaker_triggered=portfolio_risk_status.get("circuit_breaker_triggered", False),
+            market_regime=MarketRegime(portfolio_risk_status.get("market_regime", "unknown")),
+            portfolio_risk_summary=portfolio_risk_status,
         )
     
     async def calculate_position_size(
