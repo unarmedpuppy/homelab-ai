@@ -44,5 +44,6 @@ networks:
   my-network:
     external: true
   media-download-network:
+    name: media-download_media-download-network
     external: true
 
