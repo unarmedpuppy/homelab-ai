@@ -7,6 +7,8 @@ services:
     restart: unless-stopped
     ports:
       - "8008:8008"
+      - "8888:8888"  # Spotify OAuth callback
+      - "8889:8889"  # Tidal OAuth callback
     environment:
       - TZ=${TZ:-America/Chicago}
       - PUID=${PUID:-1000}
