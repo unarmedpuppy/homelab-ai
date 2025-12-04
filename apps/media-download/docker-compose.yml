@@ -31,6 +31,7 @@ services:
     ports:
       - "8880:8080"  # qBittorrent web UI (routed through VPN)
       - "6789:6789"  # NZBGet web UI (routed through VPN)
+      - "5030:5030"  # slskd web UI and API (routed through VPN)
     restart: unless-stopped
 
   # Usenet Indexer & Aggregator
@@ -116,7 +117,8 @@ services:
       - ${DOWNLOAD_PATH:-./downloads/nzb}:/downloads
     network_mode: "service:gluetun"  # Kill switch: routes all traffic through VPN
     depends_on:
-      - gluetun
+      gluetun:
+        condition: service_healthy  # Wait for gluetun to be healthy before starting
     restart: unless-stopped
 
   # Torrent Download Client
@@ -133,9 +135,37 @@ services:
       - ${DOWNLOAD_PATH:-./downloads/torrents}:/downloads
     network_mode: "service:gluetun"  # Kill switch: routes all traffic through VPN
     depends_on:
-      - gluetun
+      gluetun:
+        condition: service_healthy  # Wait for gluetun to be healthy before starting
     restart: unless-stopped
     # Note: qBittorrent is behind VPN and accessed by automation services only
+
+  # Soulseek Daemon (slskd) - P2P Music Download Client
+  # Note: If slskd/slskd:latest doesn't exist, you may need to:
+  # 1. Build from source: https://github.com/slskd/slskd
+  # 2. Use an alternative Docker image (check Docker Hub)
+  # 3. Or run slskd on the host and connect via host IP
+  slskd:
+    image: slskd/slskd:latest
+    container_name: media-download-slskd
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ:-America/Chicago}
+    volumes:
+      - ./slskd/config:/app/.config/slskd
+      - ${DOWNLOAD_PATH:-./downloads}/soulseek:/downloads
+      - ${DOWNLOAD_PATH:-./downloads}/soulseek/incomplete:/incomplete
+      # Share directory - IMPORTANT: Must share files to avoid bans
+      - ${MEDIA_PATH:-/jenquist-cloud/archive/entertainment-media}/Music:/shared
+    network_mode: "service:gluetun"  # Kill switch: routes all traffic through VPN
+    depends_on:
+      gluetun:
+        condition: service_healthy  # Wait for gluetun to be healthy before starting
+    restart: unless-stopped
+    # Note: slskd web UI accessible at http://192.168.86.47:5030 (routed through VPN)
+    # All P2P traffic goes through VPN with DNS leak protection
+    # Homepage labels added via gluetun port mapping - access via exposed port
 
   # TV Shows Automation
   sonarr:

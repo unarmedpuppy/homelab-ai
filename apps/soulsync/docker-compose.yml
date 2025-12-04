@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  soulsync:
+    image: boulderbadgedad/soulsync:latest
+    container_name: soulsync
+    restart: unless-stopped
+    ports:
+      - "8008:8008"
+    environment:
+      - TZ=${TZ:-America/Chicago}
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+    volumes:
+      - ./data:/app/data
+      - ${DOWNLOAD_PATH:-./downloads}:/downloads
+      - ${TRANSFER_PATH:-/jenquist-cloud/archive/entertainment-media/Music}:/transfer
+    networks:
+      - my-network
+      - media-download-network
+    labels:
+      - "traefik.enable=true"
+      # HTTP configuration
+      - "traefik.http.routers.soulsync.rule=Host(`soulsync.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.soulsync.entrypoints=web"
+      - "traefik.http.services.soulsync.loadbalancer.server.port=8008"
+      # HTTPS configuration
+      - "traefik.http.routers.soulsync-secure.rule=Host(`soulsync.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.soulsync-secure.entrypoints=websecure"
+      - "traefik.http.routers.soulsync-secure.tls=true"
+      - "traefik.http.routers.soulsync-secure.tls.certresolver=myresolver"
+      - "traefik.http.routers.soulsync-secure.service=soulsync"
+      # HTTPS redirect
+      - "traefik.http.middlewares.soulsync-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.soulsync.middlewares=soulsync-redirect"
+      # Homepage integration
+      - "homepage.group=Media & Entertainment"
+      - "homepage.name=SoulSync"
+      - "homepage.icon=🎵"
+      - "homepage.href=https://soulsync.server.unarmedpuppy.com"
+      - "homepage.description=Automated Music Discovery and Collection Manager"
+
+networks:
+  my-network:
+    external: true
+  media-download-network:
+    external: true
+
