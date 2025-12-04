@@ -975,6 +975,200 @@ def update_risk_metrics_from_config(
     update_risk_metrics(max_drawdown, daily_loss_limit, position_size_limit, risk_per_trade)
 
 
+# =============================================================================
+# Portfolio Risk Metrics (T17: Risk Manager Agent)
+# =============================================================================
+
+
+def get_portfolio_risk_metrics():
+    """Get or create portfolio risk metrics (T17)."""
+    if not _metrics_enabled():
+        return None, None, None, None, None, None, None, None
+
+    registry = get_metrics_registry()
+
+    # Risk check outcomes
+    risk_checks_total = get_or_create_counter(
+        name="portfolio_risk_checks_total",
+        documentation="Total number of portfolio risk checks performed",
+        labelnames=["check_type", "result"],
+        registry=registry
+    )
+
+    # Risk score distribution
+    risk_score = get_or_create_histogram(
+        name="portfolio_risk_score",
+        documentation="Distribution of portfolio risk scores (0.0-1.0)",
+        buckets=(0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0),
+        registry=registry
+    )
+
+    # Circuit breaker status
+    circuit_breaker_status = get_or_create_gauge(
+        name="portfolio_risk_circuit_breaker_active",
+        documentation="Circuit breaker status (1=active/triggered, 0=inactive)",
+        registry=registry
+    )
+
+    # Circuit breaker triggers
+    circuit_breaker_triggers = get_or_create_counter(
+        name="portfolio_risk_circuit_breaker_triggers_total",
+        documentation="Total number of circuit breaker triggers",
+        registry=registry
+    )
+
+    # Market regime
+    market_regime = get_or_create_gauge(
+        name="portfolio_risk_market_regime",
+        documentation="Current market regime (0=unknown, 1=bull, 2=bear, 3=sideways, 4=high_vol)",
+        registry=registry
+    )
+
+    # Concentration metrics
+    position_concentration = get_or_create_gauge(
+        name="portfolio_risk_position_concentration",
+        documentation="Current max position concentration percentage",
+        labelnames=["symbol"],
+        registry=registry
+    )
+
+    sector_exposure = get_or_create_gauge(
+        name="portfolio_risk_sector_exposure",
+        documentation="Current sector exposure percentage",
+        labelnames=["sector"],
+        registry=registry
+    )
+
+    # Trade decisions
+    trade_decisions = get_or_create_counter(
+        name="portfolio_risk_trade_decisions_total",
+        documentation="Trade decisions by portfolio risk checker",
+        labelnames=["decision", "reason"],
+        registry=registry
+    )
+
+    return (
+        risk_checks_total,
+        risk_score,
+        circuit_breaker_status,
+        circuit_breaker_triggers,
+        market_regime,
+        position_concentration,
+        sector_exposure,
+        trade_decisions,
+    )
+
+
+def record_portfolio_risk_check(check_type: str, result: str):
+    """Record a portfolio risk check result."""
+    risk_checks_total, _, _, _, _, _, _, _ = get_portfolio_risk_metrics()
+    if risk_checks_total:
+        try:
+            risk_checks_total.labels(check_type=check_type, result=result).inc()
+        except Exception as e:
+            logger.debug(f"Error recording portfolio risk check metric: {e}")
+
+
+def record_portfolio_risk_score(score: float):
+    """Record a portfolio risk score."""
+    _, risk_score_histogram, _, _, _, _, _, _ = get_portfolio_risk_metrics()
+    if risk_score_histogram:
+        try:
+            risk_score_histogram.observe(score)
+        except Exception as e:
+            logger.debug(f"Error recording portfolio risk score metric: {e}")
+
+
+def update_circuit_breaker_status(active: bool):
+    """Update circuit breaker status."""
+    _, _, circuit_breaker_status, circuit_breaker_triggers, _, _, _, _ = get_portfolio_risk_metrics()
+    if circuit_breaker_status:
+        try:
+            circuit_breaker_status.set(1 if active else 0)
+            if active and circuit_breaker_triggers:
+                circuit_breaker_triggers.inc()
+        except Exception as e:
+            logger.debug(f"Error updating circuit breaker status metric: {e}")
+
+
+def update_market_regime(regime: str):
+    """Update market regime metric."""
+    _, _, _, _, market_regime_gauge, _, _, _ = get_portfolio_risk_metrics()
+    if market_regime_gauge:
+        try:
+            # Convert regime to numeric value
+            regime_values = {
+                "unknown": 0,
+                "bull": 1,
+                "bear": 2,
+                "sideways": 3,
+                "high_volatility": 4,
+            }
+            market_regime_gauge.set(regime_values.get(regime.lower(), 0))
+        except Exception as e:
+            logger.debug(f"Error updating market regime metric: {e}")
+
+
+def update_position_concentration(symbol: str, concentration_pct: float):
+    """Update position concentration metric."""
+    _, _, _, _, _, position_concentration, _, _ = get_portfolio_risk_metrics()
+    if position_concentration:
+        try:
+            position_concentration.labels(symbol=symbol).set(concentration_pct)
+        except Exception as e:
+            logger.debug(f"Error updating position concentration metric: {e}")
+
+
+def update_sector_exposure(sector: str, exposure_pct: float):
+    """Update sector exposure metric."""
+    _, _, _, _, _, _, sector_exposure, _ = get_portfolio_risk_metrics()
+    if sector_exposure:
+        try:
+            sector_exposure.labels(sector=sector).set(exposure_pct)
+        except Exception as e:
+            logger.debug(f"Error updating sector exposure metric: {e}")
+
+
+def record_portfolio_risk_decision(decision: str, reason: str):
+    """Record a trade decision by the portfolio risk checker."""
+    _, _, _, _, _, _, _, trade_decisions = get_portfolio_risk_metrics()
+    if trade_decisions:
+        try:
+            trade_decisions.labels(decision=decision, reason=reason).inc()
+        except Exception as e:
+            logger.debug(f"Error recording portfolio risk decision metric: {e}")
+
+
+def record_portfolio_risk_evaluation(decision: 'PortfolioRiskDecision'):
+    """Record all metrics from a portfolio risk evaluation."""
+    if not _metrics_enabled():
+        return
+
+    try:
+        # Record overall risk score
+        record_portfolio_risk_score(decision.risk_score)
+
+        # Record decision
+        decision_str = "approved" if decision.approved else "rejected"
+        record_portfolio_risk_decision(decision_str, decision.reason[:50])
+
+        # Record individual check results
+        for check in decision.checks:
+            record_portfolio_risk_check(check.name, check.result.value)
+
+        # Update market regime
+        if hasattr(decision, 'market_regime') and decision.market_regime:
+            update_market_regime(decision.market_regime.value)
+
+        # Update circuit breaker if relevant
+        for check in decision.checks:
+            if check.name == "circuit_breaker" and check.result.value == "failed":
+                update_circuit_breaker_status(True)
+
+    except Exception as e:
+        logger.debug(f"Error recording portfolio risk evaluation metrics: {e}")
+
+
 def calculate_drawdown(equity_curve: List[float]) -> float:
     """Calculate maximum drawdown from equity curve."""
     if not equity_curve or len(equity_curve) < 2:
@@ -1012,3 +1206,103 @@ def update_cache_hit_rates_from_monitor(monitor, providers: Optional[List[str]] 
                 update_cache_hit_rate(provider, metrics.cache_hit_rate)
     except Exception as e:
         logger.debug(f"Error updating cache hit rates from monitor: {e}")
+
+
+# =============================================================================
+# Execution Metrics (T10: Strategy-to-Execution Pipeline)
+# =============================================================================
+
+# Cached execution metrics
+_execution_metrics = None
+
+
+def get_execution_metrics():
+    """Get or create execution pipeline metrics (T10)."""
+    global _execution_metrics
+    if _execution_metrics is not None:
+        return _execution_metrics
+
+    if not _metrics_enabled():
+        return None, None, None, None
+
+    try:
+        # Total executions counter by status, strategy, symbol
+        executions_total = get_or_create_counter(
+            "trading_bot_executions_total",
+            "Total signal executions",
+            ["status", "strategy", "symbol", "side"]
+        )
+
+        # Execution duration histogram
+        execution_duration = get_or_create_histogram(
+            "trading_bot_execution_duration_ms",
+            "Execution duration in milliseconds",
+            ["strategy"],
+            buckets=[1, 5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000]
+        )
+
+        # Risk rejection counter by reason
+        risk_rejections = get_or_create_counter(
+            "trading_bot_risk_rejections_total",
+            "Total executions rejected by risk checks",
+            ["reason", "symbol"]
+        )
+
+        # Execution success gauge (recent success rate)
+        execution_success_rate = get_or_create_gauge(
+            "trading_bot_execution_success_rate",
+            "Recent execution success rate (0.0-1.0)",
+            ["strategy"]
+        )
+
+        _execution_metrics = (executions_total, execution_duration, risk_rejections, execution_success_rate)
+        return _execution_metrics
+
+    except Exception as e:
+        logger.debug(f"Error creating execution metrics: {e}")
+        return None, None, None, None
+
+
+def record_execution_outcome(strategy: str, symbol: str, side: str, status: str):
+    """Record an execution outcome."""
+    executions_total, _, _, _ = get_execution_metrics()
+    if executions_total:
+        try:
+            executions_total.labels(
+                status=status,
+                strategy=strategy,
+                symbol=symbol,
+                side=side
+            ).inc()
+        except Exception as e:
+            logger.debug(f"Error recording execution outcome metric: {e}")
+
+
+def record_execution_duration(strategy: str, duration_ms: float):
+    """Record execution duration in milliseconds."""
+    _, execution_duration, _, _ = get_execution_metrics()
+    if execution_duration:
+        try:
+            execution_duration.labels(strategy=strategy).observe(duration_ms)
+        except Exception as e:
+            logger.debug(f"Error recording execution duration metric: {e}")
+
+
+def record_risk_rejection(reason: str, symbol: str):
+    """Record a risk rejection."""
+    _, _, risk_rejections, _ = get_execution_metrics()
+    if risk_rejections:
+        try:
+            risk_rejections.labels(reason=reason, symbol=symbol).inc()
+        except Exception as e:
+            logger.debug(f"Error recording risk rejection metric: {e}")
+
+
+def update_execution_success_rate(strategy: str, success_rate: float):
+    """Update the execution success rate for a strategy."""
+    _, _, _, execution_success_rate = get_execution_metrics()
+    if execution_success_rate:
+        try:
+            execution_success_rate.labels(strategy=strategy).set(success_rate)
+        except Exception as e:
+            logger.debug(f"Error updating execution success rate metric: {e}")

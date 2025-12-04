@@ -46,7 +46,7 @@ services:
       - "traefik.http.routers.n8n.tls=true"
       - "traefik.http.services.n8n.loadbalancer.server.port=${N8N_PORT}"
       # Homepage integration
-      - "homepage.group=Automation & Workflows"
+      - "homepage.group=Infrastructure"
       - "homepage.name=n8n"
       - "homepage.icon=si-n8n"
       - "homepage.href=https://n8n.${DOMAIN}"

@@ -21,6 +21,7 @@ from ...data.providers.market_data import DataProviderManager
 from ...api.routes.strategies import get_evaluator
 from ...api.routes.trading import get_ibkr_manager
 from ...core.sync import PositionSyncService, get_position_sync_service
+from ...core.executor import OrderExecutor, ExecutionContext, ExecutionStatus, get_order_executor
 
 logger = logging.getLogger(__name__)
 
@@ -65,17 +66,19 @@ class TradingScheduler:
         ibkr_manager: Optional[IBKRManager] = None,
         risk_manager: Optional[RiskManager] = None,
         data_provider: Optional[DataProviderManager] = None,
-        position_sync_service: Optional[PositionSyncService] = None
+        position_sync_service: Optional[PositionSyncService] = None,
+        order_executor: Optional[OrderExecutor] = None,
     ):
         """
         Initialize trading scheduler
-        
+
         Args:
             evaluator: Strategy evaluator instance
             ibkr_manager: IBKR manager instance
             risk_manager: Risk manager instance
             data_provider: Market data provider manager
             position_sync_service: Position sync service instance
+            order_executor: Order executor instance (T10)
         """
         self.config = settings.scheduler
         self.position_sync_config = settings.position_sync
@@ -84,6 +87,7 @@ class TradingScheduler:
         self.risk_manager = risk_manager or get_risk_manager()
         self.data_provider = data_provider
         self.position_sync_service = position_sync_service or get_position_sync_service()
+        self.order_executor = order_executor or get_order_executor()
         
         # State
         self.state = SchedulerState.STOPPED
@@ -277,27 +281,13 @@ class TradingScheduler:
     
     async def _execute_signal(self, strategy_id: str, signal):
         """
-        Execute a trading signal
-        
+        Execute a trading signal via OrderExecutor (T10).
+
         Args:
             strategy_id: Strategy identifier
             signal: TradingSignal to execute
         """
         try:
-            ibkr_manager = self._get_ibkr_manager()
-            if not ibkr_manager:
-                raise RuntimeError("IBKR manager not available")
-            
-            client = await ibkr_manager.get_client()
-            if not client:
-                raise RuntimeError("IBKR client not available")
-            
-            # Get account ID (default to primary account)
-            account_id = 1  # TODO: Get from settings or account management
-            
-            # Prepare trade request
-            side = "BUY" if signal.signal_type.value == "BUY" else "SELL"
-            
             # Check if we have enough concurrent trades
             if len(self._monitored_positions) >= self.config.max_concurrent_trades:
                 logger.warning(
@@ -306,83 +296,81 @@ class TradingScheduler:
                 )
                 self.stats.trades_rejected += 1
                 return
-            
+
             # Get account ID (default to primary account - TODO: make configurable)
             account_id = 1
-            
-            # Validate trade with risk manager
-            try:
-                validation = await self.risk_manager.validate_trade(
-                    account_id=account_id,
-                    symbol=signal.symbol,
-                    side=side,
-                    quantity=signal.quantity,
-                    price_per_share=signal.price,
-                    confidence_score=signal.confidence,
-                    will_create_day_trade=False  # TODO: Detect day trades properly
-                )
-                
-                if not validation.can_proceed:
-                    logger.warning(
-                        f"Trade rejected by risk manager: {side} {signal.quantity} {signal.symbol} - "
-                        f"{validation.compliance_check.message}"
-                    )
-                    self.stats.trades_rejected += 1
-                    return
-                
-                # Use position size from validation if calculated
-                quantity = signal.quantity
-                if validation.position_size and validation.position_size.size_shares > 0:
-                    quantity = validation.position_size.size_shares
-                
-                if not quantity or quantity <= 0:
-                    logger.warning(f"Invalid quantity calculated: {quantity}")
-                    self.stats.trades_rejected += 1
-                    return
-                
-            except Exception as e:
-                logger.error(f"Error validating trade with risk manager: {e}", exc_info=True)
-                self.stats.trades_rejected += 1
-                return
-            
-            # Execute trade via IBKR
-            contract = client.create_contract(signal.symbol)
-            order_side = OrderSide.BUY if side == "BUY" else OrderSide.SELL
-            
-            # Place order (use limit if price specified, otherwise market)
-            if signal.order_type and hasattr(signal.order_type, 'value') and signal.order_type.value == "LIMIT":
-                order = await client.place_limit_order(
-                    contract, order_side, quantity, signal.price
-                )
-            else:
-                order = await client.place_market_order(
-                    contract, order_side, quantity
-                )
-            
-            logger.info(
-                f"Trade executed: {side} {quantity} {signal.symbol} @ ${signal.price:.2f} "
-                f"(strategy: {strategy_id}, confidence: {signal.confidence:.2%}, order_id: {order.order_id})"
-            )
-            
-            self.stats.trades_executed += 1
-            self.stats.last_trade = datetime.now()
-            
-            # Update monitored positions
-            if side == "BUY":
-                self._monitored_positions[strategy_id] = signal.symbol
-            
-            # Trigger position sync after trade execution if enabled
-            if self.position_sync_config.enabled and self.position_sync_config.sync_on_trade:
+
+            # Set up IBKR client on executor if available
+            ibkr_manager = self._get_ibkr_manager()
+            if ibkr_manager and ibkr_manager.is_connected:
                 try:
-                    logger.debug("Triggering position sync after trade execution")
-                    await self.position_sync_service.sync_positions(
-                        account_id=account_id,
-                        calculate_realized_pnl=self.position_sync_config.calculate_realized_pnl
-                    )
+                    client = await ibkr_manager.get_client()
+                    if client:
+                        self.order_executor.set_ibkr_client(client)
                 except Exception as e:
-                    logger.warning(f"Error syncing positions after trade: {e}")
-                    # Don't fail the trade execution if sync fails
-            
+                    logger.warning(f"Could not get IBKR client for executor: {e}")
+
+            # Determine order type
+            order_type = "MARKET"
+            limit_price = None
+            if hasattr(signal, 'order_type') and signal.order_type:
+                if hasattr(signal.order_type, 'value'):
+                    order_type = signal.order_type.value
+                else:
+                    order_type = str(signal.order_type).upper()
+                if order_type == "LIMIT":
+                    limit_price = signal.price
+
+            # Create execution context
+            context = ExecutionContext(
+                account_id=account_id,
+                strategy_name=strategy_id,
+                dry_run=False,  # Live execution from scheduler
+                order_type=order_type,
+                limit_price=limit_price,
+                metadata={"source": "scheduler", "strategy_id": strategy_id},
+            )
+
+            # Execute via OrderExecutor (T10)
+            audit_log = await self.order_executor.execute(signal, context)
+
+            # Process result
+            if audit_log.status == ExecutionStatus.SUCCESS:
+                logger.info(
+                    f"Trade executed: {signal.signal_type.value} {audit_log.final_quantity} {signal.symbol} "
+                    f"@ ${audit_log.final_price or signal.price:.2f} "
+                    f"(strategy: {strategy_id}, confidence: {signal.confidence:.2%}, order_id: {audit_log.order_id})"
+                )
+                self.stats.trades_executed += 1
+                self.stats.last_trade = datetime.now()
+
+                # Update monitored positions
+                if signal.signal_type.value == "BUY":
+                    self._monitored_positions[strategy_id] = signal.symbol
+
+                # Trigger position sync after trade execution if enabled
+                if self.position_sync_config.enabled and self.position_sync_config.sync_on_trade:
+                    try:
+                        logger.debug("Triggering position sync after trade execution")
+                        await self.position_sync_service.sync_positions(
+                            account_id=account_id,
+                            calculate_realized_pnl=self.position_sync_config.calculate_realized_pnl
+                        )
+                    except Exception as e:
+                        logger.warning(f"Error syncing positions after trade: {e}")
+
+            elif audit_log.status == ExecutionStatus.REJECTED_DRY_RUN:
+                # Dry-run mode (shouldn't happen from scheduler but handle gracefully)
+                logger.info(f"Dry-run: {signal.signal_type.value} {signal.quantity} {signal.symbol}")
+
+            else:
+                # Execution failed or rejected
+                logger.warning(
+                    f"Trade rejected/failed: {signal.signal_type.value} {signal.quantity} {signal.symbol} - "
+                    f"status={audit_log.status.value}, reason={audit_log.error_message}"
+                )
+                self.stats.trades_rejected += 1
+
         except Exception as e:
             logger.error(f"Error executing signal: {e}", exc_info=True)
             self.stats.trades_rejected += 1

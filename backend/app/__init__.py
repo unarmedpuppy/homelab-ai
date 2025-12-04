@@ -1,4 +1,0 @@
-"""
-Trading Journal Backend Application
-"""
-

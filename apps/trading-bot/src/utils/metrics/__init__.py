@@ -100,6 +100,28 @@ from .collectors import (
     update_cache_hit_rates_from_monitor,
 )
 
+# Portfolio Risk metrics (T17: Risk Manager Agent)
+from .collectors import (
+    get_portfolio_risk_metrics,
+    record_portfolio_risk_check,
+    record_portfolio_risk_score,
+    update_circuit_breaker_status,
+    update_market_regime,
+    update_position_concentration,
+    update_sector_exposure,
+    record_portfolio_risk_decision,
+    record_portfolio_risk_evaluation,
+)
+
+# Execution metrics (T10: Strategy-to-Execution Pipeline)
+from .collectors import (
+    get_execution_metrics,
+    record_execution_outcome,
+    record_execution_duration,
+    record_risk_rejection,
+    update_execution_success_rate,
+)
+
 __all__ = [
     # Registry
     "get_metrics_registry",
@@ -169,4 +191,20 @@ __all__ = [
     "update_risk_metrics_from_config",
     "calculate_drawdown",
     "update_cache_hit_rates_from_monitor",
+    # Portfolio Risk (T17)
+    "get_portfolio_risk_metrics",
+    "record_portfolio_risk_check",
+    "record_portfolio_risk_score",
+    "update_circuit_breaker_status",
+    "update_market_regime",
+    "update_position_concentration",
+    "update_sector_exposure",
+    "record_portfolio_risk_decision",
+    "record_portfolio_risk_evaluation",
+    # Execution (T10)
+    "get_execution_metrics",
+    "record_execution_outcome",
+    "record_execution_duration",
+    "record_risk_rejection",
+    "update_execution_success_rate",
 ]

@@ -77,7 +77,7 @@ services:
       - "traefik.http.routers.paperless.tls=true"
       - "traefik.http.services.paperless.loadbalancer.server.port=8200"
       # Homepage integration
-      - "homepage.group=Media Management"
+      - "homepage.group=Productivity & Organization"
       - "homepage.name=paperless"
       - "homepage.icon=si-paperlessngx"
       - "homepage.href=https://paperless.server.unarmedpuppy.com"

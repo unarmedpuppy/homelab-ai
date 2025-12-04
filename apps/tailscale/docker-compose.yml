@@ -14,7 +14,7 @@ services:
     environment:
       - TS_AUTHKEY=tskey-auth-kq8ZZz6CNTRL-ySrwZtner83AryykCZxJ93xgnNVne8Vf
     labels:
-      - "homepage.group=Infrastructure & Services"
+      - "homepage.group=Infrastructure"
       - "homepage.name=Tailscale"
       - "homepage.icon=si-wireguard"
       - "homepage.description=VPN"

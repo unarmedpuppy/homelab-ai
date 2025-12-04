@@ -566,7 +566,29 @@ class RiskManagementSettings(BaseSettings):
     # Account Monitoring
     balance_check_interval_minutes: int = Field(default=5, description="Interval for checking account balance (minutes)")
     balance_cache_duration_minutes: int = Field(default=5, description="Duration to cache balance (minutes)")
-    
+
+    # Portfolio Risk Settings (T17: Risk Manager Agent)
+    portfolio_risk_enabled: bool = Field(default=True, description="Enable portfolio-level risk checks")
+    portfolio_risk_strict_mode: bool = Field(default=False, description="If True, warnings become failures")
+
+    # Concentration Limits
+    max_single_position_pct: float = Field(default=0.05, description="Max single position size as % of portfolio (5%)")
+    max_symbol_exposure_pct: float = Field(default=0.10, description="Max total exposure per symbol (10%)")
+    max_sector_exposure_pct: float = Field(default=0.25, description="Max exposure per sector (25%)")
+
+    # Correlation
+    max_correlation: float = Field(default=0.7, description="Max correlation with existing positions (0.7 = 70%)")
+    correlation_lookback_days: int = Field(default=30, description="Days of history for correlation calculation")
+
+    # Drawdown Circuit Breaker
+    max_daily_loss_pct: float = Field(default=0.02, description="Stop trading at X% daily loss (2%)")
+    circuit_breaker_cooldown_minutes: int = Field(default=60, description="Cooldown after circuit breaker triggers")
+
+    # Market Regime
+    regime_detection_enabled: bool = Field(default=True, description="Enable market regime detection")
+    reduce_size_in_high_vol: bool = Field(default=True, description="Reduce position size in high volatility")
+    high_vol_size_reduction: float = Field(default=0.5, description="Size reduction factor in high vol (0.5 = 50%)")
+
     @validator('pdt_enforcement_mode', 'gfv_enforcement_mode')
     def validate_enforcement_mode(cls, v):
         if v not in ['strict', 'warning']:

@@ -130,7 +130,7 @@ services:
       
     #  # Part for local lan services only
     #  - traefik.http.routers.grafana.middlewares=local-ipwhitelist@file
-      - "homepage.group=Infrastructure & Services"
+      - "homepage.group=Infrastructure"
       - "homepage.name=Grafana"
       - "homepage.icon=si-grafana"
       - "homepage.href=http://192.168.86.47:3010/d/sF7d-FHZz122/server?orgId=1&refresh=15m"

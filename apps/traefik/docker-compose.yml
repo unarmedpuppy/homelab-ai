@@ -26,7 +26,7 @@ services:
       - "traefik.http.middlewares.auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.routers.api.entrypoints=websecure"
       - "traefik.http.routers.api.tls.certresolver=myresolver"
-      - "homepage.group=Infrastructure & Services"
+      - "homepage.group=Infrastructure"
       - "homepage.name=Traefik"
       - "homepage.icon=si-traefikproxy"
       - "homepage.href=https://traefik.server.unarmedpuppy.com"
