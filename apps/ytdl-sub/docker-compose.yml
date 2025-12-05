@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  ytdl-sub:
+    # Standard headless image
+    # For Web-GUI version, see: https://ytdl-sub.readthedocs.io/en/latest/guides/install/docker.html
+    image: ghcr.io/jmbannon/ytdl-sub:latest
+    container_name: ytdl-sub
+    restart: unless-stopped
+    environment:
+      - TZ=America/New_York
+      - PUID=1000
+      - PGID=1000
+    volumes:
+      - ./config:/config
+      - ./subscriptions:/subscriptions
+      - ${MEDIA_PATH:-/jenquist-cloud/archive/entertainment-media}:/output
+    networks:
+      - my-network
+    labels:
+      - "homepage.group=Media & Entertainment"
+      - "homepage.name=ytdl-sub"
+      - "homepage.icon=si-youtube"
+      - "homepage.href=https://github.com/jmbannon/ytdl-sub"
+      - "homepage.description=Automated YouTube/media downloads with metadata (CLI via SSH)"
+
+networks:
+  my-network:
+    external: true
+

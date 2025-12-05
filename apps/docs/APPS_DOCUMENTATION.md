@@ -272,10 +272,30 @@ Complete automation stack for media acquisition. All services on `media-download
 - **Ports**: `8020` - Web interface
 - **Status**: ✅ **ACTIVE**
 
+### ytdl-sub
+- **Description**: Automated YouTube/media downloads with metadata generation for media servers
+- **Ports**: None (headless CLI tool)
+- **Status**: ✅ **ACTIVE**
+- **Notes**: 
+  - Downloads YouTube channels, playlists, SoundCloud discographies, and more
+  - Formats media for Plex, Jellyfin, Kodi, Emby with proper metadata
+  - Access via SSH: `docker exec -it ytdl-sub ytdl-sub <command>`
+  - Configured via YAML subscription files in `subscriptions/` directory
+
 ### SpotifyDL
 - **Description**: Spotify content downloader
 - **Ports**: `8800` - Web interface
 - **Status**: ✅ **ACTIVE**
+
+### SoulSync
+- **Description**: Automated music discovery and collection manager
+- **Ports**: `8008` - Web interface
+- **Status**: ⚠️ **CONFIGURED** (requires slskd setup)
+- **Notes**: 
+  - Integrates with Spotify, Tidal, Soulseek (via slskd), and media servers (Plex/Jellyfin/Navidrome)
+  - Requires slskd (Soulseek daemon) running on port 5030
+  - Accessible via `soulsync.server.unarmedpuppy.com` (HTTPS)
+  - Automatically organizes downloaded music and syncs with media servers
 
 ---
 
