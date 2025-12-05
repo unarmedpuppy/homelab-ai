@@ -1,0 +1,62 @@
+# LoggiFly Configuration Example
+# Copy this file to config.yaml and customize for your needs
+
+# Example: Monitor Vaultwarden for failed login attempts
+containers:
+  - name: vaultwarden
+    patterns:
+      - keyword: "Invalid master password"
+        notify: true
+        title: "🔒 Vaultwarden Security Alert"
+        message: "Failed login attempt detected in Vaultwarden"
+        # Optional: Include log context
+        include_log: true
+        log_lines: 10
+
+  # Example: Monitor Plex for errors
+  - name: plex
+    patterns:
+      - regex: "ERROR|FATAL|CRITICAL"
+        notify: true
+        title: "⚠️ Plex Error Detected"
+        message: "Error detected in Plex logs"
+        include_log: true
+        log_lines: 20
+        # Optional: Restart container on critical errors
+        # restart: true
+
+  # Example: Monitor any container for specific patterns
+  - name: "*"  # Monitor all containers
+    patterns:
+      - regex: "Out of memory|OOM"
+        notify: true
+        title: "🚨 Memory Issue Detected"
+        message: "Out of memory error detected"
+        # Optional: Stop container to prevent restart loops
+        # stop: true
+
+# Notification Configuration
+# Uncomment and configure your preferred notification method
+
+# Ntfy Configuration
+# ntfy:
+#   url: "https://ntfy.sh/your-topic"
+#   # Optional: Add authentication
+#   # username: "your-username"
+#   # password: "your-password"
+
+# Apprise Configuration (supports 100+ services)
+# apprise:
+#   url: "slack://token-a/token-b/token-c/#channel"
+#   # Or Discord:
+#   # url: "discord://webhook_id/webhook_token"
+#   # Or Telegram:
+#   # url: "tgram://bot_token/chat_id"
+
+# Custom Webhook
+# webhook:
+#   url: "https://your-webhook-url.com/endpoint"
+#   method: "POST"
+#   headers:
+#     Authorization: "Bearer your-token"
+

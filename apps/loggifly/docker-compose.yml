@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  loggifly:
+    image: ghcr.io/clemcer/loggifly:latest
+    container_name: loggifly
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config:/config
+    environment:
+      - TZ=America/Chicago
+    networks:
+      - my-network
+    labels:
+      # Homepage integration
+      - "homepage.group=Infrastructure"
+      - "homepage.name=LoggiFly"
+      - "homepage.icon=📊"
+      - "homepage.description=Monitor Docker container logs and send notifications"
+
+networks:
+  my-network:
+    external: true
+
