@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  mazanoke:
+    image: ghcr.io/civilblur/mazanoke:latest
+    container_name: mazanoke
+    restart: unless-stopped
+    ports:
+      - "8102:80"
+    environment:
+      - TZ=America/Chicago
+    networks:
+      - my-network
+    labels:
+      - "traefik.enable=true"
+      # HTTPS redirect
+      - "traefik.http.middlewares.mazanoke-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.mazanoke-redirect.middlewares=mazanoke-redirect"
+      - "traefik.http.routers.mazanoke-redirect.rule=Host(`mazanoke.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.mazanoke-redirect.entrypoints=web"
+      # Main HTTPS router
+      - "traefik.http.routers.mazanoke.rule=Host(`mazanoke.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.mazanoke.entrypoints=websecure"
+      - "traefik.http.routers.mazanoke.tls.certresolver=myresolver"
+      - "traefik.http.routers.mazanoke.service=mazanoke"
+      - "traefik.http.services.mazanoke.loadbalancer.server.port=80"
+      # Homepage integration
+      - "homepage.group=Tools & Utilities"
+      - "homepage.name=Mazanoke"
+      - "homepage.icon=🖼️"
+      - "homepage.href=https://mazanoke.server.unarmedpuppy.com"
+      - "homepage.description=Self-hosted local image optimizer that runs in your browser"
+
+networks:
+  my-network:
+    external: true
+
