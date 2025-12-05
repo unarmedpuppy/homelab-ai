@@ -215,6 +215,17 @@ Complete automation stack for media acquisition. All services on `media-download
 - **Status**: ✅ **ACTIVE**
 - **Notes**: Accessible via `paperless.server.unarmedpuppy.com` (HTTPS)
 
+### Wiki.js
+- **Description**: Modern wiki application for documentation and knowledge bases
+- **Services**:
+  - **wiki**: `3001` - Main web interface
+  - **db**: PostgreSQL (internal)
+- **Status**: ✅ **ACTIVE**
+- **Notes**: 
+  - Accessible via `wiki.server.unarmedpuppy.com` (HTTPS)
+  - Built on Node.js with Markdown support
+  - Supports Git storage backend for version control
+
 ### n8n
 - **Description**: Workflow automation platform
 - **Ports**: `5678` - Web interface
