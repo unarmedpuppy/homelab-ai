@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  beaverhabits:
+    image: daya0576/beaverhabits:latest
+    container_name: beaverhabits
+    restart: unless-stopped
+    user: 1000:1000
+    ports:
+      - "8096:8080"
+    environment:
+      - TZ=America/Chicago
+      - PUID=1000
+      - PGID=1000
+      - HABITS_STORAGE=USER_DISK
+      - TRUSTED_LOCAL_EMAIL=${TRUSTED_LOCAL_EMAIL:-}
+      - INDEX_HABIT_DATE_COLUMNS=5
+      - ENABLE_IOS_STANDALONE=true
+    volumes:
+      - ./data:/app/.user/
+    networks:
+      - my-network
+    labels:
+      - "traefik.enable=true"
+      # HTTPS redirect
+      - "traefik.http.middlewares.beaverhabits-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.beaverhabits-redirect.middlewares=beaverhabits-redirect"
+      - "traefik.http.routers.beaverhabits-redirect.rule=Host(`beaverhabits.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.beaverhabits-redirect.entrypoints=web"
+      # Main HTTPS router
+      - "traefik.http.routers.beaverhabits.rule=Host(`beaverhabits.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.beaverhabits.entrypoints=websecure"
+      - "traefik.http.routers.beaverhabits.tls.certresolver=myresolver"
+      - "traefik.http.routers.beaverhabits.service=beaverhabits"
+      - "traefik.http.services.beaverhabits.loadbalancer.server.port=8080"
+      # Homepage integration
+      - "homepage.group=Productivity"
+      - "homepage.name=Beaver Habits"
+      - "homepage.icon=🐻"
+      - "homepage.href=https://beaverhabits.server.unarmedpuppy.com"
+      - "homepage.description=Self-hosted habit tracking app without Goals"
+
+networks:
+  my-network:
+    external: true
+
