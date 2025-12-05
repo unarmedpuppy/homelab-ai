@@ -17,7 +17,7 @@ Beaver Habits is a simple, goal-free habit tracking application that focuses on 
 
 ## Access
 
-- **Local**: `http://192.168.86.47:8096`
+- **Local**: `http://192.168.86.47:8100`
 - **HTTPS**: `https://beaverhabits.server.unarmedpuppy.com`
 
 ## Configuration
@@ -45,7 +45,7 @@ Beaver Habits is a simple, goal-free habit tracking application that focuses on 
    docker compose up -d
    ```
 
-3. Access at `http://192.168.86.47:8096` or via Traefik at `https://beaverhabits.server.unarmedpuppy.com`
+3. Access at `http://192.168.86.47:8100` or via Traefik at `https://beaverhabits.server.unarmedpuppy.com`
 
 ## Notes
 
