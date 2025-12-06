@@ -10,8 +10,10 @@ services:
       - planka-attachments:/app/private/attachments
     ports:
       - 3006:1337
+    networks:
+      - my-network
     environment:
-      - BASE_URL=http://192.168.86.47:3006
+      - BASE_URL=https://planka.server.unarmedpuppy.com
       - DATABASE_URL=postgresql://postgres@postgres/planka
       - SECRET_KEY=notsecretkeyireallydontcare2
 
@@ -44,10 +46,33 @@ services:
       # - OIDC_IGNORE_ROLES=true
       # - OIDC_ENFORCED=true
     labels:
+      - "traefik.enable=true"
+      # HTTPS redirect
+      - "traefik.http.middlewares.planka-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.planka-redirect.middlewares=planka-redirect"
+      - "traefik.http.routers.planka-redirect.rule=Host(`planka.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.planka-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.planka-local.rule=Host(`planka.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.planka-local.priority=100"
+      - "traefik.http.routers.planka-local.entrypoints=websecure"
+      - "traefik.http.routers.planka-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.planka.rule=Host(`planka.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.planka.priority=1"
+      - "traefik.http.routers.planka.entrypoints=websecure"
+      - "traefik.http.routers.planka.tls.certresolver=myresolver"
+      - "traefik.http.routers.planka.tls=true"
+      - "traefik.http.routers.planka.middlewares=planka-auth"
+      # Service and auth middleware
+      - "traefik.http.services.planka.loadbalancer.server.port=1337"
+      - "traefik.http.middlewares.planka-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.planka-auth.basicauth.realm=Planka"
+      # Homepage labels
       - "homepage.group=Productivity & Organization"
       - "homepage.name=Planka"
       - "homepage.icon=si-todoist"
-      - "homepage.href=http://192.168.86.47:3006/"
+      - "homepage.href=https://planka.server.unarmedpuppy.com"
       - "homepage.description=Projects, To-Do lists & Kanban"
     depends_on:
       postgres:
@@ -72,3 +97,7 @@ volumes:
   planka-project-background-images:
   planka-attachments:
   planka-db-data:
+
+networks:
+  my-network:
+    external: true
