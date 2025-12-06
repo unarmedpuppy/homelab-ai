@@ -4,9 +4,13 @@ x-enabled: true
 
 services:
   newsblur-web:
-    build:
-      context: https://github.com/samuelclay/NewsBlur.git
-      dockerfile: docker/Dockerfile.web
+    # Note: NewsBlur requires building from source
+    # Clone the repository first: git clone https://github.com/samuelclay/NewsBlur.git ../NewsBlur
+    # Then uncomment the build section below and comment out the image line
+    # build:
+    #   context: ../NewsBlur
+    #   dockerfile: docker/Dockerfile.web
+    image: newsblur/newsblur:latest  # This may not exist - use build instead
     container_name: newsblur-web
     restart: unless-stopped
     depends_on:

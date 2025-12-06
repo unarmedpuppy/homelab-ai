@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  firefly-iii:
+    image: fireflyiii/core:latest
+    container_name: firefly-iii
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "8082:8080"
+    volumes:
+      - firefly-iii-upload:/var/www/html/storage/upload
+      - firefly-iii-export:/var/www/html/storage/export
+    environment:
+      - TZ=America/Chicago
+      - APP_ENV=production
+      - APP_KEY=
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=firefly
+      - DB_USERNAME=firefly
+      - DB_PASSWORD=firefly
+      - APP_URL=https://firefly.server.unarmedpuppy.com
+      - TRUSTED_PROXIES=*
+    networks:
+      - my-network
+    labels:
+      - "traefik.enable=true"
+      # HTTP to HTTPS redirect
+      - "traefik.http.routers.firefly-http.rule=Host(`firefly.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.firefly-http.entrypoints=web"
+      - "traefik.http.routers.firefly-http.middlewares=redirect-to-https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.firefly-local.rule=Host(`firefly.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.firefly-local.priority=100"
+      - "traefik.http.routers.firefly-local.entrypoints=websecure"
+      - "traefik.http.routers.firefly-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.firefly.rule=Host(`firefly.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.firefly.priority=1"
+      - "traefik.http.routers.firefly.entrypoints=websecure"
+      - "traefik.http.routers.firefly.tls.certresolver=myresolver"
+      - "traefik.http.routers.firefly.tls=true"
+      - "traefik.http.routers.firefly.middlewares=firefly-auth"
+      # Service port
+      - "traefik.http.services.firefly.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.firefly-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.firefly-auth.basicauth.realm=Firefly III"
+      # Homepage integration
+      - "homepage.group=Productivity & Organization"
+      - "homepage.name=Firefly III"
+      - "homepage.icon=si-firefly"
+      - "homepage.href=https://firefly.server.unarmedpuppy.com"
+      - "homepage.description=Personal finance manager"
+
+  db:
+    image: postgres:14-alpine
+    container_name: firefly-iii-db
+    restart: unless-stopped
+    volumes:
+      - firefly-iii-db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=firefly
+      - POSTGRES_USER=firefly
+      - POSTGRES_PASSWORD=firefly
+    networks:
+      - my-network
+
+volumes:
+  firefly-iii-upload:
+  firefly-iii-export:
+  firefly-iii-db:
+
+networks:
+  my-network:
+    external: true
+
