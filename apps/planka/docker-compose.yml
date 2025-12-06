@@ -86,6 +86,8 @@ services:
     environment:
       - POSTGRES_DB=planka
       - POSTGRES_HOST_AUTH_METHOD=trust
+    networks:
+      - my-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d planka"]
       interval: 10s
