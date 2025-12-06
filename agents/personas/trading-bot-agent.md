@@ -106,36 +106,45 @@ You are the Trading Bot application specialist. Your expertise includes:
    - ✅ Profit taking (aggressive levels: 5%, 10%, 20%)
    - ✅ Stop loss management
    - ✅ Cash account compliance (PDT rules, settlement periods)
+   - ✅ **Portfolio Risk Checker (T17)** - Position concentration, symbol/sector exposure, correlation, circuit breaker
+   - ✅ Market regime detection (bull/bear/sideways/high_vol)
 
-8. **Recent Improvements (Current Session)**
+8. **Multi-Agent Trading Architecture**
+   - ✅ **T17: Risk Manager Agent** - Portfolio-level risk as final approval gate
+   - ✅ **T7: Analyst Agents** - Bull/Bear/Technical/Fundamental analyst personas
+   - ✅ **T8: Debate Room** - Multi-analyst debates with structured arguments
+   - ✅ Debate UI with real-time streaming via WebSocket
+
+9. **Recent Improvements (Current Session)**
    - ✅ Updated `IMPLEMENTATION_ROADMAP.md` to reflect current status
    - ✅ Consolidated strategy structure (moved from `strategies/` to `strategy/`)
    - ✅ Enhanced UI WebSocket integration (market data, options flow handlers)
    - ✅ Fixed imports across codebase
    - ✅ Strategy registry with decorator support
+   - ✅ Risk router mounted in main.py with portfolio-risk endpoints
+   - ✅ Dashboard accessible at `/dashboard` route
 
 ## What We're Planning
 
 ### 🔄 In Progress
 
-1. **Real-time Data Feeds**
-   - WebSocket producers verified (market data, options flow streams exist)
-   - Need to ensure data sources actively broadcast to WebSocket
-   - UI handlers added for market data and options flow messages
-
-2. **Strategy Execution & Automation**
+1. **T10: Strategy-to-Execution Pipeline** (Priority 1: Before Live Trading)
    - Live execution: Connect `BaseStrategy` signals to IBKR execution
-   - Strategy registry: Unified loading and management (partially done)
-   - Scheduler: Automate strategy runs (market open/close)
+   - Order placement with risk manager approval
+   - Position tracking and P&L monitoring
 
 ### 🚀 Medium Priority
+
+2. **T20: LLM Synthesis**
+   - Optional trade explanations using LLM
+   - Human-readable summaries of analyst debates
 
 3. **Advanced Backtesting**
    - Parameter optimization (grid search, genetic algorithms)
    - Walk-forward analysis (out-of-sample testing)
 
 4. **UI Enhancements**
-   - Real-time dashboard: Connect WebSocket data to frontend charts
+   - Real-time price/sentiment updates in dashboard
    - Strategy configuration: UI for modifying strategy parameters
    - Backtest visualization: Interactive charts for backtest results
 
@@ -144,7 +153,6 @@ You are the Trading Bot application specialist. Your expertise includes:
 5. **Advanced Analytics**
    - Machine learning: Signal prediction models
    - Pattern recognition: Chart pattern detection
-   - Market regime detection: Bull/bear market identification
 
 ## System Architecture
 
@@ -180,7 +188,18 @@ You are the Trading Bot application specialist. Your expertise includes:
 - `position_sizing.py` - Confidence-based position sizing
 - `profit_taking.py` - Aggressive profit taking levels
 - `compliance.py` - Cash account rules, PDT compliance
-- `manager.py` - Risk management orchestration
+- `manager.py` - Unified risk manager (orchestrates all risk checks)
+- `portfolio_risk.py` - **T17: Portfolio-level risk** (position concentration, sector exposure, correlation, circuit breaker)
+- `account_monitor.py` - Account balance and cash mode detection
+
+**Multi-Agent System** (`src/core/agents/`):
+- `researchers.py` - Analyst personas (Bull, Bear, Technical, Fundamental)
+- Debate mechanism for opposing viewpoints
+
+**API Routes** (`src/api/routes/`):
+- `risk.py` - Risk endpoints (`/api/risk/portfolio-risk`, `/api/risk/status`, etc.)
+- `analysts.py` - Analyst agent endpoints
+- `debate.py` - Debate room endpoints with WebSocket streaming
 
 ### WebSocket Architecture
 
@@ -783,16 +802,47 @@ When making changes:
 
 ## Current Status Summary
 
-**Completed**: Data providers, database models, strategy system, sentiment analysis, backtesting engine, WebSocket streaming, risk management, UI WebSocket integration, strategy consolidation
+**Completed**:
+- Data providers, database models, strategy system, sentiment analysis
+- Backtesting engine, WebSocket streaming, risk management
+- UI WebSocket integration, strategy consolidation
+- **T17: Risk Manager Agent** - Portfolio-level risk checks (position concentration, sector exposure, correlation, circuit breaker, market regime)
+- **T7/T8: Analyst Agents & Debate Room** - Bull/Bear debate UI with multi-analyst integration
+- Dashboard accessible at `/dashboard` route
+- Risk API at `/api/risk/portfolio-risk`, `/api/risk/status`, etc.
 
-**In Progress**: Real-time data producers verification, live execution integration, strategy automation
+**In Progress**: T10 Strategy-to-Execution Pipeline
 
-**Next Steps**: 
-1. Verify WebSocket data producers are actively broadcasting
-2. Connect strategy signals to IBKR execution
-3. Implement strategy scheduler for automated runs
-4. Add UI enhancements for strategy configuration
-5. Implement parameter optimization for backtesting
+**Next Steps**:
+1. **T10**: Connect strategy signals to IBKR execution with risk manager approval
+2. **T20**: Optional LLM synthesis for trade explanations
+3. Real-time price/sentiment updates in dashboard
+4. Implement parameter optimization for backtesting
+
+## Key API Endpoints
+
+### Risk Management (T17)
+```bash
+# Get portfolio risk status
+curl http://localhost:8021/api/risk/portfolio-risk
+
+# Evaluate a trade against portfolio risk rules
+curl -X POST http://localhost:8021/api/risk/portfolio-risk/evaluate \
+  -H "Content-Type: application/json" \
+  -d '{"symbol":"AAPL","side":"BUY","quantity":10,"price":175.0}'
+
+# Reset circuit breaker
+curl -X POST http://localhost:8021/api/risk/portfolio-risk/reset-circuit-breaker
+```
+
+### Analyst Debate (T7/T8)
+```bash
+# Get analyst debate for a symbol
+curl http://localhost:8021/api/debate/AAPL
+
+# Get available analysts
+curl http://localhost:8021/api/analysts
+```
 
 See [agents/](../) for complete documentation.
 
