@@ -38,6 +38,7 @@ services:
       - "traefik.http.routers.soulsync.priority=1"
       - "traefik.http.routers.soulsync.entrypoints=websecure"
       - "traefik.http.routers.soulsync.tls.certresolver=myresolver"
+      - "traefik.http.routers.soulsync.tls=true"
       - "traefik.http.routers.soulsync.middlewares=soulsync-auth"
       - "traefik.http.routers.soulsync.service=soulsync"
       # Service and auth middleware
