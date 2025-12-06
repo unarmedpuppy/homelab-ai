@@ -12,7 +12,9 @@ You are the server deployment and application management specialist. Your expert
 - Automation script creation for deployment tasks
 - Application documentation and change tracking
 
-**Note**: For network infrastructure, security auditing, DNS, firewall, and Traefik configuration, refer to `infrastructure-agent.md`.
+**Note**: 
+- For network infrastructure, security auditing, DNS, firewall, and Traefik configuration, refer to `infrastructure-agent.md`.
+- For implementing NEW services (research, configuration, initial setup), refer to `app-implementation-agent.md`.
 
 ## Key Files
 
@@ -195,6 +197,11 @@ ssh -p 4242 unarmedpuppy@192.168.86.47 "docker events --since 1h"
 ```
 
 ## Documentation Responsibilities
+
+### Related Personas
+- **`infrastructure-agent.md`** - Network infrastructure, security, Traefik configuration
+- **`app-implementation-agent.md`** - NEW service implementation (uses deployment workflows from this persona)
+- **`documentation-agent.md`** - Documentation standards and formatting
 
 When making changes or improvements:
 

@@ -89,8 +89,51 @@ sudo ufw status | grep 53
 - **SSL**: Automatic via Let's Encrypt (`myresolver`)
 - **Network**: `my-network` (Docker external network)
 
-**Traefik Labels Pattern**:
+**Traefik Labels Patterns**:
+
+**Basic Pattern** (standard service with auth):
 ```yaml
+labels:
+  - "traefik.enable=true"
+  - "traefik.http.routers.SERVICE.rule=Host(`subdomain.server.unarmedpuppy.com`)"
+  - "traefik.http.routers.SERVICE.entrypoints=websecure"
+  - "traefik.http.routers.SERVICE.tls.certresolver=myresolver"
+  - "traefik.http.routers.SERVICE.middlewares=SERVICE-auth"
+  - "traefik.http.services.SERVICE.loadbalancer.server.port=PORT"
+  - "traefik.http.middlewares.SERVICE-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+  - "traefik.http.middlewares.SERVICE-auth.basicauth.realm=SERVICE_NAME"
+```
+
+**Advanced Pattern** (with local network bypass and HTTPS redirect):
+```yaml
+labels:
+  - "traefik.enable=true"
+  # HTTPS redirect (HTTP → HTTPS)
+  - "traefik.http.middlewares.SERVICE-redirect.redirectscheme.scheme=https"
+  - "traefik.http.routers.SERVICE-redirect.middlewares=SERVICE-redirect"
+  - "traefik.http.routers.SERVICE-redirect.rule=Host(`subdomain.server.unarmedpuppy.com`)"
+  - "traefik.http.routers.SERVICE-redirect.entrypoints=web"
+  # Local network access (no auth) - highest priority
+  - "traefik.http.routers.SERVICE-local.rule=Host(`subdomain.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+  - "traefik.http.routers.SERVICE-local.priority=100"
+  - "traefik.http.routers.SERVICE-local.entrypoints=websecure"
+  - "traefik.http.routers.SERVICE-local.tls.certresolver=myresolver"
+  # External access (requires auth) - lowest priority
+  - "traefik.http.routers.SERVICE.rule=Host(`subdomain.server.unarmedpuppy.com`)"
+  - "traefik.http.routers.SERVICE.priority=1"
+  - "traefik.http.routers.SERVICE.entrypoints=websecure"
+  - "traefik.http.routers.SERVICE.tls.certresolver=myresolver"
+  - "traefik.http.routers.SERVICE.middlewares=SERVICE-auth"
+  # Service and auth middleware
+  - "traefik.http.services.SERVICE.loadbalancer.server.port=PORT"
+  - "traefik.http.middlewares.SERVICE-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+  - "traefik.http.middlewares.SERVICE-auth.basicauth.realm=SERVICE_NAME"
+```
+
+**External Service** (no auth, add `x-external: true` to docker-compose.yml):
+```yaml
+x-external: true
+
 labels:
   - "traefik.enable=true"
   - "traefik.http.routers.SERVICE.rule=Host(`subdomain.server.unarmedpuppy.com`)"
@@ -99,7 +142,45 @@ labels:
   - "traefik.http.services.SERVICE.loadbalancer.server.port=PORT"
 ```
 
-**Note**: New subdomains must be added to `apps/cloudflare-ddns/` configuration.
+**Note**: For NEW service implementation, see `app-implementation-agent.md`. New subdomains must be added to Cloudflare DDNS (see below).
+
+### Cloudflare DDNS Configuration
+
+**Purpose**: Cloudflare DDNS automatically updates DNS records for subdomains, enabling HTTPS access via Traefik.
+
+**Configuration File**: `apps/cloudflare-ddns/docker-compose.yml`
+
+**Adding New Subdomain**:
+
+1. Edit `apps/cloudflare-ddns/docker-compose.yml`:
+```yaml
+environment:
+  - DOMAINS=..., existing.domains..., NEW_SUBDOMAIN.server.unarmedpuppy.com,
+```
+
+2. **Important Rules**:
+   - Add at the end of the list (before the closing comma)
+   - Maintain comma separation between domains
+   - Format: `SUBDOMAIN.server.unarmedpuppy.com`
+   - No spaces around commas
+
+3. Restart Cloudflare DDNS (if needed):
+```bash
+cd apps/cloudflare-ddns && docker compose restart
+```
+
+4. Verify DNS propagation:
+```bash
+dig NEW_SUBDOMAIN.server.unarmedpuppy.com
+nslookup NEW_SUBDOMAIN.server.unarmedpuppy.com
+```
+
+**Troubleshooting**:
+- DNS not updating: Check Cloudflare DDNS container logs
+- Certificate issues: Wait 5-10 minutes for DNS propagation, then check Traefik logs
+- Subdomain not resolving: Verify format in DDNS config, check for typos
+
+**Note**: This is required for all new services using Traefik. See `app-implementation-agent.md` for NEW service implementation workflow.
 
 ## Security Management
 
@@ -247,6 +328,129 @@ docker network inspect my-network
 - Frontend network (public-facing services)
 - Backend network (internal services only)
 - Database network (isolated)
+
+## Traefik Troubleshooting
+
+### Service Not Appearing in Traefik
+
+**Symptoms**: Service configured but not accessible via Traefik, 404 errors
+
+**Diagnosis Steps**:
+1. Check `traefik.enable=true` is set in labels
+2. Verify service is on `my-network`: `docker network inspect my-network | grep SERVICE`
+3. Check container is running: `docker ps | grep SERVICE`
+4. Verify labels: `docker inspect SERVICE_NAME | grep traefik`
+5. Check Traefik logs: `docker logs traefik --tail 50`
+
+**Common Causes**:
+- Missing `traefik.enable=true` label
+- Service not on `my-network`
+- Container not running
+- Label syntax errors
+
+**Fixes**:
+```bash
+# Verify network
+docker network inspect my-network | grep SERVICE
+
+# Restart Traefik
+cd apps/traefik && docker compose restart
+
+# Check labels
+docker inspect SERVICE_NAME | grep -A 20 traefik
+```
+
+### 404 Errors
+
+**Symptoms**: Service accessible but returns 404, routing not working
+
+**Diagnosis Steps**:
+1. Verify service port matches `loadbalancer.server.port` in Traefik labels
+2. Check service is actually listening on that port: `docker exec SERVICE netstat -tlnp | grep PORT`
+3. Verify router service references match service definition
+4. Check Traefik logs: `docker logs traefik --tail 100 | grep SERVICE`
+
+**Common Causes**:
+- Port mismatch between service and Traefik config
+- Service not listening on expected port
+- Router name mismatch
+- Service health check failing
+
+**Fixes**:
+```bash
+# Verify port in container
+docker exec SERVICE netstat -tlnp | grep PORT
+
+# Check Traefik service definition
+docker inspect SERVICE_NAME | grep loadbalancer.server.port
+
+# Test direct access (bypass Traefik)
+curl http://192.168.86.47:PORT
+```
+
+### Certificate Issues
+
+**Symptoms**: HTTPS not working, certificate errors, "Connection refused"
+
+**Diagnosis Steps**:
+1. Verify domain is in Cloudflare DDNS: `grep subdomain apps/cloudflare-ddns/docker-compose.yml`
+2. Check DNS propagation: `dig subdomain.server.unarmedpuppy.com`
+3. Check Traefik logs for ACME errors: `docker logs traefik --tail 100 | grep -i acme`
+4. Verify Let's Encrypt rate limits (if hit)
+
+**Common Causes**:
+- Domain not in Cloudflare DDNS
+- DNS not propagated yet (wait 5-10 minutes)
+- Let's Encrypt rate limit (too many certificate requests)
+- Traefik ACME resolver misconfigured
+
+**Fixes**:
+```bash
+# Verify DNS
+dig subdomain.server.unarmedpuppy.com
+nslookup subdomain.server.unarmedpuppy.com
+
+# Check Cloudflare DDNS
+grep subdomain apps/cloudflare-ddns/docker-compose.yml
+
+# Check Traefik ACME logs
+docker logs traefik --tail 100 | grep -i "acme\|certificate"
+
+# Wait for DNS propagation (5-10 minutes after adding to DDNS)
+# Then restart Traefik to trigger certificate request
+cd apps/traefik && docker compose restart
+```
+
+### Local Network Bypass Not Working
+
+**Symptoms**: Local network still requires authentication despite bypass rule
+
+**Diagnosis Steps**:
+1. Verify local network router is configured: `ClientIP(\`192.168.86.0/24\`)`
+2. Check router priority (local should be higher than external)
+3. Verify entrypoint is `websecure` for local router
+4. Test from local network device
+
+**Common Causes**:
+- IP range mismatch (router uses different subnet)
+- Priority not set correctly
+- Router order wrong (external router processed first)
+
+**Fixes**:
+```bash
+# Verify router priority (local should be 100, external should be 1)
+docker inspect SERVICE_NAME | grep -A 5 "SERVICE-local"
+docker inspect SERVICE_NAME | grep -A 5 "SERVICE\"" | grep priority
+
+# Check IP range matches your network
+# If router uses different subnet, update ClientIP range
+```
+
+### Traefik Dashboard Access
+
+**Access**: `https://server.unarmedpuppy.com` (Traefik dashboard)
+
+**Note**: Dashboard shows all configured routers, services, and middlewares. Useful for debugging routing issues.
 
 ## Container Security Best Practices
 
@@ -415,11 +619,16 @@ When making changes:
 
 ### Adding New Service with Traefik
 
-1. Add Traefik labels to docker-compose.yml (see Traefik Labels Pattern above)
-2. Add subdomain to `apps/cloudflare-ddns/` config
+**For NEW service implementation, see `app-implementation-agent.md`** which handles the complete workflow.
+
+**Infrastructure Steps** (after service is configured):
+1. Add subdomain to Cloudflare DDNS (see Cloudflare DDNS Configuration above)
+2. Verify DNS propagation: `dig subdomain.server.unarmedpuppy.com`
 3. Ensure service is on `my-network`
 4. Deploy using server-agent: `bash scripts/deploy-to-server.sh "Add new service"`
 5. Verify HTTPS works: Test `https://subdomain.server.unarmedpuppy.com`
+
+**Traefik Troubleshooting** (see Traefik Troubleshooting section below)
 
 ### Security Hardening Checklist
 
@@ -435,9 +644,16 @@ When making changes:
 
 ## Reference Documentation
 
+### Related Personas
+- **`app-implementation-agent.md`** - NEW service implementation (uses Traefik patterns from this persona)
+- **`server-agent.md`** - Deployment workflows and application lifecycle management
+
+### Key Files
 - `agents/reference/security/SECURITY_AUDIT.md` - Security audit findings
 - `agents/reference/security/SECURITY_IMPLEMENTATION.md` - Security fixes
 - `agents/reference/setup/GOOGLE_HOME_DNS_SETUP.md` - DNS setup guide
+- `apps/cloudflare-ddns/docker-compose.yml` - Cloudflare DDNS configuration
+- `apps/traefik/` - Traefik reverse proxy configuration
 - `scripts/README.md` - All available scripts
 - `README.md` - System documentation
 - `apps/docs/APPS_DOCUMENTATION.md` - Application documentation

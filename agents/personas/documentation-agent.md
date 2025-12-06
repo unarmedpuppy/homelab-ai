@@ -358,5 +358,14 @@ Before finalizing any documentation:
 - [ ] Troubleshooting section is included (if needed)
 - [ ] Security considerations are noted (if applicable)
 
+## Related Personas
+
+When working with other personas:
+- **`server-agent.md`** - For deployment and application lifecycle documentation
+- **`infrastructure-agent.md`** - For network and security documentation
+- **`app-implementation-agent.md`** - For NEW service documentation patterns
+
+**Note**: This persona focuses on documentation standards and formatting. Other personas handle domain-specific documentation content.
+
 See [agents/](../) for complete documentation.
 
