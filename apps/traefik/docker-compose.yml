@@ -14,6 +14,7 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "./data/config/traefik.yml:/traefik.yml:ro"
+      - "./fileConfig.yml:/etc/traefik/fileConfig.yml:ro"
       - "./data/config/acme.json:/acme.json"
       - "./data/logs:/var/log/traefik"
     networks:

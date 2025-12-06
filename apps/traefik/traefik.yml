@@ -36,8 +36,8 @@ serverTransport:
 
 # Traefik entrypoints (network ports) configuration
 entryPoints:
-  # Not used in apps, but redirect everything from HTTP to HTTPS
-  http:
+  # HTTP entrypoint - redirects to HTTPS
+  web:
     address: :80
     forwardedHeaders:
       trustedIPs: &trustedIps
@@ -68,11 +68,11 @@ entryPoints:
     http:
       redirections:
         entryPoint:
-          to: https
+          to: websecure
           scheme: https
 
   # HTTPS endpoint, with domain wildcard
-  https:
+  websecure:
     address: :443
     forwardedHeaders:
       # Reuse list of Cloudflare Trusted IP's above for HTTPS requests
@@ -82,9 +82,9 @@ entryPoints:
         # Generate a wildcard domain certificate
         certResolver: myresolver
         domains:
-          - main: example.com # change this to your proxy domain
+          - main: unarmedpuppy.com
             sans:
-              - '*.example.com' # change this to your proxy domain
+              - '*.unarmedpuppy.com'
       middlewares:
         - security-headers@file # reference to a dynamic middleware for setting http security headers per default
         - rate-limit@file # reference to a dynamic middleware for enabling rate limiting per default
@@ -100,9 +100,9 @@ providers:
   # Docker provider for connecting all apps that are inside of the docker network
   docker:
     watch: true
-    network: proxy # Add Your Docker Network Name Here
-    # Default host rule to containername.domain.example
-    defaultRule: "Host(`{{ index .Labels \"com.docker.compose.service\"}}.example.com`)" # change 'example.com' to your proxy domain
+    network: my-network
+    # Default host rule to containername.domain
+    defaultRule: "Host(`{{ index .Labels \"com.docker.compose.service\"}}.server.unarmedpuppy.com`)"
     exposedByDefault: false
 
 # Use letsencrypt to generate ssl certificates
@@ -110,7 +110,7 @@ certificatesResolvers:
   myresolver:
     acme:
       email: admin@unarmedpuppy.com  # the email address used for ssl certificate registration
-      storage: /etc/traefik/acme.json
+      storage: /acme.json
       dnsChallenge:
         provider: cloudflare
         # Used to make sure the dns challenge is propagated to the right dns servers
