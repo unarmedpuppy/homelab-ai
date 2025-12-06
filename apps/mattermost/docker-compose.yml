@@ -5,7 +5,6 @@ services:
     image: mattermost/mattermost-team-edition:latest
     container_name: mattermost
     restart: unless-stopped
-    command: mattermost server
     environment:
       - TZ=America/Chicago
       # Mattermost configuration
