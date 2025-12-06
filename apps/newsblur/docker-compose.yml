@@ -43,7 +43,7 @@ services:
     volumes:
       - /home/unarmedpuppy/NewsBlur:/srv/newsblur
     ports:
-      - "8001:8000"
+      - "8002:8000"
     networks:
       - my-network
     labels:
