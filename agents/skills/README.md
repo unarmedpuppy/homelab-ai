@@ -12,6 +12,7 @@ Reusable workflow guides for common tasks.
 | [troubleshoot-stuck-downloads](./troubleshoot-stuck-downloads/SKILL.md) | Fix Sonarr/Radarr queue issues |
 | [system-health-check](./system-health-check/SKILL.md) | Comprehensive system status |
 | [cleanup-disk-space](./cleanup-disk-space/SKILL.md) | Free up disk space |
+| [edit-wiki-content](./edit-wiki-content/SKILL.md) | Programmatically edit Wiki.js pages via API |
 
 ## How to Use
 

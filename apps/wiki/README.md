@@ -42,6 +42,8 @@ cp env.template .env
 # Edit .env and set WIKI_DB_PASSWORD
 ```
 
+The `.env` file also stores the Wiki.js API key for programmatic access (see API Tool below).
+
 ### Volumes
 
 - `db-data` - PostgreSQL database data
@@ -151,11 +153,59 @@ docker compose up -d
 # Run migrations (automatic on startup)
 ```
 
+## API Tool
+
+A Python script is provided for programmatic editing of Wiki.js pages via the GraphQL API.
+
+### Setup
+
+1. Install dependencies:
+   ```bash
+   pip install requests python-dotenv
+   ```
+
+2. The `.env` file contains the API key (already configured)
+
+### Usage
+
+```bash
+# Create a new page
+python edit-wiki.py create --path "/home" --title "Home" --content "homepage-content.md"
+
+# Update an existing page
+python edit-wiki.py update --path "/home" --content "homepage-content.md"
+
+# Get page content
+python edit-wiki.py get --path "/home"
+
+# Trigger page rendering
+python edit-wiki.py render --path "/home"
+```
+
+### Examples
+
+```bash
+# Create homepage from markdown file
+python edit-wiki.py create \
+  --path "/home" \
+  --title "Home Server Overview" \
+  --content "homepage-content.md" \
+  --description "Overview of the home server infrastructure"
+
+# Update existing page
+python edit-wiki.py update \
+  --path "/home" \
+  --content "updated-content.md"
+```
+
+**Note**: The API key is stored in `.env` and is excluded from git (via `.gitignore`).
+
 ## Documentation
 
 - **Official Docs**: https://docs.requarks.io/
 - **GitHub**: https://github.com/Requarks/wiki
 - **Community**: https://community.requarks.io/
+- **GraphQL API**: https://docs.requarks.io/api/
 
 ## Notes
 
