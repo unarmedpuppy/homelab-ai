@@ -10,11 +10,11 @@ services:
     container_name: newsblur-web
     restart: unless-stopped
     depends_on:
-      postgres:
+      newsblur_db_postgres:
         condition: service_healthy
-      mongodb:
+      newsblur_db_mongo:
         condition: service_healthy
-      redis:
+      newsblur_db_redis:
         condition: service_healthy
     environment:
       - TZ=America/Chicago
@@ -24,10 +24,10 @@ services:
       - RUNWITHMAKEBUILD=True
       - NEWSBLUR_URL=https://newsblur.server.unarmedpuppy.com
       - SESSION_COOKIE_DOMAIN=newsblur.server.unarmedpuppy.com
-      - DATABASE_URL=postgresql://newsblur:newsblur@postgres:5432/newsblur
+      - DATABASE_URL=postgresql://newsblur:newsblur@newsblur_db_postgres:5432/newsblur
       - MONGO_DB_NAME=newsblur
-      - MONGO_HOST=mongodb
-      - REDIS_HOST=redis
+      - MONGO_HOST=newsblur_db_mongo
+      - REDIS_HOST=newsblur_db_redis
       - REDIS_PORT=6379
       - AUTO_PREMIUM=True
       - AUTO_ENABLE_NEW_USERS=True
@@ -76,7 +76,7 @@ services:
       - "homepage.href=https://newsblur.server.unarmedpuppy.com"
       - "homepage.description=Personal news reader with intelligence"
 
-  postgres:
+  newsblur_db_postgres:
     image: postgres:14-alpine
     container_name: newsblur-postgres
     restart: unless-stopped
@@ -95,7 +95,7 @@ services:
       timeout: 5s
       retries: 5
 
-  mongodb:
+  newsblur_db_mongo:
     image: mongo:6.0
     container_name: newsblur-mongodb
     restart: unless-stopped
@@ -111,7 +111,7 @@ services:
       timeout: 5s
       retries: 5
 
-  redis:
+  newsblur_db_redis:
     image: redis:7-alpine
     container_name: newsblur-redis
     restart: unless-stopped
