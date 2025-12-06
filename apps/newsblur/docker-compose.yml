@@ -4,7 +4,9 @@ x-enabled: true
 
 services:
   newsblur-web:
-    image: newsblur/newsblur:latest
+    build:
+      context: https://github.com/samuelclay/NewsBlur.git
+      dockerfile: docker/Dockerfile.web
     container_name: newsblur-web
     restart: unless-stopped
     depends_on:
