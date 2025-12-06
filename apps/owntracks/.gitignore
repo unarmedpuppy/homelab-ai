@@ -1,0 +1,14 @@
+# MQTT password file (contains sensitive credentials)
+data/mosquitto/config/passwd
+
+# Environment variables
+.env
+
+# Data directories (tracked via gitkeep)
+data/store/*
+!data/store/.gitkeep
+data/mosquitto/data/*
+!data/mosquitto/data/.gitkeep
+data/mosquitto/log/*
+!data/mosquitto/log/.gitkeep
+
