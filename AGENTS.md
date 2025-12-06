@@ -236,6 +236,7 @@ Agent-discoverable tool guides are in `agents/tools/`. Each tool has a `SKILL.md
 | Tool | Purpose | Script |
 |------|---------|--------|
 | [deploy-new-service](agents/tools/deploy-new-service/) | Set up new Docker service | - |
+| [configure-traefik-labels](agents/tools/configure-traefik-labels/) | Configure Traefik reverse proxy labels for apps | - |
 | [update-homepage-groups](agents/tools/update-homepage-groups/) | Update homepage organization | `scripts/update-homepage-groups.py` |
 | [edit-wiki-content](agents/tools/edit-wiki-content/) | Edit Wiki.js pages via API | `apps/wiki/edit-wiki.py` |
 
