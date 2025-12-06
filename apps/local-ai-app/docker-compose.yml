@@ -30,16 +30,16 @@ services:
       - "traefik.http.routers.local-ai-local.priority=100"
       - "traefik.http.routers.local-ai-local.entrypoints=websecure"
       - "traefik.http.routers.local-ai-local.tls.certresolver=myresolver"
-      - "traefik.http.routers.local-ai-local.service=local-ai"
+      - "traefik.http.routers.local-ai-local.service=local-ai-app"
       # External access (requires auth) - lowest priority
       - "traefik.http.routers.local-ai.rule=Host(`local-ai.server.unarmedpuppy.com`)"
       - "traefik.http.routers.local-ai.priority=1"
       - "traefik.http.routers.local-ai.entrypoints=websecure"
       - "traefik.http.routers.local-ai.tls.certresolver=myresolver"
       - "traefik.http.routers.local-ai.middlewares=local-ai-auth"
-      - "traefik.http.routers.local-ai.service=local-ai"
+      - "traefik.http.routers.local-ai.service=local-ai-app"
       # Service and auth middleware
-      - "traefik.http.services.local-ai.loadbalancer.server.port=8000"
+      - "traefik.http.services.local-ai-app.loadbalancer.server.port=8000"
       - "traefik.http.middlewares.local-ai-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.local-ai-auth.basicauth.realm=Local AI Chat"
       # Homepage labels
