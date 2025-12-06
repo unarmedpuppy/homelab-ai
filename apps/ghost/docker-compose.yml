@@ -54,17 +54,28 @@ services:
       - "traefik.http.routers.ghost-redirect.middlewares=ghost-redirect"
       - "traefik.http.routers.ghost-redirect.rule=Host(`${GHOST_DOMAIN}`)"
       - "traefik.http.routers.ghost-redirect.entrypoints=web"
-      # Main HTTPS router
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.ghost-local.rule=Host(`${GHOST_DOMAIN}`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.ghost-local.priority=100"
+      - "traefik.http.routers.ghost-local.entrypoints=websecure"
+      - "traefik.http.routers.ghost-local.tls.certresolver=myresolver"
+      - "traefik.http.routers.ghost-local.service=ghost"
+      # External access (requires auth) - lowest priority
       - "traefik.http.routers.ghost.rule=Host(`${GHOST_DOMAIN}`)"
+      - "traefik.http.routers.ghost.priority=1"
       - "traefik.http.routers.ghost.entrypoints=websecure"
       - "traefik.http.routers.ghost.tls.certresolver=myresolver"
+      - "traefik.http.routers.ghost.middlewares=ghost-auth"
       - "traefik.http.routers.ghost.service=ghost"
+      # Service and auth middleware
       - "traefik.http.services.ghost.loadbalancer.server.port=2368"
+      - "traefik.http.middlewares.ghost-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.ghost-auth.basicauth.realm=Ghost"
       # Homepage labels
       - "homepage.group=Communication & Social"
       - "homepage.name=Ghost"
       - "homepage.icon=si-ghost"
-      - "homepage.href=http://192.168.86.47:8097"
+      - "homepage.href=https://${GHOST_DOMAIN}"
       - "homepage.description=Professional publishing platform"
 
 networks:

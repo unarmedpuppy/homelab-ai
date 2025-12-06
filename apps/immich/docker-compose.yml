@@ -31,12 +31,25 @@ services:
       - "traefik.http.routers.photos-http.entrypoints=web"
       - "traefik.http.routers.photos-http.middlewares=redirect-to-https"
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-      # HTTPS configuration
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.photos-local.rule=Host(`photos.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.photos-local.priority=100"
+      - "traefik.http.routers.photos-local.entrypoints=websecure"
+      - "traefik.http.routers.photos-local.tls.certresolver=myresolver"
+      - "traefik.http.routers.photos-local.service=photos"
+      # External access (requires auth) - lowest priority
       - "traefik.http.routers.photos.rule=Host(`photos.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.photos.priority=1"
       - "traefik.http.routers.photos.entrypoints=websecure"
       - "traefik.http.routers.photos.tls.certresolver=myresolver"
       - "traefik.http.routers.photos.tls=true"
+      - "traefik.http.routers.photos.middlewares=photos-auth"
+      - "traefik.http.routers.photos.service=photos"
+      # Service and auth middleware
       - "traefik.http.services.photos.loadbalancer.server.port=2283"
+      - "traefik.http.middlewares.photos-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.photos-auth.basicauth.realm=Immich"
+      # Homepage labels
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Immich"
       - "homepage.icon=si-googlephotos"

@@ -1,4 +1,6 @@
 version: '3.8'
+
+x-external: true
 services:
   bedrock:
     image: itzg/minecraft-bedrock-server:2024.11.0

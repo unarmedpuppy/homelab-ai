@@ -18,12 +18,23 @@ services:
       - "traefik.http.routers.mazanoke-redirect.middlewares=mazanoke-redirect"
       - "traefik.http.routers.mazanoke-redirect.rule=Host(`mazanoke.server.unarmedpuppy.com`)"
       - "traefik.http.routers.mazanoke-redirect.entrypoints=web"
-      # Main HTTPS router
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.mazanoke-local.rule=Host(`mazanoke.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.mazanoke-local.priority=100"
+      - "traefik.http.routers.mazanoke-local.entrypoints=websecure"
+      - "traefik.http.routers.mazanoke-local.tls.certresolver=myresolver"
+      - "traefik.http.routers.mazanoke-local.service=mazanoke"
+      # External access (requires auth) - lowest priority
       - "traefik.http.routers.mazanoke.rule=Host(`mazanoke.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.mazanoke.priority=1"
       - "traefik.http.routers.mazanoke.entrypoints=websecure"
       - "traefik.http.routers.mazanoke.tls.certresolver=myresolver"
+      - "traefik.http.routers.mazanoke.middlewares=mazanoke-auth"
       - "traefik.http.routers.mazanoke.service=mazanoke"
+      # Service and auth middleware
       - "traefik.http.services.mazanoke.loadbalancer.server.port=80"
+      - "traefik.http.middlewares.mazanoke-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.mazanoke-auth.basicauth.realm=Mazanoke"
       # Homepage integration
       - "homepage.group=Tools & Utilities"
       - "homepage.name=Mazanoke"

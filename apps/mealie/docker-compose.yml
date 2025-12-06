@@ -26,17 +26,28 @@ services:
     labels:
       - "traefik.enable=true"
       # HTTPS redirect
-      - traefik.http.middlewares.mywebserver-redirect-web-secure.redirectscheme.scheme=https
-      - traefik.http.routers.recipes-redirect.middlewares=mywebserver-redirect-web-secure
-      - traefik.http.routers.recipes-redirect.rule=Host(`recipes.server.unarmedpuppy.com`)
-      - traefik.http.routers.recipes-redirect.entrypoints=web
-      # Main HTTPS router
+      - "traefik.http.middlewares.recipes-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.recipes-redirect.middlewares=recipes-redirect"
+      - "traefik.http.routers.recipes-redirect.rule=Host(`recipes.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.recipes-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.recipes-local.rule=Host(`recipes.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.recipes-local.priority=100"
+      - "traefik.http.routers.recipes-local.entrypoints=websecure"
+      - "traefik.http.routers.recipes-local.tls.certresolver=myresolver"
+      - "traefik.http.routers.recipes-local.service=recipes"
+      # External access (requires auth) - lowest priority
       - "traefik.http.routers.recipes.rule=Host(`recipes.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.recipes.entrypoints=websecure" # your https endpoint
-      - "traefik.http.routers.recipes.tls.certresolver=myresolver" # your cert resolver
-      #local DNS
-      - "traefik.http.routers.recipes-local.rule=Host(`recipes.local.unarmedpuppy.com`)"
-      - "traefik.http.routers.recipes-local.entrypoints=web"
+      - "traefik.http.routers.recipes.priority=1"
+      - "traefik.http.routers.recipes.entrypoints=websecure"
+      - "traefik.http.routers.recipes.tls.certresolver=myresolver"
+      - "traefik.http.routers.recipes.middlewares=recipes-auth"
+      - "traefik.http.routers.recipes.service=recipes"
+      # Service and auth middleware
+      - "traefik.http.services.recipes.loadbalancer.server.port=9000"
+      - "traefik.http.middlewares.recipes-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.recipes-auth.basicauth.realm=Mealie"
+      # Homepage labels
       - "homepage.group=Productivity & Organization"
       - "homepage.name=Mealie"
       - "homepage.icon=si-aldinord"

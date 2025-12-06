@@ -85,17 +85,28 @@ services:
       - "traefik.http.routers.open-archiver-redirect.middlewares=open-archiver-redirect"
       - "traefik.http.routers.open-archiver-redirect.rule=Host(`${OPEN_ARCHIVER_DOMAIN}`)"
       - "traefik.http.routers.open-archiver-redirect.entrypoints=web"
-      # Main HTTPS router
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.open-archiver-local.rule=Host(`${OPEN_ARCHIVER_DOMAIN}`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.open-archiver-local.priority=100"
+      - "traefik.http.routers.open-archiver-local.entrypoints=websecure"
+      - "traefik.http.routers.open-archiver-local.tls.certresolver=myresolver"
+      - "traefik.http.routers.open-archiver-local.service=open-archiver"
+      # External access (requires auth) - lowest priority
       - "traefik.http.routers.open-archiver.rule=Host(`${OPEN_ARCHIVER_DOMAIN}`)"
+      - "traefik.http.routers.open-archiver.priority=1"
       - "traefik.http.routers.open-archiver.entrypoints=websecure"
       - "traefik.http.routers.open-archiver.tls.certresolver=myresolver"
+      - "traefik.http.routers.open-archiver.middlewares=open-archiver-auth"
       - "traefik.http.routers.open-archiver.service=open-archiver"
+      # Service and auth middleware
       - "traefik.http.services.open-archiver.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.open-archiver-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.open-archiver-auth.basicauth.realm=OpenArchiver"
       # Homepage labels
       - "homepage.group=Productivity & Organization"
       - "homepage.name=OpenArchiver"
       - "homepage.icon=si-archive"
-      - "homepage.href=http://192.168.86.47:8099"
+      - "homepage.href=https://${OPEN_ARCHIVER_DOMAIN}"
       - "homepage.description=Secure email archiving platform with full-text search"
 
 networks:

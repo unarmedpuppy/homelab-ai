@@ -39,12 +39,24 @@ services:
       - "traefik.http.routers.n8n-http.entrypoints=web"
       - "traefik.http.routers.n8n-http.middlewares=redirect-to-https"
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-      # HTTPS configuration
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.n8n-local.rule=Host(`n8n.${DOMAIN}`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.n8n-local.priority=100"
+      - "traefik.http.routers.n8n-local.entrypoints=websecure"
+      - "traefik.http.routers.n8n-local.tls.certresolver=myresolver"
+      - "traefik.http.routers.n8n-local.service=n8n"
+      # External access (requires auth) - lowest priority
       - "traefik.http.routers.n8n.rule=Host(`n8n.${DOMAIN}`)"
+      - "traefik.http.routers.n8n.priority=1"
       - "traefik.http.routers.n8n.entrypoints=websecure"
       - "traefik.http.routers.n8n.tls.certresolver=myresolver"
       - "traefik.http.routers.n8n.tls=true"
+      - "traefik.http.routers.n8n.middlewares=n8n-auth"
+      - "traefik.http.routers.n8n.service=n8n"
+      # Service and auth middleware
       - "traefik.http.services.n8n.loadbalancer.server.port=${N8N_PORT}"
+      - "traefik.http.middlewares.n8n-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.n8n-auth.basicauth.realm=n8n"
       # Homepage integration
       - "homepage.group=Infrastructure"
       - "homepage.name=n8n"

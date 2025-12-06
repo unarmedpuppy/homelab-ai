@@ -113,27 +113,36 @@ services:
     networks:
       - my-network
     labels:
-      #- traefik.enable=true
-      #- traefik.docker.network=my-network
-      # redirect http to https
-      #- traefik.http.middlewares.mywebserver-redirect-web-secure.redirectscheme.scheme=https
-      #- traefik.http.routers.grafana-insecure.middlewares=mywebserver-redirect-web-secure
-      #- traefik.http.routers.grafana-insecure.rule=Host(`grafana.server.unarmedpuppy.com`)
-      #- traefik.http.routers.grafana-insecure.entrypoints=web
-      # https
-      #- traefik.http.routers.grafana-secure.rule=Host(`grafana.server.unarmedpuppy.com`)
-      #- traefik.http.routers.grafana-secure.tls.certresolver=myresolver
-      #- traefik.http.routers.grafana-secure.tls=true
-      #- traefik.http.routers.grafana-secure.entrypoints=websecure
-      # specify port
-      #- traefik.http.services.grafana.loadbalancer.server.port=3010
-      
-    #  # Part for local lan services only
-    #  - traefik.http.routers.grafana.middlewares=local-ipwhitelist@file
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.grafana-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.grafana-redirect.middlewares=grafana-redirect"
+      - "traefik.http.routers.grafana-redirect.rule=Host(`grafana.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.grafana-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.grafana-local.rule=Host(`grafana.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.grafana-local.priority=100"
+      - "traefik.http.routers.grafana-local.entrypoints=websecure"
+      - "traefik.http.routers.grafana-local.tls.certresolver=myresolver"
+      - "traefik.http.routers.grafana-local.service=grafana"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.grafana.rule=Host(`grafana.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.grafana.priority=1"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.tls.certresolver=myresolver"
+      - "traefik.http.routers.grafana.tls=true"
+      - "traefik.http.routers.grafana.middlewares=grafana-auth"
+      - "traefik.http.routers.grafana.service=grafana"
+      # Service and auth middleware
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.grafana-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.grafana-auth.basicauth.realm=Grafana"
+      # Homepage labels
       - "homepage.group=Infrastructure"
       - "homepage.name=Grafana"
       - "homepage.icon=si-grafana"
-      - "homepage.href=http://192.168.86.47:3010/d/sF7d-FHZz122/server?orgId=1&refresh=15m"
+      - "homepage.href=https://grafana.server.unarmedpuppy.com/d/sF7d-FHZz122/server?orgId=1&refresh=15m"
       - "homepage.description=Home Server telemetry & metrics"
 
 networks:

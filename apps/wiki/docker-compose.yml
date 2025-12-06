@@ -43,16 +43,35 @@ services:
     networks:
       - my-network
     labels:
+      - "traefik.enable=true"
+      # HTTPS redirect
+      - "traefik.http.middlewares.wiki-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.wiki-redirect.middlewares=wiki-redirect"
+      - "traefik.http.routers.wiki-redirect.rule=Host(`wiki.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.wiki-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.wiki-local.rule=Host(`wiki.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.wiki-local.priority=100"
+      - "traefik.http.routers.wiki-local.entrypoints=websecure"
+      - "traefik.http.routers.wiki-local.tls.certresolver=myresolver"
+      - "traefik.http.routers.wiki-local.service=wiki"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.wiki.rule=Host(`wiki.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.wiki.priority=1"
+      - "traefik.http.routers.wiki.entrypoints=websecure"
+      - "traefik.http.routers.wiki.tls.certresolver=myresolver"
+      - "traefik.http.routers.wiki.middlewares=wiki-auth"
+      - "traefik.http.routers.wiki.service=wiki"
+      # Service and auth middleware
+      - "traefik.http.services.wiki.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.wiki-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.wiki-auth.basicauth.realm=Wiki.js"
+      # Homepage labels
       - "homepage.group=Productivity & Organization"
       - "homepage.name=Wiki.js"
       - "homepage.icon=si-wikijs"
-      - "homepage.href=http://192.168.86.47:3001"
+      - "homepage.href=https://wiki.server.unarmedpuppy.com"
       - "homepage.description=Modern wiki application for documentation"
-      - "traefik.enable=true"
-      - "traefik.http.routers.wiki.rule=Host(`wiki.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.wiki.entrypoints=websecure"
-      - "traefik.http.routers.wiki.tls.certresolver=myresolver"
-      - "traefik.http.services.wiki.loadbalancer.server.port=3000"
 
 volumes:
   db-data:

@@ -21,22 +21,27 @@ services:
     labels:
       - "traefik.enable=true"
       # HTTPS redirect
-      - traefik.http.middlewares.local-ai-redirect-web-secure.redirectscheme.scheme=https
-      - traefik.http.routers.local-ai-redirect.middlewares=local-ai-redirect-web-secure
-      - traefik.http.routers.local-ai-redirect.rule=Host(`local-ai.server.unarmedpuppy.com`)
-      - traefik.http.routers.local-ai-redirect.entrypoints=web
-      # Main HTTPS router with auth
+      - "traefik.http.middlewares.local-ai-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.local-ai-redirect.middlewares=local-ai-redirect"
+      - "traefik.http.routers.local-ai-redirect.rule=Host(`local-ai.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.local-ai-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.local-ai-local.rule=Host(`local-ai.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.local-ai-local.priority=100"
+      - "traefik.http.routers.local-ai-local.entrypoints=websecure"
+      - "traefik.http.routers.local-ai-local.tls.certresolver=myresolver"
+      - "traefik.http.routers.local-ai-local.service=local-ai-app"
+      # External access (requires auth) - lowest priority
       - "traefik.http.routers.local-ai.rule=Host(`local-ai.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.local-ai.priority=1"
       - "traefik.http.routers.local-ai.entrypoints=websecure"
-      - "traefik.http.routers.local-ai.middlewares=local-ai-auth"
       - "traefik.http.routers.local-ai.tls.certresolver=myresolver"
-      - "traefik.http.services.local-ai.loadbalancer.server.port=8000"
-      # Auth middleware
+      - "traefik.http.routers.local-ai.middlewares=local-ai-auth"
+      - "traefik.http.routers.local-ai.service=local-ai-app"
+      # Service and auth middleware
+      - "traefik.http.services.local-ai-app.loadbalancer.server.port=8000"
       - "traefik.http.middlewares.local-ai-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.local-ai-auth.basicauth.realm=Local AI Chat"
-      # Local DNS (no auth for local access)
-      - "traefik.http.routers.local-ai-local.rule=Host(`local-ai.local.unarmedpuppy.com`)"
-      - "traefik.http.routers.local-ai-local.entrypoints=web"
       # Homepage labels
       - "homepage.group=AI & Machine Learning"
       - "homepage.name=Local AI Chat"

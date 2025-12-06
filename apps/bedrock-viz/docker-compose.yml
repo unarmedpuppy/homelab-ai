@@ -12,14 +12,28 @@ services:
     labels:
       - "traefik.enable=true"
       # HTTPS redirect
-      - traefik.http.middlewares.mywebserver-redirect-web-secure.redirectscheme.scheme=https
-      - traefik.http.routers.gumberlund-redirect.middlewares=mywebserver-redirect-web-secure
-      - traefik.http.routers.gumberlund-redirect.rule=Host(`gumberlund.server.unarmedpuppy.com`)
-      - traefik.http.routers.gumberlund-redirect.entrypoints=web
-      # Main HTTPS router
-      - "traefik.http.routers.gumberlund.rule=Host(`gumberlund.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.gumberlund.entrypoints=websecure" # your https endpoint
-      - "traefik.http.routers.gumberlund.tls.certresolver=myresolver" # your cert resolver
+      - "traefik.http.middlewares.bedrock-viz-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.bedrock-viz-redirect.middlewares=bedrock-viz-redirect"
+      - "traefik.http.routers.bedrock-viz-redirect.rule=Host(`gumberlund.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.bedrock-viz-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.bedrock-viz-local.rule=Host(`gumberlund.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.bedrock-viz-local.priority=100"
+      - "traefik.http.routers.bedrock-viz-local.entrypoints=websecure"
+      - "traefik.http.routers.bedrock-viz-local.tls.certresolver=myresolver"
+      - "traefik.http.routers.bedrock-viz-local.service=bedrock-viz-http"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.bedrock-viz.rule=Host(`gumberlund.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.bedrock-viz.priority=1"
+      - "traefik.http.routers.bedrock-viz.entrypoints=websecure"
+      - "traefik.http.routers.bedrock-viz.tls.certresolver=myresolver"
+      - "traefik.http.routers.bedrock-viz.middlewares=bedrock-viz-auth"
+      - "traefik.http.routers.bedrock-viz.service=bedrock-viz-http"
+      # Service and auth middleware
+      - "traefik.http.services.bedrock-viz-http.loadbalancer.server.port=80"
+      - "traefik.http.middlewares.bedrock-viz-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.bedrock-viz-auth.basicauth.realm=Bedrock Viz"
+      # Homepage labels
       - "homepage.group=Gaming"
       - "homepage.name=Bedrock Viz"
       - "homepage.icon=si-maplibre"

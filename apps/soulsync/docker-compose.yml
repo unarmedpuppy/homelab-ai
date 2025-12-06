@@ -22,19 +22,29 @@ services:
       - media-download-network
     labels:
       - "traefik.enable=true"
-      # HTTP configuration
-      - "traefik.http.routers.soulsync.rule=Host(`soulsync.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.soulsync.entrypoints=web"
-      - "traefik.http.services.soulsync.loadbalancer.server.port=8008"
-      # HTTPS configuration
-      - "traefik.http.routers.soulsync-secure.rule=Host(`soulsync.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.soulsync-secure.entrypoints=websecure"
-      - "traefik.http.routers.soulsync-secure.tls=true"
-      - "traefik.http.routers.soulsync-secure.tls.certresolver=myresolver"
-      - "traefik.http.routers.soulsync-secure.service=soulsync"
       # HTTPS redirect
       - "traefik.http.middlewares.soulsync-redirect.redirectscheme.scheme=https"
-      - "traefik.http.routers.soulsync.middlewares=soulsync-redirect"
+      - "traefik.http.routers.soulsync-redirect.middlewares=soulsync-redirect"
+      - "traefik.http.routers.soulsync-redirect.rule=Host(`soulsync.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.soulsync-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.soulsync-local.rule=Host(`soulsync.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.soulsync-local.priority=100"
+      - "traefik.http.routers.soulsync-local.entrypoints=websecure"
+      - "traefik.http.routers.soulsync-local.tls.certresolver=myresolver"
+      - "traefik.http.routers.soulsync-local.service=soulsync"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.soulsync.rule=Host(`soulsync.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.soulsync.priority=1"
+      - "traefik.http.routers.soulsync.entrypoints=websecure"
+      - "traefik.http.routers.soulsync.tls.certresolver=myresolver"
+      - "traefik.http.routers.soulsync.tls=true"
+      - "traefik.http.routers.soulsync.middlewares=soulsync-auth"
+      - "traefik.http.routers.soulsync.service=soulsync"
+      # Service and auth middleware
+      - "traefik.http.services.soulsync.loadbalancer.server.port=8008"
+      - "traefik.http.middlewares.soulsync-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.soulsync-auth.basicauth.realm=SoulSync"
       # Homepage integration
       - "homepage.group=Media & Entertainment"
       - "homepage.name=SoulSync"
