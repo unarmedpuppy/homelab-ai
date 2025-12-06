@@ -1,61 +1,101 @@
 # Agents
 
-Lightweight agent support for the home server.
+Agent system for the home server. This directory contains all agent-related documentation, tools, and workflows.
 
 ## Structure
 
 ```
 agents/
-├── prompts/          # Agent prompt templates
-│   └── base.md       # Base prompt with context
-├── tasks/            # Task coordination
-│   └── registry.md   # Persistent task list across sessions
-├── memory/           # SQLite memory system
-│   └── memory.db     # Decisions, patterns, context
-└── skills/           # Workflow guides
-    ├── standard-deployment/
-    ├── troubleshoot-container-failure/
-    └── ...
+├── README.md                # This file - directory index
+├── tasks/                   # Task management
+│   ├── tasks.md            # Active task tracking
+│   ├── archive/             # Completed task phases
+│   └── templates/          # Task templates
+├── tools/                   # Workflow guides (formerly skills)
+│   ├── standard-deployment/
+│   ├── deploy-new-service/
+│   └── ...
+├── personas/                # Agent personalities
+│   └── server-agent.md     # Server management specialist
+├── plans/                   # Shared implementation plans (committed)
+├── plans-local/             # Local scratch plans (gitignored)
+└── reference/               # Deep documentation
+    ├── docker.md           # Docker patterns
+    ├── deployment.md        # Deployment workflows
+    └── plan_act.md         # Workflow documentation
 ```
 
-## Memory System
+## Quick Reference
 
-SQLite database for persistent memory across sessions.
+| Directory | Purpose | Committed |
+|-----------|---------|-----------|
+| `tasks/` | Task tracking with claiming protocol | ✅ |
+| `tools/` | Reusable workflow guides with YAML frontmatter | ✅ |
+| `personas/` | Specialized agent personalities | ✅ |
+| `plans/` | Shared implementation plans | ✅ |
+| `plans-local/` | Local scratch work (session notes) | ❌ |
+| `reference/` | Deep-dive documentation by topic | ✅ |
 
-**Query decisions:**
-```bash
-sqlite3 agents/memory/memory.db "SELECT * FROM decisions WHERE project='PROJECT' ORDER BY created_at DESC LIMIT 5;"
-```
+## Tasks
 
-**Record a decision:**
-```bash
-sqlite3 agents/memory/memory.db "INSERT INTO decisions (content, rationale, project, importance) VALUES ('what', 'why', 'project', 0.8);"
-```
+Task tracking with multi-agent claiming protocol. See `agents/tasks/tasks.md` for active tasks.
 
-**Tables:**
-- `decisions` - Technology choices, architecture decisions
-- `patterns` - Common issues and solutions
-- `context` - Work-in-progress state
+**Task Claiming Protocol:**
+1. Pull latest: `git pull origin main`
+2. Edit `agents/tasks/tasks.md`: Change `[AVAILABLE]` → `[CLAIMED by @your-id]`
+3. Commit and push within 1 minute
+4. Create feature branch
 
-## Skills
+See `agents/tasks/README.md` for full documentation.
 
-Markdown workflow guides in `skills/`. See [skills/README.md](./skills/README.md).
+## Tools
 
-## Task Registry
+Workflow guides (formerly "skills") with YAML frontmatter for agent discovery.
 
-Persistent task list for work across sessions. Edit `tasks/registry.md` directly.
+**Available Tools:**
+- `standard-deployment` - Deploy code changes to server
+- `deploy-new-service` - Set up a new Docker service
+- `troubleshoot-container-failure` - Debug container issues
+- `troubleshoot-stuck-downloads` - Fix Sonarr/Radarr queue issues
+- `system-health-check` - Comprehensive system status
+- `cleanup-disk-space` - Free up disk space
+- `edit-wiki-content` - Programmatically edit Wiki.js pages
 
-```bash
-# View tasks
-cat agents/tasks/registry.md
+Each tool has a `README.md` with YAML frontmatter describing when to use it.
 
-# Tasks are markdown table rows - edit directly
-```
+## Personas
+
+Specialized agent personalities for domain expertise.
+
+**Available Personas:**
+- `server-agent.md` - Server management and deployment specialist
+
+Personas provide focused expertise for specific domains. Reference them when working on related tasks.
+
+## Plans
+
+Implementation planning separated into shared and local:
+
+- **`plans/`** - Committed plans for multi-session features, architectural decisions
+- **`plans-local/`** - Gitignored scratch work, session notes, exploratory analysis
+
+See `agents/plans/README.md` for plan format and workflow.
+
+## Reference Documentation
+
+Deep-dive documentation split by topic:
+
+- `docker.md` - Docker Compose patterns and best practices
+- `deployment.md` - Deployment workflows and server details
+- `plan_act.md` - Plan → Act → Test workflow documentation
 
 ## Usage
 
-1. **Session start**: Check `tasks/registry.md` for pending tasks
-2. Reference `prompts/base.md` in your agent prompt
-3. Query memory before making decisions
-4. Use skills for common workflows
-5. **Session end**: Update tasks, record important decisions
+1. **Session start**: Check `tasks/tasks.md` for pending/in-progress tasks
+2. **Before work**: Check `tools/` for existing solutions
+3. **During work**: Use `tools/` for common workflows, reference `personas/` for expertise
+4. **Session end**: Update tasks, create tools for solutions
+
+## Entry Point
+
+For agents, start with `AGENTS.md` at the project root. This file provides the universal entrypoint for all AI assistants.

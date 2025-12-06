@@ -342,7 +342,7 @@ bash scripts/security-audit.sh
 - Network security
 - Default credentials
 
-**See also:** [Security Audit Documentation](../docs/SECURITY_AUDIT.md)
+**See also:** [Security Audit Documentation](../agents/reference/security/SECURITY_AUDIT.md)
 
 ### validate-secrets.sh
 
@@ -405,7 +405,7 @@ sudo bash scripts/setup-fail2ban.sh
 - Max retries: 3 attempts
 - Time window: 10 minutes
 
-**See also:** [Security Implementation Guide](../docs/SECURITY_IMPLEMENTATION.md)
+**See also:** [Security Implementation Guide](../agents/reference/security/SECURITY_IMPLEMENTATION.md)
 
 ### verify-dns-setup.sh
 
@@ -430,7 +430,7 @@ bash scripts/verify-dns-setup.sh
 - ! Yellow warnings for issues to review
 - ✗ Red errors for critical problems
 
-**See also:** [Google Home DNS Setup Guide](../docs/GOOGLE_HOME_DNS_SETUP.md)
+**See also:** [Google Home DNS Setup Guide](../agents/reference/setup/GOOGLE_HOME_DNS_SETUP.md)
 
 ### update-homepage-groups.py
 
@@ -460,8 +460,8 @@ Windows batch file for rsync operations (legacy).
 
 ## See Also
 
-- [Docker Compose Enabled Label Documentation](../docs/DOCKER_COMPOSE_ENABLED_LABEL.md)
+- [Docker Compose Enabled Label Documentation](../agents/reference/setup/DOCKER_COMPOSE_ENABLED_LABEL.md)
 - [Backup Quick Start Guide](./BACKUP_QUICKSTART.md)
 - [Backup Strategy](./backup-strategy.md)
-- [Server Context](../agents/prompts/server.md)
+- [Server Agent Persona](../agents/personas/server-agent.md)
 

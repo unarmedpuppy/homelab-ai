@@ -220,7 +220,7 @@ elif [ $CRITICAL -gt 0 ]; then
     error_critical "Critical issues found! Immediate action required."
     echo ""
     info "Run: bash scripts/validate-secrets.sh"
-    info "See: docs/SECURITY_AUDIT.md"
+    info "See: agents/reference/security/SECURITY_AUDIT.md"
     exit 1
 else
     warning "Some issues found. Review and address as needed."

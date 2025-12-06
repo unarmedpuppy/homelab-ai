@@ -12,7 +12,7 @@ AdGuard Home provides network-wide ad blocking and DNS filtering.
 
 ### DNS Setup
 
-**For Google Home Mesh Routers**: See [Google Home DNS Setup Guide](../../docs/GOOGLE_HOME_DNS_SETUP.md)
+**For Google Home Mesh Routers**: See [Google Home DNS Setup Guide](../../agents/reference/setup/GOOGLE_HOME_DNS_SETUP.md)
 
 The guide covers:
 - Configuring DNS with Google Home routers (limited options)
@@ -40,4 +40,4 @@ Currently **disabled** (`x-enabled: false`). Enable by setting `x-enabled: true`
 ## References
 
 - [AdGuard Home GitHub](https://github.com/AdguardTeam/AdGuardHome)
-- [Google Home DNS Setup Guide](../../docs/GOOGLE_HOME_DNS_SETUP.md)
+- [Google Home DNS Setup Guide](../../agents/reference/setup/GOOGLE_HOME_DNS_SETUP.md)

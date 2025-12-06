@@ -28,9 +28,9 @@ apps/media-download/overseerr/config/logs/
 apps/trading-bot/ib-gateway-data/
 
 # Agent state files
-agents/memory/memory.db
-agents/memory/memory/export/
-agents/memory/memory/index.json
 agents/apps/agent-monitoring/data/*.db
+# Agent local plans (not committed)
+agents/plans-local/*
+!agents/plans-local/.gitkeep
 # agents/**/__pycache__/ - covered by global rule
 # agents/**/*.pyc - covered by global rule

@@ -195,7 +195,7 @@ else
     echo "  1. Ensure AdGuard Home is running: docker ps | grep adguard"
     echo "  2. Check firewall: sudo ufw status"
     echo "  3. Verify DNS on device points to: ${SERVER_IP}"
-    echo "  4. See: docs/GOOGLE_HOME_DNS_SETUP.md"
+    echo "  4. See: agents/reference/setup/GOOGLE_HOME_DNS_SETUP.md"
     exit 1
 fi
 

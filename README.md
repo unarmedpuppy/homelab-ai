@@ -877,7 +877,7 @@ firefox -kiosk http://192.168.86.47:3010/
 **Disable Auto-Login**:
 Edit `/etc/gdm3/custom.conf` and comment out or remove the `AutomaticLogin` lines, then restart GDM.
 
-For detailed setup instructions, see [AUTO_LOGIN_GRAFANA_SETUP.md](./docs/AUTO_LOGIN_GRAFANA_SETUP.md).
+For detailed setup instructions, see [AUTO_LOGIN_GRAFANA_SETUP.md](./agents/reference/setup/AUTO_LOGIN_GRAFANA_SETUP.md).
 
 #### Game Servers
 
