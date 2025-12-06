@@ -5,7 +5,7 @@ x-enabled: true
 services:
   newsblur-web:
     build:
-      context: ../../NewsBlur
+      context: /home/unarmedpuppy/NewsBlur
       dockerfile: docker/newsblur_base_image.Dockerfile
     container_name: newsblur-web
     restart: unless-stopped
@@ -41,7 +41,7 @@ services:
         hard: 10000
     entrypoint: /bin/sh -c newsblur_web/entrypoint.sh
     volumes:
-      - ../../NewsBlur:/srv/newsblur
+      - /home/unarmedpuppy/NewsBlur:/srv/newsblur
     ports:
       - "8001:8000"
     networks:

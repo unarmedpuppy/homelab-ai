@@ -2,10 +2,11 @@ version: '3.8'
 
 services:
   habitica:
-    image: node:20-alpine
+    build:
+      context: https://github.com/HabitRPG/habitica.git#develop
+      dockerfile: Dockerfile
     container_name: habitica
     restart: unless-stopped
-    working_dir: /app
     depends_on:
       - db
     ports:
@@ -16,22 +17,12 @@ services:
       - NODE_DB_URI=mongodb://db:27017/habitica
       - BASE_URL=https://habitica.server.unarmedpuppy.com
       - PORT=3000
+      - INVITE_ONLY=false
     volumes:
-      - habitica-data:/app
+      - habitica-uploads:/app/public/uploads
       - ./config.json:/app/config.json
     networks:
       - my-network
-    command: >
-      sh -c "
-        if [ ! -d /app/.git ]; then
-          apk add --no-cache git python3 make g++ &&
-          git clone https://github.com/HabitRPG/habitica.git /app &&
-          cd /app &&
-          npm install &&
-          npm run build:client
-        fi &&
-        npm start
-      "
     labels:
       - "traefik.enable=true"
       # HTTP to HTTPS redirect
@@ -70,14 +61,19 @@ services:
       - habitica-db:/data/db
     networks:
       - my-network
-    environment:
-      - MONGO_INITDB_DATABASE=habitica
+    command: ["--replSet", "rs", "--bind_ip_all"]
+    healthcheck:
+      test: echo "try { rs.status() } catch (err) { rs.initiate() }" | mongosh --port 27017 --quiet
+      interval: 10s
+      timeout: 30s
+      start_period: 0s
+      start_interval: 1s
+      retries: 30
 
 volumes:
-  habitica-data:
+  habitica-uploads:
   habitica-db:
 
 networks:
   my-network:
     external: true
-
