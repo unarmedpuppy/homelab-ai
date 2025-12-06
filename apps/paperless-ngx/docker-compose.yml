@@ -70,12 +70,24 @@ services:
       - "traefik.http.routers.paperless-http.entrypoints=web"
       - "traefik.http.routers.paperless-http.middlewares=redirect-to-https"
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-      # HTTPS configuration
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.paperless-local.rule=Host(`paperless.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.paperless-local.priority=100"
+      - "traefik.http.routers.paperless-local.entrypoints=websecure"
+      - "traefik.http.routers.paperless-local.tls.certresolver=myresolver"
+      - "traefik.http.routers.paperless-local.service=paperless"
+      # External access (requires auth) - lowest priority
       - "traefik.http.routers.paperless.rule=Host(`paperless.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.paperless.priority=1"
       - "traefik.http.routers.paperless.entrypoints=websecure"
       - "traefik.http.routers.paperless.tls.certresolver=myresolver"
       - "traefik.http.routers.paperless.tls=true"
+      - "traefik.http.routers.paperless.middlewares=paperless-auth"
+      - "traefik.http.routers.paperless.service=paperless"
+      # Service and auth middleware
       - "traefik.http.services.paperless.loadbalancer.server.port=8200"
+      - "traefik.http.middlewares.paperless-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.paperless-auth.basicauth.realm=Paperless"
       # Homepage integration
       - "homepage.group=Productivity & Organization"
       - "homepage.name=paperless"

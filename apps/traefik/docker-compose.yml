@@ -20,12 +20,27 @@ services:
       - my-network
     labels:
       - "traefik.enable=true"
+      # HTTPS redirect
+      - "traefik.http.middlewares.traefik-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.traefik-redirect.middlewares=traefik-redirect"
+      - "traefik.http.routers.traefik-redirect.rule=Host(`traefik.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.traefik-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.api-local.rule=Host(`traefik.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.api-local.priority=100"
+      - "traefik.http.routers.api-local.entrypoints=websecure"
+      - "traefik.http.routers.api-local.tls.certresolver=myresolver"
+      - "traefik.http.routers.api-local.service=api@internal"
+      # External access (requires auth) - lowest priority
       - "traefik.http.routers.api.rule=Host(`traefik.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.api.service=api@internal"
-      - "traefik.http.routers.api.middlewares=auth"
-      - "traefik.http.middlewares.auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.routers.api.priority=1"
       - "traefik.http.routers.api.entrypoints=websecure"
       - "traefik.http.routers.api.tls.certresolver=myresolver"
+      - "traefik.http.routers.api.middlewares=auth"
+      - "traefik.http.routers.api.service=api@internal"
+      - "traefik.http.middlewares.auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.auth.basicauth.realm=Traefik"
+      # Homepage labels
       - "homepage.group=Infrastructure"
       - "homepage.name=Traefik"
       - "homepage.icon=si-traefikproxy"

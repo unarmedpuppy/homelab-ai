@@ -1,6 +1,6 @@
 version: "3"
 
-x-enabled: false
+x-enabled: true
 
 services:
   adguard:
@@ -37,7 +37,7 @@ services:
       - "homepage.group=Infrastructure"
       - "homepage.name=Adguard"
       - "homepage.icon=si-adguard"
-      - "homepage.href=http://192.168.86.47:8083"
+      - "homepage.href=https://adguard.server.unarmedpuppy.com"
       - "homepage.description=Local DNS & Ad blocking"
 
 networks:

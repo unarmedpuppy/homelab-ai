@@ -29,17 +29,28 @@ services:
       - "traefik.http.routers.open-health-redirect.middlewares=open-health-redirect"
       - "traefik.http.routers.open-health-redirect.rule=Host(`open-health.server.unarmedpuppy.com`)"
       - "traefik.http.routers.open-health-redirect.entrypoints=web"
-      # Main HTTPS router
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.open-health-local.rule=Host(`open-health.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.open-health-local.priority=100"
+      - "traefik.http.routers.open-health-local.entrypoints=websecure"
+      - "traefik.http.routers.open-health-local.tls.certresolver=myresolver"
+      - "traefik.http.routers.open-health-local.service=open-health"
+      # External access (requires auth) - lowest priority
       - "traefik.http.routers.open-health.rule=Host(`open-health.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.open-health.priority=1"
       - "traefik.http.routers.open-health.entrypoints=websecure"
       - "traefik.http.routers.open-health.tls.certresolver=myresolver"
+      - "traefik.http.routers.open-health.middlewares=open-health-auth"
       - "traefik.http.routers.open-health.service=open-health"
+      # Service and auth middleware
       - "traefik.http.services.open-health.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.open-health-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.open-health-auth.basicauth.realm=OpenHealth"
       # Homepage labels
       - "homepage.group=AI & Machine Learning"
       - "homepage.name=OpenHealth"
       - "homepage.icon=si-heart"
-      - "homepage.href=http://192.168.86.47:8095"
+      - "homepage.href=https://open-health.server.unarmedpuppy.com"
       - "homepage.description=AI Health Assistant powered by your data"
 
 networks:

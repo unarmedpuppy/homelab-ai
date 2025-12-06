@@ -43,22 +43,69 @@ services:
     restart: "no"  # Disabled - must be started manually
     labels:
       - "traefik.enable=true"
+      # Rust Server - HTTPS redirect
+      - "traefik.http.middlewares.rust-server-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.rust-server-redirect.middlewares=rust-server-redirect"
+      - "traefik.http.routers.rust-server-redirect.rule=Host(`rust.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.rust-server-redirect.entrypoints=web"
+      # Rust Server - Local network access (no auth)
+      - "traefik.http.routers.rust-server-local.rule=Host(`rust.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.rust-server-local.priority=100"
+      - "traefik.http.routers.rust-server-local.entrypoints=websecure"
+      - "traefik.http.routers.rust-server-local.tls.certresolver=myresolver"
+      - "traefik.http.routers.rust-server-local.service=rust-server"
+      # Rust Server - External access (requires auth)
       - "traefik.http.routers.rust-server.rule=Host(`rust.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.rust-server.entrypoints=web"
+      - "traefik.http.routers.rust-server.priority=1"
+      - "traefik.http.routers.rust-server.entrypoints=websecure"
+      - "traefik.http.routers.rust-server.tls.certresolver=myresolver"
+      - "traefik.http.routers.rust-server.middlewares=rust-server-auth"
       - "traefik.http.routers.rust-server.service=rust-server"
       - "traefik.http.services.rust-server.loadbalancer.server.port=28015"
+      - "traefik.http.middlewares.rust-server-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.rust-server-auth.basicauth.realm=Rust Server"
+      # RCON - HTTPS redirect
+      - "traefik.http.middlewares.rust-rcon-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.rust-rcon-redirect.middlewares=rust-rcon-redirect"
+      - "traefik.http.routers.rust-rcon-redirect.rule=Host(`rcon-rust.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.rust-rcon-redirect.entrypoints=web"
+      # RCON - Local network access (no auth)
+      - "traefik.http.routers.rust-rcon-local.rule=Host(`rcon-rust.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.rust-rcon-local.priority=100"
+      - "traefik.http.routers.rust-rcon-local.entrypoints=websecure"
+      - "traefik.http.routers.rust-rcon-local.tls.certresolver=myresolver"
+      - "traefik.http.routers.rust-rcon-local.service=rust-rcon"
+      # RCON - External access (requires auth)
       - "traefik.http.routers.rust-rcon.rule=Host(`rcon-rust.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.rust-rcon.entrypoints=web"
+      - "traefik.http.routers.rust-rcon.priority=1"
+      - "traefik.http.routers.rust-rcon.entrypoints=websecure"
+      - "traefik.http.routers.rust-rcon.tls.certresolver=myresolver"
+      - "traefik.http.routers.rust-rcon.middlewares=rust-rcon-auth"
       - "traefik.http.routers.rust-rcon.service=rust-rcon"
       - "traefik.http.services.rust-rcon.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.rust-rcon-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.rust-rcon-auth.basicauth.realm=Rust RCON"
+      # RCON WebSocket - Local network access (no auth)
+      - "traefik.http.routers.rust-rcon-ws-local.rule=Host(`rcon-rust.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.rust-rcon-ws-local.priority=100"
+      - "traefik.http.routers.rust-rcon-ws-local.entrypoints=websecure"
+      - "traefik.http.routers.rust-rcon-ws-local.tls.certresolver=myresolver"
+      - "traefik.http.routers.rust-rcon-ws-local.service=rust-rcon-ws"
+      # RCON WebSocket - External access (requires auth)
       - "traefik.http.routers.rust-rcon-ws.rule=Host(`rcon-rust.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.rust-rcon-ws.entrypoints=web"
+      - "traefik.http.routers.rust-rcon-ws.priority=1"
+      - "traefik.http.routers.rust-rcon-ws.entrypoints=websecure"
+      - "traefik.http.routers.rust-rcon-ws.tls.certresolver=myresolver"
+      - "traefik.http.routers.rust-rcon-ws.middlewares=rust-rcon-ws-auth"
       - "traefik.http.routers.rust-rcon-ws.service=rust-rcon-ws"
       - "traefik.http.services.rust-rcon-ws.loadbalancer.server.port=28016"
+      - "traefik.http.middlewares.rust-rcon-ws-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.rust-rcon-ws-auth.basicauth.realm=Rust RCON WebSocket"
+      # Homepage labels
       - "homepage.group=Gaming"
       - "homepage.name=Rust Server"
       - "homepage.icon=si-rust"
-      - "homepage.href=http://rust.server.unarmedpuppy.com"
+      - "homepage.href=https://rust.server.unarmedpuppy.com"
       - "homepage.description=Rust server, UDP traffic on port 28015"
     networks:
       - my-network

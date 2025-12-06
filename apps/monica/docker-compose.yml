@@ -57,17 +57,28 @@ services:
       - "traefik.http.routers.monica-redirect.middlewares=monica-redirect"
       - "traefik.http.routers.monica-redirect.rule=Host(`${MONICA_DOMAIN}`)"
       - "traefik.http.routers.monica-redirect.entrypoints=web"
-      # Main HTTPS router
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.monica-local.rule=Host(`${MONICA_DOMAIN}`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.monica-local.priority=100"
+      - "traefik.http.routers.monica-local.entrypoints=websecure"
+      - "traefik.http.routers.monica-local.tls.certresolver=myresolver"
+      - "traefik.http.routers.monica-local.service=monica"
+      # External access (requires auth) - lowest priority
       - "traefik.http.routers.monica.rule=Host(`${MONICA_DOMAIN}`)"
+      - "traefik.http.routers.monica.priority=1"
       - "traefik.http.routers.monica.entrypoints=websecure"
       - "traefik.http.routers.monica.tls.certresolver=myresolver"
+      - "traefik.http.routers.monica.middlewares=monica-auth"
       - "traefik.http.routers.monica.service=monica"
+      # Service and auth middleware
       - "traefik.http.services.monica.loadbalancer.server.port=80"
+      - "traefik.http.middlewares.monica-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.monica-auth.basicauth.realm=Monica"
       # Homepage labels
       - "homepage.group=Productivity & Organization"
       - "homepage.name=Monica"
       - "homepage.icon=si-monica"
-      - "homepage.href=http://192.168.86.47:8098"
+      - "homepage.href=https://${MONICA_DOMAIN}"
       - "homepage.description=Personal Relationship Management - Remember everything about your friends and family"
 
 networks:

@@ -27,12 +27,23 @@ services:
       - "traefik.http.routers.beaverhabits-redirect.middlewares=beaverhabits-redirect"
       - "traefik.http.routers.beaverhabits-redirect.rule=Host(`beaverhabits.server.unarmedpuppy.com`)"
       - "traefik.http.routers.beaverhabits-redirect.entrypoints=web"
-      # Main HTTPS router
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.beaverhabits-local.rule=Host(`beaverhabits.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.beaverhabits-local.priority=100"
+      - "traefik.http.routers.beaverhabits-local.entrypoints=websecure"
+      - "traefik.http.routers.beaverhabits-local.tls.certresolver=myresolver"
+      - "traefik.http.routers.beaverhabits-local.service=beaverhabits"
+      # External access (requires auth) - lowest priority
       - "traefik.http.routers.beaverhabits.rule=Host(`beaverhabits.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.beaverhabits.priority=1"
       - "traefik.http.routers.beaverhabits.entrypoints=websecure"
       - "traefik.http.routers.beaverhabits.tls.certresolver=myresolver"
+      - "traefik.http.routers.beaverhabits.middlewares=beaverhabits-auth"
       - "traefik.http.routers.beaverhabits.service=beaverhabits"
+      # Service and auth middleware
       - "traefik.http.services.beaverhabits.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.beaverhabits-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.beaverhabits-auth.basicauth.realm=Beaver Habits"
       # Homepage integration
       - "homepage.group=Productivity"
       - "homepage.name=Beaver Habits"

@@ -14,11 +14,29 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
+      # HTTPS redirect
+      - "traefik.http.middlewares.homeassistant-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.homeassistant-redirect.middlewares=homeassistant-redirect"
+      - "traefik.http.routers.homeassistant-redirect.rule=Host(`homeassistant.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.homeassistant-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.homeassistant-local.rule=Host(`homeassistant.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.homeassistant-local.priority=100"
+      - "traefik.http.routers.homeassistant-local.entrypoints=websecure"
+      - "traefik.http.routers.homeassistant-local.tls.certresolver=myresolver"
+      - "traefik.http.routers.homeassistant-local.service=homeassistant"
+      # External access (requires auth) - lowest priority
       - "traefik.http.routers.homeassistant.rule=Host(`homeassistant.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.homeassistant.priority=1"
       - "traefik.http.routers.homeassistant.entrypoints=websecure"
       - "traefik.http.routers.homeassistant.tls.certresolver=myresolver"
-      #- "traefik.http.routers.homeassistant.middlewares=auth"
-      #- "traefik.http.middlewares.auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.routers.homeassistant.middlewares=homeassistant-auth"
+      - "traefik.http.routers.homeassistant.service=homeassistant"
+      # Service and auth middleware
+      - "traefik.http.services.homeassistant.loadbalancer.server.port=8123"
+      - "traefik.http.middlewares.homeassistant-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.homeassistant-auth.basicauth.realm=Home Assistant"
+      # Homepage labels
       - "homepage.group=Infrastructure"
       - "homepage.name=Home Assistant"
       - "homepage.icon=si-homeassistant"

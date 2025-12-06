@@ -1,5 +1,7 @@
 version: '3.3'
 
+x-external: true
+
 services:
     pms-docker:
         image: plexinc/pms-docker
