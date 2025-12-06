@@ -5,10 +5,9 @@ services:
     image: mattermost/mattermost-team-edition:latest
     container_name: mattermost
     restart: unless-stopped
+    user: "1000:1000"
     environment:
       - TZ=America/Chicago
-      - PUID=1000
-      - PGID=1000
       # Mattermost configuration
       - MM_SERVICESETTINGS_SITEURL=https://mattermost.server.unarmedpuppy.com
       - MM_SERVICESETTINGS_LISTENADDRESS=0.0.0.0:8065
@@ -31,12 +30,12 @@ services:
     ports:
       - "8065:8065"  # Mattermost default port
     volumes:
-      - ./data:/mattermost/data
-      - ./config:/mattermost/config
-      - ./logs:/mattermost/logs
-      - ./plugins:/mattermost/plugins
-      - ./client/plugins:/mattermost/client/plugins
-      - ./bleve-indexes:/mattermost/bleve-indexes
+      - mattermost-data:/mattermost/data
+      - mattermost-config:/mattermost/config
+      - mattermost-logs:/mattermost/logs
+      - mattermost-plugins:/mattermost/plugins
+      - mattermost-client-plugins:/mattermost/client/plugins
+      - mattermost-bleve-indexes:/mattermost/bleve-indexes
     networks:
       - my-network
     depends_on:
@@ -105,6 +104,12 @@ services:
 volumes:
   mattermost-db-data:
   mattermost-redis-data:
+  mattermost-data:
+  mattermost-config:
+  mattermost-logs:
+  mattermost-plugins:
+  mattermost-client-plugins:
+  mattermost-bleve-indexes:
 
 networks:
   my-network:

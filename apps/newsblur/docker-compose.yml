@@ -1,0 +1,126 @@
+version: '3.8'
+
+x-enabled: true
+
+services:
+  newsblur-web:
+    image: newsblur/newsblur:latest
+    container_name: newsblur-web
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - TZ=America/Chicago
+      - PUID=1000
+      - PGID=1000
+      - NEWSBLUR_URL=https://newsblur.server.unarmedpuppy.com
+      - SESSION_COOKIE_DOMAIN=newsblur.server.unarmedpuppy.com
+      - DATABASE_URL=postgresql://newsblur:newsblur@postgres:5432/newsblur
+      - MONGO_DB_NAME=newsblur
+      - MONGO_HOST=mongodb
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - AUTO_PREMIUM=True
+      - AUTO_ENABLE_NEW_USERS=True
+      - ENFORCE_SIGNUP_CAPTCHA=False
+    volumes:
+      - ./data:/srv/newsblur/data
+      - ./media:/srv/newsblur/media
+    ports:
+      - "8001:8000"
+    networks:
+      - my-network
+    labels:
+      - "traefik.enable=true"
+      # HTTPS redirect
+      - "traefik.http.middlewares.newsblur-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.newsblur-redirect.middlewares=newsblur-redirect"
+      - "traefik.http.routers.newsblur-redirect.rule=Host(`newsblur.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.newsblur-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.newsblur-local.rule=Host(`newsblur.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.newsblur-local.priority=100"
+      - "traefik.http.routers.newsblur-local.entrypoints=websecure"
+      - "traefik.http.routers.newsblur-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.newsblur.rule=Host(`newsblur.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.newsblur.priority=1"
+      - "traefik.http.routers.newsblur.entrypoints=websecure"
+      - "traefik.http.routers.newsblur.tls.certresolver=myresolver"
+      - "traefik.http.routers.newsblur.tls=true"
+      - "traefik.http.routers.newsblur.middlewares=newsblur-auth"
+      # Service and auth middleware
+      - "traefik.http.services.newsblur.loadbalancer.server.port=8000"
+      - "traefik.http.middlewares.newsblur-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.newsblur-auth.basicauth.realm=NewsBlur"
+      # Homepage labels
+      - "homepage.group=Communication & Social"
+      - "homepage.name=NewsBlur"
+      - "homepage.icon=si-rss"
+      - "homepage.href=https://newsblur.server.unarmedpuppy.com"
+      - "homepage.description=Personal news reader with intelligence"
+
+  postgres:
+    image: postgres:14-alpine
+    container_name: newsblur-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=newsblur
+      - POSTGRES_USER=newsblur
+      - POSTGRES_PASSWORD=newsblur
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - newsblur-postgres-data:/var/lib/postgresql/data
+    networks:
+      - my-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U newsblur -d newsblur"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongodb:
+    image: mongo:6.0
+    container_name: newsblur-mongodb
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_DATABASE=newsblur
+    volumes:
+      - newsblur-mongodb-data:/data/db
+    networks:
+      - my-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: newsblur-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - newsblur-redis-data:/data
+    networks:
+      - my-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  newsblur-postgres-data:
+  newsblur-mongodb-data:
+  newsblur-redis-data:
+
+networks:
+  my-network:
+    external: true
+
