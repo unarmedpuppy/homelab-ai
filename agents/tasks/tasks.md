@@ -49,7 +49,7 @@ git checkout -b feature/task-x-description
 | T9 | IBKR integration testing | [AVAILABLE] | P0 |
 | T10 | Strategy-to-execution pipeline | [AVAILABLE] | P0 |
 | T11 | Sentiment provider base class | [AVAILABLE] | P1 |
-| T12 | Standardize Traefik config: local DNS no-auth, external auth | [AVAILABLE] | P1 |
+| T12 | Standardize Traefik config: local DNS no-auth, external auth | [CLAIMED by @auto] | P1 |
 
 ### Task T1: Consolidate metrics system (8 files → 3)
 **Priority**: P0
