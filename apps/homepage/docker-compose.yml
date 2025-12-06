@@ -19,10 +19,19 @@ services:
     labels:
       - "homepage.group=Infrastructure"
       - "traefik.enable=true"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.homepage-local.rule=Host(`server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.homepage-local.priority=100"
+      - "traefik.http.routers.homepage-local.entrypoints=websecure"
+      - "traefik.http.routers.homepage-local.tls.certresolver=myresolver"
+      # External IP access (no auth) - medium priority
       - "traefik.http.routers.homepage.rule=Host(`server.unarmedpuppy.com`) && ClientIP(`76.156.139.101`)"
+      - "traefik.http.routers.homepage.priority=99"
       - "traefik.http.routers.homepage.entrypoints=websecure"
       - "traefik.http.routers.homepage.tls.certresolver=myresolver"
+      # All other access (requires auth) - lowest priority
       - "traefik.http.routers.homepage2.rule=Host(`server.unarmedpuppy.com`)"
+      - "traefik.http.routers.homepage2.priority=1"
       - "traefik.http.routers.homepage2.entrypoints=websecure"
       - "traefik.http.routers.homepage2.middlewares=do-auth"
       - "traefik.http.routers.homepage2.tls.certresolver=myresolver"
