@@ -3,7 +3,7 @@
 Task tracking for Home Server.
 
 **Status**: Active development
-**Last Updated**: 2024-11-27
+**Last Updated**: 2024-12-05
 
 ## Task Claiming Protocol
 
@@ -49,6 +49,7 @@ git checkout -b feature/task-x-description
 | T9 | IBKR integration testing | [AVAILABLE] | P0 |
 | T10 | Strategy-to-execution pipeline | [AVAILABLE] | P0 |
 | T11 | Sentiment provider base class | [AVAILABLE] | P1 |
+| T12 | Standardize Traefik config: local DNS no-auth, external auth | [AVAILABLE] | P1 |
 
 ### Task T1: Consolidate metrics system (8 files → 3)
 **Priority**: P0
@@ -221,6 +222,93 @@ git checkout -b feature/task-x-description
 - [ ] Providers refactored
 - [ ] Boilerplate reduced
 
+### Task T12: Standardize Traefik config: local DNS no-auth, external auth
+**Priority**: P1
+**Dependencies**: None
+**Effort**: High
+**Project**: home-server
+
+**Objective**: Apply consistent Traefik configuration pattern across all apps:
+- Local network (192.168.86.0/24) access without authentication
+- External access requires authentication (except x-external: true services)
+- Update homepage.href from IP:port to subdomain URLs
+- Add HTTPS redirect middleware (Plex pattern)
+- Add loadbalancer.server.port where missing
+
+**Scope**:
+- **Exclude**: `apps/media-download/*` directory
+- **Exclude**: Services with `x-external: true` (maptapdat, plex, minecraft)
+- **Target**: ~24 services with `traefik.enable=true`
+- **Update**: ~20 services with `homepage.href` using IP:port
+
+**Reference Patterns**:
+- **Homepage**: Local network auth bypass pattern (priority 100, ClientIP 192.168.86.0/24)
+- **Plex**: HTTPS redirect + loadbalancer.server.port pattern
+
+**Services to Update** (with Traefik config):
+1. `apps/bedrock-viz/docker-compose.yml`
+2. `apps/open-archiver/docker-compose.yml`
+3. `apps/monica/docker-compose.yml`
+4. `apps/homepage/docker-compose.yml` ✅ (already done)
+5. `apps/homeassistant/docker-compose.yml`
+6. `apps/open-health/docker-compose.yml`
+7. `apps/immich/docker-compose.yml`
+8. `apps/beaverhabits/docker-compose.yml`
+9. `apps/rust/docker-compose.yml`
+10. `apps/grafana/docker-compose.yml`
+11. `apps/wiki/docker-compose.yml`
+12. `apps/ghost/docker-compose.yml`
+13. `apps/mazanoke/docker-compose.yml`
+14. `apps/n8n/docker-compose.yml`
+15. `apps/campfire/docker-compose.yml`
+16. `apps/soulsync/docker-compose.yml`
+17. `apps/vaultwarden/docker-compose.yml`
+18. `apps/libreddit/docker-compose.yml`
+19. `apps/mealie/docker-compose.yml`
+20. `apps/adguard-home/docker-compose.yml`
+21. `apps/paperless-ngx/docker-compose.yml`
+22. `apps/traefik/docker-compose.yml`
+23. `apps/local-ai-app/docker-compose.yml`
+
+**Services to Skip** (x-external: true):
+- `apps/maptapdat/docker-compose.yml`
+- `apps/plex/docker-compose.yml`
+- `apps/minecraft/docker-compose.yml`
+
+**Files to modify**:
+- All docker-compose.yml files listed above (except skipped services)
+
+**Success Criteria**:
+- [ ] All services with Traefik config have local network auth bypass (priority 100)
+- [ ] All services have external auth requirement (priority 1) unless x-external: true
+- [ ] All homepage.href labels use subdomain format (https://subdomain.server.unarmedpuppy.com)
+- [ ] HTTPS redirect middleware added where appropriate (Plex pattern)
+- [ ] loadbalancer.server.port specified for all services
+- [ ] All changes tested and deployed
+- [ ] No services in media-download directory modified
+- [ ] x-external: true services left unchanged
+
+**Implementation Steps**:
+1. For each service with `traefik.enable=true`:
+   - Add local network router (priority 100, ClientIP 192.168.86.0/24, no auth)
+   - Add/update external router (priority 1, with auth middleware)
+   - Add HTTPS redirect middleware if missing
+   - Add loadbalancer.server.port if missing
+2. For each service with `homepage.href`:
+   - Extract subdomain from existing Traefik Host rule
+   - Update homepage.href to `https://subdomain.server.unarmedpuppy.com`
+3. Test each service:
+   - Local access works without auth
+   - External access requires auth (unless x-external: true)
+   - HTTPS redirect works
+   - Subdomain resolves correctly
+
+**Notes**:
+- Use homepage pattern for auth bypass
+- Use Plex pattern for HTTPS redirect and loadbalancer
+- External IP exception (76.156.139.101) only applies to homepage
+- All other services: local network = no auth, everything else = auth required
+
 ---
 
 ## Priority Order
@@ -238,6 +326,7 @@ git checkout -b feature/task-x-description
 - T3, T4, T5 - Style cleanup
 - T7, T8 - UI and tests
 - T11 - Provider refactor
+- T12 - Traefik config standardization (home-server infrastructure)
 
 ---
 
