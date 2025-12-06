@@ -15,7 +15,7 @@ services:
     environment:
       - TZ=America/Chicago
       - APP_ENV=production
-      - APP_KEY=
+      - APP_KEY=base64:aaaZipZ9XzHOpWk9tG0DHshho6cl64rwu3CrK2W1Fx8=
       - DB_CONNECTION=pgsql
       - DB_HOST=db
       - DB_PORT=5432
