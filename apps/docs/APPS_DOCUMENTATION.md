@@ -251,6 +251,12 @@ Complete automation stack for media acquisition. All services on `media-download
 - **Status**: ✅ **ACTIVE**
 - **Notes**: Accessible via `lubelog.server.unarmedpuppy.com` (HTTPS)
 
+### Excalidraw
+- **Description**: Virtual whiteboard for sketching hand-drawn like diagrams
+- **Ports**: `5000` - Web interface
+- **Status**: ✅ **ACTIVE**
+- **Notes**: Accessible via `excalidraw.server.unarmedpuppy.com` (HTTPS)
+
 ### Vaultwarden
 - **Description**: Self-hosted password manager (Bitwarden compatible)
 - **Ports**: `11001` - Web interface
