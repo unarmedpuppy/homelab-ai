@@ -257,6 +257,15 @@ Complete automation stack for media acquisition. All services on `media-download
 - **Status**: ✅ **ACTIVE**
 - **Notes**: Accessible via `excalidraw.server.unarmedpuppy.com` (HTTPS)
 
+### Mattermost
+- **Description**: Team collaboration and chat platform (open-source Slack alternative)
+- **Services**:
+  - **mattermost**: `8065` - Main web interface
+  - **postgres**: PostgreSQL (internal)
+  - **redis**: Redis cache (internal)
+- **Status**: ✅ **ACTIVE**
+- **Notes**: Accessible via `mattermost.server.unarmedpuppy.com` (HTTPS)
+
 ### Vaultwarden
 - **Description**: Self-hosted password manager (Bitwarden compatible)
 - **Ports**: `11001` - Web interface

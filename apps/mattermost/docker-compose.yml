@@ -1,0 +1,112 @@
+x-enabled: true
+
+services:
+  mattermost:
+    image: mattermost/mattermost-team-edition:latest
+    container_name: mattermost
+    restart: unless-stopped
+    environment:
+      - TZ=America/Chicago
+      - PUID=1000
+      - PGID=1000
+      # Mattermost configuration
+      - MM_SERVICESETTINGS_SITEURL=https://mattermost.server.unarmedpuppy.com
+      - MM_SERVICESETTINGS_LISTENADDRESS=0.0.0.0:8065
+      - MM_SQLSETTINGS_DRIVERNAME=postgres
+      - MM_SQLSETTINGS_DATASOURCE=postgres://mattermost:mattermost@postgres:5432/mattermost?sslmode=disable&connect_timeout=10
+      - MM_SQLSETTINGS_MAXIDLECONNS=20
+      - MM_SQLSETTINGS_MAXOPENCONNS=300
+      - MM_SQLSETTINGS_TRACESQL=false
+      - MM_LOGSETTINGS_CONSOLELEVEL=INFO
+      - MM_LOGSETTINGS_FILELEVEL=INFO
+      - MM_FILESETTINGS_MAXFILESIZE=52428800
+      - MM_PLUGINSETTINGS_ENABLEUPLOADS=true
+      - MM_CLUSTERSETTINGS_ENABLE=false
+      - MM_METRICSSETTINGS_ENABLE=false
+      - MM_EXPERIMENTALSETTINGS_ENABLEOPENSERVER=false
+      # Redis configuration (optional but recommended)
+      - MM_SERVICESETTINGS_SESSIONCACHEINMEMORY=false
+      - MM_SERVICESETTINGS_SESSIONCACHEREDISURL=redis://redis:6379
+      - MM_SERVICESETTINGS_SESSIONCACHEREDISCONNECTIONTIMEOUT_SECS=30
+    ports:
+      - "8065:8065"  # Mattermost default port
+    volumes:
+      - ./data:/mattermost/data
+      - ./config:/mattermost/config
+      - ./logs:/mattermost/logs
+      - ./plugins:/mattermost/plugins
+      - ./client/plugins:/mattermost/client/plugins
+      - ./bleve-indexes:/mattermost/bleve-indexes
+    networks:
+      - my-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    labels:
+      - "traefik.enable=true"
+      # HTTPS redirect
+      - "traefik.http.middlewares.mattermost-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.mattermost-redirect.middlewares=mattermost-redirect"
+      - "traefik.http.routers.mattermost-redirect.rule=Host(`mattermost.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.mattermost-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.mattermost-local.rule=Host(`mattermost.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.mattermost-local.priority=100"
+      - "traefik.http.routers.mattermost-local.entrypoints=websecure"
+      - "traefik.http.routers.mattermost-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.mattermost.rule=Host(`mattermost.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.mattermost.priority=1"
+      - "traefik.http.routers.mattermost.entrypoints=websecure"
+      - "traefik.http.routers.mattermost.tls.certresolver=myresolver"
+      - "traefik.http.routers.mattermost.middlewares=mattermost-auth"
+      # Service and auth middleware
+      - "traefik.http.services.mattermost.loadbalancer.server.port=8065"
+      - "traefik.http.middlewares.mattermost-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.mattermost-auth.basicauth.realm=Mattermost"
+      # Homepage labels
+      - "homepage.group=Productivity & Organization"
+      - "homepage.name=Mattermost"
+      - "homepage.icon=si-mattermost"
+      - "homepage.href=https://mattermost.server.unarmedpuppy.com"
+      - "homepage.description=Team collaboration and chat platform"
+
+  postgres:
+    image: postgres:14-alpine
+    container_name: mattermost-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=mattermost
+      - POSTGRES_USER=mattermost
+      - POSTGRES_PASSWORD=mattermost
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - mattermost-db-data:/var/lib/postgresql/data
+    networks:
+      - my-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mattermost -d mattermost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: mattermost-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - mattermost-redis-data:/data
+    networks:
+      - my-network
+
+volumes:
+  mattermost-db-data:
+  mattermost-redis-data:
+
+networks:
+  my-network:
+    external: true
+
