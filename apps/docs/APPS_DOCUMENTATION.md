@@ -304,6 +304,14 @@ Complete automation stack for media acquisition. All services on `media-download
 - **Status**: ✅ **ACTIVE**
 - **Notes**: Redis is exposed on host port 6379
 
+### Firefly III
+- **Description**: Personal finance manager for tracking expenses, income, budgets, and financial goals
+- **Services**:
+  - **firefly-iii**: `8082` - Web interface
+  - **db**: PostgreSQL (internal)
+- **Status**: ✅ **ACTIVE**
+- **Notes**: Accessible via `firefly.server.unarmedpuppy.com` (HTTPS)
+
 ### Libreddit
 - **Description**: Private front-end for Reddit
 - **Ports**: `8088` - Web interface
