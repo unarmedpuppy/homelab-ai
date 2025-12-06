@@ -42,6 +42,7 @@ services:
       - "traefik.http.routers.photos.priority=1"
       - "traefik.http.routers.photos.entrypoints=websecure"
       - "traefik.http.routers.photos.tls.certresolver=myresolver"
+      - "traefik.http.routers.photos.tls=true"
       - "traefik.http.routers.photos.middlewares=photos-auth"
       - "traefik.http.routers.photos.service=photos"
       # Service and auth middleware
