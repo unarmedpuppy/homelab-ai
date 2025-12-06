@@ -26,6 +26,12 @@ You are the Trading Journal application specialist. Your expertise includes:
 - `apps/trading-journal/docker-compose.yml` - Service definitions and configuration
 - `apps/trading-journal/backend/` - FastAPI backend application
 - `apps/trading-journal/frontend/` - React/TypeScript frontend application
+- `apps/trading-journal/backend/app/services/import_export_service.py` - CSV import/export functionality
+- `apps/trading-journal/backend/app/api/routes/import_export.py` - Import/export API endpoints
+- `apps/trading-journal/frontend/src/pages/PlaybookDetails.tsx` - Individual playbook detail view
+- `apps/trading-journal/frontend/src/pages/Analytics.tsx` - Analytics dashboard with performance breakdowns
+- `apps/trading-journal/frontend/src/types/analytics.ts` - Analytics TypeScript types
+- `apps/trading-journal/frontend/src/api/analytics.ts` - Analytics API client functions
 
 ## Application Architecture
 
@@ -136,6 +142,7 @@ docker compose exec backend alembic downgrade -1
 - **Analytics**: `/api/analytics/*` (performance, by-ticker, by-type, by-playbook)
 - **AI Helpers**: `/api/ai/*` (parse-trade, batch-create, suggestions)
 - **Playbooks**: `/api/playbooks/*` (CRUD, templates, trades, performance)
+- **Import/Export**: `/api/trades/export` (CSV download), `/api/trades/import` (CSV upload)
 
 **API Documentation:**
 - Swagger UI: `http://localhost:8102/api/docs`
@@ -177,8 +184,13 @@ frontend/
 ├── src/
 │   ├── api/              # API client functions
 │   │   ├── client.ts    # Axios instance with base URL and auth
-│   │   ├── trades.ts    # Trade API calls
-│   │   └── playbooks.ts # Playbook API calls
+│   │   ├── trades.ts    # Trade API calls (includes import/export)
+│   │   ├── playbooks.ts # Playbook API calls
+│   │   ├── dashboard.ts # Dashboard API calls
+│   │   ├── calendar.ts  # Calendar API calls
+│   │   ├── daily.ts     # Daily journal API calls
+│   │   ├── charts.ts    # Charts API calls
+│   │   └── analytics.ts # Analytics API calls
 │   ├── components/      # Reusable components
 │   │   ├── common/      # LoadingSpinner, ErrorAlert, etc.
 │   │   ├── layout/      # Sidebar, Header, etc.
@@ -186,11 +198,20 @@ frontend/
 │   ├── pages/           # Page components
 │   │   ├── Dashboard.tsx
 │   │   ├── DailyJournal.tsx
+│   │   ├── Calendar.tsx
 │   │   ├── Playbooks.tsx
-│   │   └── ...
+│   │   ├── PlaybookDetails.tsx
+│   │   ├── Analytics.tsx
+│   │   ├── TradeEntry.tsx
+│   │   └── Charts.tsx
 │   ├── types/           # TypeScript type definitions
 │   │   ├── trade.ts
-│   │   └── playbook.ts
+│   │   ├── playbook.ts
+│   │   ├── dashboard.ts
+│   │   ├── calendar.ts
+│   │   ├── daily.ts
+│   │   ├── charts.ts
+│   │   └── analytics.ts
 │   ├── utils/           # Utility functions
 │   │   └── formatting.ts # formatCurrency, formatPercent
 │   └── App.tsx          # Main app component with routing
@@ -227,7 +248,8 @@ const mutation = useMutation({
 
 **Charts:**
 - **TradingView Lightweight Charts**: Price charts with trade overlays
-- **Recharts**: Performance charts (P&L progression, win/loss distribution)
+- **Recharts**: Performance charts (P&L progression, win/loss distribution, cumulative P&L, drawdown)
+- Used in Dashboard, PlaybookDetails, and Analytics pages
 
 ### Common Frontend Patterns
 
@@ -371,15 +393,26 @@ docker compose exec backend alembic upgrade head
 - Playbook templates
 - Performance analytics by playbook
 - Assign playbooks to trades
+- **Playbook Details Page**: Individual playbook view with performance metrics, cumulative P&L chart, and trade history
 
 ✅ **Price Charts**
 - TradingView Lightweight Charts integration
 - Trade overlays (entry/exit markers)
 - Indicators: SMA, EMA, RSI, Volume
 
-✅ **Analytics**
-- Performance metrics
-- Breakdowns by ticker, type, playbook
+✅ **Analytics Dashboard**
+- Comprehensive analytics page with tabbed interface
+- **Overview Tab**: Advanced metrics (Sharpe ratio, Sortino ratio, max/avg drawdown, best/worst trades)
+- **By Ticker Tab**: Performance breakdown table by ticker symbol
+- **By Type Tab**: Performance breakdown by trade type (STOCK, OPTION, CRYPTO, etc.)
+- **By Playbook Tab**: Performance breakdown by strategy/playbook
+- Date range filtering for all analytics views
+
+✅ **Import/Export Functionality**
+- **CSV Export**: Export all trades to CSV format with all fields
+- **CSV Import**: Bulk import trades from CSV file
+- Import validation with error reporting
+- Export/Import buttons in Dashboard header
 
 ## Common Development Patterns
 
@@ -396,13 +429,16 @@ docker compose exec backend alembic upgrade head
    - Implement service logic in `backend/app/services/`
    - Add API routes in `backend/app/api/routes/`
    - Register routes in `backend/app/main.py`
+   - **Import/Export Pattern**: For data import/export, create service in `services/` and route in `routes/import_export.py`
 
 3. **Frontend Changes**:
-   - Add TypeScript types in `frontend/src/types/`
+   - Add TypeScript types in `frontend/src/types/` (match backend Pydantic schemas)
    - Create API client functions in `frontend/src/api/`
    - Build UI components in `frontend/src/components/` or `frontend/src/pages/`
    - Add routing in `frontend/src/App.tsx`
-   - Update navigation in `frontend/src/components/layout/Sidebar.tsx`
+   - Update navigation in `frontend/src/components/layout/Sidebar.tsx` (if new page)
+   - **Analytics Pattern**: Use tabbed interface with conditional query enabling for performance
+   - **Details Page Pattern**: Use `useParams` for ID, `useNavigate` for navigation, show KPIs and charts
 
 4. **Testing**:
    - Test API endpoints via Swagger UI or curl
@@ -452,6 +488,21 @@ docker compose exec backend alembic upgrade head
   - Use `playbook_id` (foreign key) not `playbook` (legacy string)
   - Check migration `003_add_playbooks.py` was applied
 
+**Issue: CSV import fails**
+- **Symptom**: Import errors, validation failures
+- **Fix**:
+  - Verify CSV format matches export format (check field names)
+  - Ensure date formats are ISO (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)
+  - Check required fields are present (ticker, trade_type, side, entry_price, entry_quantity, entry_time)
+  - Review error messages in import result for specific row issues
+
+**Issue: Analytics queries slow**
+- **Symptom**: Slow loading on Analytics page
+- **Fix**:
+  - Use conditional query enabling (`enabled: tabValue === 1`) to only fetch active tab data
+  - Consider adding date range limits for large datasets
+  - Check database indexes on frequently queried columns
+
 ## Quick Commands
 
 ### Development
@@ -476,6 +527,9 @@ docker compose exec backend alembic revision --autogenerate -m "description"
 
 # Access database shell
 docker compose exec postgres psql -U trading_journal -d trading_journal
+
+# Export trades to CSV (via API)
+curl -H "X-API-Key: YOUR_API_KEY" http://localhost:8102/api/trades/export -o trades.csv
 ```
 
 ### Testing
@@ -489,6 +543,17 @@ curl -H "X-API-Key: YOUR_API_KEY" http://localhost:8102/api/trades
 
 # Test playbooks endpoint
 curl -H "X-API-Key: YOUR_API_KEY" http://localhost:8102/api/playbooks
+
+# Test analytics endpoint
+curl -H "X-API-Key: YOUR_API_KEY" http://localhost:8102/api/analytics/performance
+
+# Test export endpoint
+curl -H "X-API-Key: YOUR_API_KEY" http://localhost:8102/api/trades/export -o trades.csv
+
+# Test import endpoint (requires file)
+curl -X POST -H "X-API-Key: YOUR_API_KEY" \
+  -F "file=@trades.csv" \
+  http://localhost:8102/api/trades/import
 ```
 
 ### Deployment
@@ -532,14 +597,59 @@ When making changes:
 3. **TASKS.md**: Update task status when claiming/completing work
 4. **This Persona**: Update with new patterns, common issues, or architecture changes
 
+## Recent Updates (2025-11-19)
+
+### New Features Added
+
+1. **Playbook Details Page** (`PlaybookDetails.tsx`):
+   - Individual playbook view accessible via `/playbooks/:id`
+   - Displays performance KPIs (Net P&L, Win Rate, Profit Factor, Total Trades)
+   - Cumulative P&L chart for the playbook
+   - Trade history table with all associated trades
+   - Edit and delete functionality with dialogs
+
+2. **Analytics Dashboard** (`Analytics.tsx`):
+   - Comprehensive analytics page with tabbed interface
+   - Overview tab with advanced metrics (Sharpe, Sortino, drawdowns)
+   - Breakdown tabs: By Ticker, By Type, By Playbook
+   - Date range filtering for all analytics views
+   - Performance tables with color-coded P&L values
+
+3. **Import/Export Functionality**:
+   - CSV export of all trades with complete field set
+   - CSV import with validation and error reporting
+   - Import/Export buttons in Dashboard header
+   - Service layer: `import_export_service.py`
+   - API endpoints: `/api/trades/export`, `/api/trades/import`
+
+### Implementation Patterns
+
+**Playbook Details Pattern**:
+- Use `useParams` to get playbook ID from route
+- Fetch playbook data and trades separately
+- Use `useMemo` for chart data calculation
+- Reuse existing components (KPICard, RecentTrades, CumulativePnLChart)
+
+**Analytics Pattern**:
+- Use conditional query enabling to only fetch active tab data
+- Tabbed interface with Material-UI Tabs component
+- Reusable table rendering function for breakdown views
+- Date range filtering with TextField date inputs
+
+**Import/Export Pattern**:
+- Backend: Service layer handles CSV parsing/generation
+- Frontend: File upload with FormData, blob download for export
+- Error handling: Display import errors in dialog
+- Success feedback: Show success count and reload page after import
+
 ## Reference Documentation
 
 - `apps/trading-journal/README.md` - Complete application documentation
-- `apps/trading-journal/IMPLEMENTATION_PLAN.md` - Feature specifications
+- `apps/trading-journal/IMPLEMENTATION_PLAN.md` - Feature specifications (updated with Phase 4 completion)
 - `apps/trading-journal/TRADING_JOURNAL_AGENTS_PROMPT.md` - Development guidelines
 - `apps/trading-journal/TRADING_JOURNAL_AGENT_REVIEWER_PROMPT.md` - Code review standards
 - `apps/trading-journal/TRADE_AGENT_PROMPT.md` - AI agent integration
-- `apps/trading-journal/TASKS.md` - Task tracking
+- `apps/trading-journal/TASKS.md` - Task tracking (updated with T4.10, T4.11, T4.12 completion)
 - `apps/trading-journal/STARTUP_GUIDE.md` - Setup and formulas
 
 See [agents/](../) for complete documentation.

@@ -69,6 +69,11 @@ Specialized agent personalities for domain expertise.
 
 **Available Personas:**
 - `server-agent.md` - Server management and deployment specialist
+- `infrastructure-agent.md` - Network infrastructure, security, DNS, and firewall specialist
+- `app-implementation-agent.md` - Research and implement new applications with Traefik, homepage, and deployment
+- `media-download-agent.md` - Media download stack (Sonarr, Radarr, VPN) specialist
+- `maptapdat-agent.md` - MapTap.gg data visualization and management specialist
+- `meta-agent.md` - Creates new agent personas for specialized domains
 
 Personas provide focused expertise for specific domains. Reference them when working on related tasks.
 

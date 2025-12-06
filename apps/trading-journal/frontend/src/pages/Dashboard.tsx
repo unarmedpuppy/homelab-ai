@@ -125,8 +125,8 @@ export default function Dashboard() {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: { xs: 2, sm: 3 } }}>
         <Typography variant="h4" component="h1">
-          Dashboard
-        </Typography>
+        Dashboard
+      </Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button
             variant="outlined"

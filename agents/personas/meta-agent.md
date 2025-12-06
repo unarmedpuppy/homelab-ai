@@ -32,6 +32,8 @@ Create personas in `agents/personas/[domain]-agent.md`
 
 ## Template
 
+**Standard Persona Format:**
+
 ```markdown
 ---
 name: [domain]-agent
@@ -59,4 +61,6 @@ You are the [domain] specialist. Your expertise includes:
 
 See [agents/](../) for complete documentation.
 ```
+
+**Note**: The meta-agent itself uses a slightly different intro format ("You are the Meta-Agent, responsible for...") because it's about persona creation rather than domain specialization. All other personas should follow the standard format above.
 
