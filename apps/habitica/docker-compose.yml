@@ -3,12 +3,13 @@ version: '3.8'
 services:
   habitica:
     build:
-      context: https://github.com/HabitRPG/habitica.git#develop
+      context: .
       dockerfile: Dockerfile
     container_name: habitica
     restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
       - "3002:3000"
     environment:
@@ -20,7 +21,7 @@ services:
       - INVITE_ONLY=false
     volumes:
       - habitica-uploads:/app/public/uploads
-      - ./config.json:/app/config.json
+      - ./config.json:/app/config.json:ro
     networks:
       - my-network
     labels:

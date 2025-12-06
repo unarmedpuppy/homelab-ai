@@ -312,6 +312,14 @@ Complete automation stack for media acquisition. All services on `media-download
 - **Status**: ✅ **ACTIVE**
 - **Notes**: Accessible via `firefly.server.unarmedpuppy.com` (HTTPS)
 
+### Habitica
+- **Description**: Gamified habit tracker and task manager that treats goals like a Role Playing Game
+- **Services**:
+  - **habitica**: `3002` - Web interface
+  - **db**: MongoDB (internal, replica set)
+- **Status**: ✅ **ACTIVE**
+- **Notes**: Accessible via `habitica.server.unarmedpuppy.com` (HTTPS)
+
 ### Libreddit
 - **Description**: Private front-end for Reddit
 - **Ports**: `8088` - Web interface

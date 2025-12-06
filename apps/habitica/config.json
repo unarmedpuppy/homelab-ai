@@ -1,0 +1,14 @@
+{
+  "host": {
+    "url": "https://habitica.server.unarmedpuppy.com",
+    "port": 3000
+  },
+  "database": {
+    "url": "mongodb://db:27017/habitica"
+  },
+  "mail": {
+    "enabled": false
+  },
+  "inviteOnly": false
+}
+
