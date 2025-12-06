@@ -74,6 +74,7 @@ See `agents/reference/` for detailed patterns and workflows.
 - **📝 CREATE TOOLS**: If you solve a problem with commands or create a script, **MUST** create a tool in `agents/tools/` for future use
 - Update task status when claiming/completing work
 - Commit after each logical unit of work
+- **🔄 SUBMIT PR WHEN COMPLETE**: When a feature is complete, **MUST** submit a pull request from the feature branch back to main
 
 ### Ask First
 - Architectural changes affecting multiple services
@@ -182,6 +183,11 @@ git push origin main
 
 # 4. Create feature branch
 git checkout -b feature/task-x-description
+
+# 5. When feature is complete, submit PR
+# Push feature branch and create pull request to main
+git push origin feature/task-x-description
+# Then create PR via GitHub CLI or web interface
 ```
 
 
