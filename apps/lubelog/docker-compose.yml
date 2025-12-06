@@ -1,0 +1,51 @@
+x-enabled: true
+
+services:
+  lubelog:
+    image: ghcr.io/hargata/lubelogger:latest
+    container_name: lubelog
+    restart: unless-stopped
+    environment:
+      - TZ=America/Chicago
+      - PUID=1000
+      - PGID=1000
+      - ASPNETCORE_URLS=http://+:8080
+    ports:
+      - "8010:8080"  # Host port 8010 to avoid conflict with Rust on 8080
+    volumes:
+      - ./data:/app/data
+    networks:
+      - my-network
+    labels:
+      - "traefik.enable=true"
+      # HTTPS redirect
+      - "traefik.http.middlewares.lubelog-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.lubelog-redirect.middlewares=lubelog-redirect"
+      - "traefik.http.routers.lubelog-redirect.rule=Host(`lubelog.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.lubelog-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.lubelog-local.rule=Host(`lubelog.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.lubelog-local.priority=100"
+      - "traefik.http.routers.lubelog-local.entrypoints=websecure"
+      - "traefik.http.routers.lubelog-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.lubelog.rule=Host(`lubelog.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.lubelog.priority=1"
+      - "traefik.http.routers.lubelog.entrypoints=websecure"
+      - "traefik.http.routers.lubelog.tls.certresolver=myresolver"
+      - "traefik.http.routers.lubelog.middlewares=lubelog-auth"
+      # Service and auth middleware
+      - "traefik.http.services.lubelog.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.lubelog-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.lubelog-auth.basicauth.realm=LubeLogger"
+      # Homepage labels
+      - "homepage.group=Productivity & Organization"
+      - "homepage.name=LubeLogger"
+      - "homepage.icon=si-car"
+      - "homepage.href=https://lubelog.server.unarmedpuppy.com"
+      - "homepage.description=Vehicle maintenance and fuel mileage tracker"
+
+networks:
+  my-network:
+    external: true
+

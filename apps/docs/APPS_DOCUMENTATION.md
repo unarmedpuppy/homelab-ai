@@ -245,6 +245,12 @@ Complete automation stack for media acquisition. All services on `media-download
   - **postgres**: PostgreSQL (internal)
 - **Status**: ✅ **ACTIVE**
 
+### LubeLogger
+- **Description**: Vehicle maintenance and fuel mileage tracker
+- **Ports**: `8010` - Web interface
+- **Status**: ✅ **ACTIVE**
+- **Notes**: Accessible via `lubelog.server.unarmedpuppy.com` (HTTPS)
+
 ### Vaultwarden
 - **Description**: Self-hosted password manager (Bitwarden compatible)
 - **Ports**: `11001` - Web interface
