@@ -4,13 +4,9 @@ x-enabled: true
 
 services:
   newsblur-web:
-    # Note: NewsBlur requires building from source
-    # Clone the repository first: git clone https://github.com/samuelclay/NewsBlur.git ../NewsBlur
-    # Then uncomment the build section below and comment out the image line
-    # build:
-    #   context: ../NewsBlur
-    #   dockerfile: docker/Dockerfile.web
-    image: newsblur/newsblur:latest  # This may not exist - use build instead
+    build:
+      context: ../../NewsBlur
+      dockerfile: docker/newsblur_base_image.Dockerfile
     container_name: newsblur-web
     restart: unless-stopped
     depends_on:
@@ -24,6 +20,8 @@ services:
       - TZ=America/Chicago
       - PUID=1000
       - PGID=1000
+      - DOCKERBUILD=True
+      - RUNWITHMAKEBUILD=True
       - NEWSBLUR_URL=https://newsblur.server.unarmedpuppy.com
       - SESSION_COOKIE_DOMAIN=newsblur.server.unarmedpuppy.com
       - DATABASE_URL=postgresql://newsblur:newsblur@postgres:5432/newsblur
@@ -34,9 +32,16 @@ services:
       - AUTO_PREMIUM=True
       - AUTO_ENABLE_NEW_USERS=True
       - ENFORCE_SIGNUP_CAPTCHA=False
+    stdin_open: true
+    tty: true
+    ulimits:
+      nproc: 10000
+      nofile:
+        soft: 10000
+        hard: 10000
+    entrypoint: /bin/sh -c newsblur_web/entrypoint.sh
     volumes:
-      - ./data:/srv/newsblur/data
-      - ./media:/srv/newsblur/media
+      - ../../NewsBlur:/srv/newsblur
     ports:
       - "8001:8000"
     networks:
