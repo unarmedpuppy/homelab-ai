@@ -27,7 +27,9 @@ services:
       - DATABASE_URL=postgresql://newsblur:newsblur@newsblur_db_postgres:5432/newsblur
       - MONGO_DB_NAME=newsblur
       - MONGO_HOST=newsblur_db_mongo
+      - MONGO_PORT=27017
       - REDIS_HOST=newsblur_db_redis
+      - REDIS_PORT=6379
       - REDIS_PORT=6379
       - AUTO_PREMIUM=True
       - AUTO_ENABLE_NEW_USERS=True
