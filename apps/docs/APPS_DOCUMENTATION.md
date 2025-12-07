@@ -287,12 +287,15 @@ Complete automation stack for media acquisition. All services on `media-download
 ### NewsBlur
 - **Description**: Personal news reader with intelligence - RSS feed reader and social news network
 - **Services**:
-  - **newsblur-web**: `8001` - Web interface (Django)
-  - **postgres**: PostgreSQL (internal) - Relational data
-  - **mongodb**: MongoDB (internal) - Stories and read states
-  - **redis**: Redis (internal) - Story assembly and caching
+  - **newsblur-web**: `8002` - Web interface (Django)
+  - **newsblur_db_postgres**: PostgreSQL (internal) - Relational data
+  - **newsblur_db_mongo**: MongoDB (internal) - Stories and read states (exposed on `29019`)
+  - **newsblur_db_redis**: Redis (internal) - Story assembly and caching (exposed on `6579`)
 - **Status**: ✅ **ACTIVE**
-- **Notes**: Accessible via `newsblur.server.unarmedpuppy.com` (HTTPS). Requires building from source - see `apps/newsblur/README.md` for setup instructions.
+- **Notes**: 
+  - Accessible via `newsblur.server.unarmedpuppy.com` (HTTPS)
+  - Built from source from official NewsBlur repository
+  - Database migrations completed successfully
 
 ### Maybe
 - **Description**: Personal finance management
