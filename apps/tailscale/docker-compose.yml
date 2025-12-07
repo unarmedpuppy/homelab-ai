@@ -16,7 +16,7 @@ services:
     labels:
       - "homepage.group=Infrastructure"
       - "homepage.name=Tailscale"
-      - "homepage.icon=si-wireguard"
+      - "homepage.icon=si-tailscale"
       - "homepage.description=VPN"
 
 volumes:

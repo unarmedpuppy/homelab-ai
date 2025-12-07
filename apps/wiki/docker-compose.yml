@@ -17,7 +17,7 @@ services:
     labels:
       - "homepage.group=Infrastructure"
       - "homepage.name=Wiki.js DB"
-      - "homepage.icon=postgresql"
+      - "homepage.icon=si-postgresql"
       - "homepage.href="
       - "homepage.hide=true"
 
@@ -67,9 +67,9 @@ services:
       - "traefik.http.middlewares.wiki-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.wiki-auth.basicauth.realm=Wiki.js"
       # Homepage labels
-      - "homepage.group=Productivity & Organization"
+      - "homepage.group=Productivity"
       - "homepage.name=Wiki.js"
-      - "homepage.icon=si-wikijs"
+      - "homepage.icon=si-wikidotjs"
       - "homepage.href=https://wiki.server.unarmedpuppy.com"
       - "homepage.description=Modern wiki application for documentation"
 

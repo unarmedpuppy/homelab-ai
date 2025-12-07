@@ -48,7 +48,7 @@ services:
       - "traefik.http.middlewares.habitica-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.habitica-auth.basicauth.realm=Habitica"
       # Homepage integration
-      - "homepage.group=Productivity & Organization"
+      - "homepage.group=Productivity"
       - "homepage.name=Habitica"
       - "homepage.icon=si-habitica"
       - "homepage.href=https://habitica.server.unarmedpuppy.com"

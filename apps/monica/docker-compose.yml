@@ -75,7 +75,7 @@ services:
       - "traefik.http.middlewares.monica-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.monica-auth.basicauth.realm=Monica"
       # Homepage labels
-      - "homepage.group=Productivity & Organization"
+      - "homepage.group=Productivity"
       - "homepage.name=Monica"
       - "homepage.icon=si-monica"
       - "homepage.href=https://${MONICA_DOMAIN}"

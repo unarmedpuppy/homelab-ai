@@ -69,9 +69,9 @@ services:
       - "traefik.http.middlewares.planka-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.planka-auth.basicauth.realm=Planka"
       # Homepage labels
-      - "homepage.group=Productivity & Organization"
+      - "homepage.group=Productivity"
       - "homepage.name=Planka"
-      - "homepage.icon=si-todoist"
+      - "homepage.icon=si-planka"
       - "homepage.href=https://planka.server.unarmedpuppy.com"
       - "homepage.description=Projects, To-Do lists & Kanban"
     depends_on:

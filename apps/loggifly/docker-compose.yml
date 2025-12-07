@@ -16,7 +16,7 @@ services:
       # Homepage integration
       - "homepage.group=Infrastructure"
       - "homepage.name=LoggiFly"
-      - "homepage.icon=📊"
+      - "homepage.icon=si-logstash"
       - "homepage.description=Monitor Docker container logs and send notifications"
 
 networks:

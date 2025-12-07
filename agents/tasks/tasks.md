@@ -50,7 +50,7 @@ git checkout -b feature/task-x-description
 | T10 | Strategy-to-execution pipeline | [AVAILABLE] | P0 |
 | T11 | Sentiment provider base class | [AVAILABLE] | P1 |
 | T12 | Standardize Traefik config: local DNS no-auth, external auth | [CLAIMED by @auto] | P1 |
-| T13 | Homepage cleanup: Infrastructure category + icons | [CLAIMED by @auto] | P1 |
+| T13 | Homepage cleanup: Infrastructure category + icons | [COMPLETE] | P1 |
 | T14 | Homepage cleanup: Media apps category + icons | [AVAILABLE] | P1 |
 | T15 | Homepage cleanup: Productivity category + icons | [COMPLETE] | P1 |
 | T16 | Homepage cleanup: Social/News + Gaming + Trading icons | [AVAILABLE] | P1 |
@@ -332,10 +332,10 @@ git checkout -b feature/task-x-description
 - `apps/n8n/ai-agent-webhook/docker-compose.yml` - group: `Automation` → `Infrastructure`
 
 **Success Criteria**:
-- [ ] All Infrastructure icons use valid `si-*` Simple Icons
-- [ ] Monitoring tools (Prometheus, Grafana, Alertmanager) in Infrastructure category
-- [ ] AI Agent Webhook in Infrastructure category
-- [ ] No emojis or invalid icon slugs
+- [x] All Infrastructure icons use valid `si-*` Simple Icons
+- [x] Monitoring tools (Prometheus, Grafana, Alertmanager) in Infrastructure category
+- [x] AI Agent Webhook in Infrastructure category
+- [x] No emojis or invalid icon slugs
 
 ### Task T14: Homepage cleanup: Media apps category + icons
 **Priority**: P1

@@ -88,7 +88,7 @@ services:
       - "traefik.http.middlewares.paperless-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.paperless-auth.basicauth.realm=Paperless"
       # Homepage integration
-      - "homepage.group=Productivity & Organization"
+      - "homepage.group=Productivity"
       - "homepage.name=paperless"
       - "homepage.icon=si-paperlessngx"
       - "homepage.href=https://paperless.server.unarmedpuppy.com"

@@ -36,9 +36,9 @@ services:
       - "traefik.http.middlewares.mazanoke-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.mazanoke-auth.basicauth.realm=Mazanoke"
       # Homepage integration
-      - "homepage.group=Tools & Utilities"
+      - "homepage.group=Productivity"
       - "homepage.name=Mazanoke"
-      - "homepage.icon=🖼️"
+      - "homepage.icon=si-unsplash"
       - "homepage.href=https://mazanoke.server.unarmedpuppy.com"
       - "homepage.description=Self-hosted local image optimizer that runs in your browser"
 

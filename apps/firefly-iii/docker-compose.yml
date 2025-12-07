@@ -50,9 +50,9 @@ services:
       - "traefik.http.middlewares.firefly-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.firefly-auth.basicauth.realm=Firefly III"
       # Homepage integration
-      - "homepage.group=Productivity & Organization"
+      - "homepage.group=Productivity"
       - "homepage.name=Firefly III"
-      - "homepage.icon=si-firefly"
+      - "homepage.icon=si-fireflyiii"
       - "homepage.href=https://firefly.server.unarmedpuppy.com"
       - "homepage.description=Personal finance manager"
 

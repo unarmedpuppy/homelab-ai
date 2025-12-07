@@ -48,9 +48,9 @@ services:
       - "traefik.http.middlewares.recipes-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.recipes-auth.basicauth.realm=Mealie"
       # Homepage labels
-      - "homepage.group=Productivity & Organization"
+      - "homepage.group=Productivity"
       - "homepage.name=Mealie"
-      - "homepage.icon=si-aldinord"
+      - "homepage.icon=si-mealie"
       - "homepage.href=https://recipes.server.unarmedpuppy.com"
       - "homepage.description=Recipes, meal planning & shopping list"
 

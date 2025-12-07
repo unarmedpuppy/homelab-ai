@@ -182,7 +182,7 @@ services:
     depends_on:
       - bot
     labels:
-      - "homepage.group=Finance & Trading"
+      - "homepage.group=Infrastructure"
       - "homepage.name=Prometheus"
       - "homepage.icon=si-prometheus"
       - "homepage.href=http://192.168.86.47:9091"
@@ -208,7 +208,7 @@ services:
     depends_on:
       - prometheus
     labels:
-      - "homepage.group=Finance & Trading"
+      - "homepage.group=Infrastructure"
       - "homepage.name=Grafana"
       - "homepage.icon=si-grafana"
       - "homepage.href=http://192.168.86.47:3002"
@@ -232,9 +232,9 @@ services:
     depends_on:
       - prometheus
     labels:
-      - "homepage.group=Finance & Trading"
+      - "homepage.group=Infrastructure"
       - "homepage.name=Alertmanager"
-      - "homepage.icon=si-bell"
+      - "homepage.icon=si-prometheus"
       - "homepage.href=http://192.168.86.47:9094"
       - "homepage.description=Alertmanager for trading bot notifications"
 

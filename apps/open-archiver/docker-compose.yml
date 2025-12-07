@@ -103,9 +103,9 @@ services:
       - "traefik.http.middlewares.open-archiver-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.open-archiver-auth.basicauth.realm=OpenArchiver"
       # Homepage labels
-      - "homepage.group=Productivity & Organization"
+      - "homepage.group=Productivity"
       - "homepage.name=OpenArchiver"
-      - "homepage.icon=si-archive"
+      - "homepage.icon=si-internetarchive"
       - "homepage.href=https://${OPEN_ARCHIVER_DOMAIN}"
       - "homepage.description=Secure email archiving platform with full-text search"
 

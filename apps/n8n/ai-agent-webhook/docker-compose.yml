@@ -21,7 +21,7 @@ services:
     networks:
       - my-network
     labels:
-      - "homepage.group=Automation"
+      - "homepage.group=Infrastructure"
       - "homepage.name=AI Agent Webhook"
       - "homepage.icon=si-openai"
       - "homepage.href=http://${SERVER_IP}:${WEBHOOK_PORT:-8080}"

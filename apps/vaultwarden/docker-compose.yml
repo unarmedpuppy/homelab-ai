@@ -46,7 +46,7 @@ services:
       # Homepage labels
       - "homepage.group=Infrastructure"
       - "homepage.name=Vaultwarden"
-      - "homepage.icon=si-1password"
+      - "homepage.icon=si-vaultwarden"
       - "homepage.description=passwords"
       - "homepage.href=https://vaultwarden.server.unarmedpuppy.com"
 
