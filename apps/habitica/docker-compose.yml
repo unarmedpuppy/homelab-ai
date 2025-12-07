@@ -11,7 +11,7 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "3003:3000"
+      - "3007:3000"
     environment:
       - TZ=America/Chicago
       - NODE_ENV=production

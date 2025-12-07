@@ -315,7 +315,7 @@ Complete automation stack for media acquisition. All services on `media-download
 ### Habitica
 - **Description**: Gamified habit tracker and task manager that treats goals like a Role Playing Game
 - **Services**:
-  - **habitica**: `3002` - Web interface
+  - **habitica**: `3007` - Web interface
   - **db**: MongoDB (internal, replica set)
 - **Status**: ✅ **ACTIVE**
 - **Notes**: Accessible via `habitica.server.unarmedpuppy.com` (HTTPS)
