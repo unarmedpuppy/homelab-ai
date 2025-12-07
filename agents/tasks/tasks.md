@@ -53,7 +53,7 @@ git checkout -b feature/task-x-description
 | T13 | Homepage cleanup: Infrastructure category + icons | [COMPLETE] | P1 |
 | T14 | Homepage cleanup: Media apps category + icons | [CLAIMED by @auto] | P1 |
 | T15 | Homepage cleanup: Productivity category + icons | [COMPLETE] | P1 |
-| T16 | Homepage cleanup: Social/News + Gaming + Trading icons | [AVAILABLE] | P1 |
+| T16 | Homepage cleanup: Social/News + Gaming + Trading icons | [CLAIMED by @auto] | P1 |
 
 ### Task T1: Consolidate metrics system (8 files → 3)
 **Priority**: P0
