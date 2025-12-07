@@ -58,6 +58,7 @@ services:
       - "homepage.name=NZBHydra2"
       - "homepage.href=http://192.168.86.47:5076"
       - "homepage.icon=si-searxng"
+      - "homepage.description=Usenet meta search aggregator"
     # NOT on VPN - only searches, doesn't download
 
   # Torrent Indexer
@@ -80,6 +81,7 @@ services:
       - "homepage.name=Jackett"
       - "homepage.href=http://192.168.86.47:9117"
       - "homepage.icon=si-searxng"
+      - "homepage.description=Torrent indexer proxy"
     # NOT on VPN - only searches, doesn't download
 
   # Unified Indexer Manager (Better alternative to NZBHydra2 + Jackett)
@@ -102,6 +104,7 @@ services:
       - "homepage.name=Prowlarr"
       - "homepage.href=http://192.168.86.47:9696"
       - "homepage.icon=si-prowlarr"
+      - "homepage.description=Unified indexer manager for *arr apps"
     # NOT on VPN - only searches, doesn't download
 
   # Usenet Download Client
@@ -189,6 +192,7 @@ services:
       - "homepage.name=Sonarr"
       - "homepage.href=http://192.168.86.47:8989"
       - "homepage.icon=si-sonarr"
+      - "homepage.description=TV shows automation"
     depends_on:
       - nzbhydra2
       - jackett
@@ -215,6 +219,7 @@ services:
       - "homepage.name=Radarr"
       - "homepage.href=http://192.168.86.47:7878"
       - "homepage.icon=si-radarr"
+      - "homepage.description=Movies automation"
     depends_on:
       - nzbhydra2
       - jackett
@@ -241,6 +246,7 @@ services:
       - "homepage.name=Lidarr"
       - "homepage.href=http://192.168.86.47:8686"
       - "homepage.icon=si-lidarr"
+      - "homepage.description=Music automation"
     depends_on:
       - nzbhydra2
       - jackett
@@ -266,6 +272,7 @@ services:
       - "homepage.name=Bazarr"
       - "homepage.href=http://192.168.86.47:6767"
       - "homepage.icon=si-vlcmediaplayer"
+      - "homepage.description=Subtitle downloader"
     depends_on:
       - sonarr
       - radarr
@@ -291,6 +298,7 @@ services:
       - "homepage.name=Overseerr"
       - "homepage.href=http://192.168.86.47:5055"
       - "homepage.icon=si-plex"
+      - "homepage.description=Media request management"
     depends_on:
       - sonarr
       - radarr
@@ -321,6 +329,7 @@ services:
       - "homepage.name=LazyLibrarian"
       - "homepage.href=http://192.168.86.47:8787"
       - "homepage.icon=si-goodreads"
+      - "homepage.description=Books automation"
 
   # Book Library Management (for book editing - optional, use Calibre-Web for reading)
   calibre:
@@ -343,6 +352,7 @@ services:
       - "homepage.name=Calibre"
       - "homepage.href=http://192.168.86.47:8085"
       - "homepage.icon=si-bookstack"
+      - "homepage.description=Ebook library management"
 
   # Calibre Web Interface
   calibre-web:
@@ -367,6 +377,7 @@ services:
       - "homepage.name=Calibre-Web"
       - "homepage.href=http://192.168.86.47:8084"
       - "homepage.icon=si-bookstack"
+      - "homepage.description=Ebook web reader"
 
   # Usenet Downloader (Alternative)
   sabnzbd:
@@ -391,6 +402,7 @@ services:
       - "homepage.name=SABnzbd"
       - "homepage.href=http://192.168.86.47:8079"
       - "homepage.icon=si-qbittorrent"
+      - "homepage.description=Usenet download client"
 
 networks:
   media-download-network:
