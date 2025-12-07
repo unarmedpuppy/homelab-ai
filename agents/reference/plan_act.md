@@ -34,8 +34,17 @@ Embedded workflow for agent development tasks.
 
 Store plans in `agents/plans/` (shared) or `agents/plans-local/` (local only):
 
-- **`agents/plans/`** - Committed plans for multi-session features, architectural decisions
+- **`agents/plans/`** - Committed plans for multi-session features, architectural decisions, implementation strategies
 - **`agents/plans-local/`** - Gitignored scratch work, session notes, exploratory analysis
+
+**Reference Documentation** (not plans):
+- **`agents/reference/`** - Persistent reference guides, how-to documentation, architectural references (e.g., `agents/reference/storage/`, `agents/reference/setup/`)
+- **`docs/`** - Project-level documentation (security audits, implementation docs)
+
+**⚠️ IMPORTANT**: 
+- **Plans and strategies** → `agents/plans/` or `agents/plans-local/`
+- **Reference guides and how-tos** → `agents/reference/`
+- **Do NOT** create planning/strategy docs in `docs/` - use `agents/plans/` instead
 
 ## Act Phase
 

@@ -55,6 +55,12 @@ git checkout -b feature/task-x-description
 | T15 | Homepage cleanup: Productivity category + icons | [COMPLETE] | P1 |
 | T16 | Homepage cleanup: Social/News + Gaming + Trading icons | [COMPLETE] | P1 |
 | T17 | Media-Download Directory Cleanup | [AVAILABLE] | P2 |
+| T18 | Setup SMART monitoring on server | [AVAILABLE] | P1 |
+| T19 | Test drive health check script | [AVAILABLE] | P1 |
+| T20 | Configure automated drive health monitoring/alerts | [AVAILABLE] | P2 |
+| T21 | Review current drive health status | [AVAILABLE] | P1 |
+| T22 | Migrate ZFS from RAID-Z1 to RAID-Z2 (8 drives) | [AVAILABLE] | P0 |
+| T23 | Setup new 6-drive RAID-Z2 pool (two-pool strategy) | [AVAILABLE] | P0 |
 
 ### Task T1: Consolidate metrics system (8 files → 3)
 **Priority**: P0
@@ -450,6 +456,248 @@ git checkout -b feature/task-x-description
 - [ ] Outdated plans and stale files removed
 - [ ] Directory remains functional for media management stack
 
+### Task T18: Setup SMART monitoring on server
+**Priority**: P1
+**Dependencies**: None
+**Effort**: Low
+**Project**: infrastructure
+
+**Objective**: Install and configure SMART monitoring tools on the server to enable drive health monitoring
+
+**Files to modify**:
+- None (server-side setup)
+
+**Scripts to run**:
+- `scripts/setup-smart-monitoring.sh` (on server)
+
+**Success Criteria**:
+- [ ] smartmontools installed
+- [ ] SMART enabled on all drives
+- [ ] `check-drive-health.sh` script executable
+- [ ] Daily cron job configured (runs at 3 AM)
+- [ ] Logs to `/var/log/drive-health.log`
+
+**Commands**:
+```bash
+# SSH to server
+ssh -p 4242 unarmedpuppy@192.168.86.47
+
+# Run setup script
+bash ~/server/scripts/setup-smart-monitoring.sh
+```
+
+### Task T19: Test drive health check script
+**Priority**: P1
+**Dependencies**: T18
+**Effort**: Low
+**Project**: infrastructure
+
+**Objective**: Verify the drive health check script works correctly and provides useful output
+
+**Scripts to test**:
+- `scripts/check-drive-health.sh`
+
+**Success Criteria**:
+- [ ] Script runs without errors
+- [ ] All drives in ZFS pool are checked
+- [ ] SMART status reported for each drive
+- [ ] ZFS pool status displayed
+- [ ] Temperature and critical attributes shown
+- [ ] Output is readable and actionable
+
+**Commands**:
+```bash
+# On server
+bash ~/server/scripts/check-drive-health.sh
+
+# Or from local
+ssh -p 4242 unarmedpuppy@192.168.86.47 "bash ~/server/scripts/check-drive-health.sh"
+```
+
+### Task T20: Configure automated drive health monitoring/alerts
+**Priority**: P2
+**Dependencies**: T18, T19
+**Effort**: Medium
+**Project**: infrastructure
+
+**Objective**: Set up automated alerts for drive health issues (email, webhook, or integration with existing monitoring)
+
+**Options to implement**:
+1. Email alerts on drive failures
+2. Integration with Grafana alerts
+3. Webhook notifications
+4. Homepage status display
+
+**Files to create/modify**:
+- `scripts/drive-health-alert.sh` (optional email alert script)
+- Grafana alert rules (if using Grafana)
+- Homepage integration (if desired)
+
+**Success Criteria**:
+- [ ] Alerts configured for critical drive failures
+- [ ] Alerts tested and working
+- [ ] Documentation updated with alert setup
+- [ ] Alert recipients/endpoints configured
+
+**Notes**:
+- Can use existing email setup or integrate with Grafana
+- Consider adding to Homepage for visual status
+- Should alert on: SMART health failures, ZFS pool degradation, critical SMART attributes
+
+### Task T21: Review current drive health status
+**Priority**: P1
+**Dependencies**: T18
+**Effort**: Low
+**Project**: infrastructure
+
+**Objective**: Run initial drive health check and document current status of all drives in ZFS pool
+
+**Scripts to use**:
+- `scripts/check-drive-health.sh`
+
+**Success Criteria**:
+- [ ] All 4 ZFS pool drives checked (sda, sdb, sdc, sdd)
+- [ ] SMART status documented for each drive
+- [ ] ZFS pool status reviewed
+- [ ] Any issues or warnings documented
+- [ ] Baseline established for future monitoring
+
+**Commands**:
+```bash
+# Check all drives
+bash ~/server/scripts/check-drive-health.sh
+
+# Check ZFS pool specifically
+sudo zpool status jenquist-cloud
+
+# Check individual drives
+for disk in sda sdb sdc sdd; do
+    echo "=== /dev/$disk ==="
+    sudo smartctl -H /dev/$disk
+    sudo smartctl -A /dev/$disk | grep -E "Reallocated|Pending|Uncorrectable|Temperature"
+done
+```
+
+**Documentation**:
+- Record findings in a note or wiki page
+- Document any drives that need attention
+- Establish baseline metrics for future comparison
+
+### Task T22: Migrate ZFS from RAID-Z1 to RAID-Z2 (8 drives)
+**Priority**: P0
+**Dependencies**: T18, T19, T21 (should verify drive health first)
+**Effort**: High
+**Project**: infrastructure
+
+**Objective**: Migrate from 4-drive RAID-Z1 pool to 8-drive RAID-Z2 pool for better redundancy and capacity
+
+**Prerequisites**:
+- 8 new CMR drives purchased (recommended: Seagate IronWolf 8TB)
+- Full backup completed and verified
+- Maintenance window scheduled (12-24 hours)
+- All services using ZFS stopped
+
+**Documentation**:
+- `agents/plans/ZFS_RAIDZ1_TO_RAIDZ2_MIGRATION.md` - Complete migration guide
+
+**Process Overview**:
+1. **Backup everything** (critical!)
+2. **Create new RAID-Z2 pool** with 8 new drives (temporary name)
+3. **Copy data** from old pool to new pool (rsync recommended)
+4. **Verify data integrity** (file counts, spot checks)
+5. **Switch to new pool** (export old, import new with original name)
+6. **Test services** (Jellyfin, etc.)
+7. **Keep old pool for 1+ week** before destroying
+8. **Remove old drives** after verification period
+
+**Key Commands**:
+```bash
+# Create new pool
+sudo zpool create jenquist-cloud-new raidz2 /dev/sde /dev/sdf /dev/sdg /dev/sdh /dev/sdi /dev/sdj /dev/sdk /dev/sdl
+
+# Copy data
+sudo rsync -avh --progress /jenquist-cloud/archive/ /jenquist-cloud-new/archive/
+
+# Switch pools
+sudo zpool export jenquist-cloud
+sudo zpool export jenquist-cloud-new
+sudo zpool import jenquist-cloud-new jenquist-cloud
+```
+
+**Success Criteria**:
+- [ ] Full backup completed and verified
+- [ ] New RAID-Z2 pool created with 8 drives
+- [ ] All data copied and verified
+- [ ] Services tested and working
+- [ ] Pool health verified (no errors)
+- [ ] Old pool kept for 1+ week as backup
+- [ ] Documentation updated
+
+**Estimated Time**: 12-24 hours (depends on data size)
+
+**Risk Level**: High - requires careful execution and verification
+
+### Task T23: Setup new 6-drive RAID-Z2 pool (two-pool strategy)
+**Priority**: P0
+**Dependencies**: None (can be done independently)
+**Effort**: Medium
+**Project**: infrastructure
+
+**Objective**: Create a new 6-drive RAID-Z2 pool alongside existing 4-drive pool for increased capacity and better redundancy
+
+**Strategy**: Two-pool approach - keep existing pool intact, add new pool with better redundancy
+
+**Prerequisites**:
+- 6x 8TB CMR drives purchased (recommended: Seagate IronWolf 8TB)
+- 6 open drive bays available (total 10 bays used)
+
+**Documentation**:
+- `agents/plans/ZFS_TWO_POOL_STRATEGY.md` - Complete two-pool strategy guide
+
+**Process Overview**:
+1. **Purchase 6x 8TB IronWolf drives**
+2. **Power down server and install drives**
+3. **Create new RAID-Z2 pool** with 6 drives
+4. **Create filesystem and configure mount point**
+5. **Update services** to use new pool (or both pools)
+6. **Start using new pool** for new content
+7. **Plan gradual migration** from old pool (optional)
+
+**Key Commands**:
+```bash
+# Create new pool
+sudo zpool create jenquist-cloud-new raidz2 /dev/sde /dev/sdf /dev/sdg /dev/sdh /dev/sdi /dev/sdj
+
+# Create filesystem
+sudo zfs create jenquist-cloud-new/archive
+sudo zfs set mountpoint=/jenquist-cloud-new jenquist-cloud-new/archive
+```
+
+**Success Criteria**:
+- [ ] 6 new drives installed
+- [ ] New RAID-Z2 pool created
+- [ ] Filesystem created and mounted
+- [ ] Services configured to use new pool
+- [ ] New pool tested and working
+- [ ] Total capacity: 56 TB usable (24 + 32)
+
+**Capacity**:
+- **New Pool**: ~32 TB usable (6x 8TB RAID-Z2)
+- **Existing Pool**: ~24 TB usable (4x 8TB RAID-Z1)
+- **Total**: ~56 TB usable
+
+**Advantages**:
+- Zero downtime (old pool keeps running)
+- Lower risk (no migration needed)
+- Lower cost ($900-1,080 vs $1,200-1,440)
+- Better redundancy on new pool (RAID-Z2)
+- Immediate capacity increase
+- Flexible migration options
+
+**Estimated Time**: 2-4 hours (mostly physical installation)
+
+**Risk Level**: Low - old pool stays intact
+
 ---
 
 ## Priority Order
@@ -469,6 +717,8 @@ git checkout -b feature/task-x-description
 - T11 - Provider refactor
 - T12 - Traefik config standardization (home-server infrastructure)
 - T13, T14, T15, T16 - Homepage cleanup (categories + icons)
+- T18, T19, T21 - Drive health monitoring setup (infrastructure)
+- T20 - Drive health alerts (infrastructure)
 
 ---
 

@@ -165,8 +165,17 @@ ls agents/tools/ | grep -i troubleshoot
 
 Store plans in `agents/plans/` (shared) or `agents/plans-local/` (local only):
 
-- **`agents/plans/`** - Committed plans for multi-session features, architectural decisions
+- **`agents/plans/`** - Committed plans for multi-session features, architectural decisions, implementation strategies
 - **`agents/plans-local/`** - Gitignored scratch work, session notes, exploratory analysis
+
+**Reference Documentation** (not plans):
+- **`agents/reference/`** - Persistent reference guides, how-to documentation, architectural references
+- **`docs/`** - Project-level documentation (security audits, etc.)
+
+**⚠️ IMPORTANT**: 
+- **Plans and strategies** → `agents/plans/` or `agents/plans-local/`
+- **Reference guides and how-tos** → `agents/reference/`
+- **Do NOT** create planning/strategy docs in `docs/` - use `agents/plans/` instead
 
 See `agents/reference/plan_act.md` for plan templates and workflow details.
 
@@ -237,6 +246,11 @@ Agent-discoverable tool guides are in `agents/tools/`. Each tool has a `SKILL.md
 | [troubleshoot-stuck-downloads](agents/tools/troubleshoot-stuck-downloads/) | Fix Sonarr/Radarr issues | - |
 | [cleanup-disk-space](agents/tools/cleanup-disk-space/) | Free disk space | - |
 
+### Drive Health & Storage
+| Tool | Purpose | Script |
+|------|---------|--------|
+| [monitor-drive-health](agents/tools/monitor-drive-health/) | Monitor drive health with SMART status | `scripts/check-drive-health.sh` |
+
 ### Utilities
 | Tool | Purpose | Script |
 |------|---------|--------|
@@ -263,6 +277,8 @@ For server-specific tasks, reference the server-agent persona.
 | `agents/reference/docker.md` | Docker patterns and best practices |
 | `agents/reference/deployment.md` | Deployment workflows |
 | `agents/reference/plan_act.md` | Planning and workflow documentation |
+| `agents/reference/storage/` | Storage and ZFS reference guides |
+| `agents/plans/` | Implementation plans and strategies |
 | `agents/tools/` | Tool-specific guides |
 
 ---

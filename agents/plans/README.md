@@ -1,68 +1,44 @@
-# Plans
+# Plans Directory
 
-Shared implementation plans for multi-session features, architectural decisions, and team collaboration.
+Committed plans for multi-session features, architectural decisions, and implementation strategies.
 
-## When to Use
+## Purpose
 
-- Multi-session features requiring planning
-- Architectural decisions that need documentation
-- Implementation specs for complex changes
-- Team collaboration on features
+This directory contains **persistent plans** that should be committed to git and shared across sessions. These are plans for future work, architectural decisions, and implementation strategies.
 
-## Plan File Format
+## What Goes Here
 
-Use consistent frontmatter for agent discovery:
+- **Implementation strategies** (e.g., migration plans, upgrade strategies)
+- **Architectural decisions** (e.g., infrastructure changes, system designs)
+- **Multi-session features** (e.g., complex features that span multiple sessions)
+- **Plans that need to persist** (e.g., ZFS migration strategies, deployment plans)
 
-```markdown
----
-title: Feature Name
-created: YYYY-MM-DD
-status: draft | in_progress | approved | complete
-author: @agent-id
----
+## What Does NOT Go Here
 
-# Plan: Feature Name
+- **Reference documentation** → Use `agents/reference/` instead
+- **How-to guides** → Use `agents/reference/` instead
+- **Ephemeral/scratch work** → Use `agents/plans-local/` instead (gitignored)
+- **Project-level docs** → Use `docs/` for security audits, etc.
 
-## Objective
+## Examples
 
-[What problem does this solve? What's the goal?]
+✅ **Good examples for `agents/plans/`:**
+- `ZFS_RAIDZ1_TO_RAIDZ2_MIGRATION.md` - Migration strategy plan
+- `ZFS_TWO_POOL_STRATEGY.md` - Implementation strategy
+- `infrastructure-upgrade-plan.md` - Architectural decision
 
-## Approach
+❌ **Should be in `agents/reference/`:**
+- `ZFS_DRIVE_RECOMMENDATIONS.md` - Reference guide
+- `ZFS_20TB_VS_8TB_ANALYSIS.md` - Reference/analysis doc
+- Setup guides, troubleshooting guides
 
-[High-level strategy]
+## Structure
 
-## Tasks
+Plans should follow a clear structure:
+- Objective
+- Prerequisites
+- Steps/process
+- Success criteria
+- Risks/considerations
 
-1. [ ] Task 1 - [description]
-2. [ ] Task 2 - [description]
-3. [ ] Task 3 - [description]
-
-## Files to Modify
-
-- `src/path/file.ts` - [what changes]
-- `tests/path/file.test.ts` - [what tests]
-
-## Test Strategy
-
-- Unit tests for [components]
-- Integration test for [workflow]
-
-## Open Questions
-
-- [ ] Question 1?
-- [x] Resolved: Chose option A because...
-
-## Session Notes
-
-### YYYY-MM-DD
-- [Progress update]
-- [Decisions made]
-```
-
-## Workflow
-
-1. **Starting a feature**: Create plan in `agents/plans-local/` for exploration
-2. **Plan solidifies**: Move refined plan to `agents/plans/` and commit
-3. **During implementation**: Update plan status, add session notes
-4. **Completion**: Mark plan as `complete`, reference in PR
-
+See `agents/reference/plan_act.md` for plan templates.
