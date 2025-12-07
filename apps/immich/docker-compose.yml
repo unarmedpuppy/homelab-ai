@@ -52,7 +52,7 @@ services:
       # Homepage labels
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Immich"
-      - "homepage.icon=si-googlephotos"
+      - "homepage.icon=si-immich"
       - "homepage.href=https://photos.server.unarmedpuppy.com"
       - "homepage.description=Family photos & videos"
 
