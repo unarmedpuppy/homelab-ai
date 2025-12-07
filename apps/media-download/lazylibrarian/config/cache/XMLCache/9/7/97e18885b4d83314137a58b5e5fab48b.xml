@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GoodreadsResponse>
+  <Request>
+    <authentication>true</authentication>
+      <key><![CDATA[ckvsiSDsuqh7omh74ZZ6Q]]></key>
+    <method><![CDATA[author_show]]></method>
+  </Request>
+  <author>
+  <id>2927</id>
+  <name>Mary GrandPré</name>
+  <link><![CDATA[https://www.goodreads.com/author/show/2927.Mary_GrandPr_]]></link>
+  <fans_count type="integer">969</fans_count>
+  <author_followers_count type="integer">969</author_followers_count>
+  <large_image_url><![CDATA[https://images.gr-assets.com/authors/1395344820p7/2927.jpg]]></large_image_url>
+  <image_url><![CDATA[https://images.gr-assets.com/authors/1395344820p5/2927.jpg]]></image_url>
+  <small_image_url><![CDATA[https://images.gr-assets.com/authors/1395344820p2/2927.jpg]]></small_image_url>
+  <about><![CDATA[Mary GrandPré is an American illustrator best known for her cover and chapter illustrations of the Harry Potter books in their U.S. editions published by Scholastic. She received a Caldecott Honor in 2015 for illustrating <a href="https://www.goodreads.com/author/show/3396787._Barb_Rosenstock" title=" Barb Rosenstock" rel="nofollow noopener"> Barb Rosenstock</a>'s The Noisy Paint Box: The Colors and Sounds of Kandinsky's Abstract Art. GrandPré, who creates her artwork with paint and pastels, has illustrated more than twenty books and has appeared in gallery exhibitions and periodicals such as The New Yorker, Atlantic Monthly, and The Wall Street Journal.]]></about>
+  <influences></influences>
+  <works_count>61</works_count>
+  <hometown>Aberdeen, South Dakota</hometown>
+  <born_at>1954/02/13</born_at>
+  <died_at></died_at>
+  <goodreads_author></goodreads_author>
+
+    <books>
+        <book>
+  <id type="integer">77523</id>
+  <isbn nil="true"/>
+  <isbn13 nil="true"/>
+  <text_reviews_count type="integer">2392</text_reviews_count>
+  <uri>kca://book/amzn1.gr.book.v1.WZSmCuzuh3jQW06hSRliJw</uri>
+  <title>Harry Potter and the Sorcerer's Stone (Harry Potter, #1)</title>
+  <title_without_series>Harry Potter and the Sorcerer's Stone</title_without_series>
+  <image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1474169299l/77523._SX98_.jpg</image_url>
+  <small_image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1474169299l/77523._SY75_.jpg</small_image_url>
+  <large_image_url/>
+  <link>https://www.goodreads.com/book/show/77523.Harry_Potter_and_the_Sorcerer_s_Stone</link>
+  <num_pages>309</num_pages>
+  <format></format>
+  <edition_information>First American Edition</edition_information>
+  <publisher>Arthur A. Levine Books</publisher>
+  <publication_day>1</publication_day>
+  <publication_year>1998</publication_year>
+  <publication_month>9</publication_month>
+  <average_rating>4.47</average_rating>
+  <ratings_count>11247846</ratings_count>
+  <description>Harry Potter has never been the star of a Quidditch team, scoring points while riding a broom far above the ground. He knows no spells, has never helped to hatch a dragon, and has never worn a cloak of invisibility.&lt;br /&gt;&lt;br /&gt;All he knows is a miserable life with the Dursleys, his horrible aunt and uncle, and their abominable son, Dudley - a great big swollen spoiled bully. Harry’s room is a tiny closet at the foot of the stairs, and he hasn’t had a birthday party in eleven years.&lt;br /&gt;&lt;br /&gt;But all that is about to change when a mysterious letter arrives by owl messenger: a letter with an invitation to an incredible place that Harry - and anyone who reads about him - will find unforgettable.&lt;br /&gt;&lt;br /&gt;For it’s there that he finds not only friends, aerial sports, and magic in everything from classes to meals, but a great destiny that’s been waiting for him…if Harry can survive the encounter.&lt;br /&gt;(front flap)</description>
+<authors>
+<author>
+<id>1077326</id>
+<name>J.K. Rowling</name>
+<role></role>
+<image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1596216614p5/1077326.jpg]]>
+</image_url>
+<small_image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1596216614p2/1077326.jpg]]>
+</small_image_url>
+<link><![CDATA[https://www.goodreads.com/author/show/1077326.J_K_Rowling]]></link>
+<average_rating>4.46</average_rating>
+<ratings_count>40631979</ratings_count>
+<text_reviews_count>962360</text_reviews_count>
+</author>
+</authors>
+  <published>1998</published>
+<work>  <id>4640799</id>
+  <uri>kca://work/amzn1.gr.work.v1.TbpxJa2CwiSSz_9W2FruoA</uri>
+</work></book>
+
+
+        <book>
+  <id type="integer">5</id>
+  <isbn>043965548X</isbn>
+  <isbn13>9780439655484</isbn13>
+  <text_reviews_count type="integer">70624</text_reviews_count>
+  <uri>kca://book/amzn1.gr.book.v1.om7j-Dd6wInrhO7TVy51Ow</uri>
+  <title>Harry Potter and the Prisoner of Azkaban (Harry Potter, #3)</title>
+  <title_without_series>Harry Potter and the Prisoner of Azkaban</title_without_series>
+  <image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1630547330l/5._SX98_.jpg</image_url>
+  <small_image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1630547330l/5._SY75_.jpg</small_image_url>
+  <large_image_url/>
+  <link>https://www.goodreads.com/book/show/5.Harry_Potter_and_the_Prisoner_of_Azkaban</link>
+  <num_pages>547</num_pages>
+  <format>Mass Market Paperback</format>
+  <edition_information/>
+  <publisher>Scholastic Inc.</publisher>
+  <publication_day>1</publication_day>
+  <publication_year>2004</publication_year>
+  <publication_month>5</publication_month>
+  <average_rating>4.58</average_rating>
+  <ratings_count>4766306</ratings_count>
+  <description>Harry Potter, along with his best friends, Ron and Hermione, is about to start his third year at Hogwarts School of Witchcraft and Wizardry. Harry can't wait to get back to school after the summer holidays. (Who wouldn't if they lived with the horrible Dursleys?) But when Harry gets to Hogwarts, the atmosphere is tense. There's an escaped mass murderer on the loose, and the sinister prison guards of Azkaban have been called in to guard the school...</description>
+<authors>
+<author>
+<id>1077326</id>
+<name>J.K. Rowling</name>
+<role></role>
+<image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1596216614p5/1077326.jpg]]>
+</image_url>
+<small_image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1596216614p2/1077326.jpg]]>
+</small_image_url>
+<link><![CDATA[https://www.goodreads.com/author/show/1077326.J_K_Rowling]]></link>
+<average_rating>4.46</average_rating>
+<ratings_count>40631979</ratings_count>
+<text_reviews_count>962360</text_reviews_count>
+</author>
+</authors>
+  <published>2004</published>
+<work>  <id>2402163</id>
+  <uri>kca://work/amzn1.gr.work.v1.ZkLfli5sQE5ax3qSa7235Q</uri>
+</work></book>
+
+
+        <book>
+  <id type="integer">15881</id>
+  <isbn nil="true"/>
+  <isbn13 nil="true"/>
+  <text_reviews_count type="integer">66295</text_reviews_count>
+  <uri>kca://book/amzn1.gr.book.v1.KlY-hIN06yK2_7Y8_mQVig</uri>
+  <title>Harry Potter and the Chamber of Secrets (Harry Potter, #2)</title>
+  <title_without_series>Harry Potter and the Chamber of Secrets</title_without_series>
+  <image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1474169725l/15881._SX98_.jpg</image_url>
+  <small_image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1474169725l/15881._SY75_.jpg</small_image_url>
+  <large_image_url/>
+  <link>https://www.goodreads.com/book/show/15881.Harry_Potter_and_the_Chamber_of_Secrets</link>
+  <num_pages>352</num_pages>
+  <format></format>
+  <edition_information>First American Edition</edition_information>
+  <publisher>Arthur A. Levine Books</publisher>
+  <publication_day>2</publication_day>
+  <publication_year>1999</publication_year>
+  <publication_month>6</publication_month>
+  <average_rating>4.43</average_rating>
+  <ratings_count>4426161</ratings_count>
+  <description>Ever since Harry Potter had come home for the summer, the Dursleys had been so mean and hideous that all Harry wanted was to get back to the Hogwarts School for Witchcraft and Wizardry. But just as he’s packing his bags, Harry receives a warning from a strange impish creature who says that if Harry returns to Hogwarts, disaster will strike.&lt;br /&gt;&lt;br /&gt;And strike it does. For in Harry’s second year at Hogwarts, fresh torments and horrors arise, including an outrageously stuck-up new professor and a spirit who haunts the girls’ bathroom. But then the real trouble begins – someone is turning Hogwarts students to stone. Could it be Draco Malfoy, a more poisonous rival than ever? Could it possibly be Hagrid, whose mysterious past is finally told? Or could it be the one everyone at Hogwarts most suspects… Harry Potter himself!</description>
+<authors>
+<author>
+<id>1077326</id>
+<name>J.K. Rowling</name>
+<role></role>
+<image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1596216614p5/1077326.jpg]]>
+</image_url>
+<small_image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1596216614p2/1077326.jpg]]>
+</small_image_url>
+<link><![CDATA[https://www.goodreads.com/author/show/1077326.J_K_Rowling]]></link>
+<average_rating>4.46</average_rating>
+<ratings_count>40631979</ratings_count>
+<text_reviews_count>962360</text_reviews_count>
+</author>
+</authors>
+  <published>1999</published>
+<work>  <id>6231171</id>
+  <uri>kca://work/amzn1.gr.work.v1.PjwTgn-_w5b0mY40RgNxdw</uri>
+</work></book>
+
+
+        <book>
+  <id type="integer">28691925</id>
+  <isbn>0439357640</isbn>
+  <isbn13>9780439357647</isbn13>
+  <text_reviews_count type="integer">64</text_reviews_count>
+  <uri>kca://book/amzn1.gr.book.v1.yNCKxAMGtZUjVCvSeo-ykw</uri>
+  <title>Cleonardo, The Little Inventor</title>
+  <title_without_series>Cleonardo, The Little Inventor</title_without_series>
+  <image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1455173235l/28691925._SX98_.jpg</image_url>
+  <small_image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1455173235l/28691925._SX50_.jpg</small_image_url>
+  <large_image_url/>
+  <link>https://www.goodreads.com/book/show/28691925-cleonardo-the-little-inventor</link>
+  <num_pages></num_pages>
+  <format></format>
+  <edition_information/>
+  <publisher></publisher>
+  <publication_day></publication_day>
+  <publication_year></publication_year>
+  <publication_month></publication_month>
+  <average_rating>3.64</average_rating>
+  <ratings_count>313</ratings_count>
+  <description>Cleonardo's father is an inventor. So was her grandfather, her great-grandfather, and all the great-greats before them. Cleo wants to be an inventor too. She tries to help her father in his workshop, but he never uses her great ideas. Can Cleo invent something big and important and perfect all by herself? &lt;br /&gt;&lt;br /&gt;This imaginative story of a father and his daughter brings the magic of creativity to little inventors everywhere.</description>
+<authors>
+<author>
+<id>2927</id>
+<name>Mary GrandPré</name>
+<role></role>
+<image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1395344820p5/2927.jpg]]>
+</image_url>
+<small_image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1395344820p2/2927.jpg]]>
+</small_image_url>
+<link><![CDATA[https://www.goodreads.com/author/show/2927.Mary_GrandPr_]]></link>
+<average_rating>4.52</average_rating>
+<ratings_count>16552324</ratings_count>
+<text_reviews_count>299949</text_reviews_count>
+</author>
+</authors>
+  <published></published>
+<work>  <id>48888698</id>
+  <uri>kca://work/amzn1.gr.work.v1.8S_OEZqE3CdrbUM-jQgYKQ</uri>
+</work></book>
+
+
+        <book>
+  <id type="integer">144037643</id>
+  <isbn nil="true"/>
+  <isbn13 nil="true"/>
+  <text_reviews_count type="integer">2</text_reviews_count>
+  <uri>kca://book/amzn1.gr.book.v3.hvy6jEfCOx1Ona95</uri>
+  <title>Harry Potter and the Prisioner of Azkaban.</title>
+  <title_without_series>Harry Potter and the Prisioner of Azkaban.</title_without_series>
+  <image_url>https://s.gr-assets.com/assets/nophoto/book/111x148-bcc042a9c91a29c1d680899eff700a03.png</image_url>
+  <small_image_url>https://s.gr-assets.com/assets/nophoto/book/50x75-a91bf249278a81aabab721ef782c4a74.png</small_image_url>
+  <large_image_url/>
+  <link>https://www.goodreads.com/book/show/144037643-harry-potter-and-the-prisioner-of-azkaban</link>
+  <num_pages></num_pages>
+  <format></format>
+  <edition_information/>
+  <publisher></publisher>
+  <publication_day></publication_day>
+  <publication_year></publication_year>
+  <publication_month></publication_month>
+  <average_rating>4.70</average_rating>
+  <ratings_count>81</ratings_count>
+  <description></description>
+<authors>
+<author>
+<id>2927</id>
+<name>Mary GrandPré</name>
+<role></role>
+<image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1395344820p5/2927.jpg]]>
+</image_url>
+<small_image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1395344820p2/2927.jpg]]>
+</small_image_url>
+<link><![CDATA[https://www.goodreads.com/author/show/2927.Mary_GrandPr_]]></link>
+<average_rating>4.52</average_rating>
+<ratings_count>16552324</ratings_count>
+<text_reviews_count>299949</text_reviews_count>
+</author>
+</authors>
+  <published></published>
+<work>  <id>159450874</id>
+  <uri>kca://work/amzn1.gr.work.v3.h7nNeB4dWs1AtRU0</uri>
+</work></book>
+
+
+        <book>
+  <id type="integer">171226183</id>
+  <isbn nil="true"/>
+  <isbn13 nil="true"/>
+  <text_reviews_count type="integer">1</text_reviews_count>
+  <uri>kca://book/amzn1.gr.book.v3.uec6sj1sZGo9eg2q</uri>
+  <title>HarryPotter PaperbackBox Set (Books 1-6)</title>
+  <title_without_series>HarryPotter PaperbackBox Set</title_without_series>
+  <image_url>https://s.gr-assets.com/assets/nophoto/book/111x148-bcc042a9c91a29c1d680899eff700a03.png</image_url>
+  <small_image_url>https://s.gr-assets.com/assets/nophoto/book/50x75-a91bf249278a81aabab721ef782c4a74.png</small_image_url>
+  <large_image_url/>
+  <link>https://www.goodreads.com/book/show/171226183-harrypotter-paperbackbox-set</link>
+  <num_pages></num_pages>
+  <format></format>
+  <edition_information/>
+  <publisher></publisher>
+  <publication_day></publication_day>
+  <publication_year></publication_year>
+  <publication_month></publication_month>
+  <average_rating>4.25</average_rating>
+  <ratings_count>16</ratings_count>
+  <description></description>
+<authors>
+<author>
+<id>2927</id>
+<name>Mary GrandPré</name>
+<role></role>
+<image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1395344820p5/2927.jpg]]>
+</image_url>
+<small_image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1395344820p2/2927.jpg]]>
+</small_image_url>
+<link><![CDATA[https://www.goodreads.com/author/show/2927.Mary_GrandPr_]]></link>
+<average_rating>4.52</average_rating>
+<ratings_count>16552324</ratings_count>
+<text_reviews_count>299949</text_reviews_count>
+</author>
+</authors>
+  <published></published>
+<work>  <id>180010424</id>
+  <uri>kca://work/amzn1.gr.work.v3.wtbdpNmuJO7Mu8gd</uri>
+</work></book>
+
+
+        <book>
+  <id type="integer">2930177</id>
+  <isbn>1929142234</isbn>
+  <isbn13>9781929142231</isbn13>
+  <text_reviews_count type="integer">0</text_reviews_count>
+  <uri>kca://book/amzn1.gr.book.v1.NyUkk2PvQcCMpGtPldhl9w</uri>
+  <title>The Book of Proverbs</title>
+  <title_without_series>The Book of Proverbs</title_without_series>
+  <image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1423788361l/2930177._SX98_.jpg</image_url>
+  <small_image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1423788361l/2930177._SX50_.jpg</small_image_url>
+  <large_image_url/>
+  <link>https://www.goodreads.com/book/show/2930177-the-book-of-proverbs</link>
+  <num_pages></num_pages>
+  <format></format>
+  <edition_information/>
+  <publisher></publisher>
+  <publication_day></publication_day>
+  <publication_year></publication_year>
+  <publication_month></publication_month>
+  <average_rating>3.75</average_rating>
+  <ratings_count>8</ratings_count>
+  <description>The unabridged, one page edition of the 'Book of Proverbs', comprising a total of 14,241 words! Reproduced under exclusive license from the Zondervan New International Version of The Holy Bible, the 'Book of Proverbs' offers the Wisdom of timeless integrity rooted in the rich soil of human experience and given spiritual meaning through the eyes of one who sees God’s providential presence in the events of daily life. The perfect gift, the 'Book of Proverbs' is an inspiration — always accessible to you and your family in your home. Printed at an easily readable type size. 27in x 40in.</description>
+<authors>
+<author>
+<id>2927</id>
+<name>Mary GrandPré</name>
+<role>Illustrator</role>
+<image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1395344820p5/2927.jpg]]>
+</image_url>
+<small_image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1395344820p2/2927.jpg]]>
+</small_image_url>
+<link><![CDATA[https://www.goodreads.com/author/show/2927.Mary_GrandPr_]]></link>
+<average_rating>4.52</average_rating>
+<ratings_count>16552324</ratings_count>
+<text_reviews_count>299949</text_reviews_count>
+</author>
+</authors>
+  <published></published>
+<work>  <id>2957606</id>
+  <uri>kca://work/amzn1.gr.work.v1.3f2FEzKnZVfk1dTL7Dxakw</uri>
+</work></book>
+
+
+        <book>
+  <id type="integer">27055548</id>
+  <isbn>2013344236</isbn>
+  <isbn13>9782013344234</isbn13>
+  <text_reviews_count type="integer">0</text_reviews_count>
+  <uri>kca://book/amzn1.gr.book.v1.Dsfc-mL1pNzYA4H8JytQWw</uri>
+  <title>Souvenirs Historiques. Tome II (Histoire)</title>
+  <title_without_series>Souvenirs Historiques. Tome II (Histoire)</title_without_series>
+  <image_url>https://s.gr-assets.com/assets/nophoto/book/111x148-bcc042a9c91a29c1d680899eff700a03.png</image_url>
+  <small_image_url>https://s.gr-assets.com/assets/nophoto/book/50x75-a91bf249278a81aabab721ef782c4a74.png</small_image_url>
+  <large_image_url/>
+  <link>https://www.goodreads.com/book/show/27055548-souvenirs-historiques-tome-ii-histoire</link>
+  <num_pages></num_pages>
+  <format></format>
+  <edition_information/>
+  <publisher></publisher>
+  <publication_day></publication_day>
+  <publication_year></publication_year>
+  <publication_month></publication_month>
+  <average_rating>4.29</average_rating>
+  <ratings_count>7</ratings_count>
+  <description></description>
+<authors>
+<author>
+<id>2927</id>
+<name>Mary GrandPré</name>
+<role></role>
+<image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1395344820p5/2927.jpg]]>
+</image_url>
+<small_image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1395344820p2/2927.jpg]]>
+</small_image_url>
+<link><![CDATA[https://www.goodreads.com/author/show/2927.Mary_GrandPr_]]></link>
+<average_rating>4.52</average_rating>
+<ratings_count>16552324</ratings_count>
+<text_reviews_count>299949</text_reviews_count>
+</author>
+</authors>
+  <published></published>
+<work>  <id>47096039</id>
+  <uri>kca://work/amzn1.gr.work.v1.x6V6NSZbJzMrqtPP4qEEGQ</uri>
+</work></book>
+
+
+        <book>
+  <id type="integer">2930179</id>
+  <isbn>1929142226</isbn>
+  <isbn13>9781929142224</isbn13>
+  <text_reviews_count type="integer">0</text_reviews_count>
+  <uri>kca://book/amzn1.gr.book.v1.I9O3eDibGsaXvriZc0hOfg</uri>
+  <title>The Book of Psalms</title>
+  <title_without_series>The Book of Psalms</title_without_series>
+  <image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1423788302l/2930179._SX98_.jpg</image_url>
+  <small_image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1423788302l/2930179._SX50_.jpg</small_image_url>
+  <large_image_url/>
+  <link>https://www.goodreads.com/book/show/2930179-the-book-of-psalms</link>
+  <num_pages></num_pages>
+  <format></format>
+  <edition_information/>
+  <publisher></publisher>
+  <publication_day></publication_day>
+  <publication_year></publication_year>
+  <publication_month></publication_month>
+  <average_rating>3.67</average_rating>
+  <ratings_count>6</ratings_count>
+  <description>The unabridged, one page edition of the 'Book of Psalms', comprises a total of 41,450 words! Reproduced under exclusive license from the Zondervan New International Version of The Holy Bible and illustrated in gentle pastel oils, the 'Book of Psalms' reflects the many-faceted relationship between mankind and God in the ever-changing proving grounds of life. Our most popular Bible title and the perfect gift, the 'Book of Proverbs' is an inspiration — always open and accessible to you and your family in your home. Printed at an easily readable type size. 27in x 40in.</description>
+<authors>
+<author>
+<id>2927</id>
+<name>Mary GrandPré</name>
+<role>Illustrator</role>
+<image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1395344820p5/2927.jpg]]>
+</image_url>
+<small_image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1395344820p2/2927.jpg]]>
+</small_image_url>
+<link><![CDATA[https://www.goodreads.com/author/show/2927.Mary_GrandPr_]]></link>
+<average_rating>4.52</average_rating>
+<ratings_count>16552324</ratings_count>
+<text_reviews_count>299949</text_reviews_count>
+</author>
+</authors>
+  <published></published>
+<work>  <id>2957608</id>
+  <uri>kca://work/amzn1.gr.work.v1.IOx3GlSygG0bOA0dxM3sog</uri>
+</work></book>
+
+
+        <book>
+  <id type="integer">165984150</id>
+  <isbn nil="true"/>
+  <isbn13 nil="true"/>
+  <text_reviews_count type="integer">0</text_reviews_count>
+  <uri>kca://book/amzn1.gr.book.v3.lFkhdbOydxn5RPiP</uri>
+  <title>Newsweek Magazine (Harry Potter...The Fastest Selling Book In History)</title>
+  <title_without_series>Newsweek Magazine</title_without_series>
+  <image_url>https://s.gr-assets.com/assets/nophoto/book/111x148-bcc042a9c91a29c1d680899eff700a03.png</image_url>
+  <small_image_url>https://s.gr-assets.com/assets/nophoto/book/50x75-a91bf249278a81aabab721ef782c4a74.png</small_image_url>
+  <large_image_url/>
+  <link>https://www.goodreads.com/book/show/165984150-newsweek-magazine</link>
+  <num_pages></num_pages>
+  <format></format>
+  <edition_information>July 17 , 2000</edition_information>
+  <publisher></publisher>
+  <publication_day></publication_day>
+  <publication_year></publication_year>
+  <publication_month></publication_month>
+  <average_rating>4.00</average_rating>
+  <ratings_count>1</ratings_count>
+  <description></description>
+<authors>
+<author>
+<id>2927</id>
+<name>Mary GrandPré</name>
+<role>Illustrator</role>
+<image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1395344820p5/2927.jpg]]>
+</image_url>
+<small_image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1395344820p2/2927.jpg]]>
+</small_image_url>
+<link><![CDATA[https://www.goodreads.com/author/show/2927.Mary_GrandPr_]]></link>
+<average_rating>4.52</average_rating>
+<ratings_count>16552324</ratings_count>
+<text_reviews_count>299949</text_reviews_count>
+</author>
+</authors>
+  <published></published>
+<work>  <id>176129283</id>
+  <uri>kca://work/amzn1.gr.work.v3.GbULatdixN1OficN</uri>
+</work></book>
+
+
+    </books>
+</author>
+
+</GoodreadsResponse>

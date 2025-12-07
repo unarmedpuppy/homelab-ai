@@ -1,0 +1,10 @@
+# slskd configuration
+
+shares:
+  directories:
+    - /shared
+  filters:
+    - \.ini$
+    - Thumbs.db$
+    - \.DS_Store$
+    - \._\..*

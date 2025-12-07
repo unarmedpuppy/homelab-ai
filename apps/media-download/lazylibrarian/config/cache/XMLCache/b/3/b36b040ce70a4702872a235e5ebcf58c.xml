@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GoodreadsResponse>
+  <Request>
+    <authentication>true</authentication>
+      <key><![CDATA[ckvsiSDsuqh7omh74ZZ6Q]]></key>
+    <method><![CDATA[author_show]]></method>
+  </Request>
+  <author>
+  <id>1077326</id>
+  <name>J.K. Rowling</name>
+  <link><![CDATA[https://www.goodreads.com/author/show/1077326.J_K_Rowling]]></link>
+  <fans_count type="integer">233012</fans_count>
+  <author_followers_count type="integer">233012</author_followers_count>
+  <large_image_url><![CDATA[https://images.gr-assets.com/authors/1596216614p7/1077326.jpg]]></large_image_url>
+  <image_url><![CDATA[https://images.gr-assets.com/authors/1596216614p5/1077326.jpg]]></image_url>
+  <small_image_url><![CDATA[https://images.gr-assets.com/authors/1596216614p2/1077326.jpg]]></small_image_url>
+  <about><![CDATA[See also: <a href="https://www.goodreads.com/author/show/383606.Robert_Galbraith" title="Robert Galbraith" rel="nofollow noopener">Robert Galbraith</a><br />Although she writes under the pen name <b>J.K. Rowling</b>, pronounced like <i>rolling</i>, her name when her first <i>Harry Potter</i> book was published was simply <b>Joanne Rowling</b>. Anticipating that the target audience of young boys might not want to read a book written by a woman, her publishers demanded that she use two initials, rather than her full name. As she had no middle name, she chose <b>K</b> as the second initial of her pen name, from her paternal grandmother Kathleen Ada Bulgen Rowling. She calls herself <b>Jo</b> and has said, "No one ever called me 'Joanne' when I was young, unless they were angry." Following her marriage, she has sometimes used the name <b>Joanne Murray</b> when conducting personal business. During the Leveson Inquiry she gave evidence under the name of <b>Joanne Kathleen Rowling</b>. In a 2012 interview, Rowling noted that she no longer cared that people pronounced her name incorrectly.<br /><br />Rowling was born to Peter James Rowling, a Rolls-Royce aircraft engineer, and Anne Rowling (née Volant), on 31 July 1965 in Yate, Gloucestershire, England, 10 miles (16 km) northeast of Bristol. Her mother Anne was half-French and half-Scottish. Her parents first met on a train departing from King's Cross Station bound for Arbroath in 1964. They married on 14 March 1965. Her mother's maternal grandfather, Dugald Campbell, was born in Lamlash on the Isle of Arran. Her mother's paternal grandfather, Louis Volant, was awarded the Croix de Guerre for exceptional bravery in defending the village of Courcelles-le-Comte during the First World War.<br /><br />Rowling's sister Dianne was born at their home when Rowling was 23 months old. The family moved to the nearby village Winterbourne when Rowling was four. She attended St Michael's Primary School, a school founded by abolitionist William Wilberforce and education reformer Hannah More. Her headmaster at St Michael's, Alfred Dunn, has been suggested as the inspiration for the <i>Harry Potter</i> headmaster Albus Dumbledore.<br /><br />As a child, Rowling often wrote fantasy stories, which she would usually then read to her sister. She recalls that: "I can still remember me telling her a story in which she fell down a rabbit hole and was fed strawberries by the rabbit family inside it. Certainly the first story I ever wrote down (when I was five or six) was about a rabbit called Rabbit. He got the measles and was visited by his friends, including a giant bee called Miss Bee." At the age of nine, Rowling moved to Church Cottage in the Gloucestershire village of Tutshill, close to Chepstow, Wales. When she was a young teenager, her great aunt, who Rowling said "taught classics and approved of a thirst for knowledge, even of a questionable kind," gave her a very old copy of Jessica Mitford's autobiography, <i>Hons and Rebels</i>. Mitford became Rowling's heroine, and Rowling subsequently read all of her books.<br /><br />Rowling has said of her teenage years, in an interview with The New Yorker, "I wasn’t particularly happy. I think it’s a dreadful time of life." She had a difficult homelife; her mother was ill and she had a difficult relationship with her father (she is no longer on speaking terms with him). She attended secondary school at Wyedean School and College, where her mother had worked as a technician in the science department. Rowling said of her adolescence, "Hermione [a bookish, know-it-all <i>Harry Potter</i> character] is loosely based on me. She's a caricature of me when I was eleven, which I'm not particularly proud of." Steve Eddy, who taught Rowling English when she first arrived, remembers her as "not exceptional" but "one of a group of girls who were bright, and quite good at English." Sean Harris, her best friend in the Upper Sixth owned a turquoise Ford Anglia, which she says inspired the one in her books.]]></about>
+  <influences><![CDATA[<a href="https://www.goodreads.com/author/show/1265.Jane_Austen" title="Jane Austen" rel="nofollow noopener">Jane Austen</a>, <a href="https://www.goodreads.com/author/show/1838.Geoffrey_Chaucer" title="Geoffrey Chaucer" rel="nofollow noopener">Geoffrey Chaucer</a>, <a href="https://www.goodreads.com/author/show/3565.Oscar_Wilde" title="Oscar Wilde" rel="nofollow noopener">Oscar Wilde</a>, <a href="https://www.goodreads.com/author/show/1069006.C_S__Lewis" title="C.S. Lewis" rel="nofollow noopener">C.S. Lewis</a>]]></influences>
+  <works_count>652</works_count>
+  <hometown>Yate, South Gloucestershire, England</hometown>
+  <born_at>1965/07/31</born_at>
+  <died_at></died_at>
+  <goodreads_author></goodreads_author>
+
+    <books>
+        <book>
+  <id type="integer">42844155</id>
+  <isbn nil="true"/>
+  <isbn13 nil="true"/>
+  <text_reviews_count type="integer">21112</text_reviews_count>
+  <uri>kca://book/amzn1.gr.book.v1.W9sTbi1u3mpuwB7AHz8Xbw</uri>
+  <title>Harry Potter and the Sorcerer's Stone (Harry Potter, #1)</title>
+  <title_without_series>Harry Potter and the Sorcerer's Stone</title_without_series>
+  <image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1598823299l/42844155._SX98_.jpg</image_url>
+  <small_image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1598823299l/42844155._SX50_.jpg</small_image_url>
+  <large_image_url/>
+  <link>https://www.goodreads.com/book/show/42844155-harry-potter-and-the-sorcerer-s-stone</link>
+  <num_pages>333</num_pages>
+  <format>Kindle Edition</format>
+  <edition_information/>
+  <publisher>Pottermore Publishing</publisher>
+  <publication_day>8</publication_day>
+  <publication_year>2015</publication_year>
+  <publication_month>12</publication_month>
+  <average_rating>4.47</average_rating>
+  <ratings_count>11247846</ratings_count>
+  <description>&lt;i&gt;An alternative cover for this ASIN can be found &lt;a href="https://www.goodreads.com/book/show/28942631-harry-potter-and-the-sorcerer-s-stone" rel="nofollow noopener"&gt;here&lt;/a&gt;&lt;/i&gt;&lt;br /&gt;&lt;br /&gt;"Turning the envelope over, his hand trembling, Harry saw a purple wax seal bearing a coat of arms; a lion, an eagle, a badger and a snake surrounding a large letter 'H'."&lt;br /&gt;&lt;br /&gt;Harry Potter has never even heard of Hogwarts when the letters start dropping on the doormat at number four, Privet Drive. Addressed in green ink on yellowish parchment with a purple seal, they are swiftly confiscated by his grisly aunt and uncle. Then, on Harry's eleventh birthday, a great beetle-eyed giant of a man called Rubeus Hagrid bursts in with some astonishing news: Harry Potter is a wizard, and he has a place at Hogwarts School of Witchcraft and Wizardry. An incredible adventure is about to begin!</description>
+<authors>
+<author>
+<id>1077326</id>
+<name>J.K. Rowling</name>
+<role></role>
+<image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1596216614p5/1077326.jpg]]>
+</image_url>
+<small_image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1596216614p2/1077326.jpg]]>
+</small_image_url>
+<link><![CDATA[https://www.goodreads.com/author/show/1077326.J_K_Rowling]]></link>
+<average_rating>4.46</average_rating>
+<ratings_count>40631979</ratings_count>
+<text_reviews_count>962360</text_reviews_count>
+</author>
+</authors>
+  <published>2015</published>
+<work>  <id>4640799</id>
+  <uri>kca://work/amzn1.gr.work.v1.TbpxJa2CwiSSz_9W2FruoA</uri>
+</work></book>
+
+
+        <book>
+  <id type="integer">5</id>
+  <isbn>043965548X</isbn>
+  <isbn13>9780439655484</isbn13>
+  <text_reviews_count type="integer">70624</text_reviews_count>
+  <uri>kca://book/amzn1.gr.book.v1.om7j-Dd6wInrhO7TVy51Ow</uri>
+  <title>Harry Potter and the Prisoner of Azkaban (Harry Potter, #3)</title>
+  <title_without_series>Harry Potter and the Prisoner of Azkaban</title_without_series>
+  <image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1630547330l/5._SX98_.jpg</image_url>
+  <small_image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1630547330l/5._SY75_.jpg</small_image_url>
+  <large_image_url/>
+  <link>https://www.goodreads.com/book/show/5.Harry_Potter_and_the_Prisoner_of_Azkaban</link>
+  <num_pages>547</num_pages>
+  <format>Mass Market Paperback</format>
+  <edition_information/>
+  <publisher>Scholastic Inc.</publisher>
+  <publication_day>1</publication_day>
+  <publication_year>2004</publication_year>
+  <publication_month>5</publication_month>
+  <average_rating>4.58</average_rating>
+  <ratings_count>4766306</ratings_count>
+  <description>Harry Potter, along with his best friends, Ron and Hermione, is about to start his third year at Hogwarts School of Witchcraft and Wizardry. Harry can't wait to get back to school after the summer holidays. (Who wouldn't if they lived with the horrible Dursleys?) But when Harry gets to Hogwarts, the atmosphere is tense. There's an escaped mass murderer on the loose, and the sinister prison guards of Azkaban have been called in to guard the school...</description>
+<authors>
+<author>
+<id>1077326</id>
+<name>J.K. Rowling</name>
+<role></role>
+<image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1596216614p5/1077326.jpg]]>
+</image_url>
+<small_image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1596216614p2/1077326.jpg]]>
+</small_image_url>
+<link><![CDATA[https://www.goodreads.com/author/show/1077326.J_K_Rowling]]></link>
+<average_rating>4.46</average_rating>
+<ratings_count>40631979</ratings_count>
+<text_reviews_count>962360</text_reviews_count>
+</author>
+</authors>
+  <published>2004</published>
+<work>  <id>2402163</id>
+  <uri>kca://work/amzn1.gr.work.v1.ZkLfli5sQE5ax3qSa7235Q</uri>
+</work></book>
+
+
+        <book>
+  <id type="integer">15881</id>
+  <isbn nil="true"/>
+  <isbn13 nil="true"/>
+  <text_reviews_count type="integer">66295</text_reviews_count>
+  <uri>kca://book/amzn1.gr.book.v1.KlY-hIN06yK2_7Y8_mQVig</uri>
+  <title>Harry Potter and the Chamber of Secrets (Harry Potter, #2)</title>
+  <title_without_series>Harry Potter and the Chamber of Secrets</title_without_series>
+  <image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1474169725l/15881._SX98_.jpg</image_url>
+  <small_image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1474169725l/15881._SY75_.jpg</small_image_url>
+  <large_image_url/>
+  <link>https://www.goodreads.com/book/show/15881.Harry_Potter_and_the_Chamber_of_Secrets</link>
+  <num_pages>352</num_pages>
+  <format></format>
+  <edition_information>First American Edition</edition_information>
+  <publisher>Arthur A. Levine Books</publisher>
+  <publication_day>2</publication_day>
+  <publication_year>1999</publication_year>
+  <publication_month>6</publication_month>
+  <average_rating>4.43</average_rating>
+  <ratings_count>4426161</ratings_count>
+  <description>Ever since Harry Potter had come home for the summer, the Dursleys had been so mean and hideous that all Harry wanted was to get back to the Hogwarts School for Witchcraft and Wizardry. But just as he’s packing his bags, Harry receives a warning from a strange impish creature who says that if Harry returns to Hogwarts, disaster will strike.&lt;br /&gt;&lt;br /&gt;And strike it does. For in Harry’s second year at Hogwarts, fresh torments and horrors arise, including an outrageously stuck-up new professor and a spirit who haunts the girls’ bathroom. But then the real trouble begins – someone is turning Hogwarts students to stone. Could it be Draco Malfoy, a more poisonous rival than ever? Could it possibly be Hagrid, whose mysterious past is finally told? Or could it be the one everyone at Hogwarts most suspects… Harry Potter himself!</description>
+<authors>
+<author>
+<id>1077326</id>
+<name>J.K. Rowling</name>
+<role></role>
+<image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1596216614p5/1077326.jpg]]>
+</image_url>
+<small_image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1596216614p2/1077326.jpg]]>
+</small_image_url>
+<link><![CDATA[https://www.goodreads.com/author/show/1077326.J_K_Rowling]]></link>
+<average_rating>4.46</average_rating>
+<ratings_count>40631979</ratings_count>
+<text_reviews_count>962360</text_reviews_count>
+</author>
+</authors>
+  <published>1999</published>
+<work>  <id>6231171</id>
+  <uri>kca://work/amzn1.gr.work.v1.PjwTgn-_w5b0mY40RgNxdw</uri>
+</work></book>
+
+
+        <book>
+  <id type="integer">58613424</id>
+  <isbn nil="true"/>
+  <isbn13 nil="true"/>
+  <text_reviews_count type="integer">4328</text_reviews_count>
+  <uri>kca://book/amzn1.gr.book.v3.aMMXdjhgEp8dkNEQ</uri>
+  <title>Harry Potter and the Goblet of Fire (Harry Potter, #4)</title>
+  <title_without_series>Harry Potter and the Goblet of Fire</title_without_series>
+  <image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1627044952l/58613424._SX98_.jpg</image_url>
+  <small_image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1627044952l/58613424._SY75_.jpg</small_image_url>
+  <large_image_url/>
+  <link>https://www.goodreads.com/book/show/58613424-harry-potter-and-the-goblet-of-fire</link>
+  <num_pages>752</num_pages>
+  <format>Hardcover</format>
+  <edition_information>First American Edition</edition_information>
+  <publisher>Scholastic Inc.</publisher>
+  <publication_day>8</publication_day>
+  <publication_year>2000</publication_year>
+  <publication_month>7</publication_month>
+  <average_rating>4.57</average_rating>
+  <ratings_count>4137678</ratings_count>
+  <description>Lord Voldemort, the dark wizard responsible for the deaths of Harry's parents, is growing stronger. At the Quidditch World Cup, Voldemort's signature Dark Mark appears in the sky over the stadium, causing pandemonium. The lightning-bolt-shaped scar on Harry's forehead is sporadically causing him agonizing pain, and he is also hearing disturbing voices. Harry realizes that all this is the result of a strong connection between himself and the Dark Lord, one that is putting him in grave danger. Back at Hogwarts, the students are getting ready for the upcoming Triwizard Tournament. Witches and wizards from two other schools are coming to Hogwarts for the year to compete in a series of grueling contests. The tournament is open only to students age 17 and above, but when someone secretly enters Harry's name, he is forced to compete. How can a 14-year-old possibly pass tests that might be fatal to an advanced wizard? And with the threat of Lord Voldemort looming, will he be able to focus on the tournament at all? For Harry, his friends, and everyone in the Wizarding world, the stakes are about to become much higher. This fourth installment, with a heart-pounding and emotional climax, serves as a turning point in the series, for the reader and for Harry himself.</description>
+<authors>
+<author>
+<id>1077326</id>
+<name>J.K. Rowling</name>
+<role></role>
+<image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1596216614p5/1077326.jpg]]>
+</image_url>
+<small_image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1596216614p2/1077326.jpg]]>
+</small_image_url>
+<link><![CDATA[https://www.goodreads.com/author/show/1077326.J_K_Rowling]]></link>
+<average_rating>4.46</average_rating>
+<ratings_count>40631979</ratings_count>
+<text_reviews_count>962360</text_reviews_count>
+</author>
+</authors>
+  <published>2000</published>
+<work>  <id>3046572</id>
+  <uri>kca://work/amzn1.gr.work.v1.USb5ObBtcLXUuC3i9aoelA</uri>
+</work></book>
+
+
+        <book>
+  <id type="integer">58613224</id>
+  <isbn>0545010225</isbn>
+  <isbn13>9780545010221</isbn13>
+  <text_reviews_count type="integer">3997</text_reviews_count>
+  <uri>kca://book/amzn1.gr.book.v3.42XEZQ_l2RuXzZHw</uri>
+  <title>Harry Potter and the Deathly Hallows (Harry Potter, #7)</title>
+  <title_without_series>Harry Potter and the Deathly Hallows</title_without_series>
+  <image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1627042661l/58613224._SX98_.jpg</image_url>
+  <small_image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1627042661l/58613224._SY75_.jpg</small_image_url>
+  <large_image_url/>
+  <link>https://www.goodreads.com/book/show/58613224-harry-potter-and-the-deathly-hallows</link>
+  <num_pages>784</num_pages>
+  <format>Hardcover</format>
+  <edition_information>First American Edition</edition_information>
+  <publisher>Scholastic Inc.</publisher>
+  <publication_day>21</publication_day>
+  <publication_year>2007</publication_year>
+  <publication_month>7</publication_month>
+  <average_rating>4.62</average_rating>
+  <ratings_count>4065172</ratings_count>
+  <description>It's no longer safe for Harry at Hogwarts, so he and his best friends, Ron and Hermione, are on the run. Professor Dumbledore has given them clues about what they need to do to defeat the dark wizard, Lord Voldemort, once and for all, but it's up to them to figure out what these hints and suggestions really mean. Their cross-country odyssey has them searching desperately for the answers, while evading capture or death at every turn. At the same time, their friendship, fortitude, and sense of right and wrong are tested in ways they never could have imagined. The ultimate battle between good and evil that closes out this final chapter of the epic series takes place where Harry's Wizarding life began: at Hogwarts. The satisfying conclusion offers shocking last-minute twists, incredible acts of courage, powerful new forms of magic, and the resolution of many mysteries. Above all, this intense, cathartic book serves as a clear statement of the message at the heart of the Harry Potter series: that choice matters much more than destiny, and that love will always triumph over death.&lt;br /&gt;&lt;br /&gt;Series Information: Eleven-year-old Harry Potter is an orphan living with his cruel aunt and uncle when he makes a discovery that will change his life forever: he is a wizard. He is whisked away to the mystical Hogwarts School of Witchcraft and Wizardry to learn magical skills, from potions to spells to flying on broomsticks. But an evil power is rising, the same one that threatened to destroy the entire world when Harry was only a baby. As Harry learns the truth about his family, his childhood, and his mysterious lightning-bolt-shaped scar, he finds unforgettable friendship, a loving surrogate family, and the courage to face the darkest force ever to menace the wizarding world. These charming and engrossing books bring an intensely detailed and captivating world to life and are perfect for enjoying individually or reading aloud.</description>
+<authors>
+<author>
+<id>1077326</id>
+<name>J.K. Rowling</name>
+<role></role>
+<image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1596216614p5/1077326.jpg]]>
+</image_url>
+<small_image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1596216614p2/1077326.jpg]]>
+</small_image_url>
+<link><![CDATA[https://www.goodreads.com/author/show/1077326.J_K_Rowling]]></link>
+<average_rating>4.46</average_rating>
+<ratings_count>40631979</ratings_count>
+<text_reviews_count>962360</text_reviews_count>
+</author>
+</authors>
+  <published>2007</published>
+<work>  <id>2963218</id>
+  <uri>kca://work/amzn1.gr.work.v1.Adr1zpcHTPWrbOovOdZhlA</uri>
+</work></book>
+
+
+        <book>
+  <id type="integer">58613451</id>
+  <isbn>043935806X</isbn>
+  <isbn13>9780439358064</isbn13>
+  <text_reviews_count type="integer">2466</text_reviews_count>
+  <uri>kca://book/amzn1.gr.book.v3.g6TC0LbDozPKE-p0</uri>
+  <title>Harry Potter and the Order of the Phoenix (Harry Potter, #5)</title>
+  <title_without_series>Harry Potter and the Order of the Phoenix</title_without_series>
+  <image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1627045351l/58613451._SX98_.jpg</image_url>
+  <small_image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1627045351l/58613451._SY75_.jpg</small_image_url>
+  <large_image_url/>
+  <link>https://www.goodreads.com/book/show/58613451-harry-potter-and-the-order-of-the-phoenix</link>
+  <num_pages>896</num_pages>
+  <format>Hardcover</format>
+  <edition_information>First American Edition</edition_information>
+  <publisher>Scholastic Inc.</publisher>
+  <publication_day>21</publication_day>
+  <publication_year>2003</publication_year>
+  <publication_month>6</publication_month>
+  <average_rating>4.50</average_rating>
+  <ratings_count>3748653</ratings_count>
+  <description>It's official: the evil Lord Voldemort has returned. His influence is suddenly everywhere in the Wizarding world, and his former allies, the Death Eaters, are returning to his side in droves. In response, the Order of the Phoenix, which worked to stop him during his last rise to power, has reconvened. This time, all of the adults Harry trusts have joined in. And even though Harry is at the center of many of their plans - Voldemort is intent on killing him, after all - they want so badly to protect him that they are keeping him completely out of the loop. Problems are cropping up at Hogwarts, too, where government officials are meddling in just about everything. And just because Voldemort and the Death Eaters are threatening open warfare does not mean that fifth-year students get out of their exams. Meanwhile, Harry's powerful connection to Voldemort seems to be growing even stronger, as he realizes that he has direct access to the Dark Lord's mind. It's time for Harry and his friends to take drastic action, but the course they choose will have terrible unforeseen consequences. Truly dangerous times have arrived in the fifth Harry Potter novel, but it never loses the trademark fun, excitement, and wonder at the possibilities of magic.</description>
+<authors>
+<author>
+<id>1077326</id>
+<name>J.K. Rowling</name>
+<role></role>
+<image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1596216614p5/1077326.jpg]]>
+</image_url>
+<small_image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1596216614p2/1077326.jpg]]>
+</small_image_url>
+<link><![CDATA[https://www.goodreads.com/author/show/1077326.J_K_Rowling]]></link>
+<average_rating>4.46</average_rating>
+<ratings_count>40631979</ratings_count>
+<text_reviews_count>962360</text_reviews_count>
+</author>
+</authors>
+  <published>2003</published>
+<work>  <id>2809203</id>
+  <uri>kca://work/amzn1.gr.work.v1.QBlq2dw4tPMZSuXhlMeXww</uri>
+</work></book>
+
+
+        <book>
+  <id type="integer">58613345</id>
+  <isbn nil="true"/>
+  <isbn13 nil="true"/>
+  <text_reviews_count type="integer">3629</text_reviews_count>
+  <uri>kca://book/amzn1.gr.book.v3.cRf9brc6rzxqRoRo</uri>
+  <title>Harry Potter and the Half-Blood Prince (Harry Potter, #6)</title>
+  <title_without_series>Harry Potter and the Half-Blood Prince</title_without_series>
+  <image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1627043894l/58613345._SX98_.jpg</image_url>
+  <small_image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1627043894l/58613345._SY75_.jpg</small_image_url>
+  <large_image_url/>
+  <link>https://www.goodreads.com/book/show/58613345-harry-potter-and-the-half-blood-prince</link>
+  <num_pages>672</num_pages>
+  <format>Hardcover</format>
+  <edition_information>First American Edition</edition_information>
+  <publisher>Scholastic Inc.</publisher>
+  <publication_day>16</publication_day>
+  <publication_year>2005</publication_year>
+  <publication_month>7</publication_month>
+  <average_rating>4.58</average_rating>
+  <ratings_count>3615292</ratings_count>
+  <description>The war against Voldemort is not going well: even Muggle governments are noticing. Ron scans the obituary pages of The Daily Prophet looking for familiar names. Dumbledore is absent from Hogwarts for long stretches of time, and the Order of the Phoenix has already suffered losses. And yet...&lt;br /&gt;&lt;br /&gt;As in all wars, life goes on. Sixth-year students learn to Apparate, and lose a few eyebrows in the process. The Weasley twins expand their business. Teenagers flirt and fight and fall in love. Classes are never straightforward, though Harry receives some extraordinary help from the mysterious Half-Blood Prince.&lt;br /&gt;&lt;br /&gt;So it's the home front that takes center stage in the multilayered sixth installment of the story of Harry Potter. Harry struggles to uncover the identity of the Half-Blood Prince, the past owner of a potions textbook he now possesses that is filled with ingenious, potentially deadly, spells. But Harry's life is suddenly changed forever when someone close to him is heinously murdered right before his eyes.&lt;br /&gt;&lt;br /&gt;With Dumbledore's guidance, he seeks out the full, complex story of the boy who became Lord Voldemort, and thereby attempts to find what may be his only vulnerability.</description>
+<authors>
+<author>
+<id>1077326</id>
+<name>J.K. Rowling</name>
+<role></role>
+<image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1596216614p5/1077326.jpg]]>
+</image_url>
+<small_image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1596216614p2/1077326.jpg]]>
+</small_image_url>
+<link><![CDATA[https://www.goodreads.com/author/show/1077326.J_K_Rowling]]></link>
+<average_rating>4.46</average_rating>
+<ratings_count>40631979</ratings_count>
+<text_reviews_count>962360</text_reviews_count>
+</author>
+</authors>
+  <published>2005</published>
+<work>  <id>41335427</id>
+  <uri>kca://work/amzn1.gr.work.v1.txipecnIYua0HbI4GhIAkA</uri>
+</work></book>
+
+
+        <book>
+  <id type="integer">29056083</id>
+  <isbn>0540027340</isbn>
+  <isbn13>9780540027347</isbn13>
+  <text_reviews_count type="integer">52930</text_reviews_count>
+  <uri>kca://book/amzn1.gr.book.v1.NTYPh5dfLSnVoTwZlCTGdw</uri>
+  <title>Harry Potter and the Cursed Child: Parts One and Two (Harry Potter, #8)</title>
+  <title_without_series>Harry Potter and the Cursed Child: Parts One and Two</title_without_series>
+  <image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1470082995l/29056083._SX98_.jpg</image_url>
+  <small_image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1470082995l/29056083._SY75_.jpg</small_image_url>
+  <large_image_url/>
+  <link>https://www.goodreads.com/book/show/29056083-harry-potter-and-the-cursed-child</link>
+  <num_pages>343</num_pages>
+  <format>Hardcover</format>
+  <edition_information>Special Rehearsal Edition Script, UK</edition_information>
+  <publisher>Little, Brown</publisher>
+  <publication_day>31</publication_day>
+  <publication_year>2016</publication_year>
+  <publication_month>7</publication_month>
+  <average_rating>3.47</average_rating>
+  <ratings_count>1126795</ratings_count>
+  <description>The eighth story, nineteen years later...&lt;br /&gt;&lt;br /&gt;It was always difficult being Harry Potter, and it isn't much easier now that he is an overworked employee of the Ministry of Magic, a husband, and a father of three school-age children.&lt;br /&gt;&lt;br /&gt;While Harry grapples with a past that refuses to stay where it belongs, his youngest son, Albus, must struggle with the weight of a family legacy he never wanted. As past and present fuse ominously, both father and son learn the uncomfortable truth: sometimes, darkness comes from unexpected places.&lt;br /&gt;&lt;br /&gt;Based on an original new story by J.K. Rowling, Jack Thorne, and John Tiffany, a new play by Jack Thorne, "Harry Potter and the Cursed Child" is the complete and official playscript of the original, award-winning West End production. This updated edition includes the final dialogue and stage directions, a conversation piece between director John Tiffany and playwright Jack Thorne, the Potter family tree, and a timeline of events in the wizarding world leading up to "Harry Potter and the Cursed Child."</description>
+<authors>
+<author>
+<id>1077326</id>
+<name>J.K. Rowling</name>
+<role></role>
+<image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1596216614p5/1077326.jpg]]>
+</image_url>
+<small_image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1596216614p2/1077326.jpg]]>
+</small_image_url>
+<link><![CDATA[https://www.goodreads.com/author/show/1077326.J_K_Rowling]]></link>
+<average_rating>4.46</average_rating>
+<ratings_count>40631979</ratings_count>
+<text_reviews_count>962360</text_reviews_count>
+</author>
+</authors>
+  <published>2016</published>
+<work>  <id>48765776</id>
+  <uri>kca://work/amzn1.gr.work.v1.EFy6sOal2wcXh7AmESrXWA</uri>
+</work></book>
+
+
+        <book>
+  <id type="integer">3950967</id>
+  <isbn>0747599874</isbn>
+  <isbn13>9780747599876</isbn13>
+  <text_reviews_count type="integer">12416</text_reviews_count>
+  <uri>kca://book/amzn1.gr.book.v1.Zf-RESMYr_Zt0Y2qNTLNqg</uri>
+  <title>The Tales of Beedle the Bard (Hogwarts Library, #3)</title>
+  <title_without_series>The Tales of Beedle the Bard</title_without_series>
+  <image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1630876355l/3950967._SX98_.jpg</image_url>
+  <small_image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1630876355l/3950967._SX50_.jpg</small_image_url>
+  <large_image_url/>
+  <link>https://www.goodreads.com/book/show/3950967-the-tales-of-beedle-the-bard</link>
+  <num_pages>105</num_pages>
+  <format>Hardcover</format>
+  <edition_information/>
+  <publisher>Bloomsbury</publisher>
+  <publication_day>4</publication_day>
+  <publication_year>2008</publication_year>
+  <publication_month>12</publication_month>
+  <average_rating>4.03</average_rating>
+  <ratings_count>509998</ratings_count>
+  <description>"The Tales of Beedle the Bard" contains five richly diverse fairy tales, each with its own magical character, that will variously bring delight, laughter and the thrill of mortal peril.&lt;br /&gt;&lt;br /&gt;Additional notes for each story penned by Professor Albus Dumbledore will be enjoyed by Muggles and wizards alike, as the Professor muses on the morals illuminated by the tales, and reveals snippets of information about life at Hogwarts.&lt;br /&gt;&lt;br /&gt;A uniquely magical volume, with illustrations by the author, J. K. Rowling, that will be treasured for years to come.</description>
+<authors>
+<author>
+<id>1077326</id>
+<name>J.K. Rowling</name>
+<role></role>
+<image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1596216614p5/1077326.jpg]]>
+</image_url>
+<small_image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1596216614p2/1077326.jpg]]>
+</small_image_url>
+<link><![CDATA[https://www.goodreads.com/author/show/1077326.J_K_Rowling]]></link>
+<average_rating>4.46</average_rating>
+<ratings_count>40631979</ratings_count>
+<text_reviews_count>962360</text_reviews_count>
+</author>
+</authors>
+  <published>2008</published>
+<work>  <id>3007490</id>
+  <uri>kca://work/amzn1.gr.work.v1.mHA_b2TqL4wayqjWxrVPog</uri>
+</work></book>
+
+
+        <book>
+  <id type="integer">862041</id>
+  <isbn>0545044251</isbn>
+  <isbn13>9780545044257</isbn13>
+  <text_reviews_count type="integer">7570</text_reviews_count>
+  <uri>kca://book/amzn1.gr.book.v1.qrxYGXntcLZpuZ8pLjt8Eg</uri>
+  <title>Harry Potter Series Box Set (Harry Potter, #1-7)</title>
+  <title_without_series>Harry Potter Series Box Set</title_without_series>
+  <image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1534298934l/862041._SX98_.jpg</image_url>
+  <small_image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1534298934l/862041._SX50_.jpg</small_image_url>
+  <large_image_url/>
+  <link>https://www.goodreads.com/book/show/862041.Harry_Potter_Series_Box_Set</link>
+  <num_pages>4100</num_pages>
+  <format></format>
+  <edition_information>First Thus</edition_information>
+  <publisher></publisher>
+  <publication_day></publication_day>
+  <publication_year></publication_year>
+  <publication_month></publication_month>
+  <average_rating>4.73</average_rating>
+  <ratings_count>301402</ratings_count>
+  <description>Over 4000 pages of Harry Potter and his world, including all 7 books.&lt;br /&gt;&lt;br /&gt;All seven eBooks in the multi-award winning, internationally bestselling Harry Potter series, available as one download with stunning cover art by Olly Moss. Enjoy the stories that have captured the imagination of millions worldwide.</description>
+<authors>
+<author>
+<id>1077326</id>
+<name>J.K. Rowling</name>
+<role></role>
+<image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1596216614p5/1077326.jpg]]>
+</image_url>
+<small_image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1596216614p2/1077326.jpg]]>
+</small_image_url>
+<link><![CDATA[https://www.goodreads.com/author/show/1077326.J_K_Rowling]]></link>
+<average_rating>4.46</average_rating>
+<ratings_count>40631979</ratings_count>
+<text_reviews_count>962360</text_reviews_count>
+</author>
+</authors>
+  <published></published>
+<work>  <id>2962492</id>
+  <uri>kca://work/amzn1.gr.work.v1.LxhLt2ofNzpl6IkVpaQGgg</uri>
+</work></book>
+
+
+    </books>
+</author>
+
+</GoodreadsResponse>

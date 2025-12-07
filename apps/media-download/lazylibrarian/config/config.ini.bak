@@ -1,0 +1,48 @@
+[GENERAL]
+homepage = Authors
+config_tab_num = 4
+imp_preflang = eng, English, en, en-US, en-GB
+date_lang = en_GB.UTF-8
+ebook_dir = /books
+download_dir = /downloads
+
+[LOGGING]
+logdir = /config/log
+
+[IMPORTER]
+multi_source = True
+
+[TELEMETRY]
+server_id = ac86e4c91e6d4d62ada6df526c2080ba
+
+[GIT]
+git_updated = 1764466340
+install_type = source DOCKER
+current_version = 144f4f3a
+latest_version = 169e669fba6285745917887cd9a620ce81777431
+commits_behind = 22
+
+[NZBGET]
+nzbget_host = http://media-download-gluetun
+nzbget_port = 6789
+nzbget_user = nzbget
+nzbget_pass = nzbget
+nzbget_category = books
+
+[USENET]
+nzb_downloader_nzbget = True
+
+[POSTPROCESS]
+audiobook_dest_folder = $Author/$Title
+
+[PROWL]
+prowl_priority = -2
+
+[API]
+book_api = GoodReads
+ol_api = True
+
+[Newznab_0]
+host = http://media-download-nzbhydra2:5076/api
+api = 2SQ42T9209NUIQCAJTPBMTLBJF
+
