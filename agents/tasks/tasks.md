@@ -3,7 +3,7 @@
 Task tracking for Home Server.
 
 **Status**: Active development
-**Last Updated**: 2024-12-05
+**Last Updated**: 2025-12-06
 
 ## Task Claiming Protocol
 
@@ -50,6 +50,10 @@ git checkout -b feature/task-x-description
 | T10 | Strategy-to-execution pipeline | [AVAILABLE] | P0 |
 | T11 | Sentiment provider base class | [AVAILABLE] | P1 |
 | T12 | Standardize Traefik config: local DNS no-auth, external auth | [CLAIMED by @auto] | P1 |
+| T13 | Homepage cleanup: Infrastructure category + icons | [CLAIMED by @auto] | P1 |
+| T14 | Homepage cleanup: Media apps category + icons | [AVAILABLE] | P1 |
+| T15 | Homepage cleanup: Productivity category + icons | [COMPLETE] | P1 |
+| T16 | Homepage cleanup: Social/News + Gaming + Trading icons | [AVAILABLE] | P1 |
 
 ### Task T1: Consolidate metrics system (8 files → 3)
 **Priority**: P0
@@ -309,6 +313,119 @@ git checkout -b feature/task-x-description
 - External IP exception (76.156.139.101) only applies to homepage
 - All other services: local network = no auth, everything else = auth required
 
+### Task T13: Homepage cleanup: Infrastructure category + icons
+**Priority**: P1
+**Dependencies**: None
+**Effort**: Low
+**Project**: home-server
+
+**Objective**: Update Infrastructure apps with correct icons and move monitoring tools from Trading to Infrastructure.
+
+**Plan Reference**: `agents/plans-local/homepage-category-consolidation.md`
+
+**Files to modify**:
+- `apps/vaultwarden/docker-compose.yml` - icon: `si-1password` → `si-vaultwarden`
+- `apps/tailscale/docker-compose.yml` - icon: `si-wireguard` → `si-tailscale`
+- `apps/loggifly/docker-compose.yml` - icon: `📊` → `si-logstash`
+- `apps/wiki/docker-compose.yml` - icon: `postgresql` → `si-postgresql` (db service)
+- `apps/trading-bot/docker-compose.yml` - Move Prometheus, Grafana, Alertmanager to group `Infrastructure`; icon for Alertmanager: `si-bell` → `si-prometheus`
+- `apps/n8n/ai-agent-webhook/docker-compose.yml` - group: `Automation` → `Infrastructure`
+
+**Success Criteria**:
+- [ ] All Infrastructure icons use valid `si-*` Simple Icons
+- [ ] Monitoring tools (Prometheus, Grafana, Alertmanager) in Infrastructure category
+- [ ] AI Agent Webhook in Infrastructure category
+- [ ] No emojis or invalid icon slugs
+
+### Task T14: Homepage cleanup: Media apps category + icons
+**Priority**: P1
+**Dependencies**: None
+**Effort**: Medium
+**Project**: home-server
+
+**Objective**: Update all media apps to use `si-*` icons and consolidate into Media Servers / Media Management categories.
+
+**Plan Reference**: `agents/plans-local/homepage-category-consolidation.md`
+
+**Files to modify**:
+- `apps/jellyfin/docker-compose.yml` - icon: `si-redhat` → `si-jellyfin`
+- `apps/immich/docker-compose.yml` - icon: `si-googlephotos` → `si-immich`
+- `apps/soulsync/docker-compose.yml` - icon: `🎵` → `si-navidrome`
+- `apps/media-download/docker-compose.yml` - Update all icons:
+  - NZBHydra2: `nzbhydra2.svg` → `si-nzbhydra2`
+  - Jackett: `jackett.svg` → `si-jackett`
+  - Prowlarr: `prowlarr.svg` → `si-prowlarr`
+  - Sonarr: `sonarr.svg` → `si-sonarr`
+  - Radarr: `radarr.svg` → `si-radarr`
+  - Lidarr: `lidarr.svg` → `si-lidarr`
+  - Bazarr: `bazarr.svg` → `si-bazarr`
+  - Overseerr: `overseerr.svg` → `si-overseerr`
+  - LazyLibrarian: `readarr.svg` → `si-readarr`
+  - Calibre: `calibre.svg` → `si-calibre`
+  - Calibre-Web: `calibre.svg` → `si-calibre`
+  - SABnzbd: `sabnzbd.svg` → `si-sabnzbd`
+
+**Success Criteria**:
+- [ ] All media apps use valid `si-*` Simple Icons
+- [ ] No local SVG references (*.svg)
+- [ ] No emojis
+
+### Task T15: Homepage cleanup: Productivity category + icons
+**Priority**: P1
+**Dependencies**: None
+**Effort**: Low
+**Project**: home-server
+
+**Objective**: Consolidate all productivity apps under single "Productivity" category and fix icons.
+
+**Plan Reference**: `agents/plans-local/homepage-category-consolidation.md`
+
+**Files to modify**:
+- `apps/planka/docker-compose.yml` - icon: `si-todoist` → `si-planka`; group stays `Productivity & Organization` → `Productivity`
+- `apps/mealie/docker-compose.yml` - icon: `si-aldinord` → `si-mealie`; group: → `Productivity`
+- `apps/firefly-iii/docker-compose.yml` - icon: `si-firefly` → `si-fireflyiii`; group: → `Productivity`
+- `apps/lubelog/docker-compose.yml` - icon: `si-car` → `si-lubelog`; group: → `Productivity`
+- `apps/beaverhabits/docker-compose.yml` - icon: `🐻` → `si-habitica`; group: `Productivity` (already correct)
+- `apps/open-archiver/docker-compose.yml` - icon: `si-archive` → `si-internetarchive`; group: → `Productivity`
+- `apps/wiki/docker-compose.yml` - icon: `si-wikijs` → `si-wikidotjs` (wiki service); group: → `Productivity`
+- `apps/mazanoke/docker-compose.yml` - icon: `🖼️` → `si-unsplash`; group: `Tools & Utilities` → `Productivity`
+- `apps/paperless-ngx/docker-compose.yml` - group: → `Productivity`
+- `apps/excalidraw/docker-compose.yml` - group: → `Productivity`
+- `apps/monica/docker-compose.yml` - group: → `Productivity`
+- `apps/habitica/docker-compose.yml` - group: → `Productivity`
+
+**Success Criteria**:
+- [x] All Productivity apps use valid `si-*` Simple Icons
+- [x] All apps in single "Productivity" category (not "Productivity & Organization")
+- [x] No emojis or invalid icon slugs
+
+### Task T16: Homepage cleanup: Social/News + Gaming + Trading icons
+**Priority**: P1
+**Dependencies**: None
+**Effort**: Low
+**Project**: home-server
+
+**Objective**: Update Social & News category and fix remaining icons in Gaming/Trading.
+
+**Plan Reference**: `agents/plans-local/homepage-category-consolidation.md`
+
+**Files to modify**:
+- `apps/campfire/docker-compose.yml` - icon: `si-campfire` → `si-basecamp`; group: `Communication & Social` → `Social & News`
+- `apps/freshRSS/docker-compose.yml` - icon: `si-rss` → `si-freshrss`; group: → `Social & News`
+- `apps/newsblur/docker-compose.yml` - group: `Communication & Social` → `Social & News`
+- `apps/ghost/docker-compose.yml` - group: → `Social & News`
+- `apps/libreddit/docker-compose.yml` - group: → `Social & News`
+- `apps/mattermost/docker-compose.yml` - group: `Productivity & Organization` → `Social & News`
+- `apps/maptapdat/docker-compose.yml` - icon: `🗺️` → `si-openstreetmap`
+- `apps/ollama-docker/docker-compose.yml` - icon: `si-openai` → `si-ollama`
+- `apps/open-health/docker-compose.yml` - icon: `si-heart` → `si-openai`
+
+**Success Criteria**:
+- [ ] All Social & News apps in correct category
+- [ ] All Gaming icons use valid `si-*` Simple Icons
+- [ ] No emojis or invalid icon slugs
+- [ ] All `si-*` slugs verified against Simple Icons
+
 ---
 
 ## Priority Order
@@ -327,6 +444,7 @@ git checkout -b feature/task-x-description
 - T7, T8 - UI and tests
 - T11 - Provider refactor
 - T12 - Traefik config standardization (home-server infrastructure)
+- T13, T14, T15, T16 - Homepage cleanup (categories + icons)
 
 ---
 
