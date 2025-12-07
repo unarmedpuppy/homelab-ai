@@ -50,7 +50,7 @@ services:
       # Homepage integration
       - "homepage.group=Productivity"
       - "homepage.name=Habitica"
-      - "homepage.icon=si-habitica"
+      - "homepage.icon=si-todoist"
       - "homepage.href=https://habitica.server.unarmedpuppy.com"
       - "homepage.description=Gamified habit tracker and task manager"
 

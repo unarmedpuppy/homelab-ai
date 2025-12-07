@@ -41,7 +41,7 @@ services:
       # Homepage labels
       - "homepage.group=Productivity"
       - "homepage.name=LubeLogger"
-      - "homepage.icon=si-lubelog"
+      - "homepage.icon=si-ford"
       - "homepage.href=https://lubelog.server.unarmedpuppy.com"
       - "homepage.description=Vehicle maintenance and fuel mileage tracker"
 

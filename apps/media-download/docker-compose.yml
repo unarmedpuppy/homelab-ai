@@ -57,7 +57,7 @@ services:
       - "homepage.group=Media & Entertainment"
       - "homepage.name=NZBHydra2"
       - "homepage.href=http://192.168.86.47:5076"
-      - "homepage.icon=si-nzbhydra2"
+      - "homepage.icon=si-searxng"
     # NOT on VPN - only searches, doesn't download
 
   # Torrent Indexer
@@ -265,7 +265,7 @@ services:
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Bazarr"
       - "homepage.href=http://192.168.86.47:6767"
-      - "homepage.icon=si-bazarr"
+      - "homepage.icon=si-opensubtitles"
     depends_on:
       - sonarr
       - radarr
@@ -342,7 +342,7 @@ services:
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Calibre"
       - "homepage.href=http://192.168.86.47:8085"
-      - "homepage.icon=si-calibre"
+      - "homepage.icon=si-bookstack"
 
   # Calibre Web Interface
   calibre-web:
@@ -366,7 +366,7 @@ services:
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Calibre-Web"
       - "homepage.href=http://192.168.86.47:8084"
-      - "homepage.icon=si-calibre"
+      - "homepage.icon=si-bookstack"
 
   # Usenet Downloader (Alternative)
   sabnzbd:

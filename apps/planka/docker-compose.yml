@@ -71,7 +71,7 @@ services:
       # Homepage labels
       - "homepage.group=Productivity"
       - "homepage.name=Planka"
-      - "homepage.icon=si-planka"
+      - "homepage.icon=si-trello"
       - "homepage.href=https://planka.server.unarmedpuppy.com"
       - "homepage.description=Projects, To-Do lists & Kanban"
     depends_on:

@@ -47,7 +47,7 @@ services:
       # Homepage integration
       - "homepage.group=Productivity"
       - "homepage.name=Beaver Habits"
-      - "homepage.icon=si-habitica"
+      - "homepage.icon=si-todoist"
       - "homepage.href=https://beaverhabits.server.unarmedpuppy.com"
       - "homepage.description=Self-hosted habit tracking app without Goals"
 
