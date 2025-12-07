@@ -27,17 +27,24 @@ services:
     networks:
       - my-network
     labels:
-      #- "traefik.enable=true"
-      #- "traefik.http.routers.adguard.rule=Host(`adguard.server.unarmedpuppy.com`)"
-      #- "traefik.http.services.adguard.loadbalancer.server.port=8083"
-      #- "traefik.http.routers.adguard.middlewares=auth"
-      #- "traefik.http.middlewares.auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
-      #- "traefik.http.routers.adguard.entrypoints=web"
-      #- "traefik.http.routers.adguard.tls.certresolver=myresolver"
+      # Traefik - Enable routing
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.adguard-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.adguard-http.rule=Host(`adguard.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.adguard-http.entrypoints=web"
+      - "traefik.http.routers.adguard-http.middlewares=adguard-redirect"
+      # Main HTTPS router (web UI + DoH endpoint)
+      - "traefik.http.routers.adguard.rule=Host(`adguard.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.adguard.entrypoints=websecure"
+      - "traefik.http.routers.adguard.tls.certresolver=myresolver"
+      - "traefik.http.services.adguard.loadbalancer.server.port=80"
+      # Homepage
       - "homepage.group=Infrastructure"
       - "homepage.name=Adguard"
       - "homepage.icon=si-adguard"
-      - "homepage.href=http://192.168.86.47:8083"
+      - "homepage.href=https://adguard.server.unarmedpuppy.com"
       - "homepage.description=Local DNS & Ad blocking"
 
 networks:
