@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GoodreadsResponse>
+  <Request>
+    <authentication>true</authentication>
+      <key><![CDATA[ckvsiSDsuqh7omh74ZZ6Q]]></key>
+    <method><![CDATA[series_work]]></method>
+  </Request>
+  <series_works>
+<series_work>
+<id>615726</id>
+<user_position>7</user_position>
+<series>
+<id>45175</id>
+<title>
+<![CDATA[
+    Harry Potter
+]]>
+</title>
+<description>
+<![CDATA[
+    Orphan Harry learns he is a wizard on his 11th birthday when Hagrid escorts him to magic-teaching Hogwarts School. As a baby, his mother's love protected him and vanquished the villain Voldemort, leaving the child famous as "The Boy who Lived." With his friends Hermione and Ron, Harry has to defeat the returned "He Who Must Not Be Named."
+]]>
+</description>
+<note>
+<![CDATA[
+    Cursed Child is NOT a Primary Work. Boxsets ARE part of the series. However, the mini-shorts are NOT books by Goodreads standards, and should neither be added to this series nor to the database.
+]]>
+</note>
+<series_works_count>9</series_works_count>
+<primary_work_count>7</primary_work_count>
+<numbered>true</numbered>
+</series>
+
+</series_work>
+
+</series_works>
+
+</GoodreadsResponse>

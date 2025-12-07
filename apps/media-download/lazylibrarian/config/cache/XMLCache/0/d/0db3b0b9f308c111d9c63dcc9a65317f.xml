@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GoodreadsResponse>
+  <Request>
+    <authentication>true</authentication>
+      <key><![CDATA[ckvsiSDsuqh7omh74ZZ6Q]]></key>
+    <method><![CDATA[api_author_link]]></method>
+  </Request>
+  
+
+		<author id="1077326">
+			<name><![CDATA[J.K. Rowling]]></name>
+			<link>https://www.goodreads.com/author/show/1077326.J_K_Rowling?utm_medium=api&amp;utm_source=author_link</link>
+		</author>
+	
+	
+
+</GoodreadsResponse>

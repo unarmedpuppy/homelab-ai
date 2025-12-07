@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GoodreadsResponse>
+  <Request>
+    <authentication>true</authentication>
+      <key><![CDATA[ckvsiSDsuqh7omh74ZZ6Q]]></key>
+    <method><![CDATA[search_search]]></method>
+  </Request>
+  <search>
+  <query><![CDATA[harry]]></query>
+    <results-start>1</results-start>
+    <results-end>10</results-end>
+    <total-results>143757</total-results>
+    <source>Goodreads</source>
+    <query-time-seconds>0.07</query-time-seconds>
+    <results>
+        <work>
+  <id type="integer">4640799</id>
+  <books_count type="integer">1317</books_count>
+  <ratings_count type="integer">11247846</ratings_count>
+  <text_reviews_count type="integer">189556</text_reviews_count>
+  <original_publication_year type="integer">1997</original_publication_year>
+  <original_publication_month type="integer">6</original_publication_month>
+  <original_publication_day type="integer">26</original_publication_day>
+  <average_rating>4.47</average_rating>
+  <best_book type="Book">
+    <id type="integer">42844155</id>
+    <title>Harry Potter and the Sorcerer's Stone (Harry Potter, #1)</title>
+    <author>
+      <id type="integer">1077326</id>
+      <name>J.K. Rowling</name>
+    </author>
+    <image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1598823299l/42844155._SX98_.jpg</image_url>
+    <small_image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1598823299l/42844155._SX50_.jpg</small_image_url>
+  </best_book>
+</work>
+
+        <work>
+  <id type="integer">6231171</id>
+  <books_count type="integer">7</books_count>
+  <ratings_count type="integer">4426161</ratings_count>
+  <text_reviews_count type="integer">94887</text_reviews_count>
+  <original_publication_year type="integer">1998</original_publication_year>
+  <original_publication_month type="integer">7</original_publication_month>
+  <original_publication_day type="integer">2</original_publication_day>
+  <average_rating>4.43</average_rating>
+  <best_book type="Book">
+    <id type="integer">15881</id>
+    <title>Harry Potter and the Chamber of Secrets (Harry Potter, #2)</title>
+    <author>
+      <id type="integer">1077326</id>
+      <name>J.K. Rowling</name>
+    </author>
+    <image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1474169725l/15881._SX98_.jpg</image_url>
+    <small_image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1474169725l/15881._SY75_.jpg</small_image_url>
+  </best_book>
+</work>
+
+        <work>
+  <id type="integer">2963218</id>
+  <books_count type="integer">24</books_count>
+  <ratings_count type="integer">4065172</ratings_count>
+  <text_reviews_count type="integer">97791</text_reviews_count>
+  <original_publication_year type="integer">2007</original_publication_year>
+  <original_publication_month type="integer">7</original_publication_month>
+  <original_publication_day type="integer">21</original_publication_day>
+  <average_rating>4.62</average_rating>
+  <best_book type="Book">
+    <id type="integer">58613224</id>
+    <title>Harry Potter and the Deathly Hallows (Harry Potter, #7)</title>
+    <author>
+      <id type="integer">1077326</id>
+      <name>J.K. Rowling</name>
+    </author>
+    <image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1627042661l/58613224._SX98_.jpg</image_url>
+    <small_image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1627042661l/58613224._SY75_.jpg</small_image_url>
+  </best_book>
+</work>
+
+        <work>
+  <id type="integer">2402163</id>
+  <books_count type="integer">923</books_count>
+  <ratings_count type="integer">4766306</ratings_count>
+  <text_reviews_count type="integer">100406</text_reviews_count>
+  <original_publication_year type="integer">1999</original_publication_year>
+  <original_publication_month type="integer">7</original_publication_month>
+  <original_publication_day type="integer">8</original_publication_day>
+  <average_rating>4.58</average_rating>
+  <best_book type="Book">
+    <id type="integer">5</id>
+    <title>Harry Potter and the Prisoner of Azkaban (Harry Potter, #3)</title>
+    <author>
+      <id type="integer">1077326</id>
+      <name>J.K. Rowling</name>
+    </author>
+    <image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1630547330l/5._SX98_.jpg</image_url>
+    <small_image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1630547330l/5._SY75_.jpg</small_image_url>
+  </best_book>
+</work>
+
+        <work>
+  <id type="integer">2809203</id>
+  <books_count type="integer">32</books_count>
+  <ratings_count type="integer">3748653</ratings_count>
+  <text_reviews_count type="integer">76211</text_reviews_count>
+  <original_publication_year type="integer">2003</original_publication_year>
+  <original_publication_month type="integer">6</original_publication_month>
+  <original_publication_day type="integer">21</original_publication_day>
+  <average_rating>4.50</average_rating>
+  <best_book type="Book">
+    <id type="integer">58613451</id>
+    <title>Harry Potter and the Order of the Phoenix (Harry Potter, #5)</title>
+    <author>
+      <id type="integer">1077326</id>
+      <name>J.K. Rowling</name>
+    </author>
+    <image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1627045351l/58613451._SX98_.jpg</image_url>
+    <small_image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1627045351l/58613451._SY75_.jpg</small_image_url>
+  </best_book>
+</work>
+
+        <work>
+  <id type="integer">3046572</id>
+  <books_count type="integer">33</books_count>
+  <ratings_count type="integer">4137678</ratings_count>
+  <text_reviews_count type="integer">82899</text_reviews_count>
+  <original_publication_year type="integer">2000</original_publication_year>
+  <original_publication_month type="integer">7</original_publication_month>
+  <original_publication_day type="integer">8</original_publication_day>
+  <average_rating>4.57</average_rating>
+  <best_book type="Book">
+    <id type="integer">58613424</id>
+    <title>Harry Potter and the Goblet of Fire (Harry Potter, #4)</title>
+    <author>
+      <id type="integer">1077326</id>
+      <name>J.K. Rowling</name>
+    </author>
+    <image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1627044952l/58613424._SX98_.jpg</image_url>
+    <small_image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1627044952l/58613424._SY75_.jpg</small_image_url>
+  </best_book>
+</work>
+
+        <work>
+  <id type="integer">41335427</id>
+  <books_count type="integer">48</books_count>
+  <ratings_count type="integer">3615292</ratings_count>
+  <text_reviews_count type="integer">68876</text_reviews_count>
+  <original_publication_year type="integer">2005</original_publication_year>
+  <original_publication_month type="integer">7</original_publication_month>
+  <original_publication_day type="integer">16</original_publication_day>
+  <average_rating>4.58</average_rating>
+  <best_book type="Book">
+    <id type="integer">58613345</id>
+    <title>Harry Potter and the Half-Blood Prince (Harry Potter, #6)</title>
+    <author>
+      <id type="integer">1077326</id>
+      <name>J.K. Rowling</name>
+    </author>
+    <image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1627043894l/58613345._SX98_.jpg</image_url>
+    <small_image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1627043894l/58613345._SY75_.jpg</small_image_url>
+  </best_book>
+</work>
+
+        <work>
+  <id type="integer">48765776</id>
+  <books_count type="integer">1</books_count>
+  <ratings_count type="integer">1126795</ratings_count>
+  <text_reviews_count type="integer">77033</text_reviews_count>
+  <original_publication_year type="integer">2016</original_publication_year>
+  <original_publication_month type="integer">7</original_publication_month>
+  <original_publication_day type="integer">31</original_publication_day>
+  <average_rating>3.47</average_rating>
+  <best_book type="Book">
+    <id type="integer">29056083</id>
+    <title>Harry Potter and the Cursed Child: Parts One and Two (Harry Potter, #8)</title>
+    <author>
+      <id type="integer">1077326</id>
+      <name>J.K. Rowling</name>
+    </author>
+    <image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1470082995l/29056083._SX98_.jpg</image_url>
+    <small_image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1470082995l/29056083._SY75_.jpg</small_image_url>
+  </best_book>
+</work>
+
+        <work>
+  <id type="integer">19079807</id>
+  <books_count type="integer">10</books_count>
+  <ratings_count type="integer">298747</ratings_count>
+  <text_reviews_count type="integer">1359</text_reviews_count>
+  <original_publication_year type="integer">2003</original_publication_year>
+  <original_publication_month type="integer">7</original_publication_month>
+  <original_publication_day type="integer">1</original_publication_day>
+  <average_rating>4.61</average_rating>
+  <best_book type="Book">
+    <id type="integer">1317181</id>
+    <title>Harry Potter and the Order of the Phoenix (Harry Potter, #5, Part 1)</title>
+    <author>
+      <id type="integer">1077326</id>
+      <name>J.K. Rowling</name>
+    </author>
+    <image_url>https://s.gr-assets.com/assets/nophoto/book/111x148-bcc042a9c91a29c1d680899eff700a03.png</image_url>
+    <small_image_url>https://s.gr-assets.com/assets/nophoto/book/50x75-a91bf249278a81aabab721ef782c4a74.png</small_image_url>
+  </best_book>
+</work>
+
+        <work>
+  <id type="integer">2962492</id>
+  <books_count type="integer">228</books_count>
+  <ratings_count type="integer">301402</ratings_count>
+  <text_reviews_count type="integer">8711</text_reviews_count>
+  <original_publication_year type="integer">2007</original_publication_year>
+  <original_publication_month type="integer">10</original_publication_month>
+  <original_publication_day type="integer">1</original_publication_day>
+  <average_rating>4.73</average_rating>
+  <best_book type="Book">
+    <id type="integer">862041</id>
+    <title>Harry Potter Series Box Set (Harry Potter, #1-7)</title>
+    <author>
+      <id type="integer">1077326</id>
+      <name>J.K. Rowling</name>
+    </author>
+    <image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1534298934l/862041._SX98_.jpg</image_url>
+    <small_image_url>https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1534298934l/862041._SX50_.jpg</small_image_url>
+  </best_book>
+</work>
+
+    </results>
+</search>
+
+</GoodreadsResponse>
