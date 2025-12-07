@@ -266,8 +266,10 @@ Specialized agent personalities are available in `agents/personas/`:
 | Persona | Purpose |
 |---------|---------|
 | [server-agent](agents/personas/server-agent.md) | Server management and deployment specialist |
+| [critical-thinking-agent](agents/personas/critical-thinking-agent.md) | Hyper-objective logic engine for strengthening thinking and decision-making |
 
 For server-specific tasks, reference the server-agent persona.
+For critical analysis, decision review, or challenging assumptions, reference the critical-thinking-agent persona.
 
 ## Deep-Dive Documentation
 
