@@ -56,7 +56,7 @@ services:
     labels:
       - "homepage.group=AI & Machine Learning"
       - "homepage.name=Ollama WebUI"
-      - "homepage.icon=si-openai"
+      - "homepage.icon=si-ollama"
       - "homepage.href=http://192.168.86.47:8091"
       - "homepage.description=Ollama AI model interface"
 

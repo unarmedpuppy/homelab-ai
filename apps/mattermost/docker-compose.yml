@@ -65,7 +65,7 @@ services:
       - "traefik.http.middlewares.mattermost-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.mattermost-auth.basicauth.realm=Mattermost"
       # Homepage labels
-      - "homepage.group=Productivity & Organization"
+      - "homepage.group=Social & News"
       - "homepage.name=Mattermost"
       - "homepage.icon=si-mattermost"
       - "homepage.href=https://mattermost.server.unarmedpuppy.com"

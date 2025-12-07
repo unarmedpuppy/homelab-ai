@@ -49,7 +49,7 @@ services:
       # Homepage labels
       - "homepage.group=AI & Machine Learning"
       - "homepage.name=OpenHealth"
-      - "homepage.icon=si-heart"
+      - "homepage.icon=si-openai"
       - "homepage.href=https://open-health.server.unarmedpuppy.com"
       - "homepage.description=AI Health Assistant powered by your data"
 
