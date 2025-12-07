@@ -5,7 +5,7 @@ Gamified habit tracker and task manager that treats your goals like a Role Playi
 ## Access
 
 - **URL**: https://habitica.server.unarmedpuppy.com
-- **Port**: 3002 (direct access, optional)
+- **Port**: 3003 (direct access, optional)
 - **Status**: ✅ ACTIVE
 
 ## Setup
