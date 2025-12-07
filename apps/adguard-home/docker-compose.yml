@@ -24,6 +24,7 @@ services:
     volumes:
       - ./data/work:/opt/adguardhome/work
       - ./data/conf:/opt/adguardhome/conf
+      - ./certs:/opt/adguardhome/certs:ro
     networks:
       - my-network
     labels:
@@ -39,7 +40,9 @@ services:
       - "traefik.http.routers.adguard.rule=Host(`adguard.server.unarmedpuppy.com`)"
       - "traefik.http.routers.adguard.entrypoints=websecure"
       - "traefik.http.routers.adguard.tls.certresolver=myresolver"
-      - "traefik.http.services.adguard.loadbalancer.server.port=80"
+      - "traefik.http.services.adguard.loadbalancer.server.port=443"
+      - "traefik.http.services.adguard.loadbalancer.server.scheme=https"
+      - "traefik.http.services.adguard.loadbalancer.serversTransport=insecureTransport@file"
       # Homepage
       - "homepage.group=Infrastructure"
       - "homepage.name=Adguard"
