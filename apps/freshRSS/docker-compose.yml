@@ -15,9 +15,9 @@ services:
     volumes:
       - freshrss-data:/var/www/FreshRSS/data
     labels:
-      - "homepage.group=Communication & Social"
+      - "homepage.group=Social & News"
       - "homepage.name=FreshRSS"
-      - "homepage.icon=si-rss"
+      - "homepage.icon=si-freshrss"
       - "homepage.description=RSS reader"
       - "homepage.href=http://192.168.86.47:8005"
 

@@ -47,9 +47,9 @@ services:
       - "traefik.http.middlewares.campfire-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.campfire-auth.basicauth.realm=Campfire"
       # Homepage labels
-      - "homepage.group=Communication & Social"
+      - "homepage.group=Social & News"
       - "homepage.name=Campfire"
-      - "homepage.icon=si-campfire"
+      - "homepage.icon=si-basecamp"
       - "homepage.href=https://campfire.server.unarmedpuppy.com"
       - "homepage.description=Web-based chat application with rooms, DMs, and file sharing"
 
