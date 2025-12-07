@@ -3,7 +3,7 @@
 Task tracking for Home Server.
 
 **Status**: Active development
-**Last Updated**: 2025-12-06
+**Last Updated**: 2025-12-07
 
 ## Task Claiming Protocol
 
@@ -54,6 +54,7 @@ git checkout -b feature/task-x-description
 | T14 | Homepage cleanup: Media apps category + icons | [COMPLETE] | P1 |
 | T15 | Homepage cleanup: Productivity category + icons | [COMPLETE] | P1 |
 | T16 | Homepage cleanup: Social/News + Gaming + Trading icons | [COMPLETE] | P1 |
+| T17 | Media-Download Directory Cleanup | [AVAILABLE] | P2 |
 
 ### Task T1: Consolidate metrics system (8 files → 3)
 **Priority**: P0
@@ -425,6 +426,29 @@ git checkout -b feature/task-x-description
 - [x] All Gaming icons use valid `si-*` Simple Icons
 - [x] No emojis or invalid icon slugs
 - [x] All `si-*` slugs verified against Simple Icons
+
+### Task T17: Media-Download Directory Cleanup
+**Priority**: P2
+**Dependencies**: None
+**Effort**: Medium
+**Project**: home-server
+
+**Objective**: Clean up the `apps/media-download/` directory by removing stale files and outdated plans that are no longer needed.
+
+**Scope**:
+- Identify and remove outdated plan files, temporary files, or obsolete configurations
+- Review for any unused scripts, configs, or documentation
+- Ensure cleanup doesn't break active services
+
+**Files to review/modify**:
+- All files in `apps/media-download/` directory
+- Focus on identifying stale/outdated content
+
+**Success Criteria**:
+- [ ] Directory size reduced by removing unnecessary files
+- [ ] No active services or configurations broken
+- [ ] Outdated plans and stale files removed
+- [ ] Directory remains functional for media management stack
 
 ---
 
