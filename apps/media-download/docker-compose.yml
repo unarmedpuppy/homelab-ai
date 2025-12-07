@@ -79,7 +79,7 @@ services:
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Jackett"
       - "homepage.href=http://192.168.86.47:9117"
-      - "homepage.icon=si-jackett"
+      - "homepage.icon=si-searxng"
     # NOT on VPN - only searches, doesn't download
 
   # Unified Indexer Manager (Better alternative to NZBHydra2 + Jackett)
@@ -265,7 +265,7 @@ services:
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Bazarr"
       - "homepage.href=http://192.168.86.47:6767"
-      - "homepage.icon=si-opensubtitles"
+      - "homepage.icon=si-vlcmediaplayer"
     depends_on:
       - sonarr
       - radarr
@@ -290,7 +290,7 @@ services:
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Overseerr"
       - "homepage.href=http://192.168.86.47:5055"
-      - "homepage.icon=si-overseerr"
+      - "homepage.icon=si-plex"
     depends_on:
       - sonarr
       - radarr
@@ -320,7 +320,7 @@ services:
       - "homepage.group=Media & Entertainment"
       - "homepage.name=LazyLibrarian"
       - "homepage.href=http://192.168.86.47:8787"
-      - "homepage.icon=si-readarr"
+      - "homepage.icon=si-goodreads"
 
   # Book Library Management (for book editing - optional, use Calibre-Web for reading)
   calibre:
@@ -390,7 +390,7 @@ services:
       - "homepage.group=Media & Entertainment"
       - "homepage.name=SABnzbd"
       - "homepage.href=http://192.168.86.47:8079"
-      - "homepage.icon=si-sabnzbd"
+      - "homepage.icon=si-qbittorrent"
 
 networks:
   media-download-network:

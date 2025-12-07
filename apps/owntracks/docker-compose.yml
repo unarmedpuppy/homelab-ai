@@ -45,7 +45,7 @@ services:
       # Homepage labels
       - "homepage.group=Infrastructure"
       - "homepage.name=OwnTracks"
-      - "homepage.icon=si-owntracks"
+      - "homepage.icon=si-googlemaps"
       - "homepage.href=https://owntracks.server.unarmedpuppy.com"
       - "homepage.description=Location tracking and recording"
 

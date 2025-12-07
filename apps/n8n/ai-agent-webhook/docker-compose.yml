@@ -23,7 +23,7 @@ services:
     labels:
       - "homepage.group=Infrastructure"
       - "homepage.name=AI Agent Webhook"
-      - "homepage.icon=si-openai"
+      - "homepage.icon=si-anthropic"
       - "homepage.href=http://${SERVER_IP}:${WEBHOOK_PORT:-8080}"
       - "homepage.description=Webhook service for AI agent event processing"
 

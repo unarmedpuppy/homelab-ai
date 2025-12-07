@@ -45,7 +45,7 @@ services:
       # Homepage labels
       - "homepage.group=AI & Machine Learning"
       - "homepage.name=Local AI Chat"
-      - "homepage.icon=si-openai"
+      - "homepage.icon=si-anthropic"
       - "homepage.href=https://local-ai.server.unarmedpuppy.com"
       - "homepage.description=ChatGPT-like interface for local LLM models"
 

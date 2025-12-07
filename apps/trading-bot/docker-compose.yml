@@ -30,7 +30,7 @@ services:
     labels:
       - "homepage.group=Finance & Trading"
       - "homepage.name=IB Gateway"
-      - "homepage.icon=si-bloomberg"
+      - "homepage.icon=si-tradingview"
       - "homepage.description=Interactive Brokers Gateway for API trading"
 
   bot:
