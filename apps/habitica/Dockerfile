@@ -13,12 +13,12 @@ RUN git clone https://github.com/HabitRPG/habitica.git /app && \
 # Install dependencies
 RUN npm install
 
-# Build client (try different build commands)
-RUN npm run build || npm run gulp build || echo "Build step skipped - will build on first run"
+# Build will happen on first run if needed
+# The app can run without pre-building in development mode
 
 # Expose port
 EXPOSE 3000
 
-# Start the application
+# Start the application (it will build client assets on first run if needed)
 CMD ["npm", "start"]
 
