@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
@@ -20,6 +20,7 @@ RUN npm install
 # Expose port
 EXPOSE 3000
 
-# Start the application (it will build client assets on first run if needed)
-CMD ["npm", "start"]
+# Start the application
+# Use node directly instead of npm start to avoid watch mode issues
+CMD ["node", "./website/server/index.js"]
 
