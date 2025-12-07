@@ -53,7 +53,7 @@ git checkout -b feature/task-x-description
 | T13 | Homepage cleanup: Infrastructure category + icons | [COMPLETE] | P1 |
 | T14 | Homepage cleanup: Media apps category + icons | [COMPLETE] | P1 |
 | T15 | Homepage cleanup: Productivity category + icons | [COMPLETE] | P1 |
-| T16 | Homepage cleanup: Social/News + Gaming + Trading icons | [CLAIMED by @auto] | P1 |
+| T16 | Homepage cleanup: Social/News + Gaming + Trading icons | [COMPLETE] | P1 |
 
 ### Task T1: Consolidate metrics system (8 files → 3)
 **Priority**: P0
@@ -421,10 +421,10 @@ git checkout -b feature/task-x-description
 - `apps/open-health/docker-compose.yml` - icon: `si-heart` → `si-openai`
 
 **Success Criteria**:
-- [ ] All Social & News apps in correct category
-- [ ] All Gaming icons use valid `si-*` Simple Icons
-- [ ] No emojis or invalid icon slugs
-- [ ] All `si-*` slugs verified against Simple Icons
+- [x] All Social & News apps in correct category
+- [x] All Gaming icons use valid `si-*` Simple Icons
+- [x] No emojis or invalid icon slugs
+- [x] All `si-*` slugs verified against Simple Icons
 
 ---
 
