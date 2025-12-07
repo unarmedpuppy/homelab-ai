@@ -42,7 +42,6 @@ services:
       - "traefik.http.routers.adguard.tls.certresolver=myresolver"
       - "traefik.http.services.adguard.loadbalancer.server.port=443"
       - "traefik.http.services.adguard.loadbalancer.server.scheme=https"
-      - "traefik.http.services.adguard.loadbalancer.serversTransport=insecureTransport@file"
       # Homepage
       - "homepage.group=Infrastructure"
       - "homepage.name=Adguard"
