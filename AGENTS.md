@@ -84,7 +84,12 @@ See `agents/reference/` for detailed patterns and workflows.
 
 ### Never Do
 - Commit secrets or credentials (use `.env` files, gitignored)
-- Make direct changes on the server without explicit permission
+- **🚨 NEVER MAKE CHANGES DIRECTLY ON THE SERVER** - This is absolutely forbidden without explicit user approval
+  - **ONLY** make changes locally in the git repository
+  - Commit and push to git
+  - SSH to server and `git pull` to deploy changes
+  - This is the ONLY way to get changes to the server
+  - No exceptions - even "quick fixes" must go through git
 - Skip task status updates
 - Delete files without understanding dependencies
 - Make unrelated changes in a single commit
