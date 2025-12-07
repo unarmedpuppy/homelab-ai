@@ -51,7 +51,7 @@ git checkout -b feature/task-x-description
 | T11 | Sentiment provider base class | [AVAILABLE] | P1 |
 | T12 | Standardize Traefik config: local DNS no-auth, external auth | [CLAIMED by @auto] | P1 |
 | T13 | Homepage cleanup: Infrastructure category + icons | [COMPLETE] | P1 |
-| T14 | Homepage cleanup: Media apps category + icons | [CLAIMED by @auto] | P1 |
+| T14 | Homepage cleanup: Media apps category + icons | [COMPLETE] | P1 |
 | T15 | Homepage cleanup: Productivity category + icons | [COMPLETE] | P1 |
 | T16 | Homepage cleanup: Social/News + Gaming + Trading icons | [AVAILABLE] | P1 |
 
@@ -366,9 +366,9 @@ git checkout -b feature/task-x-description
   - SABnzbd: `sabnzbd.svg` → `si-sabnzbd`
 
 **Success Criteria**:
-- [ ] All media apps use valid `si-*` Simple Icons
-- [ ] No local SVG references (*.svg)
-- [ ] No emojis
+- [x] All media apps use valid `si-*` Simple Icons
+- [x] No local SVG references (*.svg)
+- [x] No emojis
 
 ### Task T15: Homepage cleanup: Productivity category + icons
 **Priority**: P1
