@@ -57,7 +57,7 @@ services:
       - "homepage.group=Media & Entertainment"
       - "homepage.name=NZBHydra2"
       - "homepage.href=http://192.168.86.47:5076"
-      - "homepage.icon=nzbhydra2.svg"
+      - "homepage.icon=si-nzbhydra2"
     # NOT on VPN - only searches, doesn't download
 
   # Torrent Indexer
@@ -79,7 +79,7 @@ services:
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Jackett"
       - "homepage.href=http://192.168.86.47:9117"
-      - "homepage.icon=jackett.svg"
+      - "homepage.icon=si-jackett"
     # NOT on VPN - only searches, doesn't download
 
   # Unified Indexer Manager (Better alternative to NZBHydra2 + Jackett)
@@ -101,7 +101,7 @@ services:
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Prowlarr"
       - "homepage.href=http://192.168.86.47:9696"
-      - "homepage.icon=prowlarr.svg"
+      - "homepage.icon=si-prowlarr"
     # NOT on VPN - only searches, doesn't download
 
   # Usenet Download Client
@@ -188,7 +188,7 @@ services:
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Sonarr"
       - "homepage.href=http://192.168.86.47:8989"
-      - "homepage.icon=sonarr.svg"
+      - "homepage.icon=si-sonarr"
     depends_on:
       - nzbhydra2
       - jackett
@@ -214,7 +214,7 @@ services:
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Radarr"
       - "homepage.href=http://192.168.86.47:7878"
-      - "homepage.icon=radarr.svg"
+      - "homepage.icon=si-radarr"
     depends_on:
       - nzbhydra2
       - jackett
@@ -240,7 +240,7 @@ services:
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Lidarr"
       - "homepage.href=http://192.168.86.47:8686"
-      - "homepage.icon=lidarr.svg"
+      - "homepage.icon=si-lidarr"
     depends_on:
       - nzbhydra2
       - jackett
@@ -265,7 +265,7 @@ services:
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Bazarr"
       - "homepage.href=http://192.168.86.47:6767"
-      - "homepage.icon=bazarr.svg"
+      - "homepage.icon=si-bazarr"
     depends_on:
       - sonarr
       - radarr
@@ -290,7 +290,7 @@ services:
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Overseerr"
       - "homepage.href=http://192.168.86.47:5055"
-      - "homepage.icon=overseerr.svg"
+      - "homepage.icon=si-overseerr"
     depends_on:
       - sonarr
       - radarr
@@ -320,7 +320,7 @@ services:
       - "homepage.group=Media & Entertainment"
       - "homepage.name=LazyLibrarian"
       - "homepage.href=http://192.168.86.47:8787"
-      - "homepage.icon=readarr.svg"
+      - "homepage.icon=si-readarr"
 
   # Book Library Management (for book editing - optional, use Calibre-Web for reading)
   calibre:
@@ -342,7 +342,7 @@ services:
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Calibre"
       - "homepage.href=http://192.168.86.47:8085"
-      - "homepage.icon=calibre.svg"
+      - "homepage.icon=si-calibre"
 
   # Calibre Web Interface
   calibre-web:
@@ -366,7 +366,7 @@ services:
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Calibre-Web"
       - "homepage.href=http://192.168.86.47:8084"
-      - "homepage.icon=calibre.svg"
+      - "homepage.icon=si-calibre"
 
   # Usenet Downloader (Alternative)
   sabnzbd:
@@ -390,7 +390,7 @@ services:
       - "homepage.group=Media & Entertainment"
       - "homepage.name=SABnzbd"
       - "homepage.href=http://192.168.86.47:8079"
-      - "homepage.icon=sabnzbd.svg"
+      - "homepage.icon=si-sabnzbd"
 
 networks:
   media-download-network:
