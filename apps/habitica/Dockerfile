@@ -1,14 +1,15 @@
-FROM node:20-alpine
+FROM node:18-alpine
 
 WORKDIR /app
 
 # Install build dependencies
 RUN apk add --no-cache git python3 make g++ krb5-dev
 
-# Clone Habitica repository
+# Clone Habitica repository and use a stable tag
 RUN git clone https://github.com/HabitRPG/habitica.git /app && \
     cd /app && \
-    git checkout develop
+    git fetch --tags && \
+    git checkout $(git describe --tags --abbrev=0) || git checkout develop
 
 # Install dependencies
 RUN npm install
