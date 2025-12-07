@@ -58,3 +58,14 @@ The application uses `config.json` for configuration. Key settings:
 - MongoDB replica set is automatically initialized
 - Mobile apps may require additional configuration to connect to self-hosted instances
 
+## Known Issues
+
+**Current Status**: ⚠️ **NOT WORKING** - Habitica v5.42.1 has a compatibility issue with Node.js 20 where `__dirname` is not available in ES module scope. This is a known issue in the Habitica codebase.
+
+**Workarounds**:
+- Wait for Habitica to release a fix for this issue
+- Use an older version of Habitica that doesn't have this ES module issue
+- Manually patch the code to fix the `__dirname` issue in ES modules
+
+The service is deployed and configured, but the application cannot start until this compatibility issue is resolved.
+
