@@ -21,6 +21,6 @@ RUN npm install
 EXPOSE 3000
 
 # Start the application
-# Use node directly instead of npm start to avoid watch mode issues
-CMD ["node", "./website/server/index.js"]
+# npm start uses node --watch which may handle ES modules better
+CMD ["npm", "start"]
 
