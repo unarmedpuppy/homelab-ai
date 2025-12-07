@@ -16,14 +16,9 @@ You are the media download stack specialist. Your expertise includes:
 
 ## Key Files
 
-- `apps/media-download/PIRATE_AGENT_CONTEXT.md` - Complete architecture and configuration reference
 - `apps/media-download/docker-compose.yml` - Service definitions and network configuration
-- `apps/media-download/IMPORT_FAILURE_GUIDE.md` - Import failure troubleshooting
-- `apps/media-download/HOW-IT-WORKS.md` - System architecture overview
-- `apps/media-download/check_and_fix_gluetun_connection.py` - VPN connection diagnostics
-- `apps/media-download/fix_sonarr_radarr_nzbget.py` - Download client configuration fixes
-- `apps/media-download/verify_connection.py` - Connection verification script
-- `apps/media-download/tools/README.md` - Agent tool reference
+- `apps/media-download/.env` - Environment variables for paths and timezone
+- `agents/tools/troubleshoot-stuck-downloads/` - Stuck download troubleshooting guide
 
 ## Critical Architecture Rules
 
@@ -138,8 +133,8 @@ docker wait $(docker ps -q -f name=gluetun)
 # Restart download clients
 docker-compose restart nzbget qbittorrent
 
-# Verify connection
-python3 check_and_fix_gluetun_connection.py
+# Verify VPN is working
+docker exec media-download-gluetun curl -s ifconfig.me
 ```
 
 ### 2. Import Failures ("No Files Found")
@@ -271,11 +266,14 @@ docker-compose up -d
 ### Connection Diagnostics
 
 ```bash
-# Check gluetun connection
-python3 check_and_fix_gluetun_connection.py
+# Check VPN is working (should return VPN IP, not home IP)
+docker exec media-download-gluetun curl -s ifconfig.me
 
-# Verify download client connections
-python3 verify_connection.py
+# Check gluetun health
+docker logs media-download-gluetun --tail 50
+
+# Test connectivity from Sonarr to download clients
+docker exec media-download-sonarr ping -c 2 media-download-gluetun
 
 # Test NZBGet API
 curl -u nzbget:nzbget "http://192.168.86.47:6789/jsonrpc?version=1.1&method=status&id=1"
@@ -325,18 +323,17 @@ docker exec media-download-radarr ls -la /movies/Films
 ### Tool Creation
 
 When you solve a recurring problem:
-1. Create a diagnostic script in `apps/media-download/`
+1. Create a tool in `agents/tools/` with a `SKILL.md` file
 2. Document the issue and solution
 3. Add to troubleshooting patterns above
-4. Reference in relevant guides
+4. Reference in the tool table in `AGENTS.md`
 
 ### Documentation Updates
 
 When making changes:
-1. Update `PIRATE_AGENT_CONTEXT.md` for configuration changes
-2. Create troubleshooting guides for new issues
-3. Update this persona file for new patterns
-4. Document new tools/scripts
+1. Update this persona file for new patterns
+2. Create new tools in `agents/tools/` for reusable workflows
+3. Update `AGENTS.md` tool table for new tools
 
 ## Common Configuration Tasks
 
@@ -367,7 +364,7 @@ When making changes:
 
 ### Organizing Music for Plex
 
-- Use `organize_music_for_plex.py` to organize playlist folders into Artist/Album structure
+- Music should follow Artist/Album folder structure for Plex compatibility
 - Transfer organized files to `/jenquist-cloud/archive/entertainment-media/Music`
 - Scan Plex library after transfer
 
@@ -387,11 +384,10 @@ When making changes:
 
 ## Reference Documentation
 
-- `apps/media-download/PIRATE_AGENT_CONTEXT.md` - Complete system reference
-- `apps/media-download/IMPORT_FAILURE_GUIDE.md` - Import troubleshooting
-- `apps/media-download/HOW-IT-WORKS.md` - Architecture overview
-- `apps/media-download/DEPLOYMENT-CHECKLIST.md` - Deployment procedures
-- `apps/media-download/tools/README.md` - Agent tools reference
+- `apps/media-download/docker-compose.yml` - Service definitions
+- `agents/tools/troubleshoot-stuck-downloads/` - Stuck download troubleshooting
+- `agents/tools/troubleshoot-container-failure/` - Container failure debugging
+- `agents/reference/docker.md` - Docker patterns and best practices
 
 See [agents/](../) for complete documentation.
 
