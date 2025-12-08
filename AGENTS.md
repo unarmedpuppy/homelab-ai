@@ -7,8 +7,17 @@
 **Before doing anything:**
 1. **🔍 CHECK TOOLS FIRST**: Always check `agents/tools/` before solving problems or looking up commands
 2. **📝 CREATE TOOLS**: If you solve a problem, create a tool in `agents/tools/` for future use
+3. **📋 USE BEADS FOR TASKS**: All task management **MUST** use Beads (`bd` commands) - never create manual task lists
 
-See [Tool Lookup Protocol](#-tool-lookup-protocol) for details.
+**Quick Reference:**
+```bash
+bd ready                 # Find work (no blockers)
+bd list                  # View all tasks
+bd create "title" -p 1   # Create task
+bd close <id>            # Complete task
+```
+
+See [Task Management with Beads](#task-management-with-beads) and [Tool Lookup Protocol](#-tool-lookup-protocol) for details.
 
 ## Project Summary
 
