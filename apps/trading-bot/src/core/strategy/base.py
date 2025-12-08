@@ -372,10 +372,17 @@ class BaseStrategy(ABC):
                 signal.metadata['next_earnings_date'] = next_earnings.isoformat()
                 days_until = (next_earnings - datetime.now()).days
                 signal.metadata['days_until_earnings'] = days_until
-        
-        except Exception as e:
-            logger.warning(f"Error applying events filter: {e}")
-        
+
+        except ImportError as e:
+            # Events calendar provider not installed
+            logger.debug(f"Events filter unavailable (module not installed): {e}")
+        except (ConnectionError, TimeoutError, OSError) as e:
+            # Network errors fetching earnings data
+            logger.warning(f"Network error checking earnings calendar: {e}")
+        except (ValueError, KeyError, AttributeError) as e:
+            # Data parsing errors from earnings calendar
+            logger.warning(f"Error parsing earnings data: {e}")
+
         return signal
     
     @abstractmethod

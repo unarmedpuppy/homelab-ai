@@ -136,8 +136,9 @@ class ComplianceManager:
             ).count()
             
             return count
-        except Exception as e:
-            logger.error(f"Error getting day trade count: {e}", exc_info=True)
+        except (OSError, IOError) as e:
+            # Database file access errors
+            logger.error(f"Database I/O error getting day trade count: {e}", exc_info=True)
             return 0
         finally:
             session.close()
@@ -170,8 +171,13 @@ class ComplianceManager:
                     message="Account not in cash account mode, PDT rules don't apply",
                     can_proceed=True
                 )
-        except Exception as e:
-            logger.warning(f"Could not check cash account mode: {e}")
+        except (RuntimeError, ConnectionError, TimeoutError) as e:
+            # IBKR/network errors checking account mode
+            logger.warning(f"Could not check cash account mode (network error): {e}")
+            # Continue with PDT check anyway
+        except (KeyError, AttributeError) as e:
+            # Account data structure errors
+            logger.warning(f"Could not check cash account mode (data error): {e}")
             # Continue with PDT check anyway
         
         # Get current day trade count

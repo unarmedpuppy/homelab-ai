@@ -268,9 +268,20 @@ class OrderExecutor:
                 f"@ {audit_log.final_price or signal.price} (order_id={audit_log.order_id})"
             )
 
-        except Exception as e:
-            logger.error(f"Execution error: {e}", exc_info=True)
+        except RuntimeError as e:
+            # IBKR connection/state errors
+            logger.error(f"Broker runtime error: {e}", exc_info=True)
             audit_log.status = ExecutionStatus.FAILED_BROKER
+            audit_log.error_message = str(e)
+        except (ConnectionError, TimeoutError, OSError) as e:
+            # Network-related errors
+            logger.error(f"Network error during execution: {e}", exc_info=True)
+            audit_log.status = ExecutionStatus.FAILED_BROKER
+            audit_log.error_message = f"Network error: {e}"
+        except ValueError as e:
+            # Data validation errors
+            logger.error(f"Validation error during execution: {e}", exc_info=True)
+            audit_log.status = ExecutionStatus.REJECTED_VALIDATION
             audit_log.error_message = str(e)
 
         finally:
@@ -355,8 +366,13 @@ class OrderExecutor:
 
             return result
 
-        except Exception as e:
-            logger.warning(f"Risk validation error (proceeding with caution): {e}")
+        except (RuntimeError, ConnectionError, TimeoutError) as e:
+            # Broker/network errors during risk validation
+            logger.warning(f"Risk validation network error (proceeding with caution): {e}")
+            return None
+        except (KeyError, AttributeError, TypeError) as e:
+            # Data structure errors (missing fields, wrong types)
+            logger.warning(f"Risk validation data error (proceeding with caution): {e}")
             return None
 
     async def _place_order(
@@ -418,11 +434,26 @@ class OrderExecutor:
                 "price": broker_order.price or signal.price,
             }
 
-        except Exception as e:
-            logger.error(f"Order placement error: {e}", exc_info=True)
+        except RuntimeError as e:
+            # IBKR state errors (not connected, invalid state)
+            logger.error(f"Broker state error placing order: {e}", exc_info=True)
             return {
                 "success": False,
-                "error": str(e),
+                "error": f"Broker error: {e}",
+            }
+        except (ConnectionError, TimeoutError, OSError) as e:
+            # Network errors during order placement
+            logger.error(f"Network error placing order: {e}", exc_info=True)
+            return {
+                "success": False,
+                "error": f"Network error: {e}",
+            }
+        except (ValueError, AttributeError) as e:
+            # Invalid order parameters or contract creation errors
+            logger.error(f"Invalid order parameters: {e}", exc_info=True)
+            return {
+                "success": False,
+                "error": f"Invalid order: {e}",
             }
 
     def _record_metrics(self, audit_log: ExecutionAuditLog):
