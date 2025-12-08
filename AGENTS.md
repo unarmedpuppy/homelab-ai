@@ -53,7 +53,7 @@ home-server/
 
 **Key Directories**:
 - `apps/` - Docker applications (trading-bot, media-download, etc.)
-- `agents/tasks/tasks.md` - **Task list across sessions**
+- `.beads/` - **Task database (Beads distributed issue tracker)**
 - `agents/tools/` - Reusable workflow guides
 - `scripts/` - Automation and deployment scripts
 
@@ -69,10 +69,10 @@ See `agents/reference/` for detailed patterns and workflows.
 
 ### Always Do
 - **🔍 CHECK TOOLS FIRST**: Before solving any problem or looking up commands, **MUST** check `agents/tools/` for existing solutions
-- Check `agents/tasks/tasks.md` at session start for pending/in-progress tasks
+- Check for tasks at session start: `bd ready` (unblocked work) and `bd list --status in_progress` (in-progress tasks)
 - Use tools from `agents/tools/` for common workflows
 - **📝 CREATE TOOLS**: If you solve a problem with commands or create a script, **MUST** create a tool in `agents/tools/` for future use
-- Update task status when claiming/completing work
+- Update task status when claiming/completing work (`bd update <id> --status in_progress`, `bd close <id>`)
 - Commit after each logical unit of work
 - **🔄 SUBMIT PR WHEN COMPLETE**: When a feature is complete, **MUST** submit a pull request from the feature branch back to main
 
@@ -179,29 +179,58 @@ Store plans in `agents/plans/` (shared) or `agents/plans-local/` (local only):
 
 See `agents/reference/plan_act.md` for plan templates and workflow details.
 
-### Task Claiming (Multi-Agent)
+### Task Management with Beads
 
-See `agents/tasks/tasks.md` for available work. Protocol:
+Tasks are managed using [Beads](https://github.com/steveyegge/beads), a distributed issue tracker with git-backed synchronization. See `agents/tools/beads-task-management/SKILL.md` for complete documentation.
 
+**Session Start:**
 ```bash
 # 1. Pull latest
 git pull origin main
 
-# 2. Claim task (edit agents/tasks/tasks.md)
-# Change [AVAILABLE] → [CLAIMED by @your-id]
+# 2. Find ready work (no blockers)
+bd ready
 
-# 3. Commit and push within 1 minute
-git add agents/tasks/tasks.md
-git commit -m "claim: Task X - Description"
-git push origin main
+# 3. Check in-progress tasks
+bd list --status in_progress
 
-# 4. Create feature branch
-git checkout -b feature/task-x-description
+# 4. Review blocked tasks
+bd blocked
+```
 
-# 5. When feature is complete, submit PR
-# Push feature branch and create pull request to main
-git push origin feature/task-x-description
+**Claiming and Working:**
+```bash
+# 1. Claim task
+bd update <id> --status in_progress
+
+# 2. Commit claim and push
+git add .beads/ && git commit -m "claim: <id> - Description" && git push
+
+# 3. Create feature branch
+git checkout -b feature/<id>-description
+
+# 4. Work on task...
+
+# 5. Complete task
+bd close <id> --reason "Implemented in PR #X"
+git add .beads/ && git commit -m "close: <id>"
+
+# 6. Submit PR when complete
+git push origin feature/<id>-description
 # Then create PR via GitHub CLI or web interface
+```
+
+**Creating Tasks:**
+```bash
+bd create "Task title" -t task -p 1 -l "project,area" -d "Description"
+# Types: task, bug, feature, epic, chore
+# Priority: 0 (critical), 1 (high), 2 (medium), 3 (low)
+```
+
+**Managing Dependencies:**
+```bash
+bd dep add <blocked-id> <blocker-id> --type blocks
+bd dep tree <id>
 ```
 
 
@@ -251,6 +280,11 @@ Agent-discoverable tool guides are in `agents/tools/`. Each tool has a `SKILL.md
 |------|---------|--------|
 | [monitor-drive-health](agents/tools/monitor-drive-health/) | Monitor drive health with SMART status | `scripts/check-drive-health.sh` |
 
+### Task Management
+| Tool | Purpose | Script |
+|------|---------|--------|
+| [beads-task-management](agents/tools/beads-task-management/) | Manage tasks with Beads distributed issue tracker | - |
+
 ### Utilities
 | Tool | Purpose | Script |
 |------|---------|--------|
@@ -265,9 +299,11 @@ Specialized agent personalities are available in `agents/personas/`:
 
 | Persona | Purpose |
 |---------|---------|
+| [task-manager-agent](agents/personas/task-manager-agent.md) | Task coordination and management with Beads |
 | [server-agent](agents/personas/server-agent.md) | Server management and deployment specialist |
 | [critical-thinking-agent](agents/personas/critical-thinking-agent.md) | Hyper-objective logic engine for strengthening thinking and decision-making |
 
+For task coordination and finding work, reference the task-manager-agent persona.
 For server-specific tasks, reference the server-agent persona.
 For critical analysis, decision review, or challenging assumptions, reference the critical-thinking-agent persona.
 
@@ -275,7 +311,8 @@ For critical analysis, decision review, or challenging assumptions, reference th
 
 | Document | Purpose |
 |----------|---------|
-| `agents/tasks/tasks.md` | Task list, claiming protocol, status |
+| `.beads/` | Task database (use `bd` commands to query) |
+| `agents/tools/beads-task-management/` | Beads workflow guide |
 | `agents/reference/docker.md` | Docker patterns and best practices |
 | `agents/reference/deployment.md` | Deployment workflows |
 | `agents/reference/plan_act.md` | Planning and workflow documentation |
@@ -285,5 +322,5 @@ For critical analysis, decision review, or challenging assumptions, reference th
 
 ---
 
-**Keep it simple. Run commands directly. Use tasks + memory for continuity.**
+**Keep it simple. Run commands directly. Use `bd ready` + memory for continuity.**
 

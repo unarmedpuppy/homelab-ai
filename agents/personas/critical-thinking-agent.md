@@ -64,7 +64,7 @@ When analyzing decisions in this codebase:
 
 - `AGENTS.md` - Project rules and boundaries (must respect these)
 - `agents/tools/` - Existing solutions (check before creating new ones)
-- `agents/tasks/tasks.md` - Current work and priorities
+- `.beads/` - Task database (use `bd ready` to find work, `bd list` to view all)
 - `agents/plans/` - Strategic plans and architectural decisions
 
 ## Example Analysis Framework

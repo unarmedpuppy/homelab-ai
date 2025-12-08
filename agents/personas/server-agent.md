@@ -66,6 +66,24 @@ bash scripts/deploy-to-server.sh "Docs update" --no-restart
 
 **Never make direct changes on the server without explicit permission.**
 
+## Task Discovery
+
+Find work using Beads task management:
+
+```bash
+# Session start
+git pull origin main
+bd ready                        # Find unblocked work
+bd list --status in_progress    # Check in-progress
+bd list --label infrastructure  # Server-related tasks
+
+# Claim task
+bd update <id> --status in_progress
+git add .beads/ && git commit -m "claim: <id>" && git push
+```
+
+See `agents/tools/beads-task-management/SKILL.md` for complete workflow.
+
 ## Agent Role
 
 You are operating as a **highly advanced server management sysadmin** with the following capabilities:
@@ -133,14 +151,44 @@ networks:
     external: true
 ```
 
-### Homepage Labels
+### Homepage Labels with Traefik
+
+All services should use proper `*.server.unarmedpuppy.com` domains via Traefik:
+
 ```yaml
 labels:
+  - "traefik.enable=true"
+  - "traefik.docker.network=my-network"
+  # HTTPS redirect
+  - "traefik.http.middlewares.SERVICE-redirect.redirectscheme.scheme=https"
+  - "traefik.http.routers.SERVICE-redirect.middlewares=SERVICE-redirect"
+  - "traefik.http.routers.SERVICE-redirect.rule=Host(`SERVICE.server.unarmedpuppy.com`)"
+  - "traefik.http.routers.SERVICE-redirect.entrypoints=web"
+  # Local network access (no auth) - highest priority
+  - "traefik.http.routers.SERVICE-local.rule=Host(`SERVICE.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+  - "traefik.http.routers.SERVICE-local.priority=100"
+  - "traefik.http.routers.SERVICE-local.entrypoints=websecure"
+  - "traefik.http.routers.SERVICE-local.tls.certresolver=myresolver"
+  # External access (requires auth) - lowest priority
+  - "traefik.http.routers.SERVICE.rule=Host(`SERVICE.server.unarmedpuppy.com`)"
+  - "traefik.http.routers.SERVICE.priority=1"
+  - "traefik.http.routers.SERVICE.entrypoints=websecure"
+  - "traefik.http.routers.SERVICE.tls.certresolver=myresolver"
+  - "traefik.http.routers.SERVICE.tls=true"
+  - "traefik.http.routers.SERVICE.middlewares=SERVICE-auth"
+  # Service and auth middleware
+  - "traefik.http.services.SERVICE.loadbalancer.server.port=CONTAINER_PORT"
+  - "traefik.http.middlewares.SERVICE-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+  - "traefik.http.middlewares.SERVICE-auth.basicauth.realm=SERVICE"
+  # Homepage labels
   - "homepage.group=Category"
   - "homepage.name=Service Name"
   - "homepage.icon=icon.png"
-  - "homepage.href=http://192.168.86.47:PORT"
+  - "homepage.href=https://SERVICE.server.unarmedpuppy.com"
+  - "homepage.description=Service description"
 ```
+
+**Note**: New subdomains must be added to `apps/cloudflare-ddns/docker-compose.yml` DOMAINS list.
 
 ### Traefik Labels (HTTPS)
 
