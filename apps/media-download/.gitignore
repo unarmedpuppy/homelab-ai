@@ -1,4 +1,15 @@
-# Configuration files with sensitive data
+# ===========================================
+# Sensitive files - NEVER commit these
+# ===========================================
+**/credentials.txt
+**/client_secrets.json
+**/*.key
+**/*.pem
+.env
+
+# ===========================================
+# Application config directories with secrets
+# ===========================================
 wireguard/config/
 nzbhydra2/config/
 jackett/config/
@@ -12,17 +23,44 @@ bazarr/config/
 readarr/config/
 prowlarr/config/
 
-# Downloaded content
+# ===========================================
+# Runtime data and caches - regenerated
+# ===========================================
+# Databases
+**/*.db
+**/*.tdb
+
+# Cache directories
+**/cache/
+**/.cache/
+
+# LazyLibrarian
+lazylibrarian/config/
+
+# Calibre runtime
+calibre/config/.config/pulse/
+calibre/config/.local/
+calibre/config/ssl/
+
+# Calibre-web runtime
+calibre-web/config/
+
+# Overseerr (contains API keys)
+overseerr/config/
+
+# ===========================================
+# Downloaded content and media
+# ===========================================
 downloads/
 media/
 
-# Environment files
-.env
-
-# Backup files
+# ===========================================
+# Backup and log files
+# ===========================================
 *.tar.gz
+*.tgz
 backups/
-
-# Logs
 *.log
+*.log.*
+*.bak
 
