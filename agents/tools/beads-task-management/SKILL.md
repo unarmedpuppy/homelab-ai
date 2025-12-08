@@ -201,6 +201,34 @@ bv --robot-diff --diff-since <commit|date>
 
 Use these commands instead of hand-rolling graph logic; `bv` already computes the hard parts so agents can act safely and quickly.
 
+### bv --robot-insights Schema
+
+The output is strictly typed and easily parseable:
+
+```json
+{
+  "bottlenecks": [{ "id": "CORE-123", "value": 0.45 }],
+  "keystones": [{ "id": "API-001", "value": 12.0 }],
+  "influencers": [{ "id": "AUTH-007", "value": 0.82 }],
+  "hubs": [{ "id": "EPIC-100", "value": 0.67 }],
+  "authorities": [{ "id": "UTIL-050", "value": 0.91 }],
+  "cycles": [["TASK-A", "TASK-B", "TASK-A"]],
+  "clusterDensity": 0.045,
+  "stats": { "pageRank": {}, "betweenness": {}, "topologicalOrder": [] }
+}
+```
+
+| Field | Metric | What It Contains |
+|-------|--------|------------------|
+| `bottlenecks` | Betweenness | Top nodes bridging graph clusters |
+| `keystones` | Critical Path | Top nodes on longest dependency chains |
+| `influencers` | Eigenvector | Top nodes connected to important neighbors |
+| `hubs` | HITS Hub | Top dependency aggregators (Epics) |
+| `authorities` | HITS Authority | Top prerequisite providers (Utilities) |
+| `cycles` | Cycle Detection | All circular dependency paths (fix these first!) |
+| `clusterDensity` | Density | Overall graph interconnectedness |
+| `stats` | All Metrics | Full raw data for custom analysis |
+
 ### JSON output from bd
 
 Always use `--json` for programmatic access:
