@@ -331,6 +331,7 @@ For critical analysis, decision review, or challenging assumptions, reference th
 | `agents/tools/beads-task-management/` | Beads workflow guide |
 | `agents/reference/docker.md` | Docker patterns and best practices |
 | `agents/reference/deployment.md` | Deployment workflows |
+| `agents/reference/homepage-labels.md` | Homepage dashboard labels (groups, icons, hrefs) |
 | `agents/reference/plan_act.md` | Planning and workflow documentation |
 | `agents/reference/storage/` | Storage and ZFS reference guides |
 | `agents/plans/` | Implementation plans and strategies |

@@ -18,9 +18,9 @@ You are the NEW application implementation specialist. Your expertise includes:
 
 - `agents/tools/deploy-new-service/SKILL.md` - Service deployment workflow
 - `agents/tools/configure-traefik-labels/SKILL.md` - Traefik label configuration guide
+- `agents/reference/homepage-labels.md` - **Homepage labels reference (groups, icons, hrefs)**
 - `apps/docs/APPS_DOCUMENTATION.md` - All deployed applications and ports
 - `apps/cloudflare-ddns/docker-compose.yml` - Subdomain configuration
-- `apps/homepage/config/services.yaml` - Homepage service configuration (if manual)
 - `README.md` - System documentation
 
 ## Implementation Workflow
@@ -135,21 +135,33 @@ labels:
 
 **4. Add Homepage Labels**
 
+**See `agents/reference/homepage-labels.md` for complete documentation.**
+
 ```yaml
 labels:
-  - "homepage.group=Category Name"  # e.g., "Productivity & Organization", "Infrastructure", "Media & Entertainment"
+  - "homepage.group=Category Name"
   - "homepage.name=Service Display Name"
-  - "homepage.icon=si-iconname"  # Simple Icons name (check https://simpleicons.org/)
+  - "homepage.icon=si-iconname"
   - "homepage.href=https://SERVICE.server.unarmedpuppy.com"
   - "homepage.description=Brief description of the service"
 ```
 
-**Homepage Categories**:
+**Homepage Groups** (use only these established groups):
 - `Infrastructure` - Core services (Traefik, Grafana, AdGuard, etc.)
-- `Productivity & Organization` - Task management, notes, calendars
-- `Media & Entertainment` - Plex, Jellyfin, music, games
-- `Development & Tools` - Development tools, APIs, utilities
+- `Productivity` - Task management, notes, documents, personal tools
+- `Media & Entertainment` - Plex, Jellyfin, Sonarr, streaming
+- `Finance & Trading` - Trading tools, financial tracking
+- `Social & News` - Communication, RSS, news platforms
 - `Gaming` - Game servers, game-related tools
+- `AI & Machine Learning` - AI tools, LLMs
+
+**Icon Rules**:
+- Use `si-` prefix with [Simple Icons](https://simpleicons.org/) slug
+- Always lowercase: `si-grafana` not `si-Grafana`
+
+**Href Rules**:
+- **Always use HTTPS subdomains**: `https://service.server.unarmedpuppy.com`
+- **Never use direct IP:port**: ~~`http://192.168.86.47:8080`~~
 
 **5. Create .env File (if needed)**
 
