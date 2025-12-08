@@ -30,10 +30,34 @@ services:
     networks:
       - my-network
     labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.zfs-unlock-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.zfs-unlock-redirect.middlewares=zfs-unlock-redirect"
+      - "traefik.http.routers.zfs-unlock-redirect.rule=Host(`zfs-unlock.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.zfs-unlock-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.zfs-unlock-local.rule=Host(`zfs-unlock.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.zfs-unlock-local.priority=100"
+      - "traefik.http.routers.zfs-unlock-local.entrypoints=websecure"
+      - "traefik.http.routers.zfs-unlock-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.zfs-unlock.rule=Host(`zfs-unlock.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.zfs-unlock.priority=1"
+      - "traefik.http.routers.zfs-unlock.entrypoints=websecure"
+      - "traefik.http.routers.zfs-unlock.tls.certresolver=myresolver"
+      - "traefik.http.routers.zfs-unlock.tls=true"
+      - "traefik.http.routers.zfs-unlock.middlewares=zfs-unlock-auth"
+      # Service and auth middleware
+      - "traefik.http.services.zfs-unlock.loadbalancer.server.port=8888"
+      - "traefik.http.middlewares.zfs-unlock-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.zfs-unlock-auth.basicauth.realm=ZFS-Unlock"
+      # Homepage labels
       - "homepage.group=Services"
       - "homepage.name=ZFS Authenticator"
       - "homepage.icon=si-redhat"
-      - "homepage.href=http://192.168.86.47:8889"
+      - "homepage.href=https://zfs-unlock.server.unarmedpuppy.com"
 
 networks:
   my-network:

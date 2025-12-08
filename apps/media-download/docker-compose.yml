@@ -53,10 +53,35 @@ services:
     restart: unless-stopped
     networks:
       - media-download-network
+      - my-network
     labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.nzbhydra2-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.nzbhydra2-redirect.middlewares=nzbhydra2-redirect"
+      - "traefik.http.routers.nzbhydra2-redirect.rule=Host(`nzbhydra2.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.nzbhydra2-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.nzbhydra2-local.rule=Host(`nzbhydra2.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.nzbhydra2-local.priority=100"
+      - "traefik.http.routers.nzbhydra2-local.entrypoints=websecure"
+      - "traefik.http.routers.nzbhydra2-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.nzbhydra2.rule=Host(`nzbhydra2.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.nzbhydra2.priority=1"
+      - "traefik.http.routers.nzbhydra2.entrypoints=websecure"
+      - "traefik.http.routers.nzbhydra2.tls.certresolver=myresolver"
+      - "traefik.http.routers.nzbhydra2.tls=true"
+      - "traefik.http.routers.nzbhydra2.middlewares=nzbhydra2-auth"
+      # Service and auth middleware
+      - "traefik.http.services.nzbhydra2.loadbalancer.server.port=5076"
+      - "traefik.http.middlewares.nzbhydra2-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.nzbhydra2-auth.basicauth.realm=NZBHydra2"
+      # Homepage labels
       - "homepage.group=Media & Entertainment"
       - "homepage.name=NZBHydra2"
-      - "homepage.href=http://192.168.86.47:5076"
+      - "homepage.href=https://nzbhydra2.server.unarmedpuppy.com"
       - "homepage.icon=si-searxng"
       - "homepage.description=Usenet meta search aggregator"
     # NOT on VPN - only searches, doesn't download
@@ -76,10 +101,35 @@ services:
     restart: unless-stopped
     networks:
       - media-download-network
+      - my-network
     labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.jackett-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.jackett-redirect.middlewares=jackett-redirect"
+      - "traefik.http.routers.jackett-redirect.rule=Host(`jackett.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.jackett-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.jackett-local.rule=Host(`jackett.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.jackett-local.priority=100"
+      - "traefik.http.routers.jackett-local.entrypoints=websecure"
+      - "traefik.http.routers.jackett-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.jackett.rule=Host(`jackett.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.jackett.priority=1"
+      - "traefik.http.routers.jackett.entrypoints=websecure"
+      - "traefik.http.routers.jackett.tls.certresolver=myresolver"
+      - "traefik.http.routers.jackett.tls=true"
+      - "traefik.http.routers.jackett.middlewares=jackett-auth"
+      # Service and auth middleware
+      - "traefik.http.services.jackett.loadbalancer.server.port=9117"
+      - "traefik.http.middlewares.jackett-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.jackett-auth.basicauth.realm=Jackett"
+      # Homepage labels
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Jackett"
-      - "homepage.href=http://192.168.86.47:9117"
+      - "homepage.href=https://jackett.server.unarmedpuppy.com"
       - "homepage.icon=si-searxng"
       - "homepage.description=Torrent indexer proxy"
     # NOT on VPN - only searches, doesn't download
@@ -99,10 +149,35 @@ services:
     restart: unless-stopped
     networks:
       - media-download-network
+      - my-network
     labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.prowlarr-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.prowlarr-redirect.middlewares=prowlarr-redirect"
+      - "traefik.http.routers.prowlarr-redirect.rule=Host(`prowlarr.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.prowlarr-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.prowlarr-local.rule=Host(`prowlarr.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.prowlarr-local.priority=100"
+      - "traefik.http.routers.prowlarr-local.entrypoints=websecure"
+      - "traefik.http.routers.prowlarr-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.prowlarr.rule=Host(`prowlarr.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.prowlarr.priority=1"
+      - "traefik.http.routers.prowlarr.entrypoints=websecure"
+      - "traefik.http.routers.prowlarr.tls.certresolver=myresolver"
+      - "traefik.http.routers.prowlarr.tls=true"
+      - "traefik.http.routers.prowlarr.middlewares=prowlarr-auth"
+      # Service and auth middleware
+      - "traefik.http.services.prowlarr.loadbalancer.server.port=9696"
+      - "traefik.http.middlewares.prowlarr-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.prowlarr-auth.basicauth.realm=Prowlarr"
+      # Homepage labels
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Prowlarr"
-      - "homepage.href=http://192.168.86.47:9696"
+      - "homepage.href=https://prowlarr.server.unarmedpuppy.com"
       - "homepage.icon=si-prowlarr"
       - "homepage.description=Unified indexer manager for *arr apps"
     # NOT on VPN - only searches, doesn't download
@@ -187,10 +262,35 @@ services:
     restart: unless-stopped
     networks:
       - media-download-network
+      - my-network
     labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.sonarr-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.sonarr-redirect.middlewares=sonarr-redirect"
+      - "traefik.http.routers.sonarr-redirect.rule=Host(`sonarr.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.sonarr-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.sonarr-local.rule=Host(`sonarr.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.sonarr-local.priority=100"
+      - "traefik.http.routers.sonarr-local.entrypoints=websecure"
+      - "traefik.http.routers.sonarr-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.sonarr.rule=Host(`sonarr.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.sonarr.priority=1"
+      - "traefik.http.routers.sonarr.entrypoints=websecure"
+      - "traefik.http.routers.sonarr.tls.certresolver=myresolver"
+      - "traefik.http.routers.sonarr.tls=true"
+      - "traefik.http.routers.sonarr.middlewares=sonarr-auth"
+      # Service and auth middleware
+      - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
+      - "traefik.http.middlewares.sonarr-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.sonarr-auth.basicauth.realm=Sonarr"
+      # Homepage labels
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Sonarr"
-      - "homepage.href=http://192.168.86.47:8989"
+      - "homepage.href=https://sonarr.server.unarmedpuppy.com"
       - "homepage.icon=si-sonarr"
       - "homepage.description=TV shows automation"
     depends_on:
@@ -214,10 +314,35 @@ services:
     restart: unless-stopped
     networks:
       - media-download-network
+      - my-network
     labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.radarr-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.radarr-redirect.middlewares=radarr-redirect"
+      - "traefik.http.routers.radarr-redirect.rule=Host(`radarr.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.radarr-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.radarr-local.rule=Host(`radarr.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.radarr-local.priority=100"
+      - "traefik.http.routers.radarr-local.entrypoints=websecure"
+      - "traefik.http.routers.radarr-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.radarr.rule=Host(`radarr.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.radarr.priority=1"
+      - "traefik.http.routers.radarr.entrypoints=websecure"
+      - "traefik.http.routers.radarr.tls.certresolver=myresolver"
+      - "traefik.http.routers.radarr.tls=true"
+      - "traefik.http.routers.radarr.middlewares=radarr-auth"
+      # Service and auth middleware
+      - "traefik.http.services.radarr.loadbalancer.server.port=7878"
+      - "traefik.http.middlewares.radarr-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.radarr-auth.basicauth.realm=Radarr"
+      # Homepage labels
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Radarr"
-      - "homepage.href=http://192.168.86.47:7878"
+      - "homepage.href=https://radarr.server.unarmedpuppy.com"
       - "homepage.icon=si-radarr"
       - "homepage.description=Movies automation"
     depends_on:
@@ -241,10 +366,35 @@ services:
     restart: unless-stopped
     networks:
       - media-download-network
+      - my-network
     labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.lidarr-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.lidarr-redirect.middlewares=lidarr-redirect"
+      - "traefik.http.routers.lidarr-redirect.rule=Host(`lidarr.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.lidarr-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.lidarr-local.rule=Host(`lidarr.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.lidarr-local.priority=100"
+      - "traefik.http.routers.lidarr-local.entrypoints=websecure"
+      - "traefik.http.routers.lidarr-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.lidarr.rule=Host(`lidarr.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.lidarr.priority=1"
+      - "traefik.http.routers.lidarr.entrypoints=websecure"
+      - "traefik.http.routers.lidarr.tls.certresolver=myresolver"
+      - "traefik.http.routers.lidarr.tls=true"
+      - "traefik.http.routers.lidarr.middlewares=lidarr-auth"
+      # Service and auth middleware
+      - "traefik.http.services.lidarr.loadbalancer.server.port=8686"
+      - "traefik.http.middlewares.lidarr-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.lidarr-auth.basicauth.realm=Lidarr"
+      # Homepage labels
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Lidarr"
-      - "homepage.href=http://192.168.86.47:8686"
+      - "homepage.href=https://lidarr.server.unarmedpuppy.com"
       - "homepage.icon=si-lidarr"
       - "homepage.description=Music automation"
     depends_on:
@@ -267,10 +417,35 @@ services:
     restart: unless-stopped
     networks:
       - media-download-network
+      - my-network
     labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.bazarr-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.bazarr-redirect.middlewares=bazarr-redirect"
+      - "traefik.http.routers.bazarr-redirect.rule=Host(`bazarr.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.bazarr-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.bazarr-local.rule=Host(`bazarr.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.bazarr-local.priority=100"
+      - "traefik.http.routers.bazarr-local.entrypoints=websecure"
+      - "traefik.http.routers.bazarr-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.bazarr.rule=Host(`bazarr.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.bazarr.priority=1"
+      - "traefik.http.routers.bazarr.entrypoints=websecure"
+      - "traefik.http.routers.bazarr.tls.certresolver=myresolver"
+      - "traefik.http.routers.bazarr.tls=true"
+      - "traefik.http.routers.bazarr.middlewares=bazarr-auth"
+      # Service and auth middleware
+      - "traefik.http.services.bazarr.loadbalancer.server.port=6767"
+      - "traefik.http.middlewares.bazarr-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.bazarr-auth.basicauth.realm=Bazarr"
+      # Homepage labels
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Bazarr"
-      - "homepage.href=http://192.168.86.47:6767"
+      - "homepage.href=https://bazarr.server.unarmedpuppy.com"
       - "homepage.icon=si-vlcmediaplayer"
       - "homepage.description=Subtitle downloader"
     depends_on:
@@ -292,11 +467,36 @@ services:
       - "5055:5055"
     networks:
       - media-download-network
+      - my-network
     restart: unless-stopped
     labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.overseerr-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.overseerr-redirect.middlewares=overseerr-redirect"
+      - "traefik.http.routers.overseerr-redirect.rule=Host(`overseerr.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.overseerr-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.overseerr-local.rule=Host(`overseerr.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.overseerr-local.priority=100"
+      - "traefik.http.routers.overseerr-local.entrypoints=websecure"
+      - "traefik.http.routers.overseerr-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.overseerr.rule=Host(`overseerr.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.overseerr.priority=1"
+      - "traefik.http.routers.overseerr.entrypoints=websecure"
+      - "traefik.http.routers.overseerr.tls.certresolver=myresolver"
+      - "traefik.http.routers.overseerr.tls=true"
+      - "traefik.http.routers.overseerr.middlewares=overseerr-auth"
+      # Service and auth middleware
+      - "traefik.http.services.overseerr.loadbalancer.server.port=5055"
+      - "traefik.http.middlewares.overseerr-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.overseerr-auth.basicauth.realm=Overseerr"
+      # Homepage labels
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Overseerr"
-      - "homepage.href=http://192.168.86.47:5055"
+      - "homepage.href=https://overseerr.server.unarmedpuppy.com"
       - "homepage.icon=si-plex"
       - "homepage.description=Media request management"
     depends_on:
@@ -321,13 +521,38 @@ services:
     restart: unless-stopped
     networks:
       - media-download-network
+      - my-network
     depends_on:
       - nzbhydra2
       - jackett
     labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.lazylibrarian-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.lazylibrarian-redirect.middlewares=lazylibrarian-redirect"
+      - "traefik.http.routers.lazylibrarian-redirect.rule=Host(`lazylibrarian.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.lazylibrarian-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.lazylibrarian-local.rule=Host(`lazylibrarian.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.lazylibrarian-local.priority=100"
+      - "traefik.http.routers.lazylibrarian-local.entrypoints=websecure"
+      - "traefik.http.routers.lazylibrarian-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.lazylibrarian.rule=Host(`lazylibrarian.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.lazylibrarian.priority=1"
+      - "traefik.http.routers.lazylibrarian.entrypoints=websecure"
+      - "traefik.http.routers.lazylibrarian.tls.certresolver=myresolver"
+      - "traefik.http.routers.lazylibrarian.tls=true"
+      - "traefik.http.routers.lazylibrarian.middlewares=lazylibrarian-auth"
+      # Service and auth middleware
+      - "traefik.http.services.lazylibrarian.loadbalancer.server.port=5299"
+      - "traefik.http.middlewares.lazylibrarian-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.lazylibrarian-auth.basicauth.realm=LazyLibrarian"
+      # Homepage labels
       - "homepage.group=Media & Entertainment"
       - "homepage.name=LazyLibrarian"
-      - "homepage.href=http://192.168.86.47:8787"
+      - "homepage.href=https://lazylibrarian.server.unarmedpuppy.com"
       - "homepage.icon=si-goodreads"
       - "homepage.description=Books automation"
 
@@ -347,10 +572,35 @@ services:
     restart: unless-stopped
     networks:
       - media-download-network
+      - my-network
     labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.calibre-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.calibre-redirect.middlewares=calibre-redirect"
+      - "traefik.http.routers.calibre-redirect.rule=Host(`calibre.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.calibre-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.calibre-local.rule=Host(`calibre.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.calibre-local.priority=100"
+      - "traefik.http.routers.calibre-local.entrypoints=websecure"
+      - "traefik.http.routers.calibre-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.calibre.rule=Host(`calibre.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.calibre.priority=1"
+      - "traefik.http.routers.calibre.entrypoints=websecure"
+      - "traefik.http.routers.calibre.tls.certresolver=myresolver"
+      - "traefik.http.routers.calibre.tls=true"
+      - "traefik.http.routers.calibre.middlewares=calibre-auth"
+      # Service and auth middleware
+      - "traefik.http.services.calibre.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.calibre-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.calibre-auth.basicauth.realm=Calibre"
+      # Homepage labels
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Calibre"
-      - "homepage.href=http://192.168.86.47:8085"
+      - "homepage.href=https://calibre.server.unarmedpuppy.com"
       - "homepage.icon=si-bookstack"
       - "homepage.description=Ebook library management"
 
@@ -370,12 +620,37 @@ services:
     restart: unless-stopped
     networks:
       - media-download-network
+      - my-network
     depends_on:
       - calibre
     labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.calibre-web-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.calibre-web-redirect.middlewares=calibre-web-redirect"
+      - "traefik.http.routers.calibre-web-redirect.rule=Host(`calibre-web.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.calibre-web-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.calibre-web-local.rule=Host(`calibre-web.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.calibre-web-local.priority=100"
+      - "traefik.http.routers.calibre-web-local.entrypoints=websecure"
+      - "traefik.http.routers.calibre-web-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.calibre-web.rule=Host(`calibre-web.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.calibre-web.priority=1"
+      - "traefik.http.routers.calibre-web.entrypoints=websecure"
+      - "traefik.http.routers.calibre-web.tls.certresolver=myresolver"
+      - "traefik.http.routers.calibre-web.tls=true"
+      - "traefik.http.routers.calibre-web.middlewares=calibre-web-auth"
+      # Service and auth middleware
+      - "traefik.http.services.calibre-web.loadbalancer.server.port=8083"
+      - "traefik.http.middlewares.calibre-web-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.calibre-web-auth.basicauth.realm=Calibre-Web"
+      # Homepage labels
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Calibre-Web"
-      - "homepage.href=http://192.168.86.47:8084"
+      - "homepage.href=https://calibre-web.server.unarmedpuppy.com"
       - "homepage.icon=si-bookstack"
       - "homepage.description=Ebook web reader"
 
@@ -392,15 +667,40 @@ services:
       - ${DOWNLOAD_PATH:-./downloads}/sabnzbd:/downloads
     networks:
       - media-download-network
+      - my-network
     ports:
       - "8079:8080"
     restart: unless-stopped
     profiles:
       - alternative
     labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.sabnzbd-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.sabnzbd-redirect.middlewares=sabnzbd-redirect"
+      - "traefik.http.routers.sabnzbd-redirect.rule=Host(`sabnzbd.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.sabnzbd-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.sabnzbd-local.rule=Host(`sabnzbd.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.sabnzbd-local.priority=100"
+      - "traefik.http.routers.sabnzbd-local.entrypoints=websecure"
+      - "traefik.http.routers.sabnzbd-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.sabnzbd.rule=Host(`sabnzbd.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.sabnzbd.priority=1"
+      - "traefik.http.routers.sabnzbd.entrypoints=websecure"
+      - "traefik.http.routers.sabnzbd.tls.certresolver=myresolver"
+      - "traefik.http.routers.sabnzbd.tls=true"
+      - "traefik.http.routers.sabnzbd.middlewares=sabnzbd-auth"
+      # Service and auth middleware
+      - "traefik.http.services.sabnzbd.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.sabnzbd-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.sabnzbd-auth.basicauth.realm=SABnzbd"
+      # Homepage labels
       - "homepage.group=Media & Entertainment"
       - "homepage.name=SABnzbd"
-      - "homepage.href=http://192.168.86.47:8079"
+      - "homepage.href=https://sabnzbd.server.unarmedpuppy.com"
       - "homepage.icon=si-qbittorrent"
       - "homepage.description=Usenet download client"
 
@@ -408,4 +708,6 @@ networks:
   media-download-network:
     driver: bridge
     # internal: true removed - UI containers need to be accessible from host
+  my-network:
+    external: true
 

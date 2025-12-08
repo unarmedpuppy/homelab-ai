@@ -57,11 +57,38 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    networks:
+      - default
+      - my-network
     labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.maybe-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.maybe-redirect.middlewares=maybe-redirect"
+      - "traefik.http.routers.maybe-redirect.rule=Host(`maybe.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.maybe-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.maybe-local.rule=Host(`maybe.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.maybe-local.priority=100"
+      - "traefik.http.routers.maybe-local.entrypoints=websecure"
+      - "traefik.http.routers.maybe-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.maybe.rule=Host(`maybe.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.maybe.priority=1"
+      - "traefik.http.routers.maybe.entrypoints=websecure"
+      - "traefik.http.routers.maybe.tls.certresolver=myresolver"
+      - "traefik.http.routers.maybe.tls=true"
+      - "traefik.http.routers.maybe.middlewares=maybe-auth"
+      # Service and auth middleware
+      - "traefik.http.services.maybe.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.maybe-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.maybe-auth.basicauth.realm=Maybe"
+      # Homepage labels
       - "homepage.group=Finance & Trading"
       - "homepage.name=Maybe"
       - "homepage.icon=si-cashapp"
-      - "homepage.href=http://192.168.86.47:3054"
+      - "homepage.href=https://maybe.server.unarmedpuppy.com"
       - "homepage.description=Personal finance management"
 
   worker:
@@ -104,3 +131,7 @@ volumes:
   app-storage:
   postgres-data:
   redis-data:
+
+networks:
+  my-network:
+    external: true

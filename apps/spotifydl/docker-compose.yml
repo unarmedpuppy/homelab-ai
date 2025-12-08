@@ -20,9 +20,39 @@ services:
       - ./yt-dlp-config:/root/.config/yt-dlp
     #network_mode: host
     restart: unless-stopped
+    networks:
+      - my-network
     labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.spotifydl-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.spotifydl-redirect.middlewares=spotifydl-redirect"
+      - "traefik.http.routers.spotifydl-redirect.rule=Host(`spotifydl.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.spotifydl-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.spotifydl-local.rule=Host(`spotifydl.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.spotifydl-local.priority=100"
+      - "traefik.http.routers.spotifydl-local.entrypoints=websecure"
+      - "traefik.http.routers.spotifydl-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.spotifydl.rule=Host(`spotifydl.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.spotifydl.priority=1"
+      - "traefik.http.routers.spotifydl.entrypoints=websecure"
+      - "traefik.http.routers.spotifydl.tls.certresolver=myresolver"
+      - "traefik.http.routers.spotifydl.tls=true"
+      - "traefik.http.routers.spotifydl.middlewares=spotifydl-auth"
+      # Service and auth middleware
+      - "traefik.http.services.spotifydl.loadbalancer.server.port=8800"
+      - "traefik.http.middlewares.spotifydl-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.spotifydl-auth.basicauth.realm=SpotifyDL"
+      # Homepage labels
       - "homepage.group=Media & Entertainment"
       - "homepage.name=SpotifyDL"
       - "homepage.icon=si-spotify"
-      - "homepage.href=http://192.168.86.47:8800"
+      - "homepage.href=https://spotifydl.server.unarmedpuppy.com"
       - "homepage.description=Download & Save Spotify content"
+
+networks:
+  my-network:
+    external: true

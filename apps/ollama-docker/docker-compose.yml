@@ -53,14 +53,41 @@ services:
     restart: unless-stopped
     networks:
       - ollama-docker
+      - my-network
     labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.ollama-webui-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.ollama-webui-redirect.middlewares=ollama-webui-redirect"
+      - "traefik.http.routers.ollama-webui-redirect.rule=Host(`ollama.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.ollama-webui-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.ollama-webui-local.rule=Host(`ollama.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.ollama-webui-local.priority=100"
+      - "traefik.http.routers.ollama-webui-local.entrypoints=websecure"
+      - "traefik.http.routers.ollama-webui-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.ollama-webui.rule=Host(`ollama.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.ollama-webui.priority=1"
+      - "traefik.http.routers.ollama-webui.entrypoints=websecure"
+      - "traefik.http.routers.ollama-webui.tls.certresolver=myresolver"
+      - "traefik.http.routers.ollama-webui.tls=true"
+      - "traefik.http.routers.ollama-webui.middlewares=ollama-webui-auth"
+      # Service and auth middleware
+      - "traefik.http.services.ollama-webui.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.ollama-webui-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.ollama-webui-auth.basicauth.realm=Ollama-WebUI"
+      # Homepage labels
       - "homepage.group=AI & Machine Learning"
       - "homepage.name=Ollama WebUI"
       - "homepage.icon=si-ollama"
-      - "homepage.href=http://192.168.86.47:8091"
+      - "homepage.href=https://ollama.server.unarmedpuppy.com"
       - "homepage.description=Ollama AI model interface"
 
 networks:
   ollama-docker:
     external: false
+  my-network:
+    external: true
   

@@ -14,12 +14,39 @@ services:
       - db
     volumes:
       - freshrss-data:/var/www/FreshRSS/data
+    networks:
+      - default
+      - my-network
     labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.freshrss-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.freshrss-redirect.middlewares=freshrss-redirect"
+      - "traefik.http.routers.freshrss-redirect.rule=Host(`freshrss.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.freshrss-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.freshrss-local.rule=Host(`freshrss.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.freshrss-local.priority=100"
+      - "traefik.http.routers.freshrss-local.entrypoints=websecure"
+      - "traefik.http.routers.freshrss-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.freshrss.rule=Host(`freshrss.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.freshrss.priority=1"
+      - "traefik.http.routers.freshrss.entrypoints=websecure"
+      - "traefik.http.routers.freshrss.tls.certresolver=myresolver"
+      - "traefik.http.routers.freshrss.tls=true"
+      - "traefik.http.routers.freshrss.middlewares=freshrss-auth"
+      # Service and auth middleware
+      - "traefik.http.services.freshrss.loadbalancer.server.port=80"
+      - "traefik.http.middlewares.freshrss-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.freshrss-auth.basicauth.realm=FreshRSS"
+      # Homepage labels
       - "homepage.group=Social & News"
       - "homepage.name=FreshRSS"
       - "homepage.icon=si-freshrss"
       - "homepage.description=RSS reader"
-      - "homepage.href=http://192.168.86.47:8005"
+      - "homepage.href=https://freshrss.server.unarmedpuppy.com"
 
   db:
     image: postgres:latest
@@ -29,3 +56,7 @@ services:
       POSTGRES_DB: freshrss
     volumes:
       - freshrss-db:/var/lib/postgresql/data
+
+networks:
+  my-network:
+    external: true

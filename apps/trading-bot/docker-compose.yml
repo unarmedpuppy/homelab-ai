@@ -150,14 +150,39 @@ services:
       start_period: 40s
     networks:
       - trading-bot-network
+      - my-network
     # depends_on:
     #   ib-gateway:
     #     condition: service_healthy
     labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.trading-bot-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.trading-bot-redirect.middlewares=trading-bot-redirect"
+      - "traefik.http.routers.trading-bot-redirect.rule=Host(`trading-bot.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.trading-bot-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.trading-bot-local.rule=Host(`trading-bot.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.trading-bot-local.priority=100"
+      - "traefik.http.routers.trading-bot-local.entrypoints=websecure"
+      - "traefik.http.routers.trading-bot-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.trading-bot.rule=Host(`trading-bot.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.trading-bot.priority=1"
+      - "traefik.http.routers.trading-bot.entrypoints=websecure"
+      - "traefik.http.routers.trading-bot.tls.certresolver=myresolver"
+      - "traefik.http.routers.trading-bot.tls=true"
+      - "traefik.http.routers.trading-bot.middlewares=trading-bot-auth"
+      # Service and auth middleware
+      - "traefik.http.services.trading-bot.loadbalancer.server.port=8000"
+      - "traefik.http.middlewares.trading-bot-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.trading-bot-auth.basicauth.realm=Trading-Bot"
+      # Homepage labels
       - "homepage.group=Finance & Trading"
       - "homepage.name=Trading Dashboard"
       - "homepage.icon=si-tradingview"
-      - "homepage.href=http://192.168.86.47:8021/dashboard"
+      - "homepage.href=https://trading-bot.server.unarmedpuppy.com/dashboard"
       - "homepage.description=Trading bot dashboard with signals, debates, and portfolio"
 
   prometheus:
@@ -179,13 +204,38 @@ services:
     restart: unless-stopped
     networks:
       - trading-bot-network
+      - my-network
     depends_on:
       - bot
     labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.trading-prometheus-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.trading-prometheus-redirect.middlewares=trading-prometheus-redirect"
+      - "traefik.http.routers.trading-prometheus-redirect.rule=Host(`trading-prometheus.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.trading-prometheus-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.trading-prometheus-local.rule=Host(`trading-prometheus.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.trading-prometheus-local.priority=100"
+      - "traefik.http.routers.trading-prometheus-local.entrypoints=websecure"
+      - "traefik.http.routers.trading-prometheus-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.trading-prometheus.rule=Host(`trading-prometheus.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.trading-prometheus.priority=1"
+      - "traefik.http.routers.trading-prometheus.entrypoints=websecure"
+      - "traefik.http.routers.trading-prometheus.tls.certresolver=myresolver"
+      - "traefik.http.routers.trading-prometheus.tls=true"
+      - "traefik.http.routers.trading-prometheus.middlewares=trading-prometheus-auth"
+      # Service and auth middleware
+      - "traefik.http.services.trading-prometheus.loadbalancer.server.port=9090"
+      - "traefik.http.middlewares.trading-prometheus-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.trading-prometheus-auth.basicauth.realm=Trading-Prometheus"
+      # Homepage labels
       - "homepage.group=Infrastructure"
       - "homepage.name=Prometheus"
       - "homepage.icon=si-prometheus"
-      - "homepage.href=http://192.168.86.47:9091"
+      - "homepage.href=https://trading-prometheus.server.unarmedpuppy.com"
       - "homepage.description=Prometheus metrics for trading bot"
 
   grafana:
@@ -205,13 +255,38 @@ services:
     restart: unless-stopped
     networks:
       - trading-bot-network
+      - my-network
     depends_on:
       - prometheus
     labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.trading-grafana-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.trading-grafana-redirect.middlewares=trading-grafana-redirect"
+      - "traefik.http.routers.trading-grafana-redirect.rule=Host(`trading-grafana.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.trading-grafana-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.trading-grafana-local.rule=Host(`trading-grafana.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.trading-grafana-local.priority=100"
+      - "traefik.http.routers.trading-grafana-local.entrypoints=websecure"
+      - "traefik.http.routers.trading-grafana-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.trading-grafana.rule=Host(`trading-grafana.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.trading-grafana.priority=1"
+      - "traefik.http.routers.trading-grafana.entrypoints=websecure"
+      - "traefik.http.routers.trading-grafana.tls.certresolver=myresolver"
+      - "traefik.http.routers.trading-grafana.tls=true"
+      - "traefik.http.routers.trading-grafana.middlewares=trading-grafana-auth"
+      # Service and auth middleware
+      - "traefik.http.services.trading-grafana.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.trading-grafana-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.trading-grafana-auth.basicauth.realm=Trading-Grafana"
+      # Homepage labels
       - "homepage.group=Infrastructure"
-      - "homepage.name=Grafana"
+      - "homepage.name=Grafana (Trading)"
       - "homepage.icon=si-grafana"
-      - "homepage.href=http://192.168.86.47:3002"
+      - "homepage.href=https://trading-grafana.server.unarmedpuppy.com"
       - "homepage.description=Grafana dashboards for trading bot"
 
   alertmanager:
@@ -229,18 +304,45 @@ services:
     restart: unless-stopped
     networks:
       - trading-bot-network
+      - my-network
     depends_on:
       - prometheus
     labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.trading-alertmanager-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.trading-alertmanager-redirect.middlewares=trading-alertmanager-redirect"
+      - "traefik.http.routers.trading-alertmanager-redirect.rule=Host(`trading-alertmanager.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.trading-alertmanager-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.trading-alertmanager-local.rule=Host(`trading-alertmanager.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.trading-alertmanager-local.priority=100"
+      - "traefik.http.routers.trading-alertmanager-local.entrypoints=websecure"
+      - "traefik.http.routers.trading-alertmanager-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.trading-alertmanager.rule=Host(`trading-alertmanager.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.trading-alertmanager.priority=1"
+      - "traefik.http.routers.trading-alertmanager.entrypoints=websecure"
+      - "traefik.http.routers.trading-alertmanager.tls.certresolver=myresolver"
+      - "traefik.http.routers.trading-alertmanager.tls=true"
+      - "traefik.http.routers.trading-alertmanager.middlewares=trading-alertmanager-auth"
+      # Service and auth middleware
+      - "traefik.http.services.trading-alertmanager.loadbalancer.server.port=9093"
+      - "traefik.http.middlewares.trading-alertmanager-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.trading-alertmanager-auth.basicauth.realm=Trading-Alertmanager"
+      # Homepage labels
       - "homepage.group=Infrastructure"
       - "homepage.name=Alertmanager"
       - "homepage.icon=si-prometheus"
-      - "homepage.href=http://192.168.86.47:9094"
+      - "homepage.href=https://trading-alertmanager.server.unarmedpuppy.com"
       - "homepage.description=Alertmanager for trading bot notifications"
 
 networks:
   trading-bot-network:
     driver: bridge
+  my-network:
+    external: true
 
 volumes:
   prometheus-data:

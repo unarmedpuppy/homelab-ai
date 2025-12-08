@@ -18,10 +18,34 @@ services:
     networks:
       - my-network
     labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.tunarr-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.tunarr-redirect.middlewares=tunarr-redirect"
+      - "traefik.http.routers.tunarr-redirect.rule=Host(`tunarr.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.tunarr-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.tunarr-local.rule=Host(`tunarr.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.tunarr-local.priority=100"
+      - "traefik.http.routers.tunarr-local.entrypoints=websecure"
+      - "traefik.http.routers.tunarr-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.tunarr.rule=Host(`tunarr.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.tunarr.priority=1"
+      - "traefik.http.routers.tunarr.entrypoints=websecure"
+      - "traefik.http.routers.tunarr.tls.certresolver=myresolver"
+      - "traefik.http.routers.tunarr.tls=true"
+      - "traefik.http.routers.tunarr.middlewares=tunarr-auth"
+      # Service and auth middleware
+      - "traefik.http.services.tunarr.loadbalancer.server.port=8000"
+      - "traefik.http.middlewares.tunarr-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.tunarr-auth.basicauth.realm=Tunarr"
+      # Homepage labels
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Tunarr"
       - "homepage.icon=si-plex"
-      - "homepage.href=http://192.168.86.47:8001"
+      - "homepage.href=https://tunarr.server.unarmedpuppy.com"
       - "homepage.description=Live TV streaming from Plex media"
 
 networks:

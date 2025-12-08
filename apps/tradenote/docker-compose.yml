@@ -26,10 +26,34 @@ services:
     networks:
       - my-network
     labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.tradenote-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.tradenote-redirect.middlewares=tradenote-redirect"
+      - "traefik.http.routers.tradenote-redirect.rule=Host(`tradenote.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.tradenote-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.tradenote-local.rule=Host(`tradenote.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.tradenote-local.priority=100"
+      - "traefik.http.routers.tradenote-local.entrypoints=websecure"
+      - "traefik.http.routers.tradenote-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.tradenote.rule=Host(`tradenote.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.tradenote.priority=1"
+      - "traefik.http.routers.tradenote.entrypoints=websecure"
+      - "traefik.http.routers.tradenote.tls.certresolver=myresolver"
+      - "traefik.http.routers.tradenote.tls=true"
+      - "traefik.http.routers.tradenote.middlewares=tradenote-auth"
+      # Service and auth middleware
+      - "traefik.http.services.tradenote.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.tradenote-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.tradenote-auth.basicauth.realm=TradeNote"
+      # Homepage labels
       - "homepage.group=Finance & Trading"
       - "homepage.name=TradeNote"
       - "homepage.icon=si-notion"
-      - "homepage.href=http://192.168.86.47:8099"
+      - "homepage.href=https://tradenote.server.unarmedpuppy.com"
       - "homepage.description=Trading notes and journal"
 
 networks:

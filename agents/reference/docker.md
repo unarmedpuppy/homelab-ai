@@ -23,29 +23,41 @@ environment:
   - PGID=1000
 ```
 
-## Homepage Labels
+## Homepage Labels with Traefik
 
-For services to appear in the homepage dashboard:
-
-```yaml
-labels:
-  - "homepage.group=Category"
-  - "homepage.name=Service Name"
-  - "homepage.icon=icon.png"
-  - "homepage.href=http://192.168.86.47:PORT"
-```
-
-## Traefik Labels (HTTPS)
-
-For services exposed via Traefik reverse proxy:
+All services should use Traefik reverse proxy and proper `*.server.unarmedpuppy.com` domains:
 
 ```yaml
 labels:
   - "traefik.enable=true"
-  - "traefik.http.routers.SERVICE.rule=Host(`subdomain.server.unarmedpuppy.com`)"
+  - "traefik.docker.network=my-network"
+  # HTTPS redirect
+  - "traefik.http.middlewares.SERVICE-redirect.redirectscheme.scheme=https"
+  - "traefik.http.routers.SERVICE-redirect.middlewares=SERVICE-redirect"
+  - "traefik.http.routers.SERVICE-redirect.rule=Host(`SERVICE.server.unarmedpuppy.com`)"
+  - "traefik.http.routers.SERVICE-redirect.entrypoints=web"
+  # Local network access (no auth) - highest priority
+  - "traefik.http.routers.SERVICE-local.rule=Host(`SERVICE.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+  - "traefik.http.routers.SERVICE-local.priority=100"
+  - "traefik.http.routers.SERVICE-local.entrypoints=websecure"
+  - "traefik.http.routers.SERVICE-local.tls.certresolver=myresolver"
+  # External access (requires auth) - lowest priority
+  - "traefik.http.routers.SERVICE.rule=Host(`SERVICE.server.unarmedpuppy.com`)"
+  - "traefik.http.routers.SERVICE.priority=1"
   - "traefik.http.routers.SERVICE.entrypoints=websecure"
   - "traefik.http.routers.SERVICE.tls.certresolver=myresolver"
-  - "traefik.http.services.SERVICE.loadbalancer.server.port=PORT"
+  - "traefik.http.routers.SERVICE.tls=true"
+  - "traefik.http.routers.SERVICE.middlewares=SERVICE-auth"
+  # Service and auth middleware
+  - "traefik.http.services.SERVICE.loadbalancer.server.port=CONTAINER_PORT"
+  - "traefik.http.middlewares.SERVICE-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+  - "traefik.http.middlewares.SERVICE-auth.basicauth.realm=SERVICE"
+  # Homepage labels
+  - "homepage.group=Category"
+  - "homepage.name=Service Name"
+  - "homepage.icon=icon.png"
+  - "homepage.href=https://SERVICE.server.unarmedpuppy.com"
+  - "homepage.description=Service description"
 ```
 
 **Note**: New subdomains need to be added to `apps/cloudflare-ddns/` config.

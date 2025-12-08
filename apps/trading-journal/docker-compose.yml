@@ -77,11 +77,34 @@ services:
     networks:
       - my-network
     labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.trading-journal-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.trading-journal-redirect.middlewares=trading-journal-redirect"
+      - "traefik.http.routers.trading-journal-redirect.rule=Host(`trading-journal.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.trading-journal-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.trading-journal-local.rule=Host(`trading-journal.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.trading-journal-local.priority=100"
+      - "traefik.http.routers.trading-journal-local.entrypoints=websecure"
+      - "traefik.http.routers.trading-journal-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.trading-journal.rule=Host(`trading-journal.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.trading-journal.priority=1"
+      - "traefik.http.routers.trading-journal.entrypoints=websecure"
+      - "traefik.http.routers.trading-journal.tls.certresolver=myresolver"
+      - "traefik.http.routers.trading-journal.tls=true"
+      - "traefik.http.routers.trading-journal.middlewares=trading-journal-auth"
+      # Service and auth middleware
+      - "traefik.http.services.trading-journal.loadbalancer.server.port=80"
+      - "traefik.http.middlewares.trading-journal-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.trading-journal-auth.basicauth.realm=Trading-Journal"
       # Homepage labels
       - "homepage.group=Finance & Trading"
       - "homepage.name=Trading Journal"
       - "homepage.icon=si-tradingview"
-      - "homepage.href=http://192.168.86.47:8101"
+      - "homepage.href=https://trading-journal.server.unarmedpuppy.com"
       - "homepage.description=Self-hosted trading journal for tracking trades and analyzing performance"
 
 networks:

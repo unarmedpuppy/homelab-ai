@@ -13,9 +13,39 @@ services:
       # Let yt-dlp auto-select best available client (will try multiple clients automatically)
       # Increased retries and timeout for better connection handling
       YTDL_OPTIONS: '{"retries": 10, "fragment_retries": 10, "file_access_retries": 3, "retry_sleep": 1, "socket_timeout": 30, "ignoreerrors": false, "no_warnings": false}'
+    networks:
+      - my-network
     labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.metube-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.metube-redirect.middlewares=metube-redirect"
+      - "traefik.http.routers.metube-redirect.rule=Host(`metube.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.metube-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.metube-local.rule=Host(`metube.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.metube-local.priority=100"
+      - "traefik.http.routers.metube-local.entrypoints=websecure"
+      - "traefik.http.routers.metube-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.metube.rule=Host(`metube.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.metube.priority=1"
+      - "traefik.http.routers.metube.entrypoints=websecure"
+      - "traefik.http.routers.metube.tls.certresolver=myresolver"
+      - "traefik.http.routers.metube.tls=true"
+      - "traefik.http.routers.metube.middlewares=metube-auth"
+      # Service and auth middleware
+      - "traefik.http.services.metube.loadbalancer.server.port=8081"
+      - "traefik.http.middlewares.metube-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.metube-auth.basicauth.realm=MeTube"
+      # Homepage labels
       - "homepage.group=Media & Entertainment"
       - "homepage.name=MyTube"
       - "homepage.icon=si-youtubekids"
-      - "homepage.href=http://192.168.86.47:8020"
+      - "homepage.href=https://metube.server.unarmedpuppy.com"
       - "homepage.description=Download & Save Youtube videos"
+
+networks:
+  my-network:
+    external: true
