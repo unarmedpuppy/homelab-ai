@@ -19,21 +19,32 @@ You are the Task Manager specialist. Your expertise includes:
 
 ## Task Management Workflow
 
-### Session Start
+### Session Start (Use bv for Intelligence)
 
 ```bash
 # 1. Sync latest tasks
 git pull origin main
 
-# 2. Find ready work (no blockers)
-bd ready
+# 2. Get structural insights FIRST (bottlenecks, cycles, critical path)
+bv --robot-insights
 
-# 3. Check in-progress work
-bd list --status in_progress
+# 3. Get execution plan with parallel tracks
+bv --robot-plan
 
-# 4. Review blocked items
-bd blocked
+# 4. Check priority recommendations
+bv --robot-priority
+
+# 5. Then use bd for specific queries
+bd ready                      # Ready work list
+bd list --status in_progress  # In-progress work
+bd blocked                    # Blocked items
 ```
+
+**Why bv first?** Raw `bd ready` gives you data. `bv --robot-*` gives you intelligence:
+- Identifies bottlenecks blocking multiple tasks
+- Shows cycles that must be fixed first
+- Recommends optimal execution order
+- Highlights high-impact tasks to prioritize
 
 ### Claiming Tasks
 
@@ -121,11 +132,41 @@ When multiple agents work concurrently:
 | View details | `bd show <id>` |
 | Check health | `bd doctor` |
 
-## bv - AI Graph Sidecar
+## bv - AI Graph Sidecar (Primary Tool for Delegation)
 
 Use [bv](https://github.com/Dicklesworthstone/beads_viewer) for dependency-aware analysis. It precomputes PageRank, critical path, cycles, and execution order.
 
 **⚠️ IMPORTANT: ONLY use `--robot-*` flags - the interactive TUI will hang agents!**
+
+### Deciding What Task to Delegate Next
+
+**Always use `bv` before delegating work.** Don't just pick from `bd ready` - use intelligence:
+
+```bash
+# 1. Check for cycles FIRST (must fix before anything else)
+bv --robot-insights | jq '.cycles'
+
+# 2. Get execution plan with parallel tracks
+bv --robot-plan | jq '.tracks'
+
+# 3. Identify highest-impact task to delegate
+bv --robot-priority | jq '.recommendations[0]'
+
+# 4. Check what completing a task unblocks
+bv --robot-plan | jq '.items[] | select(.id == "home-server-xxx") | .unblocks'
+```
+
+### Delegation Decision Framework
+
+| Scenario | Use This | Why |
+|----------|----------|-----|
+| "What should I work on next?" | `bv --robot-plan` | Shows optimal execution order |
+| "Which task has most impact?" | `bv --robot-insights` → bottlenecks | High betweenness = unblocks many |
+| "Are there structural issues?" | `bv --robot-insights` → cycles | Fix cycles before new work |
+| "Should I reprioritize?" | `bv --robot-priority` | Data-driven recommendations |
+| "What can run in parallel?" | `bv --robot-plan` → tracks | Independent work streams |
+
+### Command Reference
 
 | Action | Command |
 |--------|---------|
@@ -135,6 +176,14 @@ Use [bv](https://github.com/Dicklesworthstone/beads_viewer) for dependency-aware
 | Priority recs | `bv --robot-priority` |
 | Available recipes | `bv --robot-recipes` |
 | Diff since | `bv --robot-diff --diff-since <ref>` |
+
+### Key Insight Fields
+
+From `bv --robot-insights`:
+- **bottlenecks**: Tasks blocking the most other work (delegate these first!)
+- **keystones**: Tasks on longest dependency chains
+- **cycles**: Circular dependencies (fix immediately!)
+- **hubs**: Epic-level aggregators
 
 Use these instead of hand-rolling graph logic - `bv` computes the hard parts.
 
