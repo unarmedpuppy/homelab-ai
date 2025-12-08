@@ -61,6 +61,8 @@ git checkout -b feature/task-x-description
 | T21 | Review current drive health status | [AVAILABLE] | P1 |
 | T22 | Migrate ZFS from RAID-Z1 to RAID-Z2 (8 drives) | [AVAILABLE] | P0 |
 | T23 | Setup new 6-drive RAID-Z2 pool (two-pool strategy) | [AVAILABLE] | P0 |
+| T24 | Purchase ASUS RT-AX86U Pro + RT-AX58U routers | [AVAILABLE] | P1 |
+| T25 | Set up ASUS routers with AdGuard DNS | [BLOCKED] | P1 |
 
 ### Task T1: Consolidate metrics system (8 files → 3)
 **Priority**: P0
@@ -697,6 +699,79 @@ sudo zfs set mountpoint=/jenquist-cloud-new jenquist-cloud-new/archive
 **Estimated Time**: 2-4 hours (mostly physical installation)
 
 **Risk Level**: Low - old pool stays intact
+
+### Task T24: Purchase ASUS RT-AX86U Pro + RT-AX58U routers
+**Priority**: P1
+**Dependencies**: None
+**Effort**: Low
+**Project**: infrastructure
+
+**Objective**: Purchase router equipment to replace Google Home mesh routers for better network control (DNS/DHCP)
+
+**Equipment to Purchase**:
+- **ASUS RT-AX86U Pro** (~$250) - Main router
+  - Amazon: https://www.amazon.com/ASUS-RT-AX86U-Pro-Extendable-Rangeboost/dp/B0BTGKSPYG
+  - Location: Lower floor, far corner (with server)
+- **ASUS RT-AX58U** (~$100) - Mesh node
+  - Amazon: https://www.amazon.com/ASUS-AX3000-WiFi-Router-RT-AX58U/dp/B08151SRDD
+  - Location: Upper floor, middle (where Google extension is now)
+
+**Total Budget**: ~$350
+
+**Why ASUS**:
+- AiMesh works well with wireless backhaul (no ethernet upstairs)
+- Full DNS/DHCP control via web UI
+- Easy setup, no controller needed
+- Good coverage for ~2800 sq ft with 2 units
+
+**Success Criteria**:
+- [ ] RT-AX86U Pro purchased
+- [ ] RT-AX58U purchased
+- [ ] Equipment received and ready for setup
+
+### Task T25: Set up ASUS routers with AdGuard DNS
+**Priority**: P1
+**Dependencies**: T24
+**Effort**: Medium
+**Project**: infrastructure
+
+**Objective**: Replace Google Home mesh with ASUS routers and configure DNS to point to AdGuard
+
+**Current Setup**:
+- Google Home mesh router (main) + extension
+- House: ~2,816 sq ft, two floors
+- Server location: Lower floor, far corner
+- No ethernet upstairs - wireless mesh backhaul required
+
+**Migration Steps**:
+1. Set up RT-AX86U Pro as main router
+   - Use same SSID and password as current network
+   - Configure WAN connection
+2. Configure DNS to point to AdGuard
+   - LAN → DHCP Server → DNS Server: `192.168.86.47`
+3. Add RT-AX58U as AiMesh node
+   - Place upper floor, middle
+   - Uses wireless backhaul
+4. Swap routers
+   - Disconnect Google router
+   - Connect ASUS router to modem
+   - Devices should reconnect automatically (same SSID/password)
+5. Verify all devices use AdGuard DNS
+   - Check AdGuard Query Log for individual device IPs
+   - No more `192.168.86.1` (router) as client
+6. Remove Google mesh routers
+
+**Success Criteria**:
+- [ ] RT-AX86U Pro configured as main router
+- [ ] DNS set to `192.168.86.47` (AdGuard)
+- [ ] RT-AX58U added as AiMesh node
+- [ ] All devices connected and working
+- [ ] AdGuard Query Log shows individual device IPs
+- [ ] Good WiFi coverage throughout house
+- [ ] Google mesh routers removed
+
+**Rollback Plan**:
+If issues occur, reconnect Google router - it should work immediately with existing settings.
 
 ---
 

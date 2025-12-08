@@ -30,33 +30,86 @@ You are the infrastructure and security specialist. Your expertise includes:
 
 ## Network Infrastructure
 
+### Home Layout
+
+- **House Size**: ~2,816 square feet, two floors
+- **Server Location**: Lower floor, far corner
+- **Current Router**: Google Home mesh (main unit with server, extension upper floor middle)
+- **Planned Upgrade**: ASUS RT-AX86U Pro (main) + RT-AX58U (mesh node)
+- **No ethernet upstairs** - wireless mesh backhaul required
+
 ### Server Network Details
 
 - **Server IP**: `192.168.86.47` (static IP required)
 - **SSH Port**: `4242` (non-standard for security)
 - **Docker Network**: `my-network` (external bridge network)
 - **Router**: Google Home mesh router (limited DNS configuration options)
+- **Router Gateway**: `192.168.86.1`
 - **Domain**: `server.unarmedpuppy.com` (via Cloudflare DDNS)
 
 ### DNS Configuration
 
 **AdGuard Home**:
 - **DNS Server**: `192.168.86.47:53` (TCP/UDP)
-- **Web Interface**: `http://192.168.86.47:8083`
-- **Initial Setup**: `http://192.168.86.47:3003` (first time only)
-- **Status**: Currently disabled (`x-enabled: false` in docker-compose.yml)
+- **Web Interface**: `https://adguard.server.unarmedpuppy.com` (via Traefik)
+- **Local Access**: `http://192.168.86.47:8083`
+- **DoH Endpoint**: `https://adguard.server.unarmedpuppy.com/dns-query`
+- **Status**: Enabled and running
+
+**AdGuard Configuration**:
+- TLS enabled with self-signed cert (for internal DoH)
+- `allow_unencrypted_doh: true` (allows DoH via Traefik HTTP)
+- Traefik terminates SSL, forwards to AdGuard port 80
+- Upstream DNS: Cloudflare DoH + Quad9 DoH
+- Mode: Fastest IP
+
+**Blocklists Configured**:
+- OISD Big
+- HaGeZi Pro++
+- Smart TV Blocklist (Samsung, LG, etc.)
+- HaGeZi Threat Intel
+- AdGuard DNS Filter
+
+**Client Devices**:
+- Devices must be configured manually to use `192.168.86.47` for DNS
+- Google Home router shows as `192.168.86.1` in logs (acts as DNS forwarder)
+- Individual device IPs visible when configured directly
 
 **Google Home Router Limitations**:
-- Limited DNS configuration options in app/web interface
-- May not support router-level custom DNS
-- **Recommended**: Configure DNS on individual devices
-- See `agents/reference/setup/GOOGLE_HOME_DNS_SETUP.md` for complete guide
+- Cannot change DNS server advertised via DHCP
+- All devices default to router DNS → Google/ISP DNS
+- **Workaround**: Manual DNS config per device, OR replace router
+- See `agents/reference/setup/GOOGLE_HOME_DNS_SETUP.md` for device setup guide
 
 **DNS Setup Workflow**:
 1. Enable AdGuard Home: Set `x-enabled: true` in `apps/adguard-home/docker-compose.yml`
 2. Start service: `cd apps/adguard-home && docker compose up -d`
 3. Configure DNS on devices (device-level is most reliable with Google Home)
 4. Verify: `bash scripts/verify-dns-setup.sh`
+
+### Planned Router Upgrade
+
+**Current Problem**: Google Home router doesn't allow custom DNS in DHCP settings, requiring manual DNS configuration on each device.
+
+**Planned Solution**: Replace with ASUS routers that support custom DNS server in DHCP.
+
+**Equipment to Purchase**:
+- **ASUS RT-AX86U Pro** (~$250) - Main router, lower floor with server
+- **ASUS RT-AX58U** (~$100) - AiMesh node, upper floor middle (where Google extension is now)
+
+**Migration Plan**:
+1. Set up RT-AX86U Pro with same SSID/password as current network
+2. Configure LAN → DHCP → DNS Server: `192.168.86.47`
+3. Add RT-AX58U as AiMesh node (wireless backhaul)
+4. Swap routers - devices reconnect automatically
+5. All devices will now use AdGuard DNS automatically
+6. Remove Google mesh routers
+
+**Why ASUS**:
+- AiMesh works well with wireless backhaul (no ethernet upstairs)
+- Full DNS/DHCP control via web UI
+- Easy setup, no controller needed
+- Good coverage for ~2800 sq ft with 2 units
 
 ### Firewall Configuration
 
