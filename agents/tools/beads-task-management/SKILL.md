@@ -150,6 +150,29 @@ bd info
 
 ## For AI Agents
 
+### Why bv vs. Raw Beads?
+
+Using Beads directly gives an agent **data**. Using `bv --robot-*` gives an agent **intelligence**.
+
+| Capability | Raw Beads (JSONL) | bv Robot Mode |
+|------------|-------------------|---------------|
+| Query | "List all issues." | "List the top 5 bottlenecks blocking the release." |
+| Context Cost | High (Linear with issue count) | Low (Fixed summary struct) |
+| Graph Logic | Agent must infer/compute | Pre-computed (PageRank/Brandes) |
+| Safety | Agent might miss a cycle | Cycles explicitly flagged |
+
+### Agent Usage Patterns
+
+Agents typically use `bv` in three phases:
+
+1. **Triage & Orientation**: Before starting a session, run `bv --robot-insights`. You receive a lightweight JSON summary of the project's structural health. You immediately know:
+   - "I should not work on Task C yet because it depends on Task B, which is a Bottleneck."
+   - "The graph has a cycle (A→B→A); I must fix this structural error before adding new features."
+
+2. **Impact Analysis**: When asked to "refactor the login module," check the PageRank and Impact Scores of the relevant tasks. If scores are high, this is a high-risk change with many downstream dependents—run more comprehensive tests.
+
+3. **Execution Planning**: Instead of guessing the order of operations, use `bv --robot-plan` to generate a strictly linearized plan with parallel execution tracks.
+
 ### Using bv as an AI sidecar
 
 [bv](https://github.com/Dicklesworthstone/beads_viewer) is a fast terminal UI for Beads projects. It renders lists/details and precomputes dependency metrics (PageRank, critical path, cycles, etc.) so you instantly see blockers and execution order. For agents, it's a graph sidecar: instead of parsing JSONL or risking hallucinated traversal, call the robot flags to get deterministic, dependency-aware outputs.
