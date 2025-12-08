@@ -63,6 +63,7 @@ git checkout -b feature/task-x-description
 | T23 | Setup new 6-drive RAID-Z2 pool (two-pool strategy) | [AVAILABLE] | P0 |
 | T24 | Purchase ASUS RT-AX86U Pro + RT-AX58U routers | [AVAILABLE] | P1 |
 | T25 | Set up ASUS routers with AdGuard DNS | [BLOCKED] | P1 |
+| T26 | Update infrastructure docs after router migration | [BLOCKED] | P2 |
 
 ### Task T1: Consolidate metrics system (8 files → 3)
 **Priority**: P0
@@ -772,6 +773,40 @@ sudo zfs set mountpoint=/jenquist-cloud-new jenquist-cloud-new/archive
 
 **Rollback Plan**:
 If issues occur, reconnect Google router - it should work immediately with existing settings.
+
+### Task T26: Update infrastructure docs after router migration
+**Priority**: P2
+**Dependencies**: T25
+**Effort**: Low
+**Project**: infrastructure
+
+**Objective**: Update all infrastructure documentation to reflect new ASUS router setup after migration is complete
+
+**Files to Update**:
+- `agents/personas/infrastructure-agent.md`
+  - Remove "Planned Router Upgrade" section (completed)
+  - Update "Router" field from Google Home to ASUS RT-AX86U Pro
+  - Update network details with new router info
+  - Remove Google Home limitations section
+  - Document ASUS router DNS/DHCP configuration location
+- `agents/reference/setup/GOOGLE_HOME_DNS_SETUP.md`
+  - Archive or delete (no longer relevant)
+  - Or rename to general DNS setup guide
+- `README.md`
+  - Update network configuration section if applicable
+
+**Documentation to Add**:
+- ASUS router admin URL (usually `http://192.168.86.1` or `router.asus.com`)
+- AiMesh node management
+- DNS/DHCP settings location in ASUS UI
+- Any custom firewall rules configured
+
+**Success Criteria**:
+- [ ] infrastructure-agent.md reflects current ASUS setup
+- [ ] No references to Google Home router in active docs
+- [ ] DNS/DHCP configuration documented
+- [ ] AiMesh setup documented
+- [ ] All "planned" language removed (migration complete)
 
 ---
 
