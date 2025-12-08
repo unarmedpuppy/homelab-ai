@@ -35,7 +35,7 @@ services:
       - "8880:8080"  # qBittorrent web UI (routed through VPN)
       - "6789:6789"  # NZBGet web UI (routed through VPN)
       - "5030:5030"  # slskd web UI and API (routed through VPN)
-      - "8888:8888"  # HTTP Proxy for other services
+      # HTTP Proxy on port 8888 is accessible internally via Docker network (no host mapping needed)
     restart: unless-stopped
 
   # Usenet Indexer & Aggregator
