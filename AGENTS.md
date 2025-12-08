@@ -326,6 +326,8 @@ For critical analysis, decision review, or challenging assumptions, reference th
 | Document | Purpose |
 |----------|---------|
 | `.beads/` | Task database (use `bd` commands to query) |
+| `agents/reference/beads.md` | **Beads CLI reference (bd)** - comprehensive command guide |
+| `agents/reference/beads-viewer.md` | **Beads Viewer reference (bv)** - AI graph sidecar |
 | `agents/tools/beads-task-management/` | Beads workflow guide |
 | `agents/reference/docker.md` | Docker patterns and best practices |
 | `agents/reference/deployment.md` | Deployment workflows |
