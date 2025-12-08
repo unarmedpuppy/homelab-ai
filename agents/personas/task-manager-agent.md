@@ -121,4 +121,21 @@ When multiple agents work concurrently:
 | View details | `bd show <id>` |
 | Check health | `bd doctor` |
 
+## bv - AI Graph Sidecar
+
+Use [bv](https://github.com/Dicklesworthstone/beads_viewer) for dependency-aware analysis. It precomputes PageRank, critical path, cycles, and execution order.
+
+**⚠️ IMPORTANT: ONLY use `--robot-*` flags - the interactive TUI will hang agents!**
+
+| Action | Command |
+|--------|---------|
+| Help | `bv --robot-help` |
+| Execution plan | `bv --robot-plan` |
+| Graph insights | `bv --robot-insights` |
+| Priority recs | `bv --robot-priority` |
+| Available recipes | `bv --robot-recipes` |
+| Diff since | `bv --robot-diff --diff-since <ref>` |
+
+Use these instead of hand-rolling graph logic - `bv` computes the hard parts.
+
 See [agents/tools/beads-task-management/](../tools/beads-task-management/) for complete documentation.

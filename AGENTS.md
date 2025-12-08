@@ -15,6 +15,11 @@ bd ready                 # Find work (no blockers)
 bd list                  # View all tasks
 bd create "title" -p 1   # Create task
 bd close <id>            # Complete task
+
+# bv (AI sidecar) - ONLY use --robot-* flags!
+bv --robot-plan          # Execution plan with parallel tracks
+bv --robot-insights      # Graph metrics (PageRank, critical path)
+bv --robot-priority      # Priority recommendations
 ```
 
 See [Task Management with Beads](#task-management-with-beads) and [Tool Lookup Protocol](#-tool-lookup-protocol) for details.

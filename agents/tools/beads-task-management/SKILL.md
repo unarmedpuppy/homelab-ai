@@ -150,6 +150,36 @@ bd info
 
 ## For AI Agents
 
+### Using bv as an AI sidecar
+
+[bv](https://github.com/Dicklesworthstone/beads_viewer) is a fast terminal UI for Beads projects. It renders lists/details and precomputes dependency metrics (PageRank, critical path, cycles, etc.) so you instantly see blockers and execution order. For agents, it's a graph sidecar: instead of parsing JSONL or risking hallucinated traversal, call the robot flags to get deterministic, dependency-aware outputs.
+
+**⚠️ IMPORTANT: As an agent, you MUST ONLY use `bv` with the robot flags, otherwise you'll get stuck in the interactive TUI that's intended for human usage only!**
+
+```bash
+# Show all AI-facing commands
+bv --robot-help
+
+# Get graph metrics (PageRank, betweenness, critical path, cycles)
+bv --robot-insights
+
+# Get execution plan with parallel tracks and unblocks
+bv --robot-plan
+
+# Get priority recommendations with reasoning
+bv --robot-priority
+
+# List available recipes (filters)
+bv --robot-recipes
+
+# Show changes since a commit or date
+bv --robot-diff --diff-since <commit|date>
+```
+
+Use these commands instead of hand-rolling graph logic; `bv` already computes the hard parts so agents can act safely and quickly.
+
+### JSON output from bd
+
 Always use `--json` for programmatic access:
 
 ```bash
@@ -226,5 +256,16 @@ bd dep add <new-id> <current-id> --type discovered-from
 | View deps | `bd dep tree <id>` |
 | Check health | `bd doctor` |
 | Sync | `bd sync` |
+
+### bv Robot Commands (AI-only)
+
+| Action | Command |
+|--------|---------|
+| Help | `bv --robot-help` |
+| Execution plan | `bv --robot-plan` |
+| Graph insights | `bv --robot-insights` |
+| Priority recs | `bv --robot-priority` |
+| Available recipes | `bv --robot-recipes` |
+| Diff since | `bv --robot-diff --diff-since <ref>` |
 
 See `agents/personas/task-manager-agent.md` for complete task coordination guidance.
