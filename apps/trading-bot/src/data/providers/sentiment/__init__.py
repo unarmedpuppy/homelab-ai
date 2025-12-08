@@ -5,6 +5,7 @@ Sentiment Data Providers
 Providers for collecting and analyzing sentiment data from various sources.
 """
 
+from .base import BaseSentimentProvider
 from .twitter import TwitterSentimentProvider
 from .reddit import RedditSentimentProvider
 
@@ -57,6 +58,7 @@ except ImportError:
 from .aggregator import SentimentAggregator, AggregatedSentiment
 
 __all__ = [
+    'BaseSentimentProvider',
     'TwitterSentimentProvider',
     'RedditSentimentProvider',
     'NewsSentimentProvider',
