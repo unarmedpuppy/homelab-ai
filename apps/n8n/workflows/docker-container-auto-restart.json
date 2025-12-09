@@ -20,7 +20,7 @@
     },
     {
       "parameters": {
-        "command": "docker inspect media-download-gluetun --format '{{.State.Health.Status}}'",
+        "command": "curl -s --unix-socket /var/run/docker.sock 'http://localhost/containers/json?filters=%7B%22name%22%3A%5B%22media-download-gluetun%22%5D%7D' | python3 -c \"import sys, json; containers = json.load(sys.stdin); status = containers[0]['Status'] if containers else ''; print('healthy' if '(healthy)' in status else 'unhealthy' if containers else 'not-found')\"",
         "additionalFields": {}
       },
       "id": "check-gluetun-health",
@@ -60,7 +60,7 @@
     },
     {
       "parameters": {
-        "command": "docker ps -a --format '{{.Names}}|{{.Status}}|{{.State}}' --filter 'name=media-download-nzbget|media-download-qbittorrent|media-download-slskd'",
+        "command": "curl -s --unix-socket /var/run/docker.sock 'http://localhost/containers/json?all=true&filters=%7B%22name%22%3A%5B%22media-download-nzbget%22%2C%22media-download-qbittorrent%22%2C%22media-download-slskd%22%5D%7D' | python3 -c \"import sys, json; containers = json.load(sys.stdin); [print(f'{c[\"Names\"][0].lstrip(\"/\")}|{c[\"Status\"]}|{c[\"State\"]}') for c in containers]\"",
         "additionalFields": {}
       },
       "id": "check-dependent-containers",
@@ -110,7 +110,7 @@
     },
     {
       "parameters": {
-        "command": "cd ~/server/apps/media-download && docker-compose up -d {{ $json.service_name }}",
+        "command": "curl -s --unix-socket /var/run/docker.sock -X POST 'http://localhost/containers/{{ $json.container_name }}/start'",
         "additionalFields": {}
       },
       "id": "restart-container",
@@ -132,14 +132,14 @@
     },
     {
       "parameters": {
-        "command": "docker ps --filter 'name={{ $json.container_name }}' --format '{{.Status}}'",
+        "command": "curl -s --unix-socket /var/run/docker.sock 'http://localhost/containers/{{ $json.container_name }}/json' | python3 -c \"import sys, json; c = json.load(sys.stdin); print(c.get('State', {}).get('Status', 'unknown'))\"",
         "additionalFields": {}
       },
       "id": "verify-restart",
       "name": "Verify Restart",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
-      "position": [1850, 300]
+      "position": [1650, 300]
     },
     {
       "parameters": {
@@ -149,7 +149,7 @@
       "name": "Format Result",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2050, 300]
+      "position": [1850, 300]
     }
   ],
   "connections": {
