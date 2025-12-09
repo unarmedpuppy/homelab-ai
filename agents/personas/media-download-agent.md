@@ -105,37 +105,69 @@ You are the media download stack specialist. Your expertise includes:
 
 ## Common Troubleshooting Patterns
 
-### 1. "Connection Refused" Errors
+### 1. "Download Client Unavailable" / "Connection Refused" Errors
 
-**Symptoms**: Sonarr/Radarr can't connect to NZBGet/qBittorrent
+**Symptoms**: Sonarr/Radarr reports download client unavailable, can't connect to NZBGet/qBittorrent
+
+**Root Cause - Why This Happens**:
+
+This is a **known limitation of Docker's `network_mode: "service:gluetun"` dependency**:
+
+1. **Gluetun Restart Cascade**: When gluetun restarts (VPN reconnection, container restart, system reboot, Docker daemon restart), containers using `network_mode: "service:gluetun"` (NZBGet, qBittorrent, slskd) **will exit** because they lose their network namespace.
+
+2. **Dependency Limitation**: While `depends_on: gluetun: condition: service_healthy` ensures containers wait for gluetun during **initial startup**, it does **NOT** automatically restart dependent containers if gluetun restarts **after** they're already running.
+
+3. **Exit Code 128**: When gluetun's network namespace disappears, dependent containers receive SIGTERM and exit with code 128. This is expected behavior - the containers can't function without gluetun's network.
+
+4. **No Auto-Restart**: Even with `restart: unless-stopped`, containers that exit due to network namespace loss don't automatically restart because Docker sees them as "cleanly stopped" (SIGTERM).
+
+**When This Occurs**:
+- Gluetun VPN reconnection (automatic or manual)
+- Gluetun container restart (updates, health check failures)
+- Docker daemon restart
+- System reboot
+- Network configuration changes
 
 **Diagnosis Steps**:
-1. Check container status: `docker ps | grep -E '(gluetun|nzbget|qbittorrent)'`
-2. Verify gluetun is healthy: `docker logs media-download-gluetun --tail 50`
-3. Test connectivity: `docker exec media-download-sonarr ping -c 2 media-download-gluetun`
-4. Check download client config: Verify hostname is `media-download-gluetun` (not `media-download-nzbget`)
+1. Check container status: `docker ps -a | grep -E '(gluetun|nzbget|qbittorrent)'`
+2. Look for exited containers: `Exited (128)` indicates network namespace loss
+3. Verify gluetun is healthy: `docker logs media-download-gluetun --tail 50`
+4. Test connectivity: `docker exec media-download-sonarr ping -c 2 media-download-gluetun`
+5. Check download client config: Verify hostname is `media-download-gluetun` (not `media-download-nzbget`)
 
 **Common Causes**:
 - Gluetun container stopped or unhealthy
-- NZBGet/qBittorrent container stopped
+- NZBGet/qBittorrent container stopped (exited after gluetun restart)
 - Docker daemon not running (after reboot)
 - Race condition: download client started before gluetun was healthy
+- **Gluetun restarted after download clients were running** (most common)
 
 **Fixes**:
 ```bash
-# Start containers
+# Check status first
 cd ~/server/apps/media-download
-docker-compose up -d gluetun nzbget
+docker-compose ps
 
-# Wait for gluetun to be healthy
+# If gluetun is healthy but download clients are stopped, restart them:
+docker-compose up -d nzbget qbittorrent
+
+# Or restart all VPN-dependent services:
+docker-compose up -d gluetun nzbget qbittorrent
+
+# Wait for gluetun to be healthy (if restarting gluetun)
 docker wait $(docker ps -q -f name=gluetun)
-
-# Restart download clients
-docker-compose restart nzbget qbittorrent
 
 # Verify VPN is working
 docker exec media-download-gluetun curl -s ifconfig.me
+
+# Verify download clients are accessible
+docker exec media-download-sonarr ping -c 2 media-download-gluetun
 ```
+
+**Prevention**:
+- Monitor gluetun health and restart download clients after gluetun restarts
+- Consider adding a health check script that monitors and auto-restarts dependent containers
+- Use Docker restart policies (`restart: unless-stopped`) - though this won't help with network namespace loss
 
 ### 2. Import Failures ("No Files Found")
 
