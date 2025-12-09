@@ -20,14 +20,20 @@
     },
     {
       "parameters": {
-        "command": "curl -s --unix-socket /var/run/docker.sock 'http://localhost/containers/json?filters=%7B%22name%22%3A%5B%22media-download-gluetun%22%5D%7D' | python3 -c \"import sys, json; containers = json.load(sys.stdin); status = containers[0]['Status'] if containers else ''; print('healthy' if '(healthy)' in status else 'unhealthy' if containers else 'not-found')\"",
+        "command": "docker inspect media-download-gluetun --format '{{.State.Health.Status}}'",
         "additionalFields": {}
       },
       "id": "check-gluetun-health",
       "name": "Check Gluetun Health",
-      "type": "n8n-nodes-base.executeCommand",
-      "typeVersion": 1,
-      "position": [450, 300]
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1.1,
+      "position": [450, 300],
+      "credentials": {
+        "ssh": {
+          "id": "server-ssh",
+          "name": "Server SSH"
+        }
+      }
     },
     {
       "parameters": {
@@ -40,7 +46,7 @@
           "conditions": [
             {
               "id": "filter-healthy-gluetun",
-              "leftValue": "={{ $json.stdout }}",
+              "leftValue": "={{ $json.output }}",
               "rightValue": "healthy",
               "operator": {
                 "type": "string",
@@ -60,14 +66,20 @@
     },
     {
       "parameters": {
-        "command": "curl -s --unix-socket /var/run/docker.sock 'http://localhost/containers/json?all=true&filters=%7B%22name%22%3A%5B%22media-download-nzbget%22%2C%22media-download-qbittorrent%22%2C%22media-download-slskd%22%5D%7D' | python3 -c \"import sys, json; containers = json.load(sys.stdin); [print(f'{c[\"Names\"][0].lstrip(\"/\")}|{c[\"Status\"]}|{c[\"State\"]}') for c in containers]\"",
+        "command": "docker ps -a --format '{{.Names}}|{{.Status}}|{{.State}}' --filter 'name=media-download-nzbget|media-download-qbittorrent|media-download-slskd'",
         "additionalFields": {}
       },
       "id": "check-dependent-containers",
       "name": "Check Dependent Containers",
-      "type": "n8n-nodes-base.executeCommand",
-      "typeVersion": 1,
-      "position": [850, 300]
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1.1,
+      "position": [850, 300],
+      "credentials": {
+        "ssh": {
+          "id": "server-ssh",
+          "name": "Server SSH"
+        }
+      }
     },
     {
       "parameters": {
@@ -110,14 +122,20 @@
     },
     {
       "parameters": {
-        "command": "curl -s --unix-socket /var/run/docker.sock -X POST 'http://localhost/containers/{{ $json.container_name }}/start'",
+        "command": "cd ~/server/apps/media-download && docker-compose up -d {{ $json.service_name }}",
         "additionalFields": {}
       },
       "id": "restart-container",
       "name": "Restart Container",
-      "type": "n8n-nodes-base.executeCommand",
-      "typeVersion": 1,
-      "position": [1450, 300]
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1.1,
+      "position": [1450, 300],
+      "credentials": {
+        "ssh": {
+          "id": "server-ssh",
+          "name": "Server SSH"
+        }
+      }
     },
     {
       "parameters": {
@@ -132,14 +150,20 @@
     },
     {
       "parameters": {
-        "command": "curl -s --unix-socket /var/run/docker.sock 'http://localhost/containers/{{ $json.container_name }}/json' | python3 -c \"import sys, json; c = json.load(sys.stdin); print(c.get('State', {}).get('Status', 'unknown'))\"",
+        "command": "docker ps --filter 'name={{ $json.container_name }}' --format '{{.Status}}'",
         "additionalFields": {}
       },
       "id": "verify-restart",
       "name": "Verify Restart",
-      "type": "n8n-nodes-base.executeCommand",
-      "typeVersion": 1,
-      "position": [1650, 300]
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1.1,
+      "position": [1650, 300],
+      "credentials": {
+        "ssh": {
+          "id": "server-ssh",
+          "name": "Server SSH"
+        }
+      }
     },
     {
       "parameters": {
