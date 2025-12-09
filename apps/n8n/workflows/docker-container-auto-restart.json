@@ -1,0 +1,194 @@
+{
+  "name": "Docker Container Auto-Restart",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 5
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "command": "docker inspect media-download-gluetun --format '{{.State.Health.Status}}'",
+        "additionalFields": {}
+      },
+      "id": "check-gluetun-health",
+      "name": "Check Gluetun Health",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "filter-healthy-gluetun",
+              "leftValue": "={{ $json.stdout }}",
+              "rightValue": "healthy",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "filter-healthy-gluetun",
+      "name": "Filter Healthy Gluetun",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "command": "docker ps -a --format '{{.Names}}|{{.Status}}|{{.State}}' --filter 'name=media-download-nzbget|media-download-qbittorrent|media-download-slskd'",
+        "additionalFields": {}
+      },
+      "id": "check-dependent-containers",
+      "name": "Check Dependent Containers",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse container status and filter for exit code 128\nconst items = $input.all();\nconst results = [];\n\n// Map container names to docker-compose service names\nconst containerToService = {\n  'media-download-nzbget': 'nzbget',\n  'media-download-qbittorrent': 'qbittorrent',\n  'media-download-slskd': 'slskd'\n};\n\nfor (const item of items) {\n  const stdout = item.json.stdout || '';\n  const lines = stdout.split('\\n').filter(l => l.trim());\n  \n  for (const line of lines) {\n    const parts = line.split('|');\n    if (parts.length >= 3) {\n      const containerName = parts[0].trim();\n      const status = parts[1].trim();\n      const state = parts[2].trim();\n      \n      // Extract exit code if present\n      const exitCodeMatch = status.match(/Exited \\((\\d+)\\)/);\n      const exitCode = exitCodeMatch ? exitCodeMatch[1] : null;\n      \n      // Only process containers that exited with code 128 (network namespace loss)\n      // and have a corresponding service name\n      if (exitCode === '128' && containerToService[containerName]) {\n        results.push({\n          container_name: containerName,\n          service_name: containerToService[containerName],\n          status: status,\n          state: state,\n          exit_code: exitCode,\n          timestamp: new Date().toISOString()\n        });\n      }\n    }\n  }\n}\n\nreturn results.map(r => ({ json: r }));"
+      },
+      "id": "parse-and-filter",
+      "name": "Parse and Filter Containers",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "filter-stopped",
+              "leftValue": "={{ $json.container_name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "filter-stopped-containers",
+      "name": "Filter Stopped Containers",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "command": "cd ~/server/apps/media-download && docker-compose up -d {{ $json.service_name }}",
+        "additionalFields": {}
+      },
+      "id": "restart-container",
+      "name": "Restart Container",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1450, 300]
+    },
+    {
+      "parameters": {
+        "amount": 10,
+        "unit": "seconds"
+      },
+      "id": "wait-for-restart",
+      "name": "Wait for Restart",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [1650, 300]
+    },
+    {
+      "parameters": {
+        "command": "docker ps --filter 'name={{ $json.container_name }}' --format '{{.Status}}'",
+        "additionalFields": {}
+      },
+      "id": "verify-restart",
+      "name": "Verify Restart",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1850, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format result message\nconst containerName = $('Parse and Filter Containers').first().json.container_name;\nconst serviceName = $('Parse and Filter Containers').first().json.service_name;\nconst restartOutput = $('Restart Container').first().json.stdout || '';\nconst verifyStatus = $('Verify Restart').first().json.stdout || '';\n\nconst isRunning = verifyStatus.includes('Up');\nconst timestamp = new Date().toISOString();\n\nreturn [{\n  json: {\n    container_name: containerName,\n    service_name: serviceName,\n    restart_successful: isRunning,\n    restart_output: restartOutput,\n    verification_status: verifyStatus,\n    timestamp: timestamp,\n    message: isRunning \n      ? `✅ Successfully restarted ${containerName} (${serviceName})`\n      : `⚠️ Restart attempted for ${containerName} but verification failed`\n  }\n}];"
+      },
+      "id": "format-result",
+      "name": "Format Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2050, 300]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [[{ "node": "Check Gluetun Health", "type": "main", "index": 0 }]]
+    },
+    "Check Gluetun Health": {
+      "main": [[{ "node": "Filter Healthy Gluetun", "type": "main", "index": 0 }]]
+    },
+    "Filter Healthy Gluetun": {
+      "main": [[{ "node": "Check Dependent Containers", "type": "main", "index": 0 }]]
+    },
+    "Check Dependent Containers": {
+      "main": [[{ "node": "Parse and Filter Containers", "type": "main", "index": 0 }]]
+    },
+    "Parse and Filter Containers": {
+      "main": [[{ "node": "Filter Stopped Containers", "type": "main", "index": 0 }]]
+    },
+    "Filter Stopped Containers": {
+      "main": [[{ "node": "Restart Container", "type": "main", "index": 0 }]]
+    },
+    "Restart Container": {
+      "main": [[{ "node": "Wait for Restart", "type": "main", "index": 0 }]]
+    },
+    "Wait for Restart": {
+      "main": [[{ "node": "Verify Restart", "type": "main", "index": 0 }]]
+    },
+    "Verify Restart": {
+      "main": [[{ "node": "Format Result", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-12-08T00:00:00.000Z",
+  "versionId": "1"
+}
+

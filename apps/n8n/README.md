@@ -105,13 +105,21 @@ docker run --rm -v n8n_data:/data -v $(pwd):/backup alpine tar xzf /backup/n8n_b
 
 This service is configured to appear in your Homepage dashboard under the "Automation" group.
 
-## AI Agent Workflows
+## Available Workflows
+
+### AI Agent Workflows
 
 n8n includes workflows that monitor server events and trigger an AI agent for automated troubleshooting:
 
 - **Docker Container Failure Monitor**: Monitors containers for failures, crashes, or unhealthy states
 - **Docker Build Failure Monitor**: Monitors Docker build failures
 - **Service Health Monitor**: Monitors service health endpoints and metrics
+
+### Automation Workflows
+
+- **Docker Container Auto-Restart**: Automatically restarts gluetun-dependent containers (NZBGet, qBittorrent, slskd) when they exit after gluetun restarts
+
+See [AUTO_RESTART_WORKFLOW.md](./AUTO_RESTART_WORKFLOW.md) for setup and usage.
 
 ### Setup AI Agent Workflows
 
@@ -121,6 +129,7 @@ See [SETUP_AI_AGENT_WORKFLOWS.md](./SETUP_AI_AGENT_WORKFLOWS.md) for detailed se
 
 - [AI_AGENT_WORKFLOWS.md](./AI_AGENT_WORKFLOWS.md) - Complete workflow documentation
 - [SETUP_AI_AGENT_WORKFLOWS.md](./SETUP_AI_AGENT_WORKFLOWS.md) - Step-by-step setup guide
+- [AUTO_RESTART_WORKFLOW.md](./AUTO_RESTART_WORKFLOW.md) - Auto-restart workflow documentation
 - [ai-agent-webhook/README.md](./ai-agent-webhook/README.md) - Webhook service documentation
 
 ## Troubleshooting
