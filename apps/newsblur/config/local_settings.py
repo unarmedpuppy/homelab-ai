@@ -9,3 +9,6 @@ USE_X_FORWARDED_HOST = True
 
 # Site URL (must match django_site table)
 NEWSBLUR_URL = "https://newsblur.server.unarmedpuppy.com"
+
+# Note: "newsblur" subdomain was added to ALLOWED_SUBDOMAINS in
+# /home/unarmedpuppy/NewsBlur/apps/reader/views.py on the server
