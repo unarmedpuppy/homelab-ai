@@ -60,18 +60,21 @@ services:
       - "traefik.http.routers.newsblur-local.priority=100"
       - "traefik.http.routers.newsblur-local.entrypoints=websecure"
       - "traefik.http.routers.newsblur-local.tls.certresolver=myresolver"
-      - "traefik.http.routers.newsblur-local.middlewares=security-headers@file"
+      - "traefik.http.routers.newsblur-local.middlewares=newsblur-headers"
       # External access (requires auth) - lowest priority
       - "traefik.http.routers.newsblur.rule=Host(`newsblur.server.unarmedpuppy.com`)"
       - "traefik.http.routers.newsblur.priority=1"
       - "traefik.http.routers.newsblur.entrypoints=websecure"
       - "traefik.http.routers.newsblur.tls.certresolver=myresolver"
       - "traefik.http.routers.newsblur.tls=true"
-      - "traefik.http.routers.newsblur.middlewares=newsblur-auth,security-headers@file"
-      # Service and auth middleware
+      - "traefik.http.routers.newsblur.middlewares=newsblur-auth,newsblur-headers"
+      # Service configuration
       - "traefik.http.services.newsblur.loadbalancer.server.port=8000"
+      # Auth middleware
       - "traefik.http.middlewares.newsblur-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.newsblur-auth.basicauth.realm=NewsBlur"
+      # Headers middleware - inject X-Forwarded-Proto for HTTPS detection
+      - "traefik.http.middlewares.newsblur-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
       # Homepage labels
       - "homepage.group=Social & News"
       - "homepage.name=NewsBlur"
