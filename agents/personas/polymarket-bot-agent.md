@@ -20,16 +20,19 @@ You are the Polymarket Bot specialist. Your expertise includes:
 - `src/main.py` - Application entry point and initialization
 
 ### Client & API
-- `src/client/polymarket.py` - CLOB HTTP API client for order execution
+- `src/client/polymarket.py` - CLOB HTTP API client for order execution (uses `MarketOrderArgs`)
 - `src/client/websocket.py` - WebSocket client for real-time price streaming
-- `src/client/gamma.py` - Gamma API client for market discovery
+- `src/client/gamma.py` - Gamma API client for market discovery (returns `market_slug`)
 
 ### Monitoring & Dashboard
 - `src/monitoring/order_book.py` - Order book tracking and arbitrage detection
-- `src/monitoring/market_finder.py` - 15-minute market discovery
-- `src/dashboard.py` - Retro terminal web dashboard with SSE
+- `src/monitoring/market_finder.py` - 15-minute market discovery (`Market15Min` dataclass with `slug` field)
+- `src/dashboard.py` - Retro terminal web dashboard with SSE (markets/trades link to Polymarket)
 - `src/persistence.py` - SQLite database for trade history
 - `src/metrics.py` - Prometheus metrics
+
+### Testing Scripts
+- `scripts/test_order.py` - Validates order execution on Polymarket
 
 ### Documentation
 - `docs/strategy-rules.md` - Complete strategy rules reference
@@ -76,6 +79,53 @@ You are the Polymarket Bot specialist. Your expertise includes:
 
 ## Critical Implementation Details
 
+### Position Sizing for Arbitrage (CRITICAL)
+For arbitrage profit, you need **EQUAL SHARES** of YES and NO, not equal dollars.
+
+```python
+# CORRECT - Equal shares approach
+cost_per_pair = yes_price + no_price
+num_pairs = budget / cost_per_pair
+yes_amount = num_pairs * yes_price  # More $ on expensive side
+no_amount = num_pairs * no_price    # Less $ on cheap side
+
+# WRONG - Equal dollar approach (creates unequal shares, loses money)
+# yes_amount = budget / 2
+# no_amount = budget / 2
+```
+
+**Why**: At resolution, you redeem PAIRS of shares (1 YES + 1 NO = $1). Excess shares are worthless.
+
+### Order Execution API
+The py-clob-client requires `MarketOrderArgs` object, NOT keyword arguments:
+
+```python
+from py_clob_client.clob_types import MarketOrderArgs
+
+# CORRECT
+order_args = MarketOrderArgs(
+    token_id=token_id,
+    amount=amount_usd,
+    side=side.upper(),  # "BUY" or "SELL"
+)
+result = self._client.create_market_order(order_args)
+
+# WRONG - will raise TypeError
+# result = self._client.create_market_order(token_id=..., amount=..., side=...)
+```
+
+### Profit Validation Before Trade
+Always validate expected profit is positive before executing:
+
+```python
+min_shares = min(yes_shares, no_shares)
+expected_profit = min_shares - total_cost
+
+if expected_profit <= 0:
+    log.warning("Rejecting trade with non-positive expected profit")
+    return None  # Don't execute!
+```
+
 ### WebSocket Token Mapping Fix
 The `MultiMarketTracker` must use a **single shared `OrderBookTracker`** for all markets. Previous bug: each market created its own tracker, overwriting the callback and breaking token ID mapping.
 
@@ -104,6 +154,7 @@ subscribe_msg = {
 Markets use time-based slugs: `{asset}-updown-15m-{unix_timestamp}`
 - Timestamps are aligned to 15-minute boundaries (900 seconds)
 - Calculate: `slot_ts = (current_ts // 900) * 900`
+- Polymarket URL: `https://polymarket.com/event/{slug}`
 
 ## Dashboard Architecture
 
@@ -118,6 +169,28 @@ add_decision(asset="BTC", action="YES", ...)      # ARB: YES (green)
 add_decision(asset="BTC", action="NO", ...)       # ARB: NO (red)
 add_decision(asset="BTC", action="DIR_YES", ...)  # DIR: YES (cyan)
 add_decision(asset="BTC", action="DIR_NO", ...)   # DIR: NO (amber)
+```
+
+### Dashboard Features
+- **Market hyperlinks**: Active markets display as clickable links to Polymarket (e.g., "BTC ↗")
+- **Trade hyperlinks**: Trades link to their respective Polymarket market pages
+- **Market slug**: `Market15Min.slug` field stores the slug for URL construction
+- **Trade slug**: `add_trade()` accepts `market_slug` parameter for linking
+
+```python
+# Market data includes slug for dashboard links
+markets_data[market.condition_id] = {
+    "asset": market.asset,
+    "slug": market.slug,  # For Polymarket URL
+    # ... other fields
+}
+
+# Trade includes market_slug
+trade_id = add_trade(
+    asset=market.asset,
+    market_slug=market.slug,  # Links trade to Polymarket
+    # ... other fields
+)
 ```
 
 ## Configuration
@@ -177,6 +250,26 @@ scripts/connect-server.sh "docker exec polymarket-bot printenv | grep GABAGOOL"
 - Check price threshold ($0.25)
 - Check directional exposure limit (50% of max daily)
 
+### Trade recorded but never executed ("phantom trade")
+- Check if `expected_profit` was positive before execution
+- Verify `create_market_order()` uses `MarketOrderArgs` object
+- Check for API errors in logs during order placement
+- Delete phantom trades from DB: `DELETE FROM trades WHERE id = 'trade-X'`
+
+### Negative expected profit despite positive spread
+- **Root cause**: Wrong position sizing (equal dollars instead of equal shares)
+- Fix: Use `num_pairs = budget / (yes_price + no_price)` approach
+- Verify: `min(yes_shares, no_shares) - total_cost > 0`
+
+### `'PolymarketClient' object has no attribute 'X'`
+- Stale container code - container wasn't rebuilt
+- Fix: `docker compose down && docker compose up -d --build`
+- Verify code is updated: `docker exec polymarket-bot cat /app/src/client/polymarket.py | head -50`
+
+### Orders failing with TypeError
+- py-clob-client requires `MarketOrderArgs` object, not kwargs
+- Check: `from py_clob_client.clob_types import MarketOrderArgs`
+
 ## Testing Commands
 
 ```bash
@@ -188,6 +281,15 @@ scripts/connect-server.sh "docker ps --filter name=polymarket"
 
 # View real-time logs
 scripts/connect-server.sh "docker logs -f polymarket-bot"
+
+# Check dashboard state JSON (includes markets with slugs)
+scripts/connect-server.sh "curl -s http://localhost:8501/dashboard/state | python3 -m json.tool | head -50"
+
+# Check trades in database
+scripts/connect-server.sh "docker exec polymarket-bot python3 -c 'import asyncio, aiosqlite; c=asyncio.get_event_loop().run_until_complete(aiosqlite.connect(\"/app/data/gabagool.db\")); r=asyncio.get_event_loop().run_until_complete(c.execute(\"SELECT id,status,asset,actual_profit FROM trades\")); print(asyncio.get_event_loop().run_until_complete(r.fetchall()))'"
+
+# Test order execution (dry run in container)
+scripts/connect-server.sh "docker exec polymarket-bot python3 /app/scripts/test_order.py"
 ```
 
 ## API Endpoints
@@ -213,9 +315,16 @@ Tracked in `_directional_positions: Dict[str, DirectionalPosition]`
 
 | Action | Command |
 |--------|---------|
-| Deploy changes | `scripts/connect-server.sh "cd /home/unarmedpuppy/server/apps/polymarket-bot && git pull && docker compose up -d --build"` |
+| Deploy changes | `scripts/connect-server.sh "cd ~/server/apps/polymarket-bot && git pull && docker compose build && docker compose down && docker compose up -d"` |
 | View logs | `scripts/connect-server.sh "docker logs polymarket-bot --tail 100"` |
 | Check status | `scripts/connect-server.sh "docker ps --filter name=polymarket"` |
 | Toggle dry run | Edit `.env` on server, then `docker compose down && up -d` |
+| Check trades DB | `scripts/connect-server.sh "docker exec polymarket-bot sqlite3 /app/data/gabagool.db 'SELECT * FROM trades'"` |
+| Dashboard state | `scripts/connect-server.sh "curl -s http://localhost:8501/dashboard/state"` |
+
+**Server paths:**
+- Git repo: `~/server/` (symlink to `/home/unarmedpuppy/server`)
+- App dir: `~/server/apps/polymarket-bot/`
+- Database: `/app/data/gabagool.db` (inside container)
 
 See [apps/polymarket-bot/docs/strategy-rules.md](../../apps/polymarket-bot/docs/strategy-rules.md) for complete strategy documentation.
