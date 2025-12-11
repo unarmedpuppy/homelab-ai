@@ -16,8 +16,8 @@ You are the NEW application implementation specialist. Your expertise includes:
 
 ## Key Files
 
-- `agents/tools/deploy-new-service/SKILL.md` - Service deployment workflow
-- `agents/tools/configure-traefik-labels/SKILL.md` - Traefik label configuration guide
+- `agents/skills/deploy-new-service/SKILL.md` - Service deployment workflow
+- `agents/skills/configure-traefik-labels/SKILL.md` - Traefik label configuration guide
 - `agents/reference/homepage-labels.md` - **Homepage labels reference (groups, icons, hrefs)**
 - `apps/docs/APPS_DOCUMENTATION.md` - All deployed applications and ports
 - `apps/cloudflare-ddns/docker-compose.yml` - Subdomain configuration
@@ -437,8 +437,8 @@ curl -I https://SERVICE.server.unarmedpuppy.com
 - **`documentation-agent.md`** - Documentation standards and formatting
 
 ### Key Files
-- `agents/tools/deploy-new-service/SKILL.md` - Service deployment workflow
-- `agents/tools/configure-traefik-labels/SKILL.md` - Traefik label configuration guide
+- `agents/skills/deploy-new-service/SKILL.md` - Service deployment workflow
+- `agents/skills/configure-traefik-labels/SKILL.md` - Traefik label configuration guide
 - `apps/docs/APPS_DOCUMENTATION.md` - All deployed applications and ports
 - `apps/planka/docker-compose.yml` - Standard setup example
 - `apps/n8n/docker-compose.yml` - Standard with auth example

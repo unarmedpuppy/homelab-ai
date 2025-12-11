@@ -7,14 +7,14 @@
 
 ## Overview
 
-Migrate from the current markdown-based task system (`agents/tasks/tasks.md`) to [Beads](https://github.com/steveyegge/beads), a distributed issue tracker designed for AI agents with multi-session memory and git-backed synchronization.
+Migrate from the current markdown-based task system (`agents/plans/tasks.md`) to [Beads](https://github.com/steveyegge/beads), a distributed issue tracker designed for AI agents with multi-session memory and git-backed synchronization.
 
 ## Current State Analysis
 
 ### What We Have Now
 
 ```
-agents/tasks/
+agents/plans/
 ├── tasks.md         # Main task list (28KB, 26 active tasks)
 ├── registry.md      # Duplicate/older task registry
 ├── README.md        # Usage documentation
@@ -253,7 +253,7 @@ agents/tasks/
    ```
    ```
 
-2. **`agents/tasks/README.md`** - Update or replace:
+2. **`agents/plans/README.md`** - Update or replace:
    ```markdown
    # Task Coordination
 
@@ -304,7 +304,7 @@ agents/tasks/
    ```
    ```
 
-4. **Create new tool** - `agents/tools/beads-task-management/SKILL.md`:
+4. **Create new tool** - `agents/skills/beads-task-management/SKILL.md`:
    ```yaml
    ---
    name: beads-task-management
@@ -382,9 +382,9 @@ agents/tasks/
 
 1. **Archive old tasks.md:**
    ```bash
-   mkdir -p agents/tasks/archive
-   mv agents/tasks/tasks.md agents/tasks/archive/tasks-pre-beads.md
-   mv agents/tasks/registry.md agents/tasks/archive/registry-pre-beads.md
+   mkdir -p agents/plans/archive
+   mv agents/plans/tasks.md agents/plans/archive/tasks-pre-beads.md
+   mv agents/plans/registry.md agents/plans/archive/registry-pre-beads.md
    ```
 
 2. **Add migration note to archive:**
@@ -402,7 +402,7 @@ agents/tasks/
 
 3. **Keep tasks directory for README:**
    ```
-   agents/tasks/
+   agents/plans/
    ├── README.md          # Updated with Beads instructions
    ├── archive/
    │   ├── tasks-pre-beads.md
@@ -471,7 +471,7 @@ bd close <test-id> --reason "Migration verified"
 
 If issues are encountered:
 
-1. Old `tasks.md` is archived in `agents/tasks/archive/`
+1. Old `tasks.md` is archived in `agents/plans/archive/`
 2. Beads `.beads/` directory can be removed
 3. Restore archive files to original location
 4. Git history preserves all states
@@ -498,23 +498,23 @@ If issues are encountered:
 
 **Created:**
 - `.beads/` directory (at repo root)
-- `agents/tools/beads-task-management/SKILL.md`
+- `agents/skills/beads-task-management/SKILL.md`
 - `agents/personas/task-manager-agent.md`
 - `scripts/migrate-tasks-to-beads.sh`
 
 **Modified:**
 - `AGENTS.md` - Task management section, tool table, persona table
-- `agents/tasks/README.md` - Updated for Beads
+- `agents/plans/README.md` - Updated for Beads
 - `agents/personas/server-agent.md` - Add Beads reference
 - Other agent personas - Add task discovery sections
 
 **Archived:**
-- `agents/tasks/tasks.md` → `agents/tasks/archive/tasks-pre-beads.md`
-- `agents/tasks/registry.md` → `agents/tasks/archive/registry-pre-beads.md`
+- `agents/plans/tasks.md` → `agents/plans/archive/tasks-pre-beads.md`
+- `agents/plans/registry.md` → `agents/plans/archive/registry-pre-beads.md`
 
 ## Implementation Tasks
 
-Detailed claimable tasks are defined in `agents/tasks/tasks.md`:
+Detailed claimable tasks are defined in `agents/plans/tasks.md`:
 
 | Task | Description |
 |------|-------------|
@@ -529,7 +529,7 @@ Detailed claimable tasks are defined in `agents/tasks/tasks.md`:
 | T35 | Create task-manager-agent persona |
 | T36 | Update AGENTS.md for Beads workflow |
 | T37 | Update existing agent personas for Beads |
-| T38 | Update agents/tasks/README.md for Beads |
+| T38 | Update agents/plans/README.md for Beads |
 | T39 | Archive old task system and verify migration |
 
 **Dependency chain:**

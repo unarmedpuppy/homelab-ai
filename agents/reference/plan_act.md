@@ -32,17 +32,17 @@ Embedded workflow for agent development tasks.
 
 ### Planning Documentation
 
-Store plans in `agents/plans/` (shared) or `agents/plans-local/` (local only):
+Store plans in `agents/plans/` (shared) or `agents/plans/local/` (local only):
 
 - **`agents/plans/`** - Committed plans for multi-session features, architectural decisions, implementation strategies
-- **`agents/plans-local/`** - Gitignored scratch work, session notes, exploratory analysis
+- **`agents/plans/local/`** - Gitignored scratch work, session notes, exploratory analysis
 
 **Reference Documentation** (not plans):
 - **`agents/reference/`** - Persistent reference guides, how-to documentation, architectural references (e.g., `agents/reference/storage/`, `agents/reference/setup/`)
 - **`docs/`** - Project-level documentation (security audits, implementation docs)
 
 **⚠️ IMPORTANT**: 
-- **Plans and strategies** → `agents/plans/` or `agents/plans-local/`
+- **Plans and strategies** → `agents/plans/` or `agents/plans/local/`
 - **Reference guides and how-tos** → `agents/reference/`
 - **Do NOT** create planning/strategy docs in `docs/` - use `agents/plans/` instead
 
@@ -124,8 +124,8 @@ author: @agent-id
 
 ## Integration with Task Management
 
-- Create tasks in `agents/tasks/tasks.md` from plan
-- Update task status as you work
+- Create tasks with Beads: `bd create "Task title" -p 1`
+- Update task status as you work: `bd update <id> --status in_progress`
 - Reference plan in task notes
-- Mark plan complete when all tasks done
+- Mark plan complete when all tasks done: `bd close <id>`
 

@@ -63,7 +63,7 @@ bd dep cycles
 
 ## Documentation
 
-- **Complete guide**: `agents/tools/beads-task-management/SKILL.md`
+- **Complete guide**: `agents/skills/beads-task-management/SKILL.md`
 - **Task coordination persona**: `agents/personas/task-manager-agent.md`
 - **Beads CLI help**: `bd --help`
 

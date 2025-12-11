@@ -1,0 +1,25 @@
+{
+  "name": "plan-creator",
+  "version": "1.0.0",
+  "description": "Create consistent implementation plans for AI agents",
+  "main": "scripts/create-plan.js",
+  "scripts": {
+    "create": "node scripts/create-plan.js",
+    "validate": "node scripts/validate-plan.js",
+    "export": "node scripts/export-to-tasks.js"
+  },
+  "keywords": [
+    "planning",
+    "workflow",
+    "ai-agents",
+    "documentation"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "fs-extra": "^11.2.0",
+    "inquirer": "^8.2.6",
+    "js-yaml": "^4.1.0"
+  }
+}

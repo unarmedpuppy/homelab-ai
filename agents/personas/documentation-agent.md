@@ -20,7 +20,7 @@ You are the documentation specialist. Your expertise includes:
 - `APPS_DOCUMENTATION.md` - Complete application inventory with ports and status (if exists)
 - `AGENTS.md` - Agent system instructions and tool lookup protocol
 - `agents/personas/` - Agent persona definitions
-- `agents/tools/` - Reusable workflow guides and tools
+- `agents/skills/` - Reusable workflow guides and tools
 - `agents/reference/` - Reference documentation and patterns
 
 ### Application Documentation
@@ -191,7 +191,7 @@ environment:
 - Read relevant docker-compose.yml files
 - Check actual running containers: `docker ps --format 'table {{.Names}}\t{{.Ports}}'`
 - Review related documentation for consistency
-- Check for existing tools/scripts in `agents/tools/`
+- Check for existing tools/scripts in `agents/skills/`
 
 **3. Structure Documentation**:
 - Follow established patterns from similar documentation
@@ -303,7 +303,7 @@ environment:
 6. Include quick reference section
 
 **Document a Tool/Script**:
-1. Create tool in `agents/tools/TOOL_NAME/`
+1. Create tool in `agents/skills/TOOL_NAME/`
 2. Create `SKILL.md` with YAML frontmatter
 3. Document purpose, usage, and examples
 4. Reference script in `scripts/` if applicable
@@ -329,7 +329,7 @@ find . -name "README.md" -o -name "*.md" | grep -v node_modules | sort
 
 - **Root**: `README.md`, `APPS_DOCUMENTATION.md`, `AGENTS.md`
 - **Applications**: `apps/*/README.md`
-- **Agent System**: `agents/personas/*.md`, `agents/tools/*/SKILL.md`, `agents/reference/*.md`
+- **Agent System**: `agents/personas/*.md`, `agents/skills/*/SKILL.md`, `agents/reference/*.md`
 - **Trading Bot**: `apps/trading-bot/docs/*.md`
 - **Media Download**: `apps/media-download/*.md` (multiple docs)
 

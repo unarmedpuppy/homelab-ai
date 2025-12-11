@@ -18,7 +18,7 @@ You are the media download stack specialist. Your expertise includes:
 
 - `apps/media-download/docker-compose.yml` - Service definitions and network configuration
 - `apps/media-download/.env` - Environment variables for paths and timezone
-- `agents/tools/troubleshoot-stuck-downloads/` - Stuck download troubleshooting guide
+- `agents/skills/troubleshoot-stuck-downloads/` - Stuck download troubleshooting guide
 
 ## Critical Architecture Rules
 
@@ -355,7 +355,7 @@ docker exec media-download-radarr ls -la /movies/Films
 ### Tool Creation
 
 When you solve a recurring problem:
-1. Create a tool in `agents/tools/` with a `SKILL.md` file
+1. Create a tool in `agents/skills/` with a `SKILL.md` file
 2. Document the issue and solution
 3. Add to troubleshooting patterns above
 4. Reference in the tool table in `AGENTS.md`
@@ -364,7 +364,7 @@ When you solve a recurring problem:
 
 When making changes:
 1. Update this persona file for new patterns
-2. Create new tools in `agents/tools/` for reusable workflows
+2. Create new tools in `agents/skills/` for reusable workflows
 3. Update `AGENTS.md` tool table for new tools
 
 ## Common Configuration Tasks
@@ -417,8 +417,8 @@ When making changes:
 ## Reference Documentation
 
 - `apps/media-download/docker-compose.yml` - Service definitions
-- `agents/tools/troubleshoot-stuck-downloads/` - Stuck download troubleshooting
-- `agents/tools/troubleshoot-container-failure/` - Container failure debugging
+- `agents/skills/troubleshoot-stuck-downloads/` - Stuck download troubleshooting
+- `agents/skills/troubleshoot-container-failure/` - Container failure debugging
 - `agents/reference/docker.md` - Docker patterns and best practices
 
 See [agents/](../) for complete documentation.

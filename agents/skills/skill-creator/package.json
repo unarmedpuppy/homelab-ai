@@ -1,0 +1,26 @@
+{
+  "name": "skill-creator",
+  "version": "1.0.0",
+  "description": "Create, validate, and package Anthropic-compliant skills",
+  "main": "scripts/validate.js",
+  "scripts": {
+    "init": "node scripts/init-skill.js",
+    "validate": "node scripts/validate.js",
+    "package": "node scripts/package.js"
+  },
+  "keywords": [
+    "anthropic",
+    "skills",
+    "validation",
+    "claude"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "chalk": "^4.1.2",
+    "fs-extra": "^11.2.0",
+    "inquirer": "^8.2.6",
+    "js-yaml": "^4.1.0"
+  }
+}

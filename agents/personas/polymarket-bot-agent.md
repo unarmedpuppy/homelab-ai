@@ -32,7 +32,9 @@ You are the Polymarket Bot specialist. Your expertise includes:
 - `src/metrics.py` - Prometheus metrics
 
 ### Testing Scripts
-- `scripts/test_order.py` - Validates order execution on Polymarket
+- `scripts/test_real_trade.py` - Execute a REAL $5 trade on an active 15-minute market
+- `scripts/check_orders.py` - Check balance, open orders, and recent trades
+- `scripts/test_order.py` - Legacy order validation script
 
 ### Documentation
 - `docs/strategy-rules.md` - Complete strategy rules reference
@@ -96,23 +98,81 @@ no_amount = num_pairs * no_price    # Less $ on cheap side
 
 **Why**: At resolution, you redeem PAIRS of shares (1 YES + 1 NO = $1). Excess shares are worthless.
 
-### Order Execution API
-The py-clob-client requires `MarketOrderArgs` object, NOT keyword arguments:
+### Order Execution API (CRITICAL - Orders Must Be POSTED)
+
+**The py-clob-client has TWO steps for order execution:**
+1. `create_order()` / `create_market_order()` - **ONLY SIGNS** the order, returns `SignedOrder`
+2. `post_order()` - **ACTUALLY SUBMITS** to exchange
 
 ```python
-from py_clob_client.clob_types import MarketOrderArgs
+from py_clob_client.clob_types import OrderArgs
 
-# CORRECT
-order_args = MarketOrderArgs(
+# CORRECT - Sign AND post
+order_args = OrderArgs(
     token_id=token_id,
-    amount=amount_usd,
-    side=side.upper(),  # "BUY" or "SELL"
+    price=limit_price,
+    size=shares,
+    side=side.upper(),
 )
-result = self._client.create_market_order(order_args)
+signed_order = self._client.create_order(order_args)  # Step 1: Sign
+result = self._client.post_order(signed_order)        # Step 2: POST to exchange!
 
-# WRONG - will raise TypeError
-# result = self._client.create_market_order(token_id=..., amount=..., side=...)
+# WRONG - Order is signed but never submitted (no trade executes!)
+# signed_order = self._client.create_order(order_args)
+# return signed_order  # BUG: Missing post_order()!
 ```
+
+### Market Orders Have Decimal Precision Bug (USE LIMIT ORDERS)
+
+**CRITICAL**: Market orders in py-clob-client have a decimal precision bug that causes "invalid amounts" errors.
+See: https://github.com/Polymarket/py-clob-client/issues/121
+
+**Workaround**: Use aggressive limit orders (GTC) instead of market orders:
+
+```python
+from py_clob_client.clob_types import OrderArgs
+
+def create_market_order(self, token_id: str, amount_usd: float, side: str, price: float = None):
+    """Execute using aggressive limit order (workaround for market order bug)."""
+
+    # Get current price if not provided
+    if price is None:
+        price = self.get_price(token_id, side.lower())
+
+    # Use aggressive limit price to ensure fill
+    if side.upper() == "BUY":
+        limit_price = round(min(price + 0.02, 0.99), 2)  # +2 cents
+    else:
+        limit_price = round(max(price - 0.02, 0.01), 2)  # -2 cents
+
+    # Calculate shares from amount
+    shares = round(amount_usd / limit_price, 2)
+
+    order_args = OrderArgs(
+        token_id=token_id,
+        price=limit_price,
+        size=shares,
+        side=side.upper(),
+    )
+
+    signed_order = self._client.create_order(order_args)
+    result = self._client.post_order(signed_order)  # DON'T FORGET THIS!
+    return result
+```
+
+### Cloudflare WAF Blocking (Proxy Required)
+
+Polymarket's API is behind Cloudflare WAF which blocks many server IPs. **Solution**: Route traffic through a VPN/proxy.
+
+In `docker-compose.yml`:
+```yaml
+environment:
+  # Route through VPN proxy (required for py-clob-client)
+  - HTTP_PROXY=http://your-proxy:8888
+  - HTTPS_PROXY=http://your-proxy:8888
+```
+
+Without proxy, orders will fail with `403 Forbidden` from Cloudflare.
 
 ### Profit Validation Before Trade
 Always validate expected profit is positive before executing:
@@ -267,8 +327,36 @@ scripts/connect-server.sh "docker exec polymarket-bot printenv | grep GABAGOOL"
 - Verify code is updated: `docker exec polymarket-bot cat /app/src/client/polymarket.py | head -50`
 
 ### Orders failing with TypeError
-- py-clob-client requires `MarketOrderArgs` object, not kwargs
-- Check: `from py_clob_client.clob_types import MarketOrderArgs`
+- py-clob-client requires `MarketOrderArgs` or `OrderArgs` object, not kwargs
+- Check: `from py_clob_client.clob_types import OrderArgs`
+
+### Orders "succeed" but no position appears on Polymarket
+- **Root cause**: Order was signed but never POSTed
+- The `create_order()` / `create_market_order()` methods only SIGN the order
+- Must call `post_order(signed_order)` to actually submit to exchange
+- Check logs for "Order signed" but no "Order posted" message
+
+### "invalid amounts, max accuracy of X decimals" error
+- **Root cause**: py-clob-client market order decimal precision bug
+- See: https://github.com/Polymarket/py-clob-client/issues/121
+- **Fix**: Use limit orders (GTC) instead of market orders
+- Limit orders at aggressive prices (+/-2 cents) work around the bug
+
+### 403 Forbidden from Cloudflare
+- **Root cause**: Server IP blocked by Cloudflare WAF
+- **Fix**: Route traffic through VPN/proxy
+- Add to docker-compose.yml:
+  ```yaml
+  environment:
+    - HTTP_PROXY=http://your-proxy:8888
+    - HTTPS_PROXY=http://your-proxy:8888
+  ```
+
+### Opportunities detected but never executed
+- **Root cause 1**: Polling-based detection blocked by slow market updates
+- **Fix**: Use callback-based immediate execution with `_opportunity_queue`
+- **Root cause 2**: Market state marked "stale" (>10 seconds old)
+- Check WebSocket connection and book updates
 
 ## Testing Commands
 
@@ -288,8 +376,26 @@ scripts/connect-server.sh "curl -s http://localhost:8501/dashboard/state | pytho
 # Check trades in database
 scripts/connect-server.sh "docker exec polymarket-bot python3 -c 'import asyncio, aiosqlite; c=asyncio.get_event_loop().run_until_complete(aiosqlite.connect(\"/app/data/gabagool.db\")); r=asyncio.get_event_loop().run_until_complete(c.execute(\"SELECT id,status,asset,actual_profit FROM trades\")); print(asyncio.get_event_loop().run_until_complete(r.fetchall()))'"
 
-# Test order execution (dry run in container)
-scripts/connect-server.sh "docker exec polymarket-bot python3 /app/scripts/test_order.py"
+# Test REAL order execution ($5 limit order on active market)
+scripts/connect-server.sh "docker exec polymarket-bot python3 /app/scripts/test_real_trade.py"
+
+# Check open orders and balance
+scripts/connect-server.sh "docker exec polymarket-bot python3 /app/scripts/check_orders.py"
+```
+
+### Verify Trade Execution
+
+After running `test_real_trade.py`, verify the trade worked:
+
+```bash
+# 1. Check balance changed
+scripts/connect-server.sh "docker exec polymarket-bot python3 /app/scripts/check_orders.py"
+
+# 2. Look for your order in recent trades
+# Your maker_address should appear in the output
+
+# 3. Check Polymarket UI
+# Go to https://polymarket.com and check your positions
 ```
 
 ## API Endpoints

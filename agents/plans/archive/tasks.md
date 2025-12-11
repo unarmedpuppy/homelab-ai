@@ -16,7 +16,7 @@ git pull origin main
 # 3. Edit this file: change [AVAILABLE] → [CLAIMED by @your-id]
 
 # 4. Commit and push within 1 minute (creates "lock")
-git add agents/tasks/tasks.md
+git add agents/plans/tasks.md
 git commit -m "claim: Task X - Description"
 git push origin main
 
@@ -75,7 +75,7 @@ git checkout -b feature/task-x-description
 | T35 | Create task-manager-agent persona | [COMPLETE] | P1 |
 | T36 | Update AGENTS.md for Beads workflow | [AVAILABLE] | P1 |
 | T37 | Update existing agent personas for Beads | [AVAILABLE] | P1 |
-| T38 | Update agents/tasks/README.md for Beads | [AVAILABLE] | P1 |
+| T38 | Update agents/plans/README.md for Beads | [AVAILABLE] | P1 |
 | T39 | Archive old task system and verify migration | [AVAILABLE] | P1 |
 
 ### Task T1: Consolidate metrics system (8 files → 3)
@@ -344,7 +344,7 @@ git checkout -b feature/task-x-description
 
 **Objective**: Update Infrastructure apps with correct icons and move monitoring tools from Trading to Infrastructure.
 
-**Plan Reference**: `agents/plans-local/homepage-category-consolidation.md`
+**Plan Reference**: `agents/plans/local/homepage-category-consolidation.md`
 
 **Files to modify**:
 - `apps/vaultwarden/docker-compose.yml` - icon: `si-1password` → `si-vaultwarden`
@@ -368,7 +368,7 @@ git checkout -b feature/task-x-description
 
 **Objective**: Update all media apps to use `si-*` icons and consolidate into Media Servers / Media Management categories.
 
-**Plan Reference**: `agents/plans-local/homepage-category-consolidation.md`
+**Plan Reference**: `agents/plans/local/homepage-category-consolidation.md`
 
 **Files to modify**:
 - `apps/jellyfin/docker-compose.yml` - icon: `si-redhat` → `si-jellyfin`
@@ -401,7 +401,7 @@ git checkout -b feature/task-x-description
 
 **Objective**: Consolidate all productivity apps under single "Productivity" category and fix icons.
 
-**Plan Reference**: `agents/plans-local/homepage-category-consolidation.md`
+**Plan Reference**: `agents/plans/local/homepage-category-consolidation.md`
 
 **Files to modify**:
 - `apps/planka/docker-compose.yml` - icon: `si-todoist` → `si-planka`; group stays `Productivity & Organization` → `Productivity`
@@ -430,7 +430,7 @@ git checkout -b feature/task-x-description
 
 **Objective**: Update Social & News category and fix remaining icons in Gaming/Trading.
 
-**Plan Reference**: `agents/plans-local/homepage-category-consolidation.md`
+**Plan Reference**: `agents/plans/local/homepage-category-consolidation.md`
 
 **Files to modify**:
 - `apps/campfire/docker-compose.yml` - icon: `si-campfire` → `si-basecamp`; group: `Communication & Social` → `Social & News`
@@ -1239,9 +1239,9 @@ bd list --status closed --json | jq length  # Should be 4
 **Effort**: Medium
 **Project**: agents
 
-**Objective**: Create a comprehensive tool in `agents/tools/` for Beads task management
+**Objective**: Create a comprehensive tool in `agents/skills/` for Beads task management
 
-**File to create**: `agents/tools/beads-task-management/SKILL.md`
+**File to create**: `agents/skills/beads-task-management/SKILL.md`
 
 **Content structure**:
 ```yaml
@@ -1289,7 +1289,7 @@ bd close <id> --reason "Implemented in PR #X"
 ```
 
 **Success Criteria**:
-- [ ] `agents/tools/beads-task-management/` directory created
+- [ ] `agents/skills/beads-task-management/` directory created
 - [ ] `SKILL.md` has YAML frontmatter with name, description, when_to_use
 - [ ] All common Beads commands documented
 - [ ] Claim → Work → Complete workflow documented
@@ -1298,7 +1298,7 @@ bd close <id> --reason "Implemented in PR #X"
 
 **Verification**:
 ```bash
-ls agents/tools/beads-task-management/SKILL.md
+ls agents/skills/beads-task-management/SKILL.md
 grep "beads-task-management" AGENTS.md
 ```
 
@@ -1333,8 +1333,8 @@ You are the Task Manager specialist. Your expertise includes:
 ## Key Files
 
 - `.beads/` - Beads database (source of truth)
-- `agents/tools/beads-task-management/SKILL.md` - Beads workflow guide
-- `agents/tasks/README.md` - Task coordination reference
+- `agents/skills/beads-task-management/SKILL.md` - Beads workflow guide
+- `agents/plans/README.md` - Task coordination reference
 
 ## Task Management Workflow
 
@@ -1435,7 +1435,7 @@ When multiple agents work concurrently:
 | View details | `bd show <id>` |
 | Check health | `bd doctor` |
 
-See [agents/tools/beads-task-management/](../tools/beads-task-management/) for complete documentation.
+See [agents/skills/beads-task-management/](../tools/beads-task-management/) for complete documentation.
 ```
 
 **Success Criteria**:
@@ -1473,17 +1473,17 @@ grep "bd ready" agents/personas/task-manager-agent.md
 
 2. **Tool Documentation** section
    - Add beads-task-management to Utilities table
-   - Remove or update references to `agents/tasks/tasks.md`
+   - Remove or update references to `agents/plans/tasks.md`
 
 3. **Always Do** section (~line 71-77)
-   - Update "Check `agents/tasks/tasks.md`" to "Check `bd ready` or `bd list`"
+   - Update "Check `agents/plans/tasks.md`" to "Check `bd ready` or `bd list`"
    - Keep "Update task status when claiming/completing work"
 
 **Changes to make**:
 
 **Old (Task Claiming Protocol)**:
 ```bash
-# 2. Claim task (edit agents/tasks/tasks.md)
+# 2. Claim task (edit agents/plans/tasks.md)
 # Change [AVAILABLE] → [CLAIMED by @your-id]
 ```
 
@@ -1501,7 +1501,7 @@ git push origin main
 
 **Old (Always Do)**:
 ```markdown
-- Check `agents/tasks/tasks.md` at session start for pending/in-progress tasks
+- Check `agents/plans/tasks.md` at session start for pending/in-progress tasks
 ```
 
 **New**:
@@ -1512,7 +1512,7 @@ git push origin main
 
 **Tool table addition**:
 ```markdown
-| [beads-task-management](agents/tools/beads-task-management/) | Manage tasks with Beads | - |
+| [beads-task-management](agents/skills/beads-task-management/) | Manage tasks with Beads | - |
 ```
 
 **Agent Personas table addition**:
@@ -1585,7 +1585,7 @@ git add .beads/ && git commit -m "claim: <task-id>"
 bd close <task-id> --reason "Completed - description"
 ```
 
-For full Beads documentation, see `agents/tools/beads-task-management/SKILL.md`.
+For full Beads documentation, see `agents/skills/beads-task-management/SKILL.md`.
 ```
 
 **Personas to check**:
@@ -1608,13 +1608,13 @@ grep -l "tasks.md" agents/personas/*.md  # Should be empty or only archive refs
 
 ---
 
-### Task T38: Update agents/tasks/README.md for Beads
+### Task T38: Update agents/plans/README.md for Beads
 **Priority**: P1
 **Dependencies**: T34
 **Effort**: Low
 **Project**: agents
 
-**Objective**: Rewrite agents/tasks/README.md to document Beads-based workflow
+**Objective**: Rewrite agents/plans/README.md to document Beads-based workflow
 
 **Current content** (to replace):
 - References editing tasks.md directly
@@ -1702,7 +1702,7 @@ git commit -m "close: <task-id>"
 
 ## Full Documentation
 
-See `agents/tools/beads-task-management/SKILL.md` for complete Beads documentation.
+See `agents/skills/beads-task-management/SKILL.md` for complete Beads documentation.
 ```
 
 **Success Criteria**:
@@ -1715,9 +1715,9 @@ See `agents/tools/beads-task-management/SKILL.md` for complete Beads documentati
 
 **Verification**:
 ```bash
-grep "bd ready" agents/tasks/README.md
-grep "\.beads" agents/tasks/README.md
-grep -c "tasks.md" agents/tasks/README.md  # Should be 0 or only in archive section
+grep "bd ready" agents/plans/README.md
+grep "\.beads" agents/plans/README.md
+grep -c "tasks.md" agents/plans/README.md  # Should be 0 or only in archive section
 ```
 
 ---
@@ -1733,14 +1733,14 @@ grep -c "tasks.md" agents/tasks/README.md  # Should be 0 or only in archive sect
 **Archive steps**:
 ```bash
 # Create archive directory
-mkdir -p agents/tasks/archive
+mkdir -p agents/plans/archive
 
 # Move old files
-mv agents/tasks/tasks.md agents/tasks/archive/tasks-pre-beads.md
-mv agents/tasks/registry.md agents/tasks/archive/registry-pre-beads.md
+mv agents/plans/tasks.md agents/plans/archive/tasks-pre-beads.md
+mv agents/plans/registry.md agents/plans/archive/registry-pre-beads.md
 
 # Add archive note
-cat > agents/tasks/archive/README.md << 'EOF'
+cat > agents/plans/archive/README.md << 'EOF'
 # Archive Note
 
 These files were migrated to Beads on $(date +%Y-%m-%d).
@@ -1785,8 +1785,8 @@ git status  # Should show .beads/beads.jsonl staged
 ```
 
 **Success Criteria**:
-- [ ] Old tasks.md archived to agents/tasks/archive/
-- [ ] Old registry.md archived to agents/tasks/archive/
+- [ ] Old tasks.md archived to agents/plans/archive/
+- [ ] Old registry.md archived to agents/plans/archive/
 - [ ] Archive README.md created with migration note
 - [ ] `bd doctor` reports healthy
 - [ ] All 22 tasks present in Beads

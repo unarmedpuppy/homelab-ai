@@ -30,7 +30,10 @@ apps/trading-bot/ib-gateway-data/
 # Agent state files
 agents/apps/agent-monitoring/data/*.db
 # Agent local plans (not committed)
-agents/plans-local/*
-!agents/plans-local/.gitkeep
+agents/plans/local/*
+!agents/plans/local/.gitkeep
+
+# Agent skills node_modules
+agents/skills/*/node_modules/
 # agents/**/__pycache__/ - covered by global rule
 # agents/**/*.pyc - covered by global rule

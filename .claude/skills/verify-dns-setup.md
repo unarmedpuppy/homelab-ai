@@ -1,0 +1,1 @@
+../../agents/skills/verify-dns-setup/SKILL.md

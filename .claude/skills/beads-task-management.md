@@ -1,0 +1,1 @@
+../../agents/skills/beads-task-management/SKILL.md

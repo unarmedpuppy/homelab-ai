@@ -1,0 +1,174 @@
+---
+name: upgrade-workflow
+description: Migrate existing Local Agent Development Workflow to latest structure. Use when existing agents/ directory detected and needs migration from old structure (tools→skills, tasks→plans, plans-local→plans/local, old git workflow). Creates migration report and preserves git history.
+---
+
+# Upgrade Workflow
+
+Migrate an existing Local Agent Development Workflow framework to the latest structure.
+
+## Overview
+
+Automatically upgrade your existing agent framework to the new structure:
+- Rename `agents/skills/` → `agents/skills/` (preserving git history)
+- Move `agents/plans/tasks.md` → `agents/plans/tasks.md`
+- Reorganize `agents/plans/local/` → `agents/plans/local/`
+- Update all internal references (tools→skills, etc.)
+- Create Claude Skills symlinks (`.claude/skills/`)
+- Generate comprehensive migration report
+- Move unmapped legacy files to `agents/legacy/`
+
+## What Gets Changed
+
+### Directory Migrations (with git history preserved)
+
+```
+OLD STRUCTURE              NEW STRUCTURE
+agents/skills/         →    agents/skills/
+agents/plans/         →    agents/plans/ (tasks.md moved to plans/)
+agents/plans/local/   →    agents/plans/local/
+```
+
+### Reference Updates
+
+All markdown files updated to reflect new paths:
+- `agents/skills/` → `agents/skills/`
+- `agents/plans/` → `agents/plans/`
+- `agents/plans/local/` → `agents/plans/local/`
+- "tool" → "skill" (contextual replacements)
+
+### New Additions
+
+- `.claude/skills/` - Symlinks to skills for Claude Code auto-detection
+- `.claude/skills/README.md` - Documentation for Claude Skills
+- Updated `.gitignore` - Ephemeral plans pattern
+- `agents/legacy/MIGRATION.md` - Record of unmapped files
+
+## Usage Instructions
+
+### Basic Usage
+
+```bash
+# Navigate to your project root
+cd /path/to/your/project
+
+# Run upgrade
+node agents/skills/upgrade-workflow/scripts/upgrade.js
+```
+
+### With Auto-Detection
+
+```bash
+# Let auto-setup detect and run upgrade
+node agents/skills/scaffold-workflow/scripts/auto-setup.js
+```
+
+### Options
+
+```bash
+# Dry-run mode (preview changes without applying)
+node scripts/upgrade.js --dry-run
+
+# Auto-confirm (skip confirmation prompt)
+node scripts/upgrade.js --auto
+```
+
+## Migration Process
+
+The upgrade follows these steps:
+
+1. **Detect Structure** - Analyze current framework state
+2. **Confirm Changes** - Show migration plan, ask for confirmation
+3. **Migrate Files** - Use `git mv` to preserve history
+4. **Update References** - Fix all internal links and mentions
+5. **Handle Legacy** - Move unmapped files to `agents/legacy/`
+6. **Create Symlinks** - Add Claude Skills integration
+7. **Generate Report** - Create detailed migration log
+
+## Migration Report
+
+After upgrade completes, review:
+- `agents/legacy/MIGRATION.md` - Complete migration log
+  - Files moved (old → new paths)
+  - References updated (count per file)
+  - Legacy files requiring manual review
+  - Rollback instructions
+
+## Manual Steps After Upgrade
+
+1. **Review migration report**: `agents/legacy/MIGRATION.md`
+2. **Check legacy files**: Review `agents/legacy/` for unmapped content
+3. **Test git operations**: Verify history preserved with `git log`
+4. **Update custom scripts**: If you have custom tooling, update paths
+5. **Commit changes**: `git add . && git commit -m "refactor: upgrade agent workflow framework"`
+6. **(Optional) Enable Claude Skills**: Set `chat.useClaudeSkills = true` in VS Code
+
+## Rollback Instructions
+
+If issues occur:
+
+```bash
+# Before committing, use git reset
+git reset --hard HEAD
+
+# After committing, revert the commit
+git revert <commit-hash>
+
+# Manual rollback (if needed)
+git mv agents/skills agents/tools
+git mv agents/plans/tasks.md agents/plans/tasks.md
+git mv agents/plans/local agents/plans-local
+# ... etc
+```
+
+## Requirements
+
+- **Node.js**: v14 or higher
+- **Git**: Repository must be git-initialized
+- **Clean working directory**: Commit or stash changes first
+
+## Resources
+
+- **Scripts**: See `scripts/` directory for implementation
+- **Templates**: Migration patterns in upgrade logic
+- **Anthropic Spec**: Follows official skill standards
+
+## Troubleshooting
+
+### "No agents/ directory found"
+
+**Problem**: Upgrade requires existing `agents/` directory
+
+**Solution**: Use `scaffold-workflow` skill instead for new projects
+
+### "Uncommitted changes detected"
+
+**Problem**: Git working directory has uncommitted changes
+
+**Solution**: Commit or stash changes before running upgrade:
+```bash
+git add .
+git commit -m "chore: save work before framework upgrade"
+# OR
+git stash
+```
+
+### "Symlinks failed on Windows"
+
+**Problem**: Windows requires special permissions for symlinks
+
+**Solution**: 
+1. Enable Developer Mode in Windows Settings, OR
+2. Run as Administrator, OR
+3. Configure git: `git config core.symlinks true`
+4. Manually create junctions (see migration report)
+
+### "References not updated"
+
+**Problem**: Some files still reference old paths
+
+**Solution**: Check migration report for missed files, update manually
+
+---
+
+*Generated by upgrade-workflow v2.0.0*

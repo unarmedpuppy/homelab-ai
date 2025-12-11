@@ -78,7 +78,7 @@ git revert HEAD && git push
 
 ## Related Tools
 
-- `agents/tools/standard-deployment/` - Standard deployment workflow
-- `agents/tools/deploy-new-service/` - Setting up new services
+- `agents/skills/standard-deployment/` - Standard deployment workflow
+- `agents/skills/deploy-new-service/` - Setting up new services
 - `agents/personas/server-agent.md` - Server management specialist
 

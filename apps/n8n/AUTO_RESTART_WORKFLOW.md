@@ -141,7 +141,7 @@ Check workflow execution in n8n:
 
 ## Related Documentation
 
-- `agents/plans-local/docker-container-auto-restart-n8n.md` - Implementation plan
+- `agents/plans/local/docker-container-auto-restart-n8n.md` - Implementation plan
 - `agents/personas/media-download-agent.md` - Media download stack documentation
 - `apps/n8n/README.md` - n8n setup and usage
 

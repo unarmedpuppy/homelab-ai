@@ -1,0 +1,1 @@
+../../agents/skills/fix-hardcoded-credentials/SKILL.md

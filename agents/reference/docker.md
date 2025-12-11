@@ -83,5 +83,5 @@ docker compose config
 
 ## Troubleshooting
 
-See `agents/tools/troubleshoot-container-failure/` for detailed troubleshooting guide.
+See `agents/skills/troubleshoot-container-failure/` for detailed troubleshooting guide.
 

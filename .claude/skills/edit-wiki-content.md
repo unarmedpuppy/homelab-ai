@@ -1,0 +1,1 @@
+../../agents/skills/edit-wiki-content/SKILL.md

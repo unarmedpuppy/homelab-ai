@@ -1,0 +1,1 @@
+../../agents/skills/upgrade-workflow/SKILL.md

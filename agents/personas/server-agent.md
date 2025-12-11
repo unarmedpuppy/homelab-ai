@@ -82,7 +82,7 @@ bd update <id> --status in_progress
 git add .beads/ && git commit -m "claim: <id>" && git push
 ```
 
-See `agents/tools/beads-task-management/SKILL.md` for complete workflow.
+See `agents/skills/beads-task-management/SKILL.md` for complete workflow.
 
 ## Agent Role
 

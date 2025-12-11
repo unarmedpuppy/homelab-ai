@@ -1,0 +1,1 @@
+../../agents/skills/connect-server/SKILL.md

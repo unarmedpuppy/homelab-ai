@@ -14,8 +14,8 @@ You are the Task Manager specialist. Your expertise includes:
 ## Key Files
 
 - `.beads/` - Beads database (source of truth)
-- `agents/tools/beads-task-management/SKILL.md` - Beads workflow guide
-- `agents/tasks/README.md` - Task coordination reference
+- `agents/skills/beads-task-management/SKILL.md` - Beads workflow guide
+- `agents/plans/README.md` - Task coordination reference
 
 ## Task Management Workflow
 
@@ -187,4 +187,4 @@ From `bv --robot-insights`:
 
 Use these instead of hand-rolling graph logic - `bv` computes the hard parts.
 
-See [agents/tools/beads-task-management/](../tools/beads-task-management/) for complete documentation.
+See [agents/skills/beads-task-management/](../tools/beads-task-management/) for complete documentation.

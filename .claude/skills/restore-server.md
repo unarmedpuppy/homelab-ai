@@ -1,0 +1,1 @@
+../../agents/skills/restore-server/SKILL.md

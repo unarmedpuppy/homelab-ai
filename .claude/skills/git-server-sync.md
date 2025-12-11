@@ -1,0 +1,1 @@
+../../agents/skills/git-server-sync/SKILL.md

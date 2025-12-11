@@ -17,7 +17,7 @@ This directory contains **persistent plans** that should be committed to git and
 
 - **Reference documentation** → Use `agents/reference/` instead
 - **How-to guides** → Use `agents/reference/` instead
-- **Ephemeral/scratch work** → Use `agents/plans-local/` instead (gitignored)
+- **Ephemeral/scratch work** → Use `agents/plans/local/` instead (gitignored)
 - **Project-level docs** → Use `docs/` for security audits, etc.
 
 ## Examples

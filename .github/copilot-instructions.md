@@ -8,9 +8,9 @@ See [AGENTS.md](../AGENTS.md) for the primary project documentation.
 
 ## Quick Reference
 
-- Check `agents/tasks/tasks.md` at session start
+- Check `agents/plans/tasks.md` at session start
 - Query `agents/memory/memory.db` before architectural decisions
-- Use `agents/tools/` for common workflows
+- Use `agents/skills/` for common workflows
 - Reference `agents/personas/server-agent.md` for server management tasks
 
 ## Custom Agents

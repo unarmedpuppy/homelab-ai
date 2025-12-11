@@ -1,0 +1,1 @@
+../../agents/skills/configure-traefik-labels/SKILL.md

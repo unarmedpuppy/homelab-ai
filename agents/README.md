@@ -1,27 +1,26 @@
 # Agents
 
-Agent system for the home server. This directory contains all agent-related documentation, tools, and workflows.
+Agent system for the home server. This directory contains all agent-related documentation, skills, and workflows.
 
 ## Structure
 
 ```
 agents/
 ├── README.md                # This file - directory index
-├── tasks/                   # Task management
-│   ├── tasks.md            # Active task tracking
-│   ├── archive/             # Completed task phases
-│   └── templates/          # Task templates
-├── tools/                   # Workflow guides (formerly skills)
+├── skills/                  # Workflow guides (SKILL.md files)
 │   ├── standard-deployment/
 │   ├── deploy-new-service/
 │   └── ...
+├── plans/                   # Implementation plans and task management
+│   ├── local/              # Local scratch plans (gitignored)
+│   ├── tasks.md            # Task management documentation
+│   ├── archive/            # Completed task phases
+│   └── templates/          # Task templates
 ├── personas/                # Agent personalities
 │   └── server-agent.md     # Server management specialist
-├── plans/                   # Shared implementation plans (committed)
-├── plans-local/             # Local scratch plans (gitignored)
 └── reference/               # Deep documentation
     ├── docker.md           # Docker patterns
-    ├── deployment.md        # Deployment workflows
+    ├── deployment.md       # Deployment workflows
     └── plan_act.md         # Workflow documentation
 ```
 
@@ -29,30 +28,31 @@ agents/
 
 | Directory | Purpose | Committed |
 |-----------|---------|-----------|
-| `tasks/` | Task tracking with claiming protocol | ✅ |
-| `tools/` | Reusable workflow guides with YAML frontmatter | ✅ |
-| `personas/` | Specialized agent personalities | ✅ |
+| `skills/` | Reusable workflow guides with YAML frontmatter | ✅ |
 | `plans/` | Shared implementation plans | ✅ |
-| `plans-local/` | Local scratch work (session notes) | ❌ |
+| `plans/local/` | Local scratch work (session notes) | ❌ |
+| `personas/` | Specialized agent personalities | ✅ |
 | `reference/` | Deep-dive documentation by topic | ✅ |
 
-## Tasks
+## Task Management
 
-Task tracking with multi-agent claiming protocol. See `agents/tasks/tasks.md` for active tasks.
+Tasks are managed using [Beads](https://github.com/steveyegge/beads), a distributed issue tracker for AI agents.
 
-**Task Claiming Protocol:**
-1. Pull latest: `git pull origin main`
-2. Edit `agents/tasks/tasks.md`: Change `[AVAILABLE]` → `[CLAIMED by @your-id]`
-3. Commit and push within 1 minute
-4. Create feature branch
+**Quick Commands:**
+```bash
+bd ready                 # Find work (no blockers)
+bd list                  # View all tasks
+bd create "title" -p 1   # Create task
+bd close <id>            # Complete task
+```
 
-See `agents/tasks/README.md` for full documentation.
+See `agents/plans/tasks.md` for full documentation.
 
-## Tools
+## Skills
 
-Workflow guides (formerly "skills") with YAML frontmatter for agent discovery.
+Workflow guides with YAML frontmatter for agent discovery.
 
-**Available Tools:**
+**Available Skills:**
 - `standard-deployment` - Deploy code changes to server
 - `deploy-new-service` - Set up a new Docker service
 - `troubleshoot-container-failure` - Debug container issues
@@ -60,8 +60,9 @@ Workflow guides (formerly "skills") with YAML frontmatter for agent discovery.
 - `system-health-check` - Comprehensive system status
 - `cleanup-disk-space` - Free up disk space
 - `edit-wiki-content` - Programmatically edit Wiki.js pages
+- `beads-task-management` - Task management with Beads
 
-Each tool has a `README.md` with YAML frontmatter describing when to use it.
+Each skill has a `SKILL.md` with YAML frontmatter describing when to use it.
 
 ## Personas
 
@@ -72,8 +73,8 @@ Specialized agent personalities for domain expertise.
 - `infrastructure-agent.md` - Network infrastructure, security, DNS, and firewall specialist
 - `app-implementation-agent.md` - Research and implement new applications with Traefik, homepage, and deployment
 - `media-download-agent.md` - Media download stack (Sonarr, Radarr, VPN) specialist
-- `maptapdat-agent.md` - MapTap.gg data visualization and management specialist
-- `meta-agent.md` - Creates new agent personas for specialized domains
+- `task-manager-agent.md` - Task coordination and management with Beads
+- `critical-thinking-agent.md` - Hyper-objective logic engine for decision-making
 
 Personas provide focused expertise for specific domains. Reference them when working on related tasks.
 
@@ -82,7 +83,7 @@ Personas provide focused expertise for specific domains. Reference them when wor
 Implementation planning separated into shared and local:
 
 - **`plans/`** - Committed plans for multi-session features, architectural decisions
-- **`plans-local/`** - Gitignored scratch work, session notes, exploratory analysis
+- **`plans/local/`** - Gitignored scratch work, session notes, exploratory analysis
 
 See `agents/plans/README.md` for plan format and workflow.
 
@@ -96,10 +97,10 @@ Deep-dive documentation split by topic:
 
 ## Usage
 
-1. **Session start**: Check `tasks/tasks.md` for pending/in-progress tasks
-2. **Before work**: Check `tools/` for existing solutions
-3. **During work**: Use `tools/` for common workflows, reference `personas/` for expertise
-4. **Session end**: Update tasks, create tools for solutions
+1. **Session start**: Check `bd ready` for pending tasks
+2. **Before work**: Check `skills/` for existing solutions
+3. **During work**: Use `skills/` for common workflows, reference `personas/` for expertise
+4. **Session end**: Update tasks, create skills for solutions
 
 ## Entry Point
 

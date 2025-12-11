@@ -5,8 +5,8 @@
 ## ⚠️ Critical Requirements
 
 **Before doing anything:**
-1. **🔍 CHECK TOOLS FIRST**: Always check `agents/tools/` before solving problems or looking up commands
-2. **📝 CREATE TOOLS**: If you solve a problem, create a tool in `agents/tools/` for future use
+1. **🔍 CHECK TOOLS FIRST**: Always check `agents/skills/` before solving problems or looking up commands
+2. **📝 CREATE TOOLS**: If you solve a problem, create a tool in `agents/skills/` for future use
 3. **📋 USE BEADS FOR TASKS**: All task management **MUST** use Beads (`bd` commands) - never create manual task lists
 
 **Quick Reference:**
@@ -58,17 +58,17 @@ home-server/
 │   └── [other apps]/
 ├── scripts/                 # Automation scripts
 ├── agents/                  # Agent system
-│   ├── memory/              # SQLite memory for decisions
-│   ├── tasks/               # Task tracking
-│   ├── tools/               # Workflow guides
-│   └── personas/            # Agent personalities
+│   ├── skills/              # Workflow guides (SKILL.md files)
+│   ├── plans/               # Plans and task management
+│   ├── personas/            # Agent personalities
+│   └── reference/           # Reference documentation
 └── docs/                    # Documentation
 ```
 
 **Key Directories**:
 - `apps/` - Docker applications (trading-bot, media-download, etc.)
 - `.beads/` - **Task database (Beads distributed issue tracker)**
-- `agents/tools/` - Reusable workflow guides
+- `agents/skills/` - Reusable workflow guides
 - `scripts/` - Automation and deployment scripts
 
 ## Code Style
@@ -82,10 +82,10 @@ See `agents/reference/` for detailed patterns and workflows.
 ## Boundaries
 
 ### Always Do
-- **🔍 CHECK TOOLS FIRST**: Before solving any problem or looking up commands, **MUST** check `agents/tools/` for existing solutions
+- **🔍 CHECK TOOLS FIRST**: Before solving any problem or looking up commands, **MUST** check `agents/skills/` for existing solutions
 - Check for tasks at session start: `bd ready` (unblocked work) and `bd list --status in_progress` (in-progress tasks)
-- Use tools from `agents/tools/` for common workflows
-- **📝 CREATE TOOLS**: If you solve a problem with commands or create a script, **MUST** create a tool in `agents/tools/` for future use
+- Use tools from `agents/skills/` for common workflows
+- **📝 CREATE TOOLS**: If you solve a problem with commands or create a script, **MUST** create a tool in `agents/skills/` for future use
 - Update task status when claiming/completing work (`bd update <id> --status in_progress`, `bd close <id>`)
 - Commit after each logical unit of work
 - **🔄 SUBMIT PR WHEN COMPLETE**: When a feature is complete, **MUST** submit a pull request from the feature branch back to main
@@ -114,7 +114,7 @@ See `agents/reference/` for detailed patterns and workflows.
 
 ### Before Solving Any Problem
 
-**ALWAYS check `agents/tools/` first** before:
+**ALWAYS check `agents/skills/` first** before:
 - Looking up commands
 - Searching for solutions
 - Writing new scripts
@@ -122,7 +122,7 @@ See `agents/reference/` for detailed patterns and workflows.
 - Performing any operation
 
 **How to check tools:**
-1. List available tools: `ls agents/tools/` or browse `agents/tools/` directory
+1. List available tools: `ls agents/skills/` or browse `agents/skills/` directory
 2. Read tool descriptions in YAML frontmatter (in `SKILL.md` files)
 3. Search for relevant keywords in tool names/descriptions
 4. Read the tool's `SKILL.md` file for complete instructions
@@ -130,12 +130,12 @@ See `agents/reference/` for detailed patterns and workflows.
 **Example workflow:**
 ```bash
 # Need to deploy code? Check tools first:
-ls agents/tools/ | grep -i deploy
+ls agents/skills/ | grep -i deploy
 # Found: standard-deployment/
-cat agents/tools/standard-deployment/SKILL.md
+cat agents/skills/standard-deployment/SKILL.md
 
 # Need to troubleshoot? Check tools first:
-ls agents/tools/ | grep -i troubleshoot
+ls agents/skills/ | grep -i troubleshoot
 # Found: troubleshoot-container-failure/, troubleshoot-stuck-downloads/
 ```
 
@@ -148,7 +148,7 @@ ls agents/tools/ | grep -i troubleshoot
 - Discovered a pattern that might be needed again
 
 **Tool creation process:**
-1. Create directory: `mkdir -p agents/tools/tool-name`
+1. Create directory: `mkdir -p agents/skills/tool-name`
 2. Create `SKILL.md` with YAML frontmatter:
    ```yaml
    ---
@@ -177,17 +177,17 @@ ls agents/tools/ | grep -i troubleshoot
 
 ### Planning Documentation
 
-Store plans in `agents/plans/` (shared) or `agents/plans-local/` (local only):
+Store plans in `agents/plans/` (shared) or `agents/plans/local/` (local only):
 
 - **`agents/plans/`** - Committed plans for multi-session features, architectural decisions, implementation strategies
-- **`agents/plans-local/`** - Gitignored scratch work, session notes, exploratory analysis
+- **`agents/plans/local/`** - Gitignored scratch work, session notes, exploratory analysis
 
 **Reference Documentation** (not plans):
 - **`agents/reference/`** - Persistent reference guides, how-to documentation, architectural references
 - **`docs/`** - Project-level documentation (security audits, etc.)
 
 **⚠️ IMPORTANT**: 
-- **Plans and strategies** → `agents/plans/` or `agents/plans-local/`
+- **Plans and strategies** → `agents/plans/` or `agents/plans/local/`
 - **Reference guides and how-tos** → `agents/reference/`
 - **Do NOT** create planning/strategy docs in `docs/` - use `agents/plans/` instead
 
@@ -195,7 +195,7 @@ See `agents/reference/plan_act.md` for plan templates and workflow details.
 
 ### Task Management with Beads
 
-Tasks are managed using [Beads](https://github.com/steveyegge/beads), a distributed issue tracker with git-backed synchronization. See `agents/tools/beads-task-management/SKILL.md` for complete documentation.
+Tasks are managed using [Beads](https://github.com/steveyegge/beads), a distributed issue tracker with git-backed synchronization. See `agents/skills/beads-task-management/SKILL.md` for complete documentation.
 
 **Session Start:**
 ```bash
@@ -250,62 +250,62 @@ bd dep tree <id>
 
 ## Tool Documentation
 
-**⚠️ READ THIS FIRST**: Before solving any problem, **MUST** check `agents/tools/` for existing solutions. See [Tool Lookup Protocol](#-tool-lookup-protocol) above.
+**⚠️ READ THIS FIRST**: Before solving any problem, **MUST** check `agents/skills/` for existing solutions. See [Tool Lookup Protocol](#-tool-lookup-protocol) above.
 
-Agent-discoverable tool guides are in `agents/tools/`. Each tool has a `SKILL.md` file with YAML frontmatter for discovery. Tools reference scripts in `scripts/` directory when applicable.
+Agent-discoverable tool guides are in `agents/skills/`. Each tool has a `SKILL.md` file with YAML frontmatter for discovery. Tools reference scripts in `scripts/` directory when applicable.
 
 ### Deployment & Git
 | Tool | Purpose | Script |
 |------|---------|--------|
-| [standard-deployment](agents/tools/standard-deployment/) | Deploy code changes to server | `scripts/deploy-to-server.sh` |
-| [connect-server](agents/tools/connect-server/) | Execute commands on server | `scripts/connect-server.sh` |
-| [git-server-sync](agents/tools/git-server-sync/) | Sync git between local and server | `scripts/git-server-sync.sh` |
+| [standard-deployment](agents/skills/standard-deployment/) | Deploy code changes to server | `scripts/deploy-to-server.sh` |
+| [connect-server](agents/skills/connect-server/) | Execute commands on server | `scripts/connect-server.sh` |
+| [git-server-sync](agents/skills/git-server-sync/) | Sync git between local and server | `scripts/git-server-sync.sh` |
 
 ### Security
 | Tool | Purpose | Script |
 |------|---------|--------|
-| [security-audit](agents/tools/security-audit/) | Comprehensive security audit | `scripts/security-audit.sh` |
-| [validate-secrets](agents/tools/validate-secrets/) | Validate secrets configuration | `scripts/validate-secrets.sh` |
-| [fix-hardcoded-credentials](agents/tools/fix-hardcoded-credentials/) | Fix hardcoded credentials | `scripts/fix-hardcoded-credentials.sh` |
+| [security-audit](agents/skills/security-audit/) | Comprehensive security audit | `scripts/security-audit.sh` |
+| [validate-secrets](agents/skills/validate-secrets/) | Validate secrets configuration | `scripts/validate-secrets.sh` |
+| [fix-hardcoded-credentials](agents/skills/fix-hardcoded-credentials/) | Fix hardcoded credentials | `scripts/fix-hardcoded-credentials.sh` |
 
 ### Monitoring & Health
 | Tool | Purpose | Script |
 |------|---------|--------|
-| [check-service-health](agents/tools/check-service-health/) | Health check for all services | `scripts/check-service-health.sh` |
-| [system-health-check](agents/tools/system-health-check/) | Comprehensive system status | - |
-| [verify-dns-setup](agents/tools/verify-dns-setup/) | Verify DNS configuration | `scripts/verify-dns-setup.sh` |
+| [check-service-health](agents/skills/check-service-health/) | Health check for all services | `scripts/check-service-health.sh` |
+| [system-health-check](agents/skills/system-health-check/) | Comprehensive system status | - |
+| [verify-dns-setup](agents/skills/verify-dns-setup/) | Verify DNS configuration | `scripts/verify-dns-setup.sh` |
 
 ### Backup & Restore
 | Tool | Purpose | Script |
 |------|---------|--------|
-| [backup-server](agents/tools/backup-server/) | Comprehensive server backup | `scripts/backup-server.sh` |
-| [restore-server](agents/tools/restore-server/) | Restore from backups | `scripts/restore-server.sh` |
-| [check-backup-health](agents/tools/check-backup-health/) | Validate backup integrity | `scripts/check-backup-health.sh` |
+| [backup-server](agents/skills/backup-server/) | Comprehensive server backup | `scripts/backup-server.sh` |
+| [restore-server](agents/skills/restore-server/) | Restore from backups | `scripts/restore-server.sh` |
+| [check-backup-health](agents/skills/check-backup-health/) | Validate backup integrity | `scripts/check-backup-health.sh` |
 
 ### Troubleshooting
 | Tool | Purpose | Script |
 |------|---------|--------|
-| [troubleshoot-container-failure](agents/tools/troubleshoot-container-failure/) | Debug container issues | - |
-| [troubleshoot-stuck-downloads](agents/tools/troubleshoot-stuck-downloads/) | Fix Sonarr/Radarr issues | - |
-| [cleanup-disk-space](agents/tools/cleanup-disk-space/) | Free disk space | - |
+| [troubleshoot-container-failure](agents/skills/troubleshoot-container-failure/) | Debug container issues | - |
+| [troubleshoot-stuck-downloads](agents/skills/troubleshoot-stuck-downloads/) | Fix Sonarr/Radarr issues | - |
+| [cleanup-disk-space](agents/skills/cleanup-disk-space/) | Free disk space | - |
 
 ### Drive Health & Storage
 | Tool | Purpose | Script |
 |------|---------|--------|
-| [monitor-drive-health](agents/tools/monitor-drive-health/) | Monitor drive health with SMART status | `scripts/check-drive-health.sh` |
+| [monitor-drive-health](agents/skills/monitor-drive-health/) | Monitor drive health with SMART status | `scripts/check-drive-health.sh` |
 
 ### Task Management
 | Tool | Purpose | Script |
 |------|---------|--------|
-| [beads-task-management](agents/tools/beads-task-management/) | Manage tasks with Beads distributed issue tracker | - |
+| [beads-task-management](agents/skills/beads-task-management/) | Manage tasks with Beads distributed issue tracker | - |
 
 ### Utilities
 | Tool | Purpose | Script |
 |------|---------|--------|
-| [deploy-new-service](agents/tools/deploy-new-service/) | Set up new Docker service | - |
-| [configure-traefik-labels](agents/tools/configure-traefik-labels/) | Configure Traefik reverse proxy labels for apps | - |
-| [update-homepage-groups](agents/tools/update-homepage-groups/) | Update homepage organization | `scripts/update-homepage-groups.py` |
-| [edit-wiki-content](agents/tools/edit-wiki-content/) | Edit Wiki.js pages via API | `apps/wiki/edit-wiki.py` |
+| [deploy-new-service](agents/skills/deploy-new-service/) | Set up new Docker service | - |
+| [configure-traefik-labels](agents/skills/configure-traefik-labels/) | Configure Traefik reverse proxy labels for apps | - |
+| [update-homepage-groups](agents/skills/update-homepage-groups/) | Update homepage organization | `scripts/update-homepage-groups.py` |
+| [edit-wiki-content](agents/skills/edit-wiki-content/) | Edit Wiki.js pages via API | `apps/wiki/edit-wiki.py` |
 
 ## Agent Personas
 
@@ -328,14 +328,14 @@ For critical analysis, decision review, or challenging assumptions, reference th
 | `.beads/` | Task database (use `bd` commands to query) |
 | `agents/reference/beads.md` | **Beads CLI reference (bd)** - comprehensive command guide |
 | `agents/reference/beads-viewer.md` | **Beads Viewer reference (bv)** - AI graph sidecar |
-| `agents/tools/beads-task-management/` | Beads workflow guide |
+| `agents/skills/beads-task-management/` | Beads workflow guide |
 | `agents/reference/docker.md` | Docker patterns and best practices |
 | `agents/reference/deployment.md` | Deployment workflows |
 | `agents/reference/homepage-labels.md` | Homepage dashboard labels (groups, icons, hrefs) |
 | `agents/reference/plan_act.md` | Planning and workflow documentation |
 | `agents/reference/storage/` | Storage and ZFS reference guides |
 | `agents/plans/` | Implementation plans and strategies |
-| `agents/tools/` | Tool-specific guides |
+| `agents/skills/` | Tool-specific guides |
 
 ---
 
