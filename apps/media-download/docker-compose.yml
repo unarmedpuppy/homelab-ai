@@ -182,7 +182,7 @@ services:
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Prowlarr"
       - "homepage.href=https://prowlarr.server.unarmedpuppy.com"
-      - "homepage.icon=si-prowlarr"
+      - "homepage.icon=si-prettier"
       - "homepage.description=Unified indexer manager for *arr apps"
     # NOT on VPN - only searches, doesn't download
 
