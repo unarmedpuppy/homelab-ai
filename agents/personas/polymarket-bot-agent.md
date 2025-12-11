@@ -8,6 +8,7 @@ You are the Polymarket Bot specialist. Your expertise includes:
 - Polymarket CLOB API integration and WebSocket streaming
 - Gabagool arbitrage strategy (buying YES+NO when sum < $1.00)
 - Directional trading strategy (speculative single-sided trades)
+- Near-resolution trading strategy (high-confidence bets in final minute)
 - Real-time order book tracking and opportunity detection
 - Dashboard development with Server-Sent Events (SSE)
 
@@ -78,6 +79,23 @@ You are the Polymarket Bot specialist. Your expertise includes:
   - Profitable at <20% time → Hold to resolution
   - Unprofitable at <20% time → Cut losses
 - **Trailing Stop**: Activates 5¢ below target, trails 10¢
+
+### Near-Resolution Strategy
+- **Entry**: <60 seconds remaining AND price between $0.94-$0.975
+- **Position**: Buy the high-confidence side only
+- **Size**: Fixed $10 (configurable via `near_resolution_size_usd`)
+- **Rationale**: Catches markets where price hasn't fully converged to $1.00
+- **Exit**: Hold to resolution (typically seconds away)
+- **Risk**: If prediction is wrong, lose entire stake minus residual value
+
+```python
+# Near-resolution config in config.py
+near_resolution_enabled: bool = True
+near_resolution_time_threshold: float = 60.0  # seconds
+near_resolution_min_price: float = 0.94
+near_resolution_max_price: float = 0.975
+near_resolution_size_usd: float = 10.0
+```
 
 ## Critical Implementation Details
 
@@ -215,6 +233,58 @@ Markets use time-based slugs: `{asset}-updown-15m-{unix_timestamp}`
 - Timestamps are aligned to 15-minute boundaries (900 seconds)
 - Calculate: `slot_ts = (current_ts // 900) * 900`
 - Polymarket URL: `https://polymarket.com/event/{slug}`
+
+## Real-Time Data Flow Architecture
+
+Understanding the data flow is critical for debugging issues:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         WebSocket Message Flow                               │
+│                                                                             │
+│  Polymarket WS ──▶ _process_messages() ──▶ _handle_book_update()           │
+│                                                  │                          │
+│                              ┌───────────────────┼───────────────────┐      │
+│                              ▼                   ▼                   ▼      │
+│                    Update MarketState    _on_state_change()   _on_opportunity()
+│                    (prices, timestamps)         │                   │      │
+│                                                 │                   │      │
+│                              ┌──────────────────┴───────┐           │      │
+│                              ▼                          ▼           ▼      │
+│                    Dashboard SSE broadcast    Near-res check   Arb queue   │
+│                    (update_markets())         (polling)        (immediate) │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Key insight**: Both the trading strategy AND the dashboard receive data from the SAME `_handle_book_update()` function. A dashboard display issue does NOT mean the trading strategy isn't receiving data.
+
+### Callback Registration (in gabagool.py start())
+```python
+# Register for arbitrage opportunities (immediate execution via queue)
+self._tracker._tracker.on_opportunity(self._queue_opportunity)
+
+# Register for price updates (dashboard + near-resolution strategy)
+self._tracker._tracker.on_state_change(self._on_market_state_change)
+```
+
+### Dashboard Real-Time Updates
+The `_on_market_state_change` callback:
+1. Throttles updates to 500ms per market (prevents flooding)
+2. Updates `dashboard.active_markets` dict in place
+3. Calls `update_markets()` to broadcast via SSE
+
+**CRITICAL**: Must use `dashboard.active_markets` (module reference) not a direct import, as the module variable gets reassigned.
+
+```python
+# CORRECT - Use module reference at runtime
+from .. import dashboard
+if condition_id in dashboard.active_markets:
+    dashboard.active_markets[condition_id]["up_price"] = state.yes_price
+
+# WRONG - Direct import gets stale reference
+# from ..dashboard import active_markets  # This becomes stale!
+```
 
 ## Dashboard Architecture
 
@@ -357,6 +427,51 @@ scripts/connect-server.sh "docker exec polymarket-bot printenv | grep GABAGOOL"
 - **Fix**: Use callback-based immediate execution with `_opportunity_queue`
 - **Root cause 2**: Market state marked "stale" (>10 seconds old)
 - Check WebSocket connection and book updates
+
+### Dashboard not showing real-time price/time updates
+- **Root cause**: Missing import or error in dashboard.py broadcast code
+- **Diagnosis**: Check logs for `NameError` or other exceptions during broadcast
+- **Key insight**: Dashboard display issues are SEPARATE from trading data flow
+- **Verification**: Trading strategy receives data even if dashboard doesn't update
+- Check that `dashboard.py` has `import structlog` and `log = structlog.get_logger()`
+
+### Debug: Verify WebSocket data is flowing
+```bash
+# Check for book updates in logs
+scripts/connect-server.sh "docker logs polymarket-bot --tail 200 | grep -E '(Price update|Book update|WS messages)'"
+
+# If no book updates, check WebSocket connection
+scripts/connect-server.sh "docker logs polymarket-bot --tail 200 | grep -E '(WebSocket|Subscribed)'"
+```
+
+### Debug: Verify trading strategy is receiving real-time data
+Add temporary logging in `order_book.py`:
+```python
+# In _handle_book_update(), after updating state:
+if self._update_count % 100 == 1:
+    log.info("Price update received", asset=state.market.asset,
+             yes_ask=f"${state.yes_best_ask:.3f}", update_count=self._update_count)
+```
+This confirms the trading logic receives ~9 updates/second from WebSocket.
+
+### Python import reference gotcha (module variables)
+When a module variable (like `active_markets = {}`) is reassigned, direct imports get a stale reference:
+```python
+# dashboard.py
+active_markets = {}  # Module-level variable
+
+def update_markets(data):
+    global active_markets
+    active_markets = data  # Reassigns the module variable
+
+# gabagool.py - WRONG
+from ..dashboard import active_markets  # Gets reference to original empty dict
+# Later: active_markets is still {} even after update_markets() was called!
+
+# gabagool.py - CORRECT
+from .. import dashboard
+# Later: dashboard.active_markets references current value
+```
 
 ## Testing Commands
 
