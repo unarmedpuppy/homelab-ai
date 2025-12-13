@@ -348,7 +348,7 @@ GABAGOOL_DIRECTIONAL_STOP_LOSS=0.11
 
 ## Deployment
 
-**USE THE SKILL**: See [agents/tools/deploy-polymarket-bot/SKILL.md](../../agents/tools/deploy-polymarket-bot/SKILL.md) for complete deployment instructions.
+**USE THE SKILL**: See [agents/skills/standard-deployment/SKILL.md](../../agents/skills/standard-deployment/SKILL.md) for complete deployment instructions.
 
 **CRITICAL**: Always use `--no-cache` when rebuilding to prevent stale code from Docker layer caching.
 

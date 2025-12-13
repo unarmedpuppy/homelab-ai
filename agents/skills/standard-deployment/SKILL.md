@@ -1,6 +1,6 @@
 ---
 name: standard-deployment
-description: Deploy code changes to server
+description: Deploy code changes to server with proper Docker rebuild
 when_to_use: Deploying code changes, updating service configurations, restarting services after config changes
 script: scripts/deploy-to-server.sh
 ---
@@ -15,7 +15,30 @@ Deploy code changes to the home server.
 - Updating service configurations
 - Restarting services after config changes
 
-## Automated Deployment (Recommended)
+## CRITICAL: Docker Cache Issue
+
+**Always use `--no-cache` when deploying code changes to Docker containers.**
+
+Docker's layer caching can cause deployed containers to run stale code even after `git pull`. This happens because Docker may reuse cached `COPY` layers if it thinks the instruction hasn't changed.
+
+```bash
+# WRONG - may use cached layers with old code
+docker compose up -d --build
+
+# CORRECT - forces fresh copy of all files
+docker compose build --no-cache && docker compose up -d
+```
+
+## Quick Deploy (One-Liner)
+
+For apps with Docker containers, use this pattern:
+
+```bash
+# Replace APP_NAME with the app directory name (e.g., polymarket-bot, trading-bot)
+scripts/connect-server.sh "cd ~/server && git pull origin main && cd apps/APP_NAME && docker compose down && docker compose build --no-cache && docker compose up -d"
+```
+
+## Automated Deployment Script
 
 Use the deployment script for complete workflow:
 
@@ -37,48 +60,83 @@ bash scripts/deploy-to-server.sh "Docs update" --no-restart
 4. Pulls on server
 5. Optionally restarts specified app or all apps
 
-## Manual Steps (Alternative)
+## Manual Steps (Full Control)
 
-If you need more control:
-
-### 1. Check Current State
+### 1. Local: Commit and Push
 
 ```bash
 git status
-git diff
-```
-
-### 2. Commit and Push
-
-```bash
 git add .
 git commit -m "Description of changes"
-git push
+git push origin main
 ```
 
-### 3. Pull on Server and Restart
+### 2. Server: Pull and Rebuild
 
 ```bash
-# SSH to server and pull
-bash scripts/connect-server.sh "cd ~/server && git pull"
+# Pull latest code
+scripts/connect-server.sh "cd ~/server && git pull origin main"
 
-# Restart affected service
-bash scripts/connect-server.sh "cd ~/server/apps/SERVICE_NAME && docker compose restart"
+# Rebuild with NO CACHE and restart (for Docker apps)
+scripts/connect-server.sh "cd ~/server/apps/APP_NAME && docker compose down && docker compose build --no-cache && docker compose up -d"
 ```
 
-### 4. Verify
+### 3. Verify Deployment
 
 ```bash
 # Check container is running
-bash scripts/connect-server.sh "docker ps | grep SERVICE_NAME"
+scripts/connect-server.sh "docker ps | grep APP_NAME"
+
+# Verify code is updated in container
+scripts/connect-server.sh "docker exec CONTAINER_NAME grep -n 'your_pattern' /app/path/to/file.py"
 
 # Check logs for errors
-bash scripts/connect-server.sh "docker logs SERVICE_NAME --tail 50"
+scripts/connect-server.sh "docker logs CONTAINER_NAME --tail 50"
 ```
 
-## If Something Goes Wrong
+## Non-Docker Apps
 
-1. Check logs: `docker logs SERVICE_NAME --tail 100`
-2. Check container status: `docker inspect SERVICE_NAME`
-3. Rollback if needed: `git revert HEAD && git push`
+For apps without Docker (static configs, etc.):
+
+```bash
+# Just pull - no rebuild needed
+scripts/connect-server.sh "cd ~/server && git pull origin main"
+
+# Restart if needed (e.g., traefik)
+scripts/connect-server.sh "cd ~/server/apps/traefik && docker compose restart"
+```
+
+## Troubleshooting
+
+### Code changes not taking effect
+
+```bash
+# 1. Verify git has latest commit
+scripts/connect-server.sh "cd ~/server && git log -1 --oneline"
+
+# 2. Verify file in container matches git
+scripts/connect-server.sh "docker exec CONTAINER cat /app/path/to/file.py | head -50"
+
+# 3. If mismatch, nuclear option - clear everything
+scripts/connect-server.sh "cd ~/server/apps/APP_NAME && docker compose down && docker system prune -f && docker compose build --no-cache && docker compose up -d"
+```
+
+### Container won't start
+
+```bash
+# Check build output for errors
+scripts/connect-server.sh "cd ~/server/apps/APP_NAME && docker compose build --no-cache 2>&1 | tail -50"
+
+# Check container logs
+scripts/connect-server.sh "docker logs CONTAINER_NAME"
+```
+
+### Rollback
+
+```bash
+# Revert last commit and redeploy
+git revert HEAD
+git push origin main
+scripts/connect-server.sh "cd ~/server && git pull origin main && cd apps/APP_NAME && docker compose down && docker compose build --no-cache && docker compose up -d"
+```
 
