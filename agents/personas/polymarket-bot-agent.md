@@ -348,21 +348,27 @@ GABAGOOL_DIRECTIONAL_STOP_LOSS=0.11
 
 ## Deployment
 
+**USE THE SKILL**: See [agents/tools/deploy-polymarket-bot/SKILL.md](../../agents/tools/deploy-polymarket-bot/SKILL.md) for complete deployment instructions.
+
+**CRITICAL**: Always use `--no-cache` when rebuilding to prevent stale code from Docker layer caching.
+
 ```bash
 # Local: commit and push
 git add apps/polymarket-bot/ && git commit -m "message" && git push
 
-# Server: pull and rebuild
-scripts/connect-server.sh "cd /home/unarmedpuppy/server/apps/polymarket-bot && git pull && docker compose down && docker compose up -d --build"
+# Server: pull and rebuild WITH NO CACHE (prevents stale code)
+scripts/connect-server.sh "cd ~/server && git pull origin main && cd apps/polymarket-bot && docker compose down && docker compose build --no-cache && docker compose up -d"
 
 # Check logs
 scripts/connect-server.sh "docker logs polymarket-bot --tail 50"
 
-# Verify env inside container
-scripts/connect-server.sh "docker exec polymarket-bot printenv | grep GABAGOOL"
+# Verify code is updated in container
+scripts/connect-server.sh "docker exec polymarket-bot grep -n 'your_pattern' /app/src/path/to/file.py"
 ```
 
-**Important**: After changing `.env`, must run `docker compose down && docker compose up -d` (not just restart) to pick up new env vars.
+**Important**:
+- After changing `.env`, must run `docker compose down && docker compose up -d` (not just restart) to pick up new env vars.
+- Always use `--no-cache` flag to ensure code changes take effect. Without it, Docker may reuse cached layers with old code.
 
 ## Common Issues
 
@@ -579,12 +585,13 @@ Tracked in `_directional_positions: Dict[str, DirectionalPosition]`
 
 | Action | Command |
 |--------|---------|
-| Deploy changes | `scripts/connect-server.sh "cd ~/server/apps/polymarket-bot && git pull && docker compose build && docker compose down && docker compose up -d"` |
+| Deploy changes | `scripts/connect-server.sh "cd ~/server && git pull origin main && cd apps/polymarket-bot && docker compose down && docker compose build --no-cache && docker compose up -d"` |
 | View logs | `scripts/connect-server.sh "docker logs polymarket-bot --tail 100"` |
 | Check status | `scripts/connect-server.sh "docker ps --filter name=polymarket"` |
 | Toggle dry run | Edit `.env` on server, then `docker compose down && up -d` |
 | Check trades DB | `scripts/connect-server.sh "docker exec polymarket-bot sqlite3 /app/data/gabagool.db 'SELECT * FROM trades'"` |
 | Dashboard state | `scripts/connect-server.sh "curl -s http://localhost:8501/dashboard/state"` |
+| Run tests | `scripts/connect-server.sh "cd ~/server/apps/polymarket-bot && docker compose run --rm polymarket-bot python3 -m pytest tests/ -v"` |
 
 **Server paths:**
 - Git repo: `~/server/` (symlink to `/home/unarmedpuppy/server`)
