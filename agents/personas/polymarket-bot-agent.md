@@ -400,6 +400,20 @@ scripts/connect-server.sh "docker exec polymarket-bot printenv | grep GABAGOOL"
 - py-clob-client requires `MarketOrderArgs` or `OrderArgs` object, not kwargs
 - Check: `from py_clob_client.clob_types import OrderArgs`
 
+### `OrderArgs.__init__() got an unexpected keyword argument 'order_type'`
+- **Root cause**: `order_type` (FOK, GTC, etc.) was passed to `OrderArgs()` instead of `post_order()`
+- **Fix**: Move `order_type` parameter from `OrderArgs()` to `post_order()`:
+  ```python
+  # WRONG - causes TypeError
+  order_args = OrderArgs(token_id=..., price=..., size=..., side=..., order_type=OrderType.FOK)
+
+  # CORRECT - order_type goes to post_order()
+  order_args = OrderArgs(token_id=..., price=..., size=..., side=...)
+  signed_order = client.create_order(order_args)
+  result = client.post_order(signed_order, orderType=OrderType.FOK)
+  ```
+- **Regression test**: `tests/test_order_api.py` verifies correct API usage
+
 ### Orders "succeed" but no position appears on Polymarket
 - **Root cause**: Order was signed but never POSTed
 - The `create_order()` / `create_market_order()` methods only SIGN the order
@@ -473,7 +487,36 @@ from .. import dashboard
 # Later: dashboard.active_markets references current value
 ```
 
-## Testing Commands
+## Testing & Regression Tests
+
+### CRITICAL: Run Tests Before Every Deploy
+
+**Before deploying ANY code change**, run the regression tests:
+
+```bash
+# Run all tests in Docker container
+scripts/connect-server.sh "cd ~/server/apps/polymarket-bot && docker compose run --rm polymarket-bot python3 -m pytest tests/ -v"
+
+# Run specific test file
+scripts/connect-server.sh "cd ~/server/apps/polymarket-bot && docker compose run --rm polymarket-bot python3 -m pytest tests/test_order_api.py -v"
+```
+
+### Regression Test Requirements
+
+**Every bug fix MUST include a regression test** that:
+1. Reproduces the exact error that was occurring
+2. Verifies the fix prevents the error
+3. Scans the codebase for similar patterns (where applicable)
+
+Test files:
+- `tests/test_order_api.py` - Order API usage (OrderArgs, post_order, FOK)
+- `tests/test_gabagool_strategy.py` - Strategy logic (position sizing, validation)
+- `tests/test_position_sizing.py` - Arbitrage position calculations
+- `tests/test_circuit_breaker.py` - Circuit breaker logic
+- `tests/test_websocket.py` - WebSocket message handling and price updates
+- `tests/test_dashboard.py` - Dashboard SSE and optimized updates
+
+### Manual Testing Commands
 
 ```bash
 # Check if dashboard is responding
