@@ -39,6 +39,8 @@ You are the Polymarket Bot specialist. Your expertise includes:
 
 ### Documentation
 - `docs/strategy-rules.md` - Complete strategy rules reference
+- `docs/POST_MORTEM_2025-12-13.md` - **CRITICAL**: Trading execution failures and data deletion incident
+- `docs/TRADE_ANALYSIS_2025-12-13.md` - Detailed position-by-position trade analysis
 
 ## Architecture Overview
 
@@ -96,6 +98,77 @@ near_resolution_min_price: float = 0.94
 near_resolution_max_price: float = 0.975
 near_resolution_size_usd: float = 10.0
 ```
+
+## ⚠️ POST-MORTEM: Critical Lessons Learned (December 13, 2025)
+
+**READ THIS FIRST**: See [docs/POST_MORTEM_2025-12-13.md](../../apps/polymarket-bot/docs/POST_MORTEM_2025-12-13.md) for full incident analysis.
+
+### CRITICAL: Order Status Handling
+
+**NEVER treat LIVE status as "filled"**. This caused ~$25 in losses from unhedged positions.
+
+```python
+# ❌ WRONG - LIVE means order is on book, NOT filled!
+yes_filled = yes_status in ("MATCHED", "FILLED", "LIVE")
+
+# ✅ CORRECT - Only MATCHED/FILLED mean actual execution
+yes_filled = yes_status in ("MATCHED", "FILLED")
+# LIVE status requires separate handling (order still pending)
+```
+
+### CRITICAL: Data Preservation Rules
+
+**NEVER delete `fill_records` or `liquidity_snapshots`** - these are gold for modeling:
+- `fill_records` - Actual execution data with slippage, fill times (slippage modeling)
+- `liquidity_snapshots` - Order book depth over time (persistence modeling)
+
+**Safe reset vs destructive reset:**
+```python
+# ✅ SAFE - Use this for dashboard P&L reset (preserves modeling data)
+await db.reset_trade_history(preserve_liquidity_data=True)  # Default
+
+# ❌ DANGEROUS - Only use if explicitly rebuilding all models
+await db.reset_trade_history(preserve_liquidity_data=False)
+# or
+await db.reset_all_trade_data()  # WARNING: Deletes everything!
+```
+
+**Script usage:**
+```bash
+# Safe reset (default) - preserves fill_records, liquidity_snapshots
+python scripts/reset_trade_history.py
+
+# Destructive reset - requires --all flag AND typing "DELETE-ALL"
+python scripts/reset_trade_history.py --all
+```
+
+### CRITICAL: Pre-Trade Verification
+
+**Always verify hedge ratio BEFORE and AFTER trades:**
+```python
+# Phase 4 metrics enforce:
+min_hedge_ratio: float = 0.80      # Minimum 80% hedge required
+critical_hedge_ratio: float = 0.60  # Below this, HALT trading
+max_position_imbalance_shares: float = 5.0  # Max unhedged shares
+```
+
+### Trading Execution Failures Summary
+
+From December 13, 2025 live session (16 markets traded):
+- **Only 12.5%** (2/16) achieved acceptable hedge ratios
+- **62.5%** (10/16) were completely one-sided (0% hedge)
+- Root causes: Sequential execution, LIVE status bug, no hedge verification
+
+### Pre-Deploy Checklist
+
+Before ANY live trading session:
+1. [ ] Run regression tests: `pytest tests/ -v`
+2. [ ] Verify DRY_RUN=true first, test for 24-48 hours
+3. [ ] Check directional_enabled and near_resolution_enabled are false (unless intended)
+4. [ ] Start with small trade sizes ($5 max)
+5. [ ] Monitor first few trades closely - don't walk away
+
+---
 
 ## Critical Implementation Details
 
@@ -447,6 +520,20 @@ scripts/connect-server.sh "docker exec polymarket-bot grep -n 'your_pattern' /ap
 - **Fix**: Use callback-based immediate execution with `_opportunity_queue`
 - **Root cause 2**: Market state marked "stale" (>10 seconds old)
 - Check WebSocket connection and book updates
+
+### Accidentally deleted valuable modeling data
+- **Root cause**: Used `reset_all_trade_data()` which deletes EVERYTHING including fill_records and liquidity_snapshots
+- **Prevention**: ALWAYS use `reset_trade_history()` (safe default) instead
+- **Script**: Use `python scripts/reset_trade_history.py` (NOT with --all flag)
+- **What to preserve**: `fill_records` (slippage modeling), `liquidity_snapshots` (persistence modeling)
+- **See**: [POST_MORTEM_2025-12-13.md](../../apps/polymarket-bot/docs/POST_MORTEM_2025-12-13.md) for full incident details
+
+### One-sided positions / poor hedge ratios after trades
+- **Root cause 1**: LIVE status treated as "filled" (LIVE = order on book, not filled!)
+- **Root cause 2**: Sequential order execution (YES leg fills, NO leg fails)
+- **Root cause 3**: No post-trade hedge verification
+- **Fix**: Only count MATCHED/FILLED as actual fills, use parallel execution, verify hedge ratio after every trade
+- **Metrics**: Check Phase 4 metrics for hedge ratio monitoring
 
 ### Dashboard not showing real-time price/time updates
 - **Root cause**: Missing import or error in dashboard.py broadcast code
