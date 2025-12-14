@@ -423,6 +423,8 @@ GABAGOOL_DIRECTIONAL_STOP_LOSS=0.11
 
 **USE THE SKILL**: See [agents/skills/standard-deployment/SKILL.md](../../agents/skills/standard-deployment/SKILL.md) for complete deployment instructions.
 
+**AFTER STRATEGY CHANGES**: When modifying strategy code (gabagool.py, polymarket.py, order_book.py, config.py), use [agents/skills/update-polymarket-strategy-docs/SKILL.md](../../agents/skills/update-polymarket-strategy-docs/SKILL.md) to ensure documentation stays in sync with the implementation.
+
 **CRITICAL**: Always use `--no-cache` when rebuilding to prevent stale code from Docker layer caching.
 
 ```bash
