@@ -1,0 +1,31 @@
+x-enabled: true
+
+services:
+  pokedex:
+    build: .
+    container_name: pokedex
+    restart: unless-stopped
+    ports:
+      - "8095:80"
+    networks:
+      - my-network
+    labels:
+      # Traefik labels
+      - "traefik.enable=true"
+      - "traefik.http.routers.pokedex.rule=Host(`pokedex.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.pokedex.entrypoints=websecure"
+      - "traefik.http.routers.pokedex.tls.certresolver=myresolver"
+      - "traefik.http.routers.pokedex.middlewares=pokedex-auth"
+      - "traefik.http.services.pokedex.loadbalancer.server.port=80"
+      - "traefik.http.middlewares.pokedex-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      # Homepage labels
+      - "homepage.group=Gaming"
+      - "homepage.name=Pokédex"
+      - "homepage.icon=si-nintendo"
+      - "homepage.href=https://pokedex.server.unarmedpuppy.com"
+      - "homepage.description=National Pokédex - Complete collection of all Pokémon"
+
+networks:
+  my-network:
+    external: true
+
