@@ -92,9 +92,8 @@ def fetch_all_pokemon():
     return pokemon_list
 
 def download_sprite(pokemon, output_dir):
-    """Download a Pokemon sprite."""
+    """Download a Pokemon sprite with fallback URLs."""
     sprite_name = pokemon['sprite_name']
-    url = f"https://img.pokemondb.net/sprites/scarlet-violet/normal/{sprite_name}.png"
     
     output_path = os.path.join(output_dir, f"{pokemon['number']:04d}_{sprite_name}.png")
     
@@ -102,28 +101,30 @@ def download_sprite(pokemon, output_dir):
     if os.path.exists(output_path):
         return True
     
-    try:
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
-        response = requests.get(url, headers=headers, timeout=10)
-        
-        if response.status_code == 200:
-            with open(output_path, 'wb') as f:
-                f.write(response.content)
-            return True
-        else:
-            # Try alternative: use API name directly
-            alt_url = f"https://img.pokemondb.net/sprites/scarlet-violet/normal/{pokemon['sprite_name']}.png"
-            if alt_url != url:
-                response = requests.get(alt_url, headers=headers, timeout=10)
-                if response.status_code == 200:
-                    with open(output_path, 'wb') as f:
-                        f.write(response.content)
-                    return True
-            return False
-    except Exception as e:
-        return False
+    # Try multiple sprite sources in order
+    sprite_sources = [
+        f"https://img.pokemondb.net/sprites/scarlet-violet/normal/{sprite_name}.png",
+        f"https://img.pokemondb.net/sprites/brilliant-diamond-shining-pearl/normal/{sprite_name}.png",
+        f"https://img.pokemondb.net/sprites/bank/normal/{sprite_name}.png",
+    ]
+    
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    }
+    
+    for url in sprite_sources:
+        try:
+            response = requests.get(url, headers=headers, timeout=10)
+            
+            if response.status_code == 200:
+                with open(output_path, 'wb') as f:
+                    f.write(response.content)
+                return True
+        except Exception as e:
+            continue  # Try next source
+    
+    # If all sources failed
+    return False
 
 def main():
     """Main function."""

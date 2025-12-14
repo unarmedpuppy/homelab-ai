@@ -39,9 +39,8 @@ def normalize_pokemon_name(name):
     return normalized
 
 def download_sprite(pokemon, output_dir):
-    """Download a Pokemon sprite."""
+    """Download a Pokemon sprite with fallback URLs."""
     sprite_name = pokemon.get('sprite_name') or normalize_pokemon_name(pokemon['name'])
-    url = f"https://img.pokemondb.net/sprites/scarlet-violet/normal/{sprite_name}.png"
     
     output_path = os.path.join(output_dir, f"{pokemon['number']:04d}_{sprite_name}.png")
     
@@ -49,23 +48,33 @@ def download_sprite(pokemon, output_dir):
     if os.path.exists(output_path):
         return True
     
-    try:
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
-        response = requests.get(url, headers=headers, timeout=10)
-        
-        if response.status_code == 200:
-            with open(output_path, 'wb') as f:
-                f.write(response.content)
-            print(f"  ✓ {pokemon['name']} (#{pokemon['number']})")
-            return True
-        else:
-            print(f"  ✗ {pokemon['name']} (#{pokemon['number']}) - HTTP {response.status_code}")
-            return False
-    except Exception as e:
-        print(f"  ✗ {pokemon['name']} (#{pokemon['number']}) - Error: {e}")
-        return False
+    # Try multiple sprite sources in order
+    sprite_sources = [
+        f"https://img.pokemondb.net/sprites/scarlet-violet/normal/{sprite_name}.png",
+        f"https://img.pokemondb.net/sprites/brilliant-diamond-shining-pearl/normal/{sprite_name}.png",
+        f"https://img.pokemondb.net/sprites/bank/normal/{sprite_name}.png",
+    ]
+    
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    }
+    
+    for url in sprite_sources:
+        try:
+            response = requests.get(url, headers=headers, timeout=10)
+            
+            if response.status_code == 200:
+                with open(output_path, 'wb') as f:
+                    f.write(response.content)
+                source_name = url.split('/')[-3]  # Extract source name from URL
+                print(f"  ✓ {pokemon['name']} (#{pokemon['number']}) - {source_name}")
+                return True
+        except Exception as e:
+            continue  # Try next source
+    
+    # If all sources failed
+    print(f"  ✗ {pokemon['name']} (#{pokemon['number']}) - All sources failed")
+    return False
 
 def main():
     """Main function."""
