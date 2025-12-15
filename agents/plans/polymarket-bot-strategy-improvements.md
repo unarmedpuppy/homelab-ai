@@ -259,18 +259,23 @@ if spread_opportunity:
 3. ✅ **Max trade size (1.1):** Already in production (`GABAGOOL_MAX_TRADE_SIZE=5.0`)
 
 ### ✅ Phase 2 Strategy Improvements (COMPLETE 2025-12-15)
-1. ✅ **Gradual position building (2.1):** Split trades into tranches with delays
+1. ✅ **Gradual position building (2.1):** Split trades into tranches (back-to-back, NO delays)
    - `gradual_entry_enabled` config (default: false)
    - `gradual_entry_tranches` = 3 (split into 3 smaller orders)
-   - `gradual_entry_delay_seconds` = 30.0 (wait between tranches)
    - `gradual_entry_min_spread_cents` = 3.0 (only for spreads >= 3¢)
+   - **Note:** Delays were removed - they let the spread escape
    - Regression tests in `tests/test_phase2_gradual_entry.py`
    - Disabled by default for safety - enable in production when ready
 
 ### 🔜 NEXT STEPS (Strategy Improvements)
 1. **Monitor current state:** Use reconciliation to verify bot is now tracking trades correctly
 2. **Enable gradual entry:** Set `GABAGOOL_GRADUAL_ENTRY_ENABLED=true` in production
-3. **Multi-market parallelization (2.2):** Parallel order placement across markets
+
+### ⏸️ DEFERRED (Phase 3)
+- **Multi-market parallelization (2.2):** Parallel order placement across markets
+  - See: [parallel-markets-plan.md](./parallel-markets-plan.md) for full design
+  - Worker pool architecture with BudgetManager for thread-safe capital reservation
+  - Will implement when scaling to more markets
 
 ### 📋 FUTURE (Medium Risk)
 - Order book depth analysis (2.3)
