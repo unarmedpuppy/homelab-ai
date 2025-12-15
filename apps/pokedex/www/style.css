@@ -41,17 +41,12 @@ header p {
 .pokemon-card {
     background: white;
     border-radius: 12px;
-    padding: 20px;
-    text-align: center;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s, box-shadow 0.2s;
     cursor: pointer;
     position: relative;
     perspective: 1000px;
     height: 280px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    width: 100%;
 }
 
 .pokemon-card-inner {
@@ -60,6 +55,7 @@ header p {
     height: 100%;
     transition: transform 0.6s;
     transform-style: preserve-3d;
+    border-radius: 12px;
 }
 
 .pokemon-card.flipped .pokemon-card-inner {
@@ -72,9 +68,14 @@ header p {
     width: 100%;
     height: 100%;
     backface-visibility: hidden;
+    border-radius: 12px;
+    background: white;
+    padding: 20px;
+    text-align: center;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .pokemon-card-back {
@@ -82,6 +83,7 @@ header p {
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 20px;
 }
 
 .pokemon-card-image {
@@ -92,8 +94,11 @@ header p {
     border-radius: 8px;
 }
 
-.pokemon-card:hover:not(.flipped) {
+.pokemon-card:hover:not(.flipped) .pokemon-card-inner {
     transform: translateY(-5px);
+}
+
+.pokemon-card:hover:not(.flipped) {
     box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
 }
 
