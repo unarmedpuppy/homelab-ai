@@ -58,6 +58,10 @@ You are the Polymarket Bot specialist. Your expertise includes:
 - `scripts/check_orders.py` - Check balance, open orders, and recent trades
 - `scripts/test_order.py` - Legacy order validation script
 
+### Observability Scripts
+- `scripts/reconcile_trades.py` - **CRITICAL**: Reconcile local DB with Polymarket API to find untracked positions
+- `scripts/polymarket-user-activity.py` - Analyze any Polymarket user's trading history (in repo root `/scripts/`)
+
 ### Documentation
 - `docs/strategy-rules.md` - Complete strategy rules reference
 - `docs/POST_MORTEM_2025-12-13.md` - **CRITICAL**: Trading execution failures and data deletion incident
@@ -526,6 +530,15 @@ See [agents/skills/deploy-polymarket-bot/SKILL.md](../../agents/skills/deploy-po
 
 ## Common Issues
 
+### Trades executing but not tracked (untracked positions)
+- **Root cause**: Partial fills - first leg executes, second leg FOK-rejected, bot logs "failed"
+- **Detection**: Run `scripts/reconcile_trades.py` or check dashboard Reconciliation Status widget
+- **Fix**:
+  1. Run `python scripts/reconcile_trades.py --fix` to add untracked positions to settlement queue
+  2. Dashboard shows reconciliation status with REFRESH button
+  3. Future trades now properly tracked via partial fill detection fix
+- **Prevention**: Partial fill detection fixed in `polymarket.py` - exceptions caught, partial fills recorded
+
 ### Prices showing N/A or 1.0
 - WebSocket not receiving book updates
 - Check token ID mapping in `MultiMarketTracker`
@@ -763,6 +776,10 @@ Tracked in `_directional_positions: Dict[str, DirectionalPosition]`
 | Check trades DB | `scripts/connect-server.sh "docker exec polymarket-bot sqlite3 /app/data/gabagool.db 'SELECT * FROM trades'"` |
 | Dashboard state | `scripts/connect-server.sh "curl -s http://localhost:8501/dashboard/state"` |
 | Run tests | `scripts/connect-server.sh "cd ~/server/apps/polymarket-bot && docker compose run --rm polymarket-bot python3 -m pytest tests/ -v"` |
+| **Reconcile trades** | `scripts/connect-server.sh "docker exec polymarket-bot python3 /app/scripts/reconcile_trades.py"` |
+| Reconcile + fix | `scripts/connect-server.sh "docker exec polymarket-bot python3 /app/scripts/reconcile_trades.py --fix"` |
+| Reconciliation API | `scripts/connect-server.sh "curl -s http://localhost:8501/dashboard/reconciliation"` |
+| Historical positions | `scripts/connect-server.sh "curl -s http://localhost:8501/dashboard/positions"` |
 
 **⛔ NEVER use `docker compose up/restart/build` directly - ALWAYS use the deploy skill**
 
