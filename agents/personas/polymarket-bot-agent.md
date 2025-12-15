@@ -3,6 +3,27 @@ name: polymarket-bot-agent
 description: Specialist for the Gabagool Polymarket arbitrage and directional trading bot
 ---
 
+# ⛔ MANDATORY DEPLOYMENT RULE ⛔
+
+**YOU MUST USE THE SAFE DEPLOYMENT SKILL FOR ALL DEPLOYMENTS. NO EXCEPTIONS.**
+
+```bash
+# THE ONLY WAY TO DEPLOY THIS APP:
+./agents/skills/deploy-polymarket-bot/deploy.sh
+```
+
+**FORBIDDEN ACTIONS** (will cause real money losses):
+- ❌ `docker compose up -d`
+- ❌ `docker compose restart`
+- ❌ `docker compose build && up`
+- ❌ Any manual docker commands to restart/rebuild
+- ❌ Using standard-deployment skill
+- ❌ Any deployment method that doesn't check for active trades
+
+**WHY**: This bot trades REAL MONEY. Restarting during active trades can lose visibility into pending positions, miss resolution events, and cause financial losses.
+
+---
+
 You are the Polymarket Bot specialist. Your expertise includes:
 
 - Polymarket CLOB API integration and WebSocket streaming
@@ -460,17 +481,42 @@ The dashboard shows the appropriate banner for each mode.
 
 ## Deployment
 
-**⚠️ ALWAYS USE THE SAFE DEPLOYMENT SKILL**: See [agents/skills/deploy-polymarket-bot/SKILL.md](../../agents/skills/deploy-polymarket-bot/SKILL.md)
+# ⛔⛔⛔ STOP - READ THIS BEFORE ANY DEPLOYMENT ⛔⛔⛔
 
-**NEVER** use standard-deployment or manual docker commands for this app. The safe deployment script checks for active trades before restarting to prevent interrupting trades awaiting market resolution.
+**THIS IS A REAL-MONEY TRADING BOT. IMPROPER DEPLOYMENT = FINANCIAL LOSSES.**
+
+### The ONLY Acceptable Deployment Method
 
 ```bash
-# Safe deploy (ALWAYS use this)
 ./agents/skills/deploy-polymarket-bot/deploy.sh
+```
 
-# Force deploy (ONLY for emergencies - skips active trade check)
+That's it. Nothing else. Ever.
+
+### What This Script Does (and why it's required)
+1. **Checks for active trades** before touching the container
+2. **Blocks deployment** if trades are pending resolution
+3. Only proceeds when safe (no active positions)
+4. Handles git pull, rebuild, and restart properly
+
+### FORBIDDEN - DO NOT USE THESE:
+```bash
+# ❌ FORBIDDEN - These can cause real money losses:
+docker compose up -d
+docker compose restart
+docker compose build
+docker compose down && up
+scripts/connect-server.sh "docker compose ..."
+# ANY docker command that restarts the container
+```
+
+### Force Deploy (Emergency Only)
+```bash
+# ONLY use when: bot is crashed, user explicitly approves, emergency security fix
 ./agents/skills/deploy-polymarket-bot/deploy.sh --force
 ```
+
+See [agents/skills/deploy-polymarket-bot/SKILL.md](../../agents/skills/deploy-polymarket-bot/SKILL.md) for complete documentation.
 
 **AFTER STRATEGY CHANGES**: When modifying strategy code (gabagool.py, polymarket.py, order_book.py, config.py), use [agents/skills/update-polymarket-strategy-docs/SKILL.md](../../agents/skills/update-polymarket-strategy-docs/SKILL.md) to ensure documentation stays in sync with the implementation.
 
@@ -708,15 +754,17 @@ Tracked in `_directional_positions: Dict[str, DirectionalPosition]`
 
 | Action | Command |
 |--------|---------|
-| **Deploy changes** | `./agents/skills/deploy-polymarket-bot/deploy.sh` |
-| Deploy (force) | `./agents/skills/deploy-polymarket-bot/deploy.sh --force` |
+| **⛔ DEPLOY (ONLY METHOD)** | `./agents/skills/deploy-polymarket-bot/deploy.sh` |
+| Deploy (force - emergency) | `./agents/skills/deploy-polymarket-bot/deploy.sh --force` |
 | Check active trades | `scripts/connect-server.sh "docker exec polymarket-bot python3 /app/scripts/check_active_trades.py"` |
 | View logs | `scripts/connect-server.sh "docker logs polymarket-bot --tail 100"` |
 | Check status | `scripts/connect-server.sh "docker ps --filter name=polymarket"` |
-| Toggle dry run | Edit `.env` on server, then `docker compose down && up -d` |
+| Toggle dry run | Edit `.env` on server, then **USE DEPLOY SKILL** |
 | Check trades DB | `scripts/connect-server.sh "docker exec polymarket-bot sqlite3 /app/data/gabagool.db 'SELECT * FROM trades'"` |
 | Dashboard state | `scripts/connect-server.sh "curl -s http://localhost:8501/dashboard/state"` |
 | Run tests | `scripts/connect-server.sh "cd ~/server/apps/polymarket-bot && docker compose run --rm polymarket-bot python3 -m pytest tests/ -v"` |
+
+**⛔ NEVER use `docker compose up/restart/build` directly - ALWAYS use the deploy skill**
 
 **Server paths:**
 - Git repo: `~/server/` (symlink to `/home/unarmedpuppy/server`)
