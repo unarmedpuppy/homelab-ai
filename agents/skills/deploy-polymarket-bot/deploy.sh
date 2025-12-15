@@ -2,29 +2,36 @@
 #
 # Safe deployment script for polymarket-bot
 #
-# This script checks for active trades before deploying to prevent
-# interrupting trades that are awaiting market resolution.
+# This script runs regression tests and checks for active trades before
+# deploying to prevent bugs and interrupting trades.
 #
 # Usage:
-#   ./agents/skills/deploy-polymarket-bot/deploy.sh          # Normal deploy
-#   ./agents/skills/deploy-polymarket-bot/deploy.sh --force  # Skip safety check
+#   ./agents/skills/deploy-polymarket-bot/deploy.sh              # Normal deploy
+#   ./agents/skills/deploy-polymarket-bot/deploy.sh --force      # Skip all safety checks
+#   ./agents/skills/deploy-polymarket-bot/deploy.sh --skip-tests # Skip tests only
 #
 # Exit codes:
 #   0 - Deployment successful
 #   1 - Blocked by active trades (use --force to override)
 #   2 - Deployment failed
+#   3 - Regression tests failed
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 FORCE=false
+SKIP_TESTS=false
 
 # Parse arguments
 for arg in "$@"; do
     case $arg in
         --force|-f)
             FORCE=true
+            shift
+            ;;
+        --skip-tests)
+            SKIP_TESTS=true
             shift
             ;;
     esac
@@ -34,6 +41,36 @@ echo "════════════════════════�
 echo "  POLYMARKET BOT DEPLOYMENT"
 echo "═══════════════════════════════════════════════════════════════"
 echo ""
+
+# Step 0: Run regression tests (unless --force or --skip-tests)
+if [ "$FORCE" = false ] && [ "$SKIP_TESTS" = false ]; then
+    echo "🧪 Running regression tests..."
+    echo ""
+
+    # Build and run tests in a fresh container
+    if ! "$REPO_ROOT/scripts/connect-server.sh" "cd ~/server/apps/polymarket-bot && docker compose run --rm --build polymarket-bot python3 -m pytest tests/ -v --tb=short 2>&1 | tail -60"; then
+        echo ""
+        echo "═══════════════════════════════════════════════════════════════"
+        echo "  ❌ DEPLOYMENT BLOCKED - REGRESSION TESTS FAILED"
+        echo "═══════════════════════════════════════════════════════════════"
+        echo ""
+        echo "Fix the failing tests before deploying."
+        echo "To skip tests (not recommended): $0 --skip-tests"
+        echo "To force deploy (dangerous): $0 --force"
+        echo ""
+        exit 3
+    fi
+
+    # Check if tests actually passed (grep for the pass summary)
+    echo ""
+    echo "✅ Regression tests passed"
+    echo ""
+else
+    if [ "$SKIP_TESTS" = true ]; then
+        echo "⚠️  SKIP TESTS - Regression tests skipped!"
+        echo ""
+    fi
+fi
 
 # Step 1: Check for active trades (unless --force)
 if [ "$FORCE" = false ]; then

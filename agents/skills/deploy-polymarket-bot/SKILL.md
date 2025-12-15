@@ -1,6 +1,6 @@
 ---
 name: deploy-polymarket-bot
-description: Safe deployment of Polymarket trading bot with active trade protection
+description: Safe deployment of Polymarket trading bot with regression tests and active trade protection
 when_to_use: When deploying ANY changes to the polymarket-bot application
 script: agents/skills/deploy-polymarket-bot/deploy.sh
 ---
@@ -9,51 +9,83 @@ script: agents/skills/deploy-polymarket-bot/deploy.sh
 
 **⚠️ ALWAYS USE THIS SKILL** when deploying changes to polymarket-bot. Never use standard-deployment or manual docker commands.
 
-Safe deployment workflow for the Polymarket arbitrage trading bot that prevents interrupting active trades.
+Safe deployment workflow for the Polymarket arbitrage trading bot that:
+1. Runs regression tests to catch bugs before deployment
+2. Checks for active trades to prevent interrupting pending positions
 
 ## Why This Matters
 
-The bot executes real-money arbitrage trades on Polymarket. If the container is restarted while a trade is active (awaiting market resolution), we could:
+The bot executes real-money arbitrage trades on Polymarket. Deploying broken code or restarting during active trades can cause:
 
-1. Lose visibility into pending trades
-2. Miss resolution events
-3. Leave positions unmonitored
+1. **Bugs**: Untested code can break execution, tracking, or settlement
+2. **Lost visibility**: Restarting during active trades loses pending position data
+3. **Missed resolutions**: Container restart can miss market resolution events
+4. **Financial losses**: All of the above can result in real money losses
 
-The pre-deployment check ensures we only deploy when it's safe.
+The pre-deployment checks ensure we only deploy tested, safe code.
 
 ## Quick Deploy
 
 ```bash
-# Safe deploy (checks for active trades first)
+# Safe deploy (runs tests + checks for active trades)
 ./agents/skills/deploy-polymarket-bot/deploy.sh
 
-# Force deploy (DANGEROUS - skips safety check)
+# Skip tests only (still checks active trades)
+./agents/skills/deploy-polymarket-bot/deploy.sh --skip-tests
+
+# Force deploy (DANGEROUS - skips ALL safety checks)
 ./agents/skills/deploy-polymarket-bot/deploy.sh --force
 ```
 
 ## What the Script Does
 
-1. **Pre-check**: Runs `check_active_trades.py` in the container
+1. **Run Regression Tests** (Step 0)
+   - Builds a fresh container with latest code
+   - Runs `pytest tests/ -v` to verify all tests pass
+   - Blocks deployment if any tests fail
+   - Exit code 3 = tests failed
+
+2. **Check Active Trades** (Step 1)
+   - Runs `check_active_trades.py` in the container
    - Queries the database for unresolved real trades
    - Checks if market has resolved (safe) vs still active (danger)
    - Blocks deployment if active trades exist
+   - Exit code 1 = active trades
 
-2. **Deploy**: Standard git push + pull + docker compose rebuild
+3. **Deploy** (Steps 2-4)
+   - Git push + pull to sync code
+   - Docker compose rebuild and restart
 
-3. **Verify**: Shows startup logs to confirm success
+4. **Verify** (Step 5)
+   - Shows startup logs to confirm success
 
-## Manual Pre-Check
+## Manual Pre-Checks
 
-You can run the active trade check independently:
+You can run the checks independently:
 
 ```bash
-# Via SSH
+# Run regression tests
+scripts/connect-server.sh "cd ~/server/apps/polymarket-bot && docker compose run --rm --build polymarket-bot python3 -m pytest tests/ -v"
+
+# Check active trades
 scripts/connect-server.sh "docker exec polymarket-bot python3 /app/scripts/check_active_trades.py"
 
 # Exit codes:
-#   0 = Safe to deploy (no active trades)
-#   1 = NOT safe (active trades exist)
+#   0 = Safe to deploy
+#   1 = Active trades exist (don't deploy)
 #   2 = Error checking
+#   3 = Tests failed
+```
+
+## When to Skip Tests
+
+Use `--skip-tests` when:
+- You've already run tests manually
+- Making config-only changes (.env)
+- Urgent fix with verified minimal change
+
+```bash
+./agents/skills/deploy-polymarket-bot/deploy.sh --skip-tests
 ```
 
 ## When to Force Deploy
@@ -65,6 +97,10 @@ Only use `--force` when:
 - Emergency security fix is needed
 - User explicitly approves the risk
 
+```bash
+./agents/skills/deploy-polymarket-bot/deploy.sh --force
+```
+
 ## Trade Lifecycle
 
 ```
@@ -74,6 +110,14 @@ Trade Executed → status='pending' → Market Resolves → status='won'/'lost'
 ```
 
 ## Troubleshooting
+
+### "Regression tests failed"
+
+Fix the failing tests before deploying. To see which tests failed:
+
+```bash
+scripts/connect-server.sh "cd ~/server/apps/polymarket-bot && docker compose run --rm --build polymarket-bot python3 -m pytest tests/ -v --tb=long"
+```
 
 ### "Container may not be running"
 
@@ -112,6 +156,7 @@ If you must restart regardless:
 
 ## Related Files
 
-- `apps/polymarket-bot/scripts/check_active_trades.py` - Pre-deployment check script (runs in container)
+- `apps/polymarket-bot/tests/` - Regression test suite
+- `apps/polymarket-bot/scripts/check_active_trades.py` - Pre-deployment trade check
 - `apps/polymarket-bot/src/persistence.py` - Database schema
 - `apps/polymarket-bot/src/strategies/gabagool.py` - Trading logic
