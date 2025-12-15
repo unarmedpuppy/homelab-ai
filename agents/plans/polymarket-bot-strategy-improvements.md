@@ -249,11 +249,18 @@ if spread_opportunity:
 3. ✅ Partial fill detection fix in `polymarket.py`
 4. ✅ Documentation updates (STRATEGY_ARCHITECTURE.md, polymarket-bot-agent.md)
 
+### ✅ Phase 1 Strategy Improvements (COMPLETE 2025-12-15)
+1. ✅ **Position size reduction (1.1):** Added `min_trade_size_usd` config parameter
+   - Default $3.0 min trade size (was hardcoded at $1.0)
+   - Configurable via `GABAGOOL_MIN_TRADE_SIZE` env var
+   - Budget enforcement: skip trades when budget < min_trade_size * 2
+   - Regression tests in `tests/test_phase1_position_sizing.py`
+2. ✅ **Zero slippage (1.2):** Already in production (`GABAGOOL_MAX_SLIPPAGE=0.0`)
+3. ✅ **Max trade size (1.1):** Already in production (`GABAGOOL_MAX_TRADE_SIZE=5.0`)
+
 ### 🔜 NEXT STEPS (Strategy Improvements)
 1. **Monitor current state:** Use reconciliation to verify bot is now tracking trades correctly
-2. **Position size reduction (1.1):** Reduce from $10-50 to $3-5 per trade
-3. **Zero slippage (1.2):** Already implemented in Phase 1 of architecture fixes
-4. **Gradual position building (2.1):** Scale into positions over time
+2. **Gradual position building (2.1):** Scale into positions over time
 
 ### 📋 FUTURE (Medium Risk)
 - Multi-market parallelization (2.2)
