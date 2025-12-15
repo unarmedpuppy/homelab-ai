@@ -75,35 +75,88 @@ function createPokemonCard(pokemon) {
     front.appendChild(sprite);
     front.appendChild(name);
     
-    // Back side (card image)
+    // Back side (card image) - fetch on demand
     const back = document.createElement('div');
     back.className = 'pokemon-card-back';
+    back.innerHTML = '<div style="color: #666; padding: 20px;">Loading card...</div>';
     
-    const cardImage = document.createElement('img');
-    cardImage.className = 'pokemon-card-image';
-    cardImage.alt = `${pokemon.name} TCG Card`;
+    // Store loading state
+    let cardLoaded = false;
     
-    // Get card image URL if available
-    const cardInfo = cardData[pokemon.number];
-    if (cardInfo && cardInfo.card_image) {
-        cardImage.src = cardInfo.card_image;
-        cardImage.onerror = function() {
-            back.innerHTML = `<div style="color: #666; padding: 20px;">No card image available<br>for ${pokemon.name}</div>`;
-        };
-    } else {
-        back.innerHTML = `<div style="color: #666; padding: 20px;">No card data available<br>for ${pokemon.name}</div>`;
-    }
+    // Function to load card image
+    const loadCardImage = async () => {
+        if (cardLoaded) return;
+        cardLoaded = true;
+        
+        try {
+            // Try to fetch from local cards.json first
+            const cardInfo = cardData[pokemon.number];
+            if (cardInfo && cardInfo.card_image) {
+                const cardImage = document.createElement('img');
+                cardImage.className = 'pokemon-card-image';
+                cardImage.alt = `${pokemon.name} TCG Card`;
+                cardImage.src = cardInfo.card_image;
+                cardImage.onerror = function() {
+                    back.innerHTML = `<div style="color: #666; padding: 20px;">No card image available<br>for ${pokemon.name}</div>`;
+                };
+                back.innerHTML = '';
+                back.appendChild(cardImage);
+                return;
+            }
+            
+            // Fallback: fetch from API on demand
+            const response = await fetch(`https://api.pokemontcg.io/v2/cards?q=nationalPokedexNumbers:${pokemon.number}&pageSize=250`);
+            const data = await response.json();
+            const cards = data.data || [];
+            
+            if (cards.length > 0) {
+                // Sort by rarity (prioritize rare cards)
+                const sortedCards = cards.sort((a, b) => {
+                    const aRarity = (a.rarity || '').toLowerCase();
+                    const bRarity = (b.rarity || '').toLowerCase();
+                    const rarityPriority = { 'secret rare': 3, 'ultra rare': 2, 'rare': 1, 'uncommon': 0, 'common': -1 };
+                    const aPriority = rarityPriority[aRarity] || -2;
+                    const bPriority = rarityPriority[bRarity] || -2;
+                    return bPriority - aPriority;
+                });
+                
+                const bestCard = sortedCards[0];
+                const cardImage = bestCard.images?.large || bestCard.images?.small;
+                
+                if (cardImage) {
+                    const img = document.createElement('img');
+                    img.className = 'pokemon-card-image';
+                    img.alt = `${pokemon.name} TCG Card`;
+                    img.src = cardImage;
+                    img.onerror = function() {
+                        back.innerHTML = `<div style="color: #666; padding: 20px;">No card image available<br>for ${pokemon.name}</div>`;
+                    };
+                    back.innerHTML = '';
+                    back.appendChild(img);
+                } else {
+                    back.innerHTML = `<div style="color: #666; padding: 20px;">No card image available<br>for ${pokemon.name}</div>`;
+                }
+            } else {
+                back.innerHTML = `<div style="color: #666; padding: 20px;">No card found<br>for ${pokemon.name}</div>`;
+            }
+        } catch (error) {
+            console.error(`Error loading card for ${pokemon.name}:`, error);
+            back.innerHTML = `<div style="color: #666; padding: 20px;">Error loading card<br>for ${pokemon.name}</div>`;
+        }
+    };
     
-    back.appendChild(cardImage);
+    // Load card when card is flipped
+    card.addEventListener('click', function() {
+        if (!card.classList.contains('flipped')) {
+            // About to flip - load card if not loaded
+            loadCardImage();
+        }
+        card.classList.toggle('flipped');
+    });
     
     inner.appendChild(front);
     inner.appendChild(back);
     card.appendChild(inner);
-    
-    // Add click handler to flip card
-    card.addEventListener('click', function() {
-        card.classList.toggle('flipped');
-    });
     
     return card;
 }
