@@ -6,8 +6,8 @@
 # interrupting trades that are awaiting market resolution.
 #
 # Usage:
-#   ./scripts/deploy-polymarket-bot.sh          # Normal deploy with safety check
-#   ./scripts/deploy-polymarket-bot.sh --force  # Skip safety check (dangerous!)
+#   ./agents/skills/deploy-polymarket-bot/deploy.sh          # Normal deploy
+#   ./agents/skills/deploy-polymarket-bot/deploy.sh --force  # Skip safety check
 #
 # Exit codes:
 #   0 - Deployment successful
@@ -17,7 +17,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 FORCE=false
 
 # Parse arguments
@@ -41,7 +41,7 @@ if [ "$FORCE" = false ]; then
     echo ""
 
     # Run the check via SSH
-    if ! "$SCRIPT_DIR/connect-server.sh" "docker exec polymarket-bot python3 /app/scripts/check_active_trades.py 2>/dev/null"; then
+    if ! "$REPO_ROOT/scripts/connect-server.sh" "docker exec polymarket-bot python3 /app/scripts/check_active_trades.py 2>/dev/null"; then
         EXIT_CODE=$?
         if [ $EXIT_CODE -eq 1 ]; then
             echo ""
@@ -50,7 +50,7 @@ if [ "$FORCE" = false ]; then
             echo "═══════════════════════════════════════════════════════════════"
             echo ""
             echo "Wait for trades to resolve or use --force to override:"
-            echo "  ./scripts/deploy-polymarket-bot.sh --force"
+            echo "  $SCRIPT_DIR/deploy.sh --force"
             echo ""
             exit 1
         elif [ $EXIT_CODE -eq 2 ]; then
@@ -71,12 +71,12 @@ git push origin main 2>/dev/null || true
 
 # Step 3: Pull changes on server
 echo "📥 Pulling changes on server..."
-"$SCRIPT_DIR/connect-server.sh" "cd ~/server && git pull origin main"
+"$REPO_ROOT/scripts/connect-server.sh" "cd ~/server && git pull origin main"
 echo ""
 
 # Step 4: Rebuild and restart
 echo "🔄 Rebuilding and restarting container..."
-"$SCRIPT_DIR/connect-server.sh" "cd ~/server/apps/polymarket-bot && docker compose up -d --build"
+"$REPO_ROOT/scripts/connect-server.sh" "cd ~/server/apps/polymarket-bot && docker compose up -d --build"
 echo ""
 
 # Step 5: Wait for startup and verify
@@ -84,7 +84,7 @@ echo "⏳ Waiting for bot to start..."
 sleep 3
 
 echo "📋 Checking bot status..."
-"$SCRIPT_DIR/connect-server.sh" "docker logs polymarket-bot --tail 15 2>&1" || true
+"$REPO_ROOT/scripts/connect-server.sh" "docker logs polymarket-bot --tail 15 2>&1" || true
 echo ""
 
 echo "═══════════════════════════════════════════════════════════════"

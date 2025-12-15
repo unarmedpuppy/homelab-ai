@@ -421,29 +421,23 @@ GABAGOOL_DIRECTIONAL_STOP_LOSS=0.11
 
 ## Deployment
 
-**USE THE SKILL**: See [agents/skills/standard-deployment/SKILL.md](../../agents/skills/standard-deployment/SKILL.md) for complete deployment instructions.
+**⚠️ ALWAYS USE THE SAFE DEPLOYMENT SKILL**: See [agents/skills/deploy-polymarket-bot/SKILL.md](../../agents/skills/deploy-polymarket-bot/SKILL.md)
+
+**NEVER** use standard-deployment or manual docker commands for this app. The safe deployment script checks for active trades before restarting to prevent interrupting trades awaiting market resolution.
+
+```bash
+# Safe deploy (ALWAYS use this)
+./agents/skills/deploy-polymarket-bot/deploy.sh
+
+# Force deploy (ONLY for emergencies - skips active trade check)
+./agents/skills/deploy-polymarket-bot/deploy.sh --force
+```
 
 **AFTER STRATEGY CHANGES**: When modifying strategy code (gabagool.py, polymarket.py, order_book.py, config.py), use [agents/skills/update-polymarket-strategy-docs/SKILL.md](../../agents/skills/update-polymarket-strategy-docs/SKILL.md) to ensure documentation stays in sync with the implementation.
 
-**CRITICAL**: Always use `--no-cache` when rebuilding to prevent stale code from Docker layer caching.
-
-```bash
-# Local: commit and push
-git add apps/polymarket-bot/ && git commit -m "message" && git push
-
-# Server: pull and rebuild WITH NO CACHE (prevents stale code)
-scripts/connect-server.sh "cd ~/server && git pull origin main && cd apps/polymarket-bot && docker compose down && docker compose build --no-cache && docker compose up -d"
-
-# Check logs
-scripts/connect-server.sh "docker logs polymarket-bot --tail 50"
-
-# Verify code is updated in container
-scripts/connect-server.sh "docker exec polymarket-bot grep -n 'your_pattern' /app/src/path/to/file.py"
-```
-
 **Important**:
 - After changing `.env`, must run `docker compose down && docker compose up -d` (not just restart) to pick up new env vars.
-- Always use `--no-cache` flag to ensure code changes take effect. Without it, Docker may reuse cached layers with old code.
+- The deploy script handles git push, pull, and rebuild automatically.
 
 ## Common Issues
 
@@ -674,7 +668,9 @@ Tracked in `_directional_positions: Dict[str, DirectionalPosition]`
 
 | Action | Command |
 |--------|---------|
-| Deploy changes | `scripts/connect-server.sh "cd ~/server && git pull origin main && cd apps/polymarket-bot && docker compose down && docker compose build --no-cache && docker compose up -d"` |
+| **Deploy changes** | `./agents/skills/deploy-polymarket-bot/deploy.sh` |
+| Deploy (force) | `./agents/skills/deploy-polymarket-bot/deploy.sh --force` |
+| Check active trades | `scripts/connect-server.sh "docker exec polymarket-bot python3 /app/scripts/check_active_trades.py"` |
 | View logs | `scripts/connect-server.sh "docker logs polymarket-bot --tail 100"` |
 | Check status | `scripts/connect-server.sh "docker ps --filter name=polymarket"` |
 | Toggle dry run | Edit `.env` on server, then `docker compose down && up -d` |

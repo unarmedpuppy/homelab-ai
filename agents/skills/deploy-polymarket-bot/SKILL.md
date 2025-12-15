@@ -1,11 +1,13 @@
 ---
 name: deploy-polymarket-bot
 description: Safe deployment of Polymarket trading bot with active trade protection
-when_to_use: When deploying changes to the polymarket-bot application
-script: scripts/deploy-polymarket-bot.sh
+when_to_use: When deploying ANY changes to the polymarket-bot application
+script: agents/skills/deploy-polymarket-bot/deploy.sh
 ---
 
 # Deploy Polymarket Bot
+
+**⚠️ ALWAYS USE THIS SKILL** when deploying changes to polymarket-bot. Never use standard-deployment or manual docker commands.
 
 Safe deployment workflow for the Polymarket arbitrage trading bot that prevents interrupting active trades.
 
@@ -23,20 +25,20 @@ The pre-deployment check ensures we only deploy when it's safe.
 
 ```bash
 # Safe deploy (checks for active trades first)
-./scripts/deploy-polymarket-bot.sh
+./agents/skills/deploy-polymarket-bot/deploy.sh
 
 # Force deploy (DANGEROUS - skips safety check)
-./scripts/deploy-polymarket-bot.sh --force
+./agents/skills/deploy-polymarket-bot/deploy.sh --force
 ```
 
 ## What the Script Does
 
 1. **Pre-check**: Runs `check_active_trades.py` in the container
    - Queries the database for unresolved real trades
-   - Checks if markets have ended (safe to deploy)
+   - Checks if market has resolved (safe) vs still active (danger)
    - Blocks deployment if active trades exist
 
-2. **Deploy**: Standard git pull + docker compose rebuild
+2. **Deploy**: Standard git push + pull + docker compose rebuild
 
 3. **Verify**: Shows startup logs to confirm success
 
@@ -78,7 +80,7 @@ Trade Executed → status='pending' → Market Resolves → status='won'/'lost'
 The pre-check failed because the bot isn't running. This is safe to deploy:
 
 ```bash
-./scripts/deploy-polymarket-bot.sh  # Will proceed automatically
+./agents/skills/deploy-polymarket-bot/deploy.sh  # Will proceed automatically
 ```
 
 ### Stuck in "not safe" state
@@ -105,11 +107,11 @@ asyncio.run(check())
 If you must restart regardless:
 
 ```bash
-./scripts/deploy-polymarket-bot.sh --force
+./agents/skills/deploy-polymarket-bot/deploy.sh --force
 ```
 
 ## Related Files
 
-- `apps/polymarket-bot/scripts/check_active_trades.py` - Pre-deployment check script
+- `apps/polymarket-bot/scripts/check_active_trades.py` - Pre-deployment check script (runs in container)
 - `apps/polymarket-bot/src/persistence.py` - Database schema
 - `apps/polymarket-bot/src/strategies/gabagool.py` - Trading logic
