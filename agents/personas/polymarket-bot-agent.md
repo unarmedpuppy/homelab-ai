@@ -414,10 +414,49 @@ GABAGOOL_DIRECTIONAL_ENTRY_THRESHOLD=0.25
 GABAGOOL_DIRECTIONAL_TIME_THRESHOLD=0.80
 GABAGOOL_DIRECTIONAL_SIZE_RATIO=0.33
 GABAGOOL_DIRECTIONAL_STOP_LOSS=0.11
+
+# Server Restart Blackout Window (5:00-5:29 AM CST)
+GABAGOOL_BLACKOUT_ENABLED=true      # Enable blackout protection
+GABAGOOL_BLACKOUT_START_HOUR=5      # Start hour (24h format)
+GABAGOOL_BLACKOUT_START_MINUTE=0    # Start minute
+GABAGOOL_BLACKOUT_END_HOUR=5        # End hour (24h format)
+GABAGOOL_BLACKOUT_END_MINUTE=29     # End minute
+GABAGOOL_BLACKOUT_TIMEZONE=America/Chicago  # Timezone for window
 ```
 
 ### Server .env Location
 `/home/unarmedpuppy/server/apps/polymarket-bot/.env`
+
+## Server Restart Blackout Protection
+
+The server restarts at **5:15 AM CST daily** via cron. To prevent trades from being interrupted mid-execution, the bot has a **blackout window** from **5:00 AM to 5:29 AM CST**.
+
+### How It Works
+
+1. **Background task** checks the time every 60 seconds (not during trade execution)
+2. Sets `_in_blackout` flag that trades read (no performance impact on trade path)
+3. During blackout, trading is disabled (shows "BLACKOUT" mode on dashboard)
+4. After blackout ends:
+   - If circuit breaker is hit → stays in CIRCUIT_BREAKER mode
+   - If circuit breaker is not hit → resumes LIVE trading
+
+### Trading Mode Priority
+
+```
+BLACKOUT > CIRCUIT_BREAKER > DRY_RUN > LIVE
+```
+
+The dashboard shows the appropriate banner for each mode.
+
+### Relevant Code
+
+- `src/config.py` - Blackout configuration (start/end times, timezone)
+- `src/strategies/gabagool.py`:
+  - `_check_blackout_window()` - Time check logic (uses zoneinfo)
+  - `_blackout_checker_loop()` - Background task (every 60s)
+  - `_is_trading_disabled()` - Includes blackout check
+  - `_get_trading_mode()` - Returns "BLACKOUT" when in window
+- `tests/test_blackout.py` - Regression tests
 
 ## Deployment
 
@@ -604,6 +643,7 @@ Test files:
 - `tests/test_circuit_breaker.py` - Circuit breaker logic
 - `tests/test_websocket.py` - WebSocket message handling and price updates
 - `tests/test_dashboard.py` - Dashboard SSE and optimized updates
+- `tests/test_blackout.py` - Server restart blackout window protection
 
 ### Manual Testing Commands
 
