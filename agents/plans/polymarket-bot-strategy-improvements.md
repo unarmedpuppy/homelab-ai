@@ -9,6 +9,88 @@ Based on analysis of successful trade execution and comparison with gabagool22's
 
 ---
 
+## ⚠️ CRITICAL BUG FOUND: Untracked Partial Fills
+
+### The Problem
+
+Trades are executing on Polymarket but the bot thinks they failed:
+
+| Time (UTC) | Bot Log | Polymarket API |
+|------------|---------|----------------|
+| 14:36:51 | "Trade failed: FOK rejected" | BUY DOWN 29.29 @ $0.35 ✅ |
+| 14:40:25 | "Trade failed: FOK rejected" | BUY UP 26.16 @ $0.63 ✅ |
+| 15:05:29 | "Trade failed: FOK rejected" | BUY DOWN 25.48 @ $0.75 ✅ |
+
+### Root Cause
+
+The dual-leg execution flow has a critical flaw:
+
+```
+1. Bot sends YES order → FILLS ✅
+2. Bot sends NO order  → REJECTED (FOK)
+3. Bot catches exception → Logs "Trade failed"
+4. Bot returns success=False → NO database record
+5. BUT: The YES order already executed on-chain!
+```
+
+**Result:** 10 out of 11 positions today are ONE-SIDED (unhedged).
+
+### Evidence
+
+```
+Today's trades from Polymarket API:
+  Hedged positions: 1 (properly paired)
+  One-sided positions: 10 (first leg filled, second rejected)
+
+Dashboard shows: 0 trades
+Database trades table: 0 records
+```
+
+### Why You Made Money
+
+Pure luck - your one-sided directional bets were correct. This is NOT arbitrage and carries significant risk.
+
+---
+
+## Observability Improvement Plan (Priority 1)
+
+### Phase A: External Trade Reconciliation (URGENT)
+
+Add a script that fetches actual trades from Polymarket API and reconciles with local DB.
+
+**Tasks:**
+1. Create `scripts/reconcile-trades.py` - standalone reconciliation
+2. Add to strategy loop (every 5 minutes)
+3. Add dashboard widget showing discrepancies
+
+### Phase B: Fix Partial Fill Detection
+
+Current code returns `success=False` when second leg fails, but first leg already executed.
+
+**Tasks:**
+1. Track first leg BEFORE attempting second
+2. On second leg failure, record partial fill immediately
+3. Add partial fills to settlement queue
+
+### Phase C: Dashboard Improvements
+
+1. Add "Untracked Positions" widget
+2. Add "On-Chain Balance" vs tracked balance
+3. Add reconciliation status indicator
+
+---
+
+## Implementation Priority
+
+| Priority | Task | Status |
+|----------|------|--------|
+| **P0** | Create reconciliation script | Pending |
+| **P0** | Fix partial fill recording | Pending |
+| **P1** | Dashboard reconciliation widget | Pending |
+| **P2** | Add trade verification | Pending |
+
+---
+
 ## Completed Items (This Session)
 
 ### 1. Critical Bug Fix - OrderBookSummary Compatibility
