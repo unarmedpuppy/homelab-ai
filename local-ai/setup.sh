@@ -39,15 +39,9 @@ docker create --name vllm-coder7b --gpus all -p 8003:8000 \
   --download-dir /models --dtype auto \
   --max-model-len 8192 --gpu-memory-utilization 0.90
 
-echo "Creating Qwen Image Edit container..."
-docker create --name vllm-qwen-image --gpus all -p 8004:8000 \
-  -v $(pwd)/models:/models -v $(pwd)/cache:/root/.cache/hf \
-  -e HF_TOKEN=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 \
-  vllm/vllm-openai:v0.6.3 \
-  --model Qwen/Qwen-Image-Edit-2509 \
-  --served-model-name qwen-image-edit \
-  --download-dir /models --dtype auto \
-  --max-model-len 4096 --gpu-memory-utilization 0.90
+# Note: Qwen Image Edit removed - vLLM doesn't support image models
+# Image models will use the image-inference-server container instead
+# See local-ai/image-inference-server/ for setup instructions
 
 echo "Starting manager service..."
 docker compose up -d

@@ -36,7 +36,23 @@ def load_models():
         }
         for name, config in models.items()
     }
-    print(f"Loaded {len(models)} models: {list(models.keys())}")
+    
+    # Validate model types and set defaults
+    for name, state in model_states.items():
+        config = state["config"]
+        if "type" not in config:
+            # Default to "text" for backward compatibility
+            config["type"] = "text"
+            print(f"Warning: Model '{name}' missing 'type' field, defaulting to 'text'")
+        elif config["type"] not in ["text", "image"]:
+            print(f"Warning: Model '{name}' has invalid type '{config['type']}', defaulting to 'text'")
+            config["type"] = "text"
+    
+    text_models = [name for name, s in model_states.items() if s["config"].get("type") == "text"]
+    image_models = [name for name, s in model_states.items() if s["config"].get("type") == "image"]
+    print(f"Loaded {len(models)} models: {len(text_models)} text, {len(image_models)} image")
+    print(f"  Text models: {text_models}")
+    print(f"  Image models: {image_models}")
 
 def get_container(name: str):
     """Gets a docker container by name, returns None if not found."""
@@ -45,22 +61,44 @@ def get_container(name: str):
     except docker.errors.NotFound:
         return None
 
+def get_model_type(model_name: str) -> str:
+    """Gets the model type (text or image) for a given model."""
+    state = model_states.get(model_name)
+    if not state:
+        return "text"  # Default
+    return state["config"].get("type", "text")
+
 async def wait_for_ready(model_name: str):
     """Waits for a model container to become healthy."""
     state = model_states[model_name]
     container_name = state["config"]["container"]
-    url = f"http://{container_name}:8000/health" # vLLM standard
+    model_type = get_model_type(model_name)
     
-    print(f"[{model_name}] Waiting for container to be ready...")
+    print(f"[{model_name}] Waiting for {model_type} container to be ready...")
     start_time = time.time()
+    
+    # Different health check endpoints for different model types
+    # Both support /v1/models for OpenAI compatibility, but we can also check /health for image models
+    health_endpoints = [
+        f"http://{container_name}:8000/v1/models",  # OpenAI-compatible, works for both
+        f"http://{container_name}:8000/health",      # Image server health check
+    ]
+    
     while time.time() - start_time < START_TIMEOUT:
         try:
             async with httpx.AsyncClient() as client:
-                # vLLM OpenAI-compatible endpoint is at /v1/models
+                # Try /v1/models first (works for both vLLM and image server)
                 res = await client.get(f"http://{container_name}:8000/v1/models", timeout=2)
                 if res.status_code == 200:
                     print(f"[{model_name}] Container is ready!")
                     return True
+                
+                # For image models, also try /health endpoint
+                if model_type == "image":
+                    res = await client.get(f"http://{container_name}:8000/health", timeout=2)
+                    if res.status_code == 200:
+                        print(f"[{model_name}] Container is ready (via /health)!")
+                        return True
         except httpx.RequestError:
             pass # Ignore connection errors while waiting
         await asyncio.sleep(1)
@@ -77,7 +115,16 @@ async def start_model_container(model_name: str):
     async with state["lock"]:
         container = get_container(container_name)
         if container and container.status == "running":
-            return True
+            # Container is running, but check if it's actually ready
+            if await wait_for_ready(model_name):
+                return True
+            else:
+                # Container is running but not ready yet - wait a bit more
+                print(f"[{model_name}] Container is running but not ready yet, waiting...")
+                await asyncio.sleep(5)
+                if await wait_for_ready(model_name):
+                    return True
+                raise HTTPException(status_code=503, detail=f"Model backend '{model_name}' is running but not ready. It may still be loading.")
 
         print(f"[{model_name}] Starting container: {container_name}")
         try:
@@ -128,11 +175,20 @@ app = FastAPI(lifespan=lifespan)
 
 @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
 async def proxy(request: Request):
-    body = await request.json()
+    # Handle GET requests (like /v1/models) without body
+    try:
+        body = await request.json() if request.method != "GET" else {}
+    except:
+        body = {}
+    
     model_name = body.get("model")
+    
+    # For GET requests to /v1/models, return our own list
+    if request.method == "GET" and request.url.path == "/v1/models":
+        return await list_models()
 
     if not model_name or model_name not in model_states:
-        return HTTPException(status_code=400, detail=f"Invalid or missing 'model' in request body.")
+        raise HTTPException(status_code=400, detail=f"Invalid or missing 'model' in request body.")
 
     # Ensure model container is running
     await start_model_container(model_name)
@@ -146,11 +202,12 @@ async def proxy(request: Request):
     
     async with httpx.AsyncClient() as client:
         try:
+            request_body = await request.body() if request.method != "GET" else None
             backend_req = client.build_request(
                 method=request.method,
                 url=backend_url,
                 headers={h:v for h,v in request.headers.items() if h not in ("host", "content-length")},
-                content=await request.body(),
+                content=request_body,
                 timeout=None, # Inference can be slow
             )
             backend_resp = await client.send(backend_req, stream=True)
