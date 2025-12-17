@@ -359,16 +359,11 @@
                 this.inputLine.style.display = 'none'; // Hide input while waiting
                 this.conversationHistory.push({ role: 'user', content: command });
                 
-                // Show loading indicator
-                const loadingId = this.showLoadingBar();
-                
                 try {
                     const response = await this.getAIResponse();
-                    this.hideLoadingBar(loadingId);
                     this.conversationHistory.push({ role: 'assistant', content: response });
                     this.displayLine(response, 'ai');
                 } catch (error) {
-                    this.hideLoadingBar(loadingId);
                     let errorMsg = error.message;
                     // Provide more helpful error messages
                     if (errorMsg.includes('backend not ready') || errorMsg.includes('not ready') || errorMsg.includes('503')) {
@@ -428,23 +423,6 @@
             return data.choices[0].message.content;
         }
 
-        showLoadingBar() {
-            const loadingId = 'loading-' + Date.now();
-            const loadingContainer = document.createElement('div');
-            loadingContainer.id = loadingId;
-            loadingContainer.className = 'loading-container';
-            loadingContainer.innerHTML = `
-                <div class="loading-text">Loading model: ${this.currentModel}...</div>
-                <div class="loading-bar-container">
-                    <div class="loading-bar-fill" style="width: 0%"></div>
-                    <div class="loading-percentage">0%</div>
-                </div>
-            `;
-            this.output.appendChild(loadingContainer);
-            this.output.scrollTop = this.output.scrollHeight;
-            return loadingId;
-        }
-
         hideLoadingBar(loadingId) {
             const loadingEl = document.getElementById(loadingId);
             if (loadingEl) {
@@ -453,6 +431,12 @@
         }
 
         async showModelLoadingProgress() {
+            // Check if there's already a loading bar
+            const existingLoading = document.querySelector('.loading-container');
+            if (existingLoading) {
+                existingLoading.remove();
+            }
+
             const loadingId = 'model-loading-' + Date.now();
             const loadingContainer = document.createElement('div');
             loadingContainer.id = loadingId;
@@ -471,9 +455,11 @@
             let progress = 0;
             const maxAttempts = 300; // 5 minutes max
             let attempts = 0;
+            let pollInterval = null;
 
             const pollProgress = async () => {
                 if (attempts >= maxAttempts) {
+                    if (pollInterval) clearTimeout(pollInterval);
                     this.hideLoadingBar(loadingId);
                     this.displayLine('Model loading timeout. Please try again.', 'ai', 'error');
                     return;
@@ -484,33 +470,41 @@
                     const data = await response.json();
                     
                     if (data.status === 'ready') {
+                        if (pollInterval) clearTimeout(pollInterval);
                         progress = 100;
                         this.updateLoadingBar(loadingId, progress, 'Model ready!');
                         setTimeout(() => {
                             this.hideLoadingBar(loadingId);
                             this.displayLine('Model is ready. Please try your message again.', 'ai');
-                        }, 1000);
+                        }, 1500);
                         return;
                     }
 
-                    // Update progress
-                    progress = Math.max(progress, data.progress || 0);
-                    this.updateLoadingBar(loadingId, progress, data.message || 'Loading...');
+                    // Update progress - use actual progress from API or increment estimate
+                    if (data.progress !== undefined) {
+                        progress = Math.max(progress, data.progress);
+                    } else {
+                        // Increment estimate if no progress data
+                        progress = Math.min(progress + 3, 95);
+                    }
+                    
+                    this.updateLoadingBar(loadingId, progress, data.message || 'Loading model...');
 
                     // Continue polling if not ready
                     if (data.status !== 'ready') {
                         attempts++;
-                        setTimeout(pollProgress, 2000); // Poll every 2 seconds
+                        pollInterval = setTimeout(pollProgress, 2000); // Poll every 2 seconds
                     }
                 } catch (error) {
                     // Continue polling on error
                     attempts++;
                     progress = Math.min(progress + 2, 95); // Increment progress estimate
                     this.updateLoadingBar(loadingId, progress, 'Checking status...');
-                    setTimeout(pollProgress, 2000);
+                    pollInterval = setTimeout(pollProgress, 2000);
                 }
             };
 
+            // Start polling immediately
             pollProgress();
         }
 
