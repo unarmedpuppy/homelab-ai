@@ -10,6 +10,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     python3.11 \
     python3-pip \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python packages
@@ -22,9 +23,9 @@ COPY app/ ./app/
 # Expose port
 EXPOSE 8000
 
-# Health check
+# Health check (using curl instead of requests to avoid extra dependency)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD python3 -c "import requests; requests.get('http://localhost:8000/health')"
+    CMD curl -f http://localhost:8000/health || exit 1
 
 # Run the server
 CMD ["python3", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
