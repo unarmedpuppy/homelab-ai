@@ -335,6 +335,8 @@
                         break;
                     case '/clear':
                         this.output.innerHTML = '';
+                        this.conversationHistory = [];
+                        this.displayLine('Terminal cleared. Conversation history reset.');
                         break;
                     default:
                         this.displayLine(`Unknown command: ${command}`, 'ai', 'error');
@@ -364,6 +366,12 @@
                     if (errorMsg.includes('backend not ready') || errorMsg.includes('not ready') || errorMsg.includes('503')) {
                         // Model is loading - show loading bar and poll for progress
                         this.showModelLoadingProgress();
+                    } else if (errorMsg.includes('maximum context length') || errorMsg.includes('context length') || errorMsg.includes('6144')) {
+                        // Context length exceeded - truncate history and retry
+                        this.displayLine('Context length exceeded. Truncating conversation history...', 'system');
+                        // Keep only last 5 messages
+                        this.conversationHistory = this.conversationHistory.slice(-5);
+                        this.displayLine('History truncated. Please try your message again.', 'system');
                     } else {
                         this.displayLine(`Error: ${errorMsg}`, 'ai', 'error');
                     }
@@ -376,13 +384,29 @@
         }
 
         async getAIResponse() {
+            // Truncate conversation history if it gets too long
+            // Qwen model has 6144 token limit, so be conservative
+            // Keep only the most recent messages to stay within token limits
+            const maxMessages = 10; // Keep last 10 messages (more conservative)
+            let messagesToSend = this.conversationHistory;
+            
+            if (messagesToSend.length > maxMessages) {
+                // Keep system message if present, then last N messages
+                const systemMsg = messagesToSend[0]?.role === 'system' ? [messagesToSend[0]] : [];
+                messagesToSend = [...systemMsg, ...messagesToSend.slice(-maxMessages)];
+                // Don't show message every time, only if we're truncating significantly
+                if (this.conversationHistory.length > maxMessages * 2) {
+                    this.displayLine(`Note: Conversation history truncated to last ${maxMessages} messages.`, 'system');
+                }
+            }
+            
             const response = await fetch('/v1/chat/completions', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     model: this.currentModel,
-                    messages: this.conversationHistory,
-                    max_tokens: 1500,
+                    messages: messagesToSend,
+                    max_tokens: 500, // Reduced from 1500 to leave room for context
                     stream: false // Simpler for this UI
                 })
             });
