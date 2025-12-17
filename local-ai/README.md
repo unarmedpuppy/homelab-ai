@@ -12,17 +12,47 @@ This directory contains the setup for running local LLMs on your Windows machine
 
 ### 1. Windows Setup
 
+**First time setup:**
 ```bash
 cd local-ai
 chmod +x setup.sh
 ./setup.sh
 ```
 
-### 2. Server Setup
+**Or if you're on Windows PowerShell:**
+```powershell
+cd local-ai
+bash setup.sh
+```
+
+**Verify setup:**
+```powershell
+.\verify-setup.ps1
+```
+
+**Start manager (if not running):**
+```powershell
+docker compose up -d
+```
+
+### 2. Configure Windows Firewall
+
+Allow port 8000 from your server's IP (optional but recommended for security):
+```powershell
+# Replace <SERVER_IP> with your server's IP address
+New-NetFirewallRule -DisplayName "LLM Manager 8000" -Direction Inbound -Protocol TCP -LocalPort 8000 -RemoteAddress <SERVER_IP> -Action Allow
+```
+
+Or allow from your local network (less secure but easier):
+```powershell
+New-NetFirewallRule -DisplayName "LLM Manager 8000" -Direction Inbound -Protocol TCP -LocalPort 8000 -RemoteAddress 192.168.86.0/24 -Action Allow
+```
+
+### 3. Server Setup
 
 ```bash
 cd apps/local-ai-app
-# Update WINDOWS_AI_HOST in docker-compose.yml with your Windows IP
+# Verify WINDOWS_AI_HOST in docker-compose.yml matches your Windows IP (default: 192.168.86.63)
 docker compose up -d
 ```
 
