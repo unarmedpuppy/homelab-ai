@@ -359,11 +359,16 @@
                 this.inputLine.style.display = 'none'; // Hide input while waiting
                 this.conversationHistory.push({ role: 'user', content: command });
                 
+                // Show processing indicator with timer
+                const processingId = this.showProcessingIndicator();
+                
                 try {
                     const response = await this.getAIResponse();
+                    this.hideProcessingIndicator(processingId);
                     this.conversationHistory.push({ role: 'assistant', content: response });
                     this.displayLine(response, 'ai');
                 } catch (error) {
+                    this.hideProcessingIndicator(processingId);
                     let errorMsg = error.message;
                     // Provide more helpful error messages
                     if (errorMsg.includes('backend not ready') || errorMsg.includes('not ready') || errorMsg.includes('503')) {
@@ -427,6 +432,45 @@
             const loadingEl = document.getElementById(loadingId);
             if (loadingEl) {
                 loadingEl.remove();
+            }
+        }
+
+        showProcessingIndicator() {
+            const processingId = 'processing-' + Date.now();
+            const processingLine = document.createElement('div');
+            processingLine.id = processingId;
+            processingLine.className = 'line system';
+            processingLine.innerHTML = `
+                <span class="prompt">SYSTEM: </span>
+                <span class="prompt-input" style="color: var(--green);">Processing...</span>
+            `;
+            this.output.appendChild(processingLine);
+            this.output.scrollTop = this.output.scrollHeight;
+
+            // Start timer
+            let seconds = 0;
+            const timerInterval = setInterval(() => {
+                seconds++;
+                const textSpan = processingLine.querySelector('.prompt-input');
+                if (textSpan) {
+                    textSpan.textContent = `Processing... (${seconds}s)`;
+                }
+            }, 1000);
+
+            // Store interval ID for cleanup
+            processingLine.dataset.intervalId = timerInterval;
+
+            return processingId;
+        }
+
+        hideProcessingIndicator(processingId) {
+            const processingEl = document.getElementById(processingId);
+            if (processingEl) {
+                // Clear the interval
+                if (processingEl.dataset.intervalId) {
+                    clearInterval(parseInt(processingEl.dataset.intervalId));
+                }
+                processingEl.remove();
             }
         }
 
