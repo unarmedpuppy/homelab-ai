@@ -333,6 +333,7 @@
                         break;
                     case '/models':
                         this.displayLine(`Available models: ${this.availableModels.join(', ')}`);
+                        this.displayLine(`Note: qwen-image-edit is not supported (vLLM doesn't support image generation models)`, 'system');
                         break;
                     case '/clear':
                         this.output.innerHTML = '';
@@ -355,6 +356,14 @@
                     this.displayLine("Error: No model selected. Use /model [name] to select one.", 'ai', 'error');
                     return;
                 }
+                
+                // Check if this is an image generation model
+                if (this.currentModel === 'qwen-image-edit') {
+                    this.displayLine('Error: qwen-image-edit model is not supported. vLLM does not support image generation models.', 'ai', 'error');
+                    this.displayLine('This model requires a different inference engine. Please use a text generation model instead.', 'system');
+                    return;
+                }
+                
                 this.isWaitingForResponse = true;
                 this.inputLine.style.display = 'none'; // Hide input while waiting
                 this.conversationHistory.push({ role: 'user', content: command });

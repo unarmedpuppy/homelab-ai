@@ -1,5 +1,30 @@
 # Local AI Troubleshooting Guide
 
+## Unsupported Models
+
+### Qwen Image Edit Model
+
+**Issue:**
+- Container fails with: `ValueError: No supported config format found in Qwen/Qwen-Image-Edit-2509`
+- Model loading timeout
+
+**Cause:**
+The `qwen-image-edit` model is an **image generation/editing model**, not a text generation model. vLLM is designed for text generation only and does not support image generation models.
+
+**Solution:**
+- **Remove or disable this model** - It cannot work with the current vLLM setup
+- Use text generation models instead: `llama3-8b`, `qwen2.5-14b-awq`, or `deepseek-coder`
+- If you need image generation, you'll need a different inference engine (not vLLM)
+
+**To remove the model:**
+```powershell
+# Remove the container
+docker rm vllm-qwen-image
+
+# Remove from models.json (optional, but recommended)
+# Edit local-ai/models.json and remove the qwen-image-edit entry
+```
+
 ## Model Container Fails to Start
 
 ### Issue: Llama Model - Gated Repository Error
