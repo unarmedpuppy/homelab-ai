@@ -236,6 +236,64 @@ async def model_status():
             }
         }
 
+@app.get("/model-loading-progress/{model_name}")
+async def model_loading_progress(model_name: str):
+    """Get model loading progress from Windows manager"""
+    import re
+    
+    # Map model names to container names
+    container_map = {
+        "llama3-8b": "vllm-llama3-8b",
+        "qwen2.5-14b-awq": "vllm-qwen14b-awq",
+        "deepseek-coder": "vllm-coder7b",
+        "qwen-image-edit": "vllm-qwen-image"
+    }
+    
+    container_name = container_map.get(model_name)
+    if not container_name:
+        return {"error": "Unknown model", "progress": 0, "status": "unknown"}
+    
+    try:
+        # Check if model is ready
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            health_response = await client.get(f"{WINDOWS_AI_BASE_URL}/healthz")
+            if health_response.status_code == 200:
+                health_data = health_response.json()
+                running_models = health_data.get("running", [])
+                
+                if model_name in running_models:
+                    return {
+                        "progress": 100,
+                        "status": "ready",
+                        "message": "Model is ready"
+                    }
+        
+        # If not ready, try to get progress from logs via Windows manager
+        # We'll use a simple heuristic: if container is running but not ready, it's loading
+        async with httpx.AsyncClient(timeout=2.0) as client:
+            try:
+                # Try to connect to the model directly - if it fails, it's loading
+                test_response = await client.get(f"{WINDOWS_AI_BASE_URL}/v1/models")
+                # If we get here and model isn't in running_models, it's loading
+                return {
+                    "progress": 50,  # Estimated - we can't get exact progress from API
+                    "status": "loading",
+                    "message": "Model is loading, please wait..."
+                }
+            except:
+                # Can't connect - model is starting up
+                return {
+                    "progress": 25,
+                    "status": "starting",
+                    "message": "Model container is starting..."
+                }
+    except Exception as e:
+        return {
+            "progress": 0,
+            "status": "error",
+            "message": f"Error checking progress: {str(e)}"
+        }
+
 @app.post("/v1/chat/completions")
 async def chat_completions(request: Request):
     """Proxy chat completions to Windows AI service"""

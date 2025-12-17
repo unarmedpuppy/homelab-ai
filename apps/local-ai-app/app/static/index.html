@@ -153,6 +153,72 @@
             text-align: center;
             margin-bottom: 1rem;
         }
+
+        /* Loading bar styles */
+        .loading-container {
+            margin: 1rem 0;
+            padding: 0.5rem;
+            border: 1px solid var(--grey);
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .loading-text {
+            color: var(--green);
+            font-family: var(--font-family);
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 5px var(--green);
+        }
+
+        .loading-bar-container {
+            width: 100%;
+            height: 20px;
+            border: 1px solid var(--grey);
+            background: var(--black);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loading-bar-fill {
+            height: 100%;
+            background: var(--green);
+            box-shadow: 0 0 10px var(--green);
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .loading-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 10px,
+                rgba(0, 0, 0, 0.3) 10px,
+                rgba(0, 0, 0, 0.3) 20px
+            );
+            animation: loading-shimmer 1s linear infinite;
+        }
+
+        @keyframes loading-shimmer {
+            0% { transform: translateX(-20px); }
+            100% { transform: translateX(20px); }
+        }
+
+        .loading-percentage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--white);
+            font-family: var(--font-family);
+            font-size: 12px;
+            text-shadow: 0 0 3px var(--black);
+            z-index: 1;
+        }
     </style>
 </head>
 <body>
@@ -283,19 +349,24 @@
                 this.inputLine.style.display = 'none'; // Hide input while waiting
                 this.conversationHistory.push({ role: 'user', content: command });
                 
+                // Show loading indicator
+                const loadingId = this.showLoadingBar();
+                
                 try {
                     const response = await this.getAIResponse();
+                    this.hideLoadingBar(loadingId);
                     this.conversationHistory.push({ role: 'assistant', content: response });
                     this.displayLine(response, 'ai');
                 } catch (error) {
+                    this.hideLoadingBar(loadingId);
                     let errorMsg = error.message;
                     // Provide more helpful error messages
-                    if (errorMsg.includes('backend not ready') || errorMsg.includes('not ready')) {
-                        errorMsg = 'Model is starting up. This may take a few minutes on first use. Please wait 30-60 seconds and try again.';
-                    } else if (errorMsg.includes('503')) {
-                        errorMsg = 'Model backend is not ready. The model container may be starting up or there may be an issue. Please wait and try again.';
+                    if (errorMsg.includes('backend not ready') || errorMsg.includes('not ready') || errorMsg.includes('503')) {
+                        // Model is loading - show loading bar and poll for progress
+                        this.showModelLoadingProgress();
+                    } else {
+                        this.displayLine(`Error: ${errorMsg}`, 'ai', 'error');
                     }
-                    this.displayLine(`Error: ${errorMsg}`, 'ai', 'error');
                 } finally {
                     this.isWaitingForResponse = false;
                     this.inputLine.style.display = 'flex';
@@ -323,6 +394,105 @@
 
             const data = await response.json();
             return data.choices[0].message.content;
+        }
+
+        showLoadingBar() {
+            const loadingId = 'loading-' + Date.now();
+            const loadingContainer = document.createElement('div');
+            loadingContainer.id = loadingId;
+            loadingContainer.className = 'loading-container';
+            loadingContainer.innerHTML = `
+                <div class="loading-text">Loading model: ${this.currentModel}...</div>
+                <div class="loading-bar-container">
+                    <div class="loading-bar-fill" style="width: 0%"></div>
+                    <div class="loading-percentage">0%</div>
+                </div>
+            `;
+            this.output.appendChild(loadingContainer);
+            this.output.scrollTop = this.output.scrollHeight;
+            return loadingId;
+        }
+
+        hideLoadingBar(loadingId) {
+            const loadingEl = document.getElementById(loadingId);
+            if (loadingEl) {
+                loadingEl.remove();
+            }
+        }
+
+        async showModelLoadingProgress() {
+            const loadingId = 'model-loading-' + Date.now();
+            const loadingContainer = document.createElement('div');
+            loadingContainer.id = loadingId;
+            loadingContainer.className = 'loading-container';
+            loadingContainer.innerHTML = `
+                <div class="loading-text">Initializing model: ${this.currentModel}...</div>
+                <div class="loading-bar-container">
+                    <div class="loading-bar-fill" style="width: 0%"></div>
+                    <div class="loading-percentage">0%</div>
+                </div>
+            `;
+            this.output.appendChild(loadingContainer);
+            this.output.scrollTop = this.output.scrollHeight;
+
+            // Poll for loading progress
+            let progress = 0;
+            const maxAttempts = 300; // 5 minutes max
+            let attempts = 0;
+
+            const pollProgress = async () => {
+                if (attempts >= maxAttempts) {
+                    this.hideLoadingBar(loadingId);
+                    this.displayLine('Model loading timeout. Please try again.', 'ai', 'error');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/model-loading-progress/${this.currentModel}`);
+                    const data = await response.json();
+                    
+                    if (data.status === 'ready') {
+                        progress = 100;
+                        this.updateLoadingBar(loadingId, progress, 'Model ready!');
+                        setTimeout(() => {
+                            this.hideLoadingBar(loadingId);
+                            this.displayLine('Model is ready. Please try your message again.', 'ai');
+                        }, 1000);
+                        return;
+                    }
+
+                    // Update progress
+                    progress = Math.max(progress, data.progress || 0);
+                    this.updateLoadingBar(loadingId, progress, data.message || 'Loading...');
+
+                    // Continue polling if not ready
+                    if (data.status !== 'ready') {
+                        attempts++;
+                        setTimeout(pollProgress, 2000); // Poll every 2 seconds
+                    }
+                } catch (error) {
+                    // Continue polling on error
+                    attempts++;
+                    progress = Math.min(progress + 2, 95); // Increment progress estimate
+                    this.updateLoadingBar(loadingId, progress, 'Checking status...');
+                    setTimeout(pollProgress, 2000);
+                }
+            };
+
+            pollProgress();
+        }
+
+        updateLoadingBar(loadingId, progress, message) {
+            const loadingEl = document.getElementById(loadingId);
+            if (loadingEl) {
+                const fillBar = loadingEl.querySelector('.loading-bar-fill');
+                const percentage = loadingEl.querySelector('.loading-percentage');
+                const text = loadingEl.querySelector('.loading-text');
+                
+                if (fillBar) fillBar.style.width = progress + '%';
+                if (percentage) percentage.textContent = Math.round(progress) + '%';
+                if (text && message) text.textContent = message;
+            }
         }
         
         displayLine(text, role = 'system', type = 'info') {
