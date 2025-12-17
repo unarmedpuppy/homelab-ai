@@ -315,7 +315,8 @@
     /help          - Show this help message
     /model [name]  - Set the current model (e.g., /model qwen2.5-14b-awq)
     /models        - List available models
-    /clear         - Clear the terminal`);
+    /clear         - Clear the terminal display
+    /new           - Start a new session (clear conversation history)`);
                         break;
                     case '/model':
                         if (args.length > 0) {
@@ -335,8 +336,15 @@
                         break;
                     case '/clear':
                         this.output.innerHTML = '';
+                        this.displayLine('Terminal display cleared.');
+                        break;
+                    case '/new':
+                    case '/reset':
                         this.conversationHistory = [];
-                        this.displayLine('Terminal cleared. Conversation history reset.');
+                        this.displayLine('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'system');
+                        this.displayLine('New session started. Conversation history cleared.', 'system');
+                        this.displayLine(`Current model: ${this.currentModel}`, 'system');
+                        this.displayLine('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'system');
                         break;
                     default:
                         this.displayLine(`Unknown command: ${command}`, 'ai', 'error');
