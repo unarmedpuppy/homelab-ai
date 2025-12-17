@@ -48,7 +48,7 @@ The Local AI system consists of two components:
 ### Server (`apps/local-ai-app/`)
 - `docker-compose.yml` - Proxy service configuration
 - `app/main.py` - FastAPI proxy application
-- `app/static/index.html` - Web chat interface
+- `app/static/index.html` - Web chat interface (terminal-style UI)
 - `README.md` - Server setup documentation
 
 ## Deployment Workflows
@@ -285,10 +285,14 @@ ssh -p 4242 unarmedpuppy@192.168.86.47 "curl http://localhost:8067/health"
 ## Model Management
 
 ### Available Models
-- `llama3-8b` - General purpose, best quality
-- `qwen2.5-14b-awq` - Stronger reasoning
+- `llama3-8b` - General purpose, best quality (requires HuggingFace access - gated model)
+- `qwen2.5-14b-awq` - Stronger reasoning (**default model**)
 - `deepseek-coder` - Coding-focused
 - `qwen-image-edit` - Multimodal image editing
+
+### Default Model
+- **Default**: `qwen2.5-14b-awq` (set in UI, not gated, works immediately)
+- Users can switch models with `/model [name]` command
 
 ### Adding a New Model
 
@@ -304,6 +308,13 @@ ssh -p 4242 unarmedpuppy@192.168.86.47 "curl http://localhost:8067/health"
 - First request may take time (model download if not cached)
 - Models are cached in `local-ai/models/` and `local-ai/cache/`
 
+### Context Length Management
+- **Qwen model limit**: 6144 tokens
+- **Automatic truncation**: Conversation history automatically truncated to last 10 messages
+- **max_tokens**: Set to 500 (reduced from 1500) to leave room for context
+- **Error handling**: Context length errors automatically trigger history truncation and retry
+- **Manual reset**: Use `/new` or `/reset` command to start fresh session
+
 ## Security Considerations
 
 - Windows firewall should restrict port 8000 to server IP only
@@ -317,9 +328,62 @@ ssh -p 4242 unarmedpuppy@192.168.86.47 "curl http://localhost:8067/health"
 - **`server-agent.md`** - Server deployment and management
 - **`infrastructure-agent.md`** - Network, Traefik, firewall configuration
 
+## Web Interface Features
+
+### Terminal-Style UI
+- Retro terminal aesthetic with green glow effects
+- Real-time chat interface
+- Model selection and status indicators
+
+### Commands
+- `/help` - Show available commands
+- `/model [name]` - Switch to different model
+- `/models` - List available models
+- `/clear` - Clear terminal display
+- `/new` or `/reset` - Start fresh conversation session (clears history)
+
+### Loading Indicators
+- **Processing timer**: Shows "Processing... (Xs)" during normal requests
+- **Model loading bar**: Retro-styled progress bar when model is initializing
+  - Polls `/model-loading-progress/{model_name}` endpoint
+  - Shows progress percentage and status messages
+  - Only appears when model backend is not ready (503 errors)
+
+### Error Handling
+- **Context length errors**: Automatically truncates history and retries
+- **Model loading errors**: Shows loading bar with progress polling
+- **Connection errors**: Clear error messages with troubleshooting hints
+
+### API Endpoints
+- `GET /model-loading-progress/{model_name}` - Check model loading status and progress
+- `GET /model-status` - Get current model loading status
+- `GET /health` - Health check (includes Windows AI connection status)
+- `POST /v1/chat/completions` - Chat completions (OpenAI-compatible)
+
+## Known Issues & Solutions
+
+### Llama Model - Gated Repository
+**Issue**: `meta-llama/Llama-3.1-8B-Instruct` is a gated model requiring HuggingFace access.
+
+**Solution**:
+1. Visit https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct
+2. Sign in and accept the model's terms
+3. Restart the container: `docker rm vllm-llama3-8b && cd local-ai && bash setup.sh`
+
+**Workaround**: Use `qwen2.5-14b-awq` (default) which is not gated.
+
+### Model Container Not Ready
+**Issue**: Container starts but model isn't ready yet (503 errors).
+
+**Solution**: 
+- Manager now checks readiness even when container is running
+- UI shows loading bar with progress updates
+- Wait for model to finish loading (can take 1-5 minutes on first use)
+
 ## Documentation
 
 - `local-ai/README.md` - Windows setup and usage
+- `local-ai/TROUBLESHOOTING.md` - Troubleshooting guide for common issues
 - `apps/local-ai-app/README.md` - Server proxy setup and API docs
 - `local-ai/verify-setup.ps1` - Setup verification script
 
