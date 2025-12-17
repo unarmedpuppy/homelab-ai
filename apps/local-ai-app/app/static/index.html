@@ -281,7 +281,14 @@
                     this.conversationHistory.push({ role: 'assistant', content: response });
                     this.displayLine(response, 'ai');
                 } catch (error) {
-                    this.displayLine(`Error: ${error.message}`, 'ai', 'error');
+                    let errorMsg = error.message;
+                    // Provide more helpful error messages
+                    if (errorMsg.includes('backend not ready') || errorMsg.includes('not ready')) {
+                        errorMsg = 'Model is starting up. This may take a few minutes on first use. Please wait 30-60 seconds and try again.';
+                    } else if (errorMsg.includes('503')) {
+                        errorMsg = 'Model backend is not ready. The model container may be starting up or there may be an issue. Please wait and try again.';
+                    }
+                    this.displayLine(`Error: ${errorMsg}`, 'ai', 'error');
                 } finally {
                     this.isWaitingForResponse = false;
                     this.inputLine.style.display = 'flex';

@@ -253,15 +253,26 @@ async def chat_completions(request: Request):
             if response.status_code == 200:
                 return response.json()
             else:
-                logger.error(f"Windows AI service error: {response.status_code} - {response.text}")
+                error_text = response.text
+                logger.error(f"Windows AI service error: {response.status_code} - {error_text}")
+                
+                # Provide more helpful error messages
+                if response.status_code == 503:
+                    if "backend not ready" in error_text.lower():
+                        detail = "Model is starting up. This may take a few minutes on first use as the model downloads. Please wait 30-60 seconds and try again."
+                    else:
+                        detail = f"Model backend is not ready: {error_text}. The model may be starting up or there may be an issue with the model container."
+                else:
+                    detail = f"Windows AI service error: {error_text}"
+                
                 raise HTTPException(
                     status_code=response.status_code,
-                    detail=f"Windows AI service error: {response.text}"
+                    detail=detail
                 )
                 
     except httpx.TimeoutException:
         logger.error("Request timeout to Windows AI service")
-        raise HTTPException(status_code=504, detail="Request timeout")
+        raise HTTPException(status_code=504, detail="Request timeout - the model may be taking too long to respond")
     except httpx.ConnectError:
         logger.error("Cannot connect to Windows AI service")
         raise HTTPException(status_code=503, detail="Cannot connect to Windows AI service")
