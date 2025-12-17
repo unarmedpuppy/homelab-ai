@@ -219,6 +219,28 @@
             text-shadow: 0 0 3px var(--black);
             z-index: 1;
         }
+
+        /* Image display styles */
+        .image-container {
+            margin: 1rem 0;
+        }
+
+        .image-wrapper {
+            margin-top: 0.5rem;
+            display: inline-block;
+        }
+
+        .generated-image {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid var(--grey);
+            box-shadow: 0 0 10px rgba(131, 218, 68, 0.3);
+            image-rendering: auto;
+        }
+
+        .generated-image:hover {
+            box-shadow: 0 0 15px rgba(131, 218, 68, 0.5);
+        }
     </style>
 </head>
 <body>
@@ -302,6 +324,11 @@
             }
         }
 
+        isImageModel(modelName) {
+            // Check if model name contains "image" (case-insensitive)
+            return modelName && modelName.toLowerCase().includes('image');
+        }
+
         async processCommand(command) {
             if (this.isWaitingForResponse) return;
 
@@ -324,6 +351,9 @@
                             if (this.availableModels.includes(modelName)) {
                                 this.currentModel = modelName;
                                 this.displayLine(`Model set to: ${this.currentModel}`);
+                                if (this.isImageModel(modelName)) {
+                                    this.displayLine('Note: This is an image generation model. Your prompts will generate images.', 'system');
+                                }
                             } else {
                                 this.displayLine(`Error: Model '${modelName}' not found.`, 'ai', 'error');
                             }
@@ -333,7 +363,10 @@
                         break;
                     case '/models':
                         this.displayLine(`Available models: ${this.availableModels.join(', ')}`);
-                        this.displayLine(`Note: qwen-image-edit is not supported (vLLM doesn't support image generation models)`, 'system');
+                        const imageModels = this.availableModels.filter(m => this.isImageModel(m));
+                        if (imageModels.length > 0) {
+                            this.displayLine(`Image models: ${imageModels.join(', ')}`, 'system');
+                        }
                         break;
                     case '/clear':
                         this.output.innerHTML = '';
@@ -357,25 +390,30 @@
                     return;
                 }
                 
-                // Check if this is an image generation model
-                if (this.currentModel === 'qwen-image-edit') {
-                    this.displayLine('Error: qwen-image-edit model is not supported. vLLM does not support image generation models.', 'ai', 'error');
-                    this.displayLine('This model requires a different inference engine. Please use a text generation model instead.', 'system');
-                    return;
-                }
-                
                 this.isWaitingForResponse = true;
                 this.inputLine.style.display = 'none'; // Hide input while waiting
-                this.conversationHistory.push({ role: 'user', content: command });
+                
+                // For image models, don't add to conversation history (images aren't part of text conversation)
+                if (!this.isImageModel(this.currentModel)) {
+                    this.conversationHistory.push({ role: 'user', content: command });
+                }
                 
                 // Show processing indicator with timer
                 const processingId = this.showProcessingIndicator();
                 
                 try {
-                    const response = await this.getAIResponse();
-                    this.hideProcessingIndicator(processingId);
-                    this.conversationHistory.push({ role: 'assistant', content: response });
-                    this.displayLine(response, 'ai');
+                    if (this.isImageModel(this.currentModel)) {
+                        // Image generation
+                        const imageData = await this.getImageResponse(command);
+                        this.hideProcessingIndicator(processingId);
+                        this.displayImage(imageData);
+                    } else {
+                        // Text generation
+                        const response = await this.getAIResponse();
+                        this.hideProcessingIndicator(processingId);
+                        this.conversationHistory.push({ role: 'assistant', content: response });
+                        this.displayLine(response, 'ai');
+                    }
                 } catch (error) {
                     this.hideProcessingIndicator(processingId);
                     let errorMsg = error.message;
@@ -435,6 +473,75 @@
 
             const data = await response.json();
             return data.choices[0].message.content;
+        }
+
+        async getImageResponse(prompt) {
+            // Image generation endpoint
+            const response = await fetch('/v1/images/generations', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: this.currentModel,
+                    prompt: prompt,
+                    n: 1,
+                    size: "1024x1024",
+                    response_format: "b64_json" // Get base64 for display
+                })
+            });
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({ detail: `HTTP ${response.status}` }));
+                throw new Error(err.detail);
+            }
+
+            const data = await response.json();
+            // Return the first image's base64 data
+            if (data.data && data.data.length > 0) {
+                return data.data[0].b64_json || data.data[0].url;
+            }
+            throw new Error('No image data in response');
+        }
+
+        displayImage(imageData) {
+            // Create a line for the image
+            const line = document.createElement('div');
+            line.classList.add('line', 'ai', 'image-container');
+            
+            const promptSpan = document.createElement('span');
+            promptSpan.className = 'prompt';
+            promptSpan.textContent = 'AI: ';
+            line.appendChild(promptSpan);
+            
+            // Create image element
+            const imgContainer = document.createElement('div');
+            imgContainer.className = 'image-wrapper';
+            
+            const img = document.createElement('img');
+            // Handle both base64 and URL formats
+            if (imageData.startsWith('data:')) {
+                img.src = imageData;
+            } else if (imageData.startsWith('http')) {
+                img.src = imageData;
+            } else {
+                // Assume base64 without data URL prefix
+                img.src = `data:image/png;base64,${imageData}`;
+            }
+            
+            img.className = 'generated-image';
+            img.alt = 'Generated image';
+            
+            // Add retro terminal styling
+            img.style.maxWidth = '100%';
+            img.style.height = 'auto';
+            img.style.border = '1px solid var(--grey)';
+            img.style.marginTop = '0.5rem';
+            img.style.imageRendering = 'auto';
+            
+            imgContainer.appendChild(img);
+            line.appendChild(imgContainer);
+            
+            this.output.appendChild(line);
+            this.output.scrollTop = this.output.scrollHeight;
         }
 
         hideLoadingBar(loadingId) {
