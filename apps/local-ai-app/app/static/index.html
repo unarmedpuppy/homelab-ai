@@ -208,7 +208,14 @@
                 const response = await fetch('/v1/models');
                 const data = await response.json();
                 this.availableModels = data.data.map(m => m.id);
-                this.currentModel = this.availableModels[0] || '';
+                
+                // Prefer qwen2.5-14b-awq as default, fallback to first available
+                if (this.availableModels.includes('qwen2.5-14b-awq')) {
+                    this.currentModel = 'qwen2.5-14b-awq';
+                } else {
+                    this.currentModel = this.availableModels[0] || '';
+                }
+                
                 this.displayLine(`Models loaded: ${this.availableModels.join(', ')}`);
                 if(this.currentModel) {
                     this.displayLine(`Current model set to: ${this.currentModel}`);
@@ -240,7 +247,7 @@
                     case '/help':
                         this.displayLine(`Available commands:
     /help          - Show this help message
-    /model [name]  - Set the current model (e.g., /model llama3-8b)
+    /model [name]  - Set the current model (e.g., /model qwen2.5-14b-awq)
     /models        - List available models
     /clear         - Clear the terminal`);
                         break;
