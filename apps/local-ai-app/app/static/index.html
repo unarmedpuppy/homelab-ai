@@ -241,6 +241,31 @@
         .generated-image:hover {
             box-shadow: 0 0 15px rgba(131, 218, 68, 0.5);
         }
+
+        /* Image upload styles */
+        .uploaded-image {
+            max-width: 300px;
+            max-height: 300px;
+            border: 1px solid var(--grey);
+            margin: 0.5rem 0;
+            display: block;
+        }
+
+        .image-preview-container {
+            margin: 0.5rem 0;
+            display: inline-block;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .upload-hint {
+            color: var(--grey);
+            font-size: 0.9rem;
+            font-style: italic;
+            margin-top: 0.25rem;
+        }
     </style>
 </head>
 <body>
@@ -265,6 +290,7 @@
         <div class="input-line">
             <span id="input-prompt">>&nbsp;</span>
             <input type="text" id="input" autocomplete="off" autofocus>
+            <input type="file" id="file-input" accept="image/*">
             <div class="cursor"></div>
         </div>
     </div>
@@ -279,15 +305,30 @@
             this.currentModel = '';
             this.availableModels = {};
             this.isWaitingForResponse = false;
+            this.uploadedImage = null; // Store uploaded image as base64
 
             this.init();
         }
 
         async init() {
             this.input.addEventListener('keydown', (e) => this.handleInput(e));
+            
+            // Image upload support - Ctrl+U or drag & drop
+            this.input.addEventListener('paste', (e) => this.handlePaste(e));
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
+                    e.preventDefault();
+                    document.getElementById('file-input').click();
+                }
+            });
+            
+            const fileInput = document.getElementById('file-input');
+            fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+            
             this.displayLine("Initializing Local AI Terminal...");
             await this.loadModels();
             this.displayLine(`Type 'help' for available commands.`);
+            this.displayLine(`Tip: Press Ctrl+U to upload an image for editing.`, 'system');
             this.input.focus();
         }
         
@@ -343,7 +384,10 @@
     /model [name]  - Set the current model (e.g., /model qwen2.5-14b-awq)
     /models        - List available models
     /clear         - Clear the terminal display
-    /new           - Start a new session (clear conversation history)`);
+    /new           - Start a new session (clear conversation history)
+    /upload        - Upload an image for editing (or press Ctrl+U)
+    /image         - Show currently uploaded image
+    /clear-image   - Clear uploaded image`);
                         break;
                     case '/model':
                         if (args.length > 0) {
@@ -375,10 +419,26 @@
                     case '/new':
                     case '/reset':
                         this.conversationHistory = [];
+                        this.uploadedImage = null;
                         this.displayLine('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'system');
                         this.displayLine('New session started. Conversation history cleared.', 'system');
                         this.displayLine(`Current model: ${this.currentModel}`, 'system');
                         this.displayLine('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'system');
+                        break;
+                    case '/upload':
+                        document.getElementById('file-input').click();
+                        break;
+                    case '/image':
+                        if (this.uploadedImage) {
+                            this.displayLine('Currently uploaded image:', 'system');
+                            this.displayImage(this.uploadedImage);
+                        } else {
+                            this.displayLine('No image uploaded. Use /upload or press Ctrl+U.', 'system');
+                        }
+                        break;
+                    case '/clear-image':
+                        this.uploadedImage = null;
+                        this.displayLine('Uploaded image cleared.', 'system');
                         break;
                     default:
                         this.displayLine(`Unknown command: ${command}`, 'ai', 'error');
@@ -403,10 +463,12 @@
                 
                 try {
                     if (this.isImageModel(this.currentModel)) {
-                        // Image generation
+                        // Image generation or editing
                         const imageData = await this.getImageResponse(command);
                         this.hideProcessingIndicator(processingId);
                         this.displayImage(imageData);
+                        // Clear uploaded image after use
+                        this.uploadedImage = null;
                     } else {
                         // Text generation
                         const response = await this.getAIResponse();
@@ -476,17 +538,25 @@
         }
 
         async getImageResponse(prompt) {
-            // Image generation endpoint
+            // Image generation or editing endpoint
+            const requestBody = {
+                model: this.currentModel,
+                prompt: prompt,
+                n: 1,
+                size: "1024x1024",
+                response_format: "b64_json" // Get base64 for display
+            };
+            
+            // If image is uploaded, include it for editing
+            if (this.uploadedImage) {
+                requestBody.image = this.uploadedImage; // Base64 image data
+                this.displayLine('Using uploaded image for editing...', 'system');
+            }
+            
             const response = await fetch('/v1/images/generations', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    model: this.currentModel,
-                    prompt: prompt,
-                    n: 1,
-                    size: "1024x1024",
-                    response_format: "b64_json" // Get base64 for display
-                })
+                body: JSON.stringify(requestBody)
             });
 
             if (!response.ok) {
@@ -502,15 +572,61 @@
             throw new Error('No image data in response');
         }
 
-        displayImage(imageData) {
+        handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (!file.type.startsWith('image/')) {
+                this.displayLine('Error: Please select an image file.', 'ai', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                this.uploadedImage = e.target.result; // Store as data URL
+                this.displayLine(`Image uploaded: ${file.name}`, 'system');
+                this.displayImage(e.target.result, true); // Show preview
+                this.displayLine('Image ready for editing. Enter your edit prompt when using an image model.', 'system');
+            };
+            reader.readAsDataURL(file);
+            
+            // Reset file input
+            event.target.value = '';
+        }
+
+        handlePaste(event) {
+            // Handle pasted images from clipboard
+            const items = event.clipboardData?.items;
+            if (!items) return;
+            
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    event.preventDefault();
+                    const file = items[i].getAsFile();
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        this.uploadedImage = e.target.result;
+                        this.displayLine('Image pasted from clipboard', 'system');
+                        this.displayImage(e.target.result, true);
+                        this.displayLine('Image ready for editing. Enter your edit prompt when using an image model.', 'system');
+                    };
+                    reader.readAsDataURL(file);
+                    break;
+                }
+            }
+        }
+
+        displayImage(imageData, isPreview = false) {
             // Create a line for the image
             const line = document.createElement('div');
-            line.classList.add('line', 'ai', 'image-container');
+            line.classList.add('line', isPreview ? 'system' : 'ai', 'image-container');
             
-            const promptSpan = document.createElement('span');
-            promptSpan.className = 'prompt';
-            promptSpan.textContent = 'AI: ';
-            line.appendChild(promptSpan);
+            if (!isPreview) {
+                const promptSpan = document.createElement('span');
+                promptSpan.className = 'prompt';
+                promptSpan.textContent = 'AI: ';
+                line.appendChild(promptSpan);
+            }
             
             // Create image element
             const imgContainer = document.createElement('div');
@@ -527,8 +643,8 @@
                 img.src = `data:image/png;base64,${imageData}`;
             }
             
-            img.className = 'generated-image';
-            img.alt = 'Generated image';
+            img.className = isPreview ? 'uploaded-image' : 'generated-image';
+            img.alt = isPreview ? 'Uploaded image' : 'Generated image';
             
             // Add retro terminal styling
             img.style.maxWidth = '100%';

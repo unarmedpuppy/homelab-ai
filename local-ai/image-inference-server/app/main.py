@@ -37,6 +37,7 @@ class ImageGenerationRequest(BaseModel):
     size: Optional[str] = "1024x1024"  # Image size
     response_format: Optional[str] = "url"  # "url" or "b64_json"
     user: Optional[str] = None
+    image: Optional[str] = None  # Base64 image data for editing
 
 class ImageResponse(BaseModel):
     """OpenAI-compatible image response"""
@@ -120,17 +121,42 @@ async def generate_image(request: ImageGenerationRequest):
             detail=f"Model not available: {str(e)}"
         )
     
-    # Generate image
+    # Generate or edit image
     try:
-        print(f"Generating image with prompt: {request.prompt[:50]}...")
-        
-        # Run inference
-        with torch.no_grad():
-            result = pipeline(
-                prompt=request.prompt,
-                num_images_per_prompt=request.n or 1,
-                # Note: size parameter would need to be parsed and passed appropriately
-            )
+        if request.image:
+            print(f"Editing image with prompt: {request.prompt[:50]}...")
+            # Decode base64 image
+            try:
+                if request.image.startswith('data:'):
+                    # Remove data URL prefix
+                    image_data = request.image.split(',')[1]
+                else:
+                    image_data = request.image
+                
+                image_bytes = base64.b64decode(image_data)
+                input_image = Image.open(BytesIO(image_bytes))
+                
+                # Run image editing
+                with torch.no_grad():
+                    result = pipeline(
+                        prompt=request.prompt,
+                        image=input_image,  # Pass input image for editing
+                        num_images_per_prompt=request.n or 1,
+                    )
+            except Exception as e:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid image data: {str(e)}"
+                )
+        else:
+            print(f"Generating image with prompt: {request.prompt[:50]}...")
+            # Run inference for generation
+            with torch.no_grad():
+                result = pipeline(
+                    prompt=request.prompt,
+                    num_images_per_prompt=request.n or 1,
+                    # Note: size parameter would need to be parsed and passed appropriately
+                )
         
         # Handle result (Diffusers returns different formats depending on pipeline)
         images = []
