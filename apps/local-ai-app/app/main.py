@@ -299,7 +299,17 @@ async def chat_completions(request: Request):
     """Proxy chat completions to Windows AI service"""
     try:
         body = await request.json()
-        logger.info(f"Proxying chat request for model: {body.get('model', 'unknown')}")
+        model_name = body.get("model", "unknown")
+        logger.info(f"Proxying chat request for model: {model_name}")
+        
+        # Validate that this is a text model (optional check - manager will handle routing)
+        model_type = await get_model_type(model_name)
+        if model_type == "image":
+            logger.warning(f"Chat completion requested for image model: {model_name}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Model '{model_name}' is an image model and does not support text chat. Use /v1/images/generations for image models."
+            )
         
         async with httpx.AsyncClient(timeout=TIMEOUT) as client:
             response = await client.post(
@@ -333,7 +343,9 @@ async def chat_completions(request: Request):
         raise HTTPException(status_code=504, detail="Request timeout - the model may be taking too long to respond")
     except httpx.ConnectError:
         logger.error("Cannot connect to Windows AI service")
-        raise HTTPException(status_code=503, detail="Cannot connect to Windows AI service")
+        raise HTTPException(status_code=503, detail="Cannot connect to Windows AI service. Ensure the Windows AI manager is running.")
+    except HTTPException:
+        raise  # Re-raise HTTP exceptions
     except Exception as e:
         logger.error(f"Error in chat completions: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -371,12 +383,45 @@ async def completions(request: Request):
         logger.error(f"Error in completions: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+async def get_model_type(model_name: str) -> str:
+    """Get model type (text or image) from Windows AI service"""
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            # Get models list to check if model exists
+            response = await client.get(f"{WINDOWS_AI_BASE_URL}/v1/models")
+            if response.status_code == 200:
+                models_data = response.json()
+                # Check if model exists in the list
+                model_ids = [m.get("id") for m in models_data.get("data", [])]
+                if model_name not in model_ids:
+                    return "unknown"
+                
+                # For now, we'll use a simple heuristic:
+                # Image models typically have "image" in the name
+                # In the future, the manager could expose model type via API
+                if "image" in model_name.lower():
+                    return "image"
+                return "text"
+    except:
+        pass
+    return "unknown"
+
 @app.post("/v1/images/generations")
 async def image_generations(request: Request):
     """Proxy image generation requests to Windows AI service"""
     try:
         body = await request.json()
-        logger.info(f"Proxying image generation request for model: {body.get('model', 'unknown')}")
+        model_name = body.get("model", "unknown")
+        logger.info(f"Proxying image generation request for model: {model_name}")
+        
+        # Validate that this is an image model (optional check - manager will handle routing)
+        model_type = await get_model_type(model_name)
+        if model_type == "text":
+            logger.warning(f"Image generation requested for text model: {model_name}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Model '{model_name}' is a text model and does not support image generation. Use /v1/chat/completions for text models."
+            )
         
         async with httpx.AsyncClient(timeout=TIMEOUT) as client:
             response = await client.post(
@@ -388,18 +433,33 @@ async def image_generations(request: Request):
             if response.status_code == 200:
                 return response.json()
             else:
-                logger.error(f"Windows AI service error: {response.status_code} - {response.text}")
+                error_text = response.text
+                logger.error(f"Windows AI service error: {response.status_code} - {error_text}")
+                
+                # Provide more helpful error messages
+                if response.status_code == 503:
+                    if "backend not ready" in error_text.lower() or "not ready" in error_text.lower():
+                        detail = "Image model is starting up. This may take a few minutes on first use. Please wait 30-60 seconds and try again."
+                    else:
+                        detail = f"Image model backend is not ready: {error_text}. The model may be starting up or there may be an issue with the model container."
+                elif response.status_code == 400:
+                    detail = f"Invalid image generation request: {error_text}"
+                else:
+                    detail = f"Windows AI service error: {error_text}"
+                
                 raise HTTPException(
                     status_code=response.status_code,
-                    detail=f"Windows AI service error: {response.text}"
+                    detail=detail
                 )
                 
     except httpx.TimeoutException:
         logger.error("Request timeout to Windows AI service")
-        raise HTTPException(status_code=504, detail="Request timeout")
+        raise HTTPException(status_code=504, detail="Request timeout - image generation may take longer than expected")
     except httpx.ConnectError:
         logger.error("Cannot connect to Windows AI service")
-        raise HTTPException(status_code=503, detail="Cannot connect to Windows AI service")
+        raise HTTPException(status_code=503, detail="Cannot connect to Windows AI service. Ensure the Windows AI manager is running.")
+    except HTTPException:
+        raise  # Re-raise HTTP exceptions
     except Exception as e:
         logger.error(f"Error in image generation: {e}")
         raise HTTPException(status_code=500, detail=str(e))
