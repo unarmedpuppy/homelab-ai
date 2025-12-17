@@ -23,8 +23,13 @@ chmod +x setup.sh
 **Or if you're on Windows PowerShell:**
 ```powershell
 cd local-ai
+# Build image inference server first
+.\build-image-server.ps1
+# Then run setup
 bash setup.sh
 ```
+
+**Note**: The setup script will automatically build the image inference server if the Dockerfile exists. You can also build it manually first.
 
 **Verify setup:**
 ```powershell
@@ -114,3 +119,11 @@ curl -X POST http://local-ai.server.unarmedpuppy.com/v1/images/generations \
 - WSL2 enabled
 - Docker Desktop GPU acceleration enabled
 - At least 24GB VRAM recommended for all models
+
+## Deployment
+
+For detailed deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
+
+For testing, see [TESTING.md](TESTING.md).
+
+For troubleshooting, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md).

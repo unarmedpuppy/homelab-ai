@@ -39,9 +39,30 @@ docker create --name vllm-coder7b --gpus all -p 8003:8000 \
   --download-dir /models --dtype auto \
   --max-model-len 8192 --gpu-memory-utilization 0.90
 
-# Note: Qwen Image Edit removed - vLLM doesn't support image models
-# Image models will use the image-inference-server container instead
-# See local-ai/image-inference-server/ for setup instructions
+# Build and create image model container
+echo "Building image inference server..."
+cd "$(dirname "$0")/image-inference-server"
+if [ -f "Dockerfile" ]; then
+    docker build -t image-inference-server:latest . || {
+        echo "Warning: Failed to build image inference server. You can build it later with:"
+        echo "  cd image-inference-server && docker build -t image-inference-server:latest ."
+    }
+    cd ..
+    
+    echo "Creating Qwen Image Edit container..."
+    docker create --name qwen-image-server --gpus all -p 8005:8000 \
+      -v $(pwd)/models:/models -v $(pwd)/cache:/root/.cache/hf \
+      -e MODEL_NAME=Qwen/Qwen-Image-Edit-2509 \
+      -e HF_TOKEN=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 \
+      --network my-network \
+      image-inference-server:latest || {
+        echo "Warning: Failed to create image model container. Make sure the image is built first."
+    }
+else
+    echo "Warning: image-inference-server/Dockerfile not found. Skipping image model setup."
+    echo "You can set it up later by running: ./build-image-server.sh"
+    cd ..
+fi
 
 echo "Starting manager service..."
 docker compose up -d
