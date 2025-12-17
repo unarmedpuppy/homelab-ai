@@ -4,9 +4,10 @@ This directory contains the setup for running local LLMs on your Windows machine
 
 ## Architecture
 
-- **Windows Machine**: Runs the actual LLM models using vLLM in Docker containers
+- **Windows Machine**: Runs the actual LLM models using vLLM (text) and custom inference servers (image) in Docker containers
 - **Remote Server**: Runs a proxy service (`local-ai-app`) that forwards requests to Windows
 - **Manager Service**: Automatically starts/stops model containers based on demand
+- **Model Types**: Supports both text generation (vLLM) and image generation (Diffusers) models
 
 ## Quick Start
 
@@ -58,10 +59,15 @@ docker compose up -d
 
 ## Models Available
 
+### Text Generation Models (vLLM)
 - **llama3-8b**: Llama 3.1 8B Instruct (best general quality)
 - **qwen2.5-14b-awq**: Qwen 2.5 14B Instruct AWQ (stronger reasoning)  
 - **deepseek-coder**: DeepSeek Coder V2 Lite (coding-focused)
-- **qwen-image-edit**: Qwen Image Edit 2509 (multimodal image editing)
+
+### Image Generation Models (Diffusers)
+- **qwen-image-edit**: Qwen Image Edit 2509 (image generation and editing)
+
+**Note**: Image models use a separate inference engine (HuggingFace Diffusers) and run in different containers than text models. See `local-ai/image-inference-server/` for the image model server implementation.
 
 ## Features
 
@@ -70,6 +76,8 @@ docker compose up -d
 - **OpenAI compatibility**: Works with any OpenAI-compatible client
 - **GPU acceleration**: Uses NVIDIA GPU for fast inference
 - **Memory efficient**: Only loads models when needed
+- **Multimodal support**: Supports both text generation and image generation models
+- **Unified management**: Single manager service handles both text and image models
 
 ## Usage
 

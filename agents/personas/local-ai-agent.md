@@ -11,17 +11,19 @@ The Local AI system consists of two components:
 
 ### 1. Windows PC Component (`local-ai/`)
 - **Location**: `local-ai/` directory in the repository (but runs on Windows PC)
-- **Purpose**: Runs actual LLM models using vLLM in Docker containers
+- **Purpose**: Runs actual LLM models using vLLM (text) and custom inference servers (image) in Docker containers
 - **Components**:
-  - **Manager Service** (`vllm-manager`): FastAPI service that manages model containers
-  - **Model Containers**: 4 vLLM containers (created but stopped by default):
+  - **Manager Service** (`vllm-manager`): FastAPI service that manages model containers (both text and image)
+  - **Text Model Containers** (vLLM, created but stopped by default):
     - `vllm-llama3-8b` (port 8001) - Llama 3.1 8B Instruct
     - `vllm-qwen14b-awq` (port 8002) - Qwen 2.5 14B Instruct AWQ
     - `vllm-coder7b` (port 8003) - DeepSeek Coder V2 Lite
-    - `vllm-qwen-image` (port 8004) - Qwen Image Edit 2509
+  - **Image Model Containers** (Diffusers-based, see `image-inference-server/`):
+    - `qwen-image-server` (port 8005) - Qwen Image Edit 2509
 - **Manager Port**: 8000 (exposed to server)
 - **Network**: `my-network` Docker network
 - **Auto-management**: Models start on-demand, stop after 10 minutes idle
+- **Model Types**: Manager supports both "text" and "image" model types with different readiness checks
 
 ### 2. Server Component (`apps/local-ai-app/`)
 - **Location**: `apps/local-ai-app/` directory (deployed to server)
@@ -37,13 +39,15 @@ The Local AI system consists of two components:
 ## Key Files
 
 ### Windows PC (`local-ai/`)
-- `setup.sh` - Creates model containers (run once)
+- `setup.sh` - Creates text model containers (run once)
 - `docker-compose.yml` - Manager service configuration
-- `models.json` - Model configuration (container names, ports)
-- `manager/manager.py` - Manager service code (starts/stops models)
+- `models.json` - Model configuration (container names, ports, **type field**)
+- `manager/manager.py` - Manager service code (starts/stops models, supports text/image types)
 - `manager/Dockerfile` - Manager container build
 - `verify-setup.ps1` - Setup verification script
 - `README.md` - Windows setup documentation
+- `image-inference-server/` - Image model inference server (Diffusers-based)
+- `RESEARCH_IMAGE_INFERENCE.md` - Research document on image inference engines
 
 ### Server (`apps/local-ai-app/`)
 - `docker-compose.yml` - Proxy service configuration
