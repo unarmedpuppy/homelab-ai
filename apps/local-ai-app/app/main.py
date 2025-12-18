@@ -302,9 +302,9 @@ async def chat_completions(request: Request):
         model_name = body.get("model", "unknown")
         logger.info(f"Proxying chat request for model: {model_name}")
         
-        # Validate that this is a text model (optional check - manager will handle routing)
-        model_type = await get_model_type(model_name)
-        if model_type == "image":
+        # Quick heuristic check (non-blocking) - if model name contains "image", reject immediately
+        # Full validation happens at Windows manager level
+        if "image" in model_name.lower():
             logger.warning(f"Chat completion requested for image model: {model_name}")
             raise HTTPException(
                 status_code=400,
@@ -414,9 +414,9 @@ async def image_generations(request: Request):
         model_name = body.get("model", "unknown")
         logger.info(f"Proxying image generation request for model: {model_name}")
         
-        # Validate that this is an image model (optional check - manager will handle routing)
-        model_type = await get_model_type(model_name)
-        if model_type == "text":
+        # Quick heuristic check (non-blocking) - if model name doesn't contain "image", reject immediately
+        # Full validation happens at Windows manager level
+        if "image" not in model_name.lower():
             logger.warning(f"Image generation requested for text model: {model_name}")
             raise HTTPException(
                 status_code=400,
