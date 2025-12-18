@@ -41,6 +41,9 @@ entryPoints:
     address: :80
     forwardedHeaders:
       trustedIPs: &trustedIps
+        # Local network - trust forwarded headers from local IPs
+        - 192.168.86.0/24
+        - 127.0.0.1/32
         # Start of Clouflare public IP list for HTTP requests, remove this if you don't use it; https://www.cloudflare.com/de-de/ips/
         - 103.21.244.0/22
         - 103.22.200.0/22
