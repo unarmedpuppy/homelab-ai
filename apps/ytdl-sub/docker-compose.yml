@@ -14,8 +14,6 @@ services:
       - ./config:/config
       - ./subscriptions:/subscriptions
       - ${MEDIA_PATH:-/jenquist-cloud/archive/entertainment-media}:/output
-    ports:
-      - "8443:8443"
     networks:
       - my-network
     labels:
