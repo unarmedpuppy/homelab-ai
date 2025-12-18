@@ -19,11 +19,18 @@ services:
     labels:
       # Traefik
       - "traefik.enable=true"
+      - "traefik.http.services.ytdl-sub.loadbalancer.server.port=8443"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.ytdl-sub-local.rule=Host(`ytdl-sub.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.ytdl-sub-local.priority=100"
+      - "traefik.http.routers.ytdl-sub-local.entrypoints=websecure"
+      - "traefik.http.routers.ytdl-sub-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
       - "traefik.http.routers.ytdl-sub.rule=Host(`ytdl-sub.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.ytdl-sub.priority=1"
       - "traefik.http.routers.ytdl-sub.entrypoints=websecure"
       - "traefik.http.routers.ytdl-sub.tls.certresolver=myresolver"
       - "traefik.http.routers.ytdl-sub.middlewares=ytdl-sub-auth"
-      - "traefik.http.services.ytdl-sub.loadbalancer.server.port=8443"
       - "traefik.http.middlewares.ytdl-sub-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       # Homepage
       - "homepage.group=Media & Entertainment"
