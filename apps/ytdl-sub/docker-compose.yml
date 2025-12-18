@@ -2,9 +2,8 @@ version: "3.8"
 
 services:
   ytdl-sub:
-    # Standard headless image
-    # For Web-GUI version, see: https://ytdl-sub.readthedocs.io/en/latest/guides/install/docker.html
-    image: ghcr.io/jmbannon/ytdl-sub:latest
+    # Web-GUI version with VS Code interface
+    image: ghcr.io/jmbannon/ytdl-sub-gui:latest
     container_name: ytdl-sub
     restart: unless-stopped
     environment:
@@ -15,14 +14,25 @@ services:
       - ./config:/config
       - ./subscriptions:/subscriptions
       - ${MEDIA_PATH:-/jenquist-cloud/archive/entertainment-media}:/output
+    ports:
+      - "8443:8443"
     networks:
       - my-network
     labels:
+      # Traefik
+      - "traefik.enable=true"
+      - "traefik.http.routers.ytdl-sub.rule=Host(`ytdl-sub.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.ytdl-sub.entrypoints=websecure"
+      - "traefik.http.routers.ytdl-sub.tls.certresolver=myresolver"
+      - "traefik.http.routers.ytdl-sub.middlewares=ytdl-sub-auth"
+      - "traefik.http.services.ytdl-sub.loadbalancer.server.port=8443"
+      - "traefik.http.middlewares.ytdl-sub-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      # Homepage
       - "homepage.group=Media & Entertainment"
       - "homepage.name=ytdl-sub"
       - "homepage.icon=si-youtube"
-      - "homepage.href=https://github.com/jmbannon/ytdl-sub"
-      - "homepage.description=Automated YouTube/media downloads with metadata (CLI via SSH)"
+      - "homepage.href=https://ytdl-sub.server.unarmedpuppy.com"
+      - "homepage.description=Automated YouTube/media downloads with VS Code web interface"
 
 networks:
   my-network:
