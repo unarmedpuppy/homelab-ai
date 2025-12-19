@@ -191,56 +191,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-@app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
-async def proxy(request: Request):
-    # Handle GET requests (like /v1/models) without body
-    try:
-        body = await request.json() if request.method != "GET" else {}
-    except:
-        body = {}
-    
-    model_name = body.get("model")
-    
-    # For GET requests to /v1/models, return our own list
-    if request.method == "GET" and request.url.path == "/v1/models":
-        return await list_models()
-
-    if not model_name or model_name not in model_states:
-        raise HTTPException(status_code=400, detail=f"Invalid or missing 'model' in request body.")
-
-    # Ensure model container is running
-    await start_model_container(model_name)
-    
-    state = model_states[model_name]
-    state["last_used"] = time.time() # Update timestamp on every request
-    
-    # Proxy the request to the backend model server
-    container_name = state["config"]["container"]
-    backend_url = f"http://{container_name}:8000/{request.url.path}"
-    
-    async with httpx.AsyncClient() as client:
-        try:
-            request_body = await request.body() if request.method != "GET" else None
-            backend_req = client.build_request(
-                method=request.method,
-                url=backend_url,
-                headers={h:v for h,v in request.headers.items() if h not in ("host", "content-length")},
-                content=request_body,
-                timeout=None, # Inference can be slow
-            )
-            backend_resp = await client.send(backend_req, stream=True)
-
-            return StreamingResponse(
-                backend_resp.aiter_raw(),
-                status_code=backend_resp.status_code,
-                headers=backend_resp.headers,
-            )
-        except httpx.ConnectError as e:
-            raise HTTPException(status_code=503, detail=f"Could not connect to model backend: {e}")
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error proxying request: {e}")
-
-
 @app.get("/healthz")
 async def healthz():
     running_models = []
@@ -356,3 +306,48 @@ async def list_models():
             for model_id in model_states.keys()
         ]
     }
+
+@app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
+async def proxy(request: Request):
+    # Handle GET requests (like /v1/models) without body
+    try:
+        body = await request.json() if request.method != "GET" else {}
+    except:
+        body = {}
+    
+    model_name = body.get("model")
+
+    if not model_name or model_name not in model_states:
+        raise HTTPException(status_code=400, detail=f"Invalid or missing 'model' in request body.")
+
+    # Ensure model container is running
+    await start_model_container(model_name)
+    
+    state = model_states[model_name]
+    state["last_used"] = time.time() # Update timestamp on every request
+    
+    # Proxy the request to the backend model server
+    container_name = state["config"]["container"]
+    backend_url = f"http://{container_name}:8000/{request.url.path}"
+    
+    async with httpx.AsyncClient() as client:
+        try:
+            request_body = await request.body() if request.method != "GET" else None
+            backend_req = client.build_request(
+                method=request.method,
+                url=backend_url,
+                headers={h:v for h,v in request.headers.items() if h not in ("host", "content-length")},
+                content=request_body,
+                timeout=None, # Inference can be slow
+            )
+            backend_resp = await client.send(backend_req, stream=True)
+
+            return StreamingResponse(
+                backend_resp.aiter_raw(),
+                status_code=backend_resp.status_code,
+                headers=backend_resp.headers,
+            )
+        except httpx.ConnectError as e:
+            raise HTTPException(status_code=503, detail=f"Could not connect to model backend: {e}")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error proxying request: {e}")
