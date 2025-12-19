@@ -1,0 +1,50 @@
+x-enabled: true
+
+services:
+  fossflow:
+    image: stnsmith/fossflow:latest
+    container_name: fossflow
+    restart: unless-stopped
+    environment:
+      - TZ=America/Chicago
+      - PUID=1000
+      - PGID=1000
+      - ENABLE_SERVER_STORAGE=true
+    ports:
+      - "8086:80"
+    volumes:
+      - ./diagrams:/data/diagrams
+    networks:
+      - my-network
+    labels:
+      - "traefik.enable=true"
+      # HTTPS redirect
+      - "traefik.http.middlewares.fossflow-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.fossflow-redirect.middlewares=fossflow-redirect"
+      - "traefik.http.routers.fossflow-redirect.rule=Host(`fossflow.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.fossflow-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.fossflow-local.rule=Host(`fossflow.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.fossflow-local.priority=100"
+      - "traefik.http.routers.fossflow-local.entrypoints=websecure"
+      - "traefik.http.routers.fossflow-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.fossflow.rule=Host(`fossflow.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.fossflow.priority=1"
+      - "traefik.http.routers.fossflow.entrypoints=websecure"
+      - "traefik.http.routers.fossflow.tls.certresolver=myresolver"
+      - "traefik.http.routers.fossflow.middlewares=fossflow-auth"
+      # Service and auth middleware
+      - "traefik.http.services.fossflow.loadbalancer.server.port=80"
+      - "traefik.http.middlewares.fossflow-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.fossflow-auth.basicauth.realm=FossFLOW"
+      # Homepage labels
+      - "homepage.group=Productivity"
+      - "homepage.name=FossFLOW"
+      - "homepage.icon=si-diagram"
+      - "homepage.href=https://fossflow.server.unarmedpuppy.com"
+      - "homepage.description=Isometric 3D infrastructure diagrams"
+
+networks:
+  my-network:
+    external: true
