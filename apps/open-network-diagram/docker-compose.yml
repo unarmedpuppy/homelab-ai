@@ -1,0 +1,49 @@
+x-enabled: true
+
+services:
+  open-network-diagram:
+    image: jcreek23/open-network-diagram:latest
+    container_name: open-network-diagram
+    restart: unless-stopped
+    environment:
+      - TZ=America/Chicago
+      - PUID=1000
+      - PGID=1000
+    ports:
+      - "8089:3000"
+    volumes:
+      - ./data:/data
+    networks:
+      - my-network
+    labels:
+      - "traefik.enable=true"
+      # HTTPS redirect
+      - "traefik.http.middlewares.networkdiagram-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.networkdiagram-redirect.middlewares=networkdiagram-redirect"
+      - "traefik.http.routers.networkdiagram-redirect.rule=Host(`networkdiagram.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.networkdiagram-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.networkdiagram-local.rule=Host(`networkdiagram.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.networkdiagram-local.priority=100"
+      - "traefik.http.routers.networkdiagram-local.entrypoints=websecure"
+      - "traefik.http.routers.networkdiagram-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.networkdiagram.rule=Host(`networkdiagram.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.networkdiagram.priority=1"
+      - "traefik.http.routers.networkdiagram.entrypoints=websecure"
+      - "traefik.http.routers.networkdiagram.tls.certresolver=myresolver"
+      - "traefik.http.routers.networkdiagram.middlewares=networkdiagram-auth"
+      # Service and auth middleware
+      - "traefik.http.services.networkdiagram.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.networkdiagram-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.networkdiagram-auth.basicauth.realm=NetworkDiagram"
+      # Homepage labels
+      - "homepage.group=Productivity"
+      - "homepage.name=Network Diagram"
+      - "homepage.icon=si-diagramsdotnet"
+      - "homepage.href=https://networkdiagram.server.unarmedpuppy.com"
+      - "homepage.description=Interactive homelab network diagrams"
+
+networks:
+  my-network:
+    external: true
