@@ -11,6 +11,8 @@ This directory contains the setup for running local LLMs on your Windows machine
 
 ## Quick Start
 
+> **Note:** Auto-startup is configured. See [STARTUP_STATUS.md](STARTUP_STATUS.md) for details and removal instructions.
+
 ### 1. Windows Setup
 
 **First time setup:**
@@ -36,10 +38,12 @@ bash setup.sh
 .\verify-setup.ps1
 ```
 
-**Start manager (if not running):**
+**Start services (manager + web dashboard):**
 ```powershell
 docker compose up -d
 ```
+
+This starts both the manager service and the web dashboard automatically.
 
 ### 2. Configure Windows Firewall
 
@@ -78,6 +82,8 @@ docker compose up -d
 
 - **On-demand loading**: Models start only when requested
 - **Auto-shutdown**: Models stop after 10 minutes of inactivity
+- **Gaming Mode**: Prevent new models from starting while gaming or doing GPU-intensive work
+- **Resource Management**: Check status, force-stop models, and ensure GPU is free
 - **OpenAI compatibility**: Works with any OpenAI-compatible client
 - **GPU acceleration**: Uses NVIDIA GPU for fast inference
 - **Memory efficient**: Only loads models when needed
@@ -120,6 +126,53 @@ curl -X POST http://local-ai.server.unarmedpuppy.com/v1/images/generations \
 - Docker Desktop GPU acceleration enabled
 - At least 24GB VRAM recommended for all models
 
+## Resource Management & Gaming Mode
+
+**Web Dashboard (Auto-starts with Docker):**
+The web dashboard is now a Docker container that starts automatically with `docker compose up`.
+
+```powershell
+# Just start docker compose (dashboard starts automatically)
+docker compose up -d
+
+# Then open in your browser:
+# http://localhost:8080
+```
+
+The web dashboard provides:
+- Real-time status monitoring (auto-refreshes every 2 seconds)
+- One-click gaming mode toggle
+- Stop all models button
+- Visual indicators for safe-to-game status
+- Accessible from any device on your network
+
+**Desktop GUI (Alternative):**
+```powershell
+# Launch the lightweight desktop GUI
+.\gaming-mode-gui.ps1
+```
+
+**Command Line:**
+
+**Before gaming or GPU-intensive work:**
+
+```powershell
+# Check if safe to game
+.\control-gaming-mode.ps1 safe
+
+# Stop all models and enable gaming mode
+.\control-gaming-mode.ps1 stop-all
+.\control-gaming-mode.ps1 enable
+```
+
+**After gaming:**
+
+```powershell
+.\control-gaming-mode.ps1 disable
+```
+
+For complete documentation, see [GAMING_MODE.md](GAMING_MODE.md).
+
 ## Deployment
 
 For detailed deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
@@ -127,3 +180,5 @@ For detailed deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
 For testing, see [TESTING.md](TESTING.md).
 
 For troubleshooting, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
+
+For gaming mode and resource management, see [GAMING_MODE.md](GAMING_MODE.md).

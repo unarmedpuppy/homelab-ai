@@ -24,6 +24,23 @@ services:
     networks:
       - my-network
 
+  web-dashboard:
+    # Web dashboard for gaming mode management
+    build: ./web-dashboard
+    container_name: local-ai-dashboard
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - MANAGER_URL=http://vllm-manager:8000
+      - MANAGER_URL_FALLBACK=http://localhost:8000
+      - HOST=0.0.0.0
+      - PORT=8080
+    depends_on:
+      - manager
+    networks:
+      - my-network
+
 networks:
   my-network:
     # This configuration assumes you have an external network named 'my-network'.

@@ -16,6 +16,8 @@ MODELS_CONFIG_PATH = os.getenv("MODELS_CONFIG_PATH", "../models.json")
 # --- Global State ---
 docker_client = docker.from_env()
 model_states = {}
+gaming_mode = False  # When True, prevents new models from starting
+gaming_mode_lock = None  # Initialized in lifespan
 
 # --- Helper Functions ---
 def load_models():
@@ -109,6 +111,20 @@ async def wait_for_ready(model_name: str):
 
 async def start_model_container(model_name: str):
     """Starts the container for a given model if not already running."""
+    # Check gaming mode before starting new containers
+    if gaming_mode_lock is not None:
+        async with gaming_mode_lock:
+            if gaming_mode:
+                container = get_container(model_states[model_name]["config"]["container"])
+                # Allow if container is already running (don't block existing usage)
+                if container and container.status == "running":
+                    pass  # Continue, container is already running
+                else:
+                    raise HTTPException(
+                        status_code=503,
+                        detail=f"Gaming mode is active. Cannot start model '{model_name}'. Use /gaming-mode?enable=false to disable gaming mode first."
+                    )
+    
     state = model_states[model_name]
     container_name = state["config"]["container"]
     
@@ -167,6 +183,8 @@ async def reaper_task():
 # --- FastAPI Application ---
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    global gaming_mode_lock
+    gaming_mode_lock = asyncio.Lock()
     load_models()
     asyncio.create_task(reaper_task())
     yield
@@ -231,6 +249,98 @@ async def healthz():
         if container and container.status == "running":
             running_models.append(name)
     return {"ok": True, "running": running_models}
+
+@app.get("/status")
+async def status():
+    """Get detailed status of all models and gaming mode."""
+    running_models = []
+    stopped_models = []
+    
+    for name, state in model_states.items():
+        container = get_container(state["config"]["container"])
+        model_info = {
+            "name": name,
+            "type": state["config"].get("type", "text"),
+            "container": state["config"]["container"],
+            "last_used": state["last_used"],
+            "idle_seconds": int(time.time() - state["last_used"]) if state["last_used"] > 0 else None
+        }
+        
+        if container and container.status == "running":
+            model_info["status"] = "running"
+            running_models.append(model_info)
+        else:
+            model_info["status"] = "stopped"
+            stopped_models.append(model_info)
+    
+    is_gaming_mode = gaming_mode if gaming_mode_lock is not None else False
+    
+    # Determine if it's safe to game
+    safe_to_game = len(running_models) == 0 and not is_gaming_mode
+    
+    return {
+        "gaming_mode": is_gaming_mode,
+        "safe_to_game": safe_to_game,
+        "running_models": running_models,
+        "stopped_models": stopped_models,
+        "idle_timeout_seconds": IDLE_TIMEOUT,
+        "summary": {
+            "total_models": len(model_states),
+            "running": len(running_models),
+            "stopped": len(stopped_models)
+        }
+    }
+
+@app.post("/gaming-mode")
+async def set_gaming_mode(request: Request):
+    """Enable or disable gaming mode. When enabled, prevents new models from starting."""
+    global gaming_mode
+    if gaming_mode_lock is None:
+        raise HTTPException(status_code=503, detail="Manager not fully initialized")
+    
+    try:
+        body = await request.json()
+        enable = body.get("enable", True)
+    except:
+        # Support query parameter too
+        enable = request.query_params.get("enable", "true").lower() == "true"
+    
+    async with gaming_mode_lock:
+        old_mode = gaming_mode
+        gaming_mode = enable
+        mode_str = "enabled" if enable else "disabled"
+        print(f"Gaming mode {mode_str}")
+    
+    return {
+        "gaming_mode": gaming_mode,
+        "previous_mode": old_mode,
+        "message": f"Gaming mode {mode_str}. New model requests will {'be blocked' if enable else 'be allowed'}."
+    }
+
+@app.post("/stop-all")
+async def stop_all_models():
+    """Force stop all running model containers."""
+    stopped = []
+    failed = []
+    
+    for name, state in model_states.items():
+        container = get_container(state["config"]["container"])
+        if container and container.status == "running":
+            try:
+                async with state["lock"]:
+                    print(f"[{name}] Force stopping container: {state['config']['container']}")
+                    container.stop(timeout=10)
+                    state["last_used"] = 0  # Reset timer
+                    stopped.append(name)
+            except Exception as e:
+                print(f"[{name}] Failed to stop container: {e}")
+                failed.append({"model": name, "error": str(e)})
+    
+    return {
+        "stopped": stopped,
+        "failed": failed,
+        "message": f"Stopped {len(stopped)} model(s). {'Some failures occurred.' if failed else 'All models stopped successfully.'}"
+    }
 
 @app.get("/v1/models")
 async def list_models():
