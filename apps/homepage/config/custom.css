@@ -6,7 +6,9 @@
    ============================================== */
 
 /* ========== SERVICE CARD - TRANSPARENT ========== */
-.service {
+.service,
+.service > a,
+.service > div {
   /* Remove card background entirely */
   background: transparent !important;
   backdrop-filter: none !important;
@@ -21,7 +23,7 @@
   justify-content: flex-start !important;
   text-align: center !important;
 
-  padding: 12px 8px !important;
+  padding: 0 !important;
   min-height: auto !important;
   gap: 8px !important;
 
@@ -30,6 +32,10 @@
 
   /* Smooth transitions */
   transition: transform 0.3s ease !important;
+}
+
+.service {
+  padding: 12px 8px !important;
 }
 
 /* Hover: lift effect on whole item */
@@ -85,7 +91,9 @@
 }
 
 /* ========== SERVICE NAME - BELOW ICON ========== */
-.service-name {
+.service-name,
+.service a span,
+.service span {
   font-size: 11px !important;
   font-weight: 500 !important;
   color: rgba(255, 255, 255, 0.9) !important;
@@ -97,6 +105,9 @@
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
+  text-align: center !important;
+  display: block !important;
+  width: 100% !important;
 }
 
 /* ========== HIDE EXTRA ELEMENTS ========== */
