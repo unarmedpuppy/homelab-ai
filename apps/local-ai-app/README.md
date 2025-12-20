@@ -171,3 +171,10 @@ curl -X POST http://local-ai.server.unarmedpuppy.com/v1/chat/completions \
 - The Windows AI service should only be accessible from your server
 - Consider using VPN or secure network for production use
 - Monitor logs for unusual activity
+
+## Hardware Documentation
+
+For detailed hardware specifications of the Windows PC running the LLM models, see:
+- **Hardware Specs**: `agents/reference/hardware/LLM_PC_SPECIFICATIONS.md`
+
+**Note**: The LLM PC is a separate computer from the home server, dedicated to running local AI inference services.
