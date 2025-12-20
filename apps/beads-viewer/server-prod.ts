@@ -68,8 +68,8 @@ app.get('/api/issues', (req, res) => {
   }
 });
 
-// SPA fallback
-app.get('*', (req, res) => {
+// SPA fallback - Express 5 requires named parameter for catch-all
+app.get('/{*splat}', (req, res) => {
   res.sendFile(join(__dirname, 'dist', 'index.html'));
 });
 
