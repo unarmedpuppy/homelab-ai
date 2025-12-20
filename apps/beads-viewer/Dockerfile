@@ -30,7 +30,7 @@ WORKDIR /app
 COPY --from=builder /build/dist ./dist
 COPY --from=builder /build/server ./server
 COPY --from=builder /build/package.json ./
-COPY --from=builder /build/bun.lockb ./
+# Note: bun.lock is created during install, not bun.lockb
 COPY --from=builder /build/node_modules ./node_modules
 
 # Copy our production server wrapper
