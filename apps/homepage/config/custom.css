@@ -5,25 +5,38 @@
    - Hover lift & glow effects
    ============================================== */
 
+/* ========== HIDE STATS AND EXTRA INFO ========== */
+/* Hide MEM, RX, CPU stats on service cards */
+.service-container,
+.service-stats,
+[class*="cpu"],
+[class*="mem"],
+[class*="rx"],
+[class*="tx"],
+.service .information,
+.service .widget-container,
+.service-description,
+.service-tags {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  width: 0 !important;
+  overflow: hidden !important;
+}
+
 /* ========== SERVICE CARD - TRANSPARENT ========== */
 .service {
-  /* Remove card background entirely */
+  /* Remove card background */
   background: transparent !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   border: none !important;
   box-shadow: none !important;
 
-  /* Layout: vertical stack */
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  text-align: center !important;
-
+  /* Sizing */
   padding: 12px 8px !important;
   min-height: auto !important;
-  gap: 8px !important;
+  width: auto !important;
 
   /* Position for badge */
   position: relative !important;
@@ -32,47 +45,39 @@
   transition: transform 0.3s ease !important;
 }
 
-/* Force ALL nested elements to be vertical column layout */
-.service * {
-  flex-direction: column !important;
-}
-
-.service > *,
-.service > * > *,
-.service a,
-.service div,
-.service li > div,
-.service li > a {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  gap: 8px !important;
-}
-
-/* Hover: lift effect on whole item */
+/* Hover: lift effect */
 .service:hover {
   transform: translateY(-4px) !important;
 }
 
+/* ========== SERVICE LINK WRAPPER - VERTICAL LAYOUT ========== */
+.service > a,
+.service > div:first-child {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+  text-decoration: none !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
 /* ========== ICON - iOS ROUNDED SQUARE TILE ========== */
-.service-icon {
+.service-icon,
+.service div[class*="icon"],
+.service img:first-of-type {
   /* iOS icon size */
   width: 64px !important;
   height: 64px !important;
   min-width: 64px !important;
   min-height: 64px !important;
-  flex-shrink: 0 !important;
 
   /* iOS rounded square shape */
   border-radius: 14px !important;
 
-  /* Glassmorphism on the icon itself */
+  /* Glassmorphism on the icon */
   background: rgba(255, 255, 255, 0.15) !important;
   backdrop-filter: blur(12px) saturate(150%) !important;
   -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
@@ -81,45 +86,42 @@
     0 4px 12px rgba(0, 0, 0, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
 
-  /* Center the icon image inside */
+  /* Center icon content */
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  flex-direction: row !important; /* Override the column for icon container */
   padding: 12px !important;
-  gap: 0 !important;
 
-  /* No margin - gap handles spacing */
   margin: 0 !important;
+  flex-shrink: 0 !important;
 
   /* Smooth transitions for hover */
-  transition: box-shadow 0.3s ease, transform 0.3s ease !important;
-
-  /* Ensure icon comes first visually */
-  order: 1 !important;
+  transition: box-shadow 0.3s ease !important;
 }
 
 /* Hover glow on icon */
-.service:hover .service-icon {
+.service:hover .service-icon,
+.service:hover div[class*="icon"] {
   box-shadow:
     0 8px 24px rgba(0, 0, 0, 0.25),
     0 0 16px rgba(255, 255, 255, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
 }
 
+/* Icon images inside */
 .service-icon img,
-.service-icon svg {
-  width: 100% !important;
-  height: 100% !important;
+.service-icon svg,
+.service img {
+  width: 40px !important;
+  height: 40px !important;
   object-fit: contain !important;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2)) !important;
 }
 
 /* ========== SERVICE NAME - BELOW ICON ========== */
 .service-name,
-.service a span:not(.service-icon span),
-.service > * > span,
-.service span:not(.service-icon span) {
+.service a > span,
+.service > a > div > span {
   font-size: 11px !important;
   font-weight: 500 !important;
   color: rgba(255, 255, 255, 0.9) !important;
@@ -132,28 +134,14 @@
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
   text-align: center !important;
-  display: block !important;
-  width: auto !important;
-  order: 2 !important; /* Ensure name comes after icon */
-}
-
-/* ========== HIDE EXTRA ELEMENTS ========== */
-.service-description,
-.service-tags,
-.service-container,
-.service-stats,
-.service .widget-container,
-.service .information {
-  display: none !important;
 }
 
 /* ========== STATUS BADGE (iOS NOTIFICATION STYLE) ========== */
 .service .status,
-.service-status,
-.service [class*="status"] {
+.service-status {
   position: absolute !important;
   top: 8px !important;
-  right: calc(50% - 40px) !important; /* Position relative to icon */
+  right: calc(50% - 40px) !important;
   width: 12px !important;
   height: 12px !important;
   border-radius: 50% !important;
@@ -162,32 +150,14 @@
   margin: 0 !important;
   padding: 0 !important;
   z-index: 10 !important;
-}
-
-/* Online/healthy - green badge */
-.service .status.online,
-.service .status[class*="green"],
-.service .status[class*="success"] {
-  background-color: #34c759 !important;
-}
-
-/* Offline/error - red badge */
-.service .status.offline,
-.service .status[class*="red"],
-.service .status[class*="error"] {
-  background-color: #ff3b30 !important;
-}
-
-/* Warning - yellow badge */
-.service .status[class*="yellow"],
-.service .status[class*="warning"] {
-  background-color: #ffcc00 !important;
+  display: block !important;
+  visibility: visible !important;
 }
 
 /* ========== SERVICE GRID LAYOUT ========== */
 .services-list,
 .service-group-services,
-[class*="services"] {
+[class*="services"]:not(.service) {
   display: grid !important;
   grid-template-columns: repeat(4, 1fr) !important;
   gap: 24px 16px !important;
@@ -229,18 +199,10 @@
 }
 
 /* ========== RESPONSIVE ADJUSTMENTS ========== */
-@media (max-width: 1200px) {
-  .services-list,
-  .service-group-services,
-  [class*="services"] {
-    grid-template-columns: repeat(4, 1fr) !important;
-  }
-}
-
 @media (max-width: 900px) {
   .services-list,
   .service-group-services,
-  [class*="services"] {
+  [class*="services"]:not(.service) {
     grid-template-columns: repeat(3, 1fr) !important;
   }
 }
@@ -248,7 +210,7 @@
 @media (max-width: 600px) {
   .services-list,
   .service-group-services,
-  [class*="services"] {
+  [class*="services"]:not(.service) {
     grid-template-columns: repeat(2, 1fr) !important;
   }
 
@@ -256,5 +218,11 @@
     width: 56px !important;
     height: 56px !important;
     padding: 10px !important;
+  }
+
+  .service-icon img,
+  .service-icon svg {
+    width: 36px !important;
+    height: 36px !important;
   }
 }
