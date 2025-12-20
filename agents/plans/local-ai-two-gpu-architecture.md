@@ -12,6 +12,7 @@
 | `home-server-bme` | Epic: Two-GPU Local AI Architecture | Open |
 | `home-server-k33` | Install RTX 3070 in rack mount | Blocked by `ngo` |
 | `home-server-6yo` | Install NVIDIA drivers + CUDA on Debian | Blocked by `k33` |
+| `home-server-yhc` | Deploy Chatterbox Turbo TTS service | Blocked by `6yo` |
 | `home-server-und` | Create Windows networking stability layer | Ready |
 | `home-server-pp6` | Create Windows gaming mode endpoint | Ready |
 | `home-server-49l` | Deploy Qwen3-Coder-14B on Windows/WSL2 | Blocked by `und` |
@@ -195,11 +196,62 @@ vllm serve Qwen/Qwen3-Coder-14B \
 - Planning and orchestration
 - Fallback when 3090 unavailable
 
+### TTS Model: Chatterbox Turbo (RTX 3070, co-hosted)
+
+**Target workload**: Voice synthesis for agent responses
+
+| Attribute | Value |
+|-----------|-------|
+| Model | Chatterbox Turbo (ResembleAI) |
+| Parameters | ~350M |
+| VRAM Required | Minimal (~1-2 GB) |
+| Type | Voice-cloning TTS |
+| Conditioning | Reference audio clip (5-10 sec) |
+
+**Key Characteristics**:
+- Voice-cloning TTS (not fixed voices)
+- Requires reference audio clip for speaker identity
+- No training or fine-tuning required
+- Runtime conditioning, not model training
+
+**Reference Audio Requirements**:
+- Duration: 5-10 seconds
+- Format: WAV, 16 kHz mono
+- Content: Natural speech, single speaker
+- Environment: Quiet, no reverb or music
+
+**Service Architecture**:
+```
+Agent Harness
+  │
+  ▼ (HTTP)
+Native TTS Service (FastAPI)
+  - Chatterbox Turbo
+  - Loaded once at startup
+  - CUDA on RTX 3070
+```
+
+**Critical Constraints**:
+- **Python 3.11 only** (PyTorch incompatible with 3.13)
+- Requires HuggingFace authentication for model download
+- `huggingface-hub>=0.23.2,<1.0` required
+
+**Scheduling Rule**:
+- **Serialize TTS after LLM inference** - do not run concurrently
+- Avoids GPU contention for predictable latency
+- Pattern: LLM reasoning → Tool calls → Final text → TTS → Audio output
+
+**VRAM Co-hosting**:
+- Chatterbox Turbo's ~350M params are negligible vs 7B LLM
+- Safe to co-host on RTX 3070 alongside Qwen3-Coder-7B
+- Combined VRAM usage still within 8GB budget
+
 ### Model Decision Matrix
 
 | Model | Params | GPU | Fit | Use Case |
 |-------|--------|-----|-----|----------|
 | Qwen3-Coder-7B | ~7B | 3070 | ✅ Easy | Fast routing, autocomplete |
+| Chatterbox Turbo | ~350M | 3070 | ✅ Co-host | Voice synthesis (TTS) |
 | Qwen3-Coder-14B | ~14B | 3090 | ✅ Target | Coding, refactors, agents |
 | Qwen3-Coder-32B | ~32B | 3090 | ❌ No | Requires multi-GPU |
 | Qwen3-Coder-72B | ~72B | — | ❌ No | Data-center only |
