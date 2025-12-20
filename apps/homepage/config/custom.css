@@ -37,11 +37,11 @@
 }
 
 /* ========== SERVICE LINK WRAPPER - VERTICAL LAYOUT ========== */
-/* Force wrappers to be vertical, but EXCLUDE icon containers */
+/* Force wrappers to be vertical */
 .service > a,
-.service > div:not([class*="icon"]),
-.service a:not([class*="icon"]),
-.service > a > div:not([class*="icon"]) {
+.service > div,
+.service a,
+.service > a > div {
   display: flex !important;
   flex-direction: column !important;
   flex-wrap: nowrap !important;
@@ -56,14 +56,19 @@
 }
 
 /* ========== ICON - iOS ROUNDED SQUARE TILE ========== */
-.service-icon,
+/* Higher specificity to override wrapper styles */
+.service .service-icon,
 .service div[class*="icon"],
-.service [class*="icon"] {
-  /* iOS icon size */
+.service [class*="icon"],
+div.service-icon,
+div[class*="icon"] {
+  /* iOS icon size - FIXED */
   width: 64px !important;
   height: 64px !important;
   min-width: 64px !important;
   min-height: 64px !important;
+  max-width: 64px !important;
+  max-height: 64px !important;
 
   /* iOS rounded square shape */
   border-radius: 14px !important;
@@ -78,7 +83,7 @@
     0 0 16px rgba(255, 255, 255, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
 
-  /* Keep icon as block/row layout */
+  /* Override column - keep icon as row/centered */
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
