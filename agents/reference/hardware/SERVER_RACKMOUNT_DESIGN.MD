@@ -88,7 +88,7 @@ The GPU must **breathe cold air**, not re-ingest the CX3701’s output.
 
 ## 🎯 GPU Mount Details
 
-- **Shelf:** 1 U vented metal cantilever shelf (10″ depth).  
+- **Shelf:** StarTech.com 1U vented metal cantilever shelf (16″ depth, model CABSHELF116V).  
 - **GPU:** RTX 3070 (~10.5″ long, 2.5-slot, ~4.4″ tall).  
   - Rests flat on shelf.  
   - Fan side faces **up**.  
@@ -132,7 +132,7 @@ The GPU must **breathe cold air**, not re-ingest the CX3701’s output.
 
 | Component | Model / Notes |
 |:--|:--|
-| **GPU Shelf** | NavePoint / StarTech 1U vented cantilever shelf (10″) |
+| **GPU Shelf** | StarTech.com 1U vented cantilever shelf (16″ depth, CABSHELF116V) |
 | **PCIe Riser** | LINKUP Ultra Gen4 x16 270°/180° (300–500 mm) |
 | **Fans** | Arctic P12 / Noctua P12 (pressure-optimized, PWM) |
 | **Controllers** | AC Infinity dual-zone (top = exhaust, bottom = intake) |

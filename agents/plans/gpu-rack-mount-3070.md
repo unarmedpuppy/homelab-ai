@@ -1,7 +1,8 @@
 # External Vertical GPU Mount Plan
 
-**Status**: In Progress (Parts Ordered)
+**Status**: In Progress (Shelf Purchased, Assembly Pending)
 **Created**: 2025-12-20
+**Last Updated**: 2025-12-28
 **Epic**: `home-server-n6y` (Hardware Upgrade Plan)
 **Related**: `home-server-bme` (Two-GPU Local AI Architecture)
 
@@ -10,8 +11,8 @@
 | Bead ID | Task | Status |
 |---------|------|--------|
 | `home-server-n6y` | Epic: Hardware Upgrade Plan | Open |
-| `home-server-ngo` | Purchase 1U full-depth vented shelf | Ready |
-| `home-server-k33` | Install RTX 3070 in external vertical rack mount | Blocked by `ngo` |
+| `home-server-ngo` | Purchase 1U full-depth vented shelf | ✅ Complete (StarTech CABSHELF116V) |
+| `home-server-k33` | Install RTX 3070 in external vertical rack mount | Ready (unblocked) |
 | `home-server-6yo` | Install NVIDIA drivers + CUDA on Debian | Blocked by `k33` |
 
 ## Overview
@@ -110,24 +111,30 @@ Server chassis (not mechanically attached)
 
 **Total Ordered**: ~$202
 
-### Still Needed
+### Purchased (Dec 2025)
 
-| Item | Est. Price | Notes |
-|------|------------|-------|
-| 1U Full-Depth Vented Shelf (Steel) | ~$30-60 | Required for mechanical decoupling |
-| RTX 3070 GPU | (owned) | Already have |
+| Item | Price | Status | Notes |
+|------|-------|--------|-------|
+| StarTech.com 1U Server Rack Shelf (CABSHELF116V) | $49.99 | ✅ Purchased | 16" deep, vented, 44lb capacity, includes M6 mounting hardware |
+| RTX 3070 GPU | (owned) | ✅ Owned | Already have |
 
-### Shelf Requirements
-- 1U height
-- Vented
-- Full depth or adjustable depth
-- Steel construction (not aluminum)
-- ~250 lb rated
+### Shelf Specifications
+- **Model**: StarTech.com CABSHELF116V
+- **Height**: 1U
+- **Depth**: 16" (40.6 cm)
+- **Width**: 17.4" (standard 19" rack width)
+- **Material**: SPCC commercial cold-rolled steel
+- **Weight Capacity**: 44 lbs (20 kg)
+- **Mounting**: Front-mount cantilever (includes 4× M6 cage nuts, 4× M6 screws)
+- **Vented**: Yes (improves airflow)
+- **Amazon Link**: https://www.amazon.com/dp/B071YP4JL5
 
-**Recommended Options**:
-- Eaton / Tripp Lite adjustable-depth 1U vented shelf
-- StarTech adjustable-depth 1U vented shelf
-- Tupavco 1U full-depth steel shelf
+**Why This Shelf**:
+- 16" depth provides ample clearance for GPU + L-brackets + NZXT mount
+- Vented design improves airflow around GPU
+- Heavy-duty steel construction (44lb capacity exceeds GPU weight)
+- Includes mounting hardware (M6 cage nuts and screws)
+- Well-reviewed and proven design
 
 ## Fastener Specifications
 
