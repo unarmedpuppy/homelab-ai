@@ -3,8 +3,8 @@
 
 FROM oven/bun:1.1-alpine AS builder
 
-# Install git for cloning
-RUN apk add --no-cache git
+# Install git and build dependencies for native modules (better-sqlite3)
+RUN apk add --no-cache git python3 make g++ linux-headers
 
 WORKDIR /build
 
