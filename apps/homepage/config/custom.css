@@ -37,22 +37,24 @@
 }
 
 /* ========== SERVICE LINK WRAPPER - VERTICAL LAYOUT ========== */
-/* Force wrappers to be vertical */
+/* Force wrappers to wrap - constrain width to force vertical stacking */
 .service > a,
 .service > div,
 .service a,
 .service > a > div {
   display: flex !important;
-  flex-direction: column !important;
-  flex-wrap: nowrap !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
   align-items: center !important;
-  justify-content: flex-start !important;
+  justify-content: center !important;
   gap: 8px !important;
   text-decoration: none !important;
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
   padding: 0 !important;
+  width: 80px !important;
+  max-width: 80px !important;
 }
 
 /* ========== ICON - iOS ROUNDED SQUARE TILE ========== */
