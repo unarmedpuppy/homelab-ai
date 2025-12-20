@@ -1,0 +1,208 @@
+/* ==============================================
+   iOS Liquid Glass Style for Homepage
+   - Minimalist icon grid with glassmorphism
+   - Status badges like iOS notifications
+   - Hover lift & glow effects
+   ============================================== */
+
+/* ========== SERVICE CARD - LIQUID GLASS ========== */
+.service {
+  /* Glassmorphism base */
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+
+  /* Soft rounded corners like iOS icons */
+  border-radius: 22px !important;
+
+  /* Subtle glass border */
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+
+  /* Square-ish aspect for icon feel */
+  padding: 16px 12px !important;
+  min-height: auto !important;
+
+  /* Center everything */
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+
+  /* Smooth transitions */
+  transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+
+  /* Position for badge */
+  position: relative !important;
+}
+
+/* Hover: lift & glow */
+.service:hover {
+  transform: translateY(-6px) scale(1.02) !important;
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.2),
+    0 0 20px rgba(255, 255, 255, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+/* ========== ICON STYLING ========== */
+.service-icon {
+  width: 56px !important;
+  height: 56px !important;
+  margin-bottom: 8px !important;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2)) !important;
+}
+
+.service-icon img,
+.service-icon svg {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+}
+
+/* ========== SERVICE NAME ========== */
+.service-name {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: rgba(255, 255, 255, 0.95) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.3 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* ========== HIDE EXTRA ELEMENTS ========== */
+/* Hide descriptions */
+.service-description,
+.service-tags,
+.service-container,
+.service-stats,
+.service-block ~ div:not(.service-status):not(.status) {
+  display: none !important;
+}
+
+/* Hide widget info on service cards */
+.service .widget-container,
+.service .information {
+  display: none !important;
+}
+
+/* ========== STATUS BADGE (iOS NOTIFICATION STYLE) ========== */
+.service .status,
+.service-status,
+.service [class*="status"] {
+  position: absolute !important;
+  top: 8px !important;
+  right: 8px !important;
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 50% !important;
+  border: 2px solid rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Online/healthy - green badge */
+.service .status.online,
+.service .status[class*="green"],
+.service .status[class*="success"],
+.status-dot-online {
+  background-color: #34c759 !important;
+}
+
+/* Offline/error - red badge */
+.service .status.offline,
+.service .status[class*="red"],
+.service .status[class*="error"],
+.status-dot-offline {
+  background-color: #ff3b30 !important;
+}
+
+/* Warning - yellow badge */
+.service .status[class*="yellow"],
+.service .status[class*="warning"] {
+  background-color: #ffcc00 !important;
+}
+
+/* ========== SERVICE GRID LAYOUT ========== */
+/* Force consistent grid sizing */
+.services-list,
+.service-group-services,
+[class*="services"] {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 16px !important;
+  padding: 8px !important;
+}
+
+/* ========== GROUP HEADERS ========== */
+.service-group-name,
+.group-name,
+[class*="group-title"] {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  margin-bottom: 12px !important;
+  padding-left: 4px !important;
+}
+
+/* ========== SCROLLBAR STYLING ========== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ========== RESPONSIVE ADJUSTMENTS ========== */
+@media (max-width: 1200px) {
+  .services-list,
+  .service-group-services,
+  [class*="services"] {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .services-list,
+  .service-group-services,
+  [class*="services"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .service-icon {
+    width: 48px !important;
+    height: 48px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .services-list,
+  .service-group-services,
+  [class*="services"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+}
