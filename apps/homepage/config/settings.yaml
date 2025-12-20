@@ -12,7 +12,7 @@ background:
 # Display options - minimalist iOS style
 statusStyle: dot            # Clean status indicators (shown as badges via CSS)
 useEqualHeights: false      # Let CSS handle sizing
-showStats: false            # Hidden via CSS, disable for performance
+showStats: true             # Keep enabled for top-level resource widgets
 
 # Layout configuration - consistent 4-column grid
 layout:
