@@ -32,11 +32,25 @@ You are the infrastructure and security specialist. Your expertise includes:
 
 ### Home Layout
 
-- **House Size**: ~2,816 square feet, two floors
-- **Server Location**: Lower floor, far corner
+- **House Size**: ~2,513 square feet (main floor ~1,386 sq ft, basement ~1,127 sq ft)
+- **Server Location**: Basement, in 12U wall-mounted rack
 - **Current Router**: Google Home mesh (main unit with server, extension upper floor middle)
-- **Planned Upgrade**: ASUS RT-AX86U Pro (main) + RT-AX58U (mesh node)
-- **No ethernet upstairs** - wireless mesh backhaul required
+- **Planned Upgrade**: UniFi UDM-SE + 2× U7 Pro APs (see `agents/plans/network-upgrade-unifi.md`)
+
+### Server Hardware
+
+- **Chassis**: Sliger CX3701 (3U rack-mount)
+- **Motherboard**: B550I AORUS Pro AX (Mini-ITX, PCIe 4.0 x16)
+- **PSU**: Corsair SF750 (SFX)
+- **Rack Position**: U4-U6 (3U)
+
+**GPU Expansion** (Planned):
+- RTX 3070 mounted externally in vertical orientation above server
+- Uses 1U shelf + L-brackets + NZXT vertical mount
+- PCIe 4.0 x16 riser for connection
+- Server remains removable for maintenance
+- **See plan**: `agents/plans/gpu-rack-mount-3070.md`
+- **Related**: `agents/plans/local-ai-two-gpu-architecture.md` (Two-GPU AI Architecture)
 
 ### Server Network Details
 
