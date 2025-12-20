@@ -2,11 +2,10 @@
    iOS App Icon Style for Homepage
    - Icon tiles with name below (no card background)
    - Rounded square icons like iOS
-   - Hover lift & glow effects
+   - Glow effect always on
    ============================================== */
 
 /* ========== HIDE STATS AND EXTRA INFO ========== */
-/* Hide MEM, RX, CPU stats on service cards */
 .service-container,
 .service-stats,
 [class*="cpu"],
@@ -26,40 +25,23 @@
 
 /* ========== SERVICE CARD - TRANSPARENT ========== */
 .service {
-  /* Remove card background */
   background: transparent !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   border: none !important;
   box-shadow: none !important;
-
-  /* Sizing */
   padding: 12px 8px !important;
   min-height: auto !important;
   width: auto !important;
-
-  /* Position for badge */
   position: relative !important;
-
-  /* Smooth transitions */
-  transition: transform 0.3s ease !important;
-}
-
-/* Hover: lift effect */
-.service:hover {
-  transform: translateY(-4px) !important;
 }
 
 /* ========== SERVICE LINK WRAPPER - VERTICAL LAYOUT ========== */
-/* Force ALL possible wrappers to be vertical */
+/* Force wrappers to be vertical, but EXCLUDE icon containers */
 .service > a,
-.service > div,
-.service a,
-.service div,
-.service li,
-.service > a > div,
-.service > div > div,
-.service > div > a {
+.service > div:not([class*="icon"]),
+.service a:not([class*="icon"]),
+.service > a > div:not([class*="icon"]) {
   display: flex !important;
   flex-direction: column !important;
   flex-wrap: nowrap !important;
@@ -75,7 +57,8 @@
 
 /* ========== ICON - iOS ROUNDED SQUARE TILE ========== */
 .service-icon,
-.service div[class*="icon"] {
+.service div[class*="icon"],
+.service [class*="icon"] {
   /* iOS icon size */
   width: 64px !important;
   height: 64px !important;
@@ -85,46 +68,35 @@
   /* iOS rounded square shape */
   border-radius: 14px !important;
 
-  /* Glassmorphism on the icon */
+  /* Glassmorphism with glow always on */
   background: rgba(255, 255, 255, 0.15) !important;
   backdrop-filter: blur(12px) saturate(150%) !important;
   -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
   box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    0 8px 24px rgba(0, 0, 0, 0.2),
+    0 0 16px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
 
-  /* Override the column layout for icon - keep it as block/flex row */
+  /* Keep icon as block/row layout */
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
   justify-content: center !important;
   padding: 12px !important;
   gap: 0 !important;
-
   margin: 0 !important;
   flex-shrink: 0 !important;
-
-  /* Smooth transitions for hover */
-  transition: box-shadow 0.3s ease !important;
+  overflow: visible !important;
 }
 
-/* Hover glow on icon */
-.service:hover .service-icon,
-.service:hover div[class*="icon"] {
-  box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.25),
-    0 0 16px rgba(255, 255, 255, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
-}
-
-/* Icon images inside - make sure they're visible */
+/* ========== ICON IMAGES - FORCE VISIBLE ========== */
 .service-icon img,
 .service-icon svg,
+.service [class*="icon"] img,
+.service [class*="icon"] svg,
 .service img,
-.service svg,
-.service picture,
-.service picture img {
+.service svg {
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
@@ -132,16 +104,21 @@
   height: 40px !important;
   min-width: 40px !important;
   min-height: 40px !important;
+  max-width: 40px !important;
+  max-height: 40px !important;
   object-fit: contain !important;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2)) !important;
-  flex-direction: row !important;
   background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 /* ========== SERVICE NAME - BELOW ICON ========== */
 .service-name,
 .service a > span,
-.service > a > div > span {
+.service > a > div > span,
+.service span:not([class*="icon"] span) {
   font-size: 11px !important;
   font-weight: 500 !important;
   color: rgba(255, 255, 255, 0.9) !important;
@@ -156,7 +133,7 @@
   text-align: center !important;
 }
 
-/* ========== STATUS BADGE (iOS NOTIFICATION STYLE) ========== */
+/* ========== STATUS BADGE ========== */
 .service .status,
 .service-status {
   position: absolute !important;
@@ -218,7 +195,7 @@
   background: rgba(255, 255, 255, 0.3);
 }
 
-/* ========== RESPONSIVE ADJUSTMENTS ========== */
+/* ========== RESPONSIVE ========== */
 @media (max-width: 900px) {
   .services-list,
   .service-group-services,
@@ -234,7 +211,8 @@
     grid-template-columns: repeat(2, 1fr) !important;
   }
 
-  .service-icon {
+  .service-icon,
+  .service [class*="icon"] {
     width: 56px !important;
     height: 56px !important;
     padding: 10px !important;
