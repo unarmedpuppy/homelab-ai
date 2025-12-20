@@ -9,13 +9,15 @@
 
 | Bead ID | Task | Status |
 |---------|------|--------|
-| `home-server-bme` | Epic: Two-GPU Local AI Architecture | Ready |
-| `home-server-6yo` | Install NVIDIA drivers + CUDA on Debian | Ready |
+| `home-server-bme` | Epic: Two-GPU Local AI Architecture | Open |
+| `home-server-k33` | Install RTX 3070 in rack mount | Blocked by `ngo` |
+| `home-server-6yo` | Install NVIDIA drivers + CUDA on Debian | Blocked by `k33` |
 | `home-server-und` | Create Windows networking stability layer | Ready |
 | `home-server-pp6` | Create Windows gaming mode endpoint | Ready |
-| `home-server-49l` | Deploy vLLM with 32B model on Windows/WSL2 | Blocked by `und` |
+| `home-server-49l` | Deploy Qwen3-Coder-14B on Windows/WSL2 | Blocked by `und` |
 | `home-server-jz4` | Create router service with intelligent routing | Blocked by `6yo`, `und`, `pp6`, `49l` |
 | `home-server-e0h` | Upgrade local-ai-app to use router | Blocked by `jz4` |
+| `home-server-avw` | Configure OpenCode to use local vLLM | Blocked by `jz4` |
 | `home-server-yol` | Document operational procedures | Blocked by `e0h` |
 
 ## Overview
@@ -148,17 +150,98 @@ Evaluation order inside router:
 
 ## Model Allocation
 
-### RTX 3070 (Debian)
-- Small/medium models only (7B-8B class)
-- Examples: Llama 3.1 8B, Qwen 2.5 7B
-- Router + tools share this GPU
-- Low latency, high availability
+### Primary Model: Qwen3-Coder-14B (RTX 3090)
 
-### RTX 3090 (Windows)
-- Single large model at a time (32B class)
-- Examples: Qwen 2.5 32B, DeepSeek 33B
-- Warm-loaded by default
-- Can be stopped during gaming if zero contention desired
+**Target workload**: Coding, refactors, agent-style usage (OpenCode integration)
+
+| Attribute | Value |
+|-----------|-------|
+| Model | Qwen3-Coder-14B |
+| Parameters | ~14B |
+| VRAM Required | 24 GB (fits 3090 exactly) |
+| Context Length | 32,768 tokens |
+| Quantization | None (full precision bfloat16) |
+| Expected Speed | ~25-50 tokens/sec (single user) |
+
+**vLLM Launch Configuration**:
+```bash
+vllm serve Qwen/Qwen3-Coder-14B \
+  --dtype bfloat16 \
+  --max-model-len 32768 \
+  --gpu-memory-utilization 0.90
+```
+
+**Why 14B over 32B**:
+- 32B requires multi-GPU (doesn't fit in 24GB)
+- 14B is the best quality/VRAM tradeoff for single 3090
+- Sufficient for coding tasks and agent workflows
+
+### Secondary Model: Qwen3-Coder-7B or Llama 3.1 8B (RTX 3070)
+
+**Target workload**: Quick responses, routing, tool calling, planning
+
+| Attribute | Value |
+|-----------|-------|
+| Model | Qwen3-Coder-7B or Llama 3.1 8B |
+| Parameters | ~7-8B |
+| VRAM Required | ~8 GB (fits 3070's 8GB) |
+| Context Length | 8,192-16,384 tokens |
+| Quantization | Optional AWQ for headroom |
+| Expected Speed | ~40-80 tokens/sec |
+
+**Use cases**:
+- Fast autocomplete suggestions
+- Quick tool-call decisions
+- Planning and orchestration
+- Fallback when 3090 unavailable
+
+### Model Decision Matrix
+
+| Model | Params | GPU | Fit | Use Case |
+|-------|--------|-----|-----|----------|
+| Qwen3-Coder-7B | ~7B | 3070 | ✅ Easy | Fast routing, autocomplete |
+| Qwen3-Coder-14B | ~14B | 3090 | ✅ Target | Coding, refactors, agents |
+| Qwen3-Coder-32B | ~32B | 3090 | ❌ No | Requires multi-GPU |
+| Qwen3-Coder-72B | ~72B | — | ❌ No | Data-center only |
+
+### System Requirements (Windows Gaming PC)
+
+| Component | Minimum | Recommended |
+|-----------|---------|-------------|
+| GPU | RTX 3090 (24GB) | RTX 4090 (24GB, 1.5x faster) |
+| RAM | 32 GB | 64 GB |
+| CPU | 8 cores | 16-32 cores |
+| Storage | NVMe SSD | NVMe SSD |
+| Driver | NVIDIA ≥535 | Latest |
+| CUDA | 12.x | 12.x |
+
+**Note**: CPU affects concurrency. Undersized CPUs bottleneck multi-agent workflows.
+
+### Operational Caveats
+
+1. **KV Cache Dominates VRAM**
+   - Long context + agents consume multiple GB
+   - Concurrency increases VRAM pressure non-linearly
+
+2. **Concurrency Risk**
+   - 24GB handles 1 request comfortably
+   - 2+ concurrent agent calls can OOM without tuning
+
+3. **Quantization Trade-offs**
+   - AWQ/GPTQ can fit 14B into ~16GB
+   - Downsides: reduced tool-call reliability, less precise edits
+   - **Acceptable only for autocomplete, not refactors**
+
+### RTX 3090 vs 4090 Consideration
+
+| Attribute | RTX 3090 | RTX 4090 |
+|-----------|----------|----------|
+| VRAM | 24 GB | 24 GB |
+| Speed | Baseline | ~1.5-1.7× faster |
+| Price | ~$800-1000 used | ~$1800-2000 |
+| Recommendation | Current choice | Future upgrade |
+
+3090 is viable; 4090 benefits latency-sensitive workloads significantly.
 
 ## Operational Muscle Memory
 
