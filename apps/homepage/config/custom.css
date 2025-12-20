@@ -6,9 +6,7 @@
    ============================================== */
 
 /* ========== SERVICE CARD - TRANSPARENT ========== */
-.service,
-.service > a,
-.service > div {
+.service {
   /* Remove card background entirely */
   background: transparent !important;
   backdrop-filter: none !important;
@@ -23,7 +21,7 @@
   justify-content: flex-start !important;
   text-align: center !important;
 
-  padding: 0 !important;
+  padding: 12px 8px !important;
   min-height: auto !important;
   gap: 8px !important;
 
@@ -34,8 +32,27 @@
   transition: transform 0.3s ease !important;
 }
 
-.service {
-  padding: 12px 8px !important;
+/* Force ALL nested elements to be vertical column layout */
+.service * {
+  flex-direction: column !important;
+}
+
+.service > *,
+.service > * > *,
+.service a,
+.service div,
+.service li > div,
+.service li > a {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  gap: 8px !important;
 }
 
 /* Hover: lift effect on whole item */
@@ -48,6 +65,9 @@
   /* iOS icon size */
   width: 64px !important;
   height: 64px !important;
+  min-width: 64px !important;
+  min-height: 64px !important;
+  flex-shrink: 0 !important;
 
   /* iOS rounded square shape */
   border-radius: 14px !important;
@@ -65,13 +85,18 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  flex-direction: row !important; /* Override the column for icon container */
   padding: 12px !important;
+  gap: 0 !important;
 
   /* No margin - gap handles spacing */
   margin: 0 !important;
 
   /* Smooth transitions for hover */
   transition: box-shadow 0.3s ease, transform 0.3s ease !important;
+
+  /* Ensure icon comes first visually */
+  order: 1 !important;
 }
 
 /* Hover glow on icon */
@@ -92,8 +117,9 @@
 
 /* ========== SERVICE NAME - BELOW ICON ========== */
 .service-name,
-.service a span,
-.service span {
+.service a span:not(.service-icon span),
+.service > * > span,
+.service span:not(.service-icon span) {
   font-size: 11px !important;
   font-weight: 500 !important;
   color: rgba(255, 255, 255, 0.9) !important;
@@ -107,7 +133,8 @@
   white-space: nowrap !important;
   text-align: center !important;
   display: block !important;
-  width: 100% !important;
+  width: auto !important;
+  order: 2 !important; /* Ensure name comes after icon */
 }
 
 /* ========== HIDE EXTRA ELEMENTS ========== */
