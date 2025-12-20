@@ -14,8 +14,8 @@ RUN git clone --depth 1 https://github.com/mgalpert/beads-viewer.git .
 # Install dependencies
 RUN bun install
 
-# Build the frontend
-RUN bun run build
+# Build the frontend (skip TypeScript checking - upstream has TS errors)
+RUN bunx vite build
 
 # Production stage
 FROM oven/bun:1.1-alpine
