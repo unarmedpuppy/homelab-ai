@@ -52,6 +52,27 @@ You are the infrastructure and security specialist. Your expertise includes:
 - **See plan**: `agents/plans/gpu-rack-mount-3070.md`
 - **Related**: `agents/plans/local-ai-two-gpu-architecture.md` (Two-GPU AI Architecture)
 
+### Whole-House Ethernet (Planned)
+
+DIY Cat6 installation with star topology to basement MDF.
+
+**Scope**:
+- 28 total Cat6 runs (~3,000 ft cable)
+- Bedrooms: 10 drops (5 rooms × 2)
+- Office: 4 wall drops
+- Wi-Fi APs: 2 ceiling drops (for UniFi U7 Pro)
+- Cameras: 8 PoE drops (3 interior, 5 exterior)
+- Spare: 4 future drops
+
+**Architecture**:
+- Single vertical spine: attic → basement
+- MDF location: Basement office (server corner)
+- 48-port patch panel
+- No horizontal fishing in finished walls
+
+**See plan**: `agents/plans/ethernet-wiring-whole-house.md`
+**Related**: `agents/plans/network-upgrade-unifi.md` (UniFi provides PoE switch + APs)
+
 ### Server Network Details
 
 - **Server IP**: `192.168.86.47` (static IP required)
