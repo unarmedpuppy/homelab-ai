@@ -9,31 +9,31 @@ background:
   brightness: 50 # 0, 50, 75... see https://tailwindcss.com/docs/backdrop-brightness
   opacity: 50 # 0-100
 
-# Display options - minimalist iOS style
-statusStyle: dot            # Clean status indicators (shown as badges via CSS)
-useEqualHeights: false      # Let CSS handle sizing
-showStats: true             # Keep enabled for top-level resource widgets
+# Display options
+statusStyle: dot            # Clean status indicators (dot, basic, or default)
+useEqualHeights: true       # Uniform card heights in rows
+showStats: true             # Show container CPU/memory stats
 
-# Layout configuration - consistent 4-column grid
+# Layout configuration - order and styling per group
 layout:
   Media & Entertainment:
     style: row
     columns: 4
   Finance & Trading:
     style: row
-    columns: 4
+    columns: 3
   Productivity:
     style: row
     columns: 4
   AI & Machine Learning:
     style: row
-    columns: 4
+    columns: 3
   Social & News:
     style: row
-    columns: 4
+    columns: 3
   Gaming:
     style: row
-    columns: 4
+    columns: 3
   Infrastructure:
     style: row
     columns: 4
