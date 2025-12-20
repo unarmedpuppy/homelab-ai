@@ -53,6 +53,7 @@ The Local AI system consists of two components:
 - `setup.sh` - Creates text and image model containers (run once)
   - **Note**: Has CRLF line endings - may need conversion for bash execution
   - Creates vLLM containers for text models
+  - **Key fix**: Includes `--trust-remote-code` flag for DeepSeek Coder container
   - Builds and creates image inference server container
 - `docker-compose.yml` - Manager service configuration
 - `models.json` - Model configuration (container names, ports, **type field**)
@@ -61,13 +62,18 @@ The Local AI system consists of two components:
 - `manager/manager.py` - Manager service code (starts/stops models, supports text/image types)
   - Routes requests to correct port based on model type
   - Different readiness checks for text vs image models
+  - **Key fix**: Strips leading slash from path to avoid double slashes in proxy URLs (line 332)
 - `manager/Dockerfile` - Manager container build
 - `verify-setup.ps1` - Setup verification script
 - `README.md` - Windows setup documentation
 - `image-inference-server/` - Image model inference server (Diffusers-based)
   - `Dockerfile` - CUDA-based image with Diffusers
   - `app/main.py` - FastAPI server with OpenAI-compatible endpoints
-  - `requirements.txt` - Python dependencies (diffusers, transformers, torch, etc.)
+    - **Key fix**: Non-blocking model loading (loads in background task)
+    - **Key fix**: Uses `device_map="cuda"` instead of `"auto"` for QwenImageEditPlusPipeline
+  - `requirements.txt` - Python dependencies
+    - **Current versions**: `diffusers>=0.30.0` (0.36.0), `transformers>=4.51.3` (4.57.3)
+    - Required for Qwen Image Edit 2509 support
 - `RESEARCH_IMAGE_INFERENCE.md` - Research document on image inference engines
 - `DEPLOYMENT_STATUS.md` - Current deployment status and testing guide
 - `TESTING.md` - Comprehensive testing guide for multimodal system
@@ -248,6 +254,11 @@ docker logs vllm-manager
 
 # Restart manager
 docker compose restart manager
+
+# Rebuild manager if code changed
+cd local-ai
+docker compose build manager
+docker compose restart manager
 ```
 
 **Model not starting:**
@@ -261,12 +272,20 @@ docker ps -a --filter name=qwen-image-server
 # Check manager logs for errors
 docker logs vllm-manager --tail 50
 
+# Check manager status endpoint
+Invoke-WebRequest -Uri "http://localhost:8000/status" -UseBasicParsing | ConvertFrom-Json | ConvertTo-Json -Depth 5
+
 # Manually start model container (for testing)
 docker start vllm-llama3-8b
+docker start vllm-qwen14b-awq
+docker start vllm-coder7b
 docker start qwen-image-server  # for image models
 
 # Check image server logs
 docker logs qwen-image-server --tail 50
+
+# Check text model logs
+docker logs vllm-qwen14b-awq --tail 50
 ```
 
 **Connection issues:**
@@ -274,11 +293,36 @@ docker logs qwen-image-server --tail 50
 # Verify manager is accessible
 Invoke-WebRequest -Uri "http://localhost:8000/healthz" -UseBasicParsing
 
+# Check manager status
+Invoke-WebRequest -Uri "http://localhost:8000/status" -UseBasicParsing | ConvertFrom-Json
+
+# Test model endpoints directly
+docker exec vllm-qwen14b-awq curl -s http://localhost:8000/v1/models
+docker exec qwen-image-server curl -s http://localhost:8000/health
+
 # Check firewall rules
 Get-NetFirewallRule -DisplayName "*LLM*"
 
 # Verify Windows IP
 ipconfig | findstr IPv4
+```
+
+**Proxy routing issues (404 errors):**
+```powershell
+# Check manager logs for routing errors
+docker logs vllm-manager --tail 50 | Select-String "404\|Not Found\|//v1"
+
+# Verify manager code has path fix
+docker exec vllm-manager cat /app/manager.py | Select-String "lstrip"
+
+# Rebuild manager if fix missing
+cd local-ai
+docker compose build manager
+docker compose restart manager
+
+# Test proxy routing
+$body = @{model="qwen2.5-14b-awq"; messages=@(@{role="user"; content="test"})} | ConvertTo-Json
+Invoke-WebRequest -Uri "http://localhost:8000/v1/chat/completions" -Method POST -Body $body -ContentType "application/json"
 ```
 
 ### Server Component Issues
@@ -392,6 +436,23 @@ ssh -p 4242 unarmedpuppy@192.168.86.47 "curl http://localhost:8067/health"
 - First request may take time (model download if not cached)
 - Models are cached in `local-ai/models/` and `local-ai/cache/`
 
+### Starting Models Manually
+If you want models ready before first request:
+```powershell
+# Start all text models
+docker start vllm-qwen14b-awq
+docker start vllm-coder7b
+# Note: llama3-8b requires HuggingFace access (gated model)
+
+# Start image model
+docker start qwen-image-server
+
+# Check status
+Invoke-WebRequest -Uri "http://localhost:8000/status" -UseBasicParsing | ConvertFrom-Json | ConvertTo-Json -Depth 5
+```
+
+**Note**: One model failing should not prevent others from being available. Each model container is independent.
+
 ### Context Length Management
 - **Qwen model limit**: 6144 tokens
 - **Automatic truncation**: Conversation history automatically truncated to last 10 messages
@@ -486,34 +547,145 @@ ssh -p 4242 unarmedpuppy@192.168.86.47 "curl http://localhost:8067/health"
 - Wait for model to finish loading (can take 1-5 minutes on first use)
 - For image models: First use takes 10-30 minutes (model download + loading)
 
+### "Not Found" (404) Errors from Manager Proxy
+
+**Issue**: Requests to `/v1/chat/completions` or `/v1/images/generations` return 404 "Not Found".
+
+**Root Cause**: Double slash in proxy URL construction (`//v1/chat/completions` instead of `/v1/chat/completions`).
+
+**Solution**:
+- Fixed in `manager/manager.py` (line 332): Strip leading slash from path before constructing backend URL
+- **Fix applied**: `path = request.url.path.lstrip('/')` before `backend_url = f"http://{container_name}:8000/{path}"`
+- **If still seeing 404**: Rebuild manager container:
+  ```powershell
+  cd local-ai
+  docker compose build manager
+  docker compose restart manager
+  ```
+
+**Verification**:
+```powershell
+# Check manager logs for double slashes (should NOT appear after fix)
+docker logs vllm-manager | Select-String "//v1"
+
+# Check manager code has the fix
+docker exec vllm-manager cat /app/manager.py | Select-String "lstrip"
+
+# Test direct container access
+docker exec vllm-qwen14b-awq curl -s http://localhost:8000/v1/models
+
+# Test proxy routing through manager
+$body = @{model="qwen2.5-14b-awq"; messages=@(@{role="user"; content="test"})} | ConvertTo-Json
+Invoke-WebRequest -Uri "http://localhost:8000/v1/chat/completions" -Method POST -Body $body -ContentType "application/json"
+# Should return 200 OK, not 404
+```
+
 ### Image Model Issues
 
 **Image model not loading:**
+
+**Dependency Issues:**
+- **Error**: `AttributeError: module diffusers has no attribute QwenImageEditPlusPipeline`
+- **Error**: `NotImplementedError: auto not supported. Supported strategies are: balanced, cuda`
+- **Solution**: Updated dependencies in `image-inference-server/requirements.txt`:
+  - `diffusers>=0.30.0` (currently 0.36.0)
+  - `transformers>=4.51.3` (currently 4.57.3)
+  - Changed `device_map="auto"` to `device_map="cuda"` in `app/main.py`
+  - Rebuild image: `cd local-ai/image-inference-server && docker build -t image-inference-server:latest .`
+
+**Model Loading Blocking Server Startup:**
+- **Issue**: Server stuck at "Waiting for application startup" while model loads
+- **Solution**: Made model loading non-blocking (loads in background task)
+- **Fix applied**: Updated `app/main.py` startup event to use async background task
+- **Result**: Server starts immediately, model loads in background
+
+**Troubleshooting steps:**
 ```powershell
 # Check container status
 docker ps -a --filter name=qwen-image-server
 
-# Check image server logs
+# Check image server logs (look for "Model loaded successfully" or errors)
 docker logs qwen-image-server --tail 100
 
-# Verify image inference server is built
+# Check if model is loaded
+docker exec qwen-image-server python3 -c "import requests; r = requests.get('http://localhost:8000/health'); print(r.json())"
+# Should show: {"status": "healthy", "model_loaded": true/false, "device": "cuda", "cuda_available": true}
+# If model_loaded is False, model is still downloading/loading
+
+# Check if model is downloading (look for download progress in logs)
+docker logs qwen-image-server 2>&1 | Select-String -Pattern "Downloading|100%|Loading"
+
+# Verify image inference server is built with latest code
 docker images | grep image-inference-server
 
-# Rebuild if needed
+# Rebuild if needed (after code changes)
 cd local-ai/image-inference-server
 docker build -t image-inference-server:latest .
+
+# Recreate container with new image (if rebuild needed)
+docker stop qwen-image-server
+docker rm qwen-image-server
+cd local-ai
+docker create --name qwen-image-server --gpus all -p 8005:8000 `
+  -v ${PWD}/models:/models -v ${PWD}/cache:/root/.cache/hf `
+  -e MODEL_NAME=Qwen/Qwen-Image-Edit-2509 `
+  -e HF_TOKEN=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 `
+  --network my-network image-inference-server:latest
+docker start qwen-image-server
+
+# Wait for server to start (should be immediate now)
+Start-Sleep -Seconds 5
+docker logs qwen-image-server --tail 10
+# Should see "Application startup complete" quickly
 ```
 
 **Image generation errors:**
 - **503 errors**: Model is still loading (first use takes 10-30 minutes)
+  - Check logs: `docker logs qwen-image-server --tail 50`
+  - Verify health: `docker exec qwen-image-server curl -s http://localhost:8000/health`
 - **400 errors**: Invalid request format or missing required fields
 - **Timeout errors**: Image generation can take 30-60 seconds per image
-- Check GPU memory: `nvidia-smi` (image models use significant VRAM)
+- **GPU memory**: Check with `nvidia-smi` (image models use significant VRAM)
+- **Model download**: First use downloads model to `local-ai/cache/huggingface/hub/`
 
 **Container mapping issue:**
 - **Old**: Manager used `vllm-qwen-image` for image model container
 - **Current**: Manager uses `qwen-image-server` (correct container name)
 - If seeing old errors, verify `models.json` has correct container name
+
+### DeepSeek Coder Container Issues
+
+**Issue**: Container fails to start with `RuntimeError: Failed to load the model config`.
+
+**Root Cause**: Model requires `--trust-remote-code` flag.
+
+**Solution**: Updated `setup.sh` to include `--trust-remote-code` flag:
+```bash
+docker create --name vllm-coder7b ... --trust-remote-code
+```
+
+**If container already exists:**
+```powershell
+# Remove old container
+docker stop vllm-coder7b
+docker rm vllm-coder7b
+
+# Recreate with trust-remote-code
+cd local-ai
+docker create --name vllm-coder7b --gpus all -p 8003:8000 `
+  -v ${PWD}/models:/models -v ${PWD}/cache:/root/.cache/hf `
+  -e HF_TOKEN=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 `
+  vllm/vllm-openai:v0.6.3 `
+  --model deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct `
+  --served-model-name deepseek-coder `
+  --download-dir /models --dtype auto `
+  --max-model-len 8192 --gpu-memory-utilization 0.90 `
+  --trust-remote-code
+docker start vllm-coder7b
+
+# Or run setup.sh again (which now includes the flag)
+bash setup.sh
+```
 
 ### Multimodal Support Status
 
@@ -525,12 +697,35 @@ docker build -t image-inference-server:latest .
 - Image upload and editing functionality
 - All 15 tasks in multimodal epic completed
 
+**🔧 Recent Fixes (2025-12-19):**
+- **Proxy routing fix**: Fixed double slash issue causing 404 errors (`//v1/chat/completions`)
+- **Image model dependencies**: Upgraded to diffusers 0.36.0 and transformers 4.57.3
+- **Device map fix**: Changed from `device_map="auto"` to `device_map="cuda"` for QwenImageEditPlusPipeline
+- **Non-blocking model loading**: Image server now starts immediately, loads model in background
+- **DeepSeek Coder fix**: Added `--trust-remote-code` flag to container creation
+
 **Deployment Status:**
-- Image inference server: ✅ Built (`image-inference-server:latest`)
-- Image model container: ✅ Created (`qwen-image-server`)
-- Manager: ✅ Running and recognizes all 4 models
+- Image inference server: ✅ Built (`image-inference-server:latest`) with latest fixes
+- Image model container: ✅ Created (`qwen-image-server`) with updated image
+- Manager: ✅ Running with proxy routing fix applied
 - Server proxy: ✅ Deployed with multimodal support
+- Text models: ✅ All 3 text models running and ready
+  - `qwen2.5-14b-awq`: ✅ Running and ready
+  - `deepseek-coder`: ✅ Running and ready (with `--trust-remote-code`)
+  - `llama3-8b`: ⚠️ Stopped (gated model - requires HuggingFace access)
+- Image model: ✅ Container running, model loading in background
+  - Server starts immediately (non-blocking load)
+  - Model downloads/loads on first request (10-30 minutes first time)
+  - Check status: `docker exec qwen-image-server python3 -c "import requests; r = requests.get('http://localhost:8000/health'); print(r.json())"`
 - Ready for: End-to-end testing, image generation, image editing
+
+**Current Operational State (as of 2025-12-19):**
+- Manager proxy routing: ✅ Fixed (double slash issue resolved)
+- Image model dependencies: ✅ Updated (diffusers 0.36.0, transformers 4.57.3)
+- Image model loading: ✅ Non-blocking (server starts immediately)
+- Text models: ✅ All available models started and ready
+- Gaming mode: ✅ Available via web dashboard (http://localhost:8080)
+- Auto-startup: ✅ Configured (Windows Startup Folder method)
 
 ## Documentation
 

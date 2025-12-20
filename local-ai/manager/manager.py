@@ -146,7 +146,13 @@ async def start_model_container(model_name: str):
         try:
             if not container:
                  raise docker.errors.NotFound(f"Container '{container_name}' not found.")
-            container.start()
+            
+            # Only start if not already running
+            if container.status != "running":
+                container.start()
+            else:
+                print(f"[{model_name}] Container already running, checking readiness...")
+            
             if not await wait_for_ready(model_name):
                  raise HTTPException(status_code=503, detail=f"Model backend '{model_name}' failed to become ready.")
             return True
@@ -328,7 +334,10 @@ async def proxy(request: Request):
     
     # Proxy the request to the backend model server
     container_name = state["config"]["container"]
-    backend_url = f"http://{container_name}:8000/{request.url.path}"
+    # Strip leading slash to avoid double slashes
+    path = request.url.path.lstrip('/')
+    backend_url = f"http://{container_name}:8000/{path}"
+    print(f"[{model_name}] Proxying {request.method} {request.url.path} -> {backend_url}")
     
     async with httpx.AsyncClient() as client:
         try:

@@ -1,13 +1,16 @@
 # Image inference server requirements
+# Updated for Qwen Image Edit 2509 support
+# Requires diffusers 0.30.0+ and transformers 4.51.3+
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
-diffusers==0.25.0
-transformers==4.36.0
-torch==2.1.0
-torchvision==0.16.0
-accelerate==0.25.0
-pillow==10.1.0
-numpy==1.24.3
+diffusers>=0.30.0
+transformers>=4.51.3
+torch>=2.2.0
+torchvision>=0.17.0
+accelerate>=0.30.0
+pillow>=10.1.0
+numpy>=1.24.3
 httpx==0.25.1
 pydantic==2.5.0
+huggingface-hub>=0.20.2
 

@@ -37,7 +37,8 @@ docker create --name vllm-coder7b --gpus all -p 8003:8000 \
   --model deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct \
   --served-model-name deepseek-coder \
   --download-dir /models --dtype auto \
-  --max-model-len 8192 --gpu-memory-utilization 0.90
+  --max-model-len 8192 --gpu-memory-utilization 0.90 \
+  --trust-remote-code
 
 # Build and create image model container
 echo "Building image inference server..."

@@ -17,9 +17,16 @@ import torch
 # Try to import diffusers, but handle gracefully if not available
 try:
     from diffusers import DiffusionPipeline
+    # Try to import Qwen-specific pipeline if available (newer diffusers versions)
+    try:
+        from diffusers import QwenImageEditPlusPipeline
+        QWEN_PIPELINE_AVAILABLE = True
+    except ImportError:
+        QWEN_PIPELINE_AVAILABLE = False
     DIFFUSERS_AVAILABLE = True
 except ImportError:
     DIFFUSERS_AVAILABLE = False
+    QWEN_PIPELINE_AVAILABLE = False
     print("WARNING: diffusers not available. Image generation will not work.")
 
 app = FastAPI(title="Image Inference Server", version="0.1.0")
@@ -56,28 +63,55 @@ def load_model():
     
     print(f"Loading model: {model_name} on device: {device}")
     try:
-        # Load model with appropriate settings
-        model_pipeline = DiffusionPipeline.from_pretrained(
-            model_name,
-            torch_dtype=torch.float16 if device == "cuda" else torch.float32,
-            device_map="auto" if device == "cuda" else None,
-        )
-        if device == "cuda":
-            model_pipeline = model_pipeline.to(device)
+        # For Qwen models, try QwenImageEditPlusPipeline first if available
+        if "qwen" in model_name.lower() and "image" in model_name.lower() and QWEN_PIPELINE_AVAILABLE:
+            print("Using QwenImageEditPlusPipeline for Qwen Image Edit model")
+            model_pipeline = QwenImageEditPlusPipeline.from_pretrained(
+                model_name,
+                torch_dtype=torch.float16 if device == "cuda" else torch.float32,
+                device_map="cuda" if device == "cuda" else None,
+                trust_remote_code=True,
+            )
+        else:
+            # Use auto-detection for other models or if Qwen pipeline not available
+            print("Using DiffusionPipeline auto-detection")
+            model_pipeline = DiffusionPipeline.from_pretrained(
+                model_name,
+                torch_dtype=torch.float16 if device == "cuda" else torch.float32,
+                device_map="cuda" if device == "cuda" else None,
+                trust_remote_code=True,
+            )
+        
+        # Move to device if not already on it (device_map should handle this, but ensure it)
+        if device == "cuda" and hasattr(model_pipeline, 'to'):
+            try:
+                model_pipeline = model_pipeline.to(device)
+            except Exception as e:
+                print(f"Note: Could not move pipeline to device (may already be there): {e}")
         print(f"Model loaded successfully")
         return model_pipeline
     except Exception as e:
         print(f"Error loading model: {e}")
+        import traceback
+        traceback.print_exc()
         raise
 
 @app.on_event("startup")
 async def startup_event():
-    """Load model on startup"""
-    try:
-        load_model()
-    except Exception as e:
-        print(f"Warning: Could not load model on startup: {e}")
-        print("Model will be loaded on first request")
+    """Load model on startup (non-blocking)"""
+    import asyncio
+    async def load_model_async():
+        try:
+            # Run model loading in executor to avoid blocking
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(None, load_model)
+            print("Model loaded successfully on startup")
+        except Exception as e:
+            print(f"Warning: Could not load model on startup: {e}")
+            print("Model will be loaded on first request")
+    
+    # Start loading model in background, don't wait for it
+    asyncio.create_task(load_model_async())
 
 @app.get("/health")
 async def health():
