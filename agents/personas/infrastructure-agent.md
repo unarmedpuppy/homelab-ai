@@ -89,27 +89,38 @@ You are the infrastructure and security specialist. Your expertise includes:
 
 ### Planned Router Upgrade
 
-**Current Problem**: Google Home router doesn't allow custom DNS in DHCP settings, requiring manual DNS configuration on each device.
+**Current Problem**: Google Home router doesn't allow custom DNS in DHCP settings, requiring manual DNS configuration on each device. Additionally, Google Wifi isolates devices when internet is down, preventing local network access.
 
-**Planned Solution**: Replace with ASUS routers that support custom DNS server in DHCP.
+**Planned Solution**: Replace with UniFi rack-mount infrastructure (UDM-SE + U7 Pro APs).
 
-**Equipment to Purchase**:
-- **ASUS RT-AX86U Pro** (~$250) - Main router, lower floor with server
-- **ASUS RT-AX58U** (~$100) - AiMesh node, upper floor middle (where Google extension is now)
+**Equipment to Purchase** (Micro Center Bundle ~$877):
+- **UniFi Dream Machine Special Edition (UDM-SE)** (~$499) - Rack-mount gateway with integrated PoE switch
+- **2× UniFi U7 Pro Access Points** (~$189 each) - Wi-Fi 7, ceiling-mounted
+
+**AP Placement**:
+- **Main Floor**: Ceiling near Living Room/Kitchen boundary
+- **Basement**: Ceiling in Recreation Room
 
 **Migration Plan**:
-1. Set up RT-AX86U Pro with same SSID/password as current network
-2. Configure LAN → DHCP → DNS Server: `192.168.86.47`
-3. Add RT-AX58U as AiMesh node (wireless backhaul)
-4. Swap routers - devices reconnect automatically
-5. All devices will now use AdGuard DNS automatically
-6. Remove Google mesh routers
+1. Rack-mount UDM-SE in basement, connect to modem
+2. Run ethernet to AP locations, ceiling-mount U7 Pro APs
+3. Connect APs to UDM-SE PoE ports
+4. Configure via UniFi app with same SSID/password as Google Wifi
+5. Configure DHCP to advertise AdGuard DNS (192.168.86.47)
+6. Adopt APs in UniFi controller
+7. Verify coverage and local network operation
+8. Remove Google mesh routers
 
-**Why ASUS**:
-- AiMesh works well with wireless backhaul (no ethernet upstairs)
-- Full DNS/DHCP control via web UI
-- Easy setup, no controller needed
-- Good coverage for ~2800 sq ft with 2 units
+**Why UniFi**:
+- Rack-mount form factor (fits server infrastructure)
+- Full network control (VLANs, firewall, QoS, telemetry)
+- Wired backhaul to APs (deterministic performance)
+- Local operation without cloud dependency
+- Expandable to cameras, additional switches, etc.
+- Native DHCP DNS configuration (no per-device setup)
+
+**Full Plan**: See `agents/plans/network-upgrade-unifi.md`
+**Related Beads**: `home-server-n6y` (epic), `home-server-r7e` (purchase), `home-server-c9m` (setup)
 
 ### Firewall Configuration
 
