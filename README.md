@@ -879,6 +879,36 @@ Edit `/etc/gdm3/custom.conf` and comment out or remove the `AutomaticLogin` line
 
 For detailed setup instructions, see [AUTO_LOGIN_GRAFANA_SETUP.md](./agents/reference/setup/AUTO_LOGIN_GRAFANA_SETUP.md).
 
+#### OpenCode Terminal (ttyd + tmux)
+
+Persistent web-based terminal accessible via browser or SSH. Survives daily 5am restarts.
+
+**Access**:
+- **Browser**: https://terminal.server.unarmedpuppy.com (basic auth required externally, no auth on LAN)
+- **SSH**: `ssh -p 4242 unarmedpuppy@192.168.86.47` then `tmux attach -t opencode`
+
+**Systemd Services** (installed on server, not Docker):
+- `opencode-tmux.service` - Maintains persistent tmux session named `opencode`
+- `opencode-ttyd.service` - Web terminal on port 7681, attaches to tmux session
+
+**Service Files**:
+- `/etc/systemd/system/opencode-tmux.service`
+- `/etc/systemd/system/opencode-ttyd.service`
+
+**Installed Packages**:
+- `tmux` (via apt)
+- `ttyd` v1.7.7 (installed to `/usr/local/bin/ttyd` from GitHub releases)
+
+**Management Commands**:
+```bash
+sudo systemctl status opencode-tmux.service
+sudo systemctl status opencode-ttyd.service
+sudo systemctl restart opencode-tmux.service opencode-ttyd.service
+tmux list-sessions
+```
+
+**Routing**: Traefik file-based config in `apps/traefik/fileConfig.yml` (not Docker labels, since ttyd runs as systemd service).
+
 #### Game Servers
 
 **Rust Server**:

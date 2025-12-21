@@ -1,6 +1,6 @@
 # Plan: Persistent OpenCode Development Environment
 
-**Status**: Draft
+**Status**: Implemented
 **Created**: 2025-12-21
 **Priority**: P1
 **Effort**: Medium
@@ -274,23 +274,29 @@ ssh -p 4242 unarmedpuppy@192.168.86.47 "cd ~/server/apps/cloudflare-ddns && dock
 
 ## Success Criteria
 
-- [ ] tmux session `opencode` running and persists across reboots
-- [ ] ttyd accessible on port 7681 locally
-- [ ] Both services enabled for auto-start (tmux systemd + ttyd Docker restart policy)
+- [x] tmux session `opencode` running and persists across reboots
+- [x] ttyd accessible on port 7681 locally (verified: `curl -I http://localhost:7681` returns HTTP 200)
+- [x] Both services enabled for auto-start (both systemd services enabled)
 - [ ] DNS `terminal.server.unarmedpuppy.com` resolves
 - [ ] Browser access works via mobile (with basic auth)
 - [ ] Browser access works on LAN (no auth required)
-- [ ] SSH + `tmux attach -t opencode` works from laptop
+- [x] SSH + `tmux attach -t opencode` works from laptop
 
 ---
 
-## Files to Create/Modify
+## Files Created/Modified
 
-| File | Action |
-|------|--------|
-| `apps/opencode-terminal/docker-compose.yml` | Create |
-| `apps/cloudflare-ddns/docker-compose.yml` | Modify (add domain) |
-| `/etc/systemd/system/opencode-tmux.service` (on server) | Create |
+| File | Action | Status |
+|------|--------|--------|
+| `apps/traefik/fileConfig.yml` | Modified (added terminal routing) | Done |
+| `apps/homepage/config/services.yaml` | Modified (added terminal service) | Done |
+| `apps/cloudflare-ddns/docker-compose.yml` | Modified (added domain) | Done |
+| `/etc/systemd/system/opencode-tmux.service` (on server) | Created | Done |
+| `/etc/systemd/system/opencode-ttyd.service` (on server) | Created | Done |
+| `/usr/local/bin/ttyd` (on server) | Installed from GitHub | Done |
+| `README.md` | Modified (documented services) | Done |
+
+**Note**: Changed from Docker-based ttyd to systemd-based ttyd because network_mode:host is incompatible with Traefik Docker labels. Using Traefik file-based config instead.
 
 ---
 
