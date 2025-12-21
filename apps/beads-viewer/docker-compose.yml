@@ -1,22 +1,23 @@
 x-enabled: true
 
 services:
-  beads-viewer:
+  beads-ui:
     build:
       context: .
       dockerfile: Dockerfile
-    image: beads-viewer:local
-    container_name: beads-viewer
+    image: beads-ui:local
+    container_name: beads-ui
     restart: unless-stopped
     environment:
       - TZ=America/Chicago
-      - PORT=3001
+      - PORT=3000
+      - HOST=0.0.0.0
     ports:
-      - "3015:3001"
+      - "3015:3000"
     volumes:
       # Mount the home-server .beads directory
       # The server repo is at ~/server, so .beads is at ~/server/.beads
-      - /home/unarmedpuppy/server/.beads:/app/.beads:ro
+      - /home/unarmedpuppy/server/.beads:/app/.beads
     working_dir: /app
     networks:
       - my-network
@@ -24,33 +25,33 @@ services:
       # Traefik configuration
       - "traefik.enable=true"
       # HTTP to HTTPS redirect
-      - "traefik.http.routers.beads-viewer-http.rule=Host(`beads.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.beads-viewer-http.entrypoints=web"
-      - "traefik.http.routers.beads-viewer-http.middlewares=redirect-to-https"
+      - "traefik.http.routers.beads-ui-http.rule=Host(`beads.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.beads-ui-http.entrypoints=web"
+      - "traefik.http.routers.beads-ui-http.middlewares=redirect-to-https"
       # Local network access (no auth) - highest priority
-      - "traefik.http.routers.beads-viewer-local.rule=Host(`beads.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
-      - "traefik.http.routers.beads-viewer-local.priority=100"
-      - "traefik.http.routers.beads-viewer-local.entrypoints=websecure"
-      - "traefik.http.routers.beads-viewer-local.tls.certresolver=myresolver"
-      - "traefik.http.routers.beads-viewer-local.service=beads-viewer"
+      - "traefik.http.routers.beads-ui-local.rule=Host(`beads.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.beads-ui-local.priority=100"
+      - "traefik.http.routers.beads-ui-local.entrypoints=websecure"
+      - "traefik.http.routers.beads-ui-local.tls.certresolver=myresolver"
+      - "traefik.http.routers.beads-ui-local.service=beads-ui"
       # External access (requires auth) - lowest priority
-      - "traefik.http.routers.beads-viewer.rule=Host(`beads.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.beads-viewer.priority=1"
-      - "traefik.http.routers.beads-viewer.entrypoints=websecure"
-      - "traefik.http.routers.beads-viewer.tls.certresolver=myresolver"
-      - "traefik.http.routers.beads-viewer.tls=true"
-      - "traefik.http.routers.beads-viewer.middlewares=beads-viewer-auth"
-      - "traefik.http.routers.beads-viewer.service=beads-viewer"
+      - "traefik.http.routers.beads-ui.rule=Host(`beads.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.beads-ui.priority=1"
+      - "traefik.http.routers.beads-ui.entrypoints=websecure"
+      - "traefik.http.routers.beads-ui.tls.certresolver=myresolver"
+      - "traefik.http.routers.beads-ui.tls=true"
+      - "traefik.http.routers.beads-ui.middlewares=beads-ui-auth"
+      - "traefik.http.routers.beads-ui.service=beads-ui"
       # Service and auth middleware
-      - "traefik.http.services.beads-viewer.loadbalancer.server.port=3001"
-      - "traefik.http.middlewares.beads-viewer-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
-      - "traefik.http.middlewares.beads-viewer-auth.basicauth.realm=beads-viewer"
+      - "traefik.http.services.beads-ui.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.beads-ui-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.beads-ui-auth.basicauth.realm=beads-ui"
       # Homepage integration
       - "homepage.group=Productivity"
-      - "homepage.name=Beads Viewer"
+      - "homepage.name=Beads UI"
       - "homepage.icon=si-task"
       - "homepage.href=https://beads.server.unarmedpuppy.com"
-      - "homepage.description=Visual task management for Beads projects"
+      - "homepage.description=Web interface for Beads issue tracker"
 
 networks:
   my-network:

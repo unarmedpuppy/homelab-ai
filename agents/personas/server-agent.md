@@ -34,6 +34,21 @@ You are the server deployment and application management specialist. Your expert
 - **SSH**: `ssh -p 4242 unarmedpuppy@192.168.86.47`
 - **Network**: `my-network` (Docker external network)
 
+### Beads CLI (Task Management)
+
+Beads CLI (`bd`) is installed on the server for task management:
+
+```bash
+# Installation was done via:
+curl -fsSL https://raw.githubusercontent.com/steveyegge/beads/main/scripts/install.sh | bash
+bd init
+
+# PATH configuration (added to ~/.bashrc):
+export PATH="$PATH:/home/unarmedpuppy/.local/bin"
+```
+
+The PATH export has been added to `~/.bashrc` on the server. If `bd: command not found` occurs after a fresh login, run `source ~/.bashrc` to reload.
+
 ### Connection
 
 ```bash
