@@ -20,7 +20,8 @@ services:
       # This avoids version/migration conflicts with host's bd binary
       - /home/unarmedpuppy/server/.beads/issues.jsonl:/app/.beads/issues.jsonl:ro
       - /home/unarmedpuppy/server/.beads/config.yaml:/app/.beads/config.yaml:ro
-      - /home/unarmedpuppy/server/.beads/metadata.json:/app/.beads/metadata.json:ro
+      # metadata.json needs to be writable for bd migrate to work properly
+      - /home/unarmedpuppy/server/.beads/metadata.json:/app/.beads/metadata.json
     working_dir: /app
     networks:
       - my-network
