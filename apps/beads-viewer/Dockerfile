@@ -20,9 +20,21 @@ WORKDIR /app
 # Default port for beads-ui
 ENV PORT=3000
 ENV HOST=0.0.0.0
+ENV BEADS_NO_DAEMON=1
 
 # Expose the web UI port
 EXPOSE 3000
 
-# Run the server directly in foreground mode (not as daemon)
-CMD ["node", "/usr/local/lib/node_modules/beads-ui/server/index.js"]
+# Create startup script that syncs database before starting server
+RUN echo '#!/bin/bash\n\
+cd /app\n\
+# Import JSONL to database before starting\n\
+if [ -f .beads/issues.jsonl ]; then\n\
+  echo "Syncing beads database..."\n\
+  bd sync --import-only 2>/dev/null || bd import -i .beads/issues.jsonl 2>/dev/null || true\n\
+fi\n\
+# Start the server\n\
+exec node /usr/local/lib/node_modules/beads-ui/server/index.js\n\
+' > /start.sh && chmod +x /start.sh
+
+CMD ["/start.sh"]
