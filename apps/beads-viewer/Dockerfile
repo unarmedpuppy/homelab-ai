@@ -1,10 +1,12 @@
 # Beads UI Dockerfile
 # Web interface for the bd CLI tool (beads issue tracker)
 
-FROM node:22-alpine
+# Use Debian-based image (not Alpine) because bd binary requires glibc
+FROM node:22-slim
 
 # Install curl for downloading bd binary
-RUN apk add --no-cache curl bash
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install the actual bd Go binary (not the npm wrapper)
 # The install script places bd in /usr/local/bin when it has write access
