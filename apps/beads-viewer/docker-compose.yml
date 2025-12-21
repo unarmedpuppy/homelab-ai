@@ -12,6 +12,7 @@ services:
       - TZ=America/Chicago
       - PORT=3000
       - HOST=0.0.0.0
+      - BEADS_NO_DAEMON=1
     ports:
       - "3015:3000"
     volumes:
