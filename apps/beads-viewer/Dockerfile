@@ -5,12 +5,19 @@
 FROM node:22-slim
 
 # Install curl for downloading bd binary
+# Note: flock is part of util-linux which is included in base image
 RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 # Install the actual bd Go binary (not the npm wrapper)
 # The install script places bd in /usr/local/bin when it has write access
 RUN curl -fsSL https://raw.githubusercontent.com/steveyegge/beads/main/scripts/install.sh | bash
+
+# Create a wrapper script that serializes bd calls using flock
+# This prevents concurrent migration conflicts
+RUN mv /usr/local/bin/bd /usr/local/bin/bd-real && \
+    echo '#!/bin/bash\nexec flock /tmp/bd.lock /usr/local/bin/bd-real "$@"' > /usr/local/bin/bd && \
+    chmod +x /usr/local/bin/bd
 
 # Install beads-ui globally
 RUN npm install -g beads-ui
@@ -35,14 +42,6 @@ if [ -f .beads/issues.jsonl ]; then\n\
   rm -f .beads/beads.db .beads/beads.db-shm .beads/beads.db-wal\n\
   # Initialize and import\n\
   bd import -i .beads/issues.jsonl 2>&1 || echo "Import completed with warnings"\n\
-  # Explicitly run migrations to completion before starting server\n\
-  # This prevents concurrent migration conflicts when beads-ui spawns parallel bd processes\n\
-  echo "Running migrations..."\n\
-  bd migrate 2>&1 || true\n\
-  # Run queries for each status to prime the database\n\
-  bd list --status open --limit 1 >/dev/null 2>&1\n\
-  bd list --status in_progress --limit 1 >/dev/null 2>&1\n\
-  bd list --status closed --limit 1 >/dev/null 2>&1\n\
   echo "Database ready"\n\
 fi\n\
 # Start the server\n\
