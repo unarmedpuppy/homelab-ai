@@ -1,0 +1,9 @@
+{
+  "query": {
+    "folder": "/config/ytdl-sub-configs"
+  },
+  "update": {
+    "checked": 1766027062866,
+    "version": "4.107.0"
+  }
+}
