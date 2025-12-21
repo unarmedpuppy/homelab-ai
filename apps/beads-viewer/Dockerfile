@@ -35,6 +35,9 @@ if [ -f .beads/issues.jsonl ]; then\n\
   rm -f .beads/beads.db .beads/beads.db-shm .beads/beads.db-wal\n\
   # Initialize and import\n\
   bd import -i .beads/issues.jsonl 2>&1 || echo "Import completed with warnings"\n\
+  # Run a query to ensure all migrations are applied before server starts\n\
+  # This prevents concurrent migration conflicts when beads-ui spawns parallel bd processes\n\
+  bd list --limit 1 >/dev/null 2>&1\n\
   echo "Database ready"\n\
 fi\n\
 # Start the server\n\
