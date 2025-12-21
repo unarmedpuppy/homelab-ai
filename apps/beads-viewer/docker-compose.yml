@@ -16,11 +16,9 @@ services:
     ports:
       - "3015:3000"
     volumes:
-      # Mount only the beads data files (not the daemon socket)
-      - /home/unarmedpuppy/server/.beads/beads.db:/app/.beads/beads.db
-      - /home/unarmedpuppy/server/.beads/beads.db-shm:/app/.beads/beads.db-shm
-      - /home/unarmedpuppy/server/.beads/beads.db-wal:/app/.beads/beads.db-wal
-      - /home/unarmedpuppy/server/.beads/issues.jsonl:/app/.beads/issues.jsonl
+      # Mount only JSONL source of truth - container builds its own database
+      # This avoids version/migration conflicts with host's bd binary
+      - /home/unarmedpuppy/server/.beads/issues.jsonl:/app/.beads/issues.jsonl:ro
       - /home/unarmedpuppy/server/.beads/config.yaml:/app/.beads/config.yaml:ro
       - /home/unarmedpuppy/server/.beads/metadata.json:/app/.beads/metadata.json:ro
     working_dir: /app

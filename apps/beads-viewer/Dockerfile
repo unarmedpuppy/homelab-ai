@@ -25,13 +25,17 @@ ENV BEADS_NO_DAEMON=1
 # Expose the web UI port
 EXPOSE 3000
 
-# Create startup script that syncs database before starting server
+# Create startup script that builds database from JSONL before starting server
 RUN echo '#!/bin/bash\n\
 cd /app\n\
-# Import JSONL to database before starting\n\
+# Build fresh database from JSONL source of truth\n\
 if [ -f .beads/issues.jsonl ]; then\n\
-  echo "Syncing beads database..."\n\
-  bd sync --import-only 2>/dev/null || bd import -i .beads/issues.jsonl 2>/dev/null || true\n\
+  echo "Building beads database from JSONL..."\n\
+  # Remove any stale database to force fresh import\n\
+  rm -f .beads/beads.db .beads/beads.db-shm .beads/beads.db-wal\n\
+  # Initialize and import\n\
+  bd import -i .beads/issues.jsonl 2>&1 || echo "Import completed with warnings"\n\
+  echo "Database ready"\n\
 fi\n\
 # Start the server\n\
 exec node /usr/local/lib/node_modules/beads-ui/server/index.js\n\
