@@ -29,7 +29,7 @@ http:
     terminal:
       loadBalancer:
         servers:
-          - url: http://127.0.0.1:7681
+          - url: http://192.168.86.47:7681
 
   ## EXTERNAL ROUTING EXAMPLE - Only use if you want to proxy something manually ##
   #routers:
