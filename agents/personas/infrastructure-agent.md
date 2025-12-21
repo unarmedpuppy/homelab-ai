@@ -44,9 +44,9 @@ You are the infrastructure and security specialist. Your expertise includes:
 - **PSU**: Corsair SF750 (SFX)
 - **Rack Position**: U4-U6 (3U)
 
-**GPU Expansion** (Planned):
+**GPU Expansion** (In Progress):
 - RTX 3070 mounted externally in vertical orientation above server
-- Uses 1U shelf + L-brackets + NZXT vertical mount
+- Uses StarTech.com 1U 16" vented shelf (CABSHELF116V) + L-brackets + NZXT vertical mount
 - PCIe 4.0 x16 riser for connection
 - Server remains removable for maintenance
 - **See plan**: `agents/plans/gpu-rack-mount-3070.md`
