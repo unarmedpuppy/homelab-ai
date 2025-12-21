@@ -7,9 +7,8 @@ FROM node:22-alpine
 RUN apk add --no-cache curl bash
 
 # Install the actual bd Go binary (not the npm wrapper)
-RUN curl -fsSL https://raw.githubusercontent.com/steveyegge/beads/main/scripts/install.sh | bash \
-    && mv /root/.local/bin/bd /usr/local/bin/bd \
-    && chmod +x /usr/local/bin/bd
+# The install script places bd in /usr/local/bin when it has write access
+RUN curl -fsSL https://raw.githubusercontent.com/steveyegge/beads/main/scripts/install.sh | bash
 
 # Install beads-ui globally
 RUN npm install -g beads-ui
