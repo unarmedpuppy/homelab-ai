@@ -16,9 +16,13 @@ services:
     ports:
       - "3015:3000"
     volumes:
-      # Mount the home-server .beads directory
-      # The server repo is at ~/server, so .beads is at ~/server/.beads
-      - /home/unarmedpuppy/server/.beads:/app/.beads
+      # Mount only the beads data files (not the daemon socket)
+      - /home/unarmedpuppy/server/.beads/beads.db:/app/.beads/beads.db
+      - /home/unarmedpuppy/server/.beads/beads.db-shm:/app/.beads/beads.db-shm
+      - /home/unarmedpuppy/server/.beads/beads.db-wal:/app/.beads/beads.db-wal
+      - /home/unarmedpuppy/server/.beads/issues.jsonl:/app/.beads/issues.jsonl
+      - /home/unarmedpuppy/server/.beads/config.yaml:/app/.beads/config.yaml:ro
+      - /home/unarmedpuppy/server/.beads/metadata.json:/app/.beads/metadata.json:ro
     working_dir: /app
     networks:
       - my-network
