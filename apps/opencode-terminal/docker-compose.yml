@@ -1,7 +1,8 @@
 version: "3"
 services:
   opencode-terminal:
-    image: tsl0922/ttyd:latest
+    build: .
+    image: opencode-terminal:latest
     container_name: opencode-terminal
     restart: unless-stopped
     networks:
