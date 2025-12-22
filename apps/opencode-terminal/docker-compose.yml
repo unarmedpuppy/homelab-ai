@@ -1,56 +1,17 @@
 version: "3"
 services:
   opencode-terminal:
-    build: .
-    image: opencode-terminal:latest
+    image: alpine/socat:latest
     container_name: opencode-terminal
     restart: unless-stopped
-    networks:
-      - my-network
-    volumes:
-      # Mount the tmux socket directory
-      - /tmp:/tmp:rw
-      # Mount user home for proper environment
-      - /home/unarmedpuppy:/home/unarmedpuppy:rw
-    working_dir: /home/unarmedpuppy/server
-    user: "1000:1000"
-    command: >
-      ttyd
-      --writable
-      --port 7681
-      tmux -S /tmp/tmux-1000/default attach -t opencode
+    network_mode: host
+    # Listen on all interfaces (including Docker bridge), forward to localhost ttyd
+    # Traefik connects via file config pointing to 192.168.160.1:17681
+    command: TCP-LISTEN:17681,fork,reuseaddr TCP:127.0.0.1:7681
     labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=my-network"
-      # HTTPS redirect
-      - "traefik.http.middlewares.terminal-redirect.redirectscheme.scheme=https"
-      - "traefik.http.routers.terminal-redirect.middlewares=terminal-redirect"
-      - "traefik.http.routers.terminal-redirect.rule=Host(`terminal.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.terminal-redirect.entrypoints=web"
-      # Local network access (no auth) - highest priority
-      - "traefik.http.routers.terminal-local.rule=Host(`terminal.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
-      - "traefik.http.routers.terminal-local.priority=100"
-      - "traefik.http.routers.terminal-local.entrypoints=websecure"
-      - "traefik.http.routers.terminal-local.tls.certresolver=myresolver"
-      - "traefik.http.routers.terminal-local.service=terminal"
-      # External access (requires auth) - lowest priority
-      - "traefik.http.routers.terminal.rule=Host(`terminal.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.terminal.priority=1"
-      - "traefik.http.routers.terminal.entrypoints=websecure"
-      - "traefik.http.routers.terminal.tls.certresolver=myresolver"
-      - "traefik.http.routers.terminal.middlewares=terminal-auth"
-      - "traefik.http.routers.terminal.service=terminal"
-      # Service and auth middleware
-      - "traefik.http.services.terminal.loadbalancer.server.port=7681"
-      - "traefik.http.middlewares.terminal-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
-      - "traefik.http.middlewares.terminal-auth.basicauth.realm=Terminal"
-      # Homepage labels
+      # Homepage labels only - routing is via Traefik file config
       - "homepage.group=Development"
       - "homepage.name=Terminal"
       - "homepage.icon=mdi-console"
       - "homepage.href=https://terminal.server.unarmedpuppy.com"
       - "homepage.description=Web-based terminal (ttyd + tmux)"
-
-networks:
-  my-network:
-    external: true

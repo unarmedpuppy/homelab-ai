@@ -1,6 +1,6 @@
 # Plan: Persistent OpenCode Development Environment
 
-**Status**: Implemented (Verified Working)
+**Status**: Partially Working - Traefik routing blocked by Docker networking
 **Created**: 2025-12-21
 **Priority**: P1
 **Effort**: Medium
@@ -276,12 +276,13 @@ ssh -p 4242 unarmedpuppy@192.168.86.47 "cd ~/server/apps/cloudflare-ddns && dock
 
 - [x] tmux session `opencode` running and persists across reboots
 - [x] ttyd accessible on port 7681 locally (verified: `curl -I http://localhost:7681` returns HTTP 200)
-- [x] Both services enabled for auto-start (systemd for tmux, Docker for ttyd)
+- [x] Both services enabled for auto-start (systemd for tmux, socat proxy for Traefik)
 - [x] DNS `terminal.server.unarmedpuppy.com` resolves (verified: 192.168.86.47)
-- [x] Browser access via HTTPS with valid Let's Encrypt certificate
-- [ ] Browser access works via mobile (with basic auth) - **needs testing**
-- [ ] Browser access works on LAN (no auth required) - **needs testing**
+- [ ] ~~Browser access via HTTPS with valid Let's Encrypt certificate~~ **BLOCKED** - Traefik can't reach host
+- [ ] Browser access works via mobile (with basic auth) - **BLOCKED**
+- [ ] Browser access works on LAN (no auth required) - **BLOCKED**
 - [x] SSH + `tmux attach -t opencode` works from laptop
+- [x] Direct LAN access works: `http://192.168.86.47:7681`
 
 ---
 
@@ -346,16 +347,106 @@ rm -rf apps/opencode-terminal/
 
 ## Implementation Notes (2025-12-21)
 
-### Final Architecture
+### Current Working State
 
-1. **tmux session**: Managed by systemd (`opencode-tmux.service`), persists across reboots
-2. **ttyd web terminal**: Docker container (`tsl0922/ttyd`) on `my-network`
-3. **Routing**: Traefik Docker labels for automatic routing
-4. **Authentication**: 
-   - LAN (192.168.86.0/24): No auth required (high priority route)
-   - External: Basic auth required (low priority route)
+**What Works:**
+- ✅ `http://192.168.86.47:7681` - Direct LAN access (no HTTPS, no auth)
+- ✅ SSH + `tmux a -t opencode` - Full persistent tmux session from laptop
+- ✅ tmux session auto-starts on boot via systemd
+- ✅ ttyd systemd service running on port 7681
 
-### Key Technical Details
+**What Doesn't Work:**
+- ❌ `https://terminal.server.unarmedpuppy.com` - Traefik can't reach host services
+
+### Root Cause: Docker Network Isolation
+
+Docker containers (including Traefik) cannot reach services running on the host, even when using:
+- `host.docker.internal` (maps to 172.17.0.1 but traffic blocked)
+- Bridge gateway IPs (192.168.160.1, 172.17.0.1)
+- LAN IP (192.168.86.47)
+
+This is due to iptables rules that block traffic from Docker bridge networks to the host.
+
+### Attempted Solutions
+
+1. **Docker-based ttyd with tmux socket mount** - Failed: Unix sockets don't work across container boundaries
+2. **socat proxy with host network** - Works locally but Traefik still can't reach it
+3. **Traefik file-based config pointing to host** - Gateway timeout due to network isolation
+
+### Architecture (Current)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Host (192.168.86.47)                                        │
+│                                                             │
+│  ┌──────────────────┐    ┌──────────────────┐              │
+│  │ opencode-tmux    │    │ opencode-ttyd    │              │
+│  │ (systemd)        │◄───│ (systemd)        │              │
+│  │ tmux session     │    │ port 7681        │              │
+│  └──────────────────┘    └────────┬─────────┘              │
+│                                   │                         │
+│                                   ▼                         │
+│                          ┌────────────────┐                │
+│                          │ socat proxy    │                │
+│                          │ (Docker, host  │                │
+│                          │ network)       │                │
+│                          │ port 17681     │                │
+│                          └────────┬───────┘                │
+│                                   │                         │
+│                                   ▼                         │
+│  ┌────────────────────────────────────────────────────┐    │
+│  │ my-network (Docker bridge: 192.168.160.0/20)       │    │
+│  │                                                    │    │
+│  │  ┌─────────────┐                                   │    │
+│  │  │ Traefik     │──────X─── CAN'T REACH HOST ───X   │    │
+│  │  └─────────────┘                                   │    │
+│  └────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Fix Options (Requires sudo)
+
+**Option 1: iptables rule**
+```bash
+sudo iptables -I INPUT -i br-+ -p tcp --dport 17681 -j ACCEPT
+sudo iptables -I INPUT -i docker0 -p tcp --dport 17681 -j ACCEPT
+```
+
+**Option 2: Add Traefik to host network** (breaks other routing)
+
+**Option 3: Use Cloudflare Tunnel instead of Traefik** (different architecture)
+
+### Files Currently in Repo
+
+| File | Purpose | Status |
+|------|---------|--------|
+| `apps/opencode-terminal/docker-compose.yml` | socat proxy container | Active but not working |
+| `apps/opencode-terminal/Dockerfile` | Custom ttyd+tmux image | Unused (Docker approach abandoned) |
+| `apps/traefik/fileConfig.yml` | Terminal routing config | Has terminal routes |
+| `apps/traefik/docker-compose.yml` | Traefik with extra_hosts | Modified |
+
+### Systemd Services (on server)
+
+| Service | Purpose | Status |
+|---------|---------|--------|
+| `opencode-tmux.service` | Persistent tmux session | ✅ Running |
+| `opencode-ttyd.service` | ttyd web terminal on 7681 | ✅ Running |
+
+### Recommended Workflow Until Fixed
+
+1. **For coding on laptop**: SSH + `tmux a -t opencode`
+2. **For quick LAN access**: `http://192.168.86.47:7681` (no HTTPS)
+3. **For mobile/external**: Not available until iptables fix applied
+
+### Next Steps
+
+1. Apply iptables rule with sudo to allow Docker→Host traffic
+2. Or: Investigate Cloudflare Tunnel as alternative to Traefik for this service
+3. Or: Accept LAN-only access and use Tailscale for mobile
+
+---
+
+### Key Technical Details (Historical)
 
 - ttyd container mounts `/tmp` to access tmux socket at `/tmp/tmux-1000/default`
 - ttyd container mounts `/home/unarmedpuppy` for proper working directory

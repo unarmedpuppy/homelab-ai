@@ -1,5 +1,36 @@
 http:
 
+  ## ROUTERS ##
+  routers:
+    # Terminal - Local access (no auth, highest priority)
+    terminal-local:
+      entryPoints:
+        - websecure
+      rule: 'Host(`terminal.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)'
+      priority: 100
+      service: terminal
+      tls:
+        certResolver: myresolver
+
+    # Terminal - External access (requires auth, lowest priority)
+    terminal:
+      entryPoints:
+        - websecure
+      rule: 'Host(`terminal.server.unarmedpuppy.com`)'
+      priority: 1
+      service: terminal
+      middlewares:
+        - "terminal-auth@file"
+      tls:
+        certResolver: myresolver
+
+  ## SERVICES ##
+  services:
+    terminal:
+      loadBalancer:
+        servers:
+          - url: http://host.docker.internal:17681
+
   ## EXTERNAL ROUTING EXAMPLE - Only use if you want to proxy something manually ##
   #routers:
   #  homeassistant:
