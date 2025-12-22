@@ -1,6 +1,6 @@
 # Plan: Persistent OpenCode Development Environment
 
-**Status**: Implemented
+**Status**: Implemented (Verified Working)
 **Created**: 2025-12-21
 **Priority**: P1
 **Effort**: Medium
@@ -276,10 +276,11 @@ ssh -p 4242 unarmedpuppy@192.168.86.47 "cd ~/server/apps/cloudflare-ddns && dock
 
 - [x] tmux session `opencode` running and persists across reboots
 - [x] ttyd accessible on port 7681 locally (verified: `curl -I http://localhost:7681` returns HTTP 200)
-- [x] Both services enabled for auto-start (both systemd services enabled)
-- [ ] DNS `terminal.server.unarmedpuppy.com` resolves
-- [ ] Browser access works via mobile (with basic auth)
-- [ ] Browser access works on LAN (no auth required)
+- [x] Both services enabled for auto-start (systemd for tmux, Docker for ttyd)
+- [x] DNS `terminal.server.unarmedpuppy.com` resolves (verified: 192.168.86.47)
+- [x] Browser access via HTTPS with valid Let's Encrypt certificate
+- [ ] Browser access works via mobile (with basic auth) - **needs testing**
+- [ ] Browser access works on LAN (no auth required) - **needs testing**
 - [x] SSH + `tmux attach -t opencode` works from laptop
 
 ---
@@ -288,15 +289,18 @@ ssh -p 4242 unarmedpuppy@192.168.86.47 "cd ~/server/apps/cloudflare-ddns && dock
 
 | File | Action | Status |
 |------|--------|--------|
-| `apps/traefik/fileConfig.yml` | Modified (added terminal routing) | Done |
+| `apps/opencode-terminal/docker-compose.yml` | Created (ttyd in Docker with Traefik labels) | Done |
+| `apps/traefik/docker-compose.yml` | Modified (added extra_hosts for host access) | Done |
+| `apps/traefik/fileConfig.yml` | Modified (removed terminal file routing, now uses Docker labels) | Done |
 | `apps/homepage/config/services.yaml` | Modified (added terminal service) | Done |
 | `apps/cloudflare-ddns/docker-compose.yml` | Modified (added domain) | Done |
 | `/etc/systemd/system/opencode-tmux.service` (on server) | Created | Done |
-| `/etc/systemd/system/opencode-ttyd.service` (on server) | Created | Done |
-| `/usr/local/bin/ttyd` (on server) | Installed from GitHub | Done |
-| `README.md` | Modified (documented services) | Done |
+| `/etc/systemd/system/opencode-ttyd.service` (on server) | Created but deprecated | Superseded by Docker |
+| `/usr/local/bin/ttyd` (on server) | Installed from GitHub | Done (still used by systemd, backup) |
 
-**Note**: Changed from Docker-based ttyd to systemd-based ttyd because network_mode:host is incompatible with Traefik Docker labels. Using Traefik file-based config instead.
+**Note**: Final architecture uses Docker-based ttyd with Traefik Docker labels for routing. The systemd ttyd service is kept as fallback but Docker container is the primary.
+
+**Key Fix**: Traefik running in Docker couldn't reach the systemd ttyd on the host due to network isolation. Solution was to run ttyd in Docker on the same `my-network` network, mounting the tmux socket from the host.
 
 ---
 
@@ -322,15 +326,38 @@ ssh -p 4242 unarmedpuppy@192.168.86.47 "cd ~/server/apps/cloudflare-ddns && dock
 If issues arise:
 
 ```bash
-# Stop and disable services
+# Stop Docker ttyd container
+cd ~/server/apps/opencode-terminal && docker compose down
+
+# Stop and disable tmux service
 sudo systemctl stop opencode-tmux
 sudo systemctl disable opencode-tmux
-docker stop opencode-terminal && docker rm opencode-terminal
 
 # Remove DNS entry from cloudflare-ddns config
 # Restart cloudflare-ddns
 
 # Remove files
 sudo rm /etc/systemd/system/opencode-tmux.service
+sudo rm /etc/systemd/system/opencode-ttyd.service
 rm -rf apps/opencode-terminal/
 ```
+
+---
+
+## Implementation Notes (2025-12-21)
+
+### Final Architecture
+
+1. **tmux session**: Managed by systemd (`opencode-tmux.service`), persists across reboots
+2. **ttyd web terminal**: Docker container (`tsl0922/ttyd`) on `my-network`
+3. **Routing**: Traefik Docker labels for automatic routing
+4. **Authentication**: 
+   - LAN (192.168.86.0/24): No auth required (high priority route)
+   - External: Basic auth required (low priority route)
+
+### Key Technical Details
+
+- ttyd container mounts `/tmp` to access tmux socket at `/tmp/tmux-1000/default`
+- ttyd container mounts `/home/unarmedpuppy` for proper working directory
+- Docker networking: ttyd on `my-network` allows Traefik to route directly to it
+- Traefik `extra_hosts` added for `host.docker.internal` (for future host service access)
