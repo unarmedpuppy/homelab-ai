@@ -2,7 +2,7 @@ x-enabled: true
 
 services:
   pokedex:
-    build: .
+    image: registry.server.unarmedpuppy.com/pokedex:latest
     container_name: pokedex
     restart: unless-stopped
     ports:
@@ -44,4 +44,3 @@ services:
 networks:
   my-network:
     external: true
-

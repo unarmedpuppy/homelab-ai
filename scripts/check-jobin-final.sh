@@ -41,3 +41,4 @@ echo "=== To Fix ==="
 echo "Run this command on the server:"
 echo "  bash ~/setup-jobin-ssh-complete.sh 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIIonWDlOjiAaz0DAASv2gVrvKkx3w1ei1/vWIkUt3Yv n8n-automation-jobin'"
 
+

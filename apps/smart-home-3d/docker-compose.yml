@@ -1,0 +1,90 @@
+version: "3.8"
+
+x-enabled: true
+
+services:
+  smart-home-3d:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smart-home-3d
+    restart: unless-stopped
+    environment:
+      - TZ=America/Chicago
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-smarthome3d}@smart-home-3d-db:5432/smarthome3d
+      - REDIS_URL=redis://smart-home-3d-redis:6379
+      - HOME_ASSISTANT_URL=${HOME_ASSISTANT_URL:-http://homeassistant:8123}
+      - HOME_ASSISTANT_TOKEN=${HOME_ASSISTANT_TOKEN}
+    ports:
+      - "3100:3000"
+    depends_on:
+      smart-home-3d-db:
+        condition: service_healthy
+      smart-home-3d-redis:
+        condition: service_started
+    networks:
+      - my-network
+    labels:
+      # Traefik labels
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.smarthome3d-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.smarthome3d-redirect.middlewares=smarthome3d-redirect"
+      - "traefik.http.routers.smarthome3d-redirect.rule=Host(`home3d.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.smarthome3d-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.smarthome3d-local.rule=Host(`home3d.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.smarthome3d-local.priority=100"
+      - "traefik.http.routers.smarthome3d-local.entrypoints=websecure"
+      - "traefik.http.routers.smarthome3d-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.smarthome3d.rule=Host(`home3d.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.smarthome3d.priority=1"
+      - "traefik.http.routers.smarthome3d.entrypoints=websecure"
+      - "traefik.http.routers.smarthome3d.tls.certresolver=myresolver"
+      - "traefik.http.routers.smarthome3d.tls=true"
+      - "traefik.http.routers.smarthome3d.middlewares=smarthome3d-auth"
+      # Service and auth middleware
+      - "traefik.http.services.smarthome3d.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.smarthome3d-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.smarthome3d-auth.basicauth.realm=smarthome3d"
+      # Homepage labels
+      - "homepage.group=Infrastructure"
+      - "homepage.name=Home 3D"
+      - "homepage.icon=si-threedotjs"
+      - "homepage.href=https://home3d.server.unarmedpuppy.com"
+      - "homepage.description=3D smart home visualization"
+
+  smart-home-3d-db:
+    image: postgres:16-alpine
+    container_name: smart-home-3d-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=smarthome3d
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-smarthome3d}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    networks:
+      - my-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  smart-home-3d-redis:
+    image: redis:alpine
+    container_name: smart-home-3d-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - ./data/redis:/data
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    external: true
