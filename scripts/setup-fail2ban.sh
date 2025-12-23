@@ -135,3 +135,4 @@ echo ""
 
 log "✓ fail2ban setup complete!"
 
+

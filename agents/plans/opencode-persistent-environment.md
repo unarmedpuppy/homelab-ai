@@ -1,9 +1,10 @@
 # Plan: Persistent OpenCode Development Environment
 
-**Status**: Partially Working - Traefik routing blocked by Docker networking
+**Status**: In Progress - Debugging Traefik Routing
 **Created**: 2025-12-21
 **Priority**: P1
 **Effort**: Medium
+**Beads Task**: home-server-chi (in_progress)
 
 ## Objective
 
@@ -276,13 +277,12 @@ ssh -p 4242 unarmedpuppy@192.168.86.47 "cd ~/server/apps/cloudflare-ddns && dock
 
 - [x] tmux session `opencode` running and persists across reboots
 - [x] ttyd accessible on port 7681 locally (verified: `curl -I http://localhost:7681` returns HTTP 200)
-- [x] Both services enabled for auto-start (systemd for tmux, socat proxy for Traefik)
-- [x] DNS `terminal.server.unarmedpuppy.com` resolves (verified: 192.168.86.47)
-- [ ] ~~Browser access via HTTPS with valid Let's Encrypt certificate~~ **BLOCKED** - Traefik can't reach host
-- [ ] Browser access works via mobile (with basic auth) - **BLOCKED**
-- [ ] Browser access works on LAN (no auth required) - **BLOCKED**
+- [x] Both services enabled for auto-start (both systemd services enabled)
+- [ ] **BLOCKING**: Traefik routes terminal traffic correctly (currently 404)
+- [ ] DNS `terminal.server.unarmedpuppy.com` resolves
+- [ ] Browser access works via mobile (with basic auth)
+- [ ] Browser access works on LAN (no auth required)
 - [x] SSH + `tmux attach -t opencode` works from laptop
-- [x] Direct LAN access works: `http://192.168.86.47:7681`
 
 ---
 
@@ -290,35 +290,108 @@ ssh -p 4242 unarmedpuppy@192.168.86.47 "cd ~/server/apps/cloudflare-ddns && dock
 
 | File | Action | Status |
 |------|--------|--------|
-| `apps/opencode-terminal/docker-compose.yml` | Created (ttyd in Docker with Traefik labels) | Done |
-| `apps/traefik/docker-compose.yml` | Modified (added extra_hosts for host access) | Done |
-| `apps/traefik/fileConfig.yml` | Modified (removed terminal file routing, now uses Docker labels) | Done |
+| `apps/traefik/fileConfig.yml` | Modified (added terminal routing) | Done |
 | `apps/homepage/config/services.yaml` | Modified (added terminal service) | Done |
 | `apps/cloudflare-ddns/docker-compose.yml` | Modified (added domain) | Done |
 | `/etc/systemd/system/opencode-tmux.service` (on server) | Created | Done |
-| `/etc/systemd/system/opencode-ttyd.service` (on server) | Created but deprecated | Superseded by Docker |
-| `/usr/local/bin/ttyd` (on server) | Installed from GitHub | Done (still used by systemd, backup) |
+| `/etc/systemd/system/opencode-ttyd.service` (on server) | Created | Done |
+| `/usr/local/bin/ttyd` (on server) | Installed from GitHub | Done |
+| `README.md` | Modified (documented services) | Done |
 
-**Note**: Final architecture uses Docker-based ttyd with Traefik Docker labels for routing. The systemd ttyd service is kept as fallback but Docker container is the primary.
+**Note**: Changed from Docker-based ttyd to systemd-based ttyd because network_mode:host is incompatible with Traefik Docker labels. Using Traefik file-based config instead.
 
-**Key Fix**: Traefik running in Docker couldn't reach the systemd ttyd on the host due to network isolation. Solution was to run ttyd in Docker on the same `my-network` network, mounting the tmux socket from the host.
+**Current Issue**: Traefik file-based routes not working - returning 404. See "Current Blocking Issue" section above for debugging steps.
 
 ---
 
+## Decisions Made
+
+1. **Docker vs Systemd for ttyd?** → **Systemd chosen**
+   - Docker with `network_mode: host` doesn't work with Traefik labels
+   - Using systemd + Traefik file-based config instead
+
+2. **Session naming**: Using `opencode` for the tmux session name
+
 ## Open Questions
 
-1. **Docker vs Systemd for ttyd?**
-   - Docker: Consistent with other services, native Traefik integration
-   - Systemd: Simpler, fewer layers, but needs Traefik file config
+1. **Auto-attaching to existing session**: The ttyd command uses `tmux attach` which will fail if the session doesn't exist. Consider using `tmux new-session -A -s opencode` instead (attaches if exists, creates if not).
 
-2. **Session naming**: Should we use `opencode` or something else for the tmux session name?
-
-3. **Auto-attaching to existing session**: The ttyd command uses `tmux attach` which will fail if the session doesn't exist. Consider using `tmux new-session -A -s opencode` instead (attaches if exists, creates if not).
-
-4. **Security considerations**:
+2. **Security considerations**:
    - Basic auth is used for external access (same pattern as other services)
    - Consider whether terminal access warrants stronger auth (2FA, IP restrictions beyond LAN)
    - The writable flag (`-W`) allows full terminal control - ensure auth is robust
+
+---
+
+## Current Blocking Issue: Traefik 404
+
+**Symptom**: `https://terminal.server.unarmedpuppy.com` returns 404 Not Found
+
+### What's Working
+- tmux systemd service running (`opencode-tmux.service`)
+- ttyd systemd service running (`opencode-ttyd.service`)
+- ttyd responds locally: `curl -I http://localhost:7681` → HTTP 200
+- SSH attach works: `ssh -p 4242 unarmedpuppy@192.168.86.47 "tmux attach -t opencode"`
+- Traefik fileConfig.yml is mounted and readable inside container
+
+### What's NOT Working
+- Traefik is not routing `terminal.server.unarmedpuppy.com` to ttyd
+- Returns 404 (Traefik's default "no matching route" response)
+- SSL cert shows self-signed (Let's Encrypt hasn't issued cert yet - likely because route not working)
+
+### Debugging Already Done
+1. **Initial URL mistake**: Used `http://127.0.0.1:7681` in fileConfig.yml - this is wrong because localhost inside Traefik container can't reach host services
+2. **Fixed to server IP**: Changed to `http://192.168.86.47:7681` (server's LAN IP)
+3. **Verified fileConfig.yml is mounted**: `docker exec traefik cat /etc/traefik/fileConfig.yml` shows terminal routes
+4. **Restarted Traefik**: `docker compose restart traefik` - still 404
+
+### Next Debugging Steps (Resume Here)
+
+1. **Check if file provider is loading routes**:
+   ```bash
+   # SSH to server
+   ssh -p 4242 unarmedpuppy@192.168.86.47
+   
+   # Check Traefik API for loaded routers (if API exposed)
+   docker exec traefik wget -qO- http://localhost:8080/api/http/routers 2>/dev/null | grep -i terminal
+   
+   # Or check Traefik logs for file provider errors
+   docker logs traefik 2>&1 | grep -i "file\|terminal\|error"
+   ```
+
+2. **Verify traefik.yml file provider config**:
+   ```bash
+   # Ensure file provider is configured correctly
+   docker exec traefik cat /etc/traefik/traefik.yml | grep -A5 "file:"
+   ```
+
+3. **Check DNS resolution**:
+   ```bash
+   dig terminal.server.unarmedpuppy.com
+   nslookup terminal.server.unarmedpuppy.com
+   ```
+
+4. **Restart cloudflare-ddns** (may not have picked up new domain):
+   ```bash
+   cd ~/server/apps/cloudflare-ddns && docker compose restart
+   ```
+
+5. **Consider `extra_hosts` in Traefik** (better than hardcoded IP):
+   Add to `apps/traefik/docker-compose.yml`:
+   ```yaml
+   extra_hosts:
+     - "host.docker.internal:host-gateway"
+   ```
+   Then use `http://host.docker.internal:7681` in fileConfig.yml
+
+6. **Check if routes appear in Traefik dashboard**:
+   - If Traefik dashboard is exposed, check HTTP Routers section
+   - Look for `terminal@file` and `terminal-local@file` entries
+
+### Key Files to Check
+- `apps/traefik/traefik.yml` - Main Traefik config (file provider setup)
+- `apps/traefik/fileConfig.yml` - File-based routes (terminal routes here)
+- `apps/traefik/docker-compose.yml` - Traefik container config
 
 ---
 
@@ -327,128 +400,15 @@ ssh -p 4242 unarmedpuppy@192.168.86.47 "cd ~/server/apps/cloudflare-ddns && dock
 If issues arise:
 
 ```bash
-# Stop Docker ttyd container
-cd ~/server/apps/opencode-terminal && docker compose down
-
-# Stop and disable tmux service
+# Stop and disable services
 sudo systemctl stop opencode-tmux
 sudo systemctl disable opencode-tmux
+docker stop opencode-terminal && docker rm opencode-terminal
 
 # Remove DNS entry from cloudflare-ddns config
 # Restart cloudflare-ddns
 
 # Remove files
 sudo rm /etc/systemd/system/opencode-tmux.service
-sudo rm /etc/systemd/system/opencode-ttyd.service
 rm -rf apps/opencode-terminal/
 ```
-
----
-
-## Implementation Notes (2025-12-21)
-
-### Current Working State
-
-**What Works:**
-- ✅ `http://192.168.86.47:7681` - Direct LAN access (no HTTPS, no auth)
-- ✅ SSH + `tmux a -t opencode` - Full persistent tmux session from laptop
-- ✅ tmux session auto-starts on boot via systemd
-- ✅ ttyd systemd service running on port 7681
-
-**What Doesn't Work:**
-- ❌ `https://terminal.server.unarmedpuppy.com` - Traefik can't reach host services
-
-### Root Cause: Docker Network Isolation
-
-Docker containers (including Traefik) cannot reach services running on the host, even when using:
-- `host.docker.internal` (maps to 172.17.0.1 but traffic blocked)
-- Bridge gateway IPs (192.168.160.1, 172.17.0.1)
-- LAN IP (192.168.86.47)
-
-This is due to iptables rules that block traffic from Docker bridge networks to the host.
-
-### Attempted Solutions
-
-1. **Docker-based ttyd with tmux socket mount** - Failed: Unix sockets don't work across container boundaries
-2. **socat proxy with host network** - Works locally but Traefik still can't reach it
-3. **Traefik file-based config pointing to host** - Gateway timeout due to network isolation
-
-### Architecture (Current)
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│ Host (192.168.86.47)                                        │
-│                                                             │
-│  ┌──────────────────┐    ┌──────────────────┐              │
-│  │ opencode-tmux    │    │ opencode-ttyd    │              │
-│  │ (systemd)        │◄───│ (systemd)        │              │
-│  │ tmux session     │    │ port 7681        │              │
-│  └──────────────────┘    └────────┬─────────┘              │
-│                                   │                         │
-│                                   ▼                         │
-│                          ┌────────────────┐                │
-│                          │ socat proxy    │                │
-│                          │ (Docker, host  │                │
-│                          │ network)       │                │
-│                          │ port 17681     │                │
-│                          └────────┬───────┘                │
-│                                   │                         │
-│                                   ▼                         │
-│  ┌────────────────────────────────────────────────────┐    │
-│  │ my-network (Docker bridge: 192.168.160.0/20)       │    │
-│  │                                                    │    │
-│  │  ┌─────────────┐                                   │    │
-│  │  │ Traefik     │──────X─── CAN'T REACH HOST ───X   │    │
-│  │  └─────────────┘                                   │    │
-│  └────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Fix Options (Requires sudo)
-
-**Option 1: iptables rule**
-```bash
-sudo iptables -I INPUT -i br-+ -p tcp --dport 17681 -j ACCEPT
-sudo iptables -I INPUT -i docker0 -p tcp --dport 17681 -j ACCEPT
-```
-
-**Option 2: Add Traefik to host network** (breaks other routing)
-
-**Option 3: Use Cloudflare Tunnel instead of Traefik** (different architecture)
-
-### Files Currently in Repo
-
-| File | Purpose | Status |
-|------|---------|--------|
-| `apps/opencode-terminal/docker-compose.yml` | socat proxy container | Active but not working |
-| `apps/opencode-terminal/Dockerfile` | Custom ttyd+tmux image | Unused (Docker approach abandoned) |
-| `apps/traefik/fileConfig.yml` | Terminal routing config | Has terminal routes |
-| `apps/traefik/docker-compose.yml` | Traefik with extra_hosts | Modified |
-
-### Systemd Services (on server)
-
-| Service | Purpose | Status |
-|---------|---------|--------|
-| `opencode-tmux.service` | Persistent tmux session | ✅ Running |
-| `opencode-ttyd.service` | ttyd web terminal on 7681 | ✅ Running |
-
-### Recommended Workflow Until Fixed
-
-1. **For coding on laptop**: SSH + `tmux a -t opencode`
-2. **For quick LAN access**: `http://192.168.86.47:7681` (no HTTPS)
-3. **For mobile/external**: Not available until iptables fix applied
-
-### Next Steps
-
-1. Apply iptables rule with sudo to allow Docker→Host traffic
-2. Or: Investigate Cloudflare Tunnel as alternative to Traefik for this service
-3. Or: Accept LAN-only access and use Tailscale for mobile
-
----
-
-### Key Technical Details (Historical)
-
-- ttyd container mounts `/tmp` to access tmux socket at `/tmp/tmux-1000/default`
-- ttyd container mounts `/home/unarmedpuppy` for proper working directory
-- Docker networking: ttyd on `my-network` allows Traefik to route directly to it
-- Traefik `extra_hosts` added for `host.docker.internal` (for future host service access)
