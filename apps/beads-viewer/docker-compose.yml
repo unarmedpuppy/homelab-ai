@@ -2,10 +2,7 @@ x-enabled: true
 
 services:
   beads-ui:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: beads-ui:local
+    image: registry.server.unarmedpuppy.com/beads-viewer:latest
     container_name: beads-ui
     restart: unless-stopped
     environment:

@@ -4,9 +4,7 @@ x-enabled: true
 
 services:
   smart-home-3d:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: registry.server.unarmedpuppy.com/smart-home-3d:latest
     container_name: smart-home-3d
     restart: unless-stopped
     environment:
