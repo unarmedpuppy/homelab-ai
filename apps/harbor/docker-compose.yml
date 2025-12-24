@@ -105,6 +105,7 @@ services:
       CORE_KEY: ${HARBOR_CORE_KEY:-change-me-please}
       CORE_SECRET: ${HARBOR_CORE_SECRET:-changeit}
       JOBSERVICE_SECRET: ${HARBOR_JOBSERVICE_SECRET:-changeit}
+      HARBOR_ADMIN_PASSWORD: ${HARBOR_ADMIN_PASSWORD:-Harbor12345}
       _REDIS_URL_CORE: redis://harbor-redis:6379/0
       SYNC_QUOTA: "true"
       CHART_CACHE_DRIVER: redis
