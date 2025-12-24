@@ -19,10 +19,12 @@ Enterprise-class container registry with proxy cache support for offline rebuild
 
 2. **Generate keys** (if not present):
    ```bash
-   openssl genrsa -out config/core/private_key.pem 4096
+   # Note: -traditional flag required for RSA format Harbor expects
+   openssl genrsa -traditional -out config/core/private_key.pem 4096
    openssl req -new -x509 -key config/core/private_key.pem \
      -out config/registry/root.crt -days 3650 \
      -subj "/CN=harbor-token-issuer"
+   chmod 644 config/core/private_key.pem config/registry/root.crt
    ```
 
 3. **Start Harbor**:
@@ -44,7 +46,7 @@ Go to **Administration → Registries → New Endpoint**:
 
 | Name | Provider | Endpoint URL |
 |------|----------|--------------|
-| docker-hub | Docker Hub | https://hub.docker.com |
+| docker-hub | Docker Hub | https://registry-1.docker.io |
 | ghcr | GitHub GHCR | https://ghcr.io |
 | lscr | Docker Registry | https://lscr.io |
 
