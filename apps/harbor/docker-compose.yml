@@ -157,6 +157,10 @@ services:
     container_name: harbor-portal
     restart: unless-stopped
     user: root
+    volumes:
+      - type: bind
+        source: ./config/portal/nginx.conf
+        target: /etc/nginx/nginx.conf
     networks:
       - harbor-internal
 
