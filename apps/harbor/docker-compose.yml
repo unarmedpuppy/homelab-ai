@@ -156,6 +156,7 @@ services:
     image: goharbor/harbor-portal:v2.11.2
     container_name: harbor-portal
     restart: unless-stopped
+    user: root
     networks:
       - harbor-internal
 
