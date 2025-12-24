@@ -141,6 +141,9 @@ services:
         source: ./config/core/private_key.pem
         target: /etc/core/private_key.pem
       - type: bind
+        source: ./config/core/key
+        target: /etc/core/key
+      - type: bind
         source: ./config/shared/trust-certificates
         target: /harbor_cust_cert
     networks:
