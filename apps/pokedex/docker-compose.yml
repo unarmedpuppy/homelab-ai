@@ -2,7 +2,7 @@ x-enabled: true
 
 services:
   pokedex:
-    image: registry.server.unarmedpuppy.com/pokedex:latest
+    image: harbor.server.unarmedpuppy.com/library/pokedex:latest
     container_name: pokedex
     restart: unless-stopped
     ports:
