@@ -46,7 +46,7 @@ Go to **Administration → Registries → New Endpoint**:
 |------|----------|--------------|
 | docker-hub | Docker Hub | https://hub.docker.com |
 | ghcr | GitHub GHCR | https://ghcr.io |
-| lscr | LinuxServer | https://lscr.io |
+| lscr | Docker Registry | https://lscr.io |
 
 ### 2. Create Proxy Cache Projects
 
