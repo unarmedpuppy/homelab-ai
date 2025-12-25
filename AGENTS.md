@@ -283,6 +283,7 @@ Agent-discoverable tool guides are in `agents/skills/`. Each tool has a `SKILL.m
 | [restore-server](agents/skills/restore-server/) | Restore from backups | `scripts/restore-server.sh` |
 | [check-backup-health](agents/skills/check-backup-health/) | Validate backup integrity | `scripts/check-backup-health.sh` |
 | [manage-b2-backup](agents/skills/manage-b2-backup/) | Manage B2 cloud backups (status, prioritize, monitor) | `scripts/backup-to-b2.sh` |
+| [enable-rsnapshot](agents/skills/enable-rsnapshot/) | Enable/configure rsnapshot local backups | - |
 
 ### Troubleshooting
 | Tool | Purpose | Script |
@@ -290,11 +291,13 @@ Agent-discoverable tool guides are in `agents/skills/`. Each tool has a `SKILL.m
 | [troubleshoot-container-failure](agents/skills/troubleshoot-container-failure/) | Debug container issues | - |
 | [troubleshoot-stuck-downloads](agents/skills/troubleshoot-stuck-downloads/) | Fix Sonarr/Radarr issues | - |
 | [cleanup-disk-space](agents/skills/cleanup-disk-space/) | Free disk space | - |
+| [troubleshoot-disk-full](agents/skills/troubleshoot-disk-full/) | Diagnose/fix disk full issues (AdGuard, Docker, logs) | - |
 
 ### Drive Health & Storage
 | Tool | Purpose | Script |
 |------|---------|--------|
 | [monitor-drive-health](agents/skills/monitor-drive-health/) | Monitor drive health with SMART status | `scripts/check-drive-health.sh` |
+| [zfs-pool-recovery](agents/skills/zfs-pool-recovery/) | Recover ZFS pool from failures, import issues | - |
 
 ### Task Management
 | Tool | Purpose | Script |
