@@ -1,11 +1,16 @@
 #!/bin/bash
-# Backup ZFS pool to Backblaze B2
+# Backup ZFS pool to Backblaze B2 (encrypted)
 # Usage: ./backup-to-b2.sh [--dry-run]
+#
+# IMPORTANT: Backups are encrypted with rclone crypt.
+# Password stored in ~/.config/rclone/rclone.conf (obscured)
+# Plain password: Save in 1Password - required for disaster recovery!
 
 set -e
 
 # Configuration
-BUCKET="b2:jenquist-cloud"
+# Using encrypted remote - files are encrypted client-side before upload
+BUCKET="b2-encrypted:"
 SOURCE="/jenquist-cloud/archive"
 LOG_DIR="$HOME/server/logs/backups"
 LOG_FILE="$LOG_DIR/backup-$(date +%Y%m%d-%H%M%S).log"
@@ -31,7 +36,7 @@ echo "---" | tee -a "$LOG_FILE"
 # --progress: Show progress
 # --log-file: Log to file
 # --log-level INFO: Log level
-rclone sync "$SOURCE" "$BUCKET/archive" \
+rclone sync "$SOURCE" "$BUCKET" \
     $DRY_RUN \
     --transfers 4 \
     --checkers 8 \
