@@ -10,8 +10,9 @@ set -e
 
 # Configuration
 # Using encrypted remote - files are encrypted client-side before upload
+# Backs up entire ZFS pool: archive (media), backups (rsnapshot), vault
 BUCKET="b2-encrypted:"
-SOURCE="/jenquist-cloud/archive"
+SOURCE="/jenquist-cloud"
 LOG_DIR="$HOME/server/logs/backups"
 LOG_FILE="$LOG_DIR/backup-$(date +%Y%m%d-%H%M%S).log"
 

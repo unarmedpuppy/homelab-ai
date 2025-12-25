@@ -467,7 +467,7 @@ The ZFS pool (`jenquist-cloud`) is backed up to Backblaze B2 cloud storage using
 |-----------|---------|
 | **Provider** | Backblaze B2 Cloud Storage |
 | **Bucket** | `jenquist-cloud` |
-| **Source** | `/jenquist-cloud/archive` (ZFS pool) |
+| **Source** | `/jenquist-cloud` (entire ZFS pool) |
 | **Tool** | rclone with crypt encryption |
 | **Encryption** | AES-256 (files) + EME (filenames) |
 | **Schedule** | Daily at 3:00 AM |
