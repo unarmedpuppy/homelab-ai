@@ -955,6 +955,12 @@ tmux list-sessions
 
 ### Additional Tools
 
+#### rclone (Cloud Backup)
+```bash
+sudo apt update && sudo apt install rclone
+```
+Used for syncing backups to Backblaze B2 cloud storage. Configuration stored in `~/.config/rclone/rclone.conf`.
+
 #### Node.js Installation
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
