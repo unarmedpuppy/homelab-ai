@@ -22,6 +22,11 @@ services:
       - BACKUPS_MAX_AGE=7
       - UPDATE_CRON=0 5 * * *
       - RESTART_CRON=0 6 * * *
+      # Supervisor HTTP API for status/control
+      - SUPERVISOR_HTTP=true
+      - SUPERVISOR_HTTP_PORT=9001
+      - SUPERVISOR_HTTP_USER=${SUPERVISOR_USER:-admin}
+      - SUPERVISOR_HTTP_PASS=${SUPERVISOR_PASS:-valheim}
     volumes:
       - ./data/config:/config
       - ./data/data:/opt/valheim
