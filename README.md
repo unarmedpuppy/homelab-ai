@@ -459,6 +459,8 @@ sudo dd if=/dev/sda of=/mnt/server-storage/test-bk.img status=progress
 
 The ZFS pool (`jenquist-cloud`) is backed up to Backblaze B2 cloud storage using rclone. This provides offsite disaster recovery in case of hardware failure, fire, theft, or other catastrophic events.
 
+**All backups are encrypted client-side** using rclone crypt before upload. Backblaze cannot see your files.
+
 #### Overview
 
 | Component | Details |
@@ -466,9 +468,19 @@ The ZFS pool (`jenquist-cloud`) is backed up to Backblaze B2 cloud storage using
 | **Provider** | Backblaze B2 Cloud Storage |
 | **Bucket** | `jenquist-cloud` |
 | **Source** | `/jenquist-cloud/archive` (ZFS pool) |
-| **Tool** | rclone |
+| **Tool** | rclone with crypt encryption |
+| **Encryption** | AES-256 (files) + EME (filenames) |
 | **Schedule** | Daily at 3:00 AM |
 | **Cost** | ~$6/TB/month storage, $0.01/GB download |
+
+#### Encryption Details
+
+- **Algorithm**: AES-256 in CTR mode with HMAC-SHA256 authentication
+- **Filename encryption**: EME wide-block encryption (filenames are unreadable in B2)
+- **Directory encryption**: Enabled (directory names also encrypted)
+- **Password**: Stored in 1Password - **REQUIRED FOR RECOVERY**
+
+**WARNING**: If you lose the encryption password, your backup is permanently unrecoverable. Backblaze cannot help you - they only see encrypted blobs.
 
 #### Configuration
 
@@ -479,6 +491,13 @@ The ZFS pool (`jenquist-cloud`) is backed up to Backblaze B2 cloud storage using
 type = b2
 account = <keyID>
 key = <applicationKey>
+
+[b2-encrypted]
+type = crypt
+remote = b2:jenquist-cloud
+password = <obscured-password>
+filename_encryption = standard
+directory_name_encryption = true
 ```
 
 **Cron job** (user crontab):
@@ -500,27 +519,32 @@ bash ~/server/scripts/backup-to-b2.sh --dry-run
 
 **Check B2 bucket size:**
 ```bash
-rclone size b2:jenquist-cloud
+rclone size b2-encrypted:
 ```
 
-**List files in B2:**
+**List files in B2 (decrypted view):**
 ```bash
-rclone ls b2:jenquist-cloud/archive
+rclone ls b2-encrypted:
 ```
 
 **Restore a file from B2:**
 ```bash
 # Single file
-rclone copy b2:jenquist-cloud/archive/path/to/file.txt /local/destination/
+rclone copy b2-encrypted:path/to/file.txt /local/destination/
 
 # Entire directory
-rclone copy b2:jenquist-cloud/archive/some-folder /local/destination/
+rclone copy b2-encrypted:some-folder /local/destination/
 ```
 
 **Full restore (disaster recovery):**
 ```bash
 # Restore entire archive to new ZFS pool
-rclone sync b2:jenquist-cloud/archive /jenquist-cloud/archive --progress
+rclone sync b2-encrypted: /jenquist-cloud/archive --progress
+```
+
+**View raw encrypted files (what Backblaze sees):**
+```bash
+rclone ls b2:jenquist-cloud  # Shows encrypted filenames
 ```
 
 #### Backup Script Details
@@ -571,6 +595,40 @@ rclone lsd b2:
 | 27 TB | $162 | $270 |
 
 **Note**: First 1GB download per day is free. Uploads are always free.
+
+#### Disaster Recovery (New Machine)
+
+If you need to restore to a completely new server:
+
+1. **Install rclone**: `sudo apt install rclone`
+
+2. **Create config with encryption password**:
+   ```bash
+   mkdir -p ~/.config/rclone
+   # Get password from 1Password, then:
+   rclone obscure "YOUR-PASSWORD-HERE"
+   # Copy the obscured output
+   ```
+
+3. **Create rclone.conf**:
+   ```ini
+   [b2]
+   type = b2
+   account = <keyID from Backblaze>
+   key = <applicationKey from Backblaze>
+
+   [b2-encrypted]
+   type = crypt
+   remote = b2:jenquist-cloud
+   password = <obscured-password-from-step-2>
+   filename_encryption = standard
+   directory_name_encryption = true
+   ```
+
+4. **Restore data**:
+   ```bash
+   rclone sync b2-encrypted: /jenquist-cloud/archive --progress
+   ```
 
 #### Troubleshooting
 
