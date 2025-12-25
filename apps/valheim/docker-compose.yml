@@ -17,6 +17,8 @@ services:
       - WORLD_NAME=${WORLD_NAME:-Dedicated}
       - SERVER_PASS=${SERVER_PASS}
       - TZ=America/Chicago
+      # Enable crossplay for Xbox/Game Pass players (generates Join Code)
+      - ENABLE_CROSSPLAY=true
       - BACKUPS=true
       - BACKUPS_CRON=0 */6 * * *
       - BACKUPS_MAX_AGE=7
