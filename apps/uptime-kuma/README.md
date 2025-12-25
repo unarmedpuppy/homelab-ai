@@ -9,7 +9,7 @@ Self-hosted monitoring tool with Discord notifications.
    docker compose up -d
    ```
 
-2. Access web UI at `https://uptime.server.unarmedpuppy.com` (or `http://192.168.86.47:3001`)
+2. Access web UI at `https://uptime.server.unarmedpuppy.com` (or `http://192.168.86.47:3004`)
 
 3. Create admin account on first login
 
