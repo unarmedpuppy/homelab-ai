@@ -455,6 +455,142 @@ Schedule:
 sudo dd if=/dev/sda of=/mnt/server-storage/test-bk.img status=progress
 ```
 
+### Cloud Backup with Backblaze B2
+
+The ZFS pool (`jenquist-cloud`) is backed up to Backblaze B2 cloud storage using rclone. This provides offsite disaster recovery in case of hardware failure, fire, theft, or other catastrophic events.
+
+#### Overview
+
+| Component | Details |
+|-----------|---------|
+| **Provider** | Backblaze B2 Cloud Storage |
+| **Bucket** | `jenquist-cloud` |
+| **Source** | `/jenquist-cloud/archive` (ZFS pool) |
+| **Tool** | rclone |
+| **Schedule** | Daily at 3:00 AM |
+| **Cost** | ~$6/TB/month storage, $0.01/GB download |
+
+#### Configuration
+
+**rclone config location**: `~/.config/rclone/rclone.conf`
+
+```ini
+[b2]
+type = b2
+account = <keyID>
+key = <applicationKey>
+```
+
+**Cron job** (user crontab):
+```
+0 3 * * * /home/unarmedpuppy/server/scripts/backup-to-b2.sh >> /home/unarmedpuppy/server/logs/backups/cron.log 2>&1
+```
+
+#### Usage
+
+**Run manual backup:**
+```bash
+bash ~/server/scripts/backup-to-b2.sh
+```
+
+**Dry-run (preview what would be uploaded):**
+```bash
+bash ~/server/scripts/backup-to-b2.sh --dry-run
+```
+
+**Check B2 bucket size:**
+```bash
+rclone size b2:jenquist-cloud
+```
+
+**List files in B2:**
+```bash
+rclone ls b2:jenquist-cloud/archive
+```
+
+**Restore a file from B2:**
+```bash
+# Single file
+rclone copy b2:jenquist-cloud/archive/path/to/file.txt /local/destination/
+
+# Entire directory
+rclone copy b2:jenquist-cloud/archive/some-folder /local/destination/
+```
+
+**Full restore (disaster recovery):**
+```bash
+# Restore entire archive to new ZFS pool
+rclone sync b2:jenquist-cloud/archive /jenquist-cloud/archive --progress
+```
+
+#### Backup Script Details
+
+**Location**: `scripts/backup-to-b2.sh`
+
+The script:
+- Uses `rclone sync` to mirror local files to B2
+- Runs with 4 parallel transfers and 8 checkers for performance
+- Logs to `~/server/logs/backups/backup-YYYYMMDD-HHMMSS.log`
+- Automatically cleans up logs older than 30 backups
+- Supports `--dry-run` flag for testing
+
+#### Monitoring
+
+**Check backup logs:**
+```bash
+# Latest backup log
+ls -lt ~/server/logs/backups/backup-*.log | head -1 | xargs cat
+
+# Cron execution log
+tail -100 ~/server/logs/backups/cron.log
+```
+
+**Check last backup time:**
+```bash
+ls -lt ~/server/logs/backups/backup-*.log | head -1
+```
+
+**Verify B2 credentials are working:**
+```bash
+rclone lsd b2:
+```
+
+#### Backblaze B2 Web Console
+
+- **Login**: https://secure.backblaze.com/b2_buckets.htm
+- **Bucket**: `jenquist-cloud`
+- **Application Keys**: Account → Application Keys
+
+#### Cost Estimation
+
+| Data Size | Monthly Storage | Download (full restore) |
+|-----------|-----------------|------------------------|
+| 1 TB | $6 | $10 |
+| 5 TB | $30 | $50 |
+| 10 TB | $60 | $100 |
+| 27 TB | $162 | $270 |
+
+**Note**: First 1GB download per day is free. Uploads are always free.
+
+#### Troubleshooting
+
+**Backup failed with "no space left on device":**
+- Check local disk space: `df -h /`
+- rclone needs temp space for checksums
+
+**Authentication error:**
+- Verify credentials: `rclone config show b2`
+- Regenerate application key in B2 console if needed
+
+**Slow uploads:**
+- Check internet upload speed
+- Adjust `--transfers` in backup script (default: 4)
+
+**Check what would be transferred:**
+```bash
+rclone sync /jenquist-cloud/archive b2:jenquist-cloud/archive --dry-run -v
+```
+
 ---
 
 ## Network Configuration
