@@ -282,6 +282,7 @@ Agent-discoverable tool guides are in `agents/skills/`. Each tool has a `SKILL.m
 | [backup-server](agents/skills/backup-server/) | Comprehensive server backup | `scripts/backup-server.sh` |
 | [restore-server](agents/skills/restore-server/) | Restore from backups | `scripts/restore-server.sh` |
 | [check-backup-health](agents/skills/check-backup-health/) | Validate backup integrity | `scripts/check-backup-health.sh` |
+| [manage-b2-backup](agents/skills/manage-b2-backup/) | Manage B2 cloud backups (status, prioritize, monitor) | `scripts/backup-to-b2.sh` |
 
 ### Troubleshooting
 | Tool | Purpose | Script |
@@ -335,6 +336,7 @@ For critical analysis, decision review, or challenging assumptions, reference th
 | `agents/reference/homepage-labels.md` | Homepage dashboard labels (groups, icons, hrefs) |
 | `agents/reference/plan_act.md` | Planning and workflow documentation |
 | `agents/reference/storage/` | Storage and ZFS reference guides |
+| `agents/reference/backups.md` | **Backup systems** - B2, rsnapshot, disaster recovery |
 | `agents/plans/` | Implementation plans and strategies |
 | `agents/skills/` | Tool-specific guides |
 
