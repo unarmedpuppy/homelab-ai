@@ -8,7 +8,16 @@ intents.message_content = True
 client = discord.Client(intents=intents)
 
 # Reactions to use (randomly picks one)
-REACTIONS = ['🍆', '🫡']
+REACTIONS = [
+    '🍆',  # eggplant
+    '🫡',  # salute
+    '🍤',  # shrimp
+    '💩',  # poop
+    '🤡',  # clown
+    '🚀',  # rocket
+    '👌',  # ok hand
+    '🤌',  # pinched fingers
+]
 
 @client.event
 async def on_ready():
