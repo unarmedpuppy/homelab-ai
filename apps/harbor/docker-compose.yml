@@ -53,7 +53,7 @@ services:
       - SETGID
       - SETUID
     volumes:
-      - ./data/registry:/storage:z
+      - /jenquist-cloud/harbor/registry:/storage:z
       - type: bind
         source: ./config/registry/config.yml
         target: /etc/registry/config.yml
@@ -79,7 +79,7 @@ services:
     environment:
       CORE_SECRET: ${HARBOR_CORE_SECRET:-changeit}
     volumes:
-      - ./data/registry:/storage:z
+      - /jenquist-cloud/harbor/registry:/storage:z
       - type: bind
         source: ./config/registry/config.yml
         target: /etc/registry/config.yml
