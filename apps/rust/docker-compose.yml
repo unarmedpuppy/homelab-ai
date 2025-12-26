@@ -1,6 +1,6 @@
 version: '3.7'
 
-# Auto-start configuration: disabled - Rust server should be started manually
+# Auto-start configuration: enabled
 x-enabled: true
 
 services:
@@ -40,7 +40,7 @@ services:
       - "28082:28082" # app port rust+
     volumes:
       - ./data/rust:/steamcmd/rust
-    restart: "no"  # Disabled - must be started manually
+    restart: unless-stopped
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.rust-server.rule=Host(`rust.server.unarmedpuppy.com`)"
