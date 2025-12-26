@@ -2,7 +2,8 @@ version: '3.8'
 
 services:
   soulsync:
-    image: boulderbadgedad/soulsync:latest
+    # image: boulderbadgedad/soulsync:latest
+    image: harbor.server.unarmedpuppy.com/docker-hub/boulderbadgedad/soulsync:latest
     container_name: soulsync
     restart: unless-stopped
     ports:

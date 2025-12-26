@@ -2,7 +2,8 @@ x-enabled: true
 
 services:
   registry:
-    image: registry:2
+    # image: registry:2
+    image: harbor.server.unarmedpuppy.com/docker-hub/library/registry:2
     container_name: registry
     restart: unless-stopped
     volumes:
@@ -46,7 +47,8 @@ services:
       - "homepage.description=Private Docker image registry"
 
   registry-ui:
-    image: joxit/docker-registry-ui:latest
+    # image: joxit/docker-registry-ui:latest
+    image: harbor.server.unarmedpuppy.com/docker-hub/joxit/docker-registry-ui:latest
     container_name: registry-ui
     restart: unless-stopped
     environment:

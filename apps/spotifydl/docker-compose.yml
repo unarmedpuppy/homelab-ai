@@ -2,7 +2,8 @@ version: "3"
 services:
   spotdl:
     container_name: spotdl
-    image: spotdl/spotify-downloader:latest
+    # image: spotdl/spotify-downloader:latest
+    image: harbor.server.unarmedpuppy.com/docker-hub/spotdl/spotify-downloader:latest
     entrypoint: /bin/sh
     command: -c "pip install --upgrade yt-dlp && uv run --project /app spotdl web --host 0.0.0.0 --web-use-output-dir"
     environment:

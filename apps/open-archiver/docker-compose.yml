@@ -2,7 +2,8 @@ version: '3.8'
 
 services:
   open-archiver-db:
-    image: postgres:17-alpine
+    # image: postgres:17-alpine
+    image: harbor.server.unarmedpuppy.com/docker-hub/library/postgres:17-alpine
     container_name: open-archiver-db
     restart: unless-stopped
     environment:
@@ -20,7 +21,8 @@ services:
       retries: 5
 
   open-archiver-redis:
-    image: valkey/valkey:8-alpine
+    # image: valkey/valkey:8-alpine
+    image: harbor.server.unarmedpuppy.com/docker-hub/valkey/valkey:8-alpine
     container_name: open-archiver-redis
     restart: unless-stopped
     command: valkey-server --requirepass ${REDIS_PASSWORD}
@@ -35,7 +37,8 @@ services:
       retries: 5
 
   open-archiver-meilisearch:
-    image: getmeili/meilisearch:v1.15
+    # image: getmeili/meilisearch:v1.15
+    image: harbor.server.unarmedpuppy.com/docker-hub/getmeili/meilisearch:v1.15
     container_name: open-archiver-meilisearch
     restart: unless-stopped
     environment:
@@ -52,7 +55,8 @@ services:
       retries: 5
 
   open-archiver:
-    image: logiclabshq/open-archiver:latest
+    # image: logiclabshq/open-archiver:latest
+    image: harbor.server.unarmedpuppy.com/docker-hub/logiclabshq/open-archiver:latest
     container_name: open-archiver
     restart: unless-stopped
     depends_on:
