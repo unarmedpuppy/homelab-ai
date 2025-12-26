@@ -34,8 +34,29 @@ Dockerized Valheim dedicated server using [lloesche/valheim-server](https://gith
 
 ## Connecting
 
+### With Crossplay Enabled (default)
+
+When `CROSSPLAY=true` (default), you **must use the Join Code** to connect:
+
+1. In Valheim: Start Game → Select Character → Join Game
+2. Click **"Join by code"** (or look for a code entry option)
+3. Enter the 6-digit Join Code shown in server logs
+
+**To find the Join Code:**
+```bash
+docker logs valheim 2>&1 | grep "join code"
+```
+
+Example output: `Session "unarmedpuppy" registered with join code 757374`
+
+> **Note**: Direct IP connection (`Add Server` → IP:port) does NOT work when crossplay is enabled. The server uses PlayFab for matchmaking instead of Steam networking.
+
+### With Crossplay Disabled
+
+If you disable crossplay (`CROSSPLAY=false`), you can connect via direct IP:
+
 1. In Valheim: Join Game → Add Server
-2. Enter: `your-public-ip:2456`
+2. Enter: `192.168.86.47:2456` (LAN) or `your-public-ip:2456` (external)
 3. Or find in Community Servers by name
 
 ## World Data
