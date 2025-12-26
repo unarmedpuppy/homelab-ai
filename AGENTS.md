@@ -348,10 +348,12 @@ Specialized agent personalities are available in `agents/personas/`:
 |---------|---------|
 | [task-manager-agent](agents/personas/task-manager-agent.md) | Task coordination and management with Beads |
 | [server-agent](agents/personas/server-agent.md) | Server management and deployment specialist |
+| [backup-agent](agents/personas/backup-agent.md) | Backup configuration and B2 storage management |
 | [critical-thinking-agent](agents/personas/critical-thinking-agent.md) | Hyper-objective logic engine for strengthening thinking and decision-making |
 
 For task coordination and finding work, reference the task-manager-agent persona.
 For server-specific tasks, reference the server-agent persona.
+For backup configuration and B2 management, reference the backup-agent persona.
 For critical analysis, decision review, or challenging assumptions, reference the critical-thinking-agent persona.
 
 ## Deep-Dive Documentation
