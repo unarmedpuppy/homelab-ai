@@ -2,7 +2,8 @@ version: '3.1'
 
 services:
   tailscale:
-    image: tailscale/tailscale:latest
+    # image: tailscale/tailscale:latest
+    image: harbor.server.unarmedpuppy.com/docker-hub/tailscale/tailscale:latest
     cap_add:
       - NET_ADMIN
       - SYS_MODULE

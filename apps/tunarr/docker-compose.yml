@@ -1,7 +1,8 @@
 version: '3.8'
 services:
   tunarr:
-    image: chrisbenincasa/tunarr:latest
+    # image: chrisbenincasa/tunarr:latest
+    image: harbor.server.unarmedpuppy.com/docker-hub/chrisbenincasa/tunarr:latest
     container_name: tunarr
     ports:
       - "8001:8000"

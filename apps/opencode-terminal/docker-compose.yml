@@ -1,7 +1,8 @@
 version: "3"
 services:
   opencode-terminal:
-    image: alpine/socat:latest
+    # image: alpine/socat:latest
+    image: harbor.server.unarmedpuppy.com/docker-hub/alpine/socat:latest
     container_name: opencode-terminal
     restart: unless-stopped
     network_mode: host

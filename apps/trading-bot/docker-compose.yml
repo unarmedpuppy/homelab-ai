@@ -2,7 +2,8 @@ version: "3.9"
 services:
   # IB Gateway - Interactive Brokers API Gateway
   ib-gateway:
-    image: ghcr.io/gnzsnz/ib-gateway:stable
+    # image: ghcr.io/gnzsnz/ib-gateway:stable
+    image: harbor.server.unarmedpuppy.com/ghcr/gnzsnz/ib-gateway:stable
     container_name: trading-bot-ib-gateway
     restart: unless-stopped
     environment:
@@ -185,7 +186,8 @@ services:
       - "homepage.description=Trading bot dashboard with signals, debates, and portfolio"
 
   prometheus:
-    image: prom/prometheus:latest
+    # image: prom/prometheus:latest
+    image: harbor.server.unarmedpuppy.com/docker-hub/prom/prometheus:latest
     container_name: trading-bot-prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -238,7 +240,8 @@ services:
       - "homepage.description=Prometheus metrics for trading bot"
 
   grafana:
-    image: grafana/grafana:latest
+    # image: grafana/grafana:latest
+    image: harbor.server.unarmedpuppy.com/docker-hub/grafana/grafana:latest
     container_name: trading-bot-grafana
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
@@ -289,7 +292,8 @@ services:
       - "homepage.description=Grafana dashboards for trading bot"
 
   alertmanager:
-    image: prom/alertmanager:latest
+    # image: prom/alertmanager:latest
+    image: harbor.server.unarmedpuppy.com/docker-hub/prom/alertmanager:latest
     container_name: trading-bot-alertmanager
     command:
       - '--config.file=/etc/alertmanager/alertmanager.yml'

@@ -5,7 +5,8 @@ x-enabled: true
 
 services:
   rust-server:
-    image: didstopia/rust-server
+    # image: didstopia/rust-server
+    image: harbor.server.unarmedpuppy.com/docker-hub/didstopia/rust-server:latest
     environment:
       - RUST_SERVER_STARTUP_ARGUMENTS=-batchmode -load -nographics +server.secure 1 +server.saveinterval 60 +decay.delay_override 2880 +decay.duration_override 2880
       - RUST_SERVER_IDENTITY=unarmedpuppy

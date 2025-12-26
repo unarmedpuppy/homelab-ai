@@ -3,7 +3,8 @@ version: "3.8"
 services:
   ytdl-sub:
     # Web-GUI version with VS Code interface
-    image: ghcr.io/jmbannon/ytdl-sub-gui:latest
+    # image: ghcr.io/jmbannon/ytdl-sub-gui:latest
+    image: harbor.server.unarmedpuppy.com/ghcr/jmbannon/ytdl-sub-gui:latest
     container_name: ytdl-sub
     restart: unless-stopped
     environment:

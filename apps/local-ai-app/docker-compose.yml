@@ -1,6 +1,7 @@
 services:
   local-ai-app:
-    image: python:3.11-slim
+    # image: python:3.11-slim
+    image: harbor.server.unarmedpuppy.com/docker-hub/library/python:3.11-slim
     container_name: local-ai-app
     restart: unless-stopped
     ports:

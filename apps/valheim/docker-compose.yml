@@ -2,7 +2,8 @@ version: '3.3'
 
 services:
   valheim:
-    image: lloesche/valheim-server
+    # image: lloesche/valheim-server
+    image: harbor.server.unarmedpuppy.com/docker-hub/lloesche/valheim-server:latest
     container_name: valheim
     restart: unless-stopped
     stop_grace_period: 2m

@@ -56,7 +56,8 @@ services:
       - "homepage.description=3D smart home visualization"
 
   smart-home-3d-db:
-    image: postgres:16-alpine
+    # image: postgres:16-alpine
+    image: harbor.server.unarmedpuppy.com/docker-hub/library/postgres:16-alpine
     container_name: smart-home-3d-db
     restart: unless-stopped
     environment:
@@ -74,7 +75,8 @@ services:
       retries: 5
 
   smart-home-3d-redis:
-    image: redis:alpine
+    # image: redis:alpine
+    image: harbor.server.unarmedpuppy.com/docker-hub/library/redis:alpine
     container_name: smart-home-3d-redis
     restart: unless-stopped
     command: redis-server --appendonly yes

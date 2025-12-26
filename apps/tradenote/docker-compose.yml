@@ -1,6 +1,7 @@
 services:
   mongo:
-    image: mongo:4.4.18
+    # image: mongo:4.4.18
+    image: harbor.server.unarmedpuppy.com/docker-hub/library/mongo:4.4.18
     container_name: mongo
     environment:
       - MONGO_INITDB_ROOT_USERNAME=tradenote
@@ -11,7 +12,8 @@ services:
       - my-network
 
   tradenote:
-    image: eleventrading/tradenote
+    # image: eleventrading/tradenote
+    image: harbor.server.unarmedpuppy.com/docker-hub/eleventrading/tradenote:latest
     container_name: tradenote_app
     environment:
       - MONGO_URI=mongodb://tradenote:tradenote@mongo:27017/tradenote?authSource=admin

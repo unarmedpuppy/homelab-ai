@@ -16,7 +16,8 @@ services:
       - ollama-docker
 
   ollama:
-    image: ollama/ollama:latest
+    # image: ollama/ollama:latest
+    image: harbor.server.unarmedpuppy.com/docker-hub/ollama/ollama:latest
     ports:
       - 7869:11434
     volumes:
@@ -33,7 +34,8 @@ services:
       - ollama-docker
 
   ollama-webui:
-    image: ghcr.io/open-webui/open-webui:main
+    # image: ghcr.io/open-webui/open-webui:main
+    image: harbor.server.unarmedpuppy.com/ghcr/open-webui/open-webui:main
     container_name: ollama-webui
     volumes:
       - ./ollama/ollama-webui:/app/backend/data
