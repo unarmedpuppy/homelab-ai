@@ -29,9 +29,10 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    # Don't react to bot messages
+    # Don't react to bot messages (unless they mention us)
     if message.author.bot:
-        return
+        if client.user not in message.mentions:
+            return
 
     # Add a random reaction
     try:
