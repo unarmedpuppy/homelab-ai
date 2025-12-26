@@ -2,6 +2,34 @@
 
 Reference document for diagnosing and fixing Harbor registry issues.
 
+## Working Configuration Summary
+
+The final working Harbor setup requires these key configurations:
+
+### 1. Registry Config (`config/registry/config.yml`)
+```yaml
+http:
+  addr: :5000
+  relativeurls: true  # Returns relative URLs instead of internal hostnames
+  host: https://harbor.server.unarmedpuppy.com  # External URL for Location headers
+auth:
+  htpasswd:  # ONLY htpasswd - no token auth here
+    realm: harbor-registry-basic-realm
+    path: /etc/registry/passwd
+```
+
+### 2. Nginx Proxy (`config/proxy/nginx.conf`)
+All locations need `proxy_set_header Authorization $http_authorization;`
+
+### 3. Storage Permissions
+Registry runs as UID 10000:
+```bash
+sudo chown -R 10000:10000 /jenquist-cloud/harbor/registry
+```
+
+### 4. Passwd File (`config/registry/passwd`)
+Generated with: `htpasswd -Bbn harbor_registry_user <HARBOR_CORE_SECRET>`
+
 ## Architecture Overview
 
 ```
