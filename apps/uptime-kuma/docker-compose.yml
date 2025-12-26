@@ -2,7 +2,8 @@ version: '3.3'
 
 services:
   uptime-kuma:
-    image: louislam/uptime-kuma:1
+    # image: louislam/uptime-kuma:1
+    image: harbor.server.unarmedpuppy.com/docker-hub/louislam/uptime-kuma:1
     container_name: uptime-kuma
     restart: unless-stopped
     volumes:

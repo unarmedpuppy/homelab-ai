@@ -83,7 +83,8 @@ services:
       - "homepage.description=Personal news reader with intelligence"
 
   newsblur_db_postgres:
-    image: postgres:14-alpine
+    # image: postgres:14-alpine
+    image: harbor.server.unarmedpuppy.com/docker-hub/library/postgres:14-alpine
     container_name: newsblur-postgres
     restart: unless-stopped
     environment:
@@ -102,7 +103,8 @@ services:
       retries: 5
 
   newsblur_db_mongo:
-    image: mongo:6.0
+    # image: mongo:6.0
+    image: harbor.server.unarmedpuppy.com/docker-hub/library/mongo:6.0
     container_name: newsblur-mongodb
     restart: unless-stopped
     environment:
@@ -120,7 +122,8 @@ services:
       retries: 5
 
   newsblur_db_redis:
-    image: redis:7-alpine
+    # image: redis:7-alpine
+    image: harbor.server.unarmedpuppy.com/docker-hub/library/redis:7-alpine
     container_name: newsblur-redis
     restart: unless-stopped
     command: redis-server --appendonly yes --port 6579

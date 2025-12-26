@@ -2,7 +2,8 @@ version: '3.7'
 
 services:
   traefik:
-    image: traefik:v2.11
+    # image: traefik:v2.11
+    image: harbor.server.unarmedpuppy.com/docker-hub/library/traefik:v2.11
     container_name: traefik
     restart: unless-stopped
     environment:

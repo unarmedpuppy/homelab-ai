@@ -2,7 +2,8 @@ version: "3.8"
 
 services:
   db:
-    image: postgres:15-alpine
+    # image: postgres:15-alpine
+    image: harbor.server.unarmedpuppy.com/docker-hub/library/postgres:15-alpine
     container_name: wiki-db
     restart: unless-stopped
     environment:
@@ -22,7 +23,8 @@ services:
       - "homepage.hide=true"
 
   wiki:
-    image: requarks/wiki:2
+    # image: requarks/wiki:2
+    image: harbor.server.unarmedpuppy.com/docker-hub/requarks/wiki:2
     container_name: wiki
     restart: unless-stopped
     depends_on:

@@ -2,7 +2,8 @@ version: '3'
 
 services:
   owntracks:
-    image: owntracks/recorder:latest
+    # image: owntracks/recorder:latest
+    image: harbor.server.unarmedpuppy.com/docker-hub/owntracks/recorder:latest
     container_name: owntracks
     restart: unless-stopped
     volumes:
@@ -50,7 +51,8 @@ services:
       - "homepage.description=Location tracking and recording"
 
   mosquitto:
-    image: eclipse-mosquitto:latest
+    # image: eclipse-mosquitto:latest
+    image: harbor.server.unarmedpuppy.com/docker-hub/library/eclipse-mosquitto:latest
     container_name: owntracks-mosquitto
     restart: unless-stopped
     volumes:
