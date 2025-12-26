@@ -6,7 +6,7 @@ services:
   adguard:
     container_name: adguard
     hostname: adguard
-    image: adguard/adguardhome:latest
+    image: harbor.server.unarmedpuppy.com/docker-hub/adguard/adguardhome:latest
     ports:
       - 3003:3000/tcp # only required during initial setup
       - 8083:80/tcp # web interface after setup
