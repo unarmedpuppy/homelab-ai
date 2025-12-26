@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  discord-reaction-bot:
+    build: .
+    container_name: discord-reaction-bot
+    restart: unless-stopped
+    environment:
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+    networks:
+      - my-network
+    labels:
+      - "homepage.group=Bots"
+      - "homepage.name=Discord Reaction Bot"
+      - "homepage.icon=discord"
+      - "homepage.description=Reacts to messages with emojis"
+
+networks:
+  my-network:
+    external: true
