@@ -2,7 +2,7 @@ x-enabled: true
 
 services:
   excalidraw:
-    image: excalidraw/excalidraw:latest
+    image: harbor.server.unarmedpuppy.com/docker-hub/excalidraw/excalidraw:latest
     container_name: excalidraw
     restart: unless-stopped
     environment:

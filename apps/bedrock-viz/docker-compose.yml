@@ -2,7 +2,7 @@ version: '3'
 
 services:
   bedrock-viz-http:
-    image: nginx
+    image: harbor.server.unarmedpuppy.com/docker-hub/library/nginx:latest
     container_name: bedrock-viz-http
     restart: unless-stopped
     ports:
