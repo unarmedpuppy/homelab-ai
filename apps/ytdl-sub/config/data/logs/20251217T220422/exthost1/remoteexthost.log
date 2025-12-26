@@ -1,0 +1,27 @@
+2025-12-17 22:04:23.418 [info] Extension host with pid 300 started
+2025-12-17 22:04:23.425 [info] Lock '/config/data/User/workspaceStorage/-7ffea3b6/vscode.lock': Lock acquired.
+2025-12-17 22:04:23.445 [info] ExtensionService#_doActivateExtension vscode.git-base, startup: true, activationEvent: '*'
+2025-12-17 22:04:23.459 [info] ExtensionService#_doActivateExtension vscode.github, startup: true, activationEvent: '*'
+2025-12-17 22:04:23.502 [info] Eager extensions activated
+2025-12-17 22:04:23.502 [info] ExtensionService#_doActivateExtension vscode.debug-auto-launch, startup: false, activationEvent: 'onStartupFinished'
+2025-12-17 22:04:23.503 [info] ExtensionService#_doActivateExtension vscode.merge-conflict, startup: false, activationEvent: 'onStartupFinished'
+2025-12-17 22:04:31.700 [info] ExtensionService#_doActivateExtension vscode.git, startup: false, activationEvent: 'api', root cause: vscode.github
+2025-12-17 22:04:33.874 [error] AggregateError: 
+	at internalConnectMultiple (node:net:1122:18)
+	at afterConnectMultiple (node:net:1689:7)
+2025-12-17 22:04:37.418 [error] AggregateError: 
+	at internalConnectMultiple (node:net:1122:18)
+	at afterConnectMultiple (node:net:1689:7)
+2025-12-17 22:04:40.990 [info] ExtensionService#_doActivateExtension vscode.emmet, startup: false, activationEvent: 'onLanguage'
+2025-12-17 22:05:01.559 [info] Extension host terminating: received terminate message from renderer
+2025-12-17 22:05:01.559 [info] Lock '/config/data/User/workspaceStorage/-7ffea3b6/vscode.lock': Marking the lockfile as scheduled to be released in 6000 ms.
+2025-12-17 22:05:01.575 [error] ProxyResolver#resolveProxy undefined Canceled: Canceled
+	at new fR (file:///app/code-server/lib/vscode/out/vs/workbench/api/node/extensionHostProcess.js:29:115626)
+	at qy.U (file:///app/code-server/lib/vscode/out/vs/workbench/api/node/extensionHostProcess.js:29:120237)
+	at s.<computed>.n.charCodeAt.s.<computed> (file:///app/code-server/lib/vscode/out/vs/workbench/api/node/extensionHostProcess.js:29:117731)
+	at cw.resolveProxy (file:///app/code-server/lib/vscode/out/vs/workbench/api/node/extensionHostProcess.js:109:54839)
+	at Object.resolveProxy (file:///app/code-server/lib/vscode/out/vs/workbench/api/node/extensionHostProcess.js:174:18111)
+	at useProxySettings (/app/code-server/lib/vscode/node_modules/@vscode/proxy-agent/out/index.js:182:16)
+	at /app/code-server/lib/vscode/node_modules/@vscode/proxy-agent/out/index.js:119:13
+	at /app/code-server/lib/vscode/node_modules/@vscode/proxy-agent/out/index.js:707:13 
+2025-12-17 22:05:01.596 [info] Extension host with pid 300 exiting with code 0

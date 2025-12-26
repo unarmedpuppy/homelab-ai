@@ -1,0 +1,17 @@
+version: "3"
+services:
+  opencode-terminal:
+    image: alpine/socat:latest
+    container_name: opencode-terminal
+    restart: unless-stopped
+    network_mode: host
+    # Listen on all interfaces (including Docker bridge), forward to localhost ttyd
+    # Traefik connects via file config pointing to 192.168.160.1:17681
+    command: TCP-LISTEN:17681,fork,reuseaddr TCP:127.0.0.1:7681
+    labels:
+      # Homepage labels only - routing is via Traefik file config
+      - "homepage.group=Development"
+      - "homepage.name=Terminal"
+      - "homepage.icon=mdi-console"
+      - "homepage.href=https://terminal.server.unarmedpuppy.com"
+      - "homepage.description=Web-based terminal (ttyd + tmux)"

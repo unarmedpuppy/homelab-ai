@@ -1,0 +1,48 @@
+version: '3.3'
+
+services:
+  valheim:
+    image: lloesche/valheim-server
+    container_name: valheim
+    restart: unless-stopped
+    stop_grace_period: 2m
+    cap_add:
+      - SYS_NICE
+    ports:
+      - "2456:2456/udp"
+      - "2457:2457/udp"
+      - "2458:2458/udp"
+    environment:
+      - SERVER_NAME=${SERVER_NAME:-Valheim Server}
+      - WORLD_NAME=${WORLD_NAME:-Dedicated}
+      - SERVER_PASS=${SERVER_PASS}
+      - TZ=America/Chicago
+      # Enable crossplay for Xbox/Game Pass players (generates Join Code)
+      - CROSSPLAY=true
+      - BACKUPS=true
+      - BACKUPS_CRON=0 */6 * * *
+      - BACKUPS_MAX_AGE=7
+      - UPDATE_CRON=0 5 * * *
+      - RESTART_CRON=0 6 * * *
+      # Supervisor HTTP API for status/control
+      - SUPERVISOR_HTTP=true
+      - SUPERVISOR_HTTP_PORT=9001
+      - SUPERVISOR_HTTP_USER=${SUPERVISOR_USER:-admin}
+      - SUPERVISOR_HTTP_PASS=${SUPERVISOR_PASS:-valheim}
+    volumes:
+      - ./data/config:/config
+      - ./data/data:/opt/valheim
+    networks:
+      - my-network
+    labels:
+      - "homepage.group=Gaming"
+      - "homepage.name=Valheim"
+      - "homepage.icon=valheim"
+      - "homepage.description=Dedicated Valheim server"
+      - "homepage.widget.type=gamedig"
+      - "homepage.widget.serverType=valheim"
+      - "homepage.widget.url=udp://192.168.86.47:2457"
+
+networks:
+  my-network:
+    external: true

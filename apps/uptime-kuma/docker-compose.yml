@@ -1,0 +1,28 @@
+version: '3.3'
+
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+    ports:
+      - "3004:3001"
+    networks:
+      - my-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.uptime.rule=Host(`uptime.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.uptime.entrypoints=websecure"
+      - "traefik.http.routers.uptime.tls.certresolver=myresolver"
+      - "traefik.http.services.uptime.loadbalancer.server.port=3001"
+      - "homepage.group=Monitoring"
+      - "homepage.name=Uptime Kuma"
+      - "homepage.icon=uptime-kuma"
+      - "homepage.href=https://uptime.server.unarmedpuppy.com"
+      - "homepage.description=Service monitoring & alerts"
+
+networks:
+  my-network:
+    external: true

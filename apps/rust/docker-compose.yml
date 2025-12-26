@@ -1,7 +1,7 @@
 version: '3.7'
 
 # Auto-start configuration: disabled - Rust server should be started manually
-x-enabled: false
+x-enabled: true
 
 services:
   rust-server:

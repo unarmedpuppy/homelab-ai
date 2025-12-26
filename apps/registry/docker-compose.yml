@@ -1,0 +1,90 @@
+x-enabled: true
+
+services:
+  registry:
+    image: registry:2
+    container_name: registry
+    restart: unless-stopped
+    volumes:
+      - ./data:/var/lib/registry
+      - ./auth:/auth
+    environment:
+      REGISTRY_AUTH: htpasswd
+      REGISTRY_AUTH_HTPASSWD_REALM: "Home Server Registry"
+      REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
+      REGISTRY_STORAGE_DELETE_ENABLED: "true"
+    networks:
+      - my-network
+    labels:
+      # Traefik labels
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.registry-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.registry-redirect.middlewares=registry-redirect"
+      - "traefik.http.routers.registry-redirect.rule=Host(`registry.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.registry-redirect.entrypoints=web"
+      # Local network access (no auth middleware, but registry itself requires auth)
+      - "traefik.http.routers.registry-local.rule=Host(`registry.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.registry-local.priority=100"
+      - "traefik.http.routers.registry-local.entrypoints=websecure"
+      - "traefik.http.routers.registry-local.tls.certresolver=myresolver"
+      - "traefik.http.routers.registry-local.service=registry"
+      # External access
+      - "traefik.http.routers.registry.rule=Host(`registry.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.registry.priority=1"
+      - "traefik.http.routers.registry.entrypoints=websecure"
+      - "traefik.http.routers.registry.tls.certresolver=myresolver"
+      - "traefik.http.routers.registry.service=registry"
+      # Service
+      - "traefik.http.services.registry.loadbalancer.server.port=5000"
+      # Homepage labels
+      - "homepage.group=Infrastructure"
+      - "homepage.name=Docker Registry"
+      - "homepage.icon=docker"
+      - "homepage.href=https://registry-ui.server.unarmedpuppy.com"
+      - "homepage.description=Private Docker image registry"
+
+  registry-ui:
+    image: joxit/docker-registry-ui:latest
+    container_name: registry-ui
+    restart: unless-stopped
+    environment:
+      - REGISTRY_TITLE=Home Server Registry
+      - NGINX_PROXY_PASS_URL=http://registry:5000
+      - SINGLE_REGISTRY=true
+      - DELETE_IMAGES=true
+    depends_on:
+      - registry
+    networks:
+      - my-network
+    labels:
+      # Traefik labels
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.registry-ui-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.registry-ui-redirect.middlewares=registry-ui-redirect"
+      - "traefik.http.routers.registry-ui-redirect.rule=Host(`registry-ui.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.registry-ui-redirect.entrypoints=web"
+      # Local network access (no auth)
+      - "traefik.http.routers.registry-ui-local.rule=Host(`registry-ui.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.registry-ui-local.priority=100"
+      - "traefik.http.routers.registry-ui-local.entrypoints=websecure"
+      - "traefik.http.routers.registry-ui-local.tls.certresolver=myresolver"
+      - "traefik.http.routers.registry-ui-local.service=registry-ui"
+      # External access (requires auth)
+      - "traefik.http.routers.registry-ui.rule=Host(`registry-ui.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.registry-ui.priority=1"
+      - "traefik.http.routers.registry-ui.entrypoints=websecure"
+      - "traefik.http.routers.registry-ui.tls.certresolver=myresolver"
+      - "traefik.http.routers.registry-ui.middlewares=registry-ui-auth"
+      - "traefik.http.routers.registry-ui.service=registry-ui"
+      # Service and auth middleware
+      - "traefik.http.services.registry-ui.loadbalancer.server.port=80"
+      - "traefik.http.middlewares.registry-ui-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.registry-ui-auth.basicauth.realm=Registry UI"
+
+networks:
+  my-network:
+    external: true

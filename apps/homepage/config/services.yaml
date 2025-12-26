@@ -2,6 +2,13 @@
 # For configuration options and examples, please see:
 # https://gethomepage.dev/latest/configs/services
 
+# Manual entries for non-Docker services
+- Development:
+    - Terminal:
+        icon: mdi-console
+        href: https://terminal.server.unarmedpuppy.com
+        description: Web-based terminal (ttyd + tmux)
+
 #- Services:
     #- Coins:
         #widget:

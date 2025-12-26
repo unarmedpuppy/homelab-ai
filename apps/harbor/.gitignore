@@ -1,0 +1,9 @@
+# Environment file with secrets
+.env
+
+# Data directories (created at runtime)
+data/
+
+# Private keys should be regenerated per-environment
+config/core/private_key.pem
+config/registry/root.crt

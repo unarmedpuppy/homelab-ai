@@ -282,6 +282,8 @@ Agent-discoverable tool guides are in `agents/skills/`. Each tool has a `SKILL.m
 | [backup-server](agents/skills/backup-server/) | Comprehensive server backup | `scripts/backup-server.sh` |
 | [restore-server](agents/skills/restore-server/) | Restore from backups | `scripts/restore-server.sh` |
 | [check-backup-health](agents/skills/check-backup-health/) | Validate backup integrity | `scripts/check-backup-health.sh` |
+| [manage-b2-backup](agents/skills/manage-b2-backup/) | Manage B2 cloud backups (status, prioritize, monitor) | `scripts/backup-to-b2.sh` |
+| [enable-rsnapshot](agents/skills/enable-rsnapshot/) | Enable/configure rsnapshot local backups | - |
 
 ### Troubleshooting
 | Tool | Purpose | Script |
@@ -289,11 +291,13 @@ Agent-discoverable tool guides are in `agents/skills/`. Each tool has a `SKILL.m
 | [troubleshoot-container-failure](agents/skills/troubleshoot-container-failure/) | Debug container issues | - |
 | [troubleshoot-stuck-downloads](agents/skills/troubleshoot-stuck-downloads/) | Fix Sonarr/Radarr issues | - |
 | [cleanup-disk-space](agents/skills/cleanup-disk-space/) | Free disk space | - |
+| [troubleshoot-disk-full](agents/skills/troubleshoot-disk-full/) | Diagnose/fix disk full issues (AdGuard, Docker, logs) | - |
 
 ### Drive Health & Storage
 | Tool | Purpose | Script |
 |------|---------|--------|
 | [monitor-drive-health](agents/skills/monitor-drive-health/) | Monitor drive health with SMART status | `scripts/check-drive-health.sh` |
+| [zfs-pool-recovery](agents/skills/zfs-pool-recovery/) | Recover ZFS pool from failures, import issues | - |
 
 ### Task Management
 | Tool | Purpose | Script |
@@ -335,6 +339,7 @@ For critical analysis, decision review, or challenging assumptions, reference th
 | `agents/reference/homepage-labels.md` | Homepage dashboard labels (groups, icons, hrefs) |
 | `agents/reference/plan_act.md` | Planning and workflow documentation |
 | `agents/reference/storage/` | Storage and ZFS reference guides |
+| `agents/reference/backups.md` | **Backup systems** - B2, rsnapshot, disaster recovery |
 | `agents/plans/` | Implementation plans and strategies |
 | `agents/skills/` | Tool-specific guides |
 
@@ -342,3 +347,29 @@ For critical analysis, decision review, or challenging assumptions, reference th
 
 **Keep it simple. Run commands directly. Use `bd ready` + memory for continuity.**
 
+
+## Landing the Plane (Session Completion)
+
+**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+
+**MANDATORY WORKFLOW:**
+
+1. **File issues for remaining work** - Create issues for anything that needs follow-up
+2. **Run quality gates** (if code changed) - Tests, linters, builds
+3. **Update issue status** - Close finished work, update in-progress items
+4. **PUSH TO REMOTE** - This is MANDATORY:
+   ```bash
+   git pull --rebase
+   bd sync
+   git push
+   git status  # MUST show "up to date with origin"
+   ```
+5. **Clean up** - Clear stashes, prune remote branches
+6. **Verify** - All changes committed AND pushed
+7. **Hand off** - Provide context for next session
+
+**CRITICAL RULES:**
+- Work is NOT complete until `git push` succeeds
+- NEVER stop before pushing - that leaves work stranded locally
+- NEVER say "ready to push when you are" - YOU must push
+- If push fails, resolve and retry until it succeeds

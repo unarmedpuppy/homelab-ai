@@ -1,0 +1,45 @@
+import discord
+import os
+import random
+
+intents = discord.Intents.default()
+intents.message_content = True
+
+client = discord.Client(intents=intents)
+
+# Reactions to use (randomly picks one)
+REACTIONS = [
+    '🍆',  # eggplant
+    '🫡',  # salute
+    '🍤',  # shrimp
+    '💩',  # poop
+    '🤡',  # clown
+    '🚀',  # rocket
+    '👌',  # ok hand
+    '🤌',  # pinched fingers
+]
+
+@client.event
+async def on_ready():
+    print(f'{client.user} has connected to Discord!')
+
+@client.event
+async def on_message(message):
+    # Don't react to our own messages
+    if message.author == client.user:
+        return
+
+    # Don't react to bot messages
+    if message.author.bot:
+        return
+
+    # Add a random reaction
+    try:
+        emoji = random.choice(REACTIONS)
+        await message.add_reaction(emoji)
+    except discord.errors.Forbidden:
+        print(f"Cannot add reaction in {message.channel}")
+    except Exception as e:
+        print(f"Error adding reaction: {e}")
+
+client.run(os.environ['DISCORD_TOKEN'])
