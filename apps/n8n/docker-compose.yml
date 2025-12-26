@@ -2,7 +2,8 @@ version: '3.8'
 
 services:
   n8n:
-    image: n8nio/n8n:latest
+    # image: n8nio/n8n:latest
+    image: harbor.server.unarmedpuppy.com/docker-hub/n8nio/n8n:latest
     container_name: n8n
     restart: unless-stopped
     env_file:

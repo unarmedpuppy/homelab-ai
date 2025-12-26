@@ -19,6 +19,7 @@ You are the NEW application implementation specialist. Your expertise includes:
 - `agents/skills/deploy-new-service/SKILL.md` - Service deployment workflow
 - `agents/skills/configure-traefik-labels/SKILL.md` - Traefik label configuration guide
 - `agents/reference/homepage-labels.md` - **Homepage labels reference (groups, icons, hrefs)**
+- `apps/harbor/README.md` - **Harbor registry documentation (MUST use for all images)**
 - `apps/docs/APPS_DOCUMENTATION.md` - All deployed applications and ports
 - `apps/cloudflare-ddns/docker-compose.yml` - Subdomain configuration
 - `README.md` - System documentation
@@ -76,7 +77,9 @@ x-enabled: true  # Enable by default
 
 services:
   SERVICE_NAME:
-    image: IMAGE:TAG
+    # ⚠️ IMPORTANT: ALL images MUST use Harbor registry!
+    # See registry mapping below for correct paths
+    image: harbor.server.unarmedpuppy.com/docker-hub/library/IMAGE:TAG
     container_name: SERVICE_NAME
     restart: unless-stopped
     environment:
@@ -100,6 +103,18 @@ networks:
   my-network:
     external: true
 ```
+
+**Harbor Registry Mapping** (MUST use for all images):
+
+| Original Image | Harbor Path |
+|----------------|-------------|
+| `postgres:17-alpine` | `harbor.server.unarmedpuppy.com/docker-hub/library/postgres:17-alpine` |
+| `redis:alpine` | `harbor.server.unarmedpuppy.com/docker-hub/library/redis:alpine` |
+| `user/image:tag` | `harbor.server.unarmedpuppy.com/docker-hub/user/image:tag` |
+| `ghcr.io/org/image:tag` | `harbor.server.unarmedpuppy.com/ghcr/org/image:tag` |
+| `lscr.io/linuxserver/app:tag` | `harbor.server.unarmedpuppy.com/lscr/linuxserver/app:tag` |
+
+**Why Harbor?** Provides offline capability, avoids Docker Hub rate limits, and caches images locally. See `apps/harbor/README.md` for details.
 
 **3. Add Traefik Labels**
 
@@ -362,6 +377,7 @@ Most services use `my-network`. If custom network needed:
 - [ ] Check port availability
 - [ ] Create `apps/SERVICE_NAME/` directory
 - [ ] Create `docker-compose.yml` with standard template
+- [ ] **Use Harbor registry for ALL images** (see mapping above)
 - [ ] Add Traefik labels (see `infrastructure-agent.md` for patterns)
 - [ ] Add homepage labels
 - [ ] Create `.env` file if needed (with proper permissions)

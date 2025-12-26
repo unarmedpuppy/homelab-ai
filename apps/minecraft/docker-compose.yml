@@ -3,7 +3,8 @@ version: '3.8'
 x-external: true
 services:
   bedrock:
-    image: itzg/minecraft-bedrock-server:2024.11.0
+    # image: itzg/minecraft-bedrock-server:2024.11.0
+    image: harbor.server.unarmedpuppy.com/docker-hub/itzg/minecraft-bedrock-server:2024.11.0
     environment:
       EULA: "TRUE"
       GAMEMODE: survival

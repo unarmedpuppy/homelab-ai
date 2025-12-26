@@ -2,7 +2,8 @@ version: "3.8"
 
 services:
   libreddit-web:
-    image: libreddit/libreddit
+    # image: libreddit/libreddit
+    image: harbor.server.unarmedpuppy.com/docker-hub/libreddit/libreddit:latest
     container_name: libreddit
     hostname: libreddit
     restart: unless-stopped

@@ -3,7 +3,8 @@ version: "3.8"
 services:
   # VPN Gateway with Kill Switch - Gluetun with ProtonVPN
   gluetun:
-    image: qmcgaw/gluetun:latest
+    # image: qmcgaw/gluetun:latest
+    image: harbor.server.unarmedpuppy.com/docker-hub/qmcgaw/gluetun:latest
     container_name: media-download-gluetun
     cap_add:
       - NET_ADMIN
@@ -40,7 +41,8 @@ services:
 
   # Usenet Indexer & Aggregator
   nzbhydra2:
-    image: lscr.io/linuxserver/nzbhydra2:latest
+    # image: lscr.io/linuxserver/nzbhydra2:latest
+    image: harbor.server.unarmedpuppy.com/lscr/linuxserver/nzbhydra2:latest
     container_name: media-download-nzbhydra2
     environment:
       - PUID=1000
@@ -92,7 +94,8 @@ services:
 
   # Torrent Indexer
   jackett:
-    image: lscr.io/linuxserver/jackett:latest
+    # image: lscr.io/linuxserver/jackett:latest
+    image: harbor.server.unarmedpuppy.com/lscr/linuxserver/jackett:latest
     container_name: media-download-jackett
     environment:
       - PUID=1000
@@ -140,7 +143,8 @@ services:
 
   # Unified Indexer Manager (Better alternative to NZBHydra2 + Jackett)
   prowlarr:
-    image: lscr.io/linuxserver/prowlarr:latest
+    # image: lscr.io/linuxserver/prowlarr:latest
+    image: harbor.server.unarmedpuppy.com/lscr/linuxserver/prowlarr:latest
     container_name: media-download-prowlarr
     environment:
       - PUID=1000
@@ -188,7 +192,8 @@ services:
 
   # Usenet Download Client
   nzbget:
-    image: lscr.io/linuxserver/nzbget:latest
+    # image: lscr.io/linuxserver/nzbget:latest
+    image: harbor.server.unarmedpuppy.com/lscr/linuxserver/nzbget:latest
     container_name: media-download-nzbget
     environment:
       - PUID=1000
@@ -205,7 +210,8 @@ services:
 
   # Torrent Download Client
   qbittorrent:
-    image: lscr.io/linuxserver/qbittorrent:latest
+    # image: lscr.io/linuxserver/qbittorrent:latest
+    image: harbor.server.unarmedpuppy.com/lscr/linuxserver/qbittorrent:latest
     container_name: media-download-qbittorrent
     environment:
       - PUID=1000
@@ -228,7 +234,8 @@ services:
   # 2. Use an alternative Docker image (check Docker Hub)
   # 3. Or run slskd on the host and connect via host IP
   slskd:
-    image: slskd/slskd:latest
+    # image: slskd/slskd:latest
+    image: harbor.server.unarmedpuppy.com/docker-hub/slskd/slskd:latest
     container_name: media-download-slskd
     environment:
       - PUID=1000
@@ -251,7 +258,8 @@ services:
 
   # TV Shows Automation
   sonarr:
-    image: lscr.io/linuxserver/sonarr:latest
+    # image: lscr.io/linuxserver/sonarr:latest
+    image: harbor.server.unarmedpuppy.com/lscr/linuxserver/sonarr:latest
     container_name: media-download-sonarr
     environment:
       - PUID=1000
@@ -303,7 +311,8 @@ services:
 
   # Movies Automation
   radarr:
-    image: lscr.io/linuxserver/radarr:latest
+    # image: lscr.io/linuxserver/radarr:latest
+    image: harbor.server.unarmedpuppy.com/lscr/linuxserver/radarr:latest
     container_name: media-download-radarr
     environment:
       - PUID=1000
@@ -355,7 +364,8 @@ services:
 
   # Music Automation
   lidarr:
-    image: lscr.io/linuxserver/lidarr:latest
+    # image: lscr.io/linuxserver/lidarr:latest
+    image: harbor.server.unarmedpuppy.com/lscr/linuxserver/lidarr:latest
     container_name: media-download-lidarr
     environment:
       - PUID=1000
@@ -407,7 +417,8 @@ services:
 
   # Subtitle Downloader
   bazarr:
-    image: lscr.io/linuxserver/bazarr:latest
+    # image: lscr.io/linuxserver/bazarr:latest
+    image: harbor.server.unarmedpuppy.com/lscr/linuxserver/bazarr:latest
     container_name: media-download-bazarr
     environment:
       - PUID=1000
@@ -459,7 +470,8 @@ services:
 
   # Media Request Management
   overseerr:
-    image: lscr.io/linuxserver/overseerr:latest
+    # image: lscr.io/linuxserver/overseerr:latest
+    image: harbor.server.unarmedpuppy.com/lscr/linuxserver/overseerr:latest
     container_name: media-download-overseerr
     environment:
       - PUID=1000
@@ -510,7 +522,8 @@ services:
   # Books Automation (LazyLibrarian - no Goodreads dependency)
   # LazyLibrarian works with Open Library and other metadata sources
   lazylibrarian:
-    image: lscr.io/linuxserver/lazylibrarian:latest
+    # image: lscr.io/linuxserver/lazylibrarian:latest
+    image: harbor.server.unarmedpuppy.com/lscr/linuxserver/lazylibrarian:latest
     container_name: media-download-lazylibrarian
     environment:
       - PUID=1000
@@ -562,7 +575,8 @@ services:
 
   # Book Library Management (for book editing - optional, use Calibre-Web for reading)
   calibre:
-    image: lscr.io/linuxserver/calibre:latest
+    # image: lscr.io/linuxserver/calibre:latest
+    image: harbor.server.unarmedpuppy.com/lscr/linuxserver/calibre:latest
     container_name: media-download-calibre
     environment:
       - PUID=1000
@@ -610,7 +624,8 @@ services:
 
   # Calibre Web Interface
   calibre-web:
-    image: ghcr.io/linuxserver/calibre-web:latest
+    # image: ghcr.io/linuxserver/calibre-web:latest
+    image: harbor.server.unarmedpuppy.com/ghcr/linuxserver/calibre-web:latest
     container_name: media-download-calibre-web
     environment:
       - PUID=1000
@@ -660,7 +675,8 @@ services:
 
   # Usenet Downloader (Alternative)
   sabnzbd:
-    image: lscr.io/linuxserver/sabnzbd:latest
+    # image: lscr.io/linuxserver/sabnzbd:latest
+    image: harbor.server.unarmedpuppy.com/lscr/linuxserver/sabnzbd:latest
     container_name: media-download-sabnzbd
     environment:
       - PUID=1000

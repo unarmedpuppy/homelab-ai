@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   ghost-db:
+    # image: mysql:8.0
     image: harbor.server.unarmedpuppy.com/docker-hub/library/mysql:8.0
     container_name: ghost-db
     restart: unless-stopped
@@ -21,6 +22,7 @@ services:
       retries: 5
 
   ghost:
+    # image: ghost:latest
     image: harbor.server.unarmedpuppy.com/docker-hub/library/ghost:latest
     container_name: ghost
     restart: unless-stopped

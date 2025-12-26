@@ -74,6 +74,27 @@ docker pull harbor.server.unarmedpuppy.com/ghcr/gethomepage/homepage:latest
 docker pull harbor.server.unarmedpuppy.com/lscr/linuxserver/sonarr:latest
 ```
 
+## Cache Retention Policy
+
+Proxy cache projects have retention policies to manage disk space while ensuring offline capability:
+
+| Project | Rule | Schedule |
+|---------|------|----------|
+| docker-hub | Keep 1 most recently pulled per repo | Daily at midnight |
+| ghcr | Keep 1 most recently pulled per repo | Daily at midnight |
+| lscr | Keep 1 most recently pulled per repo | Daily at midnight |
+| library | No retention (keep forever) | - |
+
+**How it works:**
+- Each image repository keeps its most recently pulled version forever
+- Older versions are cleaned up at midnight
+- Example: Pull `postgres:17-alpine`, then later pull `postgres:18-alpine` → the 17 version gets cleaned up
+- Your own images in `library` are never auto-deleted
+
+**Offline building:** As long as you've pulled an image at least once, you'll always have a cached copy available for offline rebuilds.
+
+**To change retention:** Go to project → Policy → Tag Retention in the Harbor UI.
+
 ## Migrating Custom Images
 
 Push your existing custom images to the `library` project:

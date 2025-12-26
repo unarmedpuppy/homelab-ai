@@ -2,6 +2,7 @@ x-enabled: true
 
 services:
   frigate:
+    # image: ghcr.io/blakeblackshear/frigate:stable
     image: harbor.server.unarmedpuppy.com/ghcr/blakeblackshear/frigate:stable
     container_name: frigate
     restart: unless-stopped

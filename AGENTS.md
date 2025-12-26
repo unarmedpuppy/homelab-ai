@@ -30,6 +30,34 @@ This is a home server codebase with Docker-based services for media management, 
 
 **Tech Stack**: Docker, Docker Compose, Python, Bash, SQLite (memory system)
 
+## Docker Images - Harbor Registry
+
+**All Docker images MUST be pulled through Harbor registry** for offline capability and to avoid rate limits.
+
+```bash
+# ❌ WRONG - Direct pulls
+image: postgres:17-alpine
+image: ghcr.io/gethomepage/homepage:latest
+image: lscr.io/linuxserver/sonarr:latest
+
+# ✅ CORRECT - Through Harbor proxy cache
+image: harbor.server.unarmedpuppy.com/docker-hub/library/postgres:17-alpine
+image: harbor.server.unarmedpuppy.com/ghcr/gethomepage/homepage:latest
+image: harbor.server.unarmedpuppy.com/lscr/linuxserver/sonarr:latest
+```
+
+**Registry Mapping:**
+| Original | Harbor Path |
+|----------|-------------|
+| `postgres:tag` | `harbor.server.unarmedpuppy.com/docker-hub/library/postgres:tag` |
+| `user/image:tag` | `harbor.server.unarmedpuppy.com/docker-hub/user/image:tag` |
+| `ghcr.io/org/image:tag` | `harbor.server.unarmedpuppy.com/ghcr/org/image:tag` |
+| `lscr.io/linuxserver/app:tag` | `harbor.server.unarmedpuppy.com/lscr/linuxserver/app:tag` |
+
+**Custom Images:** Push to `harbor.server.unarmedpuppy.com/library/`
+
+See `apps/harbor/README.md` for complete Harbor documentation.
+
 ## Quick Commands
 
 ```bash

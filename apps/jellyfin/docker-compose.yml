@@ -5,7 +5,8 @@ x-enabled: false
 
 services:
   jellyfin:
-    image: jellyfin/jellyfin
+    # image: jellyfin/jellyfin
+    image: harbor.server.unarmedpuppy.com/docker-hub/jellyfin/jellyfin:latest
     user: "${UID}:${GID}"
     command: ["/bin/bash", "entrypoint.sh"]
     container_name: jellyfin

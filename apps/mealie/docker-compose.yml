@@ -1,7 +1,8 @@
 version: "3.7"
 services:
   mealie:
-    image: ghcr.io/mealie-recipes/mealie:v1.1.0 # 
+    # image: ghcr.io/mealie-recipes/mealie:v1.1.0
+    image: harbor.server.unarmedpuppy.com/ghcr/mealie-recipes/mealie:v1.1.0
     container_name: mealie
     ports:
         - "9925:9000" # 

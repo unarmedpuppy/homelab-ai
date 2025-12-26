@@ -6,6 +6,7 @@ volumes:
 
 services:
   freshrss:
+    # image: freshrss/freshrss:latest
     image: harbor.server.unarmedpuppy.com/docker-hub/freshrss/freshrss:latest
     restart: unless-stopped
     ports:
@@ -49,6 +50,7 @@ services:
       - "homepage.href=https://freshrss.server.unarmedpuppy.com"
 
   db:
+    # image: postgres:latest
     image: harbor.server.unarmedpuppy.com/docker-hub/library/postgres:latest
     environment:
       POSTGRES_USER: freshrss

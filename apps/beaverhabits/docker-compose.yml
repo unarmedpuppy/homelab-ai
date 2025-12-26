@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   beaverhabits:
+    # image: daya0576/beaverhabits:latest
     image: harbor.server.unarmedpuppy.com/docker-hub/daya0576/beaverhabits:latest
     container_name: beaverhabits
     restart: unless-stopped

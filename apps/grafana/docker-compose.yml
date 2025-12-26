@@ -6,7 +6,8 @@ x-enabled: true
 services:
 
   loki:
-    image: grafana/loki:latest
+    # image: grafana/loki:latest
+    image: harbor.server.unarmedpuppy.com/docker-hub/grafana/loki:latest
     hostname: loki
     container_name: loki
     volumes:
@@ -20,7 +21,8 @@ services:
       - my-network
 
   promtail:
-    image: grafana/promtail:latest
+    # image: grafana/promtail:latest
+    image: harbor.server.unarmedpuppy.com/docker-hub/grafana/promtail:latest
     container_name: promtail
     depends_on:
       - loki
@@ -35,7 +37,8 @@ services:
       - my-network
 
   influxdb:
-    image: influxdb:1.8.10
+    # image: influxdb:1.8.10
+    image: harbor.server.unarmedpuppy.com/docker-hub/library/influxdb:1.8.10
     container_name: influxdb
     hostname: influxdb
     restart: unless-stopped
@@ -53,7 +56,8 @@ services:
       - my-network
 
   telegraf:
-    image: telegraf:latest
+    # image: telegraf:latest
+    image: harbor.server.unarmedpuppy.com/docker-hub/library/telegraf:latest
     restart: unless-stopped
     user: telegraf:994 # see: https://www.influxdata.com/blog/docker-run-telegraf-as-non-root/
     container_name: telegraf
@@ -82,7 +86,8 @@ services:
       - my-network
 
   prometheus:
-    image: prom/prometheus:v2.21.0
+    # image: prom/prometheus:v2.21.0
+    image: harbor.server.unarmedpuppy.com/docker-hub/prom/prometheus:v2.21.0
     container_name: prometheus
     ports:
       - "9090:9090"
@@ -102,7 +107,8 @@ services:
       - influxdb
       - loki
       - promtail
-    image: grafana/grafana:latest
+    # image: grafana/grafana:latest
+    image: harbor.server.unarmedpuppy.com/docker-hub/grafana/grafana:latest
     restart: unless-stopped
     environment:
       - GF_SERVER_ROOT_URL=https://grafana.server.unarmedpuppy.com # optional

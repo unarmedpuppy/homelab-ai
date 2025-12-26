@@ -2,7 +2,8 @@ x-enabled: true
 
 services:
   lubelog:
-    image: ghcr.io/hargata/lubelogger:latest
+    # image: ghcr.io/hargata/lubelogger:latest
+    image: harbor.server.unarmedpuppy.com/ghcr/hargata/lubelogger:latest
     container_name: lubelog
     restart: unless-stopped
     environment:

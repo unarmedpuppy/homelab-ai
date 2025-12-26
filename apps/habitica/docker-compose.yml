@@ -55,7 +55,8 @@ services:
       - "homepage.description=Gamified habit tracker and task manager"
 
   db:
-    image: mongo:7
+    # image: mongo:7
+    image: harbor.server.unarmedpuppy.com/docker-hub/library/mongo:7
     container_name: habitica-db
     restart: unless-stopped
     volumes:

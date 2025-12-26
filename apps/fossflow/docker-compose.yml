@@ -2,6 +2,7 @@ x-enabled: true
 
 services:
   fossflow:
+    # image: stnsmith/fossflow:latest
     image: harbor.server.unarmedpuppy.com/docker-hub/stnsmith/fossflow:latest
     container_name: fossflow
     restart: unless-stopped
