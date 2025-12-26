@@ -295,9 +295,82 @@ python3 ~/server/scripts/organize-kids-films.py
 ---
 
 ## Utilities
+### backup-configurator.py
+Interactive TUI tool for creating surgical backup selections from jenquist-cloud to Backblaze B2.
+
+**When to Use:**
+- **Selective Backup**: When you want to reduce B2 storage costs by backing up only specific directories
+- **Cost Optimization**: Current backup is ~21TB - use this to select essential directories only
+- **Multiple Profiles**: Create different backup strategies (personal media, system configs, entertainment media)
+- **Exclude Management**: Exclude temporary files, caches, and non-essential data
+
+**Usage:**
+```bash
+# Run interactively
+python3 scripts/backup-configurator.py
+
+# Specify custom base path
+python3 scripts/backup-configurator.py --base-path /mnt/data
+
+# Use different rclone remote
+python3 scripts/backup-configurator.py --remote my-b2-remote:
+```
+
+**Features:**
+- Browse `/jenquist-cloud` structure interactively with directory sizes
+- Select/deselect directories for backup with real-time size estimation
+- Configure exclude patterns (*.tmp, .DS_Store, .cache/, etc.)
+- Generate optimized rclone commands with include files
+- Save and load multiple backup configurations
+- Cost estimation showing potential B2 storage savings
+- Dry-run support for testing before execution
+
+**Key Benefits:**
+- **Cost Reduction**: Typical savings of 70-90% vs full jenquist-cloud backup
+- **Faster Backups**: Only backup what you actually need
+- **Selective Recovery**: Restore specific directories without full restore
+- **Profile Management**: Save different backup strategies for different needs
+
+**Generated Files:**
+- **Include files**: `~/.rclone-include-{profile}.txt` - rclone path patterns
+- **Configurations**: `~/.backup-configs.json` - saved backup profiles
+- **Commands**: Optimized rclone commands with proper performance flags
+
+**Cost Savings Examples:**
+| Backup Type | Size | Monthly B2 Cost | Savings |
+|-------------|------|------------------|---------|
+| Full jenquist-cloud | ~21TB | $126 | 0% |
+| Personal media only | ~2TB | $12 | 90% |
+| System configs | ~50GB | $0.30 | 99% |
+| Entertainment media | ~5TB | $30 | 76% |
+
+*Based on $6/TB/month B2 pricing
+
+**Examples:**
+```bash
+# Personal media only backup (~2TB vs 21TB full)
+python3 scripts/backup-configurator.py
+# Select: archive/personal-media
+# Save as: "personal-media-backup"
+# Generated command:
+rclone sync /jenquist-cloud b2-encrypted: \
+    --include-from ~/.rclone-include-personal-media-backup.txt \
+    --exclude "*.tmp" --exclude "*.temp" --exclude ".DS_Store" \
+    --transfers 4 --checkers 8 --progress --stats 1m --stats-one-line
+
+# System configs backup (~50GB, $0.30/month vs $126 full)
+python3 scripts/backup-configurator.py
+# Select: backups/, harbor/, vault/
+# Save as: "system-configs"
+# Estimated monthly cost: $0.30 vs $126 for full backup
+
+# Entertainment media with exclusions
+python3 scripts/backup-configurator.py
+# Configure excludes: *.mkv, *.iso, downloads/
+# Select: archive/entertainment-media (but exclude large files)
+```
 
 ### check-service-health.sh
-
 Quick health check for all Docker services.
 
 **Usage:**
