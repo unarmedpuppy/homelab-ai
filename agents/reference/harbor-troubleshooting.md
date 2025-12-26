@@ -92,46 +92,32 @@ location /v2/ {
 }
 ```
 
-#### Issue 2: Registry missing htpasswd auth for internal communication
+#### Issue 2: Registry auth configuration (htpasswd vs token)
 
 **Symptom**:
-- Token works when tested directly against registry
-- harbor-core logs show no errors
 - harbor-registry logs show "authorization token required" for requests from core
+- Or registry fails to start with "must provide exactly one type"
 
-**Diagnosis**:
-```bash
-# Check registry auth config
-docker exec harbor-registry cat /etc/registry/config.yml | grep -A 10 'auth:'
+**Key insight**: Docker Registry v2 only supports ONE auth type. Official Harbor uses **htpasswd only** on the registry. Token auth is handled by harbor-core for external clients.
 
-# Test core's credentials against registry
-docker exec harbor-core curl -s -u harbor_registry_user:$CORE_SECRET \
-  'http://harbor-registry:5000/v2/'
-```
-If this returns 401, registry doesn't accept basic auth.
+**Root cause**: We initially tried both token + htpasswd, but registry only supports one.
 
-**Root cause**: Registry only configured for token auth, but harbor-core uses basic auth (htpasswd) for internal communication.
-
-**Fix**: Add htpasswd config to registry.
+**Fix**: Use htpasswd-only auth (like official Harbor).
 
 1. Create passwd file:
    ```bash
    htpasswd -Bbn harbor_registry_user <HARBOR_CORE_SECRET> > apps/harbor/config/registry/passwd
    ```
 
-2. Update `apps/harbor/config/registry/config.yml`:
+2. Update `apps/harbor/config/registry/config.yml` with htpasswd ONLY:
    ```yaml
    auth:
      htpasswd:
        realm: harbor-registry-basic-realm
        path: /etc/registry/passwd
-     token:
-       issuer: harbor-token-issuer
-       realm: https://harbor.server.unarmedpuppy.com/service/token
-       rootcertbundle: /etc/registry/root.crt
-       service: harbor-registry
-       autoredirect: false
    ```
+
+   **DO NOT** add token auth section - harbor-core handles client tokens.
 
 3. Mount passwd file in `docker-compose.yml`:
    ```yaml
@@ -162,6 +148,38 @@ openssl req -new -x509 -key config/core/private_key.pem \
   -subj "/CN=harbor-token-issuer"
 chmod 644 config/core/private_key.pem config/registry/root.crt
 ```
+
+#### Issue 4: Push fails with EOF or retries indefinitely
+
+**Symptom**: `docker push` keeps retrying, eventually fails with EOF.
+
+**Diagnosis**:
+```bash
+# Check registry logs
+docker logs harbor-registry --tail 30 2>&1 | grep -E 'error|POST'
+```
+
+**Possible causes**:
+
+1. **Storage permission denied**:
+   ```
+   err.detail="filesystem: mkdir /storage/docker: permission denied"
+   ```
+   Registry runs as UID 10000. Fix:
+   ```bash
+   sudo chown -R 10000:10000 /jenquist-cloud/harbor/registry
+   ```
+
+2. **Internal Location URLs**:
+   Registry returns `Location: http://harbor-registry:5000/...` which clients can't reach.
+
+   Fix in `config/registry/config.yml`:
+   ```yaml
+   http:
+     addr: :5000
+     relativeurls: true
+     host: https://harbor.server.unarmedpuppy.com
+   ```
 
 ## Storage Configuration
 
