@@ -21,7 +21,8 @@ redis:
   db: 2
 http:
   addr: :5000
-  relativeurls: false
+  relativeurls: true
+  host: https://harbor.server.unarmedpuppy.com
   debug:
     addr: :5001
     prometheus:
