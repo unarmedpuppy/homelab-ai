@@ -2,7 +2,8 @@ x-enabled: true
 
 services:
   mattermost:
-    image: mattermost/mattermost-team-edition:latest
+    # image: mattermost/mattermost-team-edition:latest
+    image: harbor.server.unarmedpuppy.com/docker-hub/mattermost/mattermost-team-edition:latest
     container_name: mattermost
     restart: unless-stopped
     environment:
@@ -72,7 +73,8 @@ services:
       - "homepage.description=Team collaboration and chat platform"
 
   postgres:
-    image: postgres:14-alpine
+    # image: postgres:14-alpine
+    image: harbor.server.unarmedpuppy.com/docker-hub/library/postgres:14-alpine
     container_name: mattermost-postgres
     restart: unless-stopped
     environment:
@@ -91,7 +93,8 @@ services:
       retries: 5
 
   redis:
-    image: redis:7-alpine
+    # image: redis:7-alpine
+    image: harbor.server.unarmedpuppy.com/docker-hub/library/redis:7-alpine
     container_name: mattermost-redis
     restart: unless-stopped
     command: redis-server --appendonly yes

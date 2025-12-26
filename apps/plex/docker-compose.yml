@@ -4,7 +4,8 @@ x-external: true
 
 services:
     pms-docker:
-        image: plexinc/pms-docker
+        # image: plexinc/pms-docker
+        image: harbor.server.unarmedpuppy.com/docker-hub/plexinc/pms-docker:latest
         container_name: plex
         #network_mode: host
         environment:

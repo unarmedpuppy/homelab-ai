@@ -26,13 +26,15 @@
 # documentation.
 services:
   broker:
-    image: docker.io/library/redis:8
+    # image: docker.io/library/redis:8
+    image: harbor.server.unarmedpuppy.com/docker-hub/library/redis:8
     restart: unless-stopped
     networks: [my-network]
     volumes:
       - redisdata:/data
   db:
-    image: docker.io/library/postgres:17
+    # image: docker.io/library/postgres:17
+    image: harbor.server.unarmedpuppy.com/docker-hub/library/postgres:17
     restart: unless-stopped
     networks: [my-network]
     volumes:
@@ -42,7 +44,8 @@ services:
       POSTGRES_USER: paperless
       POSTGRES_PASSWORD: paperless
   webserver:
-    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    # image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    image: harbor.server.unarmedpuppy.com/ghcr/paperless-ngx/paperless-ngx:latest
     container_name: paperless
     restart: unless-stopped
     depends_on:
