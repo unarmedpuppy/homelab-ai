@@ -28,9 +28,6 @@ http:
       enabled: true
       path: /metrics
 auth:
-  htpasswd:
-    realm: harbor-registry-basic-realm
-    path: /etc/registry/passwd
   token:
     issuer: harbor-token-issuer
     realm: https://harbor.server.unarmedpuppy.com/service/token
