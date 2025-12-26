@@ -332,6 +332,81 @@ This is the "gold standard" for disaster recovery but requires additional setup.
 
 ---
 
+## Selective Backup with backup-configurator
+
+### Overview
+
+The backup-configurator tool enables **surgical backup selection** to reduce B2 storage costs by only backing up essential directories instead of the entire ~21TB pool.
+
+| Component | Value |
+|-----------|-------|
+| **Tool** | `scripts/backup-configurator.py` |
+| **Agent** | `agents/personas/backup-agent.md` |
+| **Skill** | `agents/skills/backup-configurator/SKILL.md` |
+| **Config Storage** | `~/.backup-configs.json` |
+
+### Why Use Selective Backup
+
+| Approach | Data Size | Monthly Cost |
+|----------|-----------|--------------|
+| Full pool backup | ~21 TB | ~$126/month |
+| Personal media only | ~2 TB | ~$12/month |
+| Critical data only | ~500 GB | ~$3/month |
+
+### Quick Start
+
+```bash
+# Run interactively on server
+scripts/connect-server.sh "python3 ~/server/scripts/backup-configurator.py"
+
+# List saved configurations
+scripts/connect-server.sh "python3 ~/server/scripts/backup-configurator.py list"
+
+# Show configuration details
+scripts/connect-server.sh "python3 ~/server/scripts/backup-configurator.py show CONFIG_NAME"
+
+# Test with dry-run
+scripts/connect-server.sh "python3 ~/server/scripts/backup-configurator.py run CONFIG_NAME --dry-run"
+```
+
+### Recommended Backup Priorities
+
+| Priority | Directories | Why |
+|----------|-------------|-----|
+| **Critical** | `vault/`, `backups/` | Irreplaceable personal data |
+| **High** | `archive/personal-media/` | Photos, documents, memories |
+| **Medium** | `archive/entertainment-media/Music/` | Music collection |
+| **Low/Skip** | `harbor/`, `archive/entertainment-media/Movies/` | Can be re-downloaded |
+
+### Default Exclude Patterns
+
+The tool excludes these by default:
+- `*.tmp`, `*.temp` - Temporary files
+- `.DS_Store`, `Thumbs.db` - OS metadata
+- `.cache/`, `tmp/`, `temp/` - Cache directories
+- `.Trash/` - Trash folders
+
+### Configuration File Format
+
+Configs stored in `~/.backup-configs.json`:
+
+```json
+{
+  "configs": [
+    {
+      "name": "personal-essentials",
+      "source_paths": ["vault/", "backups/", "archive/personal-media/"],
+      "exclude_patterns": ["*.tmp", ".cache/"],
+      "priority": "high",
+      "enabled": true,
+      "rclone_remote": "b2-encrypted:"
+    }
+  ]
+}
+```
+
+---
+
 ## Quick Reference
 
 ### Check All Backup Systems
@@ -353,6 +428,8 @@ zpool status jenquist-cloud
 | What | Where |
 |------|-------|
 | B2 backup script | `scripts/backup-to-b2.sh` |
+| Backup configurator | `scripts/backup-configurator.py` |
+| Backup configs | `~/.backup-configs.json` |
 | B2 logs | `~/server/logs/backups/` |
 | rclone config | `~/.config/rclone/rclone.conf` |
 | rsnapshot config | `/etc/rsnapshot.conf` |
