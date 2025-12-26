@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   firefly-iii:
-    image: fireflyiii/core:latest
+    image: harbor.server.unarmedpuppy.com/docker-hub/fireflyiii/core:latest
     container_name: firefly-iii
     restart: unless-stopped
     depends_on:
@@ -57,7 +57,7 @@ services:
       - "homepage.description=Personal finance manager"
 
   db:
-    image: postgres:14-alpine
+    image: harbor.server.unarmedpuppy.com/docker-hub/library/postgres:14-alpine
     container_name: firefly-iii-db
     restart: unless-stopped
     volumes:
