@@ -33,10 +33,14 @@ async def on_message(message):
     if message.author.bot:
         if client.user not in message.mentions:
             return
-
-    # Add a random reaction
-    try:
+        # Use robot emoji for bot/webhook mentions
+        emoji = '🤖'
+    else:
+        # Use random emoji for human messages
         emoji = random.choice(REACTIONS)
+
+    # Add reaction
+    try:
         await message.add_reaction(emoji)
     except discord.errors.Forbidden:
         print(f"Cannot add reaction in {message.channel}")
