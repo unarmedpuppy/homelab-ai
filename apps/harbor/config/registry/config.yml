@@ -28,12 +28,9 @@ http:
       enabled: true
       path: /metrics
 auth:
-  token:
-    issuer: harbor-token-issuer
-    realm: https://harbor.server.unarmedpuppy.com/service/token
-    rootcertbundle: /etc/registry/root.crt
-    service: harbor-registry
-    autoredirect: false
+  htpasswd:
+    realm: harbor-registry-basic-realm
+    path: /etc/registry/passwd
 validation:
   disabled: true
 compatibility:
