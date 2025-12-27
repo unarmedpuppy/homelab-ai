@@ -4,6 +4,7 @@ x-enabled: true
 
 services:
   adguard:
+    x-essential: true
     container_name: adguard
     hostname: adguard
     # image: adguard/adguardhome:latest

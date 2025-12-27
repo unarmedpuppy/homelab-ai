@@ -1,6 +1,7 @@
 version: "3"
 services:
   cloudflare-ddns:
+    x-essential: true
     # image: favonia/cloudflare-ddns:latest
     image: harbor.server.unarmedpuppy.com/docker-hub/favonia/cloudflare-ddns:latest
     container_name: cloudflare-ddns

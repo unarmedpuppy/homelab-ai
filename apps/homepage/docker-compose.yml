@@ -1,6 +1,7 @@
 version: "3.3"
 services:
   homepage:
+    x-essential: true
     # image: ghcr.io/gethomepage/homepage:latest
     image: harbor.server.unarmedpuppy.com/ghcr/gethomepage/homepage:latest
     container_name: homepage
