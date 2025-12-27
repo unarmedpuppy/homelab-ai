@@ -1243,6 +1243,12 @@ sudo crontab -e
 15 5 * * * /sbin/reboot
 ```
 
+**Plex Cleanup** (Daily at 3:30 AM):
+```
+30 3 * * * /home/unarmedpuppy/server/scripts/plex-cleanup-cron.sh
+```
+Auto-deletes watched TV episodes based on Sonarr's `auto-delete` tag. See [agents/reference/plex-cleanup.md](agents/reference/plex-cleanup.md) for details.
+
 **Backup Rust Player Data** (First Wednesday of each month):
 ```
 0 0 1-7 * * [ "$(date +\%u)" = "3" ] && ~/server/scripts/backup-rust.sh
