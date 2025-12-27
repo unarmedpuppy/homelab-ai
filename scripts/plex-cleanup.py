@@ -55,9 +55,9 @@ DEFAULT_CONFIG = {
         "Game of Thrones",
         "Mad Men",
         "Curb Your Enthusiasm",
-        "Bojack Horseman",
+        "BoJack Horseman",
         # Kids shows (rewatched constantly)
-        "Bluey",
+        "Bluey (2018)",
         "Spidey and His Amazing Friends",
         "Star Wars: Young Jedi Adventures",
         "Mickey Mouse Clubhouse",
