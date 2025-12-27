@@ -45,7 +45,9 @@ rclone sync "$SOURCE" "$BUCKET" \
     --log-file "$LOG_FILE" \
     --log-level INFO \
     --stats 1m \
-    --stats-one-line
+    --stats-one-line \
+    --exclude "backups/rsnapshot/*/localhost/var/lib/docker/**" \
+    --exclude "backups/rsnapshot/*/localhost/etc/cups/ssl/**"
 
 RESULT=$?
 
