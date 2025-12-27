@@ -6,7 +6,14 @@
 
 ## Overview
 
-Run a secondary server that mirrors the primary, ready to take over automatically when the primary fails.
+Run a secondary server with **essential services only**, ready to take over automatically when the primary fails. Non-essential services (media, monitoring, etc.) remain offline until primary recovers.
+
+### Key Design Decisions
+
+1. **Essential services only** - Reduces secondary hardware requirements
+2. **Data sync from B2** - Not real-time ZFS replication (simpler, cheaper)
+3. **`x-essential: true`** - Docker Compose flag marks services for failover
+4. **Acceptable RPO** - Recovery Point Objective is last B2 backup (~24h max)
 
 ## Architecture
 
@@ -26,16 +33,77 @@ Run a secondary server that mirrors the primary, ready to take over automaticall
               │                                       │
      ┌────────┴────────┐                   ┌─────────┴────────┐
      │   PRIMARY       │                   │   SECONDARY      │
-     │ 192.168.86.47   │    ZFS Send/Recv  │  192.168.86.48   │
-     │                 │ ─────────────────→│                  │
-     │  ┌───────────┐  │                   │  ┌───────────┐   │
-     │  │  Traefik  │  │                   │  │  Traefik  │   │
-     │  │  Docker   │  │                   │  │  Docker   │   │
-     │  │  ZFS Pool │  │                   │  │  ZFS Pool │   │
+     │ 192.168.86.47   │                   │  192.168.86.48   │
+     │                 │     B2 Backup     │                  │
+     │  ┌───────────┐  │ ═══════════════►  │  ┌───────────┐   │
+     │  │ ALL APPS  │  │  (daily sync)     │  │ ESSENTIAL │   │
+     │  │  50+ svcs │  │                   │  │  ~10 svcs │   │
+     │  │  ZFS Pool │  │                   │  │  SSD only │   │
      │  └───────────┘  │                   │  └───────────┘   │
      │                 │                   │                  │
      │  MASTER state   │                   │  BACKUP state    │
      └─────────────────┘                   └──────────────────┘
+```
+
+---
+
+## Essential Services
+
+Services marked with `x-essential: true` run on failover. All others wait for primary recovery.
+
+### Proposed Essential Services
+
+| Service | Why Essential | Data Needs |
+|---------|---------------|------------|
+| **traefik** | Reverse proxy for all services | Certs (in git) |
+| **cloudflare-ddns** | DNS updates for domain | None |
+| **adguard** | DNS for home network | Config (small) |
+| **homepage** | Dashboard/status page | Config (in git) |
+| **wireguard** | VPN access | Config (small) |
+| **vaultwarden** | Password manager | DB (~50MB) |
+| **authelia** | SSO/2FA | DB (small) |
+| **n8n** | Automation workflows | DB, workflows |
+| **homeassistant** | Smart home control | DB, config |
+| **frigate** | Security cameras | Config only (no recordings) |
+
+### Non-Essential (Stay Offline)
+
+| Service | Why Not Essential |
+|---------|-------------------|
+| plex, jellyfin | Media streaming can wait |
+| sonarr, radarr, etc. | Media automation can wait |
+| paperless | Document management can wait |
+| grafana, prometheus | Monitoring secondary is overkill |
+| harbor | Registry not needed on secondary |
+| polymarket-bot | Trading can pause |
+| ollama, local-ai | AI inference can wait |
+
+### Docker Compose Flag
+
+```yaml
+# apps/vaultwarden/docker-compose.yml
+services:
+  vaultwarden:
+    image: vaultwarden/server:latest
+    x-essential: true  # <-- Included in failover
+    # ... rest of config
+```
+
+### Failover Script Reads Flag
+
+```bash
+#!/bin/bash
+# scripts/start-essential-services.sh
+
+cd /home/unarmedpuppy/server
+
+for compose in apps/*/docker-compose.yml; do
+    # Check for x-essential: true
+    if grep -q "x-essential: true" "$compose"; then
+        echo "Starting essential service: $(dirname $compose)"
+        docker compose -f "$compose" up -d
+    fi
+done
 ```
 
 ## Components
@@ -50,21 +118,42 @@ Primary fails     → VIP moves to secondary (192.168.86.48)
 Primary recovers  → VIP stays on secondary (manual failback)
 ```
 
-### 2. ZFS Replication
+### 2. Data Sync Strategy
 
-Continuous data sync from primary to secondary:
+**Not real-time ZFS replication** - Instead, use existing B2 backup:
+
+```
+Primary → B2 (daily backup) → Secondary (on-demand restore)
+```
+
+#### Essential Data Only
+Most essential services have minimal data:
+- **vaultwarden**: ~50MB SQLite DB
+- **adguard**: Config files only
+- **homeassistant**: Config + small DB
+- **n8n**: Workflows + DB
+
+#### Sync Options
+
+| Option | RPO | Complexity | When to Use |
+|--------|-----|------------|-------------|
+| **B2 restore on failover** | ~24h | Low | Default |
+| **Daily rclone to secondary** | ~24h | Low | Pre-staged data |
+| **Hourly rclone critical DBs** | ~1h | Medium | If needed |
+
+#### Pre-Staged Essential Data
 
 ```bash
-# Every 15 minutes
-zfs send -i @prev jenquist-cloud@now | ssh secondary zfs recv jenquist-cloud
+# Daily cron on secondary - sync essential data only
+0 4 * * * rclone sync b2-encrypted:vault/essential /data/essential
 ```
 
 ### 3. Docker Service Sync
 
-Secondary runs containers in standby mode:
-- Containers pulled and ready
-- Configs synced via git
-- Services start on failover
+Secondary pre-pulls essential images only:
+- Git pull for configs (daily cron)
+- `docker compose pull` for essential services
+- Services start on failover via `start-essential-services.sh`
 
 ### 4. Cloudflare DNS
 
@@ -77,24 +166,29 @@ External DNS points to your public IP. Cloudflare handles:
 
 ## Hardware Requirements
 
+Since we only run ~10 essential services (not 50+), requirements are minimal.
+
 ### Secondary Server Options
 
 | Option | Specs | Cost | Notes |
 |--------|-------|------|-------|
-| **Identical clone** | Same as primary | ~$800 | Best compatibility |
-| **Mini PC** | Intel N100, 32GB RAM, 1TB NVMe | ~$300 | Good for most services |
-| **Old PC repurposed** | Whatever you have | $0 | May lack features |
-| **Cloud VM** | 4 vCPU, 16GB RAM | ~$80/mo | No ZFS replication |
+| **Mini PC (recommended)** | Intel N100, 16GB RAM, 256GB NVMe | ~$200 | Perfect for essentials |
+| **Raspberry Pi 5** | 8GB RAM, 256GB SD | ~$120 | Minimal power |
+| **Old laptop** | Any 8GB+ RAM | $0 | Repurpose existing |
+| **Cloud VM** | 2 vCPU, 4GB RAM | ~$20/mo | Off-site redundancy |
 
 ### Minimum Requirements
-- 16GB+ RAM (for Docker services)
-- Network: Gigabit LAN
-- Storage: Enough for ZFS pool replica
+- **RAM**: 8GB (16GB preferred)
+- **Storage**: 256GB SSD (essential data only, no media)
+- **Network**: Gigabit LAN
+- **CPU**: Any x86_64 (arm64 if all images support it)
 
-### Recommended
-- Same/similar CPU architecture
-- Same storage capacity
-- UPS on both servers
+### Why So Light?
+- No media storage (Plex, Sonarr data stays on primary)
+- No AI inference (Ollama, local-ai)
+- No monitoring stack (Grafana, Prometheus)
+- No Harbor registry
+- Just core infrastructure + password manager + home automation
 
 ---
 
