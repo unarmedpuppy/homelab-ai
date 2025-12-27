@@ -162,15 +162,16 @@ Run periodically (monthly recommended):
 
 ## Services Needing Attention
 
-### Need Log Rotation Added
+### Log Rotation Status
 
-Based on 2024-12-26 audit:
+All major services now have log rotation configured:
 
-| Service | Location | Priority |
-|---------|----------|----------|
-| newsblur | apps/newsblur/docker-compose.yml | High (1 GB logs) |
-| nzbget | apps/media-download/docker-compose.yml | Medium |
-| trading-bot (grafana) | apps/trading-bot/docker-compose.yml | Low |
+| Service | Status | Notes |
+|---------|--------|-------|
+| polymarket-bot | ✅ Fixed | Log rotation added 2024-12-26 |
+| nzbget | ✅ Fixed | Log rotation added 2024-12-26 |
+| trading-bot (grafana) | ✅ Fixed | Log rotation added 2024-12-26 |
+| newsblur | ❌ Removed | Service deleted 2024-12-26 |
 
 ### Consider Removing
 
@@ -205,6 +206,17 @@ Based on 2024-12-26 audit:
 3. Deleted app directory
 
 **Space freed**: ~10 GB
+
+### 2024-12-26: newsblur removal (~1 GB logs + volumes)
+
+**Problem**: NewsBlur was unused (had 4 containers: web, postgres, mongodb, redis).
+
+**Fix**:
+1. Stopped all containers with `docker compose down -v`
+2. Removed all volumes (postgres-data, mongodb-data, redis-data)
+3. Deleted app directory
+
+**Space freed**: ~1-2 GB
 
 ---
 
@@ -243,8 +255,9 @@ Already scheduled via cron:
 |------|--------|-------------|
 | 2024-12-26 | polymarket-bot log truncation | 220 GB |
 | 2024-12-26 | habitica removal | ~10 GB |
+| 2024-12-26 | newsblur removal | ~1-2 GB |
 | 2024-12-26 | Docker prune | ~1 GB |
-| **Total** | | **~231 GB** |
+| **Total** | | **~232-233 GB** |
 
 ### Current Largest Consumers (System Drive)
 

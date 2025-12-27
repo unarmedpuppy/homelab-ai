@@ -195,6 +195,11 @@ services:
     # image: lscr.io/linuxserver/nzbget:latest
     image: harbor.server.unarmedpuppy.com/lscr/linuxserver/nzbget:latest
     container_name: media-download-nzbget
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
     environment:
       - PUID=1000
       - PGID=1000
