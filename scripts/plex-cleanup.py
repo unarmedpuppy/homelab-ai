@@ -2,8 +2,8 @@
 """
 Plex Auto-Delete Watched Episodes
 
-Automatically deletes watched TV episodes after a configurable time period,
-with support for protected shows that are never deleted.
+Automatically deletes watched TV episodes after a configurable time period.
+Uses Sonarr's monitored status as the source of truth for protected shows.
 
 Usage:
     python3 plex-cleanup.py                    # Interactive TUI
@@ -13,14 +13,23 @@ Usage:
     python3 plex-cleanup.py --config           # Show current configuration
 
 Environment:
-    PLEX_URL    - Plex server URL (default: http://localhost:32400)
-    PLEX_TOKEN  - Plex authentication token (required)
+    PLEX_URL      - Plex server URL (default: http://localhost:32400)
+    PLEX_TOKEN    - Plex authentication token (required)
+    SONARR_URL    - Sonarr API URL (default: http://localhost:8989)
+    SONARR_API_KEY - Sonarr API key (auto-detected from config if not set)
+
+Protection Logic:
+    - Shows MONITORED in Sonarr = Protected (never deleted)
+    - Shows UNMONITORED in Sonarr = Eligible for deletion after retention period
+    - Shows not in Sonarr = Use manual protected_shows list as fallback
 """
 
 import os
 import sys
 import json
 import argparse
+import urllib.request
+import urllib.error
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -33,6 +42,7 @@ except ImportError:
 # Configuration
 CONFIG_FILE = Path.home() / ".plex-cleanup-config.json"
 LOG_FILE = Path.home() / "server/logs/plex-cleanup.log"
+SONARR_CONFIG_FILE = Path.home() / "server/apps/media-download/sonarr/config/config.xml"
 
 DEFAULT_CONFIG = {
     "global_defaults": {
@@ -40,30 +50,8 @@ DEFAULT_CONFIG = {
         "enabled": True
     },
     "protected_shows": [
-        # Classic sitcoms and dramas (rewatchable favorites)
-        "30 Rock",
-        "The Office",
-        "Parks and Recreation",
-        "Breaking Bad",
-        "Better Call Saul",
-        "Arrested Development",
-        "Brooklyn Nine-Nine",
-        "Bob's Burgers",
-        "Seinfeld",
-        "Friends",
-        "The Sopranos",
-        "Game of Thrones",
-        "Mad Men",
-        "Curb Your Enthusiasm",
-        "BoJack Horseman",
-        # Kids shows (rewatched constantly)
-        "Bluey (2018)",
-        "Spidey and His Amazing Friends",
-        "Star Wars: Young Jedi Adventures",
-        "Mickey Mouse Clubhouse",
-        "Peppa Pig",
-        "Paw Patrol",
-        "Cocomelon"
+        # Fallback list for shows not in Sonarr
+        # Sonarr monitored status is the primary source of truth
     ],
     "custom_retention": {
         "Below Deck": 3,
@@ -74,8 +62,88 @@ DEFAULT_CONFIG = {
         "Survivor": 7,
         "The Walking Dead": 7
     },
-    "target_libraries": ["TV Shows", "tv", "Shows"]
+    "target_libraries": ["TV Shows", "tv", "Shows", "Kids - TV Shows"]
 }
+
+# Cache for Sonarr data (refreshed each run)
+_sonarr_cache = None
+
+
+def get_sonarr_api_key():
+    """Get Sonarr API key from environment or config file."""
+    api_key = os.environ.get('SONARR_API_KEY')
+    if api_key:
+        return api_key
+
+    # Try to read from Sonarr config
+    if SONARR_CONFIG_FILE.exists():
+        try:
+            import re
+            content = SONARR_CONFIG_FILE.read_text()
+            match = re.search(r'<ApiKey>([^<]+)</ApiKey>', content)
+            if match:
+                return match.group(1)
+        except Exception:
+            pass
+
+    return None
+
+
+def get_sonarr_shows():
+    """Fetch all shows from Sonarr with their monitoring settings."""
+    global _sonarr_cache
+    if _sonarr_cache is not None:
+        return _sonarr_cache
+
+    sonarr_url = os.environ.get('SONARR_URL', 'http://localhost:8989')
+    api_key = get_sonarr_api_key()
+
+    if not api_key:
+        print("Warning: Could not get Sonarr API key. Using fallback protected list.")
+        _sonarr_cache = {}
+        return _sonarr_cache
+
+    try:
+        url = f"{sonarr_url}/api/v3/series"
+        req = urllib.request.Request(url, headers={'X-Api-Key': api_key})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            data = json.loads(response.read().decode())
+            # Store both monitored status and monitorNewItems type
+            _sonarr_cache = {
+                show['title']: {
+                    'monitored': show.get('monitored', False),
+                    'monitorNewItems': show.get('monitorNewItems', 'all')
+                }
+                for show in data
+            }
+            return _sonarr_cache
+    except Exception as e:
+        print(f"Warning: Could not connect to Sonarr ({e}). Using fallback protected list.")
+        _sonarr_cache = {}
+        return _sonarr_cache
+
+
+def should_protect_show(show_title, config):
+    """
+    Determine if a show should be protected from deletion.
+
+    Protection logic (based on Sonarr's monitorNewItems setting):
+    - 'future' = DELETE watched episodes (you watch once and move on)
+    - 'all', 'none', 'existing', 'missing', etc. = PROTECT (keep forever)
+
+    Shows not in Sonarr use the fallback protected_shows list.
+    """
+    sonarr_shows = get_sonarr_shows()
+
+    if show_title in sonarr_shows:
+        monitor_type = sonarr_shows[show_title]['monitorNewItems']
+        # Only 'future' means "watch and delete" - all other types mean keep
+        if monitor_type == 'future':
+            return False  # Not protected - can be deleted
+        return True  # Protected - keep forever
+
+    # Fallback to manual protected list for shows not in Sonarr
+    return show_title in config.get('protected_shows', [])
 
 
 def load_config():
@@ -134,8 +202,8 @@ def get_tv_libraries(plex, config):
 
 
 def is_protected(show_title, config):
-    """Check if a show is protected from deletion."""
-    return show_title in config['protected_shows']
+    """Check if a show is protected from deletion (uses Sonarr as source of truth)."""
+    return should_protect_show(show_title, config)
 
 
 def get_retention_days(show_title, config):
@@ -192,6 +260,9 @@ def list_shows(plex, config):
     print("\n" + "=" * 80)
     print("TV SHOWS - WATCHED EPISODE COUNTS")
     print("=" * 80)
+    print("Legend: 🛡️=protected (all/none monitor), 🗑️=deletable (future monitor), ❓=not in Sonarr")
+
+    sonarr_shows = get_sonarr_shows()
 
     for library in get_tv_libraries(plex, config):
         print(f"\n📺 Library: {library.title}")
@@ -201,14 +272,23 @@ def list_shows(plex, config):
         for show in library.all():
             total_eps = len(show.episodes())
             watched_eps = sum(1 for ep in show.episodes() if ep.isWatched)
-            protected = "🛡️" if is_protected(show.title, config) else ""
             retention = get_retention_days(show.title, config)
+
+            # Determine status based on Sonarr
+            if show.title in sonarr_shows:
+                monitor_type = sonarr_shows[show.title]['monitorNewItems']
+                if monitor_type == 'future':
+                    status = "🗑️"  # Will be deleted
+                else:
+                    status = "🛡️"  # Protected
+            else:
+                status = "❓"  # Not in Sonarr
 
             shows_data.append({
                 'title': show.title,
                 'watched': watched_eps,
                 'total': total_eps,
-                'protected': protected,
+                'status': status,
                 'retention': retention
             })
 
@@ -217,8 +297,7 @@ def list_shows(plex, config):
 
         for s in shows_data:
             if s['watched'] > 0:
-                status = f"{s['protected']} " if s['protected'] else ""
-                print(f"  {status}{s['title']}: {s['watched']}/{s['total']} watched (delete after {s['retention']}d)")
+                print(f"  {s['status']} {s['title']}: {s['watched']}/{s['total']} watched (delete after {s['retention']}d)")
 
 
 def show_config(config):
