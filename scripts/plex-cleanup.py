@@ -3,7 +3,7 @@
 Plex Auto-Delete Watched Episodes
 
 Automatically deletes watched TV episodes after a configurable time period.
-Uses Sonarr's monitored status as the source of truth for protected shows.
+Uses Sonarr's 'auto-delete' tag to determine which shows to clean up.
 
 Usage:
     python3 plex-cleanup.py                    # Interactive TUI
@@ -15,13 +15,11 @@ Usage:
 Environment:
     PLEX_URL      - Plex server URL (default: http://localhost:32400)
     PLEX_TOKEN    - Plex authentication token (required)
-    SONARR_URL    - Sonarr API URL (default: http://localhost:8989)
-    SONARR_API_KEY - Sonarr API key (auto-detected from config if not set)
 
 Protection Logic:
-    - Shows MONITORED in Sonarr = Protected (never deleted)
-    - Shows UNMONITORED in Sonarr = Eligible for deletion after retention period
-    - Shows not in Sonarr = Use manual protected_shows list as fallback
+    - Shows with 'auto-delete' tag in Sonarr = Deleted after retention period
+    - All other shows = Protected (never deleted)
+    - When episodes are deleted, they are also unmonitored in Sonarr to prevent re-download
 """
 
 import os
@@ -49,11 +47,9 @@ DEFAULT_CONFIG = {
         "delete_after_days": 7,
         "enabled": True
     },
-    "protected_shows": [
-        # Fallback list for shows not in Sonarr
-        # Sonarr monitored status is the primary source of truth
-    ],
+    "sonarr_tag": "auto-delete",  # Sonarr tag name for shows to auto-delete
     "custom_retention": {
+        # Custom retention periods (days) - overrides global default
         "Below Deck": 3,
         "Below Deck Mediterranean": 3,
         "Below Deck Down Under": 3,
@@ -67,6 +63,8 @@ DEFAULT_CONFIG = {
 
 # Cache for Sonarr data (refreshed each run)
 _sonarr_cache = None
+_sonarr_tag_id = None
+_sonarr_series_data = None
 
 
 def get_sonarr_api_key():
@@ -89,61 +87,126 @@ def get_sonarr_api_key():
     return None
 
 
-def get_sonarr_shows():
-    """Fetch all shows from Sonarr with their monitoring settings."""
-    global _sonarr_cache
-    if _sonarr_cache is not None:
-        return _sonarr_cache
+def get_sonarr_tag_id(config):
+    """Get the tag ID for the auto-delete tag."""
+    global _sonarr_tag_id
+    if _sonarr_tag_id is not None:
+        return _sonarr_tag_id
+
+    sonarr_url = os.environ.get('SONARR_URL', 'http://localhost:8989')
+    api_key = get_sonarr_api_key()
+    tag_name = config.get('sonarr_tag', 'auto-delete')
+
+    if not api_key:
+        return None
+
+    try:
+        url = f"{sonarr_url}/api/v3/tag"
+        req = urllib.request.Request(url, headers={'X-Api-Key': api_key})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            tags = json.loads(response.read().decode())
+            for tag in tags:
+                if tag.get('label', '').lower() == tag_name.lower():
+                    _sonarr_tag_id = tag['id']
+                    return _sonarr_tag_id
+    except Exception as e:
+        print(f"Warning: Could not fetch Sonarr tags ({e})")
+
+    return None
+
+
+def get_sonarr_series():
+    """Fetch all series from Sonarr with their full data."""
+    global _sonarr_series_data
+    if _sonarr_series_data is not None:
+        return _sonarr_series_data
 
     sonarr_url = os.environ.get('SONARR_URL', 'http://localhost:8989')
     api_key = get_sonarr_api_key()
 
     if not api_key:
-        print("Warning: Could not get Sonarr API key. Using fallback protected list.")
-        _sonarr_cache = {}
-        return _sonarr_cache
+        print("Warning: Could not get Sonarr API key.")
+        _sonarr_series_data = []
+        return _sonarr_series_data
 
     try:
         url = f"{sonarr_url}/api/v3/series"
         req = urllib.request.Request(url, headers={'X-Api-Key': api_key})
         with urllib.request.urlopen(req, timeout=10) as response:
-            data = json.loads(response.read().decode())
-            # Store both monitored status and monitorNewItems type
-            _sonarr_cache = {
-                show['title']: {
-                    'monitored': show.get('monitored', False),
-                    'monitorNewItems': show.get('monitorNewItems', 'all')
-                }
-                for show in data
-            }
-            return _sonarr_cache
+            _sonarr_series_data = json.loads(response.read().decode())
+            return _sonarr_series_data
     except Exception as e:
-        print(f"Warning: Could not connect to Sonarr ({e}). Using fallback protected list.")
-        _sonarr_cache = {}
-        return _sonarr_cache
+        print(f"Warning: Could not connect to Sonarr ({e})")
+        _sonarr_series_data = []
+        return _sonarr_series_data
+
+
+def get_shows_with_auto_delete_tag(config):
+    """Get list of show titles that have the auto-delete tag."""
+    tag_id = get_sonarr_tag_id(config)
+    if tag_id is None:
+        print(f"Warning: Tag '{config.get('sonarr_tag', 'auto-delete')}' not found in Sonarr")
+        return set()
+
+    series = get_sonarr_series()
+    return {s['title'] for s in series if tag_id in s.get('tags', [])}
+
+
+def unmonitor_episode_in_sonarr(show_title, season_num, episode_num):
+    """Unmonitor an episode in Sonarr to prevent re-download."""
+    sonarr_url = os.environ.get('SONARR_URL', 'http://localhost:8989')
+    api_key = get_sonarr_api_key()
+
+    if not api_key:
+        return False
+
+    series = get_sonarr_series()
+    series_data = next((s for s in series if s['title'] == show_title), None)
+    if not series_data:
+        print(f"    Warning: Could not find '{show_title}' in Sonarr")
+        return False
+
+    series_id = series_data['id']
+
+    try:
+        # Get episodes for this series
+        url = f"{sonarr_url}/api/v3/episode?seriesId={series_id}"
+        req = urllib.request.Request(url, headers={'X-Api-Key': api_key})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            episodes = json.loads(response.read().decode())
+
+        # Find the matching episode
+        for ep in episodes:
+            if ep.get('seasonNumber') == season_num and ep.get('episodeNumber') == episode_num:
+                # Unmonitor this episode
+                ep['monitored'] = False
+                put_url = f"{sonarr_url}/api/v3/episode/{ep['id']}"
+                put_data = json.dumps(ep).encode('utf-8')
+                put_req = urllib.request.Request(
+                    put_url,
+                    data=put_data,
+                    headers={'X-Api-Key': api_key, 'Content-Type': 'application/json'},
+                    method='PUT'
+                )
+                urllib.request.urlopen(put_req, timeout=10)
+                return True
+
+    except Exception as e:
+        print(f"    Warning: Could not unmonitor episode in Sonarr ({e})")
+
+    return False
 
 
 def should_protect_show(show_title, config):
     """
     Determine if a show should be protected from deletion.
 
-    Protection logic (based on Sonarr's monitorNewItems setting):
-    - 'future' = DELETE watched episodes (you watch once and move on)
-    - 'all', 'none', 'existing', 'missing', etc. = PROTECT (keep forever)
-
-    Shows not in Sonarr use the fallback protected_shows list.
+    Protection logic:
+    - Shows with 'auto-delete' tag in Sonarr = NOT protected (delete after watching)
+    - All other shows = Protected (keep forever)
     """
-    sonarr_shows = get_sonarr_shows()
-
-    if show_title in sonarr_shows:
-        monitor_type = sonarr_shows[show_title]['monitorNewItems']
-        # Only 'future' means "watch and delete" - all other types mean keep
-        if monitor_type == 'future':
-            return False  # Not protected - can be deleted
-        return True  # Protected - keep forever
-
-    # Fallback to manual protected list for shows not in Sonarr
-    return show_title in config.get('protected_shows', [])
+    deletable_shows = get_shows_with_auto_delete_tag(config)
+    return show_title not in deletable_shows
 
 
 def load_config():
@@ -260,9 +323,12 @@ def list_shows(plex, config):
     print("\n" + "=" * 80)
     print("TV SHOWS - WATCHED EPISODE COUNTS")
     print("=" * 80)
-    print("Legend: 🛡️=protected (all/none monitor), 🗑️=deletable (future monitor), ❓=not in Sonarr")
+    print("Legend: 🗑️=auto-delete (has Sonarr tag), 🛡️=protected")
 
-    sonarr_shows = get_sonarr_shows()
+    # Get shows with auto-delete tag from Sonarr
+    deletable_shows = get_shows_with_auto_delete_tag(config)
+    if not deletable_shows:
+        print(f"\n⚠️  No shows found with '{config.get('sonarr_tag', 'auto-delete')}' tag in Sonarr")
 
     for library in get_tv_libraries(plex, config):
         print(f"\n📺 Library: {library.title}")
@@ -274,15 +340,11 @@ def list_shows(plex, config):
             watched_eps = sum(1 for ep in show.episodes() if ep.isWatched)
             retention = get_retention_days(show.title, config)
 
-            # Determine status based on Sonarr
-            if show.title in sonarr_shows:
-                monitor_type = sonarr_shows[show.title]['monitorNewItems']
-                if monitor_type == 'future':
-                    status = "🗑️"  # Will be deleted
-                else:
-                    status = "🛡️"  # Protected
+            # Determine status based on Sonarr auto-delete tag
+            if show.title in deletable_shows:
+                status = "🗑️"  # Will be deleted
             else:
-                status = "❓"  # Not in Sonarr
+                status = "🛡️"  # Protected
 
             shows_data.append({
                 'title': show.title,
@@ -310,9 +372,22 @@ def show_config(config):
     print(f"  Delete after: {config['global_defaults']['delete_after_days']} days")
     print(f"  Enabled: {config['global_defaults']['enabled']}")
 
-    print(f"\nProtected Shows ({len(config['protected_shows'])}):")
-    for show in sorted(config['protected_shows']):
-        print(f"  🛡️ {show}")
+    # Show Sonarr tag info
+    tag_name = config.get('sonarr_tag', 'auto-delete')
+    tag_id = get_sonarr_tag_id(config)
+    print(f"\nSonarr Integration:")
+    print(f"  Tag name: {tag_name}")
+    print(f"  Tag ID: {tag_id if tag_id else 'NOT FOUND'}")
+
+    # Show which shows have the auto-delete tag
+    deletable_shows = get_shows_with_auto_delete_tag(config)
+    print(f"\nShows with '{tag_name}' tag ({len(deletable_shows)}):")
+    if deletable_shows:
+        for show in sorted(deletable_shows):
+            retention = get_retention_days(show, config)
+            print(f"  🗑️ {show} (delete after {retention}d)")
+    else:
+        print("  (none - add tag in Sonarr to enable auto-delete)")
 
     print(f"\nCustom Retention ({len(config['custom_retention'])}):")
     for show, days in sorted(config['custom_retention'].items()):
@@ -320,6 +395,7 @@ def show_config(config):
 
     print(f"\nTarget Libraries: {', '.join(config['target_libraries'])}")
     print(f"\nConfig file: {CONFIG_FILE}")
+    print(f"\nNote: To enable auto-delete for a show, add the '{tag_name}' tag in Sonarr's UI.")
 
 
 def run_cleanup(plex, config, dry_run=True):
@@ -361,8 +437,13 @@ def run_cleanup(plex, config, dry_run=True):
         print(f"\n🗑️  DELETING {len(deletable)} episodes...")
         for ep in deletable:
             try:
+                # Delete from Plex
                 ep['episode_obj'].delete()
                 log_action(f"DELETED: {ep['show']} S{ep['season']:02d}E{ep['episode']:02d} - {ep['title']}")
+
+                # Unmonitor in Sonarr to prevent re-download
+                if unmonitor_episode_in_sonarr(ep['show'], ep['season'], ep['episode']):
+                    log_action(f"UNMONITORED in Sonarr: {ep['show']} S{ep['season']:02d}E{ep['episode']:02d}")
             except Exception as e:
                 log_action(f"ERROR deleting {ep['show']} S{ep['season']:02d}E{ep['episode']:02d}: {e}")
 
@@ -371,6 +452,8 @@ def run_cleanup(plex, config, dry_run=True):
 
 def interactive_menu(plex, config):
     """Interactive TUI menu."""
+    tag_name = config.get('sonarr_tag', 'auto-delete')
+
     while True:
         print("\n" + "=" * 60)
         print("PLEX CLEANUP MANAGER")
@@ -379,11 +462,11 @@ def interactive_menu(plex, config):
         print("2. Preview cleanup (dry run)")
         print("3. Run cleanup (DELETE files)")
         print("4. Show configuration")
-        print("5. Add protected show")
-        print("6. Remove protected show")
-        print("7. Set custom retention for show")
-        print("8. Save and exit")
-        print("9. Exit without saving")
+        print("5. Set custom retention for show")
+        print("6. Save and exit")
+        print("7. Exit without saving")
+        print("-" * 60)
+        print(f"Note: Add/remove '{tag_name}' tag in Sonarr to manage auto-delete")
         print("-" * 60)
 
         choice = input("Choose option: ").strip()
@@ -401,18 +484,6 @@ def interactive_menu(plex, config):
         elif choice == '4':
             show_config(config)
         elif choice == '5':
-            show_name = input("Enter show name to protect: ").strip()
-            if show_name and show_name not in config['protected_shows']:
-                config['protected_shows'].append(show_name)
-                print(f"Added '{show_name}' to protected shows")
-        elif choice == '6':
-            show_name = input("Enter show name to unprotect: ").strip()
-            if show_name in config['protected_shows']:
-                config['protected_shows'].remove(show_name)
-                print(f"Removed '{show_name}' from protected shows")
-            else:
-                print(f"'{show_name}' not in protected list")
-        elif choice == '7':
             show_name = input("Enter show name: ").strip()
             try:
                 days = int(input("Enter retention days: "))
@@ -420,11 +491,11 @@ def interactive_menu(plex, config):
                 print(f"Set retention for '{show_name}' to {days} days")
             except ValueError:
                 print("Invalid number")
-        elif choice == '8':
+        elif choice == '6':
             save_config(config)
             print("Configuration saved. Goodbye!")
             break
-        elif choice == '9':
+        elif choice == '7':
             print("Exiting without saving. Goodbye!")
             break
         else:
