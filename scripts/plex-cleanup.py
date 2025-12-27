@@ -40,6 +40,7 @@ DEFAULT_CONFIG = {
         "enabled": True
     },
     "protected_shows": [
+        # Classic sitcoms and dramas (rewatchable favorites)
         "30 Rock",
         "The Office",
         "Parks and Recreation",
@@ -54,7 +55,15 @@ DEFAULT_CONFIG = {
         "Game of Thrones",
         "Mad Men",
         "Curb Your Enthusiasm",
-        "Bojack Horseman"
+        "Bojack Horseman",
+        # Kids shows (rewatched constantly)
+        "Bluey",
+        "Spidey and His Amazing Friends",
+        "Star Wars: Young Jedi Adventures",
+        "Mickey Mouse Clubhouse",
+        "Peppa Pig",
+        "Paw Patrol",
+        "Cocomelon"
     ],
     "custom_retention": {
         "Below Deck": 3,
