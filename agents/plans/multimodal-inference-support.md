@@ -1,7 +1,7 @@
 # Plan: Multimodal Inference Support
 
 **Status**: Planning
-**Beads Task**: `home-server-o7a`
+**Beads Task**: `home-server-6lb`
 
 ## Goal
 Add support for image generation/editing models alongside existing text generation models in the local AI system.

@@ -1,7 +1,7 @@
 # Discord Bot LLM Integration Plan
 
 **Status**: Planned
-**Beads Task**: `home-server-mw5`
+**Beads Task**: `home-server-vg5`
 **Goal:** Make Tayne respond with AI-generated messages when mentioned or DMed.
 
 ## Phase 1: Basic Ollama Integration
