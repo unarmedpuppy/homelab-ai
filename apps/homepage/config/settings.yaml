@@ -12,8 +12,12 @@ background:
 # Display options
 statusStyle: dot            # Clean status indicators (dot, basic, or default)
 useEqualHeights: true       # Uniform card heights in rows
-showStats: false            # Hide container CPU/memory stats
 hideDescription: true       # Hide service descriptions for cleaner layout
+
+# Providers - disable Docker stats collection entirely
+providers:
+  docker:
+    showStats: false        # Don't show CPU/MEM/RX/TX stats
 
 # Layout configuration - order and styling per group
 layout:
