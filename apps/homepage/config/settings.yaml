@@ -12,7 +12,8 @@ background:
 # Display options
 statusStyle: dot            # Clean status indicators (dot, basic, or default)
 useEqualHeights: true       # Uniform card heights in rows
-showStats: true             # Show container CPU/memory stats
+showStats: false            # Hide container CPU/memory stats
+hideDescription: true       # Hide service descriptions for cleaner layout
 
 # Layout configuration - order and styling per group
 layout:
