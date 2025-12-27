@@ -51,7 +51,7 @@ Run a secondary server with **essential services only**, ready to take over auto
 
 Services marked with `x-essential: true` run on failover. All others wait for primary recovery.
 
-### Proposed Essential Services
+### Essential Services (x-essential: true)
 
 | Service | Why Essential | Data Needs |
 |---------|---------------|------------|
@@ -59,12 +59,17 @@ Services marked with `x-essential: true` run on failover. All others wait for pr
 | **cloudflare-ddns** | DNS updates for domain | None |
 | **adguard** | DNS for home network | Config (small) |
 | **homepage** | Dashboard/status page | Config (in git) |
-| **wireguard** | VPN access | Config (small) |
 | **vaultwarden** | Password manager | DB (~50MB) |
-| **authelia** | SSO/2FA | DB (small) |
 | **n8n** | Automation workflows | DB, workflows |
 | **homeassistant** | Smart home control | DB, config |
 | **frigate** | Security cameras | Config only (no recordings) |
+
+### Future Considerations
+
+| Service | Status | Notes |
+|---------|--------|-------|
+| **authelia** | Planned | SSO/2FA - would replace Traefik basic auth |
+| **wireguard** | Optional | VPN alternative to Cloudflare Tunnel (reduces vendor lock-in) |
 
 ### Non-Essential (Stay Offline)
 
