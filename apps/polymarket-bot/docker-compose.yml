@@ -3,6 +3,11 @@ services:
     image: registry.server.unarmedpuppy.com/polymarket-bot:latest
     container_name: polymarket-bot
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
     env_file:
       - .env
     environment:
