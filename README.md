@@ -1092,6 +1092,7 @@ Persistent web-based terminal accessible via browser or SSH. Survives daily 5am 
 **Installed Packages**:
 - `tmux` (via apt)
 - `ttyd` v1.7.7 (installed to `/usr/local/bin/ttyd` from GitHub releases)
+- `python3-pip` (via apt: `sudo apt-get install python3-pip`) - for Python package management
 
 **Management Commands**:
 ```bash
