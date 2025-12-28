@@ -50,21 +50,11 @@ services:
       - "traefik.http.routers.mattermost-redirect.middlewares=mattermost-redirect"
       - "traefik.http.routers.mattermost-redirect.rule=Host(`mattermost.server.unarmedpuppy.com`)"
       - "traefik.http.routers.mattermost-redirect.entrypoints=web"
-      # Local network access (no auth) - highest priority
-      - "traefik.http.routers.mattermost-local.rule=Host(`mattermost.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
-      - "traefik.http.routers.mattermost-local.priority=100"
-      - "traefik.http.routers.mattermost-local.entrypoints=websecure"
-      - "traefik.http.routers.mattermost-local.tls.certresolver=myresolver"
-      # External access (requires auth) - lowest priority
+      # Main router - Mattermost has built-in authentication
       - "traefik.http.routers.mattermost.rule=Host(`mattermost.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.mattermost.priority=1"
       - "traefik.http.routers.mattermost.entrypoints=websecure"
       - "traefik.http.routers.mattermost.tls.certresolver=myresolver"
-      - "traefik.http.routers.mattermost.middlewares=mattermost-auth"
-      # Service and auth middleware
       - "traefik.http.services.mattermost.loadbalancer.server.port=8065"
-      - "traefik.http.middlewares.mattermost-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
-      - "traefik.http.middlewares.mattermost-auth.basicauth.realm=Mattermost"
       # Homepage labels
       - "homepage.group=Social & News"
       - "homepage.name=Mattermost"
