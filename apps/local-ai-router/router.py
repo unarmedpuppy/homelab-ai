@@ -296,7 +296,8 @@ async def chat_completions(request: Request):
     # Determine if streaming
     stream = body.get("stream", False)
 
-    async with httpx.AsyncClient(timeout=120.0) as client:
+    # Model cold starts can take 2-3 minutes, use 5 min timeout
+    async with httpx.AsyncClient(timeout=300.0) as client:
         if stream:
             # Stream the response
             async def stream_response():
