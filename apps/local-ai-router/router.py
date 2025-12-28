@@ -8,6 +8,8 @@ from pydantic import BaseModel
 from typing import Optional
 import asyncio
 
+from agent import AgentRequest, AgentResponse, run_agent_loop, AGENT_TOOLS
+
 # Configure logging
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 logger = logging.getLogger(__name__)
@@ -346,6 +348,92 @@ async def stop_all_models():
             return response.json()
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Failed to stop models: {e}")
+
+
+# ============================================================================
+# Agent Endpoint - Host-Controlled Agent Loop
+# ============================================================================
+
+async def call_llm_for_agent(
+    messages: list,
+    model: str = "auto",
+    tools: list = None,
+    tool_choice: str = "auto"
+) -> dict:
+    """Call the LLM through the router for agent use."""
+    body = {
+        "model": model,
+        "messages": messages,
+        "tools": tools or [],
+        "tool_choice": tool_choice,
+    }
+
+    # Route to appropriate backend
+    # For agent calls, we always use the 3090 with tool support
+    backend = BACKENDS["3090"]
+    if not backend["available"]:
+        raise HTTPException(status_code=503, detail="No backend available for agent")
+
+    # Determine actual model - prefer qwen for tool calling
+    if model in ["auto", "small", "fast", "big", "3090"]:
+        body["model"] = "qwen2.5-14b-awq"
+
+    logger.info(f"Agent LLM call: model={body['model']}, messages={len(messages)}")
+
+    async with httpx.AsyncClient(timeout=300.0) as client:
+        response = await client.post(
+            f"{backend['url']}/v1/chat/completions",
+            json=body,
+        )
+
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=f"Backend error: {response.text}"
+            )
+
+        return response.json()
+
+
+@app.post("/agent/run", response_model=AgentResponse)
+async def run_agent(request: AgentRequest):
+    """
+    Run an autonomous agent task.
+
+    The agent follows OpenCode's host-controlled design:
+    - Host owns loop control, step count, tool execution, error handling
+    - Model emits exactly ONE action per turn (tool call OR response)
+    - Host validates and re-prompts on malformed output
+    - Provider-agnostic: can swap models without system rewrite
+
+    Example:
+        curl -X POST http://localhost:8000/agent/run \\
+            -H "Content-Type: application/json" \\
+            -d '{
+                "task": "Create a hello world Python script in /tmp",
+                "working_directory": "/tmp",
+                "model": "auto",
+                "max_steps": 20
+            }'
+    """
+    logger.info(f"Agent task started: {request.task[:100]}...")
+
+    try:
+        result = await run_agent_loop(request, call_llm_for_agent)
+        logger.info(f"Agent completed: success={result.success}, steps={result.total_steps}")
+        return result
+    except Exception as e:
+        logger.error(f"Agent error: {e}")
+        raise HTTPException(status_code=500, detail=f"Agent execution failed: {e}")
+
+
+@app.get("/agent/tools")
+async def list_agent_tools():
+    """List available agent tools and their schemas."""
+    return {
+        "tools": AGENT_TOOLS,
+        "description": "Tools available to the agent for task completion"
+    }
 
 
 if __name__ == "__main__":

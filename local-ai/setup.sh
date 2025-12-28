@@ -23,22 +23,28 @@ echo "Creating Qwen 2.5 14B AWQ container..."
 docker create --name vllm-qwen14b-awq --gpus all -p 8002:8000 \
   -v $(pwd)/models:/models -v $(pwd)/cache:/root/.cache/hf \
   -e HF_TOKEN=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 \
+  --network my-network \
   vllm/vllm-openai:v0.6.3 \
   --model Qwen/Qwen2.5-14B-Instruct-AWQ \
   --served-model-name qwen2.5-14b-awq \
   --download-dir /models --dtype auto \
-  --max-model-len 6144 --gpu-memory-utilization 0.90
+  --max-model-len 6144 --gpu-memory-utilization 0.90 \
+  --enable-auto-tool-choice \
+  --tool-call-parser hermes
 
 echo "Creating DeepSeek Coder V2 Lite container..."
 docker create --name vllm-coder7b --gpus all -p 8003:8000 \
   -v $(pwd)/models:/models -v $(pwd)/cache:/root/.cache/hf \
   -e HF_TOKEN=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 \
+  --network my-network \
   vllm/vllm-openai:v0.6.3 \
   --model deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct \
   --served-model-name deepseek-coder \
   --download-dir /models --dtype auto \
   --max-model-len 8192 --gpu-memory-utilization 0.90 \
-  --trust-remote-code
+  --trust-remote-code \
+  --enable-auto-tool-choice \
+  --tool-call-parser hermes
 
 # Build and create image model container
 echo "Building image inference server..."

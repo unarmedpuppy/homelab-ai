@@ -18,6 +18,7 @@ Intelligent OpenAI-compatible API router for multi-backend LLM inference.
 - **Force-big override** - Explicit routing with headers or model names
 - **Health checks** - Monitors all backends
 - **Streaming support** - Full SSE streaming for chat completions
+- **Agent endpoint** - Host-controlled agent loop for autonomous task execution
 
 ## Backends
 
@@ -81,6 +82,42 @@ curl -X POST https://local-ai-api.server.unarmedpuppy.com/gaming-mode?enable=fal
 curl -X POST https://local-ai-api.server.unarmedpuppy.com/stop-all
 ```
 
+### Agent Endpoint (Autonomous Tasks)
+
+Run autonomous agent tasks with a host-controlled loop. The agent can read/write files, execute shell commands, and search directories.
+
+```bash
+# Run an agent task
+curl -X POST https://local-ai-api.server.unarmedpuppy.com/agent/run \
+  -H "Content-Type: application/json" \
+  -d '{
+    "task": "Create a Python script that prints hello world",
+    "working_directory": "/tmp",
+    "model": "auto",
+    "max_steps": 20
+  }'
+```
+
+**Agent Design Principles:**
+- Host-controlled loop (not model-controlled)
+- Single-action constraint: model emits ONE action per turn
+- Host validates output and re-prompts on errors
+- Provider-agnostic: works with any model
+
+**Available Agent Tools:**
+- `read_file` - Read file contents
+- `write_file` - Create or overwrite files
+- `edit_file` - Make precise edits using string replacement
+- `run_shell` - Execute shell commands
+- `search_files` - Find files by pattern or content
+- `list_directory` - List directory contents
+- `task_complete` - Signal task completion
+
+```bash
+# List available agent tools
+curl https://local-ai-api.server.unarmedpuppy.com/agent/tools
+```
+
 ## Model Aliases
 
 | Alias | Routes To |
@@ -107,6 +144,12 @@ MEDIUM_TOKEN_THRESHOLD=16000
 
 # Logging
 LOG_LEVEL=INFO
+
+# Agent configuration
+AGENT_MAX_STEPS=50          # Max steps per agent run
+AGENT_MAX_RETRIES=3         # Retries for malformed responses
+AGENT_ALLOWED_PATHS=/tmp    # Comma-separated allowed paths
+AGENT_SHELL_TIMEOUT=30      # Shell command timeout (seconds)
 ```
 
 ## Force-Big Signals
