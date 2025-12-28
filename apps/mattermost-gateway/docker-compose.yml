@@ -22,9 +22,22 @@ services:
     networks:
       - my-network
     labels:
+      - "traefik.enable=true"
+      # HTTPS redirect
+      - "traefik.http.middlewares.mattermost-gateway-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.mattermost-gateway-redirect.middlewares=mattermost-gateway-redirect"
+      - "traefik.http.routers.mattermost-gateway-redirect.rule=Host(`mattermost-gateway.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.mattermost-gateway-redirect.entrypoints=web"
+      # Main router
+      - "traefik.http.routers.mattermost-gateway.rule=Host(`mattermost-gateway.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.mattermost-gateway.entrypoints=websecure"
+      - "traefik.http.routers.mattermost-gateway.tls.certresolver=myresolver"
+      - "traefik.http.services.mattermost-gateway.loadbalancer.server.port=8000"
+      # Homepage labels
       - "homepage.group=Infrastructure"
       - "homepage.name=Mattermost Gateway"
       - "homepage.icon=mdi-api"
+      - "homepage.href=https://mattermost-gateway.server.unarmedpuppy.com/health"
       - "homepage.description=Bot message gateway for Mattermost"
 
 networks:

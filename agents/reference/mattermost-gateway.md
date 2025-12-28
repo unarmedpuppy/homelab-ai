@@ -2,8 +2,16 @@
 
 **Service**: `mattermost-gateway`
 **Location**: `apps/mattermost-gateway/`
-**Internal URL**: `http://mattermost-gateway:8000` (from Docker network)
-**Server URL**: `http://localhost:8011` (from host)
+
+## URLs
+
+| Context | URL |
+|---------|-----|
+| Docker network | `http://mattermost-gateway:8000` |
+| Server localhost | `http://localhost:8011` |
+| External (HTTPS) | `https://mattermost-gateway.server.unarmedpuppy.com` |
+
+**Note**: API key authentication is planned but not yet implemented. External endpoint is currently open.
 
 ## Purpose
 
@@ -131,6 +139,16 @@ send_alert() {
 }
 
 send_alert "Backup completed successfully"
+```
+
+### From External (HTTPS)
+
+Access from anywhere with internet connectivity:
+
+```bash
+curl -X POST https://mattermost-gateway.server.unarmedpuppy.com/post \
+  -H "Content-Type: application/json" \
+  -d '{"bot":"tayne","channel":"town-square","message":"Hello from external!"}'
 ```
 
 ## Channel Names
