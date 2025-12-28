@@ -339,6 +339,7 @@ Agent-discoverable tool guides are in `agents/skills/`. Each tool has a `SKILL.m
 | [configure-traefik-labels](agents/skills/configure-traefik-labels/) | Configure Traefik reverse proxy labels for apps | - |
 | [update-homepage-groups](agents/skills/update-homepage-groups/) | Update homepage organization | `scripts/update-homepage-groups.py` |
 | [edit-wiki-content](agents/skills/edit-wiki-content/) | Edit Wiki.js pages via API | `apps/wiki/edit-wiki.py` |
+| [post-to-mattermost](agents/skills/post-to-mattermost/) | Post messages to Mattermost via gateway | - |
 
 ## Agent Personas
 
