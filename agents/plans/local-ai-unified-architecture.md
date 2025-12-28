@@ -209,6 +209,9 @@ Control gaming mode via Mattermost bot commands.
 ## Implementation Phases
 
 ### Phase 0: Prerequisites
+- [x] Purchase 1U shelf for GPU mount
+- [x] Mount RTX 3070 in rack (external vertical mount)
+- [x] Connect GPU to server (PCIe riser + power)
 - [ ] Install NVIDIA drivers on Debian server
 - [ ] Install CUDA toolkit
 - [ ] Configure Docker with GPU support (`nvidia-container-toolkit`)
