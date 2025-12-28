@@ -222,14 +222,15 @@ Control gaming mode via Mattermost bot commands.
 - [ ] Create health endpoint
 
 ### Phase 2: Router Service (`apps/local-ai-router/`)
-- [ ] Create FastAPI service
-- [ ] Implement OpenAI-compatible API
-- [ ] Add backend health checks
-- [ ] Implement routing logic
-- [ ] Add force-big signal detection
-- [ ] Connect to 3070 backend
-- [ ] Connect to 3090 backend (via Windows IP)
-- [ ] Add logging and metrics
+- [x] Create FastAPI service
+- [x] Implement OpenAI-compatible API
+- [x] Add backend health checks
+- [x] Implement routing logic
+- [x] Add force-big signal detection
+- [ ] Connect to 3070 backend (pending Phase 0/1)
+- [x] Connect to 3090 backend (via Windows IP)
+- [x] Add logging and metrics
+- [x] Deploy to server with Traefik (https://local-ai-api.server.unarmedpuppy.com)
 
 ### Phase 3: OpenCode Container (`apps/opencode-service/`)
 - [ ] Research oh-my-opencode container setup
