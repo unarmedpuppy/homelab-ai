@@ -249,7 +249,7 @@ networks:
 - [x] Implement GET /health endpoint
 - [x] Register Tayne bot (config ready, token needed)
 - [x] Docker setup
-- [ ] Test posting to Mattermost (needs bot token)
+- [x] Test posting to Mattermost ✓
 
 ### Phase 2: Extended Features
 - [x] Implement POST /react endpoint
