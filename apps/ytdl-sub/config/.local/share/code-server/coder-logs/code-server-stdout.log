@@ -67,3 +67,10 @@
 [2025-12-23T11:18:15.032Z] info    - Authentication is disabled
 [2025-12-23T11:18:15.032Z] info    - Not serving HTTPS
 [2025-12-23T11:18:15.032Z] info  Session server listening on /config/data/code-server-ipc.sock
+[2025-12-28T11:18:13.831Z] info  code-server 4.98.2 e2c489dd00f163b1a8d959965b0c30c1a978a080
+[2025-12-28T11:18:13.835Z] info  Using user-data-dir /config/data
+[2025-12-28T11:18:13.855Z] info  Using config file /config/.config/code-server/config.yaml
+[2025-12-28T11:18:13.855Z] info  HTTP server listening on http://0.0.0.0:8443/
+[2025-12-28T11:18:13.855Z] info    - Authentication is disabled
+[2025-12-28T11:18:13.855Z] info    - Not serving HTTPS
+[2025-12-28T11:18:13.855Z] info  Session server listening on /config/data/code-server-ipc.sock

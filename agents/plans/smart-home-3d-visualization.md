@@ -1,5 +1,8 @@
 # Smart Home 3D Visualization System - Implementation Plan
 
+**Status**: In Progress
+**Beads Epic**: `home-server-623`
+
 ## Table of Contents
 1. [Project Overview](#project-overview)
 2. [Technology Stack](#technology-stack)

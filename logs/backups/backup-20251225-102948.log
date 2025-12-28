@@ -1,0 +1,11 @@
+Starting backup at Thu Dec 25 10:29:48 CST 2025
+Source: /jenquist-cloud/archive
+Destination: b2:jenquist-cloud
+---
+2025/12/25 10:29:49 INFO  : entertainment-media/rsync.bat: Copied (new)
+2025/12/25 10:29:49 INFO  : personal-media/immich-library/library/.immich: Copied (new)
+2025/12/25 10:29:49 INFO  : personal-media/immich-library/profile/.immich: Copied (new)
+2025/12/25 10:29:49 INFO  : personal-media/immich-library/thumbs/.immich: Copied (new)
+2025/12/25 10:29:50 INFO  : personal-media/immich-library/encoded-video/.immich: Copied (new)
+2025/12/25 10:29:50 INFO  : personal-media/immich-library/backups/.immich: Copied (new)
+2025/12/25 10:30:54 INFO  : personal-media/photos-archive/Zombies around my room at 4am.mp4: Copied (new)

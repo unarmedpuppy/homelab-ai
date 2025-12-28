@@ -1,5 +1,8 @@
 # Plex Auto-Delete Watched Episodes
 
+**Status**: Planned
+**Beads Task**: `home-server-vrv`
+
 ## Overview
 
 Automatically delete watched TV episodes after a configurable time period, with the ability to protect specific shows from deletion.

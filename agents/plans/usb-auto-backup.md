@@ -1,5 +1,8 @@
 # USB Auto-Backup Feature
 
+**Status**: Planned
+**Beads Task**: `home-server-09t`
+
 ## Overview
 
 Automatically detect when a specific USB external drive is connected and trigger backup sync of the same directories that are backed up to B2.

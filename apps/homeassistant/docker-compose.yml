@@ -1,6 +1,7 @@
 version: '3'
 services:
   homeassistant:
+    x-essential: true
     # image: homeassistant/home-assistant:stable
     image: harbor.server.unarmedpuppy.com/docker-hub/homeassistant/home-assistant:stable
     container_name: homeassistant

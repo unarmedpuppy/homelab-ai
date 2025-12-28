@@ -1,0 +1,403 @@
+Starting backup at Fri Dec 26 03:00:01 AM CST 2025
+Source: /jenquist-cloud
+Destination: b2-encrypted:
+---
+72.077 MiB / 3.243 TiB, 0%, 2.112 MiB/s, ETA 2w4d15h12m33s (xfr#371/10383)191.912 MiB / 3.318 TiB, 0%, 1.223 MiB/s, ETA 4w4d21h52m7s (xfr#532/10542)265.536 MiB / 3.459 TiB, 0%, 1.385 MiB/s, ETA 4w2d7h32m28s (xfr#634/10646)461.568 MiB / 3.459 TiB, 0%, 2.957 MiB/s, ETA 2w4h46m26s (xfr#634/10646)619.443 MiB / 3.459 TiB, 0%, 2.735 MiB/s, ETA 2w1d8h19m36s (xfr#634/10646)785.474 MiB / 3.459 TiB, 0%, 2.680 MiB/s, ETA 2w1d15h51m59s (xfr#634/10646)933.755 MiB / 3.459 TiB, 0%, 2.479 MiB/s, ETA 2w2d22h20m4s (xfr#634/10646)1.041 GiB / 3.466 TiB, 0%, 2.217 MiB/s, ETA 2w4d23h9m27s (xfr#646/10658)1.191 GiB / 3.466 TiB, 0%, 2.647 MiB/s, ETA 2w1d21h12m49s (xfr#646/10658)1.344 GiB / 3.500 TiB, 0%, 2.560 MiB/s, ETA 2w2d14h9m9s (xfr#723/10735)1.472 GiB / 3.507 TiB, 0%, 1.957 MiB/s, ETA 3w17h37m49s (xfr#737/10749)1.641 GiB / 3.507 TiB, 0%, 3.028 MiB/s, ETA 2w1h10m (xfr#737/10749)1.818 GiB / 3.507 TiB, 0%, 3.153 MiB/s, ETA 1w6d11h46m46s (xfr#737/10749)2.002 GiB / 3.507 TiB, 0%, 2.753 MiB/s, ETA 2w1d10h52m12s (xfr#737/10749)2.177 GiB / 3.507 TiB, 0%, 3.039 MiB/s, ETA 1w6d23h55m6s (xfr#737/10749)2.340 GiB / 3.507 TiB, 0%, 2.682 MiB/s, ETA 2w1d20h36m15s (xfr#737/10749)2.490 GiB / 3.507 TiB, 0%, 2.635 MiB/s, ETA 2w2d3h21m35s (xfr#737/10749)2.631 GiB / 3.507 TiB, 0%, 2.419 MiB/s, ETA 2w3d13h58m15s (xfr#737/10749)2.778 GiB / 3.507 TiB, 0%, 2.424 MiB/s, ETA 2w3d13h8m43s (xfr#737/10749)2.940 GiB / 3.507 TiB, 0%, 2.874 MiB/s, ETA 2w19h7m28s (xfr#737/10749)3.094 GiB / 3.507 TiB, 0%, 2.475 MiB/s, ETA 2w3d4h18m29s (xfr#737/10749)3.233 GiB / 3.507 TiB, 0%, 2.338 MiB/s, ETA 2w4d4h26m9s (xfr#737/10749)3.371 GiB / 3.507 TiB, 0%, 2.500 MiB/s, ETA 2w3d9m57s (xfr#737/10749)3.524 GiB / 3.507 TiB, 0%, 2.578 MiB/s, ETA 2w2d11h46m55s (xfr#737/10749)3.678 GiB / 3.507 TiB, 0%, 2.649 MiB/s, ETA 2w2d1h14m47s (xfr#737/10749)3.855 GiB / 3.507 TiB, 0%, 2.778 MiB/s, ETA 2w1d7h15m16s (xfr#737/10749)4.002 GiB / 3.507 TiB, 0%, 2.328 MiB/s, ETA 2w4d6h17m37s (xfr#737/10749)4.096 GiB / 3.507 TiB, 0%, 1.646 MiB/s, ETA 3w4d19h48m29s (xfr#737/10749)4.188 GiB / 3.507 TiB, 0%, 1.618 MiB/s, ETA 3w5d6h36m36s (xfr#737/10749)4.287 GiB / 3.507 TiB, 0%, 1.747 MiB/s, ETA 3w3d7h54m21s (xfr#737/10749)4.409 GiB / 3.507 TiB, 0%, 2.329 MiB/s, ETA 2w4d5h57m41s (xfr#737/10749)4.564 GiB / 3.507 TiB, 0%, 3.078 MiB/s, ETA 1w6d19h23m51s (xfr#737/10749)4.730 GiB / 3.507 TiB, 0%, 2.670 MiB/s, ETA 2w1d22h3m37s (xfr#737/10749)4.883 GiB / 3.507 TiB, 0%, 2.774 MiB/s, ETA 2w1d7h47m4s (xfr#737/10749)5.064 GiB / 3.507 TiB, 0%, 3.089 MiB/s, ETA 1w6d18h14m48s (xfr#737/10749)5.209 GiB / 3.507 TiB, 0%, 2.549 MiB/s, ETA 2w2d16h9m35s (xfr#737/10749)5.364 GiB / 3.507 TiB, 0%, 2.599 MiB/s, ETA 2w2d8h29m34s (xfr#737/10749)5.503 GiB / 3.507 TiB, 0%, 2.422 MiB/s, ETA 2w3d13h2m34s (xfr#737/10749)5.669 GiB / 3.507 TiB, 0%, 2.694 MiB/s, ETA 2w1d18h35m49s (xfr#737/10749)5.816 GiB / 3.507 TiB, 0%, 2.408 MiB/s, ETA 2w3d15h28m41s (xfr#737/10749)5.983 GiB / 3.507 TiB, 0%, 3.231 MiB/s, ETA 1w6d3h39m14s (xfr#737/10749)6.131 GiB / 3.507 TiB, 0%, 2.174 MiB/s, ETA 2w5d13h3m40s (xfr#737/10749)6.250 GiB / 3.507 TiB, 0%, 2.058 MiB/s, ETA 2w6d15h26m32s (xfr#737/10749)6.369 GiB / 3.507 TiB, 0%, 2.105 MiB/s, ETA 2w6d4h26m50s (xfr#737/10749)6.525 GiB / 3.507 TiB, 0%, 2.618 MiB/s, ETA 2w2d5h27m28s (xfr#737/10749)6.675 GiB / 3.507 TiB, 0%, 2.493 MiB/s, ETA 2w3d56m9s (xfr#737/10749)6.833 GiB / 3.507 TiB, 0%, 2.670 MiB/s, ETA 2w1d21h53m44s (xfr#737/10749)7.009 GiB / 3.507 TiB, 0%, 2.979 MiB/s, ETA 2w6h12m15s (xfr#737/10749)7.172 GiB / 3.507 TiB, 0%, 2.942 MiB/s, ETA 2w10h31m27s (xfr#737/10749)7.353 GiB / 3.507 TiB, 0%, 3.214 MiB/s, ETA 1w6d5h8m21s (xfr#737/10749)7.520 GiB / 3.507 TiB, 0%, 2.665 MiB/s, ETA 2w1d22h27m55s (xfr#737/10749)7.674 GiB / 3.507 TiB, 0%, 2.629 MiB/s, ETA 2w2d3h41m25s (xfr#737/10749)7.808 GiB / 3.507 TiB, 0%, 2.343 MiB/s, ETA 2w4d3h1m2s (xfr#737/10749)7.960 GiB / 3.507 TiB, 0%, 2.848 MiB/s, ETA 2w21h47m57s (xfr#737/10749)8.137 GiB / 3.507 TiB, 0%, 2.968 MiB/s, ETA 2w7h19m1s (xfr#737/10749)8.302 GiB / 3.507 TiB, 0%, 2.951 MiB/s, ETA 2w9h17m33s (xfr#737/10749)8.493 GiB / 3.507 TiB, 0%, 2.944 MiB/s, ETA 2w10h4m39s (xfr#737/10749)8.637 GiB / 3.507 TiB, 0%, 2.416 MiB/s, ETA 2w3d13h46m17s (xfr#737/10749)8.773 GiB / 3.507 TiB, 0%, 2.325 MiB/s, ETA 2w4d6h12m41s (xfr#737/10749)8.915 GiB / 3.507 TiB, 0%, 2.464 MiB/s, ETA 2w3d5h32m24s (xfr#737/10749)9.054 GiB / 3.507 TiB, 0%, 2.481 MiB/s, ETA 2w3d2h43m51s (xfr#737/10749)9.201 GiB / 3.507 TiB, 0%, 2.500 MiB/s, ETA 2w2d23h27m8s (xfr#737/10749)9.373 GiB / 3.507 TiB, 0%, 2.963 MiB/s, ETA 2w7h52m4s (xfr#737/10749)9.542 GiB / 3.507 TiB, 0%, 2.984 MiB/s, ETA 2w5h21m57s (xfr#737/10749)9.695 GiB / 3.507 TiB, 0%, 2.966 MiB/s, ETA 2w7h26m22s (xfr#737/10749)9.892 GiB / 3.507 TiB, 0%, 3.017 MiB/s, ETA 2w1h39m27s (xfr#737/10749)10.056 GiB / 3.507 TiB, 0%, 2.845 MiB/s, ETA 2w22h3m30s (xfr#737/10749)10.217 GiB / 3.507 TiB, 0%, 2.769 MiB/s, ETA 2w1d7h47m38s (xfr#737/10749)10.396 GiB / 3.507 TiB, 0%, 3.058 MiB/s, ETA 1w6d21h4m54s (xfr#737/10749)10.512 GiB / 3.507 TiB, 0%, 1.942 MiB/s, ETA 3w20h21m7s (xfr#737/10749)10.638 GiB / 3.507 TiB, 0%, 2.248 MiB/s, ETA 2w4d20h59m9s (xfr#737/10749)10.767 GiB / 3.507 TiB, 0%, 2.221 MiB/s, ETA 2w5d2h31m14s (xfr#737/10749)10.931 GiB / 3.507 TiB, 0%, 3.127 MiB/s, ETA 1w6d13h40m23s (xfr#737/10749)11.080 GiB / 3.507 TiB, 0%, 2.473 MiB/s, ETA 2w3d3h49m54s (xfr#737/10749)11.221 GiB / 3.507 TiB, 0%, 2.438 MiB/s, ETA 2w3d9h42m25s (xfr#737/10749)11.380 GiB / 3.507 TiB, 0%, 2.541 MiB/s, ETA 2w2d16h38m2s (xfr#737/10749)11.527 GiB / 3.507 TiB, 0%, 2.657 MiB/s, ETA 2w1d23h11m31s (xfr#737/10749)11.679 GiB / 3.507 TiB, 0%, 2.613 MiB/s, ETA 2w2d5h36m38s (xfr#737/10749)11.823 GiB / 3.507 TiB, 0%, 2.322 MiB/s, ETA 2w4d6h26m48s (xfr#737/10749)11.989 GiB / 3.507 TiB, 0%, 2.849 MiB/s, ETA 2w21h20m42s (xfr#737/10749)12.188 GiB / 3.507 TiB, 0%, 3.311 MiB/s, ETA 1w5d19h27m51s (xfr#737/10749)12.351 GiB / 3.507 TiB, 0%, 2.856 MiB/s, ETA 2w20h24m18s (xfr#737/10749)12.497 GiB / 3.507 TiB, 0%, 2.436 MiB/s, ETA 2w3d9h54m51s (xfr#737/10749)12.609 GiB / 3.507 TiB, 0%, 1.697 MiB/s, ETA 3w3d23h39m3s (xfr#737/10749)12.715 GiB / 3.507 TiB, 0%, 1.831 MiB/s, ETA 3w2d3h50m32s (xfr#737/10749)12.822 GiB / 3.507 TiB, 0%, 1.812 MiB/s, ETA 3w2d9h40m45s (xfr#737/10749)12.955 GiB / 3.507 TiB, 0%, 2.585 MiB/s, ETA 2w2d9h43m21s (xfr#737/10749)13.118 GiB / 3.507 TiB, 0%, 2.582 MiB/s, ETA 2w2d10h11m21s (xfr#737/10749)13.226 GiB / 3.507 TiB, 0%, 1.907 MiB/s, ETA 3w1d5h42m45s (xfr#737/10749)13.337 GiB / 3.507 TiB, 0%, 1.892 MiB/s, ETA 3w1d9h48m52s (xfr#737/10749)13.454 GiB / 3.507 TiB, 0%, 1.951 MiB/s, ETA 3w17h38m8s (xfr#737/10749)13.602 GiB / 3.507 TiB, 0%, 2.556 MiB/s, ETA 2w2d14h4m44s (xfr#737/10749)13.770 GiB / 3.507 TiB, 0%, 2.818 MiB/s, ETA 2w1d1h1m38s (xfr#737/10749)13.947 GiB / 3.507 TiB, 0%, 2.969 MiB/s, ETA 2w6h40m (xfr#737/10749)14.085 GiB / 3.507 TiB, 0%, 2.288 MiB/s, ETA 2w4d12h43m24s (xfr#737/10749)14.226 GiB / 3.507 TiB, 0%, 2.586 MiB/s, ETA 2w2d9h25m47s (xfr#737/10749)14.378 GiB / 3.507 TiB, 0%, 2.903 MiB/s, ETA 2w14h25m4s (xfr#737/10749)14.547 GiB / 3.507 TiB, 0%, 2.986 MiB/s, ETA 2w4h38m2s (xfr#737/10749)14.747 GiB / 3.507 TiB, 0%, 3.494 MiB/s, ETA 1w5d3h8m57s (xfr#737/10749)14.904 GiB / 3.507 TiB, 0%, 2.545 MiB/s, ETA 2w2d15h44m36s (xfr#737/10749)15.044 GiB / 3.507 TiB, 0%, 2.368 MiB/s, ETA 2w3d21h31m41s (xfr#737/10749)15.194 GiB / 3.507 TiB, 0%, 2.476 MiB/s, ETA 2w3d2h44m20s (xfr#737/10749)15.338 GiB / 3.507 TiB, 0%, 2.679 MiB/s, ETA 2w1d19h38m17s (xfr#737/10749)15.472 GiB / 3.507 TiB, 0%, 2.275 MiB/s, ETA 2w4d15h3m1s (xfr#737/10749)15.607 GiB / 3.507 TiB, 0%, 2.257 MiB/s, ETA 2w4d18h36m33s (xfr#737/10749)15.757 GiB / 3.507 TiB, 0%, 2.452 MiB/s, ETA 2w3d6h44m19s (xfr#737/10749)15.923 GiB / 3.507 TiB, 0%, 2.901 MiB/s, ETA 2w14h35m42s (xfr#737/10749)16.086 GiB / 3.507 TiB, 0%, 2.647 MiB/s, ETA 2w2d11m44s (xfr#737/10749)16.226 GiB / 3.507 TiB, 0%, 2.458 MiB/s, ETA 2w3d5h39m47s (xfr#737/10749)16.378 GiB / 3.507 TiB, 0%, 2.515 MiB/s, ETA 2w2d20h14m20s (xfr#737/10749)16.530 GiB / 3.507 TiB, 0%, 2.595 MiB/s, ETA 2w2d7h45m20s (xfr#737/10749)16.683 GiB / 3.507 TiB, 0%, 2.567 MiB/s, ETA 2w2d12h7m18s (xfr#737/10749)16.839 GiB / 3.507 TiB, 0%, 2.742 MiB/s, ETA 2w1d10h43m58s (xfr#737/10749)17.009 GiB / 3.507 TiB, 0%, 2.921 MiB/s, ETA 2w12h5m5s (xfr#737/10749)17.191 GiB / 3.507 TiB, 0%, 2.929 MiB/s, ETA 2w11h48s (xfr#737/10749)17.352 GiB / 3.507 TiB, 0%, 2.885 MiB/s, ETA 2w16h20m1s (xfr#737/10749)17.501 GiB / 3.507 TiB, 0%, 2.501 MiB/s, ETA 2w2d22h28m34s (xfr#737/10749)17.663 GiB / 3.507 TiB, 0%, 2.625 MiB/s, ETA 2w2d3h8m49s (xfr#737/10749)17.802 GiB / 3.507 TiB, 0%, 2.164 MiB/s, ETA 2w5d13h35m2s (xfr#737/10749)17.938 GiB / 3.507 TiB, 0%, 2.376 MiB/s, ETA 2w3d19h48m43s (xfr#737/10749)18.125 GiB / 3.507 TiB, 1%, 3.836 MiB/s, ETA 1w4d54m46s (xfr#737/10749)18.310 GiB / 3.507 TiB, 1%, 2.794 MiB/s, ETA 2w1d3h43m49s (xfr#737/10749)18.469 GiB / 3.507 TiB, 1%, 2.813 MiB/s, ETA 2w1d1h13m2s (xfr#737/10749)18.620 GiB / 3.507 TiB, 1%, 2.550 MiB/s, ETA 2w2d14h26m3s (xfr#737/10749)18.774 GiB / 3.507 TiB, 1%, 2.838 MiB/s, ETA 2w21h58m58s (xfr#737/10749)18.928 GiB / 3.507 TiB, 1%, 2.629 MiB/s, ETA 2w2d2h26m22s (xfr#737/10749)19.073 GiB / 3.507 TiB, 1%, 2.645 MiB/s, ETA 2w2d6m2s (xfr#737/10749)19.263 GiB / 3.507 TiB, 1%, 3.345 MiB/s, ETA 1w5d15h44m56s (xfr#737/10749)19.432 GiB / 3.507 TiB, 1%, 2.791 MiB/s, ETA 2w1d3h57m55s (xfr#737/10749)19.594 GiB / 3.507 TiB, 1%, 2.743 MiB/s, ETA 2w1d10h21m35s (xfr#737/10749)19.754 GiB / 3.507 TiB, 1%, 2.674 MiB/s, ETA 2w1d19h56m46s (xfr#737/10749)19.915 GiB / 3.507 TiB, 1%, 2.711 MiB/s, ETA 2w1d14h39m (xfr#737/10749)20.089 GiB / 3.507 TiB, 1%, 3.086 MiB/s, ETA 1w6d17h8m47s (xfr#737/10749)20.245 GiB / 3.507 TiB, 1%, 2.662 MiB/s, ETA 2w1d21h30m42s (xfr#737/10749)20.404 GiB / 3.507 TiB, 1%, 2.722 MiB/s, ETA 2w1d13h3m43s (xfr#737/10749)cat: 0: No such file or directory
+cat: 3: No such file or directory
+Use 'bd' for task tracking
+cat: CLAUDE.md: No such file or directory
+cat: GEMINI.md: No such file or directory
+cat: README.md: No such file or directory
+cat: agents: No such file or directory
+cat: apps: No such file or directory
+cat: bot.db: No such file or directory
+cat: data: No such file or directory
+cat: design: No such file or directory
+cat: docs: No such file or directory
+cat: inactive: No such file or directory
+cat: local-ai: No such file or directory
+cat: network: No such file or directory
+cat: protonvpn-wg0.conf: No such file or directory
+cat: scripts: No such file or directory
+Use 'bd' for task tracking
+cat: CLAUDE.md: No such file or directory
+cat: GEMINI.md: No such file or directory
+cat: README.md: No such file or directory
+cat: agents: No such file or directory
+cat: apps: No such file or directory
+cat: bot.db: No such file or directory
+cat: data: No such file or directory
+cat: design: No such file or directory
+cat: docs: No such file or directory
+cat: inactive: No such file or directory
+cat: local-ai: No such file or directory
+cat: network: No such file or directory
+cat: protonvpn-wg0.conf: No such file or directory
+cat: scripts: No such file or directory
+Use 'bd' for task tracking
+cat: CLAUDE.md: No such file or directory
+cat: GEMINI.md: No such file or directory
+cat: README.md: No such file or directory
+cat: agents: No such file or directory
+cat: apps: No such file or directory
+cat: bot.db: No such file or directory
+cat: data: No such file or directory
+cat: design: No such file or directory
+cat: docs: No such file or directory
+cat: inactive: No such file or directory
+cat: local-ai: No such file or directory
+cat: network: No such file or directory
+cat: protonvpn-wg0.conf: No such file or directory
+cat: scripts: No such file or directory
+#!/bin/bash
+# Backup ZFS pool to Backblaze B2 (encrypted)
+# Usage: ./backup-to-b2.sh [--dry-run]
+#
+# IMPORTANT: Backups are encrypted with rclone crypt.
+# Password stored in ~/.config/rclone/rclone.conf (obscured)
+# Plain password: Save in 1Password - required for disaster recovery!
+
+set -e
+
+# Configuration
+# Using encrypted remote - files are encrypted client-side before upload
+# Backs up entire ZFS pool: archive (media), backups (rsnapshot), vault
+BUCKET="b2-encrypted:"
+SOURCE="/jenquist-cloud"
+LOG_DIR="$HOME/server/logs/backups"
+LOG_FILE="$LOG_DIR/backup-$(date +%Y%m%d-%H%M%S).log"
+
+# Create log directory
+mkdir -p "$LOG_DIR"
+
+# Check if dry run
+DRY_RUN=""
+if [[ "$1" == "--dry-run" ]]; then
+    DRY_RUN="--dry-run"
+    echo "=== DRY RUN MODE ===" | tee -a "$LOG_FILE"
+fi
+
+echo "Starting backup at $(date)" | tee -a "$LOG_FILE"
+echo "Source: $SOURCE" | tee -a "$LOG_FILE"
+echo "Destination: $BUCKET" | tee -a "$LOG_FILE"
+echo "---" | tee -a "$LOG_FILE"
+
+# Run rclone sync
+# --transfers 4: Number of parallel transfers
+# --checkers 8: Number of parallel checkers
+# --progress: Show progress
+# --log-file: Log to file
+# --log-level INFO: Log level
+rclone sync "$SOURCE" "$BUCKET" \
+    $DRY_RUN \
+    --transfers 4 \
+    --checkers 8 \
+    --progress \
+    --log-file "$LOG_FILE" \
+    --log-level INFO \
+    --stats 1m \
+    --stats-one-line
+
+RESULT=$?
+
+echo "---" | tee -a "$LOG_FILE"
+echo "Backup completed at $(date) with exit code $RESULT" | tee -a "$LOG_FILE"
+
+# Keep only last 30 log files
+ls -t "$LOG_DIR"/backup-*.log 2>/dev/null | tail -n +31 | xargs -r rm
+
+exit $RESULT
+cat: 30: No such file or directory
+cat: 3: No such file or directory
+Use 'bd' for task tracking
+cat: CLAUDE.md: No such file or directory
+cat: GEMINI.md: No such file or directory
+cat: README.md: No such file or directory
+cat: agents: No such file or directory
+cat: apps: No such file or directory
+cat: bot.db: No such file or directory
+cat: data: No such file or directory
+cat: design: No such file or directory
+cat: docs: No such file or directory
+cat: inactive: No such file or directory
+cat: local-ai: No such file or directory
+cat: network: No such file or directory
+cat: protonvpn-wg0.conf: No such file or directory
+cat: scripts: No such file or directory
+Use 'bd' for task tracking
+cat: CLAUDE.md: No such file or directory
+cat: GEMINI.md: No such file or directory
+cat: README.md: No such file or directory
+cat: agents: No such file or directory
+cat: apps: No such file or directory
+cat: bot.db: No such file or directory
+cat: data: No such file or directory
+cat: design: No such file or directory
+cat: docs: No such file or directory
+cat: inactive: No such file or directory
+cat: local-ai: No such file or directory
+cat: network: No such file or directory
+cat: protonvpn-wg0.conf: No such file or directory
+cat: scripts: No such file or directory
+Use 'bd' for task tracking
+cat: CLAUDE.md: No such file or directory
+cat: GEMINI.md: No such file or directory
+cat: README.md: No such file or directory
+cat: agents: No such file or directory
+cat: apps: No such file or directory
+cat: bot.db: No such file or directory
+cat: data: No such file or directory
+cat: design: No such file or directory
+cat: docs: No such file or directory
+cat: inactive: No such file or directory
+cat: local-ai: No such file or directory
+cat: network: No such file or directory
+cat: protonvpn-wg0.conf: No such file or directory
+cat: scripts: No such file or directory
+#!/bin/bash
+# Plex Cleanup Cron Wrapper
+# Runs plex-cleanup.py with proper environment and logging
+# Scheduled: Daily at 3 AM CST
+
+set -e
+
+# Configuration
+SCRIPT_DIR="$(dirname "$0")"
+CLEANUP_SCRIPT="${SCRIPT_DIR}/plex-cleanup.py"
+LOG_DIR="${HOME}/server/logs"
+LOG_FILE="${LOG_DIR}/plex-cleanup.log"
+LOCK_FILE="/tmp/plex-cleanup.lock"
+
+# Plex credentials (sourced from bashrc or set here)
+export PLEX_URL="${PLEX_URL:-http://localhost:32400}"
+export PLEX_TOKEN="${PLEX_TOKEN:-KFm75bzkfZB1cWCRifK7}"
+
+# Sonarr connection (uses default localhost:8989, reads API key from config)
+export SONARR_URL="${SONARR_URL:-http://localhost:8989}"
+
+# Ensure log directory exists
+mkdir -p "${LOG_DIR}"
+
+# Prevent concurrent runs
+if [ -f "${LOCK_FILE}" ]; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Cleanup already running, skipping" >> "${LOG_FILE}"
+    exit 0
+fi
+trap "rm -f ${LOCK_FILE}" EXIT
+touch "${LOCK_FILE}"
+
+# Run cleanup
+echo "" >> "${LOG_FILE}"
+echo "========================================" >> "${LOG_FILE}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting scheduled cleanup" >> "${LOG_FILE}"
+echo "========================================" >> "${LOG_FILE}"
+
+python3 "${CLEANUP_SCRIPT}" --run >> "${LOG_FILE}" 2>&1
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Cleanup completed" >> "${LOG_FILE}"
+cat: CRONTAB: No such file or directory
+cat: crontab: No such file or directory
+Starting backup at Sat Dec 27 03:00:01 AM CST 2025
+Source: /jenquist-cloud
+Destination: b2-encrypted:
+---
+60.567 MiB / 5.864 TiB, 0%, 1.126 MiB/s, ETA 9w4h57m38s (xfr#90/10102)128.667 MiB / 5.864 TiB, 0%, 1.094 MiB/s, ETA 9w2d1h22m21s (xfr#90/10102)178.964 MiB / 5.867 TiB, 0%, 792.962 KiB/s, ETA 13w22h46m8s (xfr#129/10141)220.225 MiB / 5.867 TiB, 0%, 737.728 KiB/s, ETA 14w19h58m27s (xfr#129/10141)263.047 MiB / 5.867 TiB, 0%, 778.171 KiB/s, ETA 13w2d16h41m1s (xfr#129/10141)368.681 MiB / 5.867 TiB, 0%, 1.688 MiB/s, ETA 6w4h30m43s (xfr#129/10141)464.725 MiB / 5.868 TiB, 0%, 1.616 MiB/s, ETA 6w2d1h51m15s (xfr#145/10157)564.854 MiB / 5.868 TiB, 0%, 1.636 MiB/s, ETA 6w1d12h57m11s (xfr#145/10157)654.781 MiB / 5.870 TiB, 0%, 1.485 MiB/s, ETA 6w5d22h47m36s (xfr#161/10173)742.222 MiB / 5.870 TiB, 0%, 1.432 MiB/s, ETA 7w18h7m50s (xfr#161/10173)838.102 MiB / 5.870 TiB, 0%, 1.674 MiB/s, ETA 6w13h18m48s (xfr#161/10173)939.044 MiB / 5.870 TiB, 0%, 1.622 MiB/s, ETA 6w1d21h37m51s (xfr#161/10173)1.007 GiB / 5.870 TiB, 0%, 1.536 MiB/s, ETA 6w4d8h54m15s (xfr#161/10173)1.087 GiB / 5.870 TiB, 0%, 1.412 MiB/s, ETA 7w1d10h59m56s (xfr#164/10176)1.166 GiB / 5.870 TiB, 0%, 1.155 MiB/s, ETA 8w5d16h13m9s (xfr#164/10176)1.221 GiB / 5.870 TiB, 0%, 1.204 MiB/s, ETA 8w3d3h31m38s (xfr#164/10176)1.294 GiB / 5.870 TiB, 0%, 1.269 MiB/s, ETA 8w3h10m45s (xfr#164/10176)1.359 GiB / 5.870 TiB, 0%, 1.089 MiB/s, ETA 9w2d9h21m17s (xfr#164/10176)1.430 GiB / 5.870 TiB, 0%, 1.146 MiB/s, ETA 8w6d3h27m27s (xfr#164/10176)1.497 GiB / 5.870 TiB, 0%, 1.225 MiB/s, ETA 8w2d3h50m52s (xfr#164/10176)1.562 GiB / 5.870 TiB, 0%, 1.152 MiB/s, ETA 8w5d19h42m11s (xfr#164/10176)1.637 GiB / 5.870 TiB, 0%, 1.286 MiB/s, ETA 7w6d9h18m39s (xfr#164/10176)1.703 GiB / 5.870 TiB, 0%, 1.042 MiB/s, ETA 9w5d8h39m47s (xfr#164/10176)1.761 GiB / 5.870 TiB, 0%, 971.986 KiB/s, ETA 10w5d49m42s (xfr#164/10176)1.820 GiB / 5.870 TiB, 0%, 1.062 MiB/s, ETA 9w4d1h16m46s (xfr#164/10176)1.879 GiB / 5.870 TiB, 0%, 1.013 MiB/s, ETA 10w7h15m15s (xfr#164/10176)1.944 GiB / 5.870 TiB, 0%, 1.213 MiB/s, ETA 8w2d17h24m3s (xfr#164/10176)2.020 GiB / 5.870 TiB, 0%, 1.327 MiB/s, ETA 7w4d16h28m36s (xfr#164/10176)2.094 GiB / 5.870 TiB, 0%, 1.313 MiB/s, ETA 7w5d5h40m16s (xfr#164/10176)2.168 GiB / 5.870 TiB, 0%, 1.272 MiB/s, ETA 7w6d23h32m58s (xfr#164/10176)2.240 GiB / 5.870 TiB, 0%, 1.169 MiB/s, ETA 8w4d22h39m59s (xfr#164/10176)2.304 GiB / 5.870 TiB, 0%, 1.114 MiB/s, ETA 9w22h1m36s (xfr#164/10176)2.373 GiB / 5.870 TiB, 0%, 1.120 MiB/s, ETA 9w14h18m1s (xfr#164/10176)2.443 GiB / 5.870 TiB, 0%, 1.186 MiB/s, ETA 8w4d1h30m15s (xfr#164/10176)2.512 GiB / 5.870 TiB, 0%, 1.175 MiB/s, ETA 8w4d14h45m19s (xfr#164/10176)2.578 GiB / 5.870 TiB, 0%, 1.142 MiB/s, ETA 8w6d8h41m31s (xfr#164/10176)2.645 GiB / 5.870 TiB, 0%, 1.112 MiB/s, ETA 9w1d1h14m10s (xfr#164/10176)2.707 GiB / 5.870 TiB, 0%, 1.123 MiB/s, ETA 9w9h20m2s (xfr#164/10176)2.766 GiB / 5.870 TiB, 0%, 977.541 KiB/s, ETA 10w4d14h17m46s (xfr#164/10176)2.829 GiB / 5.870 TiB, 0%, 1.110 MiB/s, ETA 9w1d4h4m31s (xfr#164/10176)2.893 GiB / 5.870 TiB, 0%, 1.039 MiB/s, ETA 9w5d13h16m26s (xfr#164/10176)2.960 GiB / 5.870 TiB, 0%, 1.093 MiB/s, ETA 9w2d3h3m22s (xfr#164/10176)3.027 GiB / 5.870 TiB, 0%, 1.126 MiB/s, ETA 9w6h13m16s (xfr#164/10176)3.091 GiB / 5.870 TiB, 0%, 1.095 MiB/s, ETA 9w2d1h15m29s (xfr#164/10176)3.157 GiB / 5.870 TiB, 0%, 1.140 MiB/s, ETA 8w6d11h3m31s (xfr#164/10176)3.220 GiB / 5.870 TiB, 0%, 1.147 MiB/s, ETA 8w6d2h26m14s (xfr#164/10176)3.284 GiB / 5.870 TiB, 0%, 1.127 MiB/s, ETA 9w3h46m22s (xfr#164/10176)3.349 GiB / 5.870 TiB, 0%, 1.095 MiB/s, ETA 9w2d44m56s (xfr#164/10176)3.415 GiB / 5.870 TiB, 0%, 1.116 MiB/s, ETA 9w18h53m51s (xfr#164/10176)3.485 GiB / 5.870 TiB, 0%, 1.151 MiB/s, ETA 8w5d20h6m13s (xfr#164/10176)3.556 GiB / 5.870 TiB, 0%, 1.215 MiB/s, ETA 8w2d14h58m16s (xfr#164/10176)3.624 GiB / 5.870 TiB, 0%, 1.181 MiB/s, ETA 8w4d6h25m21s (xfr#164/10176)3.690 GiB / 5.870 TiB, 0%, 1.060 MiB/s, ETA 9w4d4h49m5s (xfr#164/10176)3.755 GiB / 5.870 TiB, 0%, 1.128 MiB/s, ETA 9w2h48m14s (xfr#164/10176)3.821 GiB / 5.870 TiB, 0%, 1.041 MiB/s, ETA 9w5d9h11m53s (xfr#164/10176)3.885 GiB / 5.870 TiB, 0%, 1.081 MiB/s, ETA 9w2d20h55m52s (xfr#164/10176)3.955 GiB / 5.870 TiB, 0%, 1.184 MiB/s, ETA 8w4d2h51m50s (xfr#164/10176)4.028 GiB / 5.870 TiB, 0%, 1.196 MiB/s, ETA 8w3d12h35m19s (xfr#164/10176)4.094 GiB / 5.870 TiB, 0%, 1.107 MiB/s, ETA 9w1d7h24m13s (xfr#164/10176)4.160 GiB / 5.870 TiB, 0%, 1.126 MiB/s, ETA 9w4h49m48s (xfr#164/10176)4.232 GiB / 5.870 TiB, 0%, 1.204 MiB/s, ETA 8w3d2h44m37s (xfr#164/10176)4.305 GiB / 5.870 TiB, 0%, 1.224 MiB/s, ETA 8w2d3h31m24s (xfr#164/10176)4.382 GiB / 5.870 TiB, 0%, 1.270 MiB/s, ETA 8w1h50m38s (xfr#164/10176)4.454 GiB / 5.870 TiB, 0%, 1.291 MiB/s, ETA 7w6d3h43m45s (xfr#164/10176)4.517 GiB / 5.870 TiB, 0%, 1.115 MiB/s, ETA 9w20h54m7s (xfr#164/10176)4.577 GiB / 5.870 TiB, 0%, 1.046 MiB/s, ETA 9w5d1h59m41s (xfr#164/10176)4.645 GiB / 5.870 TiB, 0%, 1.196 MiB/s, ETA 8w3d13h1m28s (xfr#164/10176)4.713 GiB / 5.870 TiB, 0%, 1.242 MiB/s, ETA 8w1d7h28m20s (xfr#164/10176)4.776 GiB / 5.870 TiB, 0%, 1.037 MiB/s, ETA 9w5d16h15m21s (xfr#164/10176)4.836 GiB / 5.870 TiB, 0%, 1023.995 KiB/s, ETA 10w1d4h29m24s (xfr#164/10176)4.895 GiB / 5.870 TiB, 0%, 1016.698 KiB/s, ETA 10w1d16h44m2s (xfr#164/10176)4.958 GiB / 5.870 TiB, 0%, 1.099 MiB/s, ETA 9w1d18h24m30s (xfr#164/10176)5.017 GiB / 5.870 TiB, 0%, 980.531 KiB/s, ETA 10w4d8h10m6s (xfr#164/10176)5.081 GiB / 5.870 TiB, 0%, 1.170 MiB/s, ETA 8w4d20h19m45s (xfr#164/10176)5.149 GiB / 5.870 TiB, 0%, 1.165 MiB/s, ETA 8w5d2h50m27s (xfr#164/10176)5.216 GiB / 5.870 TiB, 0%, 1.042 MiB/s, ETA 9w5d7h43m17s (xfr#164/10176)5.275 GiB / 5.870 TiB, 0%, 983.854 KiB/s, ETA 10w4d2h3m51s (xfr#164/10176)5.334 GiB / 5.870 TiB, 0%, 984.607 KiB/s, ETA 10w4d41m17s (xfr#164/10176)5.401 GiB / 5.870 TiB, 0%, 1.219 MiB/s, ETA 8w2d9h55m17s (xfr#164/10176)5.475 GiB / 5.870 TiB, 0%, 1.221 MiB/s, ETA 8w2d6h45m9s (xfr#164/10176)5.542 GiB / 5.870 TiB, 0%, 1.112 MiB/s, ETA 9w1d49m15s (xfr#164/10176)5.593 GiB / 5.870 TiB, 0%, 906.239 KiB/s, ETA 11w3d10h14m45s (xfr#164/10176)5.642 GiB / 5.870 TiB, 0%, 900.631 KiB/s, ETA 11w3d22h14m58s (xfr#164/10176)5.693 GiB / 5.870 TiB, 0%, 886.961 KiB/s, ETA 11w5d4h10m4s (xfr#164/10176)5.742 GiB / 5.870 TiB, 0%, 915.251 KiB/s, ETA 11w2d15h11m32s (xfr#164/10176)5.793 GiB / 5.870 TiB, 0%, 890.303 KiB/s, ETA 11w4d20h43m55s (xfr#164/10176)5.857 GiB / 5.870 TiB, 0%, 1.187 MiB/s, ETA 8w3d23h16m16s (xfr#164/10176)5.921 GiB / 5.870 TiB, 0%, 1.100 MiB/s, ETA 9w1d17h31m41s (xfr#164/10176)5.980 GiB / 5.870 TiB, 0%, 990.462 KiB/s, ETA 10w3d13h59m44s (xfr#164/10176)6.041 GiB / 5.870 TiB, 0%, 1.047 MiB/s, ETA 9w4d23h37m56s (xfr#164/10176)6.104 GiB / 5.870 TiB, 0%, 1.032 MiB/s, ETA 9w5d22h53m32s (xfr#164/10176)6.171 GiB / 5.870 TiB, 0%, 1.181 MiB/s, ETA 8w4d6h34m57s (xfr#164/10176)6.240 GiB / 5.870 TiB, 0%, 1.156 MiB/s, ETA 8w5d13h23m11s (xfr#164/10176)6.308 GiB / 5.870 TiB, 0%, 1.068 MiB/s, ETA 9w3d15h59m16s (xfr#164/10176)6.372 GiB / 5.870 TiB, 0%, 1.136 MiB/s, ETA 8w6d15h10m12s (xfr#164/10176)6.436 GiB / 5.870 TiB, 0%, 1.106 MiB/s, ETA 9w1d8h49s (xfr#164/10176)6.507 GiB / 5.870 TiB, 0%, 1.263 MiB/s, ETA 8w8h10m16s (xfr#164/10176)6.581 GiB / 5.870 TiB, 0%, 1.295 MiB/s, ETA 7w5d22h41m33s (xfr#164/10176)6.650 GiB / 5.870 TiB, 0%, 1.139 MiB/s, ETA 8w6d12h9m5s (xfr#164/10176)6.718 GiB / 5.870 TiB, 0%, 1.206 MiB/s, ETA 8w3d45s (xfr#164/10176)6.781 GiB / 5.870 TiB, 0%, 1.097 MiB/s, ETA 9w1d21h13m17s (xfr#164/10176)6.848 GiB / 5.870 TiB, 0%, 1.205 MiB/s, ETA 8w3d1h39m5s (xfr#164/10176)6.916 GiB / 5.870 TiB, 0%, 1.191 MiB/s, ETA 8w3d17h55m22s (xfr#164/10176)6.982 GiB / 5.870 TiB, 0%, 1.057 MiB/s, ETA 9w4d7h19m27s (xfr#164/10176)7.044 GiB / 5.870 TiB, 0%, 1004.121 KiB/s, ETA 10w2d13h39m53s (xfr#164/10176)7.103 GiB / 5.870 TiB, 0%, 987.515 KiB/s, ETA 10w3d18h56m7s (xfr#164/10176)7.157 GiB / 5.870 TiB, 0%, 928.312 KiB/s, ETA 11w1d11h51m25s (xfr#164/10176)7.212 GiB / 5.870 TiB, 0%, 1.018 MiB/s, ETA 9w6d21h7m26s (xfr#164/10176)7.273 GiB / 5.870 TiB, 0%, 1.075 MiB/s, ETA 9w3d4h37m21s (xfr#164/10176)7.338 GiB / 5.870 TiB, 0%, 1.127 MiB/s, ETA 9w3h13m55s (xfr#164/10176)7.401 GiB / 5.870 TiB, 0%, 1.055 MiB/s, ETA 9w4d11h25m33s (xfr#164/10176)7.470 GiB / 5.870 TiB, 0%, 1.263 MiB/s, ETA 8w8h33m24s (xfr#164/10176)7.546 GiB / 5.870 TiB, 0%, 1.195 MiB/s, ETA 8w3d13h37m22s (xfr#164/10176)7.616 GiB / 5.870 TiB, 0%, 1.257 MiB/s, ETA 8w14h19m41s (xfr#164/10176)7.692 GiB / 5.870 TiB, 0%, 1.255 MiB/s, ETA 8w16h46m6s (xfr#164/10176)7.762 GiB / 5.870 TiB, 0%, 1.122 MiB/s, ETA 9w10h11m3s (xfr#164/10176)7.834 GiB / 5.870 TiB, 0%, 1.329 MiB/s, ETA 7w4d13h15m10s (xfr#164/10176)7.905 GiB / 5.870 TiB, 0%, 1.173 MiB/s, ETA 8w4d16h14m50s (xfr#164/10176)7.975 GiB / 5.870 TiB, 0%, 1.165 MiB/s, ETA 8w5d2h7m37s (xfr#164/10176)8.043 GiB / 5.870 TiB, 0%, 1.196 MiB/s, ETA 8w3d11h59m37s (xfr#164/10176)8.101 GiB / 5.870 TiB, 0%, 990.168 KiB/s, ETA 10w3d13h53m50s (xfr#164/10176)8.167 GiB / 5.870 TiB, 0%, 1.126 MiB/s, ETA 9w4h54m3s (xfr#164/10176)8.227 GiB / 5.870 TiB, 0%, 1.025 MiB/s, ETA 9w6d10h16m55s (xfr#164/10176)8.290 GiB / 5.870 TiB, 0%, 1.081 MiB/s, ETA 9w2d19h19m44s (xfr#164/10176)8.352 GiB / 5.870 TiB, 0%, 1.014 MiB/s, ETA 10w4h30m29s (xfr#164/10176)8.416 GiB / 5.870 TiB, 0%, 1.090 MiB/s, ETA 9w2d5h45m50s (xfr#164/10176)8.486 GiB / 5.870 TiB, 0%, 1.195 MiB/s, ETA 8w3d12h21m26s (xfr#164/10176)8.551 GiB / 5.870 TiB, 0%, 1.115 MiB/s, ETA 9w19h43m11s (xfr#164/10176)8.617 GiB / 5.870 TiB, 0%, 1.120 MiB/s, ETA 9w13h4m18s (xfr#164/10176)8.680 GiB / 5.870 TiB, 0%, 1.112 MiB/s, ETA 9w23h15m31s (xfr#164/10176)8.745 GiB / 5.870 TiB, 0%, 1.145 MiB/s, ETA 8w6d3h4m24s (xfr#164/10176)8.815 GiB / 5.870 TiB, 0%, 1.200 MiB/s, ETA 8w3d7h17m9s (xfr#164/10176)8.883 GiB / 5.870 TiB, 0%, 1.113 MiB/s, ETA 9w21h48m3s (xfr#164/10176)8.944 GiB / 5.870 TiB, 0%, 993.099 KiB/s, ETA 10w3d8h26m15s (xfr#164/10176)9.001 GiB / 5.870 TiB, 0%, 989.254 KiB/s, ETA 10w3d15h15m47s (xfr#164/10176)cat: 0: No such file or directory
+cat: 1: No such file or directory
+Use 'bd' for task tracking
+cat: CLAUDE.md: No such file or directory
+cat: GEMINI.md: No such file or directory
+cat: README.md: No such file or directory
+cat: agents: No such file or directory
+cat: apps: No such file or directory
+cat: bot.db: No such file or directory
+cat: data: No such file or directory
+cat: design: No such file or directory
+cat: docs: No such file or directory
+cat: inactive: No such file or directory
+cat: local-ai: No such file or directory
+cat: network: No such file or directory
+cat: protonvpn-wg0.conf: No such file or directory
+cat: scripts: No such file or directory
+Use 'bd' for task tracking
+cat: CLAUDE.md: No such file or directory
+cat: GEMINI.md: No such file or directory
+cat: README.md: No such file or directory
+cat: agents: No such file or directory
+cat: apps: No such file or directory
+cat: bot.db: No such file or directory
+cat: data: No such file or directory
+cat: design: No such file or directory
+cat: docs: No such file or directory
+cat: inactive: No such file or directory
+cat: local-ai: No such file or directory
+cat: network: No such file or directory
+cat: protonvpn-wg0.conf: No such file or directory
+cat: scripts: No such file or directory
+Use 'bd' for task tracking
+cat: CLAUDE.md: No such file or directory
+cat: GEMINI.md: No such file or directory
+cat: README.md: No such file or directory
+cat: agents: No such file or directory
+cat: apps: No such file or directory
+cat: bot.db: No such file or directory
+cat: data: No such file or directory
+cat: design: No such file or directory
+cat: docs: No such file or directory
+cat: inactive: No such file or directory
+cat: local-ai: No such file or directory
+cat: network: No such file or directory
+cat: protonvpn-wg0.conf: No such file or directory
+cat: scripts: No such file or directory
+#!/bin/bash
+# Backup ZFS pool to Backblaze B2 (encrypted)
+# Usage: ./backup-to-b2.sh [--dry-run]
+#
+# IMPORTANT: Backups are encrypted with rclone crypt.
+# Password stored in ~/.config/rclone/rclone.conf (obscured)
+# Plain password: Save in 1Password - required for disaster recovery!
+
+set -e
+
+# Configuration
+# Using encrypted remote - files are encrypted client-side before upload
+# Backs up entire ZFS pool: archive (media), backups (rsnapshot), vault
+BUCKET="b2-encrypted:"
+SOURCE="/jenquist-cloud"
+LOG_DIR="$HOME/server/logs/backups"
+LOG_FILE="$LOG_DIR/backup-$(date +%Y%m%d-%H%M%S).log"
+
+# Create log directory
+mkdir -p "$LOG_DIR"
+
+# Check if dry run
+DRY_RUN=""
+if [[ "$1" == "--dry-run" ]]; then
+    DRY_RUN="--dry-run"
+    echo "=== DRY RUN MODE ===" | tee -a "$LOG_FILE"
+fi
+
+echo "Starting backup at $(date)" | tee -a "$LOG_FILE"
+echo "Source: $SOURCE" | tee -a "$LOG_FILE"
+echo "Destination: $BUCKET" | tee -a "$LOG_FILE"
+echo "---" | tee -a "$LOG_FILE"
+
+# Run rclone sync
+# --transfers 4: Number of parallel transfers
+# --checkers 8: Number of parallel checkers
+# --progress: Show progress
+# --log-file: Log to file
+# --log-level INFO: Log level
+rclone sync "$SOURCE" "$BUCKET" \
+    $DRY_RUN \
+    --transfers 4 \
+    --checkers 8 \
+    --progress \
+    --log-file "$LOG_FILE" \
+    --log-level INFO \
+    --stats 1m \
+    --stats-one-line
+
+RESULT=$?
+
+echo "---" | tee -a "$LOG_FILE"
+echo "Backup completed at $(date) with exit code $RESULT" | tee -a "$LOG_FILE"
+
+# Keep only last 30 log files
+ls -t "$LOG_DIR"/backup-*.log 2>/dev/null | tail -n +31 | xargs -r rm
+
+exit $RESULT
+cat: 30: No such file or directory
+cat: 3: No such file or directory
+Use 'bd' for task tracking
+cat: CLAUDE.md: No such file or directory
+cat: GEMINI.md: No such file or directory
+cat: README.md: No such file or directory
+cat: agents: No such file or directory
+cat: apps: No such file or directory
+cat: bot.db: No such file or directory
+cat: data: No such file or directory
+cat: design: No such file or directory
+cat: docs: No such file or directory
+cat: inactive: No such file or directory
+cat: local-ai: No such file or directory
+cat: network: No such file or directory
+cat: protonvpn-wg0.conf: No such file or directory
+cat: scripts: No such file or directory
+Use 'bd' for task tracking
+cat: CLAUDE.md: No such file or directory
+cat: GEMINI.md: No such file or directory
+cat: README.md: No such file or directory
+cat: agents: No such file or directory
+cat: apps: No such file or directory
+cat: bot.db: No such file or directory
+cat: data: No such file or directory
+cat: design: No such file or directory
+cat: docs: No such file or directory
+cat: inactive: No such file or directory
+cat: local-ai: No such file or directory
+cat: network: No such file or directory
+cat: protonvpn-wg0.conf: No such file or directory
+cat: scripts: No such file or directory
+Use 'bd' for task tracking
+cat: CLAUDE.md: No such file or directory
+cat: GEMINI.md: No such file or directory
+cat: README.md: No such file or directory
+cat: agents: No such file or directory
+cat: apps: No such file or directory
+cat: bot.db: No such file or directory
+cat: data: No such file or directory
+cat: design: No such file or directory
+cat: docs: No such file or directory
+cat: inactive: No such file or directory
+cat: local-ai: No such file or directory
+cat: network: No such file or directory
+cat: protonvpn-wg0.conf: No such file or directory
+cat: scripts: No such file or directory
+#!/bin/bash
+# Plex Cleanup Cron Wrapper
+# Runs plex-cleanup.py with proper environment and logging
+# Scheduled: Daily at 3 AM CST
+
+set -e
+
+# Configuration
+SCRIPT_DIR="$(dirname "$0")"
+CLEANUP_SCRIPT="${SCRIPT_DIR}/plex-cleanup.py"
+LOG_DIR="${HOME}/server/logs"
+LOG_FILE="${LOG_DIR}/plex-cleanup.log"
+LOCK_FILE="/tmp/plex-cleanup.lock"
+
+# Plex credentials (sourced from bashrc or set here)
+export PLEX_URL="${PLEX_URL:-http://localhost:32400}"
+export PLEX_TOKEN="${PLEX_TOKEN:-KFm75bzkfZB1cWCRifK7}"
+
+# Sonarr connection (uses default localhost:8989, reads API key from config)
+export SONARR_URL="${SONARR_URL:-http://localhost:8989}"
+
+# Ensure log directory exists
+mkdir -p "${LOG_DIR}"
+
+# Prevent concurrent runs
+if [ -f "${LOCK_FILE}" ]; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Cleanup already running, skipping" >> "${LOG_FILE}"
+    exit 0
+fi
+trap "rm -f ${LOCK_FILE}" EXIT
+touch "${LOCK_FILE}"
+
+# Run cleanup
+echo "" >> "${LOG_FILE}"
+echo "========================================" >> "${LOG_FILE}"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting scheduled cleanup" >> "${LOG_FILE}"
+echo "========================================" >> "${LOG_FILE}"
+
+python3 "${CLEANUP_SCRIPT}" --run >> "${LOG_FILE}" 2>&1
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Cleanup completed" >> "${LOG_FILE}"
+cat: CRONEOF: No such file or directory
+cat: crontab: No such file or directory
+Starting backup at Sun Dec 28 01:00:01 AM CST 2025
+Source: /jenquist-cloud
+Destination: b2-encrypted:
+---
+105.812 MiB / 15.205 TiB, 0%, 3.680 MiB/s, ETA 7w1d3h37m55s (xfr#0/9765, chk#369401.688 MiB / 15.260 TiB, 0%, 4.905 MiB/s, ETA 5w2d18h13m41s (xfr#0/10012)698.844 MiB / 15.260 TiB, 0%, 4.955 MiB/s, ETA 5w2d8h57m29s (xfr#0/10012)995.032 MiB / 15.260 TiB, 0%, 4.944 MiB/s, ETA 5w2d11h2s (xfr#0/10012)1.260 GiB / 15.260 TiB, 0%, 4.934 MiB/s, ETA 5w2d12h49m37s (xfr#0/10012)1.549 GiB / 15.260 TiB, 0%, 4.944 MiB/s, ETA 5w2d10h53m56s (xfr#0/10012)1.839 GiB / 15.260 TiB, 0%, 4.928 MiB/s, ETA 5w2d13h44m11s (xfr#0/10012)2.129 GiB / 15.260 TiB, 0%, 4.953 MiB/s, ETA 5w2d9h15m13s (xfr#0/10012)2.418 GiB / 15.260 TiB, 0%, 4.933 MiB/s, ETA 5w2d12h54m38s (xfr#0/10012)2.708 GiB / 15.260 TiB, 0%, 4.961 MiB/s, ETA 5w2d7h44m9s (xfr#0/10012)2.998 GiB / 15.260 TiB, 0%, 4.953 MiB/s, ETA 5w2d9h12m35s (xfr#0/10012)3.288 GiB / 15.260 TiB, 0%, 4.942 MiB/s, ETA 5w2d11h6m15s (xfr#0/10012)3.576 GiB / 15.260 TiB, 0%, 4.883 MiB/s, ETA 5w2d21h58m4s (xfr#0/10012)3.862 GiB / 15.260 TiB, 0%, 4.922 MiB/s, ETA 5w2d14h50m48s (xfr#0/10012)4.151 GiB / 15.260 TiB, 0%, 4.968 MiB/s, ETA 5w2d6h23m59s (xfr#0/10012)4.441 GiB / 15.260 TiB, 0%, 4.961 MiB/s, ETA 5w2d7h42m48s (xfr#0/10012)4.730 GiB / 15.260 TiB, 0%, 4.916 MiB/s, ETA 5w2d15h53m38s (xfr#0/10012)5.020 GiB / 15.260 TiB, 0%, 4.932 MiB/s, ETA 5w2d12h52m26s (xfr#0/10012)5.310 GiB / 15.260 TiB, 0%, 4.958 MiB/s, ETA 5w2d8h11m28s (xfr#0/10012)5.598 GiB / 15.260 TiB, 0%, 4.921 MiB/s, ETA 5w2d14h58m20s (xfr#0/10012)5.887 GiB / 15.260 TiB, 0%, 4.934 MiB/s, ETA 5w2d12h27m59s (xfr#0/10012)6.177 GiB / 15.260 TiB, 0%, 4.973 MiB/s, ETA 5w2d5h24m23s (xfr#0/10012)6.466 GiB / 15.260 TiB, 0%, 4.929 MiB/s, ETA 5w2d13h20m37s (xfr#0/10012)6.755 GiB / 15.260 TiB, 0%, 4.941 MiB/s, ETA 5w2d11h8m31s (xfr#0/10012)7.042 GiB / 15.260 TiB, 0%, 4.907 MiB/s, ETA 5w2d17h17m55s (xfr#0/10012)7.332 GiB / 15.260 TiB, 0%, 4.955 MiB/s, ETA 5w2d8h32m (xfr#0/10012)7.621 GiB / 15.260 TiB, 0%, 4.925 MiB/s, ETA 5w2d14h4m22s (xfr#0/10012)7.911 GiB / 15.260 TiB, 0%, 4.947 MiB/s, ETA 5w2d10h2m23s (xfr#0/10012)8.198 GiB / 15.260 TiB, 0%, 4.940 MiB/s, ETA 5w2d11h17m25s (xfr#0/10012)8.488 GiB / 15.260 TiB, 0%, 4.932 MiB/s, ETA 5w2d12h38m57s (xfr#0/10012)8.776 GiB / 15.260 TiB, 0%, 4.916 MiB/s, ETA 5w2d15h42m15s (xfr#0/10012)9.065 GiB / 15.260 TiB, 0%, 4.959 MiB/s, ETA 5w2d7h47m42s (xfr#0/10012)9.356 GiB / 15.260 TiB, 0%, 4.908 MiB/s, ETA 5w2d17h5m50s (xfr#0/10012)9.643 GiB / 15.260 TiB, 0%, 4.849 MiB/s, ETA 5w3d4h7m1s (xfr#0/10012)9.933 GiB / 15.260 TiB, 0%, 4.936 MiB/s, ETA 5w2d11h51m34s (xfr#0/10012)10.220 GiB / 15.260 TiB, 0%, 4.855 MiB/s, ETA 5w3d2h56m3s (xfr#0/10012)10.509 GiB / 15.260 TiB, 0%, 4.929 MiB/s, ETA 5w2d13h13m21s (xfr#0/10012)10.799 GiB / 15.260 TiB, 0%, 4.929 MiB/s, ETA 5w2d13h4m48s (xfr#0/10012)11.089 GiB / 15.260 TiB, 0%, 4.947 MiB/s, ETA 5w2d9h44m45s (xfr#0/10012)11.378 GiB / 15.260 TiB, 0%, 4.916 MiB/s, ETA 5w2d15h29m43s (xfr#0/10012)11.667 GiB / 15.260 TiB, 0%, 4.939 MiB/s, ETA 5w2d11h20m19s (xfr#0/10012)11.954 GiB / 15.260 TiB, 0%, 4.933 MiB/s, ETA 5w2d12h25m9s (xfr#0/10012)12.228 GiB / 15.260 TiB, 0%, 4.675 MiB/s, ETA 5w4d14h1m30s (xfr#0/10012)12.513 GiB / 15.260 TiB, 0%, 4.797 MiB/s, ETA 5w3d13h54m10s (xfr#0/10012)12.802 GiB / 15.260 TiB, 0%, 4.919 MiB/s, ETA 5w2d14h50m26s (xfr#0/10012)13.092 GiB / 15.260 TiB, 0%, 4.943 MiB/s, ETA 5w2d10h27m20s (xfr#0/10012)13.381 GiB / 15.260 TiB, 0%, 4.946 MiB/s, ETA 5w2d9h48m31s (xfr#0/10012)13.671 GiB / 15.260 TiB, 0%, 4.941 MiB/s, ETA 5w2d10h47m21s (xfr#0/10012)13.960 GiB / 15.260 TiB, 0%, 4.936 MiB/s, ETA 5w2d11h39m41s (xfr#0/10012)14.248 GiB / 15.260 TiB, 0%, 4.939 MiB/s, ETA 5w2d11h1m14s (xfr#0/10012)14.538 GiB / 15.260 TiB, 0%, 4.985 MiB/s, ETA 5w2d2h47m12s (xfr#0/10012)14.827 GiB / 15.260 TiB, 0%, 4.925 MiB/s, ETA 5w2d13h33m30s (xfr#0/10012)15.116 GiB / 15.260 TiB, 0%, 4.943 MiB/s, ETA 5w2d10h19m47s (xfr#0/10012)15.406 GiB / 15.260 TiB, 0%, 4.936 MiB/s, ETA 5w2d11h30m10s (xfr#0/10012)15.694 GiB / 15.260 TiB, 0%, 4.878 MiB/s, ETA 5w2d22h12m17s (xfr#0/10012)15.984 GiB / 15.260 TiB, 0%, 4.932 MiB/s, ETA 5w2d12h12m31s (xfr#0/10012)16.272 GiB / 15.260 TiB, 0%, 4.865 MiB/s, ETA 5w3d42m49s (xfr#1/10013)16.562 GiB / 15.260 TiB, 0%, 4.941 MiB/s, ETA 5w2d10h37m44s (xfr#1/10013)16.850 GiB / 15.260 TiB, 0%, 4.954 MiB/s, ETA 5w2d8h16m26s (xfr#1/10013)17.137 GiB / 15.260 TiB, 0%, 4.910 MiB/s, ETA 5w2d16h19m31s (xfr#1/10013)17.425 GiB / 15.260 TiB, 0%, 4.955 MiB/s, ETA 5w2d8h4m11s (xfr#1/10013)17.713 GiB / 15.261 TiB, 0%, 4.882 MiB/s, ETA 5w2d21h26m44s (xfr#2/10014)18.002 GiB / 15.261 TiB, 0%, 4.978 MiB/s, ETA 5w2d3h54m3s (xfr#4/10016)18.290 GiB / 15.261 TiB, 0%, 4.914 MiB/s, ETA 5w2d15h26m20s (xfr#4/10016)18.578 GiB / 15.261 TiB, 0%, 4.935 MiB/s, ETA 5w2d11h39m7s (xfr#4/10016)18.868 GiB / 15.261 TiB, 0%, 4.961 MiB/s, ETA 5w2d6h55m12s (xfr#4/10016)19.158 GiB / 15.261 TiB, 0%, 4.930 MiB/s, ETA 5w2d12h33m1s (xfr#4/10016)19.447 GiB / 15.261 TiB, 0%, 4.916 MiB/s, ETA 5w2d14h58m54s (xfr#4/10016)19.737 GiB / 15.261 TiB, 0%, 4.944 MiB/s, ETA 5w2d9h54m3s (xfr#4/10016)20.026 GiB / 15.261 TiB, 0%, 4.932 MiB/s, ETA 5w2d12h8m36s (xfr#4/10016)20.317 GiB / 15.261 TiB, 0%, 4.962 MiB/s, ETA 5w2d6h35m (xfr#4/10016)20.606 GiB / 15.261 TiB, 0%, 4.949 MiB/s, ETA 5w2d8h52m44s (xfr#4/10016)20.897 GiB / 15.261 TiB, 0%, 4.950 MiB/s, ETA 5w2d8h49m47s (xfr#4/10016)21.178 GiB / 15.261 TiB, 0%, 4.739 MiB/s, ETA 5w4d46m4s (xfr#4/10016)21.465 GiB / 15.261 TiB, 0%, 4.827 MiB/s, ETA 5w3d7h38m36s (xfr#4/10016)21.749 GiB / 15.261 TiB, 0%, 4.836 MiB/s, ETA 5w3d5h50m34s (xfr#4/10016)22.038 GiB / 15.261 TiB, 0%, 4.922 MiB/s, ETA 5w2d13h48m58s (xfr#4/10016)22.328 GiB / 15.261 TiB, 0%, 5.004 MiB/s, ETA 5w1d23h3m36s (xfr#4/10016)22.618 GiB / 15.261 TiB, 0%, 4.860 MiB/s, ETA 5w3d1h20m22s (xfr#4/10016)22.906 GiB / 15.261 TiB, 0%, 4.917 MiB/s, ETA 5w2d14h40m8s (xfr#4/10016)23.195 GiB / 15.261 TiB, 0%, 4.936 MiB/s, ETA 5w2d11h8m13s (xfr#4/10016)23.484 GiB / 15.261 TiB, 0%, 4.956 MiB/s, ETA 5w2d7h33m32s (xfr#4/10016)23.773 GiB / 15.261 TiB, 0%, 4.905 MiB/s, ETA 5w2d16h51m7s (xfr#4/10016)24.061 GiB / 15.261 TiB, 0%, 4.909 MiB/s, ETA 5w2d16h1m32s (xfr#4/10016)24.352 GiB / 15.261 TiB, 0%, 4.962 MiB/s, ETA 5w2d6h22m50s (xfr#4/10016)24.640 GiB / 15.261 TiB, 0%, 4.975 MiB/s, ETA 5w2d3h58m45s (xfr#4/10016)24.928 GiB / 15.261 TiB, 0%, 4.846 MiB/s, ETA 5w3d3h43m2s (xfr#4/10016)25.218 GiB / 15.261 TiB, 0%, 4.954 MiB/s, ETA 5w2d7h52m36s (xfr#4/10016)25.507 GiB / 15.261 TiB, 0%, 4.970 MiB/s, ETA 5w2d4h53m26s (xfr#4/10016)25.795 GiB / 15.261 TiB, 0%, 4.945 MiB/s, ETA 5w2d9h21m46s (xfr#4/10016)26.079 GiB / 15.261 TiB, 0%, 4.919 MiB/s, ETA 5w2d14h10m45s (xfr#4/10016)26.366 GiB / 15.261 TiB, 0%, 4.832 MiB/s, ETA 5w3d6h21m9s (xfr#4/10016)26.655 GiB / 15.261 TiB, 0%, 4.945 MiB/s, ETA 5w2d9h15m54s (xfr#4/10016)26.946 GiB / 15.261 TiB, 0%, 4.968 MiB/s, ETA 5w2d5h15m3s (xfr#4/10016)27.235 GiB / 15.261 TiB, 0%, 4.939 MiB/s, ETA 5w2d10h27m9s (xfr#4/10016)27.521 GiB / 15.261 TiB, 0%, 4.871 MiB/s, ETA 5w2d22h51m33s (xfr#4/10016)27.810 GiB / 15.261 TiB, 0%, 4.932 MiB/s, ETA 5w2d11h35m47s (xfr#4/10016)28.098 GiB / 15.261 TiB, 0%, 4.899 MiB/s, ETA 5w2d17h40m33s (xfr#4/10016)28.388 GiB / 15.261 TiB, 0%, 4.950 MiB/s, ETA 5w2d8h17m46s (xfr#4/10016)28.676 GiB / 15.261 TiB, 0%, 4.957 MiB/s, ETA 5w2d7h8m (xfr#4/10016)28.967 GiB / 15.261 TiB, 0%, 4.956 MiB/s, ETA 5w2d7h15m19s (xfr#4/10016)29.255 GiB / 15.261 TiB, 0%, 4.849 MiB/s, ETA 5w3d2h56m59s (xfr#4/10016)29.542 GiB / 15.261 TiB, 0%, 4.904 MiB/s, ETA 5w2d16h44m36s (xfr#4/10016)29.828 GiB / 15.261 TiB, 0%, 4.912 MiB/s, ETA 5w2d15h5m53s (xfr#4/10016)30.118 GiB / 15.261 TiB, 0%, 4.847 MiB/s, ETA 5w3d3h18m25s (xfr#4/10016)30.406 GiB / 15.261 TiB, 0%, 4.908 MiB/s, ETA 5w2d15h54m22s (xfr#4/10016)30.696 GiB / 15.261 TiB, 0%, 4.941 MiB/s, ETA 5w2d9h47m7s (xfr#4/10016)30.986 GiB / 15.261 TiB, 0%, 4.969 MiB/s, ETA 5w2d4h50m19s (xfr#4/10016)31.275 GiB / 15.261 TiB, 0%, 4.937 MiB/s, ETA 5w2d10h32m41s (xfr#4/10016)31.562 GiB / 15.261 TiB, 0%, 4.949 MiB/s, ETA 5w2d8h17m25s (xfr#4/10016)31.852 GiB / 15.261 TiB, 0%, 4.940 MiB/s, ETA 5w2d10h55s (xfr#4/10016)32.139 GiB / 15.261 TiB, 0%, 4.926 MiB/s, ETA 5w2d12h25m32s (xfr#4/10016)32.429 GiB / 15.261 TiB, 0%, 4.945 MiB/s, ETA 5w2d9h4m29s (xfr#4/10016)32.715 GiB / 15.261 TiB, 0%, 4.896 MiB/s, ETA 5w2d18h10s (xfr#4/10016)33.005 GiB / 15.261 TiB, 0%, 4.953 MiB/s, ETA 5w2d7h35m33s (xfr#4/10016)33.292 GiB / 15.261 TiB, 0%, 4.914 MiB/s, ETA 5w2d14h33m40s (xfr#4/10016)33.582 GiB / 15.261 TiB, 0%, 4.947 MiB/s, ETA 5w2d8h32m8s (xfr#4/10016)33.871 GiB / 15.261 TiB, 0%, 4.860 MiB/s, ETA 5w3d35m19s (xfr#5/10017)34.162 GiB / 15.261 TiB, 0%, 4.958 MiB/s, ETA 5w2d6h38m1s (xfr#5/10017)34.452 GiB / 15.261 TiB, 0%, 4.965 MiB/s, ETA 5w2d5h19m12s (xfr#5/10017)34.740 GiB / 15.261 TiB, 0%, 4.907 MiB/s, ETA 5w2d15h46m25s (xfr#6/10018)35.023 GiB / 15.261 TiB, 0%, 4.865 MiB/s, ETA 5w2d23h39m29s (xfr#6/10018)35.309 GiB / 15.261 TiB, 0%, 4.878 MiB/s, ETA 5w2d21h6m11s (xfr#7/10019)35.600 GiB / 15.261 TiB, 0%, 4.972 MiB/s, ETA 5w2d3h57m10s (xfr#7/10019)35.889 GiB / 15.262 TiB, 0%, 4.917 MiB/s, ETA 5w2d13h58m21s (xfr#8/10020)36.174 GiB / 15.262 TiB, 0%, 4.887 MiB/s, ETA 5w2d19h25m3s (xfr#8/10020)36.462 GiB / 15.262 TiB, 0%, 4.899 MiB/s, ETA 5w2d17h19m5s (xfr#8/10020)36.751 GiB / 15.262 TiB, 0%, 4.932 MiB/s, ETA 5w2d11h8m31s (xfr#8/10020)37.041 GiB / 15.262 TiB, 0%, 4.946 MiB/s, ETA 5w2d8h35m2s (xfr#8/10020)37.329 GiB / 15.262 TiB, 0%, 4.928 MiB/s, ETA 5w2d11h51m53s (xfr#8/10020)37.618 GiB / 15.262 TiB, 0%, 4.946 MiB/s, ETA 5w2d8h34m59s (xfr#8/10020)37.903 GiB / 15.262 TiB, 0%, 4.818 MiB/s, ETA 5w3d8h23m8s (xfr#8/10020)38.192 GiB / 15.262 TiB, 0%, 4.954 MiB/s, ETA 5w2d7h6m37s (xfr#8/10020)38.478 GiB / 15.262 TiB, 0%, 4.924 MiB/s, ETA 5w2d12h31m7s (xfr#8/10020)38.766 GiB / 15.262 TiB, 0%, 4.810 MiB/s, ETA 5w3d9h47m26s (xfr#8/10020)39.055 GiB / 15.262 TiB, 0%, 4.962 MiB/s, ETA 5w2d5h37m19s (xfr#8/10020)39.345 GiB / 15.262 TiB, 0%, 4.935 MiB/s, ETA 5w2d10h34m37s (xfr#8/10020)39.630 GiB / 15.262 TiB, 0%, 4.903 MiB/s, ETA 5w2d16h16m55s (xfr#8/10020)39.918 GiB / 15.262 TiB, 0%, 4.894 MiB/s, ETA 5w2d18h2m44s (xfr#8/10020)40.207 GiB / 15.262 TiB, 0%, 4.978 MiB/s, ETA 5w2d2h41m17s (xfr#8/10020)40.493 GiB / 15.262 TiB, 0%, 4.917 MiB/s, ETA 5w2d13h46m24s (xfr#8/10020)40.781 GiB / 15.262 TiB, 0%, 4.904 MiB/s, ETA 5w2d16h3m42s (xfr#8/10020)41.068 GiB / 15.262 TiB, 0%, 4.913 MiB/s, ETA 5w2d14h23m46s (xfr#8/10020)41.359 GiB / 15.262 TiB, 0%, 4.930 MiB/s, ETA 5w2d11h14m21s (xfr#8/10020)41.647 GiB / 15.262 TiB, 0%, 4.913 MiB/s, ETA 5w2d14h23m12s (xfr#8/10020)41.937 GiB / 15.262 TiB, 0%, 4.958 MiB/s, ETA 5w2d6h6m27s (xfr#8/10020)42.225 GiB / 15.262 TiB, 0%, 4.903 MiB/s, ETA 5w2d16h16m6s (xfr#8/10020)42.514 GiB / 15.262 TiB, 0%, 4.901 MiB/s, ETA 5w2d16h28m56s (xfr#8/10020)42.804 GiB / 15.262 TiB, 0%, 4.964 MiB/s, ETA 5w2d5h1m3s (xfr#8/10020)43.093 GiB / 15.262 TiB, 0%, 4.932 MiB/s, ETA 5w2d10h46m18s (xfr#8/10020)43.384 GiB / 15.262 TiB, 0%, 4.951 MiB/s, ETA 5w2d7h20m30s (xfr#8/10020)43.673 GiB / 15.262 TiB, 0%, 4.941 MiB/s, ETA 5w2d9h5m53s (xfr#8/10020)43.962 GiB / 15.262 TiB, 0%, 4.870 MiB/s, ETA 5w2d22h9m11s (xfr#8/10020)44.252 GiB / 15.262 TiB, 0%, 4.969 MiB/s, ETA 5w2d4h37s (xfr#8/10020)44.542 GiB / 15.262 TiB, 0%, 4.970 MiB/s, ETA 5w2d3h48m59s (xfr#8/10020)44.831 GiB / 15.262 TiB, 0%, 4.909 MiB/s, ETA 5w2d15h1m (xfr#8/10020)45.121 GiB / 15.262 TiB, 0%, 4.957 MiB/s, ETA 5w2d6h11m53s (xfr#8/10020)45.411 GiB / 15.262 TiB, 0%, 4.955 MiB/s, ETA 5w2d6h34m43s (xfr#8/10020)45.699 GiB / 15.262 TiB, 0%, 4.927 MiB/s, ETA 5w2d11h35m37s (xfr#8/10020)45.988 GiB / 15.262 TiB, 0%, 4.960 MiB/s, ETA 5w2d5h39m2s (xfr#8/10020)46.279 GiB / 15.262 TiB, 0%, 4.984 MiB/s, ETA 5w2d1h15m44s (xfr#8/10020)46.568 GiB / 15.262 TiB, 0%, 4.932 MiB/s, ETA 5w2d10h33m59s (xfr#8/10020)46.857 GiB / 15.262 TiB, 0%, 4.871 MiB/s, ETA 5w2d21h51m58s (xfr#8/10020)47.147 GiB / 15.262 TiB, 0%, 4.954 MiB/s, ETA 5w2d6h38m28s (xfr#8/10020)47.437 GiB / 15.262 TiB, 0%, 4.907 MiB/s, ETA 5w2d15h11m41s (xfr#8/10020)47.727 GiB / 15.262 TiB, 0%, 4.948 MiB/s, ETA 5w2d7h43m9s (xfr#8/10020)48.016 GiB / 15.262 TiB, 0%, 4.915 MiB/s, ETA 5w2d13h43m3s (xfr#8/10020)48.306 GiB / 15.262 TiB, 0%, 4.933 MiB/s, ETA 5w2d10h17m49s (xfr#8/10020)48.595 GiB / 15.262 TiB, 0%, 4.936 MiB/s, ETA 5w2d9h43m39s (xfr#8/10020)48.883 GiB / 15.262 TiB, 0%, 4.903 MiB/s, ETA 5w2d15h49m12s (xfr#8/10020)49.172 GiB / 15.262 TiB, 0%, 4.874 MiB/s, ETA 5w2d21h13m36s (xfr#8/10020)49.461 GiB / 15.262 TiB, 0%, 4.962 MiB/s, ETA 5w2d4h58m38s (xfr#8/10020)49.750 GiB / 15.262 TiB, 0%, 4.984 MiB/s, ETA 5w2d1h9m22s (xfr#8/10020)50.039 GiB / 15.262 TiB, 0%, 4.933 MiB/s, ETA 5w2d10h13m32s (xfr#8/10020)50.328 GiB / 15.262 TiB, 0%, 4.945 MiB/s, ETA 5w2d8h49s (xfr#8/10020)50.618 GiB / 15.262 TiB, 0%, 4.919 MiB/s, ETA 5w2d12h50m53s (xfr#8/10020)50.908 GiB / 15.262 TiB, 0%, 4.976 MiB/s, ETA 5w2d2h28m34s (xfr#9/10021)51.196 GiB / 15.262 TiB, 0%, 4.890 MiB/s, ETA 5w2d17h59m55s (xfr#9/10021)51.486 GiB / 15.262 TiB, 0%, 4.953 MiB/s, ETA 5w2d6h26m32s (xfr#9/10021)51.775 GiB / 15.262 TiB, 0%, 4.940 MiB/s, ETA 5w2d8h50m34s (xfr#9/10021)52.064 GiB / 15.262 TiB, 0%, 4.938 MiB/s, ETA 5w2d9h11m26s (xfr#9/10021)52.352 GiB / 15.262 TiB, 0%, 4.961 MiB/s, ETA 5w2d5h1m33s (xfr#9/10021)52.642 GiB / 15.262 TiB, 0%, 4.961 MiB/s, ETA 5w2d5h2m51s (xfr#10/10022)52.930 GiB / 15.262 TiB, 0%, 4.935 MiB/s, ETA 5w2d9h44m23s (xfr#11/10023)53.219 GiB / 15.262 TiB, 0%, 4.953 MiB/s, ETA 5w2d6h25m22s (xfr#12/10024)53.508 GiB / 15.262 TiB, 0%, 4.960 MiB/s, ETA 5w2d5h8m18s (xfr#12/10024)53.797 GiB / 15.262 TiB, 0%, 4.953 MiB/s, ETA 5w2d6h20m43s (xfr#12/10024)54.088 GiB / 15.262 TiB, 0%, 4.970 MiB/s, ETA 5w2d3h23m49s (xfr#12/10024)54.376 GiB / 15.262 TiB, 0%, 4.954 MiB/s, ETA 5w2d6h17m2s (xfr#12/10024)54.667 GiB / 15.262 TiB, 0%, 4.976 MiB/s, ETA 5w2d2h19m25s (xfr#12/10024)54.957 GiB / 15.262 TiB, 0%, 4.939 MiB/s, ETA 5w2d8h48m39s (xfr#12/10024)55.244 GiB / 15.262 TiB, 0%, 4.930 MiB/s, ETA 5w2d10h26m15s (xfr#12/10024)55.533 GiB / 15.262 TiB, 0%, 4.942 MiB/s, ETA 5w2d8h21m59s (xfr#12/10024)55.821 GiB / 15.262 TiB, 0%, 4.927 MiB/s, ETA 5w2d11h6m39s (xfr#12/10024)56.111 GiB / 15.262 TiB, 0%, 4.968 MiB/s, ETA 5w2d3h33m47s (xfr#12/10024)56.397 GiB / 15.262 TiB, 0%, 4.852 MiB/s, ETA 5w3d53m30s (xfr#12/10024)56.684 GiB / 15.262 TiB, 0%, 4.953 MiB/s, ETA 5w2d6h17m9s (xfr#12/10024)56.974 GiB / 15.262 TiB, 0%, 4.938 MiB/s, ETA 5w2d8h58m18s (xfr#12/10024)57.263 GiB / 15.262 TiB, 0%, 4.917 MiB/s, ETA 5w2d12h43m7s (xfr#12/10024)57.551 GiB / 15.262 TiB, 0%, 4.937 MiB/s, ETA 5w2d9h5m44s (xfr#12/10024)57.842 GiB / 15.262 TiB, 0%, 4.948 MiB/s, ETA 5w2d7h9m26s (xfr#12/10024)58.130 GiB / 15.262 TiB, 0%, 4.930 MiB/s, ETA 5w2d10h26m34s (xfr#12/10024)58.420 GiB / 15.262 TiB, 0%, 4.923 MiB/s, ETA 5w2d11h37m19s (xfr#12/10024)58.708 GiB / 15.262 TiB, 0%, 4.951 MiB/s, ETA 5w2d6h26m31s (xfr#12/10024)58.995 GiB / 15.262 TiB, 0%, 4.944 MiB/s, ETA 5w2d7h40m48s (xfr#12/10024)59.285 GiB / 15.262 TiB, 0%, 4.942 MiB/s, ETA 5w2d8h11m20s (xfr#12/10024)59.573 GiB / 15.262 TiB, 0%, 4.956 MiB/s, ETA 5w2d5h32m18s (xfr#12/10024)59.863 GiB / 15.262 TiB, 0%, 4.934 MiB/s, ETA 5w2d9h33m12s (xfr#12/10024)60.152 GiB / 15.262 TiB, 0%, 4.950 MiB/s, ETA 5w2d6h37m32s (xfr#12/10024)60.436 GiB / 15.262 TiB, 0%, 4.876 MiB/s, ETA 5w2d20h11m15s (xfr#12/10024)60.725 GiB / 15.262 TiB, 0%, 4.935 MiB/s, ETA 5w2d9h17m55s (xfr#12/10024)61.016 GiB / 15.262 TiB, 0%, 4.950 MiB/s, ETA 5w2d6h36m49s (xfr#12/10024)61.305 GiB / 15.262 TiB, 0%, 4.953 MiB/s, ETA 5w2d5h57m56s (xfr#12/10024)61.595 GiB / 15.262 TiB, 0%, 4.963 MiB/s, ETA 5w2d4h9m39s (xfr#14/10026)61.885 GiB / 15.262 TiB, 0%, 4.950 MiB/s, ETA 5w2d6h35m (xfr#14/10026)62.175 GiB / 15.262 TiB, 0%, 4.947 MiB/s, ETA 5w2d7h10s (xfr#14/10026)62.462 GiB / 15.262 TiB, 0%, 4.939 MiB/s, ETA 5w2d8h27m20s (xfr#14/10026)62.751 GiB / 15.262 TiB, 0%, 4.938 MiB/s, ETA 5w2d8h41m11s (xfr#14/10026)63.042 GiB / 15.262 TiB, 0%, 4.961 MiB/s, ETA 5w2d4h28m16s (xfr#14/10026)63.331 GiB / 15.262 TiB, 0%, 4.934 MiB/s, ETA 5w2d9h17m7s (xfr#15/10027)63.621 GiB / 15.262 TiB, 0%, 4.983 MiB/s, ETA 5w2d30m46s (xfr#15/10027)63.911 GiB / 15.262 TiB, 0%, 4.964 MiB/s, ETA 5w2d3h57m9s (xfr#15/10027)64.201 GiB / 15.262 TiB, 0%, 4.968 MiB/s, ETA 5w2d3h5m29s (xfr#15/10027)64.490 GiB / 15.262 TiB, 0%, 4.916 MiB/s, ETA 5w2d12h29m12s (xfr#15/10027)64.780 GiB / 15.262 TiB, 0%, 4.945 MiB/s, ETA 5w2d7h17m15s (xfr#15/10027)65.070 GiB / 15.262 TiB, 0%, 4.945 MiB/s, ETA 5w2d7h14m20s (xfr#15/10027)65.360 GiB / 15.262 TiB, 0%, 4.967 MiB/s, ETA 5w2d3h11m19s (xfr#15/10027)65.649 GiB / 15.262 TiB, 0%, 4.925 MiB/s, ETA 5w2d10h55m2s (xfr#15/10027)65.937 GiB / 15.262 TiB, 0%, 4.852 MiB/s, ETA 5w3d24m34s (xfr#15/10027)66.227 GiB / 15.262 TiB, 0%, 4.963 MiB/s, ETA 5w2d3h53m26s (xfr#15/10027)66.517 GiB / 15.262 TiB, 0%, 4.971 MiB/s, ETA 5w2d2h29m46s (xfr#15/10027)66.804 GiB / 15.262 TiB, 0%, 4.947 MiB/s, ETA 5w2d6h44m59s (xfr#15/10027)67.094 GiB / 15.262 TiB, 0%, 4.944 MiB/s, ETA 5w2d7h13m23s (xfr#15/10027)67.382 GiB / 15.262 TiB, 0%, 4.879 MiB/s, ETA 5w2d19h10m37s (xfr#15/10027)67.671 GiB / 15.262 TiB, 0%, 4.907 MiB/s, ETA 5w2d14h1m51s (xfr#15/10027)67.960 GiB / 15.262 TiB, 0%, 4.939 MiB/s, ETA 5w2d8h5m10s (xfr#15/10027)68.251 GiB / 15.262 TiB, 0%, 4.938 MiB/s, ETA 5w2d8h13m53s (xfr#15/10027)68.540 GiB / 15.262 TiB, 0%, 4.952 MiB/s, ETA 5w2d5h47m31s (xfr#15/10027)68.829 GiB / 15.262 TiB, 0%, 4.944 MiB/s, ETA 5w2d7h8m27s (xfr#16/10028)69.117 GiB / 15.262 TiB, 0%, 4.918 MiB/s, ETA 5w2d11h57m5s (xfr#16/10028)69.407 GiB / 15.262 TiB, 0%, 4.954 MiB/s, ETA 5w2d5h25m3s (xfr#16/10028)69.696 GiB / 15.262 TiB, 0%, 4.954 MiB/s, ETA 5w2d5h22m47s (xfr#17/10029)69.986 GiB / 15.262 TiB, 0%, 4.962 MiB/s, ETA 5w2d3h49m46s (xfr#17/10029)70.273 GiB / 15.262 TiB, 0%, 4.865 MiB/s, ETA 5w2d21h40m27s (xfr#17/10029)70.562 GiB / 15.262 TiB, 0%, 4.947 MiB/s, ETA 5w2d6h33m59s (xfr#17/10029)70.852 GiB / 15.262 TiB, 0%, 4.960 MiB/s, ETA 5w2d4h8m49s (xfr#17/10029)71.142 GiB / 15.262 TiB, 0%, 4.971 MiB/s, ETA 5w2d2h13m41s (xfr#17/10029)71.430 GiB / 15.262 TiB, 0%, 4.880 MiB/s, ETA 5w2d18h42m35s (xfr#17/10029)71.718 GiB / 15.263 TiB, 0%, 4.935 MiB/s, ETA 5w2d8h38m10s (xfr#18/10030)72.008 GiB / 15.263 TiB, 0%, 4.947 MiB/s, ETA 5w2d6h30m54s (xfr#18/10030)72.297 GiB / 15.263 TiB, 0%, 4.937 MiB/s, ETA 5w2d8h15m8s (xfr#18/10030)72.587 GiB / 15.263 TiB, 0%, 4.929 MiB/s, ETA 5w2d9h44m41s (xfr#18/10030)72.877 GiB / 15.263 TiB, 0%, 4.950 MiB/s, ETA 5w2d5h54m35s (xfr#18/10030)73.167 GiB / 15.263 TiB, 0%, 4.954 MiB/s, ETA 5w2d5h7m31s (xfr#18/10030)73.457 GiB / 15.263 TiB, 0%, 4.968 MiB/s, ETA 5w2d2h34m56s (xfr#19/10031)

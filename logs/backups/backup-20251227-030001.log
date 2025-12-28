@@ -1,0 +1,578 @@
+Starting backup at Sat Dec 27 03:00:01 AM CST 2025
+Source: /jenquist-cloud
+Destination: b2-encrypted:
+---
+2025/12/27 03:00:04 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/1d074bd0-4949-4f61-a265-3bb0520fcc9d/startedat: Copied (new)
+2025/12/27 03:00:04 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_layers/sha256/1074353eec0db2c1d81d5af2671e56e00cf5738486f5762609ea33d606f88612/link: Copied (new)
+2025/12/27 03:00:04 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/1d074bd0-4949-4f61-a265-3bb0520fcc9d/data: Copied (new)
+2025/12/27 03:00:04 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/03/03ba655e0c8b4d60dc8c74d437c4f441c5e7934bfaa8ea4545edf1274c8eb223/data: Copied (new)
+2025/12/27 03:00:04 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_manifests/tags/latest/current/link: Copied (new)
+2025/12/27 03:00:04 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/35a0b840-7c42-4069-81fc-8b06239e4d97/data: Copied (new)
+2025/12/27 03:00:04 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/35a0b840-7c42-4069-81fc-8b06239e4d97/startedat: Copied (new)
+2025/12/27 03:00:05 NOTICE: backups/rsnapshot/alpha.0/localhost/etc/rmt: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:05 NOTICE: backups/rsnapshot/alpha.0/localhost/etc/localtime: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:05 NOTICE: backups/rsnapshot/alpha.0/localhost/etc/os-release: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:05 NOTICE: backups/rsnapshot/alpha.0/localhost/etc/mtab: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:05 INFO  : harbor/registry/docker/registry/v2/repositories/library/pokedex/_layers/sha256/0abf9e5672665202e79f26f23ef5dbd12558e2ea51ac32807922ab76fdb24ab0/link: Copied (new)
+2025/12/27 03:00:05 ERROR : backups/rsnapshot/alpha.0/localhost/var/lib/docker: failed to open directory "backups/rsnapshot/alpha.0/localhost/var/lib/docker": open /jenquist-cloud/backups/rsnapshot/alpha.0/localhost/var/lib/docker: permission denied
+2025/12/27 03:00:05 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/rmt: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:05 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/os-release: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:05 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/localtime: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:05 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/mtab: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:05 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/os-release: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:05 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/mtab: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:05 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/rmt: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:05 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/localtime: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:05 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/00/00d84e5bcca0ee2f89941cd593b482d66a41e5925d3b4a6c3b9724beb512b68c/data: Copied (new)
+2025/12/27 03:00:05 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_layers/sha256/e7b39c54cdeca0d2aae83114bb605753a5f5bc511fe8be7590e38f6d9f915dad/link: Copied (new)
+2025/12/27 03:00:05 NOTICE: backups/rsnapshot/beta.0/localhost/etc/os-release: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:05 NOTICE: backups/rsnapshot/beta.0/localhost/etc/localtime: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:05 NOTICE: backups/rsnapshot/beta.0/localhost/etc/mtab: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:05 NOTICE: backups/rsnapshot/beta.0/localhost/etc/rmt: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:05 INFO  : harbor/registry/docker/registry/v2/repositories/library/pokedex/_manifests/revisions/sha256/2e8545e0282300dce210b078324252715ee00e1b930a24ae5c94e8d85c665268/link: Copied (new)
+2025/12/27 03:00:05 ERROR : backups/rsnapshot/alpha.1/localhost/var/lib/docker: failed to open directory "backups/rsnapshot/alpha.1/localhost/var/lib/docker": open /jenquist-cloud/backups/rsnapshot/alpha.1/localhost/var/lib/docker: permission denied
+2025/12/27 03:00:05 ERROR : backups/rsnapshot/alpha.0/localhost/home/jobin: failed to open directory "backups/rsnapshot/alpha.0/localhost/home/jobin": open /jenquist-cloud/backups/rsnapshot/alpha.0/localhost/home/jobin: permission denied
+2025/12/27 03:00:05 ERROR : backups/rsnapshot/alpha.2/localhost/var/lib/docker: failed to open directory "backups/rsnapshot/alpha.2/localhost/var/lib/docker": open /jenquist-cloud/backups/rsnapshot/alpha.2/localhost/var/lib/docker: permission denied
+2025/12/27 03:00:05 NOTICE: backups/rsnapshot/alpha.0/localhost/usr/local/man: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:05 ERROR : backups/rsnapshot/beta.0/localhost/var/lib/docker: failed to open directory "backups/rsnapshot/beta.0/localhost/var/lib/docker": open /jenquist-cloud/backups/rsnapshot/beta.0/localhost/var/lib/docker: permission denied
+2025/12/27 03:00:05 NOTICE: backups/rsnapshot/beta.1/localhost/etc/os-release: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:05 NOTICE: backups/rsnapshot/beta.1/localhost/etc/mtab: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:05 NOTICE: backups/rsnapshot/beta.1/localhost/etc/rmt: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:05 NOTICE: backups/rsnapshot/beta.1/localhost/etc/localtime: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:06 ERROR : backups/rsnapshot/alpha.1/localhost/home/jobin: failed to open directory "backups/rsnapshot/alpha.1/localhost/home/jobin": open /jenquist-cloud/backups/rsnapshot/alpha.1/localhost/home/jobin: permission denied
+2025/12/27 03:00:06 INFO  : harbor/registry/docker/registry/v2/repositories/library/pokedex/_manifests/tags/latest/current/link: Copied (new)
+2025/12/27 03:00:06 NOTICE: backups/rsnapshot/alpha.0/localhost/etc/alsa/conf.d/99-pipewire-default.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:06 NOTICE: backups/rsnapshot/alpha.0/localhost/etc/alsa/conf.d/50-pipewire.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:06 ERROR : backups/rsnapshot/alpha.2/localhost/home/jobin: failed to open directory "backups/rsnapshot/alpha.2/localhost/home/jobin": open /jenquist-cloud/backups/rsnapshot/alpha.2/localhost/home/jobin: permission denied
+2025/12/27 03:00:06 NOTICE: backups/rsnapshot/delta.0/localhost/etc/os-release: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:06 NOTICE: backups/rsnapshot/delta.0/localhost/etc/mtab: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:06 NOTICE: backups/rsnapshot/delta.0/localhost/etc/localtime: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:06 NOTICE: backups/rsnapshot/delta.0/localhost/etc/rmt: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:06 NOTICE: backups/rsnapshot/alpha.1/localhost/usr/local/man: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:06 ERROR : backups/rsnapshot/beta.0/localhost/home/jobin: failed to open directory "backups/rsnapshot/beta.0/localhost/home/jobin": open /jenquist-cloud/backups/rsnapshot/beta.0/localhost/home/jobin: permission denied
+2025/12/27 03:00:06 ERROR : backups/rsnapshot/beta.1/localhost/var/lib/docker: failed to open directory "backups/rsnapshot/beta.1/localhost/var/lib/docker": open /jenquist-cloud/backups/rsnapshot/beta.1/localhost/var/lib/docker: permission denied
+2025/12/27 03:00:06 NOTICE: backups/rsnapshot/alpha.0/localhost/home/unarmedpuppy/.face.icon: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:06 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/rmt: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:06 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/mtab: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:06 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/localtime: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:06 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/os-release: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:06 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/alsa/conf.d/99-pipewire-default.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:06 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/alsa/conf.d/50-pipewire.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:06 INFO  : harbor/registry/docker/registry/v2/repositories/library/pokedex/_layers/sha256/085c5e5aaa8eb4b957ecf253c74f16a6a5551231de3fb7c3ac74814a6bf17e06/link: Copied (new)
+2025/12/27 03:00:06 ERROR : backups/rsnapshot/delta.0/localhost/var/lib/docker: failed to open directory "backups/rsnapshot/delta.0/localhost/var/lib/docker": open /jenquist-cloud/backups/rsnapshot/delta.0/localhost/var/lib/docker: permission denied
+2025/12/27 03:00:06 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/alsa/conf.d/50-pipewire.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:06 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/alsa/conf.d/99-pipewire-default.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:07 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/01/0138eb94db84f9fb2f7124ea0f84ee934c3cf705abf4185764f5c4e71b92663c/data: Copied (new)
+2025/12/27 03:00:07 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/5603b36d-e625-4608-96bc-1bc5d2804436/data: Copied (new)
+2025/12/27 03:00:07 NOTICE: backups/rsnapshot/alpha.2/localhost/usr/local/man: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:07 NOTICE: backups/rsnapshot/beta.0/localhost/usr/local/man: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:07 ERROR : backups/rsnapshot/beta.1/localhost/home/jobin: failed to open directory "backups/rsnapshot/beta.1/localhost/home/jobin": open /jenquist-cloud/backups/rsnapshot/beta.1/localhost/home/jobin: permission denied
+2025/12/27 03:00:07 NOTICE: backups/rsnapshot/alpha.0/localhost/etc/dictionaries-common/default.hash: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:07 NOTICE: backups/rsnapshot/alpha.0/localhost/etc/dictionaries-common/default.aff: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:07 NOTICE: backups/rsnapshot/alpha.0/localhost/etc/dictionaries-common/ispell-default: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:07 NOTICE: backups/rsnapshot/alpha.0/localhost/etc/dictionaries-common/words: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:07 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/06/060e3656c1863a1bed9ae6859f79ab413babdc4d7574d406979e40258bcb1380/data: Copied (new)
+2025/12/27 03:00:08 NOTICE: backups/rsnapshot/beta.0/localhost/etc/alsa/conf.d/99-pipewire-default.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:08 NOTICE: backups/rsnapshot/beta.0/localhost/etc/alsa/conf.d/50-pipewire.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:08 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/05/051f60cdc81466b18e5237e9311a1414bb990725ff5d22b839c292df89b77ece/data: Copied (new)
+2025/12/27 03:00:08 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/5603b36d-e625-4608-96bc-1bc5d2804436/startedat: Copied (new)
+2025/12/27 03:00:09 ERROR : backups/rsnapshot/gamma.0/localhost/var/lib/docker: failed to open directory "backups/rsnapshot/gamma.0/localhost/var/lib/docker": open /jenquist-cloud/backups/rsnapshot/gamma.0/localhost/var/lib/docker: permission denied
+2025/12/27 03:00:09 INFO  : harbor/registry/docker/registry/v2/repositories/library/pokedex/_manifests/tags/v1.0.2/current/link: Copied (new)
+2025/12/27 03:00:09 NOTICE: backups/rsnapshot/alpha.1/localhost/home/unarmedpuppy/.face.icon: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:09 NOTICE: backups/rsnapshot/alpha.2/localhost/home/unarmedpuppy/.face.icon: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:09 NOTICE: backups/rsnapshot/beta.1/localhost/usr/local/man: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:09 INFO  : harbor/registry/docker/registry/v2/repositories/library/pokedex/_manifests/revisions/sha256/cd51178b447534650f30d0bd4e40074a4fabd877af90ae6ef3e53c8d608c48ca/link: Copied (new)
+2025/12/27 03:00:09 NOTICE: backups/rsnapshot/beta.0/localhost/home/unarmedpuppy/.face.icon: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:09 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/dictionaries-common/words: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:09 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/dictionaries-common/ispell-default: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:09 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/dictionaries-common/default.aff: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:09 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/dictionaries-common/default.hash: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:09 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/07/0783a66ae7492bb16937c7723c534e431404aa3ebbdcaaed65d264a95a266b9e/data: Copied (new)
+2025/12/27 03:00:09 ERROR : backups/rsnapshot/gamma.0/localhost/home/jobin: failed to open directory "backups/rsnapshot/gamma.0/localhost/home/jobin": open /jenquist-cloud/backups/rsnapshot/gamma.0/localhost/home/jobin: permission denied
+2025/12/27 03:00:09 NOTICE: backups/rsnapshot/beta.1/localhost/etc/alsa/conf.d/50-pipewire.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:09 NOTICE: backups/rsnapshot/beta.1/localhost/etc/alsa/conf.d/99-pipewire-default.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:09 NOTICE: backups/rsnapshot/delta.0/localhost/usr/local/man: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:09 INFO  : harbor/registry/docker/registry/v2/repositories/library/pokedex/_layers/sha256/1074353eec0db2c1d81d5af2671e56e00cf5738486f5762609ea33d606f88612/link: Copied (new)
+2025/12/27 03:00:09 NOTICE: backups/rsnapshot/delta.0/localhost/home/unarmedpuppy/.face.icon: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:09 NOTICE: backups/rsnapshot/delta.0/localhost/etc/alsa/conf.d/99-pipewire-default.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:09 NOTICE: backups/rsnapshot/delta.0/localhost/etc/alsa/conf.d/50-pipewire.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:09 NOTICE: backups/rsnapshot/beta.0/localhost/etc/dictionaries-common/default.aff: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:09 NOTICE: backups/rsnapshot/beta.0/localhost/etc/dictionaries-common/words: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:09 NOTICE: backups/rsnapshot/beta.0/localhost/etc/dictionaries-common/ispell-default: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:09 NOTICE: backups/rsnapshot/beta.0/localhost/etc/dictionaries-common/default.hash: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:09 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/alsa/conf.d/99-pipewire-default.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:09 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/alsa/conf.d/50-pipewire.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:09 NOTICE: backups/rsnapshot/gamma.0/localhost/usr/local/man: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:09 NOTICE: backups/rsnapshot/beta.1/localhost/home/unarmedpuppy/.face.icon: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:09 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/01/016ff001990538ed41b98e8621a5d0a711e4b48b0ae3ab6cf4016ccd011575b5/data: Copied (new)
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.1/localhost/etc/dictionaries-common/words: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.1/localhost/etc/dictionaries-common/default.hash: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.1/localhost/etc/dictionaries-common/default.aff: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.1/localhost/etc/dictionaries-common/ispell-default: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/gamma.0/localhost/home/unarmedpuppy/.face.icon: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/02/02348b77e6605b9c4560a033aff3daf0274d6ba2e67de755bc538ba7bdc1e108/data: Copied (new)
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/delta.0/localhost/etc/dictionaries-common/words: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/delta.0/localhost/etc/dictionaries-common/ispell-default: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/delta.0/localhost/etc/dictionaries-common/default.aff: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/delta.0/localhost/etc/dictionaries-common/default.hash: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_manifests/revisions/sha256/455850f18439d83b5b560eaec791e34124cfeb5ce37855c5e909e20076cb8692/link: Copied (new)
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/dictionaries-common/ispell-default: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/dictionaries-common/words: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/dictionaries-common/default.hash: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/dictionaries-common/default.aff: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/alpha.0/localhost/usr/local/bin/cloudflared: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/5831283f-5159-4ea9-95ba-4d2adb54d1ed/data: Copied (new)
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-sans-mono.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/57-dejavu-sans-mono.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/10-hinting-slight.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/61-urw-z003.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/61-urw-p052.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/11-lcdfilter-default.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/61-urw-standard-symbols-ps.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/58-dejavu-lgc-serif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/58-dejavu-lgc-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/61-urw-d050000l.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/61-urw-fallback-generics.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/45-latin.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/70-no-bitmaps.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/61-urw-c059.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/49-sansserif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/80-delicious.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/61-urw-nimbus-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/58-dejavu-lgc-sans-mono.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/61-urw-bookman.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/61-urw-gothic.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/30-opensymbol.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/50-user.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-lgc-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/65-fonts-persian.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/10-scale-bitmap-fonts.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/60-latin.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/69-unifont.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/61-urw-nimbus-mono-ps.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-serif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/20-unhint-small-vera.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/40-nonlatin.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/45-generic.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/90-synthetic.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/30-metric-aliases.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/57-dejavu-serif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/57-dejavu-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/65-nonlatin.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-lgc-sans-mono.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/61-urw-nimbus-roman.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/60-generic.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-lgc-serif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/61-urw-fallback-backwards.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/48-spacing.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/10-yes-antialias.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:10 NOTICE: backups/rsnapshot/beta.0/localhost/etc/fonts/conf.d/51-local.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/alpha.1/localhost/usr/local/bin/cloudflared: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/40-nonlatin.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/57-dejavu-serif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-serif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/20-unhint-small-vera.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/61-urw-standard-symbols-ps.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/10-hinting-slight.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-sans-mono.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/69-unifont.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-lgc-sans-mono.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/58-dejavu-lgc-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/50-user.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/61-urw-bookman.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/65-fonts-persian.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/49-sansserif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/65-nonlatin.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/58-dejavu-lgc-sans-mono.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/80-delicious.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/61-urw-fallback-backwards.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/51-local.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/61-urw-nimbus-roman.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/11-lcdfilter-default.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/61-urw-nimbus-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/61-urw-p052.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/61-urw-z003.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/60-generic.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/61-urw-c059.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/10-yes-antialias.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/57-dejavu-sans-mono.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/30-opensymbol.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/61-urw-d050000l.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/48-spacing.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/45-latin.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/61-urw-gothic.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/58-dejavu-lgc-serif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/30-metric-aliases.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-lgc-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/10-scale-bitmap-fonts.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/57-dejavu-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/90-synthetic.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/61-urw-nimbus-mono-ps.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/61-urw-fallback-generics.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-lgc-serif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/45-generic.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/60-latin.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/beta.1/localhost/etc/fonts/conf.d/70-no-bitmaps.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/5831283f-5159-4ea9-95ba-4d2adb54d1ed/startedat: Copied (new)
+2025/12/27 03:00:11 NOTICE: backups/rsnapshot/delta.0/localhost/etc/dpkg/origins/default: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:11 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/05/05acc7683f46471188eb423cdaea7e3ea4bdef8ee7946aadfed8496b4f1634e8/data: Copied (new)
+2025/12/27 03:00:12 NOTICE: backups/rsnapshot/alpha.2/localhost/usr/local/bin/cloudflared: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:12 NOTICE: backups/rsnapshot/beta.0/localhost/usr/local/bin/cloudflared: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:12 INFO  : harbor/registry/docker/registry/v2/repositories/library/pokedex/_layers/sha256/25f453064fd3e8a9754b6e51b86c637e13203cbfc748fcf73f3c8b2d10816ae3/link: Copied (new)
+2025/12/27 03:00:13 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/1d074bd0-4949-4f61-a265-3bb0520fcc9d/hashstates/sha256/0: Copied (new)
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-lgc-serif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/48-spacing.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/11-lcdfilter-default.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/10-yes-antialias.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/50-user.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/51-local.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/61-urw-standard-symbols-ps.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/40-nonlatin.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/61-urw-nimbus-roman.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/60-generic.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-serif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/58-dejavu-lgc-sans-mono.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/90-synthetic.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/61-urw-fallback-generics.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/10-hinting-slight.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/65-nonlatin.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/45-generic.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/20-unhint-small-vera.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/57-dejavu-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/57-dejavu-serif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/65-fonts-persian.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/61-urw-c059.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/30-opensymbol.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/61-urw-bookman.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/61-urw-gothic.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/60-latin.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/69-unifont.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/61-urw-nimbus-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/61-urw-nimbus-mono-ps.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/10-scale-bitmap-fonts.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/61-urw-z003.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/61-urw-p052.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/58-dejavu-lgc-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/45-latin.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/49-sansserif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/70-no-bitmaps.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-sans-mono.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-lgc-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/61-urw-d050000l.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-lgc-sans-mono.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/80-delicious.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/57-dejavu-sans-mono.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/61-urw-fallback-backwards.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/30-metric-aliases.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.1/localhost/etc/fonts/conf.d/58-dejavu-lgc-serif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/dictionaries-common/default.aff: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/dictionaries-common/words: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/dictionaries-common/default.hash: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:13 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/dictionaries-common/ispell-default: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/61-urw-fallback-backwards.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/61-urw-nimbus-roman.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/61-urw-d050000l.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/45-generic.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/40-nonlatin.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/60-latin.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-lgc-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/90-synthetic.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-lgc-sans-mono.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/10-yes-antialias.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/61-urw-standard-symbols-ps.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/61-urw-fallback-generics.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/70-no-bitmaps.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/45-latin.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/50-user.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/60-generic.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/65-nonlatin.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/61-urw-bookman.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/48-spacing.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/30-metric-aliases.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/61-urw-gothic.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-sans-mono.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/30-opensymbol.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/61-urw-nimbus-mono-ps.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/10-scale-bitmap-fonts.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/61-urw-z003.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/80-delicious.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/61-urw-p052.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/49-sansserif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/11-lcdfilter-default.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/58-dejavu-lgc-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/51-local.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/61-urw-c059.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/57-dejavu-serif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/65-fonts-persian.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/57-dejavu-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/58-dejavu-lgc-sans-mono.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-lgc-serif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/57-dejavu-sans-mono.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/10-hinting-slight.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/61-urw-nimbus-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/58-dejavu-lgc-serif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-serif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/20-unhint-small-vera.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/gamma.0/localhost/etc/fonts/conf.d/69-unifont.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 ERROR : backups/rsnapshot/alpha.2/localhost/etc/cups/ssl: failed to open directory "backups/rsnapshot/alpha.2/localhost/etc/cups/ssl": open /jenquist-cloud/backups/rsnapshot/alpha.2/localhost/etc/cups/ssl: permission denied
+2025/12/27 03:00:14 INFO  : harbor/registry/docker/registry/v2/repositories/library/pokedex/_manifests/revisions/sha256/df2363dc2fa9c2d91eb399144fdfb2155e5e16f7aed4acf136d59b6518a17815/link: Copied (new)
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/beta.1/localhost/usr/local/bin/cloudflared: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:14 NOTICE: backups/rsnapshot/delta.0/localhost/usr/local/bin/cloudflared: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:15 NOTICE: backups/rsnapshot/gamma.0/localhost/usr/local/bin/cloudflared: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/dpkg/origins/default: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/61-urw-d050000l.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/58-dejavu-lgc-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/10-yes-antialias.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/20-unhint-small-vera.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/60-generic.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/61-urw-nimbus-mono-ps.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/10-scale-bitmap-fonts.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-sans-mono.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/45-latin.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/48-spacing.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/61-urw-c059.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/80-delicious.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/61-urw-standard-symbols-ps.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/61-urw-nimbus-roman.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/57-dejavu-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/45-generic.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/61-urw-nimbus-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/49-sansserif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/61-urw-p052.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/61-urw-z003.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/61-urw-fallback-generics.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/11-lcdfilter-default.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/30-metric-aliases.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/60-latin.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/70-no-bitmaps.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/57-dejavu-sans-mono.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/65-fonts-persian.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/58-dejavu-lgc-serif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/65-nonlatin.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/61-urw-bookman.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/69-unifont.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/57-dejavu-serif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/61-urw-gothic.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/30-opensymbol.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/58-dejavu-lgc-sans-mono.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/50-user.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-lgc-sans-mono.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/10-hinting-slight.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-serif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/90-synthetic.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/40-nonlatin.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-lgc-serif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/51-local.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/61-urw-fallback-backwards.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:16 NOTICE: backups/rsnapshot/delta.0/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-lgc-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:18 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/01/014e56e613968f73cce0858124ca5fbc601d7888099969a4eea69f31dcd71a53/data: Copied (new)
+2025/12/27 03:00:19 INFO  : harbor/registry/docker/registry/v2/repositories/ghcr/blakeblackshear/frigate/_layers/sha256/2015ccdef936b94f655babc4141265ca06794a9448a83e2711da0d20f59f74b0/link: Copied (new)
+2025/12/27 03:00:19 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/07/07c0e7a5fd20651148ea9148dfc4ad3c2530ce05c6a0f0a0d56c90127884f4ad/data: Copied (new)
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.0/localhost/home/unarmedpuppy/.bun/install/cache/ajv/8.17.1@@@1: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/58-dejavu-lgc-sans-mono.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/45-latin.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/61-urw-c059.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/61-urw-nimbus-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-sans-mono.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/65-fonts-persian.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/70-no-bitmaps.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/61-urw-z003.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/20-unhint-small-vera.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/61-urw-p052.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/11-lcdfilter-default.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/60-latin.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/58-dejavu-lgc-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/61-urw-nimbus-roman.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/69-unifont.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/30-opensymbol.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/57-dejavu-serif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/61-urw-gothic.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/61-urw-bookman.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/90-synthetic.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/30-metric-aliases.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/10-scale-bitmap-fonts.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/61-urw-fallback-backwards.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/61-urw-nimbus-mono-ps.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/61-urw-standard-symbols-ps.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/58-dejavu-lgc-serif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/50-user.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-lgc-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/57-dejavu-sans.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/57-dejavu-sans-mono.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-serif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/45-generic.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/40-nonlatin.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/10-yes-antialias.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-lgc-sans-mono.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/48-spacing.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/61-urw-fallback-generics.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/51-local.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/10-hinting-slight.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/61-urw-d050000l.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/80-delicious.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/20-unhint-small-dejavu-lgc-serif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/60-generic.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/49-sansserif.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/fonts/conf.d/65-nonlatin.conf: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:24 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/03/03ed8dc0f72e37e62afa5b1c665f711dfc24e7fbe11b02274e6fac583aaf5729/data: Copied (new)
+2025/12/27 03:00:24 NOTICE: backups/rsnapshot/alpha.1/localhost/home/unarmedpuppy/.bun/install/cache/ajv/8.17.1@@@1: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:25 NOTICE: backups/rsnapshot/alpha.0/localhost/home/unarmedpuppy/.bun/install/cache/ajv-draft-04/1.0.0@@@1: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:25 NOTICE: backups/rsnapshot/alpha.0/localhost/etc/ifplugd/action.d/action_wpa: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:25 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/35a0b840-7c42-4069-81fc-8b06239e4d97/hashstates/sha256/0: Copied (new)
+2025/12/27 03:00:25 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/6478c728-effc-417c-b68b-b325545db259/data: Copied (new)
+2025/12/27 03:00:25 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/6478c728-effc-417c-b68b-b325545db259/startedat: Copied (new)
+2025/12/27 03:00:25 INFO  : harbor/registry/docker/registry/v2/repositories/library/pokedex/_layers/sha256/33f95a0f3229b49e777082e801b882b13fcc5b4e389410ce8eb066f4d58c71b9/link: Copied (new)
+2025/12/27 03:00:25 INFO  : harbor/registry/docker/registry/v2/repositories/ghcr/paperless-ngx/paperless-ngx/_layers/sha256/0138eb94db84f9fb2f7124ea0f84ee934c3cf705abf4185764f5c4e71b92663c/link: Copied (new)
+2025/12/27 03:00:25 INFO  : harbor/registry/docker/registry/v2/repositories/ghcr/blakeblackshear/frigate/_layers/sha256/4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1/link: Copied (new)
+2025/12/27 03:00:26 NOTICE: backups/rsnapshot/alpha.1/localhost/home/unarmedpuppy/.bun/install/cache/ajv-draft-04/1.0.0@@@1: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:26 NOTICE: backups/rsnapshot/alpha.2/localhost/home/unarmedpuppy/.bun/install/cache/ajv/8.17.1@@@1: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:26 NOTICE: backups/rsnapshot/alpha.0/localhost/home/unarmedpuppy/.bun/install/cache/arctic/2.3.4@@@1: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:26 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/02/02f9580c51f1c263e2f6a37873a0e0aee020940bf118e4a4b0d9d8daccf6c496/data: Copied (new)
+2025/12/27 03:00:26 NOTICE: backups/rsnapshot/beta.0/localhost/home/unarmedpuppy/.bun/install/cache/ajv/8.17.1@@@1: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:26 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/06/06c425ea32fada30ffe48e2bf9eed3666cce2ea088fd8c9de5ed4ed18b15de4f/data: Copied (new)
+2025/12/27 03:00:26 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_manifests/tags/latest/index/sha256/455850f18439d83b5b560eaec791e34124cfeb5ce37855c5e909e20076cb8692/link: Copied (new)
+2025/12/27 03:00:26 INFO  : harbor/registry/docker/registry/v2/repositories/ghcr/blakeblackshear/frigate/_manifests/revisions/sha256/4e766497bf8482e00e102786e0656a0389f8c4b01d06911c773c4a84e0828808/link: Copied (new)
+2025/12/27 03:00:27 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/5603b36d-e625-4608-96bc-1bc5d2804436/hashstates/sha256/0: Copied (new)
+2025/12/27 03:00:27 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/6811f38a-ca2b-40fe-8e7c-ea5a1a6da9eb/data: Copied (new)
+2025/12/27 03:00:27 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/6811f38a-ca2b-40fe-8e7c-ea5a1a6da9eb/startedat: Copied (new)
+2025/12/27 03:00:28 INFO  : harbor/registry/docker/registry/v2/repositories/library/pokedex/_layers/sha256/3eb1195c2b18cf2a5a998fc25a921458ce6690d0ad838565135f689a9d3e4a66/link: Copied (new)
+2025/12/27 03:00:28 NOTICE: backups/rsnapshot/alpha.1/localhost/home/unarmedpuppy/.bun/install/cache/arctic/2.3.4@@@1: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:28 NOTICE: backups/rsnapshot/alpha.2/localhost/home/unarmedpuppy/.bun/install/cache/ajv-draft-04/1.0.0@@@1: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:28 NOTICE: backups/rsnapshot/alpha.0/localhost/home/unarmedpuppy/.bun/install/cache/aws4fetch/1.0.20@@@1: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:29 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/09/096e7aab0a8b9e0ba1522e3e46f786387cba1efac76d57a12edd976a49bb799b/data: Copied (new)
+2025/12/27 03:00:29 INFO  : harbor/registry/docker/registry/v2/repositories/ghcr/paperless-ngx/paperless-ngx/_layers/sha256/0674d14a155c94f13e648265aa3ba62410e1fe0387fef64cc608388e54232880/link: Copied (new)
+2025/12/27 03:00:29 NOTICE: backups/rsnapshot/alpha.2/localhost/etc/ifplugd/action.d/action_wpa: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:29 NOTICE: backups/rsnapshot/beta.0/localhost/home/unarmedpuppy/.bun/install/cache/ajv-draft-04/1.0.0@@@1: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:30 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/08/085c5e5aaa8eb4b957ecf253c74f16a6a5551231de3fb7c3ac74814a6bf17e06/data: Copied (new)
+2025/12/27 03:00:30 INFO  : harbor/registry/docker/registry/v2/repositories/ghcr/blakeblackshear/frigate/_layers/sha256/686df78ded3ae498c46c57fc989b6a4ed34a21350d09870186347ccec17600ee/link: Copied (new)
+2025/12/27 03:00:30 NOTICE: backups/rsnapshot/beta.1/localhost/home/unarmedpuppy/.bun/install/cache/ajv/8.17.1@@@1: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:30 INFO  : harbor/registry/docker/registry/v2/repositories/library/pokedex/_manifests/tags/latest/index/sha256/df2363dc2fa9c2d91eb399144fdfb2155e5e16f7aed4acf136d59b6518a17815/link: Copied (new)
+2025/12/27 03:00:30 NOTICE: backups/rsnapshot/alpha.1/localhost/home/unarmedpuppy/.bun/install/cache/aws4fetch/1.0.20@@@1: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:30 NOTICE: backups/rsnapshot/alpha.2/localhost/home/unarmedpuppy/.bun/install/cache/arctic/2.3.4@@@1: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:30 NOTICE: backups/rsnapshot/beta.0/localhost/etc/ifplugd/action.d/action_wpa: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:30 NOTICE: backups/rsnapshot/alpha.0/localhost/home/unarmedpuppy/.bun/install/cache/fast-deep-equal/3.1.3@@@1: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:30 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/5831283f-5159-4ea9-95ba-4d2adb54d1ed/hashstates/sha256/0: Copied (new)
+2025/12/27 03:00:31 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/06/06f936405006755e8b64694d285ac5852b95554c980dd1272924cd8ee787fb9b/data: Copied (new)
+2025/12/27 03:00:31 NOTICE: backups/rsnapshot/beta.0/localhost/home/unarmedpuppy/.bun/install/cache/arctic/2.3.4@@@1: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:31 INFO  : harbor/registry/docker/registry/v2/repositories/ghcr/paperless-ngx/paperless-ngx/_manifests/revisions/sha256/cd7622df6e0463a00d9aa381c756b052a00baec36b87c51085d54a1037fec74a/link: Copied (new)
+2025/12/27 03:00:31 INFO  : harbor/registry/docker/registry/v2/repositories/ghcr/blakeblackshear/frigate/_manifests/revisions/sha256/7e00726c26d66e69e9f3368f96f3759bc972e2fe1f75d0dc4030f1c92aa5c5b1/link: Copied (new)
+2025/12/27 03:00:31 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/6e686de6-0fc0-4257-9568-b896a49c81f6/data: Copied (new)
+2025/12/27 03:00:31 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/6e686de6-0fc0-4257-9568-b896a49c81f6/startedat: Copied (new)
+2025/12/27 03:00:31 INFO  : harbor/registry/docker/registry/v2/repositories/library/pokedex/_layers/sha256/451bc75bf5bc1133c92f74f631e3982868fb880acd3bd1d42b9b4cb40894e05b/link: Copied (new)
+2025/12/27 03:00:31 NOTICE: backups/rsnapshot/beta.1/localhost/home/unarmedpuppy/.bun/install/cache/ajv-draft-04/1.0.0@@@1: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:31 INFO  : harbor/registry/docker/registry/v2/repositories/library/pokedex/_manifests/tags/v1.0.2/index/sha256/df2363dc2fa9c2d91eb399144fdfb2155e5e16f7aed4acf136d59b6518a17815/link: Copied (new)
+2025/12/27 03:00:33 NOTICE: backups/rsnapshot/alpha.1/localhost/home/unarmedpuppy/.bun/install/cache/fast-deep-equal/3.1.3@@@1: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:34 NOTICE: backups/rsnapshot/alpha.2/localhost/home/unarmedpuppy/.bun/install/cache/aws4fetch/1.0.20@@@1: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:34 NOTICE: backups/rsnapshot/alpha.0/localhost/home/unarmedpuppy/.bun/install/cache/fast-uri/3.1.0@@@1: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:35 NOTICE: backups/rsnapshot/beta.1/localhost/etc/ifplugd/action.d/action_wpa: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:35 NOTICE: backups/rsnapshot/beta.0/localhost/home/unarmedpuppy/.bun/install/cache/aws4fetch/1.0.20@@@1: Can't follow symlink without -L/--copy-links
+2025/12/27 03:00:45 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/06/0674d14a155c94f13e648265aa3ba62410e1fe0387fef64cc608388e54232880/data: Copied (new)
+2025/12/27 03:00:45 INFO  : harbor/registry/docker/registry/v2/repositories/ghcr/paperless-ngx/paperless-ngx/_layers/sha256/0997fe2ebfdb5cac4baa2adafdcd74586f278dc222a8be9ab7d7148642b5ef16/link: Copied (new)
+2025/12/27 03:00:45 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/08/08a0c52f4aa7620fe0d74edd309cd276633488be41dfa02da3ba8293a6f92f9c/data: Copied (new)
+2025/12/27 03:00:45 INFO  : harbor/registry/docker/registry/v2/repositories/ghcr/blakeblackshear/frigate/_layers/sha256/702bf35b89c38fe72cf9eed076c7f1b490900de05dbd3bfa8e71b49c6920affe/link: Copied (new)
+2025/12/27 03:00:46 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/0a/0abf9e5672665202e79f26f23ef5dbd12558e2ea51ac32807922ab76fdb24ab0/data: Copied (new)
+2025/12/27 03:00:46 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/6478c728-effc-417c-b68b-b325545db259/hashstates/sha256/0: Copied (new)
+2025/12/27 03:00:46 INFO  : harbor/registry/docker/registry/v2/repositories/ghcr/paperless-ngx/paperless-ngx/_manifests/revisions/sha256/ffd46c401f4b05623fc0416cb237b2074d5f381ac39b6462e93c19256287c013/link: Copied (new)
+2025/12/27 03:00:46 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/0c/0c16123e68fb8ce31ecab328f87167cfc2112739e6bd3b722e3575d1412d45ab/data: Copied (new)
+2025/12/27 03:00:46 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/706852c1-7119-4b9f-a31b-1cfd9265c867/data: Copied (new)
+2025/12/27 03:00:46 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/706852c1-7119-4b9f-a31b-1cfd9265c867/startedat: Copied (new)
+2025/12/27 03:00:47 INFO  : harbor/registry/docker/registry/v2/repositories/library/pokedex/_layers/sha256/493b9b03e7f41bf3cc3bee84b75572c72444beb74890f7e9b29516c98c83357e/link: Copied (new)
+2025/12/27 03:00:47 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/boulderbadgedad/soulsync/_layers/sha256/1733a4cd59540b3470ff7a90963bcdea5b543279dd6bdaf022d7883fdad221e5/link: Copied (new)
+2025/12/27 03:00:47 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/09/09bfb6a07d74349f1297d9ac3ebc79ac5a448dbc7de1e0c731f3f0bc703ea5b5/data: Copied (new)
+2025/12/27 03:00:48 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/adguard/adguardhome/_layers/sha256/331d034cfb3323544dd9f577404356bdb19dd8287cfbaf96207c8de85d857854/link: Copied (new)
+2025/12/27 03:00:48 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/excalidraw/excalidraw/_layers/sha256/197eb75867ef4fcecd4724f17b0972ab0489436860a594a9445f8eaff8155053/link: Copied (new)
+2025/12/27 03:00:49 INFO  : harbor/registry/docker/registry/v2/repositories/ghcr/paperless-ngx/paperless-ngx/_layers/sha256/0e4bc2bd6656e6e004e3c749af70e5650bac2258243eb0949dea51cb8b7863db/link: Copied (new)
+2025/12/27 03:00:49 INFO  : harbor/registry/docker/registry/v2/repositories/ghcr/blakeblackshear/frigate/_layers/sha256/759c36ee869e3e60258350a2e221eae1a4ba1018613e0334f1bc84eb09c4bbbc/link: Copied (new)
+2025/12/27 03:00:49 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/6811f38a-ca2b-40fe-8e7c-ea5a1a6da9eb/hashstates/sha256/0: Copied (new)
+2025/12/27 03:00:49 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/0d/0da51cb869bf14622fe05ea1196a90530cfe15f9ba84f988e6729ff66e36e00b/data: Copied (new)
+2025/12/27 03:00:49 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/0c/0ca5bc1c449c7fae8b49393460061ecad2e70ae98f50c20f9c4a89d569ae5fba/data: Copied (new)
+2025/12/27 03:00:49 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/78dd4132-8133-4af9-8c2c-8ff54bd44798/data: Copied (new)
+2025/12/27 03:00:49 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/78dd4132-8133-4af9-8c2c-8ff54bd44798/startedat: Copied (new)
+2025/12/27 03:00:50 INFO  : harbor/registry/docker/registry/v2/repositories/library/pokedex/_layers/sha256/567f84da6fbd4287d40a5837485469435c40a81f9a94e98395b6385d3600643a/link: Copied (new)
+2025/12/27 03:00:51 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/boulderbadgedad/soulsync/_layers/sha256/1a301e68e29450e19f9093b4c1b5c3099023c07bd923b43dee501c2ffefdb21d/link: Copied (new)
+2025/12/27 03:00:51 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/adguard/adguardhome/_manifests/revisions/sha256/4754fa215f18df44b58f281d286b37414ff540bab5cee09b91094f3e61e4403e/link: Copied (new)
+2025/12/27 03:00:51 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/adguard/adguardhome/_layers/sha256/4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1/link: Copied (new)
+2025/12/27 03:00:51 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/excalidraw/excalidraw/_layers/sha256/34a64644b756511a2e217f0508e11d1a572085d66cd6dc9a555a082ad49a3102/link: Copied (new)
+2025/12/27 03:00:52 INFO  : harbor/registry/docker/registry/v2/repositories/ghcr/paperless-ngx/paperless-ngx/_layers/sha256/490b9a1c25e472ab1cceab4ed6f3bd252006f7c6eea0ef7ba845c996adb6f302/link: Copied (new)
+2025/12/27 03:02:02 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/02/02de03a7213b62b792ec66a7efb8c86c4117ca00fb8651facf8ecfe33044b485/data: Copied (new)
+2025/12/27 03:02:02 INFO  : harbor/registry/docker/registry/v2/repositories/ghcr/blakeblackshear/frigate/_layers/sha256/8c447ba046378c061db98be176f18f6665381d5caee8ca56dd9e696e4512e0e7/link: Copied (new)
+2025/12/27 03:02:02 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/6e686de6-0fc0-4257-9568-b896a49c81f6/hashstates/sha256/0: Copied (new)
+2025/12/27 03:02:03 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/0d/0de27020c7f0dec9100aabf44be456dc1ea0d86b97863ac124ff1ca948f03532/data: Copied (new)
+2025/12/27 03:02:03 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/adb4a077-2d30-47a5-9dd9-f9ed91f6c3e1/data: Copied (new)
+2025/12/27 03:02:03 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/adb4a077-2d30-47a5-9dd9-f9ed91f6c3e1/startedat: Copied (new)
+2025/12/27 03:02:03 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/fireflyiii/core/_layers/sha256/0674e2ffbb89e426720ca8d1083dd8746b1f6c79f8ce789ebad5ab77c9a063c0/link: Copied (new)
+2025/12/27 03:02:04 INFO  : harbor/registry/docker/registry/v2/repositories/library/pokedex/_layers/sha256/6047a9244c4a0f5aeae190ee8b03de86d11b014001179e83aede539ed77835ad/link: Copied (new)
+2025/12/27 03:02:05 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/boulderbadgedad/soulsync/_layers/sha256/270297c3ae13b800da3c34f80348d19773d4f61e447fd05db44cd4148e62954d/link: Copied (new)
+2025/12/27 03:02:05 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/0f/0f8b424aa0b96c1c388a5fd4d90735604459256336853082afb61733438872b5/data: Copied (new)
+2025/12/27 03:02:05 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/adguard/adguardhome/_manifests/revisions/sha256/88d5b5847102bb1134e7eee4caabc6c260cf5121ec81f1fc84f7a5ad19690873/link: Copied (new)
+2025/12/27 03:02:06 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/adguard/adguardhome/_layers/sha256/616c68d9a80bd13ad0ba00d8a4501b44570c90f65a3b48050e3772fd8ea3ff7f/link: Copied (new)
+2025/12/27 03:02:06 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/excalidraw/excalidraw/_layers/sha256/39c2ddfd6010082a4a646e7ca44e95aca9bf3eaebc00f17f7ccc2954004f2a7d/link: Copied (new)
+2025/12/27 03:02:07 INFO  : harbor/registry/docker/registry/v2/repositories/ghcr/paperless-ngx/paperless-ngx/_layers/sha256/59d35266b7299e8365fc4097d034fad31241bfb2baccf52e2de7ed4ff698b61a/link: Copied (new)
+2025/12/27 03:02:07 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/706852c1-7119-4b9f-a31b-1cfd9265c867/hashstates/sha256/0: Copied (new)
+2025/12/27 03:02:08 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/favonia/cloudflare-ddns/_layers/sha256/7f4ccb9c6f5f482fd0a5545b9a1d75e3e7b6b90e3d390c3f810db09e0c18c42e/link: Copied (new)
+2025/12/27 03:02:08 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/excalidraw/excalidraw/_manifests/revisions/sha256/4f7852cae008fe5de21e462340de72739c1ef3bd03b672f8693be15970e3878a/link: Copied (new)
+2025/12/27 03:02:08 INFO  : harbor/registry/docker/registry/v2/repositories/ghcr/blakeblackshear/frigate/_layers/sha256/8e44f01296e3a6fdc31a671bee1c2259c5d5ee8b49f29aec42b5d2af15600296/link: Copied (new)
+2025/12/27 03:02:17 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/0d/0df0dd17ac7fcd43d34be0936a9951526332338e959dfb48d68361823efbf89c/data: Copied (new)
+2025/12/27 03:02:18 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/c99e8beb-bd42-452c-85b7-9e6ca29de725/data: Copied (new)
+2025/12/27 03:02:18 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/c99e8beb-bd42-452c-85b7-9e6ca29de725/startedat: Copied (new)
+2025/12/27 03:02:18 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/boulderbadgedad/soulsync/_manifests/revisions/sha256/39eafecf336d0fc3401847cba0ba77af8fc7a522e08c48b817c6b196d95831c4/link: Copied (new)
+2025/12/27 03:02:18 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/fireflyiii/core/_layers/sha256/096e7aab0a8b9e0ba1522e3e46f786387cba1efac76d57a12edd976a49bb799b/link: Copied (new)
+2025/12/27 03:02:19 INFO  : harbor/registry/docker/registry/v2/repositories/library/pokedex/_layers/sha256/74e0b8b9d29775f598cbd94cfe4acea22a8c50432214d80aa0ca6e13bc736403/link: Copied (new)
+2025/12/27 03:02:31 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/0e/0e4bc2bd6656e6e004e3c749af70e5650bac2258243eb0949dea51cb8b7863db/data: Copied (new)
+2025/12/27 03:02:31 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/boulderbadgedad/soulsync/_layers/sha256/3f0cdbca744e7bd0ce0ff6da73b9148829b04309925992954a314ba203f56e99/link: Copied (new)
+2025/12/27 03:02:31 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/freshrss/freshrss/_layers/sha256/148f6b7227b2e1af8953c9515259445be245da18c115a0827e08c6293a6f7408/link: Copied (new)
+2025/12/27 03:02:32 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/adguard/adguardhome/_layers/sha256/7730be362ff964f3db93c24fc2229a3eec33180cf424a13f89fd6b7673d107ca/link: Copied (new)
+2025/12/27 03:02:32 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/excalidraw/excalidraw/_layers/sha256/61ca4f733c802afd9e05a32f0de0361b6d713b8b53292dc15fb093229f648674/link: Copied (new)
+2025/12/27 03:02:33 INFO  : harbor/registry/docker/registry/v2/repositories/ghcr/paperless-ngx/paperless-ngx/_layers/sha256/63dbeabf88c4cf9256758bb3e9732f6f3fd740bc72715f4cfa5bcca46de4944d/link: Copied (new)
+2025/12/27 03:02:33 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/78dd4132-8133-4af9-8c2c-8ff54bd44798/hashstates/sha256/0: Copied (new)
+2025/12/27 03:02:48 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/10/1074353eec0db2c1d81d5af2671e56e00cf5738486f5762609ea33d606f88612/data: Copied (new)
+2025/12/27 03:02:49 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/favonia/cloudflare-ddns/_layers/sha256/e726686bc1f07c566f6014f1f6da6b6e5f971f76546312af0d70cca6fadc3b8a/link: Copied (new)
+2025/12/27 03:02:49 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/excalidraw/excalidraw/_manifests/revisions/sha256/9696df47a1cb616fba494d52e49f8845430b4698ee675d5f64fa1cacc9550af5/link: Copied (new)
+2025/12/27 03:02:50 INFO  : harbor/registry/docker/registry/v2/repositories/ghcr/blakeblackshear/frigate/_layers/sha256/967c6b78543107b5a6a951e44953b7b4b7cc0cf1943b8a35386aba6a151466ec/link: Copied (new)
+2025/12/27 03:02:50 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/11/114361313a00a462962ed8d7118417a318a6df36e2e9ed232bd19732b32649d3/data: Copied (new)
+2025/12/27 03:02:50 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/boulderbadgedad/soulsync/_manifests/revisions/sha256/baa2372e1ebced1f4c9e3cde1d873c0fba76cd00fddbba33d7a9d1a0ba2d7e4f/link: Copied (new)
+2025/12/27 03:02:51 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/grafana/grafana/_layers/sha256/014e56e613968f73cce0858124ca5fbc601d7888099969a4eea69f31dcd71a53/link: Copied (new)
+2025/12/27 03:02:51 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/fireflyiii/core/_layers/sha256/09bfb6a07d74349f1297d9ac3ebc79ac5a448dbc7de1e0c731f3f0bc703ea5b5/link: Copied (new)
+2025/12/27 03:06:17 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/06/0674e2ffbb89e426720ca8d1083dd8746b1f6c79f8ce789ebad5ab77c9a063c0/data: Copied (new)
+2025/12/27 03:06:18 INFO  : harbor/registry/docker/registry/v2/repositories/library/pokedex/_layers/sha256/c3a0cb139660671b694b89d4903444fe11c082d169940f047c3be1ee2e9a00aa/link: Copied (new)
+2025/12/27 03:06:18 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/boulderbadgedad/soulsync/_layers/sha256/47359907fc7936185f6fa955335991695836109631310e9de9da7959ba5f826a/link: Copied (new)
+2025/12/27 03:06:19 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/freshrss/freshrss/_layers/sha256/1733a4cd59540b3470ff7a90963bcdea5b543279dd6bdaf022d7883fdad221e5/link: Copied (new)
+2025/12/27 03:06:19 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/adguard/adguardhome/_layers/sha256/f2d77f55996f1345e42d00749263220db106e2dd2c57ecf2c378e54ea495965f/link: Copied (new)
+2025/12/27 03:06:19 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/excalidraw/excalidraw/_layers/sha256/81bd8ed7ec6789b0cb7f1b47ee731c522f6dba83201ec73cd6bca1350f582948/link: Copied (new)
+2025/12/27 03:06:20 INFO  : harbor/registry/docker/registry/v2/repositories/ghcr/paperless-ngx/paperless-ngx/_layers/sha256/683c7415c6a0f89167c1575590bf12706dcb1ff310dd297a95fbb0dc1a4753ce/link: Copied (new)
+2025/12/27 03:06:21 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/adb4a077-2d30-47a5-9dd9-f9ed91f6c3e1/hashstates/sha256/0: Copied (new)
+2025/12/27 03:06:22 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/favonia/cloudflare-ddns/_manifests/revisions/sha256/870c55aedd587ad74ab9c0ff1505a3199b703dcaebf553972465e1370fb06f54/link: Copied (new)
+2025/12/27 03:06:23 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/favonia/cloudflare-ddns/_layers/sha256/eece93a45d8c3c19056054418bd3e9701e7a84ea1a727c0c2e381794cf8abdcd/link: Copied (new)
+2025/12/27 03:06:23 INFO  : harbor/registry/docker/registry/v2/repositories/ghcr/blakeblackshear/frigate/_layers/sha256/daa9bae5e286691ecff933f22ba5219454fb72e62e2e2daec73157953f7543b6/link: Copied (new)
+2025/12/27 03:06:24 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/freshrss/freshrss/_manifests/revisions/sha256/00d84e5bcca0ee2f89941cd593b482d66a41e5925d3b4a6c3b9724beb512b68c/link: Copied (new)
+2025/12/27 03:06:25 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/fireflyiii/core/_manifests/revisions/sha256/06f936405006755e8b64694d285ac5852b95554c980dd1272924cd8ee787fb9b/link: Copied (new)
+2025/12/27 03:06:25 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/11/114e699da838b7a4a5dd75807233341d8f9a392ee2360d4bfe2b0680df4965f8/data: Copied (new)
+2025/12/27 03:06:25 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/grafana/grafana/_layers/sha256/4a965f51fa324b479defdd1c799b4daf190d8565aeb82cc992cf8768932b2348/link: Copied (new)
+2025/12/27 03:06:26 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/fireflyiii/core/_layers/sha256/0df0dd17ac7fcd43d34be0936a9951526332338e959dfb48d68361823efbf89c/link: Copied (new)
+2025/12/27 03:08:50 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/09/0997fe2ebfdb5cac4baa2adafdcd74586f278dc222a8be9ab7d7148642b5ef16/data: Copied (new)
+2025/12/27 03:08:51 INFO  : harbor/registry/docker/registry/v2/repositories/library/pokedex/_layers/sha256/da7c973d8b92a1555060972c8849a332c93bfe2608c11faeee2098c4cfbe8c3d/link: Copied (new)
+2025/12/27 03:08:51 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/boulderbadgedad/soulsync/_layers/sha256/4d55cfecf3663813d03c369bcd532b89f41cf07b65d95887ef686538370a747c/link: Copied (new)
+2025/12/27 03:08:52 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/freshrss/freshrss/_layers/sha256/4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1/link: Copied (new)
+2025/12/27 03:08:52 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/adguard/adguardhome/_layers/sha256/f637881d1138581d892d9eb942c56e0ccc7758fe3bdc0f1e6cd66059fdfd8185/link: Copied (new)
+2025/12/27 03:08:52 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/excalidraw/excalidraw/_layers/sha256/9785ed9486c246a598eb7f1450be06263a9a9c20a1c69bab9238a17e7f8f6b19/link: Copied (new)
+2025/12/27 03:08:53 INFO  : harbor/registry/docker/registry/v2/repositories/ghcr/paperless-ngx/paperless-ngx/_layers/sha256/700240a4a7f88c7b51d2227586dcd1651a0d0283878688cc44dba5678b938bd4/link: Copied (new)
+2025/12/27 03:08:53 INFO  : harbor/registry/docker/registry/v2/repositories/library/alpine/_uploads/c99e8beb-bd42-452c-85b7-9e6ca29de725/hashstates/sha256/0: Copied (new)
+2025/12/27 03:08:54 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/grafana/loki/_layers/sha256/06c425ea32fada30ffe48e2bf9eed3666cce2ea088fd8c9de5ed4ed18b15de4f/link: Copied (new)
+2025/12/27 03:08:54 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/favonia/cloudflare-ddns/_manifests/revisions/sha256/f63954207d49e2f4a9fbad902ba92d5f3e8e4631de88c55ff3eb7c432aa560d7/link: Copied (new)
+2025/12/27 03:08:54 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/13/13dde94f41237a3ea7b6313590d19b9af45a65b01f14e596e4682bda8858cacf/data: Copied (new)
+2025/12/27 03:08:55 INFO  : harbor/registry/docker/registry/v2/repositories/ghcr/blakeblackshear/frigate/_layers/sha256/fa6237abaa5043dd6651b7da519e943553ed3d1814a4797dcd27da883500a4bf/link: Copied (new)
+2025/12/27 03:08:55 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/freshrss/freshrss/_manifests/revisions/sha256/6baf48940917fbac5542c57e3f5e5c2c28f47b92a229a765099ae77cb2bb8de5/link: Copied (new)
+2025/12/27 03:08:55 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/grafana/promtail/_layers/sha256/02de03a7213b62b792ec66a7efb8c86c4117ca00fb8651facf8ecfe33044b485/link: Copied (new)
+2025/12/27 03:08:55 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/fireflyiii/core/_manifests/revisions/sha256/89ce9d8be9a933b6ea81369d5251c44f607d1301ba7ddb384af70ca2db74cfa8/link: Copied (new)
+2025/12/27 03:08:56 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/library/ghost/_layers/sha256/02f9580c51f1c263e2f6a37873a0e0aee020940bf118e4a4b0d9d8daccf6c496/link: Copied (new)
+2025/12/27 03:13:13 INFO  : harbor/registry/docker/registry/v2/blobs/sha256/11/119a0a1fc7f6babc083328e22ab9a5bbc0f9a251fae9c0a26191d3ec2f109134/data: Copied (new)
+2025/12/27 03:13:14 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/grafana/grafana/_layers/sha256/5cdab57891eadfc05b9c76519b4b1be6ba2ac1c3bb8fdedd90fdcf7fc9b40242/link: Copied (new)
+2025/12/27 03:13:15 INFO  : harbor/registry/docker/registry/v2/repositories/docker-hub/fireflyiii/core/_layers/sha256/0e4bc2bd6656e6e004e3c749af70e5650bac2258243eb0949dea51cb8b7863db/link: Copied (new)
+2025/12/27 05:15:21 INFO  : Signal received: terminated
+2025/12/27 05:15:22 INFO  : Exiting...

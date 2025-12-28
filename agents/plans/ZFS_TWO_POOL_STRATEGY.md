@@ -1,5 +1,8 @@
 # ZFS Two-Pool Strategy: Keep Existing + New RAID-Z2 Pool
 
+**Status**: Planning
+**Beads Epic**: `home-server-40h`
+
 ## Strategy Overview
 
 **Proposed Setup:**

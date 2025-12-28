@@ -38,3 +38,6 @@ objects:
     - car
     - dog
     - cat
+detect:
+  enabled: true
+version: 0.16-0

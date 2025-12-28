@@ -1,5 +1,8 @@
 # ZFS Migration: RAID-Z1 to RAID-Z2 with 8 New Drives
 
+**Status**: Planning
+**Beads Epic**: `home-server-46d`
+
 ## Overview
 
 This guide covers migrating from a 4-drive RAID-Z1 pool to an 8-drive RAID-Z2 pool using 8 new drives.

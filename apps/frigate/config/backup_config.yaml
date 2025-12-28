@@ -1,0 +1,40 @@
+mqtt:
+  enabled: false
+
+detectors:
+  cpu1:
+    type: cpu
+
+# Uncomment and configure when you have cameras
+# cameras:
+#   front_door:
+#     ffmpeg:
+#       inputs:
+#         - path: rtsp://user:password@camera-ip:554/stream
+#           roles:
+#             - detect
+#             - record
+#     detect:
+#       width: 1280
+#       height: 720
+#       fps: 5
+
+record:
+  enabled: false
+  # Uncomment when ready
+  # retain:
+  #   days: 7
+  #   mode: motion
+
+snapshots:
+  enabled: false
+  # Uncomment when ready
+  # retain:
+  #   default: 10
+
+objects:
+  track:
+    - person
+    - car
+    - dog
+    - cat
