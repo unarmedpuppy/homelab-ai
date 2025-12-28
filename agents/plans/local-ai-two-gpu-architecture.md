@@ -437,6 +437,58 @@ set-mode.ps1 NORMAL
 
 **This is infrastructure, not experimentation.**
 
+## Service Layer & Tiered Routing (In Progress)
+
+The router service will implement tiered inference routing with fallback:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Inference Request                             │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    Router Service                                │
+│  1. Route to small local model (RTX 3070)                       │
+│     - Fast responses, tool calls, planning                      │
+│                                                                  │
+│  2. If complex → Route to medium model (RTX 3090)               │
+│     - Coding, refactors, long context                           │
+│     - Respects GAMING mode gating                               │
+│                                                                  │
+│  3. If network available + very complex → Fallback to GLM-4.7   │
+│     - External API fallback                                     │
+│     - Complex tool calls, advanced reasoning                    │
+│                                                                  │
+│  4. Optional side path: Claude via opencode                     │
+│     - Human-initiated (not auto-routed)                         │
+│     - Leverages existing Claude subscription                    │
+│     - For tasks where Claude excels (code review, etc.)         │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Routing Decision Factors
+
+| Factor | Small (3070) | Medium (3090) | Fallback (GLM-4.7) |
+|--------|--------------|---------------|-------------------|
+| Token estimate | < 2K | 2K-16K | > 16K or complex |
+| Task type | Routing, tools | Coding, refactor | Multi-step reasoning |
+| Latency need | < 1s | < 10s | Acceptable delay |
+| Network required | No | No | Yes |
+
+### Claude/OpenCode Integration (Optional Path)
+
+Considering exposing Claude via opencode as an optional service:
+- **Not auto-routed** - Human explicitly chooses this path
+- **Use cases**: Code review, complex refactors, creative tasks
+- **Integration**: Runs as separate service, invoked on demand
+- **Cost-aware**: Uses existing Claude subscription, not metered
+
+**Open Questions**:
+- How to expose opencode as a service?
+- Should Tayne (Mattermost bot) be able to invoke Claude path?
+- Rate limiting / cost awareness for Claude calls?
+
 ## Final Decision Summary
 
 - **Separation of concerns wins** over consolidation
@@ -451,3 +503,4 @@ This architecture is intentionally boring, predictable, and scalable.
 
 - [apps/local-ai-app/](../../apps/local-ai-app/) - Current proxy service (to be upgraded)
 - [infrastructure-agent.md](../personas/infrastructure-agent.md) - Network infrastructure
+- [mattermost-gateway-service.md](mattermost-gateway-service.md) - Mattermost bot gateway (Tayne uses this router)

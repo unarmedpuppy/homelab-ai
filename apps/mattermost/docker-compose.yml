@@ -23,6 +23,13 @@ services:
       - MM_CLUSTERSETTINGS_ENABLE=false
       - MM_METRICSSETTINGS_ENABLE=false
       - MM_EXPERIMENTALSETTINGS_ENABLEOPENSERVER=false
+      # Push notifications - use Mattermost's free test service (TPNS)
+      - MM_EMAILSETTINGS_PUSHNOTIFICATIONSERVER=https://push-test.mattermost.com
+      - MM_EMAILSETTINGS_SENDPUSHNOTIFICATIONS=true
+      # Privacy - disable telemetry and diagnostics
+      - MM_LOGSETTINGS_ENABLEDIAGNOSTICS=false
+      - MM_SERVICESETTINGS_ENABLESECURITYFIXALERT=false
+      - MM_SUPPORTSETTINGS_ENABLEASKCOMMUNITYMENUITEM=false
       # Redis configuration (optional but recommended)
       - MM_SERVICESETTINGS_SESSIONCACHEINMEMORY=false
       - MM_SERVICESETTINGS_SESSIONCACHEREDISURL=redis://redis:6379
