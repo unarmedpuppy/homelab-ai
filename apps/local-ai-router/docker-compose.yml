@@ -1,0 +1,45 @@
+x-enabled: true
+
+services:
+  local-ai-router:
+    build: .
+    image: harbor.server.unarmedpuppy.com/library/local-ai-router:latest
+    container_name: local-ai-router
+    restart: unless-stopped
+    environment:
+      - TZ=America/Chicago
+      # Backend endpoints
+      - GAMING_PC_URL=${GAMING_PC_URL:-http://192.168.86.63:8000}
+      - LOCAL_3070_URL=${LOCAL_3070_URL:-http://local-ai-server:8001}
+      - OPENCODE_URL=${OPENCODE_URL:-http://opencode-service:8002}
+      # Routing thresholds
+      - SMALL_TOKEN_THRESHOLD=${SMALL_TOKEN_THRESHOLD:-2000}
+      - MEDIUM_TOKEN_THRESHOLD=${MEDIUM_TOKEN_THRESHOLD:-16000}
+      # Logging
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    ports:
+      - "8012:8000"
+    networks:
+      - my-network
+    labels:
+      - "traefik.enable=true"
+      # HTTPS redirect
+      - "traefik.http.middlewares.local-ai-router-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.local-ai-router-redirect.middlewares=local-ai-router-redirect"
+      - "traefik.http.routers.local-ai-router-redirect.rule=Host(`local-ai-api.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.local-ai-router-redirect.entrypoints=web"
+      # Main router
+      - "traefik.http.routers.local-ai-router.rule=Host(`local-ai-api.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.local-ai-router.entrypoints=websecure"
+      - "traefik.http.routers.local-ai-router.tls.certresolver=myresolver"
+      - "traefik.http.services.local-ai-router.loadbalancer.server.port=8000"
+      # Homepage labels
+      - "homepage.group=AI"
+      - "homepage.name=Local AI Router"
+      - "homepage.icon=mdi-router"
+      - "homepage.href=https://local-ai-api.server.unarmedpuppy.com/health"
+      - "homepage.description=Intelligent LLM routing to multiple backends"
+
+networks:
+  my-network:
+    external: true
