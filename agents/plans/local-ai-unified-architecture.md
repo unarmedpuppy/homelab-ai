@@ -158,6 +158,29 @@ def route_request(request):
 - 3090: Query `GET /status` on Windows
 - OpenCode: HTTP health check
 
+**Agent Endpoint** (`POST /agent/run`):
+
+Host-controlled agent loop following OpenCode's design philosophy:
+- **Host owns**: loop control, step count, tool execution, error handling, termination
+- **Single-action constraint**: Model emits exactly ONE action per turn (tool call OR response)
+- **Host-enforced retries**: Validates output and re-prompts with structured feedback
+- **Provider-agnostic**: Can swap between Claude, GPT-4, local models without system rewrite
+
+Available tools:
+- `read_file` - Read file contents (with optional line range)
+- `write_file` - Create or overwrite files
+- `edit_file` - Make precise edits using string replacement
+- `run_shell` - Execute shell commands (with timeout and dangerous command blocking)
+- `search_files` - Find files by pattern or grep content
+- `list_directory` - List directory contents
+- `task_complete` - Signal task completion and provide final answer
+
+Configuration:
+- `AGENT_MAX_STEPS=50` - Max steps per agent run
+- `AGENT_MAX_RETRIES=3` - Retries for malformed responses
+- `AGENT_ALLOWED_PATHS=/tmp` - Comma-separated allowed paths for security
+- `AGENT_SHELL_TIMEOUT=30` - Shell command timeout (seconds)
+
 ### 3. OpenCode Container (`apps/opencode-service/`)
 
 Containerized [OpenCode](https://github.com/sst/opencode) with [oh-my-opencode](https://github.com/code-yeongyu/oh-my-opencode) for subscription-based API access.
@@ -234,6 +257,11 @@ Control gaming mode via Mattermost bot commands.
 - [x] Connect to 3090 backend (via Windows IP)
 - [x] Add logging and metrics
 - [x] Deploy to server with Traefik (https://local-ai-api.server.unarmedpuppy.com)
+- [x] **Add agent endpoint** - Host-controlled agent loop following OpenCode design
+  - [x] Implement single-action constraint (ONE action per turn)
+  - [x] Host validates and executes tools (read_file, write_file, edit_file, run_shell, search_files, list_directory)
+  - [x] Provider-agnostic design for easy model swapping
+  - [x] Deployed at `/agent/run` and `/agent/tools`
 
 ### Phase 3: OpenCode Container (`apps/opencode-service/`)
 - [ ] Research oh-my-opencode container setup
@@ -361,6 +389,22 @@ curl -X POST https://local-ai.server.unarmedpuppy.com/v1/chat/completions \
 > OpenCode: Available
 ```
 
+### Agent Endpoint (Autonomous Tasks)
+```bash
+# Run an autonomous agent task
+curl -X POST https://local-ai-api.server.unarmedpuppy.com/agent/run \
+  -H "Content-Type: application/json" \
+  -d '{
+    "task": "Create a Python script that prints hello world",
+    "working_directory": "/tmp",
+    "model": "auto",
+    "max_steps": 20
+  }'
+
+# List available agent tools
+curl https://local-ai-api.server.unarmedpuppy.com/agent/tools
+```
+
 ## Related Documents
 
 - [Mattermost Gateway](mattermost-gateway-service.md) - For Tayne gaming mode commands
@@ -382,3 +426,4 @@ curl -X POST https://local-ai.server.unarmedpuppy.com/v1/chat/completions \
 | 2025-12-28 | OpenCode for sub-based access | Avoid API key fees |
 | 2025-12-28 | Gaming mode = simple on/off | Keep it simple |
 | 2025-12-28 | Router uses token estimate | Automatic complexity detection |
+| 2025-12-28 | **Add host-controlled agent endpoint** | Enable programmatic autonomous tasks, mirroring OpenCode's proven design pattern for provider-agnostic agent execution |
