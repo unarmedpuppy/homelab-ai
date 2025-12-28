@@ -18,7 +18,7 @@ services:
       - GATEWAY_LOG_LEVEL=${GATEWAY_LOG_LEVEL:-INFO}
       - DEFAULT_CHANNEL=${DEFAULT_CHANNEL:-town-square}
     ports:
-      - "8010:8000"
+      - "8011:8000"
     networks:
       - my-network
     labels:
