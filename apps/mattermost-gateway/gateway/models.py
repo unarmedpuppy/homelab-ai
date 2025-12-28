@@ -32,3 +32,23 @@ class HealthResponse(BaseModel):
     status: str
     bots: list[str]
     mattermost: str
+
+
+class Message(BaseModel):
+    id: str
+    user_id: str
+    message: str
+    create_at: int
+    type: str | None = None
+
+
+class MessagesResponse(BaseModel):
+    success: bool
+    messages: list[Message] = []
+    error: str | None = None
+
+
+class WebhookResponse(BaseModel):
+    success: bool
+    post_id: str | None = None
+    error: str | None = None

@@ -43,6 +43,22 @@ curl -X POST http://mattermost-gateway:8000/react \
   }'
 ```
 
+### GET /messages
+Fetch messages from a channel.
+
+```bash
+curl "http://mattermost-gateway:8000/messages?channel=general&limit=10"
+```
+
+### POST /webhook/:bot
+Simple webhook endpoint for posting text (for scripts/cron jobs).
+
+```bash
+curl -X POST http://mattermost-gateway:8000/webhook/server-monitor \
+  -H "X-Channel: alerts" \
+  -d "Backup completed successfully"
+```
+
 ### GET /health
 Health check endpoint.
 

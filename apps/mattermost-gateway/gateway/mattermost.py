@@ -103,6 +103,39 @@ class MattermostClient:
             logger.error(f"Failed to add reaction: {e}")
             raise MattermostClientError(f"Failed to add reaction: {e}") from e
 
+    def get_messages(
+        self,
+        channel: str,
+        limit: int = 50,
+        since: int | None = None,
+    ) -> list[dict]:
+        channel_id = self._resolve_channel_id(channel)
+
+        try:
+            params: dict[str, Any] = {"per_page": limit}
+            if since:
+                params["since"] = since
+
+            result = self.driver.posts.get_posts_for_channel(channel_id, params=params)
+            posts = result.get("posts", {})
+            order = result.get("order", [])
+
+            messages = []
+            for post_id in order:
+                post = posts.get(post_id, {})
+                messages.append({
+                    "id": post.get("id"),
+                    "user_id": post.get("user_id"),
+                    "message": post.get("message"),
+                    "create_at": post.get("create_at"),
+                    "type": post.get("type"),
+                })
+
+            return messages
+        except Exception as e:
+            logger.error(f"Failed to get messages: {e}")
+            raise MattermostClientError(f"Failed to get messages: {e}") from e
+
     def check_connection(self) -> bool:
         try:
             self.driver.users.get_user("me")

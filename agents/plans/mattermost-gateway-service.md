@@ -253,8 +253,8 @@ networks:
 
 ### Phase 2: Extended Features
 - [x] Implement POST /react endpoint
-- [ ] Implement GET /messages endpoint
-- [ ] Implement POST /webhook/:bot endpoint
+- [x] Implement GET /messages endpoint
+- [x] Implement POST /webhook/:bot endpoint
 - [x] Channel name → ID resolution with caching
 - [x] Add logging and error handling
 
