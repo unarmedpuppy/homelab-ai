@@ -244,19 +244,19 @@ networks:
 ## Implementation Phases
 
 ### Phase 1: Core Gateway
-- [ ] Create project structure
-- [ ] Implement POST /post endpoint
-- [ ] Implement GET /health endpoint
-- [ ] Register Tayne bot
-- [ ] Docker setup
-- [ ] Test posting to Mattermost
+- [x] Create project structure
+- [x] Implement POST /post endpoint
+- [x] Implement GET /health endpoint
+- [x] Register Tayne bot (config ready, token needed)
+- [x] Docker setup
+- [ ] Test posting to Mattermost (needs bot token)
 
 ### Phase 2: Extended Features
-- [ ] Implement POST /react endpoint
-- [ ] Implement GET /messages endpoint
-- [ ] Implement POST /webhook/:bot endpoint
-- [ ] Channel name → ID resolution with caching
-- [ ] Add logging and error handling
+- [x] Implement POST /react endpoint
+- [x] Implement GET /messages endpoint
+- [x] Implement POST /webhook/:bot endpoint
+- [x] Channel name → ID resolution with caching
+- [x] Add logging and error handling
 
 ### Phase 3: Tayne Intelligence
 - [ ] WebSocket listener for mentions

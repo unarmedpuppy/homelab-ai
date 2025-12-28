@@ -74,3 +74,14 @@
 [2025-12-28T11:18:13.855Z] info    - Authentication is disabled
 [2025-12-28T11:18:13.855Z] info    - Not serving HTTPS
 [2025-12-28T11:18:13.855Z] info  Session server listening on /config/data/code-server-ipc.sock
+[09:10:14] 
+
+
+
+
+[09:10:14] Extension host agent started.
+[09:10:15] [192.168.160.11][54a9cd33][ManagementConnection] New connection established.
+[09:10:15] [192.168.160.11][8b43b7d6][ExtensionHostConnection] New connection established.
+[09:10:15] [192.168.160.11][8b43b7d6][ExtensionHostConnection] <359> Launched Extension Host Process.
+[09:10:21] [192.168.160.11][54a9cd33][ManagementConnection] The client has disconnected gracefully, so the connection will be disposed.
+[09:10:21] [192.168.160.11][8b43b7d6][ExtensionHostConnection] <359> Extension Host Process exited with code: 0, signal: null.

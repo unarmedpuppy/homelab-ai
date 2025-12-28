@@ -1,0 +1,32 @@
+x-enabled: true
+
+services:
+  mattermost-gateway:
+    build: .
+    image: harbor.server.unarmedpuppy.com/library/mattermost-gateway:latest
+    container_name: mattermost-gateway
+    restart: unless-stopped
+    environment:
+      - TZ=America/Chicago
+      - MATTERMOST_URL=${MATTERMOST_URL:-mattermost.server.unarmedpuppy.com}
+      - MATTERMOST_SCHEME=${MATTERMOST_SCHEME:-https}
+      - MATTERMOST_PORT=${MATTERMOST_PORT:-443}
+      - MATTERMOST_BOT_TAYNE_TOKEN=${MATTERMOST_BOT_TAYNE_TOKEN:-}
+      - MATTERMOST_BOT_MONITOR_TOKEN=${MATTERMOST_BOT_MONITOR_TOKEN:-}
+      - MATTERMOST_BOT_TRADING_TOKEN=${MATTERMOST_BOT_TRADING_TOKEN:-}
+      - GATEWAY_PORT=${GATEWAY_PORT:-8000}
+      - GATEWAY_LOG_LEVEL=${GATEWAY_LOG_LEVEL:-INFO}
+      - DEFAULT_CHANNEL=${DEFAULT_CHANNEL:-town-square}
+    ports:
+      - "8010:8000"
+    networks:
+      - my-network
+    labels:
+      - "homepage.group=Infrastructure"
+      - "homepage.name=Mattermost Gateway"
+      - "homepage.icon=mdi-api"
+      - "homepage.description=Bot message gateway for Mattermost"
+
+networks:
+  my-network:
+    external: true
