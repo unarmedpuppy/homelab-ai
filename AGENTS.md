@@ -340,6 +340,7 @@ Agent-discoverable tool guides are in `agents/skills/`. Each tool has a `SKILL.m
 | [update-homepage-groups](agents/skills/update-homepage-groups/) | Update homepage organization | `scripts/update-homepage-groups.py` |
 | [edit-wiki-content](agents/skills/edit-wiki-content/) | Edit Wiki.js pages via API | `apps/wiki/edit-wiki.py` |
 | [post-to-mattermost](agents/skills/post-to-mattermost/) | Post messages to Mattermost via gateway | - |
+| [test-local-ai-router](agents/skills/test-local-ai-router/) | Test Local AI Router with memory and metrics tracking | - |
 
 ## Agent Personas
 
@@ -371,6 +372,7 @@ For critical analysis, decision review, or challenging assumptions, reference th
 | `agents/reference/plan_act.md` | Planning and workflow documentation |
 | `agents/reference/storage/` | Storage and ZFS reference guides |
 | `agents/reference/backups.md` | **Backup systems** - B2, rsnapshot, disaster recovery |
+| `agents/reference/local-ai-router.md` | **Local AI Router** - Quick reference for memory/metrics systems |
 | `agents/plans/` | Implementation plans and strategies |
 | `agents/skills/` | Tool-specific guides |
 
