@@ -2,14 +2,15 @@
 import os
 import logging
 import httpx
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Depends, BackgroundTasks
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Optional
 import asyncio
 
 from agent import AgentRequest, AgentResponse, run_agent_loop, AGENT_TOOLS
-# from middleware import MemoryMetricsMiddleware  # Temporarily disabled - body consumption issue
+from dependencies import get_request_tracker, log_chat_completion, RequestTracker
+# from middleware import MemoryMetricsMiddleware  # Replaced with dependency injection
 
 # Configure logging
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
@@ -20,9 +21,6 @@ app = FastAPI(
     description="OpenAI-compatible API router for multi-backend LLM inference",
     version="1.0.0"
 )
-
-# TODO: Re-enable middleware with better body handling approach
-# app.add_middleware(MemoryMetricsMiddleware)
 
 # Configuration from environment
 GAMING_PC_URL = os.getenv("GAMING_PC_URL", "http://192.168.86.63:8000")
@@ -268,7 +266,11 @@ async def list_models():
 
 
 @app.post("/v1/chat/completions")
-async def chat_completions(request: Request):
+async def chat_completions(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    tracker: RequestTracker = Depends(get_request_tracker)
+):
     """OpenAI-compatible chat completions with intelligent routing."""
     body = await request.json()
 
@@ -306,6 +308,7 @@ async def chat_completions(request: Request):
     async with httpx.AsyncClient(timeout=300.0) as client:
         if stream:
             # Stream the response
+            # TODO: Add metrics/memory logging for streaming responses
             async def stream_response():
                 async with client.stream(
                     "POST",
@@ -322,11 +325,41 @@ async def chat_completions(request: Request):
             )
         else:
             # Non-streaming response
-            response = await client.post(
-                f"{backend['url']}/v1/chat/completions",
-                json=body,
-            )
-            return response.json()
+            error = None
+            response_data = None
+
+            try:
+                response = await client.post(
+                    f"{backend['url']}/v1/chat/completions",
+                    json=body,
+                )
+                response_data = response.json()
+
+                # Log metrics and memory in background
+                background_tasks.add_task(
+                    log_chat_completion,
+                    tracker,
+                    body,
+                    response_data,
+                    error=None
+                )
+
+                return response_data
+
+            except Exception as e:
+                error = str(e)
+                logger.error(f"Chat completion error: {error}")
+
+                # Log error metric in background
+                background_tasks.add_task(
+                    log_chat_completion,
+                    tracker,
+                    body,
+                    response_data=None,
+                    error=error
+                )
+
+                raise
 
 
 @app.post("/gaming-mode")
