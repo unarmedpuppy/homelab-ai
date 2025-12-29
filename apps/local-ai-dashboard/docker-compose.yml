@@ -1,0 +1,34 @@
+x-enabled: true
+
+services:
+  local-ai-dashboard:
+    build: .
+    image: harbor.server.unarmedpuppy.com/library/local-ai-dashboard:latest
+    container_name: local-ai-dashboard
+    restart: unless-stopped
+    environment:
+      - TZ=America/Chicago
+    networks:
+      - my-network
+    labels:
+      - "traefik.enable=true"
+      # HTTPS redirect
+      - "traefik.http.middlewares.local-ai-dashboard-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.local-ai-dashboard-redirect.middlewares=local-ai-dashboard-redirect"
+      - "traefik.http.routers.local-ai-dashboard-redirect.rule=Host(`local-ai-dashboard.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.local-ai-dashboard-redirect.entrypoints=web"
+      # Main router
+      - "traefik.http.routers.local-ai-dashboard.rule=Host(`local-ai-dashboard.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.local-ai-dashboard.entrypoints=websecure"
+      - "traefik.http.routers.local-ai-dashboard.tls.certresolver=myresolver"
+      - "traefik.http.services.local-ai-dashboard.loadbalancer.server.port=80"
+      # Homepage labels
+      - "homepage.group=AI"
+      - "homepage.name=AI Dashboard"
+      - "homepage.icon=mdi-chart-line"
+      - "homepage.href=https://local-ai-dashboard.server.unarmedpuppy.com"
+      - "homepage.description=Local AI usage metrics and conversation explorer"
+
+networks:
+  my-network:
+    external: true
