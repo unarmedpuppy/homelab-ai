@@ -37,3 +37,6 @@ agents/plans/local/*
 agents/skills/*/node_modules/
 # agents/**/__pycache__/ - covered by global rule
 # agents/**/*.pyc - covered by global rule
+
+apps/ytdl-sub/config/*
+logs/*
