@@ -16,3 +16,8 @@
   font-style: normal;
   font-display: swap;
 }
+
+@theme {
+  --font-sans: 'Berkeley Mono', ui-monospace, 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+  --font-mono: 'Berkeley Mono', ui-monospace, 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+}
