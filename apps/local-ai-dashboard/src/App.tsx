@@ -1,66 +1,81 @@
 import { useState } from 'react';
 import Dashboard from './components/Dashboard';
-import ConversationExplorer from './components/ConversationExplorer';
-import RAGPlayground from './components/RAGPlayground';
+import ChatInterface from './components/ChatInterface';
+import ConversationSidebar from './components/ConversationSidebar';
 
-type TabType = 'dashboard' | 'conversations' | 'rag';
+type ViewType = 'chat' | 'stats';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+  const [activeView, setActiveView] = useState<ViewType>('chat');
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+
+  const handleNewChat = () => {
+    setSelectedConversationId(null);
+    setActiveView('chat');
+  };
+
+  const handleSelectConversation = (id: string) => {
+    setSelectedConversationId(id);
+    setActiveView('chat');
+  };
 
   return (
-    <div className="min-h-screen bg-black">
-      <nav className="bg-gray-900 border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-20">
-            <div className="flex space-x-8">
-              <div className="flex items-center">
-                <h1 className="text-2xl font-bold text-white">
-                  Local AI Dashboard
-                </h1>
-              </div>
-              <div className="flex space-x-2 items-center ml-8">
-                <button
-                  onClick={() => setActiveTab('dashboard')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    activeTab === 'dashboard'
-                      ? 'bg-gray-800 text-white'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-800'
-                  }`}
-                >
-                  Dashboard
-                </button>
-                <button
-                  onClick={() => setActiveTab('conversations')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    activeTab === 'conversations'
-                      ? 'bg-gray-800 text-white'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-800'
-                  }`}
-                >
-                  Conversations
-                </button>
-                <button
-                  onClick={() => setActiveTab('rag')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    activeTab === 'rag'
-                      ? 'bg-gray-800 text-white'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-800'
-                  }`}
-                >
-                  Search
-                </button>
-              </div>
+    <div className="flex h-screen bg-black">
+      {/* Sidebar */}
+      <div className="w-80 bg-gray-900 border-r border-gray-800 flex flex-col">
+        {/* Header */}
+        <div className="p-6 border-b border-gray-800">
+          <h1 className="text-xl font-bold text-white">
+            Local AI Dashboard
+          </h1>
+        </div>
+
+        {/* Navigation */}
+        <div className="p-4 border-b border-gray-800 space-y-2">
+          <button
+            onClick={() => setActiveView('chat')}
+            className={`w-full px-4 py-2 rounded text-sm font-medium transition-colors text-left ${
+              activeView === 'chat'
+                ? 'bg-gray-800 text-white'
+                : 'text-gray-400 hover:text-white hover:bg-gray-800'
+            }`}
+          >
+            💬 Chat
+          </button>
+          <button
+            onClick={() => setActiveView('stats')}
+            className={`w-full px-4 py-2 rounded text-sm font-medium transition-colors text-left ${
+              activeView === 'stats'
+                ? 'bg-gray-800 text-white'
+                : 'text-gray-400 hover:text-white hover:bg-gray-800'
+            }`}
+          >
+            📊 Stats Overview
+          </button>
+        </div>
+
+        {/* Conversation Sidebar (only show in chat view) */}
+        {activeView === 'chat' && (
+          <ConversationSidebar
+            selectedConversationId={selectedConversationId}
+            onSelectConversation={handleSelectConversation}
+            onNewChat={handleNewChat}
+          />
+        )}
+      </div>
+
+      {/* Main Panel */}
+      <div className="flex-1 overflow-hidden">
+        {activeView === 'chat' ? (
+          <ChatInterface conversationId={selectedConversationId} />
+        ) : (
+          <div className="h-screen overflow-auto">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+              <Dashboard />
             </div>
           </div>
-        </div>
-      </nav>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {activeTab === 'dashboard' && <Dashboard />}
-        {activeTab === 'conversations' && <ConversationExplorer />}
-        {activeTab === 'rag' && <RAGPlayground />}
-      </main>
+        )}
+      </div>
     </div>
   );
 }

@@ -8,6 +8,8 @@ import type {
   DailyMetric,
   ActivityDay,
   ModelUsage,
+  ChatMessage,
+  ChatCompletionResponse,
 } from '../types/api';
 
 // API base URL - defaults to public router endpoint
@@ -121,6 +123,51 @@ export const ragAPI = {
       q: query,
       ...rest,
     });
+    return response.data;
+  },
+};
+
+// Chat API
+export const chatAPI = {
+  sendMessage: async (params: {
+    model: string;
+    messages: ChatMessage[];
+    conversationId?: string;
+    temperature?: number;
+    max_tokens?: number;
+    top_p?: number;
+    frequency_penalty?: number;
+    presence_penalty?: number;
+  }) => {
+    const { conversationId, messages, model, temperature, max_tokens, top_p, frequency_penalty, presence_penalty } = params;
+
+    const headers: Record<string, string> = {
+      'X-Enable-Memory': 'true',
+      'X-Project': 'dashboard',
+      'X-User-ID': 'dashboard-user',
+    };
+
+    if (conversationId) {
+      headers['X-Conversation-ID'] = conversationId;
+    }
+
+    const requestBody: Record<string, unknown> = {
+      model,
+      messages,
+    };
+
+    if (temperature !== undefined) requestBody.temperature = temperature;
+    if (max_tokens !== undefined) requestBody.max_tokens = max_tokens;
+    if (top_p !== undefined) requestBody.top_p = top_p;
+    if (frequency_penalty !== undefined) requestBody.frequency_penalty = frequency_penalty;
+    if (presence_penalty !== undefined) requestBody.presence_penalty = presence_penalty;
+
+    const response = await apiClient.post<ChatCompletionResponse>(
+      '/v1/chat/completions',
+      requestBody,
+      { headers }
+    );
+
     return response.data;
   },
 };
