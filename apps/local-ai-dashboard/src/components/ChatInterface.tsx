@@ -50,6 +50,8 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
     queryKey: ['conversation', conversationId],
     queryFn: () => memoryAPI.getConversation(conversationId!),
     enabled: !!conversationId,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   useEffect(() => {
