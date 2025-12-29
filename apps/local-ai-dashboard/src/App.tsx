@@ -48,7 +48,7 @@ function App() {
                       : 'text-gray-400 hover:text-white hover:bg-gray-800'
                   }`}
                 >
-                  RAG Search
+                  Search
                 </button>
               </div>
             </div>

@@ -90,7 +90,7 @@ export const metricsAPI = {
   },
 };
 
-// RAG API
+// RAG API (text search)
 export const ragAPI = {
   search: async (params: {
     query: string;
@@ -99,7 +99,12 @@ export const ragAPI = {
     user_id?: string;
     project?: string;
   }) => {
-    const response = await apiClient.post<RAGSearchResponse>('/rag/search', null, { params });
+    // Map 'query' to 'q' for API compatibility
+    const { query, ...rest } = params;
+    const response = await apiClient.post<RAGSearchResponse>('/memory/search', {
+      q: query,
+      ...rest,
+    });
     return response.data;
   },
 
@@ -109,7 +114,11 @@ export const ragAPI = {
     user_id?: string;
     project?: string;
   }) => {
-    const response = await apiClient.post<{ query: string; context: string }>('/rag/context', null, { params });
+    const { query, ...rest } = params;
+    const response = await apiClient.post<{ query: string; context: string }>('/memory/context', {
+      q: query,
+      ...rest,
+    });
     return response.data;
   },
 };

@@ -50,7 +50,7 @@ export default function RAGPlayground() {
       {/* Search Input */}
       <div className="bg-gray-800 rounded-lg border border-gray-700 p-8">
         <div className="text-xs uppercase tracking-wider text-gray-400 mb-6">
-          Semantic Search
+          Text Search
         </div>
 
         <div className="space-y-6">
