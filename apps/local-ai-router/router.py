@@ -473,6 +473,218 @@ async def list_agent_tools():
     }
 
 
+# ============================================================================
+# Memory API Endpoints
+# ============================================================================
+
+from memory import (
+    list_conversations,
+    get_conversation,
+    create_conversation,
+    delete_conversation,
+    get_conversation_messages,
+    search_conversations,
+    get_conversation_stats,
+)
+from models import ConversationCreate, SearchQuery
+
+
+@app.get("/memory/conversations")
+async def api_list_conversations(
+    user_id: Optional[str] = None,
+    project: Optional[str] = None,
+    session_id: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
+):
+    """List conversations with optional filters."""
+    return list_conversations(
+        user_id=user_id,
+        project=project,
+        session_id=session_id,
+        limit=limit,
+        offset=offset,
+    )
+
+
+@app.get("/memory/conversations/{conversation_id}")
+async def api_get_conversation(conversation_id: str):
+    """Get a specific conversation with its messages."""
+    conversation = get_conversation(conversation_id)
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    messages = get_conversation_messages(conversation_id)
+    return {
+        "conversation": conversation,
+        "messages": messages,
+    }
+
+
+@app.post("/memory/conversations")
+async def api_create_conversation(conv: ConversationCreate):
+    """Create a new conversation."""
+    return create_conversation(conv)
+
+
+@app.delete("/memory/conversations/{conversation_id}")
+async def api_delete_conversation(conversation_id: str):
+    """Delete a conversation and all its messages."""
+    deleted = delete_conversation(conversation_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    return {"status": "deleted", "conversation_id": conversation_id}
+
+
+@app.post("/memory/search")
+async def api_search_conversations(query: SearchQuery):
+    """Search conversations by content."""
+    return search_conversations(query)
+
+
+@app.get("/memory/stats")
+async def api_conversation_stats():
+    """Get overall conversation statistics."""
+    return get_conversation_stats()
+
+
+# ============================================================================
+# Metrics API Endpoints
+# ============================================================================
+
+from metrics import (
+    get_metrics,
+    get_daily_activity,
+    get_model_usage,
+    get_provider_distribution,
+    get_dashboard_stats,
+    get_daily_stats,
+)
+from datetime import datetime as dt
+
+
+@app.get("/metrics/recent")
+async def api_get_recent_metrics(
+    limit: int = 100,
+    backend: Optional[str] = None,
+    user_id: Optional[str] = None,
+    project: Optional[str] = None,
+):
+    """Get recent metrics with optional filters."""
+    return get_metrics(
+        backend=backend,
+        user_id=user_id,
+        project=project,
+        limit=limit,
+    )
+
+
+@app.get("/metrics/daily")
+async def api_get_daily_stats(
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    limit: int = 365,
+):
+    """Get daily aggregated stats."""
+    return get_daily_stats(
+        start_date=start_date,
+        end_date=end_date,
+        limit=limit,
+    )
+
+
+@app.get("/metrics/activity")
+async def api_get_activity_chart(days: int = 365):
+    """Get GitHub-style activity chart data."""
+    return {
+        "days": days,
+        "activity": get_daily_activity(days=days),
+    }
+
+
+@app.get("/metrics/models")
+async def api_get_model_usage(days: Optional[int] = None):
+    """Get model usage statistics."""
+    return {
+        "models": get_model_usage(days=days),
+        "provider_distribution": get_provider_distribution(days=days),
+    }
+
+
+@app.get("/metrics/dashboard")
+async def api_get_dashboard():
+    """Get complete dashboard statistics (OpenCode Wrapped style)."""
+    return get_dashboard_stats()
+
+
+# ============================================================================
+# RAG API Endpoints
+# ============================================================================
+
+from rag import (
+    search_similar_conversations,
+    get_relevant_context,
+    inject_context_into_messages,
+)
+
+
+@app.post("/rag/search")
+async def api_rag_search(
+    query: str,
+    limit: int = 5,
+    similarity_threshold: float = 0.3,
+    user_id: Optional[str] = None,
+    project: Optional[str] = None,
+):
+    """
+    Search for similar conversations using RAG.
+
+    Returns conversation IDs and similarity scores.
+    """
+    results = search_similar_conversations(
+        query=query,
+        limit=limit,
+        similarity_threshold=similarity_threshold,
+        user_id=user_id,
+        project=project,
+    )
+
+    return {
+        "query": query,
+        "results": [
+            {"conversation_id": conv_id, "similarity_score": score}
+            for conv_id, score in results
+        ],
+    }
+
+
+@app.post("/rag/context")
+async def api_rag_context(
+    query: str,
+    limit: int = 3,
+    similarity_threshold: float = 0.3,
+    user_id: Optional[str] = None,
+    project: Optional[str] = None,
+):
+    """
+    Get relevant conversation context for RAG.
+
+    Returns formatted context snippets ready for injection.
+    """
+    context = get_relevant_context(
+        query=query,
+        limit=limit,
+        similarity_threshold=similarity_threshold,
+        user_id=user_id,
+        project=project,
+    )
+
+    return {
+        "query": query,
+        "context": context,
+    }
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
