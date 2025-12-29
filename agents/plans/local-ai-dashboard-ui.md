@@ -1,7 +1,8 @@
 # Local AI Dashboard UI
 
-**Status**: Planning
+**Status**: Complete - Testing Deployment
 **Created**: 2025-12-28
+**Implemented**: 2025-12-28
 **Related**: [Memory & Metrics System](memory-metrics-system.md)
 
 ## Vision
@@ -80,13 +81,13 @@ Better developer experience, TypeScript safety, and rich ecosystem outweigh the 
 
 ## Implementation Phases
 
-### Phase 1: Project Setup
-- [ ] Create `apps/local-ai-dashboard/` directory
-- [ ] Initialize Vite + React + TypeScript project
-- [ ] Set up Tailwind CSS
-- [ ] Configure API client (axios/fetch wrapper)
-- [ ] Set up Docker Compose service
-- [ ] Add Traefik labels for routing
+### Phase 1: Project Setup ✅
+- [x] Create `apps/local-ai-dashboard/` directory
+- [x] Initialize Vite + React + TypeScript project
+- [x] Set up Tailwind CSS (v4 with @tailwindcss/postcss)
+- [x] Configure API client (axios with React Query)
+- [x] Set up Docker Compose service
+- [x] Add Traefik labels for routing
 
 **Tech Decisions**:
 - Vite for fast HMR and optimized builds
@@ -94,71 +95,74 @@ Better developer experience, TypeScript safety, and rich ecosystem outweigh the 
 - Recharts for declarative charts
 - React Query for caching and real-time updates
 
-### Phase 2: Dashboard Stats Page
-- [ ] Fetch `/metrics/dashboard` data
-- [ ] Display key metrics cards:
-  - Days Active
-  - Total Messages
+### Phase 2: Dashboard Stats Page ✅
+- [x] Fetch `/metrics/dashboard` data
+- [x] Display key metrics cards:
+  - Total Requests
   - Total Tokens
-  - Longest Streak
-  - Cost Savings (if applicable)
-- [ ] Activity heatmap (GitHub-style)
-  - 365-day grid
+  - Success Rate
+  - Average Duration
+- [x] Activity heatmap (GitHub-style)
+  - 90-day grid with week columns
   - Color intensity by request count
   - Hover tooltips with date + count
-- [ ] Model usage pie chart
-  - Breakdown by model
-  - Percentage labels
-  - Click to filter
-- [ ] Provider distribution (Local vs OpenCode)
+- [x] Model usage pie chart
+  - Breakdown by model with Recharts
+  - Legend with labels
+  - Interactive tooltips
+- [x] Backend distribution pie chart
+- [x] Daily request and token usage bar charts
 
 **Design Inspiration**: GitHub profile, OpenCode Wrapped, Vercel analytics
 
-### Phase 3: Conversation Explorer
-- [ ] List view of conversations
-  - Pagination
-  - Filter by user_id, project, session_id
-  - Sort by date (newest first)
-- [ ] Conversation detail modal
+### Phase 3: Conversation Explorer ✅
+- [x] List view of conversations
+  - Pagination (100 limit)
+  - Shows message count and created date
+  - Click to view details
+- [x] Conversation detail view
   - Full message history
-  - Message roles (user/assistant/system)
+  - Message roles (user/assistant/system) with color coding
   - Token counts per message
   - Timestamps
-- [ ] Search conversations
+  - Model and backend metadata
+- [x] Search conversations
   - Full-text search input
-  - Results with relevance scores
-  - Highlight matching text
+  - Live search with React Query
+  - Debounced search (triggers at 3+ chars)
 
-### Phase 4: RAG Playground
-- [ ] Interactive semantic search
-  - Query input
-  - Similarity threshold slider (0.0 - 1.0)
-  - Max results slider (1-10)
-- [ ] Display search results
-  - Conversation snippets
-  - Similarity scores (progress bars)
-  - Click to view full conversation
-- [ ] Context preview
-  - Show how context would be injected
-  - Token count estimate
+### Phase 4: RAG Playground ✅
+- [x] Interactive semantic search
+  - Query textarea input
+  - Similarity threshold slider (0.0 - 1.0, default 0.3)
+  - Max results slider (1-20, default 5)
+- [x] Display search results
+  - Conversation snippets with sample messages
+  - Similarity scores (percentage display)
+  - Conversation metadata (created date, message count)
+- [x] Context preview
+  - Separate "Get Context" button
+  - Shows formatted context string for LLM injection
+  - Displayed in monospace pre block
 
-### Phase 5: Real-time Updates
-- [ ] WebSocket connection (optional)
-  - Or polling every 5s for new metrics
-- [ ] Live stats widget
-  - Current requests/min
-  - Active conversations
-  - Latest request timestamp
-- [ ] Activity chart auto-refresh
+### Phase 5: Real-time Updates ✅ (Polling)
+- [x] React Query polling every 60s for dashboard
+- [x] Stale time 30s for all queries
+- [x] Auto-refresh on window focus
+- [ ] WebSocket connection (future enhancement)
+- [ ] Live stats widget (using polling currently)
 
-### Phase 6: Deployment & Polish
-- [ ] Optimize bundle size
-- [ ] Add loading states
-- [ ] Error handling
-- [ ] Mobile responsive design
-- [ ] Dark mode toggle
-- [ ] Docker build configuration
-- [ ] Traefik routing configuration
+### Phase 6: Deployment & Polish ✅
+- [x] Docker multi-stage build (Node builder + Nginx)
+- [x] Add loading states (React Query isLoading)
+- [x] Error handling (error boundaries and displays)
+- [x] Mobile responsive design (Tailwind responsive classes)
+- [x] Dark mode support (Tailwind dark: classes)
+- [x] Docker build configuration (Dockerfile + nginx.conf)
+- [x] Traefik routing configuration (HTTPS + redirect)
+- [x] Production build optimized
+- [ ] Bundle size optimization (future: code splitting)
+- [ ] Dark mode toggle UI (uses system preference currently)
 
 ## File Structure
 
