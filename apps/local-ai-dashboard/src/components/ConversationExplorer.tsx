@@ -2,19 +2,39 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { memoryAPI } from '../api/client';
 
-// Format date safely
-const formatDate = (dateStr: string | undefined): string => {
-  if (!dateStr) return '—';
+// Format date safely - handles multiple formats
+const formatDate = (dateInput: string | number | undefined | null): string => {
+  if (!dateInput) {
+    console.log('formatDate: no input', dateInput);
+    return '—';
+  }
+
   try {
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return '—';
+    let date: Date;
+
+    // Handle Unix timestamp (number or string number)
+    if (typeof dateInput === 'number' || !isNaN(Number(dateInput))) {
+      const timestamp = typeof dateInput === 'number' ? dateInput : Number(dateInput);
+      // Check if it's in seconds (< year 3000 in milliseconds)
+      date = new Date(timestamp < 10000000000 ? timestamp * 1000 : timestamp);
+    } else {
+      // Handle ISO string or other date string
+      date = new Date(dateInput);
+    }
+
+    if (isNaN(date.getTime())) {
+      console.log('formatDate: invalid date', dateInput);
+      return '—';
+    }
+
     return date.toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
     });
-  } catch {
+  } catch (error) {
+    console.error('formatDate error:', error, dateInput);
     return '—';
   }
 };
