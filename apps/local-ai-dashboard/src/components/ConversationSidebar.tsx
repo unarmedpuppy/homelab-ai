@@ -72,7 +72,7 @@ export default function ConversationSidebar({
     : [];
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col flex-1 min-h-0">
       {/* Search */}
       <div className="p-4 border-b border-gray-800">
         <input
