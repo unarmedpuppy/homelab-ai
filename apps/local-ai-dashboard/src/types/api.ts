@@ -100,6 +100,5 @@ export interface RAGResult {
   relevance_score: number;
 }
 
-export interface RAGSearchResponse {
-  results: RAGResult[];
-}
+// API returns array directly, not wrapped in object
+export type RAGSearchResponse = RAGResult[];

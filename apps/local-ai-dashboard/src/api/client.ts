@@ -46,7 +46,7 @@ export const memoryAPI = {
       limit,
     });
     // Convert search results to Conversation[] for compatibility
-    return response.data.results.map(r => r.conversation);
+    return response.data.map(r => r.conversation);
   },
 
   getStats: async () => {

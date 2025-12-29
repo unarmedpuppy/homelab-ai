@@ -117,17 +117,17 @@ export default function RAGPlayground() {
         <div className="bg-gray-800 rounded-lg border border-gray-700">
           <div className="p-6 border-b border-gray-700">
             <div className="text-xs uppercase tracking-wider text-gray-400">
-              Results ({searchMutation.data.results.length})
+              Results ({searchMutation.data.length})
             </div>
           </div>
 
-          {searchMutation.data.results.length === 0 ? (
+          {searchMutation.data.length === 0 ? (
             <div className="p-12 text-center text-gray-500 text-sm">
               No results found
             </div>
           ) : (
             <div className="divide-y divide-gray-700">
-              {searchMutation.data.results.map((result, idx) => (
+              {searchMutation.data.map((result, idx) => (
                 <div key={idx} className="p-6">
                   {/* Header */}
                   <div className="flex items-center justify-between mb-4">
