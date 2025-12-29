@@ -72,11 +72,9 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   }, [loadedConversation, conversationId]);
 
   const sendMessageMutation = useMutation({
-    mutationFn: async (userMessage: string) => {
-      const newMessages: ChatMessage[] = [
-        ...messages.map(m => ({ role: m.role, content: m.content })),
-        { role: 'user', content: userMessage },
-      ];
+    mutationFn: async () => {
+      // messages already includes the userMessage from optimistic update in handleSendMessage
+      const newMessages: ChatMessage[] = messages.map(m => ({ role: m.role, content: m.content }));
 
       return chatAPI.sendMessage({
         model: selectedModel,
@@ -119,8 +117,8 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setInput('');
 
-    // Send to API
-    sendMessageMutation.mutate(userMessage);
+    // Send to API (messages state already includes the new user message)
+    sendMessageMutation.mutate();
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
