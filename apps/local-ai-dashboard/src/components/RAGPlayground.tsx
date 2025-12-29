@@ -117,7 +117,7 @@ export default function RAGPlayground() {
         <div className="bg-gray-800 rounded-lg border border-gray-700">
           <div className="p-6 border-b border-gray-700">
             <div className="text-xs uppercase tracking-wider text-gray-400">
-              Results ({searchMutation.data.count})
+              Results ({searchMutation.data.results.length})
             </div>
           </div>
 
@@ -132,25 +132,25 @@ export default function RAGPlayground() {
                   {/* Header */}
                   <div className="flex items-center justify-between mb-4">
                     <div className="font-mono text-sm text-white">
-                      {result.conversation_id}
+                      {result.conversation.id}
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-xs text-gray-400">
-                        <span className="text-gray-500">similarity:</span> {(result.similarity_score * 100).toFixed(0)}%
+                        <span className="text-gray-500">relevance:</span> {(result.relevance_score * 100).toFixed(0)}%
                       </div>
                       <div className="text-xs text-gray-400">
-                        <span className="text-gray-500">messages:</span> {result.message_count}
+                        <span className="text-gray-500">messages:</span> {result.conversation.message_count}
                       </div>
                     </div>
                   </div>
                   <div className="text-xs text-gray-500 mb-4">
-                    {formatDate(result.conversation_created_at)}
+                    {formatDate(result.conversation.created_at)}
                   </div>
 
                   {/* Sample Messages */}
-                  {result.sample_messages && result.sample_messages.length > 0 && (
+                  {result.messages && result.messages.length > 0 && (
                     <div className="space-y-2">
-                      {result.sample_messages.map((msg, msgIdx) => (
+                      {result.messages.slice(0, 3).map((msg, msgIdx) => (
                         <div
                           key={msgIdx}
                           className="bg-gray-900 border border-gray-800 rounded p-3"

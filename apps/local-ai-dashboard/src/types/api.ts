@@ -87,19 +87,19 @@ export interface MemoryStats {
 }
 
 export interface RAGResult {
-  conversation_id: string;
-  conversation_created_at: string;
-  message_count: number;
-  similarity_score: number;
-  sample_messages: Array<{
+  conversation: {
+    id: string;
+    created_at: string;
+    message_count: number;
+  };
+  messages: Array<{
     role: string;
     content: string;
-    created_at: string;
+    timestamp: string;
   }>;
+  relevance_score: number;
 }
 
 export interface RAGSearchResponse {
-  query: string;
   results: RAGResult[];
-  count: number;
 }

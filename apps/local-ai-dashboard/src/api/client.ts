@@ -41,10 +41,12 @@ export const memoryAPI = {
   },
 
   searchConversations: async (query: string, limit: number = 10) => {
-    const response = await apiClient.get<Conversation[]>('/memory/search', {
-      params: { query, limit },
+    const response = await apiClient.post<RAGSearchResponse>('/memory/search', {
+      q: query,
+      limit,
     });
-    return response.data;
+    // Convert search results to Conversation[] for compatibility
+    return response.data.results.map(r => r.conversation);
   },
 
   getStats: async () => {
