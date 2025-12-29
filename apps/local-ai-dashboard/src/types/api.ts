@@ -9,7 +9,7 @@ export interface Message {
   backend?: string;
   tokens_prompt?: number;
   tokens_completion?: number;
-  created_at: string;
+  timestamp: string;
 }
 
 export interface Conversation {

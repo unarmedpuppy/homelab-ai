@@ -179,7 +179,7 @@ export default function ConversationExplorer() {
                         {msg.role === 'user' ? '▸ USER' : '◂ ASSISTANT'}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {formatDate(msg.created_at)}
+                        {formatDate(msg.timestamp)}
                       </div>
                       {idx === 0 && (
                         <div className="text-xs text-gray-600 uppercase">First</div>
