@@ -62,16 +62,21 @@ class MemoryMetricsMiddleware(BaseHTTPMiddleware):
 
         # Store original body for later
         body = None
+        body_bytes = b""
         if request.method == "POST":
             try:
-                body = await request.json()
-                # Re-create request with body (FastAPI consumes it)
-                from starlette.requests import Request as StarletteRequest
-                async def receive():
-                    return {"type": "http.request", "body": json.dumps(body).encode()}
-                request = StarletteRequest(request.scope, receive)
+                body_bytes = await request.body()
+                body = json.loads(body_bytes) if body_bytes else None
             except Exception as e:
                 logger.warning(f"Failed to parse request body: {e}")
+
+        # Create a new receive function that returns the body bytes
+        async def receive():
+            return {"type": "http.request", "body": body_bytes}
+
+        # Update request with new receive function
+        from starlette.requests import Request as StarletteRequest
+        request = StarletteRequest(request.scope, receive)
 
         # Process request
         response = None
