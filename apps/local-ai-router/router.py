@@ -3,6 +3,7 @@ import os
 import logging
 import httpx
 from fastapi import FastAPI, Request, HTTPException, Depends, BackgroundTasks
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Optional
@@ -20,6 +21,19 @@ app = FastAPI(
     title="Local AI Router",
     description="OpenAI-compatible API router for multi-backend LLM inference",
     version="1.0.0"
+)
+
+# Enable CORS for dashboard access
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://local-ai-dashboard.server.unarmedpuppy.com",
+        "http://localhost:5173",  # Vite dev server
+        "http://localhost:3000",   # Common dev port
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Configuration from environment
