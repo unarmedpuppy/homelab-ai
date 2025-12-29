@@ -10,7 +10,7 @@ import os
 
 logger = logging.getLogger(__name__)
 
-DATABASE_PATH = os.getenv("DATABASE_PATH", "data/memory.db")
+DATABASE_PATH = os.getenv("DATABASE_PATH", "/data/local-ai-router.db")
 
 
 def get_db_path() -> Path:
