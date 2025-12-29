@@ -70,9 +70,14 @@ class MemoryMetricsMiddleware(BaseHTTPMiddleware):
             except Exception as e:
                 logger.warning(f"Failed to parse request body: {e}")
 
-        # Create a new receive function that returns the body bytes
+        # Create a stateful receive function that returns the body bytes once
+        _sent = False
         async def receive():
-            return {"type": "http.request", "body": body_bytes}
+            nonlocal _sent
+            if not _sent:
+                _sent = True
+                return {"type": "http.request", "body": body_bytes}
+            return {"type": "http.disconnect"}
 
         # Update request with new receive function
         from starlette.requests import Request as StarletteRequest
