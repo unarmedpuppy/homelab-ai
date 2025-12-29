@@ -9,6 +9,7 @@ from typing import Optional
 import asyncio
 
 from agent import AgentRequest, AgentResponse, run_agent_loop, AGENT_TOOLS
+from middleware import MemoryMetricsMiddleware
 
 # Configure logging
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
@@ -19,6 +20,9 @@ app = FastAPI(
     description="OpenAI-compatible API router for multi-backend LLM inference",
     version="1.0.0"
 )
+
+# Add memory and metrics middleware
+app.add_middleware(MemoryMetricsMiddleware)
 
 # Configuration from environment
 GAMING_PC_URL = os.getenv("GAMING_PC_URL", "http://192.168.86.63:8000")
