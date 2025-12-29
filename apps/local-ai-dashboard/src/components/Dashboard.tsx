@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { metricsAPI } from '../api/client';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import ActivityHeatmap from './ActivityHeatmap';
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316'];
@@ -38,27 +38,27 @@ export default function Dashboard() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Requests</h3>
+          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Messages</h3>
           <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-            {stats.total_requests.toLocaleString()}
+            {stats.total_messages?.toLocaleString() || 0}
           </p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Tokens</h3>
           <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-            {stats.total_tokens.toLocaleString()}
+            {stats.total_tokens?.toLocaleString() || 0}
           </p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Success Rate</h3>
+          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Days Active</h3>
           <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-            {(stats.success_rate * 100).toFixed(1)}%
+            {stats.days_active || 0}
           </p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Avg Duration</h3>
+          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Longest Streak</h3>
           <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-            {stats.avg_duration_ms.toFixed(0)}ms
+            {stats.longest_streak || 0} days
           </p>
         </div>
       </div>
@@ -66,12 +66,11 @@ export default function Dashboard() {
       {/* Activity Heatmap */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Activity</h2>
-        <ActivityHeatmap data={stats.activity_by_day} />
+        <ActivityHeatmap data={stats.activity_chart || []} />
       </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Model Usage Pie Chart */}
+      {/* Model Usage Pie Chart */}
+      {stats.top_models && stats.top_models.length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Model Usage</h2>
           <ResponsiveContainer width="100%" height={300}>
@@ -94,61 +93,30 @@ export default function Dashboard() {
             </PieChart>
           </ResponsiveContainer>
         </div>
+      )}
 
-        {/* Backend Distribution Pie Chart */}
+      {/* Provider Distribution */}
+      {stats.providers_used && Object.keys(stats.providers_used).length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Backend Distribution</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={stats.top_backends}
-                dataKey="count"
-                nameKey="backend"
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                label
-              >
-                {stats.top_backends.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Provider Distribution</h2>
+          <div className="space-y-4">
+            {Object.entries(stats.providers_used).map(([provider, percentage]) => (
+              <div key={provider}>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="font-medium text-gray-700 dark:text-gray-300 capitalize">{provider}</span>
+                  <span className="text-gray-500 dark:text-gray-400">{percentage}%</span>
+                </div>
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                  <div
+                    className="bg-blue-600 h-2 rounded-full"
+                    style={{ width: `${percentage}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-
-      {/* Daily Metrics Bar Chart */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Daily Requests (Last 30 Days)</h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={stats.daily_metrics}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="request_count" fill="#3B82F6" name="Requests" />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Token Usage Bar Chart */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Daily Token Usage</h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={stats.daily_metrics}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="total_tokens" fill="#10B981" name="Tokens" />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+      )}
     </div>
   );
 }
