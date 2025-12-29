@@ -1,0 +1,139 @@
+# Local AI Router Reference
+
+Quick reference for the Local AI Router's metrics and memory systems.
+
+## Full Documentation
+
+See [apps/local-ai-router/README.md](../../apps/local-ai-router/README.md) for complete documentation.
+
+## Quick Facts
+
+**Two Separate Systems:**
+
+| System | Enabled | Purpose | Requires Headers |
+|--------|---------|---------|------------------|
+| **Metrics** | ✅ Always | Analytics, usage stats | ❌ No |
+| **Memory** | ⚠️ Opt-in | Conversation history, RAG search | ✅ Yes |
+
+## Key Discovery
+
+**Problem**: Metrics showed message count increasing, but conversations weren't appearing in the dashboard.
+
+**Root Cause**: The router has two separate databases:
+1. **Metrics DB** - Logs all requests automatically (no headers needed)
+2. **Memory DB** - Only saves when explicitly requested via headers
+
+**Solution**: Add `X-Enable-Memory: true` header to save conversations to memory.
+
+## Memory Headers
+
+To save a conversation to memory, use one of these headers:
+
+```bash
+# Auto-generate conversation ID
+X-Enable-Memory: true
+
+# Use specific conversation ID
+X-Conversation-ID: my-conversation-123
+
+# Optional metadata
+X-Session-ID: session-abc
+X-User-ID: user-123
+X-Project: my-project
+```
+
+## API Endpoints
+
+```bash
+# Chat completion (no memory)
+curl -X POST http://localhost:8012/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"model": "auto", "messages": [{"role": "user", "content": "Hello"}]}'
+
+# Chat completion WITH memory
+curl -X POST http://localhost:8012/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "X-Enable-Memory: true" \
+  -d '{"model": "auto", "messages": [{"role": "user", "content": "Hello"}]}'
+
+# List conversations (memory)
+curl http://localhost:8012/memory/conversations?limit=10
+
+# Get conversation details
+curl http://localhost:8012/memory/conversations/{id}
+
+# Memory statistics
+curl http://localhost:8012/memory/stats
+
+# Dashboard metrics
+curl http://localhost:8012/metrics/dashboard
+```
+
+## URLs
+
+| Context | URL |
+|---------|-----|
+| Docker network | `http://local-ai-router:8000` |
+| Server localhost | `http://localhost:8012` |
+| External (HTTPS) | `https://local-ai-api.server.unarmedpuppy.com` |
+
+## Dashboard
+
+Access at: [https://local-ai-dashboard.server.unarmedpuppy.com](https://local-ai-dashboard.server.unarmedpuppy.com)
+
+**Tabs:**
+- **Dashboard** - Shows metrics (total messages, model usage, activity)
+- **Conversations** - Shows memory (browsable conversation history)
+- **RAG Search** - Semantic search across stored conversations
+
+## Why Two Systems?
+
+- **Privacy** - Not all API calls should be permanently stored
+- **Control** - Clients explicitly opt-in to conversation storage
+- **Performance** - Metrics are lightweight, memory is verbose
+- **Separation** - Analytics vs. conversation history
+
+## Common Use Cases
+
+### Just Analytics (No Conversation Storage)
+```bash
+# Default behavior - metrics logged, no memory saved
+curl -X POST http://localhost:8012/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"model": "auto", "messages": [{"role": "user", "content": "Quick question"}]}'
+```
+
+### Conversation with Memory
+```bash
+# Save to memory for later retrieval or RAG search
+curl -X POST http://localhost:8012/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "X-Enable-Memory: true" \
+  -H "X-Project: my-app" \
+  -d '{"model": "auto", "messages": [{"role": "user", "content": "Start conversation"}]}'
+```
+
+### Multi-Turn Conversation
+```bash
+# First message
+curl -X POST http://localhost:8012/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "X-Conversation-ID: conv-abc-123" \
+  -d '{"model": "auto", "messages": [{"role": "user", "content": "My name is Josh"}]}'
+
+# Second message (same conversation)
+curl -X POST http://localhost:8012/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "X-Conversation-ID: conv-abc-123" \
+  -d '{"model": "auto", "messages": [
+    {"role": "user", "content": "My name is Josh"},
+    {"role": "assistant", "content": "Hello Josh!"},
+    {"role": "user", "content": "What is my name?"}
+  ]}'
+```
+
+## Related
+
+- [Local AI Router README](../../apps/local-ai-router/README.md) - Full documentation
+- [Local AI Dashboard](../../apps/local-ai-dashboard/README.md) - Dashboard UI
+- [Skill: Test Local AI Router](../skills/test-local-ai-router/SKILL.md) - Testing tool
