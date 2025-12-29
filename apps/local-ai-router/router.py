@@ -9,7 +9,7 @@ from typing import Optional
 import asyncio
 
 from agent import AgentRequest, AgentResponse, run_agent_loop, AGENT_TOOLS
-from middleware import MemoryMetricsMiddleware
+# from middleware import MemoryMetricsMiddleware  # Temporarily disabled - body consumption issue
 
 # Configure logging
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
@@ -21,8 +21,8 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Add memory and metrics middleware
-app.add_middleware(MemoryMetricsMiddleware)
+# TODO: Re-enable middleware with better body handling approach
+# app.add_middleware(MemoryMetricsMiddleware)
 
 # Configuration from environment
 GAMING_PC_URL = os.getenv("GAMING_PC_URL", "http://192.168.86.63:8000")
