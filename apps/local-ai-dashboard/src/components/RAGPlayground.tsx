@@ -2,6 +2,29 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { ragAPI } from '../api/client';
 
+// Format date safely
+const formatDate = (dateInput: string | number | undefined | null): string => {
+  if (!dateInput) return '—';
+  try {
+    let date: Date;
+    if (typeof dateInput === 'number' || !isNaN(Number(dateInput))) {
+      const timestamp = typeof dateInput === 'number' ? dateInput : Number(dateInput);
+      date = new Date(timestamp < 10000000000 ? timestamp * 1000 : timestamp);
+    } else {
+      date = new Date(dateInput);
+    }
+    if (isNaN(date.getTime())) return '—';
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    return '—';
+  }
+};
+
 export default function RAGPlayground() {
   const [query, setQuery] = useState('');
   const [limit, setLimit] = useState(5);
@@ -16,65 +39,56 @@ export default function RAGPlayground() {
       }),
   });
 
-  const contextMutation = useMutation({
-    mutationFn: (searchQuery: string) =>
-      ragAPI.getContext({
-        query: searchQuery,
-        limit,
-      }),
-  });
-
   const handleSearch = () => {
     if (query.trim()) {
       searchMutation.mutate(query);
     }
   };
 
-  const handleGetContext = () => {
-    if (query.trim()) {
-      contextMutation.mutate(query);
-    }
-  };
-
   return (
     <div className="space-y-6">
       {/* Search Input */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+      <div className="bg-gray-800 rounded-lg border border-gray-700 p-8">
+        <div className="text-xs uppercase tracking-wider text-gray-400 mb-6">
           Semantic Search
-        </h2>
-        <div className="space-y-4">
+        </div>
+
+        <div className="space-y-6">
+          {/* Query Input */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Search Query
-            </label>
+            <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">
+              Query
+            </div>
             <textarea
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Enter your search query..."
+              placeholder="What are you looking for?"
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded text-white placeholder-gray-600 focus:border-blue-500 focus:outline-none font-mono text-sm"
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Parameters */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Result Limit: {limit}
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs uppercase tracking-wider text-gray-500">Results</span>
+                <span className="text-xl font-bold text-white">{limit}</span>
+              </div>
               <input
                 type="range"
                 min="1"
                 max="20"
                 value={limit}
                 onChange={(e) => setLimit(Number(e.target.value))}
-                className="w-full"
+                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Similarity Threshold: {threshold.toFixed(2)}
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs uppercase tracking-wider text-gray-500">Threshold</span>
+                <span className="text-xl font-bold text-white">{threshold.toFixed(2)}</span>
+              </div>
               <input
                 type="range"
                 min="0"
@@ -82,70 +96,71 @@ export default function RAGPlayground() {
                 step="0.05"
                 value={threshold}
                 onChange={(e) => setThreshold(Number(e.target.value))}
-                className="w-full"
+                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
               />
             </div>
           </div>
 
-          <div className="flex gap-4">
-            <button
-              onClick={handleSearch}
-              disabled={!query.trim() || searchMutation.isPending}
-              className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-            >
-              {searchMutation.isPending ? 'Searching...' : 'Search'}
-            </button>
-            <button
-              onClick={handleGetContext}
-              disabled={!query.trim() || contextMutation.isPending}
-              className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-            >
-              {contextMutation.isPending ? 'Loading...' : 'Get Context'}
-            </button>
-          </div>
+          {/* Search Button */}
+          <button
+            onClick={handleSearch}
+            disabled={!query.trim() || searchMutation.isPending}
+            className="w-full px-6 py-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors uppercase tracking-wider text-sm"
+          >
+            {searchMutation.isPending ? '▸ Searching...' : '▸ Search'}
+          </button>
         </div>
       </div>
 
-      {/* Search Results */}
+      {/* Results */}
       {searchMutation.data && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Search Results ({searchMutation.data.count})
-          </h2>
-          <div className="space-y-4">
-            {searchMutation.data.results.length === 0 ? (
-              <div className="text-gray-500 dark:text-gray-400 text-sm">
-                No results found
-              </div>
-            ) : (
-              searchMutation.data.results.map((result, idx) => (
-                <div
-                  key={idx}
-                  className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="font-medium text-gray-900 dark:text-white">
+        <div className="bg-gray-800 rounded-lg border border-gray-700">
+          <div className="p-6 border-b border-gray-700">
+            <div className="text-xs uppercase tracking-wider text-gray-400">
+              Results ({searchMutation.data.count})
+            </div>
+          </div>
+
+          {searchMutation.data.results.length === 0 ? (
+            <div className="p-12 text-center text-gray-500 text-sm">
+              No results found
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-700">
+              {searchMutation.data.results.map((result, idx) => (
+                <div key={idx} className="p-6">
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="font-mono text-sm text-white">
                       {result.conversation_id}
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                      <span>Similarity: {(result.similarity_score * 100).toFixed(1)}%</span>
-                      <span>{result.message_count} messages</span>
+                    <div className="flex items-center gap-4">
+                      <div className="text-xs text-gray-400">
+                        <span className="text-gray-500">similarity:</span> {(result.similarity_score * 100).toFixed(0)}%
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        <span className="text-gray-500">messages:</span> {result.message_count}
+                      </div>
                     </div>
                   </div>
-                  <div className="text-xs text-gray-400 dark:text-gray-500 mb-3">
-                    Created: {new Date(result.conversation_created_at).toLocaleString()}
+                  <div className="text-xs text-gray-500 mb-4">
+                    {formatDate(result.conversation_created_at)}
                   </div>
+
+                  {/* Sample Messages */}
                   {result.sample_messages && result.sample_messages.length > 0 && (
                     <div className="space-y-2">
                       {result.sample_messages.map((msg, msgIdx) => (
                         <div
                           key={msgIdx}
-                          className="bg-gray-50 dark:bg-gray-700 rounded p-3 text-sm"
+                          className="bg-gray-900 border border-gray-800 rounded p-3"
                         >
-                          <div className="font-medium text-gray-700 dark:text-gray-300 capitalize mb-1">
-                            {msg.role}:
+                          <div className={`text-xs font-mono uppercase mb-2 ${
+                            msg.role === 'user' ? 'text-blue-400' : 'text-green-400'
+                          }`}>
+                            {msg.role === 'user' ? '▸ USER' : '◂ ASSISTANT'}
                           </div>
-                          <div className="text-gray-600 dark:text-gray-400">
+                          <div className="text-sm text-gray-300">
                             {msg.content.substring(0, 200)}
                             {msg.content.length > 200 ? '...' : ''}
                           </div>
@@ -154,32 +169,19 @@ export default function RAGPlayground() {
                     </div>
                   )}
                 </div>
-              ))
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
-      {/* Context Result */}
-      {contextMutation.data && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Retrieved Context
-          </h2>
-          <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-            <pre className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap font-mono">
-              {contextMutation.data.context}
-            </pre>
+      {/* Error */}
+      {searchMutation.isError && (
+        <div className="bg-gray-800 border border-red-800 rounded-lg p-6">
+          <div className="text-xs uppercase tracking-wider text-red-400 mb-2">Error</div>
+          <div className="text-red-300 text-sm">
+            {String(searchMutation.error)}
           </div>
-        </div>
-      )}
-
-      {/* Error Display */}
-      {(searchMutation.isError || contextMutation.isError) && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-          <p className="text-red-800 dark:text-red-200">
-            Error: {String(searchMutation.error || contextMutation.error)}
-          </p>
         </div>
       )}
     </div>
