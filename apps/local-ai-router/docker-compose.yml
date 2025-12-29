@@ -17,6 +17,11 @@ services:
       - MEDIUM_TOKEN_THRESHOLD=${MEDIUM_TOKEN_THRESHOLD:-16000}
       # Logging
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      # Memory & Metrics
+      - ENABLE_MEMORY=${ENABLE_MEMORY:-1}
+      - ENABLE_METRICS=${ENABLE_METRICS:-1}
+    volumes:
+      - ./data:/data
     ports:
       - "8012:8000"
     networks:
