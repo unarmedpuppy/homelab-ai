@@ -63,7 +63,7 @@ A unified data layer that provides both:
 
 ## Database Schema
 
-### SQLite Database: `data/memory.db`
+### SQLite Database: `/data/local-ai-router.db`
 
 **Table: conversations**
 ```sql
@@ -223,17 +223,33 @@ curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
 - [x] Test metrics logging and dashboard generation
 
 ### Phase 4: Middleware Integration ✅ COMPLETE
-- [x] Request capture middleware
-- [x] Response logging middleware
+- [x] Request capture with FastAPI dependency injection
+- [x] Response logging via BackgroundTasks
 - [x] Token usage calculation from response
 - [x] Error tracking
 - [x] Header-based configuration (conversation ID, session ID, user ID, project)
 - [x] Auto-conversation creation with X-Enable-Memory header
 - [x] Backend inference from model names
 - [x] Duration tracking
-- [x] Integration with router via app.add_middleware()
+- [x] Database persistence with mounted volume
 
-**Note**: Current implementation has limitations with streaming responses and body access. Consider refactoring to use response callbacks or endpoint-specific logging for production.
+**Implementation**: Replaced BaseHTTPMiddleware with dependency injection (`dependencies.py`) to avoid request body consumption issues. Logging happens in background tasks after response is sent, with no performance impact on request latency.
+
+**Files**:
+- `dependencies.py` - RequestTracker dependency and log_chat_completion function
+- `router.py` - Updated to use Depends() and BackgroundTasks
+- `docker-compose.yml` - Added volume mount for database persistence
+
+**Verified Working**:
+- ✅ Metrics logging to SQLite
+- ✅ Conversation memory with X-Conversation-ID header
+- ✅ Auto-conversation creation with X-Enable-Memory header
+- ✅ Database persists across container restarts
+- ✅ Dashboard stats available via `get_dashboard_stats()`
+
+**Known Limitations**:
+- Streaming responses are not logged (TODO for future enhancement)
+- Client must manage conversation history (router is stateless)
 
 ### Phase 5: API Endpoints
 - [ ] Memory endpoints (`/memory/*`)
@@ -268,15 +284,15 @@ curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
 ### Environment Variables
 ```bash
 # Database
-DATABASE_PATH=data/memory.db
-ENABLE_MEMORY=true
+DATABASE_PATH=/data/local-ai-router.db
+ENABLE_MEMORY=1  # 0 or 1
+ENABLE_METRICS=1  # 0 or 1
 
-# Metrics
-METRICS_ENABLED=true
+# Metrics (future)
 METRICS_BATCH_SIZE=100
 DAILY_STATS_UPDATE_INTERVAL=3600  # 1 hour
 
-# RAG
+# RAG (future)
 ENABLE_RAG=false
 RAG_CONTEXT_LIMIT=3  # Max conversations to inject
 RAG_SIMILARITY_THRESHOLD=0.7
@@ -288,7 +304,10 @@ EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
 services:
   local-ai-router:
     volumes:
-      - ./data:/app/data  # Persist database
+      - ./data:/data  # Persist database to host
+    environment:
+      - ENABLE_MEMORY=1
+      - ENABLE_METRICS=1
 ```
 
 ## Dashboard Metrics (OpenCode Wrapped Style)
