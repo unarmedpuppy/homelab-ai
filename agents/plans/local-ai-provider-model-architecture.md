@@ -4,6 +4,238 @@
 
 Restructure the Local AI ecosystem to properly separate providers from models, with health checking, proper capability tracking, and a clean UI for provider/model selection.
 
+## System Architecture
+
+### High-Level Overview
+
+```mermaid
+graph TB
+    subgraph "Clients"
+        Dashboard[Dashboard UI<br/>React + Vite]
+        Agent1[Agent 1<br/>Claude Code]
+        Agent2[Agent 2<br/>Custom Agent]
+        OpenCode[OpenCode<br/>Agentic Coding]
+    end
+
+    subgraph "Local AI Router"
+        Router[Router Service<br/>FastAPI]
+        ProviderMgr[Provider Manager<br/>Concurrency Control]
+        HealthCheck[Health Checker<br/>30s Periodic]
+        DB[(SQLite DB<br/>Conversations<br/>Metrics<br/>API Keys)]
+    end
+
+    subgraph "Local Providers - Home Network"
+        GPU3090[Gaming PC<br/>RTX 3090<br/>Priority: 1<br/>maxConcurrent: 1]
+        GPU3070[Home Server<br/>RTX 3070<br/>Priority: 2<br/>maxConcurrent: 1]
+    end
+
+    subgraph "Cloud Providers"
+        ZAI[Z.ai API<br/>GLM Models<br/>Priority: 3<br/>maxConcurrent: 100]
+        Anthropic[Anthropic API<br/>Claude Models<br/>Priority: 4<br/>maxConcurrent: 100]
+    end
+
+    Dashboard -->|HTTPS + API Key| Router
+    Agent1 -->|OpenAI SDK + API Key| Router
+    Agent2 -->|OpenAI SDK + API Key| Router
+    OpenCode -->|OpenAI SDK + API Key| Router
+
+    Router --> ProviderMgr
+    Router --> DB
+    ProviderMgr --> HealthCheck
+
+    ProviderMgr -->|HTTP/vLLM| GPU3090
+    ProviderMgr -->|HTTP/vLLM| GPU3070
+    ProviderMgr -->|HTTPS/API| ZAI
+    ProviderMgr -->|HTTPS/API| Anthropic
+
+    HealthCheck -.->|Health Probe| GPU3090
+    HealthCheck -.->|Health Probe| GPU3070
+    HealthCheck -.->|Health Probe| ZAI
+    HealthCheck -.->|Health Probe| Anthropic
+
+    style Router fill:#4A90E2
+    style GPU3090 fill:#7ED321
+    style GPU3070 fill:#7ED321
+    style ZAI fill:#F5A623
+    style Anthropic fill:#F5A623
+    style DB fill:#BD10E0
+```
+
+### Request Flow with Concurrency Control
+
+```mermaid
+sequenceDiagram
+    participant Client as Agent/Dashboard/OpenCode
+    participant Router as Local AI Router
+    participant PM as Provider Manager
+    participant GPU1 as Gaming PC 3090<br/>(Priority 1)
+    participant GPU2 as Server 3070<br/>(Priority 2)
+    participant Cloud as ZAI / Anthropic<br/>(Priority 3-4)
+
+    Client->>Router: POST /v1/chat/completions<br/>{model: "auto", messages: [...]}
+    Router->>Router: Validate API Key<br/>Identify Agent/User
+
+    Router->>PM: select_provider_and_model()<br/>priority: agent=0, user=1
+
+    PM->>PM: Check GPU1.activeRequests<br/>(currently: 0/1)
+
+    alt GPU1 Available
+        PM->>GPU1: Route Request
+        PM->>PM: Increment GPU1.activeRequests → 1
+        GPU1-->>PM: Streaming Response
+        PM-->>Router: Stream to Client
+        PM->>PM: Decrement GPU1.activeRequests → 0
+        Router-->>Client: SSE Stream Complete
+    else GPU1 Busy (activeRequests: 1/1)
+        PM->>PM: Check GPU2.activeRequests<br/>(currently: 0/1)
+
+        alt GPU2 Available
+            PM->>GPU2: Route Request
+            PM->>PM: Increment GPU2.activeRequests → 1
+            GPU2-->>PM: Streaming Response
+            PM-->>Router: Stream to Client
+            PM->>PM: Decrement GPU2.activeRequests → 0
+            Router-->>Client: SSE Stream Complete
+        else Both GPUs Busy
+            alt Cloud Fallback Enabled
+                PM->>Cloud: Route to ZAI/Anthropic
+                Cloud-->>PM: Streaming Response
+                PM-->>Router: Stream to Client
+                Router-->>Client: SSE Stream Complete
+            else Local-Only Mode
+                PM->>PM: Queue for 5s timeout
+                alt GPU Becomes Available
+                    PM->>GPU1: Route Request
+                    GPU1-->>Client: Stream Response
+                else Timeout (5s)
+                    PM-->>Router: HTTP 503<br/>ProviderCapacityError
+                    Router-->>Client: Error: All local providers busy
+                end
+            end
+        end
+    end
+```
+
+### Physical Hardware Topology
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         Home Network                            │
+│                      192.168.86.0/24                            │
+│                                                                 │
+│  ┌────────────────────┐              ┌───────────────────────┐ │
+│  │   Home Server      │              │   Gaming PC          │ │
+│  │   192.168.86.47    │              │   192.168.86.63      │ │
+│  │                    │              │                       │ │
+│  │  ┌──────────────┐  │              │  ┌─────────────────┐ │ │
+│  │  │ RTX 3070     │  │              │  │  RTX 3090       │ │ │
+│  │  │ 8GB VRAM     │  │              │  │  24GB VRAM      │ │ │
+│  │  │              │  │              │  │                 │ │ │
+│  │  │ vLLM Server  │  │              │  │  vLLM Server    │ │ │
+│  │  │ Port: 8001   │  │              │  │  Port: 8000     │ │ │
+│  │  └──────────────┘  │              │  └─────────────────┘ │ │
+│  │                    │              │                       │ │
+│  │  ┌──────────────┐  │              │  Availability Toggle │ │
+│  │  │ Router       │  │              │  (Gaming Mode)       │ │
+│  │  │ Port: 8012   │  │              └───────────────────────┘ │
+│  │  │              │  │                                         │
+│  │  │ SQLite DB    │  │                                         │
+│  │  └──────────────┘  │                                         │
+│  │                    │                                         │
+│  │  ┌──────────────┐  │                                         │
+│  │  │ Dashboard    │  │                                         │
+│  │  │ Port: 5173   │  │                                         │
+│  │  └──────────────┘  │                                         │
+│  └────────────────────┘                                         │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+                            │
+                            │ HTTPS
+                            ▼
+            ┌───────────────────────────────┐
+            │      Internet / Cloud         │
+            │                               │
+            │  ┌─────────────────────────┐  │
+            │  │  Z.ai API              │  │
+            │  │  https://api.z.ai       │  │
+            │  │  API Key Auth           │  │
+            │  └─────────────────────────┘  │
+            │                               │
+            │  ┌─────────────────────────┐  │
+            │  │  Anthropic API          │  │
+            │  │  https://api.anthropic  │  │
+            │  │  API Key Auth           │  │
+            │  └─────────────────────────┘  │
+            └───────────────────────────────┘
+```
+
+### Data Flow: Provider Selection Algorithm
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Request Arrives                          │
+│               (Agent or Dashboard/OpenCode)                 │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+            ┌────────────────────────┐
+            │  Authenticate API Key  │
+            │  Determine Priority:   │
+            │  - Agent: 0 (high)     │
+            │  - User: 1 (normal)    │
+            └────────┬───────────────┘
+                     │
+                     ▼
+┌────────────────────────────────────────────────────────────┐
+│           Provider Selection (Priority Order)              │
+└────────────────────────────────────────────────────────────┘
+                     │
+        ┌────────────┴─────────────┐
+        ▼                          ▼
+┌──────────────┐          ┌──────────────┐
+│  Gaming PC   │          │ Home Server  │
+│  RTX 3090    │   Busy?  │  RTX 3070    │
+│  Priority: 1 │─────────▶│  Priority: 2 │
+│  Max: 1 req  │          │  Max: 1 req  │
+└──────┬───────┘          └──────┬───────┘
+       │ Available               │ Available
+       │                         │
+       ▼                         ▼
+   ┌────────┐              ┌────────┐
+   │ Route  │              │ Route  │
+   │ to GPU │              │ to GPU │
+   └────────┘              └────────┘
+       │                         │
+       └────────┬────────────────┘
+                │ Both Busy
+                ▼
+        ┌───────────────┐
+        │ Cloud Enabled?│
+        └───────┬───────┘
+                │
+      ┌─────────┴─────────┐
+      │ Yes               │ No (Local-Only)
+      ▼                   ▼
+┌──────────────┐    ┌──────────────┐
+│ Try Z.ai     │    │ Queue 5s     │
+│ Priority: 3  │    │ Timeout?     │
+│ Max: 100     │    └──────┬───────┘
+└──────┬───────┘           │
+       │ Unhealthy   ┌─────┴─────┐
+       ▼             │           │
+┌──────────────┐    │ GPU Free  │ Timeout
+│ Try Anthropic│    ▼           ▼
+│ Priority: 4  │  ┌──────┐  ┌──────┐
+│ Max: 100     │  │Route │  │ 503  │
+└──────┬───────┘  │ GPU  │  │Error │
+       │          └──────┘  └──────┘
+       ▼
+   ┌────────┐
+   │ Route  │
+   │ Cloud  │
+   └────────┘
+```
+
 ## Current Problems
 
 1. **Conflated Concepts**: "Model" selection mixes providers (3070, 3090, gaming-pc) with actual models (GLM, Claude)
