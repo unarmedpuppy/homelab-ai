@@ -1,0 +1,359 @@
+# Local AI Router - Provider and Model Configuration
+# This file defines all available providers (hardware and cloud services)
+# and the models they can serve.
+#
+# Environment Variable Overrides:
+#   PROVIDER_{ID}_ENDPOINT - Override provider endpoint URL
+#   PROVIDER_{ID}_ENABLED - Override provider enabled flag
+#   PROVIDER_{ID}_API_KEY - Set API key for cloud providers
+
+# ============================================================================
+# PROVIDERS
+# ============================================================================
+
+providers:
+  # Primary Local GPU - Gaming PC with RTX 3090
+  - id: gaming-pc-3090
+    name: "Gaming PC (RTX 3090)"
+    type: local
+    description: "Gaming PC with RTX 3090, primary local GPU for larger models"
+    endpoint: "http://192.168.86.63:8000"
+    priority: 1  # Try first (lower = higher priority)
+    enabled: true
+
+    # Concurrency Control
+    maxConcurrent: 1  # Single request at a time (GPU limitation)
+
+    # Health Check Configuration
+    healthCheckInterval: 30  # seconds
+    healthCheckTimeout: 5    # seconds
+    healthCheckPath: "/health"
+
+    # Authentication (null for local vLLM)
+    authType: null
+    authSecret: null
+
+    # Metadata
+    gpu: "RTX 3090"
+    vram: "24GB"
+    location: "gaming-pc"
+
+  # Secondary Local GPU - Home Server with RTX 3070
+  - id: server-3070
+    name: "Server (RTX 3070)"
+    type: local
+    description: "Home server with RTX 3070, secondary local GPU for medium models"
+    endpoint: "http://localhost:8001"  # Local to router container
+    priority: 2  # Try second
+    enabled: true
+
+    # Concurrency Control
+    maxConcurrent: 1  # Single request at a time (GPU limitation)
+
+    # Health Check Configuration
+    healthCheckInterval: 30  # seconds
+    healthCheckTimeout: 5    # seconds
+    healthCheckPath: "/health"
+
+    # Authentication (null for local vLLM)
+    authType: null
+    authSecret: null
+
+    # Metadata
+    gpu: "RTX 3070"
+    vram: "8GB"
+    location: "home-server"
+
+  # Cloud Provider - Z.ai
+  - id: zai
+    name: "Z.ai"
+    type: cloud
+    description: "Z.ai cloud API (GLM models) - slow but no rate limits"
+    endpoint: "https://api.z.ai"
+    priority: 3  # Cloud fallback
+    enabled: true
+
+    # Concurrency Control
+    maxConcurrent: 100  # Parallel requests OK (cloud service)
+
+    # Health Check Configuration
+    healthCheckInterval: 60  # seconds (less frequent for cloud)
+    healthCheckTimeout: 10   # seconds (cloud may be slower)
+    healthCheckPath: "/health"
+
+    # Authentication
+    authType: "api_key"
+    authSecret: "ZAI_API_KEY"  # Environment variable name
+
+    # Metadata
+    location: "cloud"
+    notes: "Slow response times but no rate limits or cost concerns"
+
+  # Cloud Provider - Anthropic
+  - id: anthropic
+    name: "Anthropic (Claude)"
+    type: cloud
+    description: "Anthropic Claude API - final fallback"
+    endpoint: "https://api.anthropic.com"
+    priority: 4  # Final fallback
+    enabled: true
+
+    # Concurrency Control
+    maxConcurrent: 100  # Parallel requests OK (cloud service)
+
+    # Health Check Configuration
+    healthCheckInterval: 60  # seconds (less frequent for cloud)
+    healthCheckTimeout: 10   # seconds
+    healthCheckPath: "/v1/messages"  # Different endpoint
+
+    # Authentication
+    authType: "api_key"
+    authSecret: "ANTHROPIC_API_KEY"  # Environment variable name
+
+    # Metadata
+    location: "cloud"
+
+
+# ============================================================================
+# MODELS
+# ============================================================================
+
+models:
+  # -------------------------------------------------------------------------
+  # Gaming PC 3090 Models (24GB VRAM)
+  # -------------------------------------------------------------------------
+
+  - id: qwen2.5-14b-awq
+    name: "Qwen 2.5 14B Instruct AWQ"
+    providerId: gaming-pc-3090
+    description: "Qwen 2.5 14B Instruct with AWQ quantization - stronger reasoning"
+    contextWindow: 32768
+    maxTokens: 8192
+    isDefault: true  # Default model for this provider
+
+    # Cost Tracking (free for local models)
+    costPer1kTokens: 0.0
+
+    # Capabilities
+    capabilities:
+      streaming: true
+      functionCalling: true
+      vision: false
+      jsonMode: true
+
+    # Tags for filtering/discovery
+    tags:
+      - chat
+      - reasoning
+      - coding
+      - large-context
+
+  - id: qwen-image-edit
+    name: "Qwen Image Edit 2509"
+    providerId: gaming-pc-3090
+    description: "Qwen multimodal image editing model"
+    contextWindow: 8192
+    maxTokens: 4096
+    isDefault: false
+
+    # Cost Tracking
+    costPer1kTokens: 0.0
+
+    # Capabilities
+    capabilities:
+      streaming: true
+      functionCalling: false
+      vision: true
+      imageEdit: true
+      jsonMode: false
+
+    # Tags
+    tags:
+      - multimodal
+      - image-edit
+      - vision
+
+  # -------------------------------------------------------------------------
+  # Server 3070 Models (8GB VRAM)
+  # -------------------------------------------------------------------------
+
+  - id: llama3-8b
+    name: "Llama 3.1 8B Instruct"
+    providerId: server-3070
+    description: "Llama 3.1 8B Instruct - best general quality for size"
+    contextWindow: 8192
+    maxTokens: 4096
+    isDefault: true  # Default model for this provider
+
+    # Cost Tracking
+    costPer1kTokens: 0.0
+
+    # Capabilities
+    capabilities:
+      streaming: true
+      functionCalling: true
+      vision: false
+      jsonMode: true
+
+    # Tags
+    tags:
+      - chat
+      - fast
+      - general
+      - always-on
+
+  - id: deepseek-coder-v2
+    name: "DeepSeek Coder V2 Lite"
+    providerId: server-3070
+    description: "DeepSeek Coder V2 Lite - coding-focused model"
+    contextWindow: 16384
+    maxTokens: 8192
+    isDefault: false
+
+    # Cost Tracking
+    costPer1kTokens: 0.0
+
+    # Capabilities
+    capabilities:
+      streaming: true
+      functionCalling: true
+      vision: false
+      jsonMode: true
+
+    # Tags
+    tags:
+      - coding
+      - programming
+      - technical
+
+  # -------------------------------------------------------------------------
+  # Z.ai Cloud Models
+  # -------------------------------------------------------------------------
+
+  - id: glm-4-flash
+    name: "GLM-4 Flash"
+    providerId: zai
+    description: "GLM-4 Flash - fast general purpose model"
+    contextWindow: 128000
+    maxTokens: 4096
+    isDefault: true  # Default for Z.ai
+
+    # Cost Tracking (pricing from Z.ai docs)
+    costPer1kTokens: 0.001  # Example: $0.001 per 1K tokens
+
+    # Capabilities
+    capabilities:
+      streaming: true
+      functionCalling: true
+      vision: false
+      jsonMode: true
+
+    # Tags
+    tags:
+      - chat
+      - fast
+      - cloud
+      - large-context
+
+  - id: glm-4-plus
+    name: "GLM-4 Plus"
+    providerId: zai
+    description: "GLM-4 Plus - more capable, slower"
+    contextWindow: 128000
+    maxTokens: 4096
+    isDefault: false
+
+    # Cost Tracking
+    costPer1kTokens: 0.005  # Example pricing
+
+    # Capabilities
+    capabilities:
+      streaming: true
+      functionCalling: true
+      vision: false
+      jsonMode: true
+
+    # Tags
+    tags:
+      - chat
+      - reasoning
+      - cloud
+      - large-context
+
+  # -------------------------------------------------------------------------
+  # Anthropic Cloud Models
+  # -------------------------------------------------------------------------
+
+  - id: claude-3-5-sonnet
+    name: "Claude 3.5 Sonnet"
+    providerId: anthropic
+    description: "Claude 3.5 Sonnet - most capable Anthropic model"
+    contextWindow: 200000
+    maxTokens: 8192
+    isDefault: true  # Default for Anthropic
+
+    # Cost Tracking (Anthropic pricing)
+    costPer1kTokens: 0.003  # Input: $3/MTok, approximated
+
+    # Capabilities
+    capabilities:
+      streaming: true
+      functionCalling: true
+      vision: true
+      jsonMode: true
+
+    # Tags
+    tags:
+      - chat
+      - reasoning
+      - cloud
+      - vision
+      - large-context
+      - premium
+
+  - id: claude-3-5-haiku
+    name: "Claude 3.5 Haiku"
+    providerId: anthropic
+    description: "Claude 3.5 Haiku - fast, cost-effective"
+    contextWindow: 200000
+    maxTokens: 8192
+    isDefault: false
+
+    # Cost Tracking
+    costPer1kTokens: 0.0008  # Input: $0.80/MTok
+
+    # Capabilities
+    capabilities:
+      streaming: true
+      functionCalling: true
+      vision: false
+      jsonMode: true
+
+    # Tags
+    tags:
+      - chat
+      - fast
+      - cloud
+      - large-context
+      - cost-effective
+
+
+# ============================================================================
+# CONFIGURATION OPTIONS
+# ============================================================================
+
+# Global Settings
+settings:
+  # Cloud Fallback Control
+  enableCloudFallback: true  # If false, queue locally or return 503
+
+  # Queue Settings (when local-only mode and GPUs busy)
+  queueTimeout: 5  # seconds
+  queueMaxSize: 10  # Maximum queued requests
+
+  # Request Priority
+  agentPriority: 0  # High priority for agent requests
+  userPriority: 1   # Normal priority for user requests
+
+  # Warm/Cold Model Preference
+  preferWarmModels: true  # Prefer warm models for local providers
