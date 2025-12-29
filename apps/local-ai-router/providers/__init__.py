@@ -11,6 +11,7 @@ from .models import (
     AuthType,
     ModelCapabilities,
 )
+from .health import HealthChecker, HealthCheckResult
 
 __all__ = [
     "ProviderManager",
@@ -21,4 +22,6 @@ __all__ = [
     "ProviderType",
     "AuthType",
     "ModelCapabilities",
+    "HealthChecker",
+    "HealthCheckResult",
 ]
