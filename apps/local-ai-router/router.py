@@ -214,6 +214,25 @@ async def route_request(request: Request, body: dict) -> str:
     raise HTTPException(status_code=503, detail="No healthy backends available")
 
 
+@app.get("/")
+async def root():
+    """API root endpoint."""
+    return {
+        "name": "Local AI Router",
+        "version": "1.0.0",
+        "description": "OpenAI-compatible API router for multi-backend LLM inference",
+        "endpoints": {
+            "health": "/health",
+            "chat": "/v1/chat/completions",
+            "agent": "/v1/agent/chat",
+            "memory": "/memory/*",
+            "metrics": "/metrics/*",
+            "rag": "/rag/*",
+            "docs": "/docs"
+        }
+    }
+
+
 @app.get("/health")
 async def health_check() -> HealthResponse:
     """Health check with backend status."""
