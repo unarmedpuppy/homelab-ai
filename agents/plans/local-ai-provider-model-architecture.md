@@ -100,6 +100,61 @@ interface ProviderHealth {
 }
 ```
 
+### Conversation Metadata
+
+Enhanced conversation tracking with user identity, source, and naming.
+
+```typescript
+interface Conversation {
+  id: string;                      // Unique conversation ID
+  session_id?: string;             // Session identifier
+  created_at: string;              // ISO timestamp
+  updated_at: string;              // ISO timestamp
+
+  // User tracking
+  user_id?: string;                // User ID (e.g., "12345", "josh")
+  username?: string;               // Display name (e.g., "Joshua")
+
+  // Source tracking
+  source?: string;                 // Origin: "ui-dashboard", "api", "cli", etc.
+
+  // Organization
+  project?: string;                // Project categorization
+  display_name?: string;           // Optional user-provided name (e.g., "Cooking ideas")
+
+  // Message metadata
+  message_count?: number;          // Total messages in conversation
+  messages?: Message[];            // Conversation messages
+}
+```
+
+**Usage Examples:**
+
+```json
+// From dashboard
+{
+  "conversationId": "conv-abc123",
+  "user_id": "josh",
+  "username": "Joshua",
+  "source": "ui-dashboard",
+  "display_name": "Cooking ideas"
+}
+
+// From API
+{
+  "conversationId": "conv-def456",
+  "user_id": "system",
+  "source": "api",
+  "project": "automation"
+}
+```
+
+**Notes:**
+- `display_name` replaces the `name` field from the conversation renaming plan
+- All user/source fields are optional but should be populated when available
+- `source` helps track which interface initiated the conversation
+- `username` is for display purposes, `user_id` is the canonical identifier
+
 ## Configuration
 
 ### Static Provider Config
