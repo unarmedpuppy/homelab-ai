@@ -36,6 +36,10 @@ interface Provider {
   priority: number;              // For auto-routing (lower = higher priority)
   enabled: boolean;              // Can be manually disabled
 
+  // Concurrency
+  maxConcurrent: number;         // Max simultaneous requests (1 for GPUs, 100+ for cloud)
+  activeRequests?: number;       // Current in-flight requests (runtime)
+
   // Health/Status
   status: 'online' | 'offline' | 'degraded' | 'unknown';
   lastHealthCheck?: string;      // ISO timestamp
@@ -163,43 +167,50 @@ interface Conversation {
 
 ```yaml
 providers:
-  - id: server-3070
-    name: "Server (RTX 3070)"
-    type: local
-    description: "Home server with RTX 3070"
-    endpoint: "http://192.168.86.47:8000"
-    priority: 1
-    enabled: true
-    gpu: "RTX 3070"
-    location: "home-server"
-
   - id: gaming-pc-3090
     name: "Gaming PC (RTX 3090)"
     type: local
-    description: "Gaming PC with RTX 3090"
-    endpoint: "http://192.168.86.48:8000"
-    priority: 2
+    description: "Gaming PC with RTX 3090, primary local GPU"
+    endpoint: "http://192.168.86.63:8000"
+    priority: 1                  # Try first
     enabled: true
+    maxConcurrent: 1             # Single request at a time
     gpu: "RTX 3090"
     location: "gaming-pc"
 
-  - id: zai
-    name: "ZAI"
-    type: cloud
-    description: "ZAI API service"
-    endpoint: "https://zai.unarmedpuppy.com"
-    priority: 3
+  - id: server-3070
+    name: "Server (RTX 3070)"
+    type: local
+    description: "Home server with RTX 3070, secondary local GPU"
+    endpoint: "http://local-ai-server:8001"
+    priority: 2                  # Try second
     enabled: true
+    maxConcurrent: 1             # Single request at a time
+    gpu: "RTX 3070"
+    location: "home-server"
+
+  - id: zai
+    name: "Z.ai"
+    type: cloud
+    description: "Z.ai cloud API (GLM models)"
+    endpoint: "https://api.z.ai"
+    priority: 3                  # Cloud fallback
+    enabled: true
+    maxConcurrent: 100           # Parallel requests OK
     location: "cloud"
+    authType: "api_key"
+    # Note: Slow response times, streaming important
 
   - id: anthropic
     name: "Anthropic (Claude)"
     type: cloud
-    description: "Anthropic API"
+    description: "Anthropic Claude API"
     endpoint: "https://api.anthropic.com"
-    priority: 4
+    priority: 4                  # Final fallback
     enabled: true
+    maxConcurrent: 100           # Parallel requests OK
     location: "cloud"
+    authType: "api_key"
 
 models:
   # Server (3070) models
@@ -289,58 +300,135 @@ models:
 
 Default priority order (configurable via `priority` field):
 
-1. **server-3070** (priority: 1) - Default for most requests
-2. **gaming-pc-3090** (priority: 2) - Fallback + larger models
-3. **zai** (priority: 3) - GLM-4 fallback
-4. **anthropic** (priority: 4) - Final fallback
+1. **gaming-pc-3090** (priority: 1) - Primary local GPU, best performance
+2. **server-3070** (priority: 2) - Secondary local GPU, fallback
+3. **zai** (priority: 3) - Cloud fallback, Z.ai API
+4. **anthropic** (priority: 4) - Final fallback, Claude API
 
-### Selection Algorithm
+### Selection Algorithm with Concurrency Awareness
 
 ```python
-def select_provider_and_model(request, providers, models):
-    """
-    Select the best provider/model for a request.
+import asyncio
+from typing import Optional, Tuple
 
-    Considers:
-    - Provider health
-    - Model capabilities
-    - Context window requirements
-    - Provider priority
-    """
+class ProviderManager:
+    def __init__(self):
+        self.request_queue = asyncio.PriorityQueue()
+        self.active_requests = {}  # provider_id -> count
+        self.enable_cloud_fallback = True  # Config flag
 
-    # Calculate required context window
-    required_context = sum(len(msg.content) for msg in request.messages) * 1.5
+    async def select_provider_and_model(
+        self,
+        request,
+        providers,
+        models,
+        priority: int = 1  # 0 = agent (high), 1 = user (normal)
+    ) -> Tuple[Provider, Model]:
+        """
+        Select the best provider/model for a request.
 
-    # Filter to healthy providers only
-    healthy_providers = [p for p in providers if p.status == 'online']
+        Considers:
+        - Request priority (agent vs user)
+        - Provider health and availability
+        - Provider concurrency limits
+        - Model capabilities
+        - Context window requirements
+        - Provider priority order
+        """
 
-    # Sort by priority
-    healthy_providers.sort(key=lambda p: p.priority)
+        # Calculate required context window
+        required_context = sum(len(msg.content) for msg in request.messages) * 1.5
 
-    for provider in healthy_providers:
-        # Get available models for this provider
-        provider_models = [m for m in models
-                          if m.providerId == provider.id
-                          and m.status == 'available']
+        # Filter to healthy providers only
+        healthy_providers = [p for p in providers
+                            if p.status == 'online' and p.enabled]
 
-        # Filter models by context window requirement
-        suitable_models = [m for m in provider_models
-                          if m.contextWindow >= required_context]
+        # Sort by priority (lower number = higher priority)
+        healthy_providers.sort(key=lambda p: p.priority)
 
-        if suitable_models:
-            # Prefer warm models for local providers
-            if provider.type == 'local':
-                warm_models = [m for m in suitable_models if m.warmStatus == 'warm']
-                if warm_models:
-                    return provider, warm_models[0]
+        for provider in healthy_providers:
+            # Check concurrency limit
+            active = self.active_requests.get(provider.id, 0)
+            if active >= provider.maxConcurrent:
+                # Provider at capacity, try next
+                continue
 
-            # Use default or first suitable model
-            default_model = next((m for m in suitable_models if m.isDefault), None)
-            return provider, default_model or suitable_models[0]
+            # Get available models for this provider
+            provider_models = [m for m in models
+                              if m.providerId == provider.id
+                              and m.status == 'available']
 
-    # No suitable provider/model found
-    raise NoProviderAvailableError(f"No provider can handle context of {required_context} tokens")
+            # Filter models by context window requirement
+            suitable_models = [m for m in provider_models
+                              if m.contextWindow >= required_context]
+
+            if suitable_models:
+                # Prefer warm models for local providers
+                if provider.type == 'local':
+                    warm_models = [m for m in suitable_models if m.warmStatus == 'warm']
+                    if warm_models:
+                        return provider, warm_models[0]
+
+                # Use default or first suitable model
+                default_model = next((m for m in suitable_models if m.isDefault), None)
+                return provider, default_model or suitable_models[0]
+
+        # No provider available - decide on queuing or failing
+
+        # Separate local and cloud providers
+        local_providers = [p for p in healthy_providers if p.type == 'local']
+        cloud_providers = [p for p in healthy_providers if p.type == 'cloud']
+
+        # If local providers exist but are busy
+        if local_providers and not cloud_providers:
+            # Local-only mode or cloud providers unhealthy
+            if not self.enable_cloud_fallback:
+                # Queue for brief period
+                return await self._queue_for_local(request, priority, timeout=5.0)
+
+        # If cloud fallback disabled and all local busy
+        if not self.enable_cloud_fallback:
+            raise ProviderCapacityError(
+                "All local providers are busy. Cloud fallback is disabled."
+            )
+
+        # All providers at capacity
+        raise NoProviderAvailableError(
+            f"No provider available for context of {required_context} tokens"
+        )
+
+    async def _queue_for_local(
+        self,
+        request,
+        priority: int,
+        timeout: float
+    ) -> Tuple[Provider, Model]:
+        """Queue request for local providers with timeout."""
+        try:
+            # Wait up to timeout seconds for a provider to become available
+            result = await asyncio.wait_for(
+                self._wait_for_provider(request, priority),
+                timeout=timeout
+            )
+            return result
+        except asyncio.TimeoutError:
+            raise ProviderCapacityError(
+                "All local providers are busy. Please try again in a few seconds."
+            )
 ```
+
+### Concurrency Tracking
+
+**Request lifecycle**:
+1. **Request arrives** → Increment `active_requests[provider_id]`
+2. **Request processing** → Provider handles inference
+3. **Request completes** → Decrement `active_requests[provider_id]`
+4. **On error** → Decrement (cleanup in finally block)
+
+**Thread safety**:
+- Use `asyncio.Lock` per provider for atomic increment/decrement
+- Track requests in shared state (in-memory dict)
+- Future: Redis for multi-instance deployments
 
 ## API Changes
 
