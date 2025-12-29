@@ -8,6 +8,9 @@ services:
     restart: unless-stopped
     environment:
       - TZ=America/Chicago
+      # API URL will be injected at build time via nginx env substitution
+      # For now, the frontend uses VITE_API_URL from build time
+      # In production, users access via external URL, so API calls go through browser to public router URL
     networks:
       - my-network
     labels:

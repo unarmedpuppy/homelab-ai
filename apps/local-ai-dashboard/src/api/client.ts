@@ -10,8 +10,10 @@ import type {
   ModelUsage,
 } from '../types/api';
 
-// API base URL - defaults to local router
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8012';
+// API base URL - defaults to public router endpoint
+// For local dev: VITE_API_URL=http://localhost:8012
+// For production: uses public HTTPS endpoint
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://local-ai-api.server.unarmedpuppy.com';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
