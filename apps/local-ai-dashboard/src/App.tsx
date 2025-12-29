@@ -9,43 +9,43 @@ function App() {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <nav className="bg-white dark:bg-gray-800 shadow">
+    <div className="min-h-screen bg-black">
+      <nav className="bg-gray-900 border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
+          <div className="flex justify-between h-20">
             <div className="flex space-x-8">
               <div className="flex items-center">
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                <h1 className="text-2xl font-bold text-white">
                   Local AI Dashboard
                 </h1>
               </div>
-              <div className="flex space-x-4 items-center">
+              <div className="flex space-x-2 items-center ml-8">
                 <button
                   onClick={() => setActiveTab('dashboard')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium ${
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                     activeTab === 'dashboard'
-                      ? 'bg-blue-500 text-white'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      ? 'bg-gray-800 text-white'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-800'
                   }`}
                 >
                   Dashboard
                 </button>
                 <button
                   onClick={() => setActiveTab('conversations')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium ${
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                     activeTab === 'conversations'
-                      ? 'bg-blue-500 text-white'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      ? 'bg-gray-800 text-white'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-800'
                   }`}
                 >
                   Conversations
                 </button>
                 <button
                   onClick={() => setActiveTab('rag')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium ${
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                     activeTab === 'rag'
-                      ? 'bg-blue-500 text-white'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      ? 'bg-gray-800 text-white'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-800'
                   }`}
                 >
                   RAG Search
@@ -56,7 +56,7 @@ function App() {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {activeTab === 'dashboard' && <Dashboard />}
         {activeTab === 'conversations' && <ConversationExplorer />}
         {activeTab === 'rag' && <RAGPlayground />}
