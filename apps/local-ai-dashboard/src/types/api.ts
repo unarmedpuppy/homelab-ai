@@ -63,17 +63,19 @@ export interface ModelUsage {
 }
 
 export interface DashboardStats {
-  total_conversations: number;
+  started_date: string;
+  days_active: number;
+  most_active_day: string;
+  most_active_day_count: number;
+  activity_chart: ActivityDay[];
+  top_models: Array<{ model: string; count: number; percentage: number; total_tokens: number }>;
+  providers_used: Record<string, number>;
+  total_sessions: number;
   total_messages: number;
-  total_requests: number;
   total_tokens: number;
-  avg_tokens_per_request: number;
-  success_rate: number;
-  avg_duration_ms: number;
-  top_models: Array<{ model: string; count: number }>;
-  top_backends: Array<{ backend: string; count: number }>;
-  activity_by_day: ActivityDay[];
-  daily_metrics: DailyMetric[];
+  unique_projects: number;
+  longest_streak: number;
+  cost_savings: number | null;
 }
 
 export interface MemoryStats {
