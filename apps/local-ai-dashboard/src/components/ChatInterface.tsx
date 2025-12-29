@@ -89,24 +89,36 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
     },
     onSuccess: (response) => {
       const assistantMessage = response.choices[0].message;
-      const updatedMessages: MessageWithMetadata[] = [
-        ...messages,
-        { role: 'user', content: input },
+      // Add assistant response to existing messages
+      setMessages(prev => [
+        ...prev,
         {
           role: assistantMessage.role,
           content: assistantMessage.content,
           model: response.model,
           tokens: response.usage?.completion_tokens,
         },
-      ];
-      setMessages(updatedMessages);
-      setInput('');
+      ]);
+    },
+    onError: (error) => {
+      // Log error for debugging
+      console.error('Chat API error:', error);
+      // Remove the user message that failed to send
+      setMessages(prev => prev.slice(0, -1));
     },
   });
 
   const handleSendMessage = () => {
     if (!input.trim() || sendMessageMutation.isPending) return;
-    sendMessageMutation.mutate(input);
+
+    const userMessage = input.trim();
+
+    // Immediately add user message to UI and clear input
+    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setInput('');
+
+    // Send to API
+    sendMessageMutation.mutate(userMessage);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
