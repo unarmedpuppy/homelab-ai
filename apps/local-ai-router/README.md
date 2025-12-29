@@ -128,6 +128,115 @@ curl https://local-ai-api.server.unarmedpuppy.com/agent/tools
 | `glm` | OpenCode (GLM-4.7) |
 | `claude` | OpenCode (Claude) |
 
+## Metrics and Memory System
+
+The router maintains **two separate systems** for tracking and storing data:
+
+### 1. Metrics System (Always On)
+
+**Purpose**: Logs all API requests for analytics and monitoring
+
+**Storage**: SQLite database (`data/memory.db` - metrics table)
+
+**Behavior**:
+- ✅ **Always enabled** by default
+- ✅ Logs every request automatically
+- ✅ No headers required
+- ✅ Captures: model usage, tokens, duration, errors, backend routing
+
+**Use Case**: Dashboard analytics, usage statistics, performance monitoring
+
+### 2. Memory System (Opt-In)
+
+**Purpose**: Stores conversation history for context and retrieval
+
+**Storage**: SQLite database (`data/memory.db` - conversations/messages tables)
+
+**Behavior**:
+- ⚠️ **Opt-in via headers** - NOT enabled by default for API requests
+- ⚠️ Requires explicit request headers to save conversations
+- ✅ Supports conversation threading and RAG search
+- ✅ Auto-generates conversation IDs if not provided
+
+**Enable Memory for a Request:**
+
+```bash
+# Enable memory with header
+curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "X-Enable-Memory: true" \
+  -d '{
+    "model": "auto",
+    "messages": [{"role": "user", "content": "Remember this conversation"}]
+  }'
+
+# Or use a specific conversation ID
+curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "X-Conversation-ID: my-conversation-123" \
+  -d '{
+    "model": "auto",
+    "messages": [{"role": "user", "content": "Continue our chat"}]
+  }'
+```
+
+**Memory Headers:**
+
+| Header | Purpose | Example |
+|--------|---------|---------|
+| `X-Enable-Memory: true` | Save this conversation to memory | Auto-generates conversation ID |
+| `X-Conversation-ID: <id>` | Continue existing conversation | Use existing or create new |
+| `X-Session-ID: <id>` | Group conversations by session | Optional metadata |
+| `X-User-ID: <id>` | Associate with user | Optional metadata |
+| `X-Project: <name>` | Tag with project name | Optional metadata |
+
+**Key Differences:**
+
+| Feature | Metrics | Memory |
+|---------|---------|--------|
+| **Enabled by default** | ✅ Yes | ❌ No (opt-in) |
+| **Requires headers** | ❌ No | ✅ Yes (`X-Enable-Memory` or `X-Conversation-ID`) |
+| **Stores messages** | ❌ No | ✅ Yes (full conversation) |
+| **Used for analytics** | ✅ Yes | ❌ No |
+| **Used for RAG search** | ❌ No | ✅ Yes |
+| **Conversation threading** | ❌ No | ✅ Yes |
+
+**Why Two Systems?**
+
+- **Privacy**: Not all API calls should be permanently stored
+- **Control**: Clients opt-in to memory storage
+- **Performance**: Metrics are lightweight, memory is verbose
+- **Use case separation**: Analytics vs. conversation history
+
+### Memory API Endpoints
+
+```bash
+# List conversations
+curl https://local-ai-api.server.unarmedpuppy.com/memory/conversations?limit=10
+
+# Get specific conversation with messages
+curl https://local-ai-api.server.unarmedpuppy.com/memory/conversations/{id}
+
+# Search conversations (RAG)
+curl -X POST https://local-ai-api.server.unarmedpuppy.com/memory/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "What did we discuss about Python?",
+    "limit": 5,
+    "similarity_threshold": 0.3
+  }'
+
+# Memory statistics
+curl https://local-ai-api.server.unarmedpuppy.com/memory/stats
+```
+
+### Dashboard Integration
+
+The [Local AI Dashboard](../local-ai-dashboard/README.md) displays:
+- **Metrics** → Main dashboard (total messages, model usage, activity)
+- **Memory** → Conversations tab (browsable conversation history)
+- **RAG Search** → Semantic search across stored conversations
+
 ## Configuration
 
 Environment variables:
@@ -141,6 +250,10 @@ OPENCODE_URL=http://opencode-service:8002
 # Routing thresholds
 SMALL_TOKEN_THRESHOLD=2000
 MEDIUM_TOKEN_THRESHOLD=16000
+
+# Feature flags
+ENABLE_METRICS=1            # Default: 1 (enabled)
+ENABLE_MEMORY=1             # Default: 1 (enabled, but opt-in per request)
 
 # Logging
 LOG_LEVEL=INFO
