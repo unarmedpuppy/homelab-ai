@@ -1421,9 +1421,12 @@ for chunk in client.chat.completions.create(
 - [ ] Test error handling and failover
 
 ### Phase 3: Dashboard Enhancement
-- [ ] Implement image upload endpoint
-- [ ] Add image storage directory structure
-- [ ] Create ImageUpload component in dashboard
+- [x] Implement image upload endpoint (POST /v1/images/upload)
+- [x] Add image storage directory structure (data/images/{conv_id}/{msg_id}/)
+- [x] Create ImageUpload component in dashboard (drag-and-drop, file validation)
+- [x] Persist image_refs in messages table (JSON column via Alembic migration 004)
+- [x] Convert images to base64 for vision models in router (format_messages_for_vision)
+- [x] Upload images from ChatInterface before sending messages
 - [ ] Implement two-step ModelSelector
 - [ ] Show provider/model in message metadata
 - [ ] Sunset local-ai-app

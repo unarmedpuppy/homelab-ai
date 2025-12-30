@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { chatAPI, memoryAPI, providersAPI } from '../api/client';
-import type { ChatMessage } from '../types/api';
+import { chatAPI, memoryAPI, providersAPI, imageAPI } from '../api/client';
+import type { ChatMessage, ImageRef } from '../types/api';
+import ImageUpload from './ImageUpload';
 
 interface MessageWithMetadata extends ChatMessage {
   model?: string;
   backend?: string;
   tokens?: number;
   provider?: string;
+  image_refs?: ImageRef[];
 }
 
 interface ChatInterfaceProps {
@@ -36,6 +38,9 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
     message?: string;
     estimated_time?: number;
   }>({ status: null });
+
+  // Image upload state
+  const [pendingImages, setPendingImages] = useState<File[]>([]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -96,21 +101,55 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
     if (!input.trim() || isStreaming) return;
 
     const userMessage = input.trim();
-
-    // Immediately add user message to UI and clear input
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
-    setInput('');
+    const imagesToUpload = [...pendingImages];
 
     // Reset streaming state
     setStreamingContent('');
     setStreamingTokenCount(0);
     setStreamStatus({ status: null });
     setIsStreaming(true);
+    setInput('');
+    setPendingImages([]);
+
+    // Upload images if any
+    let uploadedImageRefs: ImageRef[] = [];
+    if (imagesToUpload.length > 0) {
+      setStreamStatus({ status: 'routing', message: 'Uploading images...' });
+      
+      // Generate IDs for upload - use conversation ID or temp, and a temporary message ID
+      const convId = conversationId || `temp-${Date.now()}`;
+      const msgId = `msg-${Date.now()}`;
+      
+      try {
+        uploadedImageRefs = await Promise.all(
+          imagesToUpload.map(file => imageAPI.upload(file, convId, msgId))
+        );
+      } catch (error) {
+        console.error('Image upload failed:', error);
+        setStreamStatus({
+          status: 'error',
+          message: error instanceof Error ? error.message : 'Failed to upload images'
+        });
+        setTimeout(() => {
+          setIsStreaming(false);
+          setStreamStatus({ status: null });
+        }, 2000);
+        return;
+      }
+    }
+
+    // Add user message to UI with uploaded images
+    const userMessageWithImages: MessageWithMetadata = {
+      role: 'user',
+      content: userMessage,
+      image_refs: uploadedImageRefs.length > 0 ? uploadedImageRefs : undefined,
+    };
+    setMessages(prev => [...prev, userMessageWithImages]);
 
     // Prepare messages for API
     const apiMessages: ChatMessage[] = [
       ...messages.map(m => ({ role: m.role, content: m.content })),
-      { role: 'user', content: userMessage },
+      { role: 'user', content: userMessage, image_refs: uploadedImageRefs.length > 0 ? uploadedImageRefs : undefined },
     ];
 
     try {
@@ -384,6 +423,25 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                   ? 'bg-gray-900 border-blue-900/30 ml-6'
                   : 'bg-gray-900 border-green-900/30 mr-6'
               }`}>
+                {message.image_refs && message.image_refs.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {message.image_refs.map((img, imgIdx) => (
+                      <a
+                        key={imgIdx}
+                        href={imageAPI.getUrl(img)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block"
+                      >
+                        <img
+                          src={imageAPI.getUrl(img)}
+                          alt={img.filename}
+                          className="max-w-xs max-h-48 rounded border border-gray-700 hover:border-blue-500 transition-colors"
+                        />
+                      </a>
+                    ))}
+                  </div>
+                )}
                 <div className="text-gray-300 whitespace-pre-wrap text-sm">
                   {message.content}
                 </div>
@@ -474,6 +532,15 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
 
       {/* Input Area */}
       <div className="border-t border-gray-800 p-4 bg-gray-900">
+        <div className="mb-3">
+          <ImageUpload
+            onImagesSelected={(files) => setPendingImages(prev => [...prev, ...files])}
+            onImageRemove={(index) => setPendingImages(prev => prev.filter((_, i) => i !== index))}
+            pendingImages={pendingImages}
+            uploadedImages={[]}
+            disabled={isStreaming}
+          />
+        </div>
         <div className="flex gap-3">
           <textarea
             value={input}

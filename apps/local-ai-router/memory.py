@@ -182,13 +182,16 @@ def add_message(msg: MessageCreate) -> Message:
     with get_db_connection() as conn:
         cursor = conn.cursor()
 
-        # Insert message
+        image_refs_json = None
+        if msg.image_refs:
+            image_refs_json = json.dumps([ref.model_dump() for ref in msg.image_refs])
+
         cursor.execute(
             """
             INSERT INTO messages
             (conversation_id, timestamp, role, content, model_used, backend,
-             tokens_prompt, tokens_completion, tool_calls, tool_results, metadata)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             tokens_prompt, tokens_completion, tool_calls, tool_results, image_refs, metadata)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 msg.conversation_id,
@@ -201,6 +204,7 @@ def add_message(msg: MessageCreate) -> Message:
                 msg.tokens_completion,
                 json.dumps(msg.tool_calls) if msg.tool_calls else None,
                 json.dumps(msg.tool_results) if msg.tool_results else None,
+                image_refs_json,
                 json.dumps(msg.metadata) if msg.metadata else None,
             ),
         )
@@ -432,6 +436,13 @@ def _row_to_conversation(row: Any) -> Conversation:
 
 def _row_to_message(row: Any) -> Message:
     """Convert database row to Message model."""
+    image_refs = None
+    try:
+        if row["image_refs"]:
+            image_refs = json.loads(row["image_refs"])
+    except (KeyError, IndexError):
+        pass
+
     return Message(
         id=row["id"],
         conversation_id=row["conversation_id"],
@@ -444,6 +455,7 @@ def _row_to_message(row: Any) -> Message:
         tokens_completion=row["tokens_completion"],
         tool_calls=json.loads(row["tool_calls"]) if row["tool_calls"] else None,
         tool_results=json.loads(row["tool_results"]) if row["tool_results"] else None,
+        image_refs=image_refs,
         metadata=json.loads(row["metadata"]) if row["metadata"] else None,
     )
 

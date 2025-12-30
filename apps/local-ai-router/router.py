@@ -5,9 +5,9 @@ import logging
 import httpx
 from pathlib import Path
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, HTTPException, Depends, BackgroundTasks
+from fastapi import FastAPI, Request, HTTPException, Depends, BackgroundTasks, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, FileResponse
 from pydantic import BaseModel
 from typing import Optional
 import asyncio
@@ -502,6 +502,15 @@ async def chat_completions(
     # Update body with selected model ID
     body["model"] = selection.model.id
 
+    # Convert image_refs to base64 vision format if present
+    messages = body.get("messages", [])
+    if messages_have_images(messages):
+        if selection.model.capabilities.vision:
+            body["messages"] = format_messages_for_vision(messages, IMAGE_DATA_DIR)
+            logger.info(f"Formatted {len(messages)} messages for vision model")
+        else:
+            logger.warning(f"Model {selection.model.id} doesn't support vision, images will be ignored")
+
     # Build endpoint URL
     endpoint_url = f"{selection.provider.endpoint.rstrip('/')}/v1/chat/completions"
 
@@ -639,6 +648,166 @@ async def stop_all_models():
             return response.json()
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Failed to stop models: {e}")
+
+
+# ============================================================================
+# Image Upload Endpoints
+# ============================================================================
+
+IMAGE_DATA_DIR = Path(os.getenv("DATA_PATH", "/data")) / "images"
+MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10MB
+MAX_IMAGES_PER_MESSAGE = 5
+ALLOWED_IMAGE_TYPES = {"image/png", "image/jpeg", "image/gif", "image/webp"}
+
+
+def format_messages_for_vision(messages: list, image_data_dir: Path) -> list:
+    """
+    Convert messages with image_refs to OpenAI vision format.
+    
+    Transforms messages like:
+        {"role": "user", "content": "What's in this image?", "image_refs": [...]}
+    
+    Into vision format:
+        {"role": "user", "content": [
+            {"type": "text", "text": "What's in this image?"},
+            {"type": "image_url", "image_url": {"url": "data:image/png;base64,..."}}
+        ]}
+    """
+    import base64
+    
+    formatted = []
+    for msg in messages:
+        if not isinstance(msg, dict):
+            formatted.append(msg)
+            continue
+            
+        image_refs = msg.get("image_refs", [])
+        if not image_refs:
+            formatted.append(msg)
+            continue
+        
+        content_parts = []
+        text_content = msg.get("content", "")
+        if text_content:
+            content_parts.append({"type": "text", "text": text_content})
+        
+        for ref in image_refs:
+            try:
+                filepath = image_data_dir.parent / ref.get("path", "")
+                if not filepath.exists():
+                    logger.warning(f"Image not found: {filepath}")
+                    continue
+                    
+                with open(filepath, "rb") as f:
+                    image_data = f.read()
+                
+                b64_data = base64.b64encode(image_data).decode("utf-8")
+                mime_type = ref.get("mimeType", "image/png")
+                
+                content_parts.append({
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:{mime_type};base64,{b64_data}"
+                    }
+                })
+                logger.debug(f"Added image to message: {ref.get('filename', 'unknown')}")
+            except Exception as e:
+                logger.error(f"Failed to encode image {ref}: {e}")
+        
+        if content_parts:
+            new_msg = {"role": msg.get("role", "user"), "content": content_parts}
+            formatted.append(new_msg)
+        else:
+            formatted.append(msg)
+    
+    return formatted
+
+
+def messages_have_images(messages: list) -> bool:
+    """Check if any message contains image_refs."""
+    for msg in messages:
+        if isinstance(msg, dict) and msg.get("image_refs"):
+            return True
+    return False
+
+
+@app.post("/v1/images/upload")
+async def upload_image(
+    conversation_id: str,
+    message_id: str,
+    file: UploadFile = File(...),
+    api_key: ApiKey = Depends(validate_api_key_header),
+):
+    """Upload an image for a message (multimodal support)."""
+    from PIL import Image
+    import io
+
+    if file.content_type not in ALLOWED_IMAGE_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file type. Allowed: {', '.join(ALLOWED_IMAGE_TYPES)}"
+        )
+
+    content = await file.read()
+    if len(content) > MAX_IMAGE_SIZE:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Image too large. Max size: {MAX_IMAGE_SIZE // (1024*1024)}MB"
+        )
+
+    image_dir = IMAGE_DATA_DIR / conversation_id / message_id
+    image_dir.mkdir(parents=True, exist_ok=True)
+
+    existing_images = list(image_dir.glob("*"))
+    if len(existing_images) >= MAX_IMAGES_PER_MESSAGE:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Maximum {MAX_IMAGES_PER_MESSAGE} images per message"
+        )
+
+    sequence = f"{len(existing_images) + 1:03d}"
+    safe_filename = "".join(c for c in file.filename if c.isalnum() or c in "._-")
+    filename = f"{sequence}_{safe_filename}"
+    filepath = image_dir / filename
+
+    with open(filepath, "wb") as f:
+        f.write(content)
+
+    try:
+        with Image.open(io.BytesIO(content)) as img:
+            width, height = img.size
+    except Exception:
+        width, height = 0, 0
+
+    logger.info(f"Image uploaded: {filepath} ({len(content)} bytes, {width}x{height})")
+
+    return {
+        "filename": filename,
+        "path": str(filepath.relative_to(IMAGE_DATA_DIR.parent)),
+        "size": len(content),
+        "mimeType": file.content_type,
+        "width": width,
+        "height": height,
+    }
+
+
+@app.get("/v1/images/{conversation_id}/{message_id}/{filename}")
+async def get_image(
+    conversation_id: str,
+    message_id: str,
+    filename: str,
+    api_key: ApiKey = Depends(validate_api_key_header),
+):
+    """Retrieve an uploaded image."""
+    filepath = IMAGE_DATA_DIR / conversation_id / message_id / filename
+
+    if not filepath.exists():
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    if not filepath.is_relative_to(IMAGE_DATA_DIR):
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    return FileResponse(filepath)
 
 
 # ============================================================================

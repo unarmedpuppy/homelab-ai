@@ -70,6 +70,16 @@ class Conversation(BaseModel):
 # Message Models
 # ============================================================================
 
+class ImageRef(BaseModel):
+    """Image reference stored with a message."""
+    filename: str
+    path: str
+    size: int
+    mimeType: str
+    width: int
+    height: int
+
+
 class MessageCreate(BaseModel):
     """Model for creating a new message."""
     conversation_id: str
@@ -81,6 +91,7 @@ class MessageCreate(BaseModel):
     tokens_completion: Optional[int] = None
     tool_calls: Optional[List[Dict[str, Any]]] = None
     tool_results: Optional[List[Dict[str, Any]]] = None
+    image_refs: Optional[List[ImageRef]] = None
     metadata: Optional[Dict[str, Any]] = None
 
 
@@ -97,6 +108,7 @@ class Message(BaseModel):
     tokens_completion: Optional[int] = None
     tool_calls: Optional[List[Dict[str, Any]]] = None
     tool_results: Optional[List[Dict[str, Any]]] = None
+    image_refs: Optional[List[ImageRef]] = None
     metadata: Optional[Dict[str, Any]] = None
 
     class Config:
