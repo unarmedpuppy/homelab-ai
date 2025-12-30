@@ -38,6 +38,9 @@ class RequestTracker:
         self.session_id = request.headers.get("X-Session-ID")
         self.user_id = request.headers.get("X-User-ID")
         self.project = request.headers.get("X-Project")
+        self.username = request.headers.get("X-Username")
+        self.source = request.headers.get("X-Source")
+        self.display_name = request.headers.get("X-Display-Name")
         self.enable_memory = request.headers.get("X-Enable-Memory", "").lower() == "true"
 
     def get_duration_ms(self) -> int:
@@ -145,6 +148,9 @@ def log_chat_completion(
                             session_id=tracker.session_id,
                             user_id=tracker.user_id,
                             project=tracker.project,
+                            username=tracker.username,
+                            source=tracker.source,
+                            display_name=tracker.display_name,
                         )
                     )
                     logger.info(f"Created conversation: {conversation_id}")

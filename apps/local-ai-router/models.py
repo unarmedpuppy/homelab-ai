@@ -34,6 +34,9 @@ class ConversationCreate(BaseModel):
     user_id: Optional[str] = Field(None, description="Optional user identifier")
     project: Optional[str] = Field(None, description="Optional project tag")
     title: Optional[str] = Field(None, description="Optional conversation title")
+    username: Optional[str] = Field(None, description="Username from request header")
+    source: Optional[str] = Field(None, description="Source/origin of request (e.g., 'claude-code', 'cursor')")
+    display_name: Optional[str] = Field(None, description="Human-readable display name")
     metadata: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
 
 
@@ -52,6 +55,9 @@ class Conversation(BaseModel):
     user_id: Optional[str] = None
     project: Optional[str] = None
     title: Optional[str] = None
+    username: Optional[str] = None
+    source: Optional[str] = None
+    display_name: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
     message_count: int = 0
     total_tokens: int = 0

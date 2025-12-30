@@ -61,6 +61,9 @@ def init_database():
                 user_id TEXT,
                 project TEXT,
                 title TEXT,
+                username TEXT,
+                source TEXT,
+                display_name TEXT,
                 metadata TEXT,
                 message_count INTEGER DEFAULT 0,
                 total_tokens INTEGER DEFAULT 0

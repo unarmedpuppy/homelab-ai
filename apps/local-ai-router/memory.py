@@ -35,8 +35,9 @@ def create_conversation(conv: ConversationCreate) -> Conversation:
         cursor.execute(
             """
             INSERT INTO conversations
-            (id, created_at, updated_at, session_id, user_id, project, title, metadata)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            (id, created_at, updated_at, session_id, user_id, project, title,
+             username, source, display_name, metadata)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 conv.id,
@@ -46,6 +47,9 @@ def create_conversation(conv: ConversationCreate) -> Conversation:
                 conv.user_id,
                 conv.project,
                 conv.title,
+                conv.username,
+                conv.source,
+                conv.display_name,
                 json.dumps(conv.metadata) if conv.metadata else None,
             ),
         )
@@ -401,6 +405,9 @@ def _row_to_conversation(row: Any) -> Conversation:
         user_id=row["user_id"],
         project=row["project"],
         title=row["title"],
+        username=row["username"],
+        source=row["source"],
+        display_name=row["display_name"],
         metadata=json.loads(row["metadata"]) if row["metadata"] else None,
         message_count=row["message_count"],
         total_tokens=row["total_tokens"],
