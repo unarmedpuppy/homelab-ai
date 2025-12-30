@@ -206,7 +206,7 @@ services:
       - TZ=${TZ:-America/Chicago}
     volumes:
       - ./nzbget/config:/config
-      - ${DOWNLOAD_PATH:-./downloads/nzb}:/downloads
+      - /jenquist-cloud/archive/media-downloads-temp:/downloads
     network_mode: "service:gluetun"  # Kill switch: routes all traffic through VPN
     depends_on:
       gluetun:
@@ -225,7 +225,7 @@ services:
       - WEBUI_PORT=8080
     volumes:
       - ./qbittorrent/config:/config
-      - ${DOWNLOAD_PATH:-./downloads/torrents}:/downloads
+      - /jenquist-cloud/archive/media-downloads-temp:/downloads
     network_mode: "service:gluetun"  # Kill switch: routes all traffic through VPN
     depends_on:
       gluetun:
@@ -248,8 +248,8 @@ services:
       - TZ=${TZ:-America/Chicago}
     volumes:
       - ./slskd/config:/app/.config/slskd
-      - ${DOWNLOAD_PATH:-./downloads}/soulseek:/downloads
-      - ${DOWNLOAD_PATH:-./downloads}/soulseek/incomplete:/incomplete
+      - /jenquist-cloud/archive/media-downloads-temp/soulseek:/downloads
+      - /jenquist-cloud/archive/media-downloads-temp/soulseek/incomplete:/incomplete
       # Share directory - IMPORTANT: Must share files to avoid bans
       - ${MEDIA_PATH:-/jenquist-cloud/archive/entertainment-media}/Music:/shared
     network_mode: "service:gluetun"  # Kill switch: routes all traffic through VPN
@@ -273,7 +273,7 @@ services:
     volumes:
       - ./sonarr/config:/config
       - ${MEDIA_PATH:-/jenquist-cloud/archive/entertainment-media/tv}:/tv
-      - ${DOWNLOAD_PATH:-./downloads}:/downloads
+      - /jenquist-cloud/archive/media-downloads-temp:/downloads
     ports:
       - "8989:8989"
     restart: unless-stopped
@@ -326,7 +326,7 @@ services:
     volumes:
       - ./radarr/config:/config
       - ${MEDIA_PATH:-/jenquist-cloud/archive/entertainment-media/movies}:/movies
-      - ${DOWNLOAD_PATH:-./downloads}:/downloads
+      - /jenquist-cloud/archive/media-downloads-temp:/downloads
     ports:
       - "7878:7878"
     restart: unless-stopped
@@ -379,7 +379,7 @@ services:
     volumes:
       - ./lidarr/config:/config
       - ${MEDIA_PATH:-/jenquist-cloud/archive/entertainment-media/Music}:/music
-      - ${DOWNLOAD_PATH:-./downloads}:/downloads
+      - /jenquist-cloud/archive/media-downloads-temp:/downloads
     ports:
       - "8686:8686"
     restart: unless-stopped
@@ -537,7 +537,7 @@ services:
     volumes:
       - ./lazylibrarian/config:/config
       - ${MEDIA_PATH:-/jenquist-cloud/archive/entertainment-media}/books:/books
-      - ${DOWNLOAD_PATH:-./downloads}:/downloads
+      - /jenquist-cloud/archive/media-downloads-temp:/downloads
     ports:
       - "8787:5299"
     restart: unless-stopped
@@ -689,7 +689,7 @@ services:
       - TZ=${TZ:-America/Chicago}
     volumes:
       - ./sabnzbd/config:/config
-      - ${DOWNLOAD_PATH:-./downloads}/sabnzbd:/downloads
+      - /jenquist-cloud/archive/media-downloads-temp/sabnzbd:/downloads
     networks:
       - media-download-network
       - my-network
