@@ -18,6 +18,7 @@ from dependencies import get_request_tracker, log_chat_completion, RequestTracke
 from memory import generate_conversation_id
 from providers import ProviderManager, HealthChecker, ProviderSelection
 from stream import stream_chat_completion, stream_chat_completion_passthrough, StreamAccumulator
+import prometheus_metrics as prom
 # from middleware import MemoryMetricsMiddleware  # Replaced with dependency injection
 
 # Configure logging
@@ -47,6 +48,10 @@ async def lifespan(app: FastAPI):
         health_checker = HealthChecker(provider_manager, check_interval=30)
         await health_checker.start()
         logger.info("Health checker started")
+
+        # Initialize Prometheus router info
+        prom.init_router_info(version="1.0.0")
+        logger.info("Prometheus metrics initialized")
 
     except Exception as e:
         logger.error(f"Failed to initialize providers: {e}")
@@ -329,10 +334,46 @@ async def health_check() -> HealthResponse:
     # Check gaming mode (legacy compatibility)
     gaming_status = await get_gaming_pc_status()
 
+    # Update Prometheus metrics for providers
+    for provider_id, status in provider_statuses.items():
+        prom.update_provider_metrics(
+            provider_id=provider_id,
+            is_healthy=status["healthy"],
+            active_requests=status["current_requests"],
+            max_concurrent=status["max_concurrent"],
+            consecutive_failures=status.get("consecutive_failures", 0),
+        )
+
     return HealthResponse(
         status="healthy" if any(s["healthy"] for s in backend_status.values()) else "degraded",
         backends=backend_status,
         gaming_mode=gaming_status.gaming_mode if gaming_status else None,
+    )
+
+
+@app.get("/metrics")
+async def prometheus_metrics():
+    """
+    Prometheus metrics endpoint.
+    
+    Returns metrics in Prometheus text format for scraping.
+    """
+    from fastapi.responses import Response
+    
+    # Update memory metrics
+    try:
+        from memory import get_conversation_stats
+        stats = get_conversation_stats()
+        prom.update_memory_metrics(
+            conversations=stats.get("total_conversations", 0),
+            messages=stats.get("total_messages", 0)
+        )
+    except Exception as e:
+        logger.warning(f"Failed to update memory metrics: {e}")
+    
+    return Response(
+        content=prom.get_metrics(),
+        media_type=prom.get_content_type()
     )
 
 

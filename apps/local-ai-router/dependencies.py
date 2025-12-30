@@ -12,6 +12,7 @@ from database import init_database
 from memory import create_conversation, add_message, get_conversation, generate_conversation_id
 from metrics import log_metric
 from models import ConversationCreate, MessageCreate, MetricCreate, MessageRole
+import prometheus_metrics as prom
 
 logger = logging.getLogger(__name__)
 
@@ -130,6 +131,27 @@ def log_chat_completion(
                 logger.debug(f"Logged metric for chat completion")
             except Exception as e:
                 logger.error(f"Failed to log metric: {e}")
+
+        # Record Prometheus metrics
+        try:
+            duration_seconds = tracker.get_duration_ms() / 1000.0
+            status = "200" if error is None else "500"
+            provider = backend or "unknown"
+            
+            prom.record_request(
+                endpoint="/v1/chat/completions",
+                model=model_used or model_requested,
+                provider=provider,
+                status=status,
+                duration_seconds=duration_seconds,
+                prompt_tokens=prompt_tokens or 0,
+                completion_tokens=completion_tokens or 0
+            )
+            
+            if error:
+                prom.record_error("/v1/chat/completions", "request_failed")
+        except Exception as e:
+            logger.debug(f"Failed to record Prometheus metrics: {e}")
 
         # Store conversation memory
         if ENABLE_MEMORY and (tracker.conversation_id or tracker.enable_memory) and not error:
