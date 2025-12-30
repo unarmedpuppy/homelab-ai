@@ -158,9 +158,54 @@ To complete Phase 4 validation, navigate to:
 - https://local-ai-dashboard.server.unarmedpuppy.com/providers
 
 Verify:
-- [ ] Provider cards display correctly
+- [x] Provider cards display correctly ✅ (User confirmed)
 - [ ] Health status indicators show online/offline
 - [ ] Load utilization bars render with correct colors
 - [ ] Model lists display
 - [ ] Auto-refresh updates data every 10 seconds
 - [ ] Navigation between Chat/Providers/Stats works
+
+---
+
+## Post-Deployment Fixes (2025-12-29)
+
+### Issue 1: Conversation History Not Loading ✅ FIXED
+**Problem**: `IndexError: No item with that key` when loading conversations with missing Phase 2.2 metadata fields (username, source, display_name).
+
+**Root Cause**: Code used direct dictionary indexing `row["username"]` which fails for legacy database rows that don't have these columns.
+
+**Fix**: Updated `apps/local-ai-router/memory.py` `_row_to_conversation()` to use try/except blocks for safe optional field access:
+```python
+try:
+    username = row["username"]
+except (KeyError, IndexError):
+    username = None
+```
+
+**Commit**: `46f9a199` - "fix(local-ai-router): Fix sqlite3.Row attribute access for optional fields"
+
+**Verified**: ✅ Successfully retrieves conversations with null values for missing metadata
+
+### Issue 2: New Chat Routing Failures ✅ FIXED
+**Problem**: `TypeError: ProviderManager.select_provider_and_model() got an unexpected keyword argument 'provider_id'`
+
+**Root Cause**: Router calling provider selection with Phase 3 parameters (provider_id, model_id) but function signature didn't accept them.
+
+**Fix**: Updated `apps/local-ai-router/providers/manager.py` to add `provider_id` and `model_id` parameters with explicit provider/model selection logic.
+
+**Commit**: `46f9a199` (same commit as Issue 1)
+
+**Verified**: ✅ Chat routing now supports explicit provider selection
+
+### Issue 3: Gaming PC (RTX 3090) Showing Offline ✅ FIXED
+**Problem**: Gaming PC provider showing as offline despite vLLM service running.
+
+**Root Cause**: Health checker using `/health` endpoint which returns HTTP 400 ("Invalid or missing 'model' in request body"). vLLM expects `/v1/models` endpoint for health checks.
+
+**Fix**: Updated `apps/local-ai-router/config/providers.yaml` to change health check endpoint from `/health` to `/v1/models` for both vLLM providers:
+- Gaming PC (RTX 3090): `healthCheckPath: "/v1/models"`
+- Server (RTX 3070): `healthCheckPath: "/v1/models"`
+
+**Commit**: `fc086ec4` - "fix(local-ai-router): Update vLLM health check endpoint to /v1/models"
+
+**Verified**: ✅ All 4 providers now showing as healthy (gaming-pc-3090, server-3070, zai, anthropic)
