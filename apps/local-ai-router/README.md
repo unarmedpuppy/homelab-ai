@@ -60,6 +60,34 @@ curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
   }'
 ```
 
+### Streaming Modes
+
+The router supports two streaming modes:
+
+| Mode | Header | Format | Use Case |
+|------|--------|--------|----------|
+| **Passthrough** (default) | None | OpenAI-compatible SSE | SDK integration, external clients |
+| **Enhanced** | `X-Enhanced-Streaming: true` | Status-based SSE | Dashboard, debugging |
+
+**Passthrough Mode** (default): Forwards SSE chunks directly from the backend. Compatible with OpenAI Python/JS SDKs.
+
+```bash
+curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer lai_xxx" \
+  -d '{"model": "auto", "messages": [{"role": "user", "content": "Hello"}], "stream": true}'
+```
+
+**Enhanced Mode**: Includes routing status events (routing, loading, streaming, done). Used by the dashboard.
+
+```bash
+curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer lai_xxx" \
+  -H "X-Enhanced-Streaming: true" \
+  -d '{"model": "auto", "messages": [{"role": "user", "content": "Hello"}], "stream": true}'
+```
+
 ### List Models
 ```bash
 curl https://local-ai-api.server.unarmedpuppy.com/v1/models

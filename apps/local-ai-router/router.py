@@ -16,7 +16,7 @@ from agent import AgentRequest, AgentResponse, run_agent_loop, AGENT_TOOLS
 from auth import ApiKey, validate_api_key_header, get_request_priority
 from dependencies import get_request_tracker, log_chat_completion, RequestTracker
 from providers import ProviderManager, HealthChecker, ProviderSelection
-from stream import stream_chat_completion, StreamAccumulator
+from stream import stream_chat_completion, stream_chat_completion_passthrough, StreamAccumulator
 # from middleware import MemoryMetricsMiddleware  # Replaced with dependency injection
 
 # Configure logging
@@ -514,23 +514,54 @@ async def chat_completions(
         stream = body.get("stream", False)
 
         if stream:
+            enhanced_streaming = request.headers.get("X-Enhanced-Streaming", "").lower() == "true"
             accumulator = StreamAccumulator()
+            passthrough_content = []
 
-            async def stream_with_status():
-                async for event_str in stream_chat_completion(selection, body):
-                    yield event_str
-                    
-                    if event_str.startswith('data: ') and event_str[6:].strip() != '[DONE]':
-                        try:
-                            event_data = json.loads(event_str[6:])
-                            accumulator.add_chunk(event_data)
-                        except json.JSONDecodeError:
-                            pass
+            if enhanced_streaming:
+                async def stream_generator():
+                    async for event_str in stream_chat_completion(selection, body):
+                        yield event_str
+                        if event_str.startswith('data: ') and event_str[6:].strip() != '[DONE]':
+                            try:
+                                event_data = json.loads(event_str[6:])
+                                accumulator.add_chunk(event_data)
+                            except json.JSONDecodeError:
+                                pass
+            else:
+                async def stream_generator():
+                    async for event_str in stream_chat_completion_passthrough(selection, body):
+                        yield event_str
+                        for line in event_str.split('\n'):
+                            line = line.strip()
+                            if line.startswith('data: ') and line[6:].strip() not in ('[DONE]', ''):
+                                try:
+                                    chunk = json.loads(line[6:])
+                                    choices = chunk.get('choices', [])
+                                    if choices and 'delta' in choices[0]:
+                                        content = choices[0]['delta'].get('content', '')
+                                        if content:
+                                            passthrough_content.append(content)
+                                except json.JSONDecodeError:
+                                    pass
 
             async def log_stream_completion():
                 try:
-                    response_data = accumulator.to_response_data(body)
-                    log_chat_completion(tracker, body, response_data, error=accumulator.error)
+                    if enhanced_streaming:
+                        response_data = accumulator.to_response_data(body)
+                    else:
+                        response_data = {
+                            'id': 'stream-passthrough',
+                            'object': 'chat.completion',
+                            'model': selection.model.id,
+                            'choices': [{
+                                'index': 0,
+                                'message': {'role': 'assistant', 'content': ''.join(passthrough_content)},
+                                'finish_reason': 'stop',
+                            }],
+                            'provider': selection.provider.id,
+                        }
+                    log_chat_completion(tracker, body, response_data, error=None)
                     logger.info(f"Logged streaming response (conversation: {tracker.conversation_id})")
                 except Exception as e:
                     logger.error(f"Failed to log streaming completion: {e}")
@@ -538,7 +569,7 @@ async def chat_completions(
             background_tasks.add_task(log_stream_completion)
 
             return StreamingResponse(
-                stream_with_status(),
+                stream_generator(),
                 media_type="text/event-stream",
             )
         else:

@@ -226,6 +226,86 @@ async def stream_chat_completion(
     yield format_sse_done()
 
 
+async def stream_chat_completion_passthrough(
+    selection: ProviderSelection,
+    body: dict,
+    timeout: float = 300.0,
+) -> AsyncGenerator[str, None]:
+    """
+    Stream chat completion with direct passthrough (OpenAI SDK compatible).
+    
+    Forwards SSE events from backend directly without wrapping in status events.
+    This maintains full OpenAI SDK compatibility.
+    
+    Args:
+        selection: Provider and model selection from router
+        body: Request body for chat completions
+        timeout: Request timeout in seconds
+        
+    Yields:
+        SSE-formatted strings exactly as received from backend
+    """
+    endpoint_url = f"{selection.provider.endpoint.rstrip('/')}/v1/chat/completions"
+    
+    try:
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            async with client.stream(
+                "POST",
+                endpoint_url,
+                json=body,
+                headers={"Content-Type": "application/json"},
+            ) as response:
+                if response.status_code != 200:
+                    error_text = await response.aread()
+                    error_data = {
+                        "error": {
+                            "message": f"Backend error: {error_text.decode()}",
+                            "type": "backend_error",
+                            "code": response.status_code,
+                        }
+                    }
+                    yield f"data: {json.dumps(error_data)}\n\n"
+                    yield "data: [DONE]\n\n"
+                    return
+                
+                async for chunk in response.aiter_bytes():
+                    yield chunk.decode('utf-8')
+                    
+    except httpx.TimeoutException:
+        error_data = {
+            "error": {
+                "message": f"Request timed out after {timeout}s",
+                "type": "timeout_error",
+                "code": 504,
+            }
+        }
+        yield f"data: {json.dumps(error_data)}\n\n"
+        yield "data: [DONE]\n\n"
+        
+    except httpx.ConnectError as e:
+        error_data = {
+            "error": {
+                "message": f"Failed to connect to backend: {e}",
+                "type": "connection_error", 
+                "code": 503,
+            }
+        }
+        yield f"data: {json.dumps(error_data)}\n\n"
+        yield "data: [DONE]\n\n"
+        
+    except Exception as e:
+        logger.error(f"Passthrough stream error: {e}")
+        error_data = {
+            "error": {
+                "message": f"Streaming error: {e}",
+                "type": "stream_error",
+                "code": 500,
+            }
+        }
+        yield f"data: {json.dumps(error_data)}\n\n"
+        yield "data: [DONE]\n\n"
+
+
 class StreamAccumulator:
     """Accumulates stream data for post-processing (memory logging, metrics)."""
     
