@@ -123,6 +123,8 @@ class ProviderManager:
         requested_model: str,
         capabilities_required: Optional[Dict[str, bool]] = None,
         prefer_warm: bool = True,
+        provider_id: Optional[str] = None,
+        model_id: Optional[str] = None,
     ) -> ProviderSelection:
         """
         Select the best provider and model for a request.
@@ -147,6 +149,8 @@ class ProviderManager:
             requested_model: Model ID, alias, or "auto"
             capabilities_required: Required model capabilities
             prefer_warm: Prefer providers with warm models
+            provider_id: Optional explicit provider selection (Phase 3)
+            model_id: Optional explicit model selection (Phase 3)
 
         Returns:
             ProviderSelection with selected provider and model
@@ -155,21 +159,37 @@ class ProviderManager:
             ValueError: If no suitable provider/model found
         """
         async with self._lock:
+            # Handle explicit provider/model selection (Phase 3)
+            if provider_id and model_id:
+                provider = self.providers.get(provider_id)
+                if not provider:
+                    raise ValueError(f"Provider not found: {provider_id}")
+                model = next((m for m in provider.models if m.id == model_id), None)
+                if not model:
+                    raise ValueError(f"Model {model_id} not found on provider {provider_id}")
+                return ProviderSelection(provider=provider, model=model)
+
             # 1. Resolve model
-            model_id = self._resolve_model(requested_model)
-            if not model_id:
+            resolved_model_id = model_id or self._resolve_model(requested_model)
+            if not resolved_model_id:
                 raise ValueError(f"Model not found: {requested_model}")
 
-            model = self.models.get(model_id)
+            model = self.models.get(resolved_model_id)
             if not model:
-                raise ValueError(f"Model configuration not found: {model_id}")
+                raise ValueError(f"Model configuration not found: {resolved_model_id}")
 
             # 2. Find candidate providers for this model
             candidates = self._get_candidate_providers(model, capabilities_required)
 
+            # Filter by explicit provider if specified
+            if provider_id:
+                candidates = [p for p in candidates if p.id == provider_id]
+                if not candidates:
+                    raise ValueError(f"Provider {provider_id} not available for model {resolved_model_id}")
+
             if not candidates:
                 raise ValueError(
-                    f"No available providers for model {model_id}. "
+                    f"No available providers for model {resolved_model_id}. "
                     f"Required capabilities: {capabilities_required}"
                 )
 
