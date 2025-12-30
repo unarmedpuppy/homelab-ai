@@ -1,0 +1,59 @@
+version: '3.3'
+
+services:
+  7daystodie:
+    # image: vinanrra/7dtd-server
+    image: harbor.server.unarmedpuppy.com/docker-hub/vinanrra/7dtd-server:latest
+    container_name: 7daystodie
+    restart: unless-stopped
+    environment:
+      - START_MODE=1
+      - VERSION=stable
+      - PUID=1000
+      - PGID=1000
+      - TimeZone=America/Chicago
+      # Server monitoring - restart if crash
+      - MONITOR=YES
+      # Backups
+      - BACKUP=YES
+      - BACKUP_HOUR=5
+      - BACKUP_MAX=7
+      # Optional mods
+      - ALLOC_FIXES=YES
+      - ALLOC_FIXES_UPDATE=NO
+    volumes:
+      - ./data/saves:/home/sdtdserver/.local/share/7DaysToDie
+      - ./data/config:/home/sdtdserver/lgsm/config-lgsm/sdtdserver
+      - ./data/serverfiles:/home/sdtdserver/serverfiles
+      - ./data/log:/home/sdtdserver/log
+      - ./data/backups:/home/sdtdserver/lgsm/backup
+    ports:
+      # Game ports (required)
+      - "26900:26900/tcp"
+      - "26900:26900/udp"
+      - "26901:26901/udp"
+      - "26902:26902/udp"
+      # Web admin (optional)
+      - "8080:8080/tcp"
+      # Telnet (optional)
+      - "8081:8081/tcp"
+      # Alloc Fixes Map GUI (optional)
+      - "8082:8082/tcp"
+    ulimits:
+      nofile:
+        soft: "10240"
+        hard: "10240"
+    networks:
+      - my-network
+    labels:
+      - "homepage.group=Gaming"
+      - "homepage.name=7 Days to Die"
+      - "homepage.icon=7-days-to-die"
+      - "homepage.description=Dedicated 7DTD server"
+      - "homepage.widget.type=gamedig"
+      - "homepage.widget.serverType=7d2d"
+      - "homepage.widget.url=udp://192.168.86.47:26900"
+
+networks:
+  my-network:
+    external: true
