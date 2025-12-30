@@ -41,7 +41,7 @@ After the first run, edit `./data/serverfiles/sdtdserver.xml`:
 | Setting | Description |
 |---------|-------------|
 | `ControlPanelEnabled` | Enable web panel (true/false) |
-| `ControlPanelPort` | Web panel port (default 8080) |
+| `ControlPanelPort` | Web panel port (default 8080, mapped to 26980) |
 | `ControlPanelPassword` | Admin password |
 
 ### Telnet
@@ -49,7 +49,7 @@ After the first run, edit `./data/serverfiles/sdtdserver.xml`:
 | Setting | Description |
 |---------|-------------|
 | `TelnetEnabled` | Enable telnet (true/false) |
-| `TelnetPort` | Telnet port (default 8081) |
+| `TelnetPort` | Telnet port (default 8081, mapped to 26981) |
 | `TelnetPassword` | Telnet password |
 
 ## Features
@@ -99,10 +99,10 @@ docker compose up -d
 docker compose up -d
 
 # Access web panel
-# http://192.168.86.47:8080
+# http://192.168.86.47:26980
 
 # Access Alloc Fixes map
-# http://192.168.86.47:8082
+# http://192.168.86.47:26982
 ```
 
 ## Uptime Kuma Monitoring
