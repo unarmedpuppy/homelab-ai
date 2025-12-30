@@ -397,6 +397,22 @@ def search_by_metadata(
 
 def _row_to_conversation(row: Any) -> Conversation:
     """Convert database row to Conversation model."""
+    # Handle optional Phase 2.2 metadata fields (may not exist in old schema/rows)
+    try:
+        username = row["username"]
+    except (KeyError, IndexError):
+        username = None
+
+    try:
+        source = row["source"]
+    except (KeyError, IndexError):
+        source = None
+
+    try:
+        display_name = row["display_name"]
+    except (KeyError, IndexError):
+        display_name = None
+
     return Conversation(
         id=row["id"],
         created_at=datetime.fromisoformat(row["created_at"]),
@@ -405,9 +421,9 @@ def _row_to_conversation(row: Any) -> Conversation:
         user_id=row["user_id"],
         project=row["project"],
         title=row["title"],
-        username=row.get("username"),
-        source=row.get("source"),
-        display_name=row.get("display_name"),
+        username=username,
+        source=source,
+        display_name=display_name,
         metadata=json.loads(row["metadata"]) if row["metadata"] else None,
         message_count=row["message_count"],
         total_tokens=row["total_tokens"],
