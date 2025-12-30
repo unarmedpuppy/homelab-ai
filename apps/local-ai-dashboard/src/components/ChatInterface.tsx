@@ -101,22 +101,55 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
     if (!input.trim() || isStreaming) return;
 
     const userMessage = input.trim();
-
-    // Immediately add user message to UI and clear input
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
-    setInput('');
-    setPendingImages([]);
+    const imagesToUpload = [...pendingImages];
 
     // Reset streaming state
     setStreamingContent('');
     setStreamingTokenCount(0);
     setStreamStatus({ status: null });
     setIsStreaming(true);
+    setInput('');
+    setPendingImages([]);
+
+    // Upload images if any
+    let uploadedImageRefs: ImageRef[] = [];
+    if (imagesToUpload.length > 0) {
+      setStreamStatus({ status: 'routing', message: 'Uploading images...' });
+      
+      // Generate IDs for upload - use conversation ID or temp, and a temporary message ID
+      const convId = conversationId || `temp-${Date.now()}`;
+      const msgId = `msg-${Date.now()}`;
+      
+      try {
+        uploadedImageRefs = await Promise.all(
+          imagesToUpload.map(file => imageAPI.upload(file, convId, msgId))
+        );
+      } catch (error) {
+        console.error('Image upload failed:', error);
+        setStreamStatus({
+          status: 'error',
+          message: error instanceof Error ? error.message : 'Failed to upload images'
+        });
+        setTimeout(() => {
+          setIsStreaming(false);
+          setStreamStatus({ status: null });
+        }, 2000);
+        return;
+      }
+    }
+
+    // Add user message to UI with uploaded images
+    const userMessageWithImages: MessageWithMetadata = {
+      role: 'user',
+      content: userMessage,
+      image_refs: uploadedImageRefs.length > 0 ? uploadedImageRefs : undefined,
+    };
+    setMessages(prev => [...prev, userMessageWithImages]);
 
     // Prepare messages for API
     const apiMessages: ChatMessage[] = [
       ...messages.map(m => ({ role: m.role, content: m.content })),
-      { role: 'user', content: userMessage },
+      { role: 'user', content: userMessage, image_refs: uploadedImageRefs.length > 0 ? uploadedImageRefs : undefined },
     ];
 
     try {

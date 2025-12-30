@@ -502,6 +502,15 @@ async def chat_completions(
     # Update body with selected model ID
     body["model"] = selection.model.id
 
+    # Convert image_refs to base64 vision format if present
+    messages = body.get("messages", [])
+    if messages_have_images(messages):
+        if selection.model.capabilities.vision:
+            body["messages"] = format_messages_for_vision(messages, IMAGE_DATA_DIR)
+            logger.info(f"Formatted {len(messages)} messages for vision model")
+        else:
+            logger.warning(f"Model {selection.model.id} doesn't support vision, images will be ignored")
+
     # Build endpoint URL
     endpoint_url = f"{selection.provider.endpoint.rstrip('/')}/v1/chat/completions"
 
@@ -649,6 +658,77 @@ IMAGE_DATA_DIR = Path(os.getenv("DATA_PATH", "/data")) / "images"
 MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10MB
 MAX_IMAGES_PER_MESSAGE = 5
 ALLOWED_IMAGE_TYPES = {"image/png", "image/jpeg", "image/gif", "image/webp"}
+
+
+def format_messages_for_vision(messages: list, image_data_dir: Path) -> list:
+    """
+    Convert messages with image_refs to OpenAI vision format.
+    
+    Transforms messages like:
+        {"role": "user", "content": "What's in this image?", "image_refs": [...]}
+    
+    Into vision format:
+        {"role": "user", "content": [
+            {"type": "text", "text": "What's in this image?"},
+            {"type": "image_url", "image_url": {"url": "data:image/png;base64,..."}}
+        ]}
+    """
+    import base64
+    
+    formatted = []
+    for msg in messages:
+        if not isinstance(msg, dict):
+            formatted.append(msg)
+            continue
+            
+        image_refs = msg.get("image_refs", [])
+        if not image_refs:
+            formatted.append(msg)
+            continue
+        
+        content_parts = []
+        text_content = msg.get("content", "")
+        if text_content:
+            content_parts.append({"type": "text", "text": text_content})
+        
+        for ref in image_refs:
+            try:
+                filepath = image_data_dir.parent / ref.get("path", "")
+                if not filepath.exists():
+                    logger.warning(f"Image not found: {filepath}")
+                    continue
+                    
+                with open(filepath, "rb") as f:
+                    image_data = f.read()
+                
+                b64_data = base64.b64encode(image_data).decode("utf-8")
+                mime_type = ref.get("mimeType", "image/png")
+                
+                content_parts.append({
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:{mime_type};base64,{b64_data}"
+                    }
+                })
+                logger.debug(f"Added image to message: {ref.get('filename', 'unknown')}")
+            except Exception as e:
+                logger.error(f"Failed to encode image {ref}: {e}")
+        
+        if content_parts:
+            new_msg = {"role": msg.get("role", "user"), "content": content_parts}
+            formatted.append(new_msg)
+        else:
+            formatted.append(msg)
+    
+    return formatted
+
+
+def messages_have_images(messages: list) -> bool:
+    """Check if any message contains image_refs."""
+    for msg in messages:
+        if isinstance(msg, dict) and msg.get("image_refs"):
+            return True
+    return False
 
 
 @app.post("/v1/images/upload")
