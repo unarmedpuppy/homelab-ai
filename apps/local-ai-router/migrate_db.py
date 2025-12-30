@@ -6,7 +6,9 @@ import sqlite3
 import sys
 from pathlib import Path
 
-DB_PATH = Path("/app/data/local-ai-router.db")  # Path inside Docker container
+# Use same path as database.py - mounted volume at /data
+import os
+DB_PATH = Path(os.getenv("DATABASE_PATH", "/data/local-ai-router.db"))
 
 def migrate_database():
     """Add username, source, and display_name columns to conversations table."""

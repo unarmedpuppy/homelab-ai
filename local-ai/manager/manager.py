@@ -339,24 +339,30 @@ async def proxy(request: Request):
     backend_url = f"http://{container_name}:8000/{path}"
     print(f"[{model_name}] Proxying {request.method} {request.url.path} -> {backend_url}")
     
-    async with httpx.AsyncClient() as client:
-        try:
-            request_body = await request.body() if request.method != "GET" else None
-            backend_req = client.build_request(
-                method=request.method,
-                url=backend_url,
-                headers={h:v for h,v in request.headers.items() if h not in ("host", "content-length")},
-                content=request_body,
-                timeout=None, # Inference can be slow
-            )
-            backend_resp = await client.send(backend_req, stream=True)
-
-            return StreamingResponse(
-                backend_resp.aiter_raw(),
-                status_code=backend_resp.status_code,
-                headers=backend_resp.headers,
-            )
-        except httpx.ConnectError as e:
-            raise HTTPException(status_code=503, detail=f"Could not connect to model backend: {e}")
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error proxying request: {e}")
+    # Get request body before streaming
+    request_body = await request.body() if request.method != "GET" else None
+    request_headers = {h:v for h,v in request.headers.items() if h not in ("host", "content-length")}
+    
+    async def stream_backend():
+        """Stream response from backend, keeping httpx client alive during entire stream."""
+        async with httpx.AsyncClient(timeout=None) as client:
+            try:
+                async with client.stream(request.method, backend_url, headers=request_headers, content=request_body) as backend_resp:
+                    async for chunk in backend_resp.aiter_raw():
+                        yield chunk
+            except httpx.ConnectError as e:
+                # Yield an error as SSE for streaming responses
+                error_msg = f"data: {{\"error\": \"Could not connect to model backend: {e}\"}}\n\n"
+                yield error_msg.encode()
+            except Exception as e:
+                error_msg = f"data: {{\"error\": \"Error proxying request: {e}\"}}\n\n"
+                yield error_msg.encode()
+    
+    # For streaming, we need to determine content-type without consuming the stream
+    # Default to text/event-stream for SSE streaming, which is common for LLM inference
+    content_type = "text/event-stream" if body.get("stream") else "application/json"
+    
+    return StreamingResponse(
+        stream_backend(),
+        media_type=content_type,
+    )

@@ -58,6 +58,16 @@ export const memoryAPI = {
     const response = await apiClient.get<MemoryStats>('/memory/stats');
     return response.data;
   },
+
+  updateConversation: async (id: string, update: { title?: string; metadata?: Record<string, unknown> }) => {
+    const response = await apiClient.patch<Conversation>(`/memory/conversations/${id}`, update);
+    return response.data;
+  },
+
+  deleteConversation: async (id: string) => {
+    const response = await apiClient.delete<{ status: string; conversation_id: string }>(`/memory/conversations/${id}`);
+    return response.data;
+  },
 };
 
 // Metrics API
