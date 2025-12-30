@@ -31,6 +31,11 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingContent, setStreamingContent] = useState('');
   const [streamingTokenCount, setStreamingTokenCount] = useState(0);
+  const [streamStatus, setStreamStatus] = useState<{
+    status: 'routing' | 'loading' | 'generating' | 'streaming' | 'done' | 'error' | null;
+    message?: string;
+    estimated_time?: number;
+  }>({ status: null });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -99,6 +104,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
     // Reset streaming state
     setStreamingContent('');
     setStreamingTokenCount(0);
+    setStreamStatus({ status: null });
     setIsStreaming(true);
 
     // Prepare messages for API
@@ -107,47 +113,103 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
       { role: 'user', content: userMessage },
     ];
 
-    // Call streaming API
-    await chatAPI.sendMessageStreaming({
-      model: selectedModel,
-      messages: apiMessages,
-      conversationId: conversationId || undefined,
-      temperature,
-      max_tokens: maxTokens,
-      top_p: topP,
-      frequency_penalty: frequencyPenalty,
-      presence_penalty: presencePenalty,
-      onToken: (token) => {
-        // Update streaming content as tokens arrive
-        setStreamingContent(prev => prev + token);
-        setStreamingTokenCount(prev => prev + 1);
-      },
-      onComplete: (response) => {
-        // Streaming complete - add final message
-        const assistantMessage = response.choices[0].message;
-        setMessages(prev => [
-          ...prev,
-          {
-            role: assistantMessage.role,
-            content: assistantMessage.content,
-            model: response.model,
-            tokens: response.usage?.completion_tokens,
-            provider: (response as any).provider,
-          },
-        ]);
+    try {
+      const stream = chatAPI.sendMessageStream({
+        model: selectedModel,
+        messages: apiMessages,
+        conversationId: conversationId || undefined,
+        temperature,
+        max_tokens: maxTokens,
+        top_p: topP,
+        frequency_penalty: frequencyPenalty,
+        presence_penalty: presencePenalty,
+      });
+
+      for await (const event of stream) {
+        switch (event.status) {
+          case 'routing':
+            setStreamStatus({
+              status: 'routing',
+              message: event.message || 'Selecting backend...'
+            });
+            break;
+
+          case 'loading':
+            setStreamStatus({
+              status: 'loading',
+              message: event.message || 'Warming up model...',
+              estimated_time: event.estimated_time
+            });
+            break;
+
+          case 'generating':
+            setStreamStatus({
+              status: 'generating',
+              message: event.message || 'Generating response...'
+            });
+            break;
+
+          case 'streaming':
+            setStreamStatus({
+              status: 'streaming',
+              message: 'Streaming response...'
+            });
+            if (event.delta) {
+              setStreamingContent(prev => prev + event.delta);
+              setStreamingTokenCount(prev => prev + 1);
+            }
+            break;
+
+          case 'done':
+            const finalContent = event.content || streamingContent;
+            setMessages(prev => [
+              ...prev,
+              {
+                role: 'assistant',
+                content: finalContent,
+                model: event.model,
+                tokens: event.usage?.completion_tokens,
+                provider: event.provider_name,
+              },
+            ]);
+            setIsStreaming(false);
+            setStreamingContent('');
+            setStreamingTokenCount(0);
+            setStreamStatus({ status: null });
+            break;
+
+          case 'error':
+            console.error('Stream error:', event.error_detail);
+            setStreamStatus({
+              status: 'error',
+              message: event.error_detail || 'An error occurred'
+            });
+            setTimeout(() => {
+              setIsStreaming(false);
+              setStreamingContent('');
+              setStreamingTokenCount(0);
+              setStreamStatus({ status: null });
+              // Remove the user message that failed
+              setMessages(prev => prev.slice(0, -1));
+            }, 2000);
+            break;
+        }
+      }
+    } catch (error) {
+      console.error('Streaming error:', error);
+      setStreamStatus({
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+      setTimeout(() => {
         setIsStreaming(false);
         setStreamingContent('');
         setStreamingTokenCount(0);
-      },
-      onError: (error) => {
-        console.error('Streaming error:', error);
-        setIsStreaming(false);
-        setStreamingContent('');
-        setStreamingTokenCount(0);
+        setStreamStatus({ status: null });
         // Remove the user message that failed
         setMessages(prev => prev.slice(0, -1));
-      },
-    });
+      }, 2000);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -379,13 +441,31 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
           </div>
         )}
 
-        {/* Loading indicator (before first token) */}
-        {isStreaming && !streamingContent && (
+        {isStreaming && !streamingContent && streamStatus.status && (
           <div className="flex items-center gap-3 mb-2">
             <div className="text-xs font-mono uppercase text-green-400">
               ◂ ASSISTANT
             </div>
-            <div className="text-xs text-gray-500">connecting...</div>
+            <div className="flex items-center gap-2">
+              {streamStatus.status !== 'error' && (
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              )}
+              <div className={`text-xs ${
+                streamStatus.status === 'error' ? 'text-red-400' : 'text-gray-500'
+              }`}>
+                {streamStatus.status === 'routing' && 'Selecting backend...'}
+                {streamStatus.status === 'loading' && (
+                  <span>
+                    Warming up model...
+                    {streamStatus.estimated_time && (
+                      <span className="text-gray-600"> (~{Math.round(streamStatus.estimated_time)}s)</span>
+                    )}
+                  </span>
+                )}
+                {streamStatus.status === 'generating' && 'Generating response...'}
+                {streamStatus.status === 'error' && streamStatus.message}
+              </div>
+            </div>
           </div>
         )}
 
