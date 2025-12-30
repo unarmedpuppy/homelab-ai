@@ -108,10 +108,21 @@ export interface RAGResult {
 // API returns array directly, not wrapped in object
 export type RAGSearchResponse = RAGResult[];
 
+// Image Types
+export interface ImageRef {
+  filename: string;
+  path: string;
+  size: number;
+  mimeType: string;
+  width: number;
+  height: number;
+}
+
 // Chat Completion Types (OpenAI-compatible)
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
+  image_refs?: ImageRef[];
 }
 
 // Stream Event Types for SSE streaming with status

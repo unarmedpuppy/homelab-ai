@@ -13,6 +13,7 @@ import type {
   ProvidersResponse,
   AdminProvidersResponse,
   StreamEvent,
+  ImageRef,
 } from '../types/api';
 
 // API base URL - defaults to public router endpoint
@@ -427,6 +428,37 @@ export const providersAPI = {
   listAdmin: async () => {
     const response = await apiClient.get<AdminProvidersResponse>('/admin/providers');
     return response.data;
+  },
+};
+
+// Image API
+export const imageAPI = {
+  upload: async (file: File, conversationId: string, messageId: string): Promise<ImageRef> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(
+      `/api/v1/images/upload?conversation_id=${encodeURIComponent(conversationId)}&message_id=${encodeURIComponent(messageId)}`,
+      {
+        method: 'POST',
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: response.statusText }));
+      throw new Error(error.detail || 'Failed to upload image');
+    }
+
+    return response.json();
+  },
+
+  getUrl: (imageRef: ImageRef): string => {
+    const parts = imageRef.path.split('/');
+    const conversationId = parts[parts.length - 3];
+    const messageId = parts[parts.length - 2];
+    const filename = parts[parts.length - 1];
+    return `/api/v1/images/${conversationId}/${messageId}/${filename}`;
   },
 };
 

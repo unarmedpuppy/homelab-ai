@@ -5,9 +5,9 @@ import logging
 import httpx
 from pathlib import Path
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, HTTPException, Depends, BackgroundTasks
+from fastapi import FastAPI, Request, HTTPException, Depends, BackgroundTasks, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, FileResponse
 from pydantic import BaseModel
 from typing import Optional
 import asyncio
@@ -639,6 +639,95 @@ async def stop_all_models():
             return response.json()
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Failed to stop models: {e}")
+
+
+# ============================================================================
+# Image Upload Endpoints
+# ============================================================================
+
+IMAGE_DATA_DIR = Path(os.getenv("DATA_PATH", "/data")) / "images"
+MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10MB
+MAX_IMAGES_PER_MESSAGE = 5
+ALLOWED_IMAGE_TYPES = {"image/png", "image/jpeg", "image/gif", "image/webp"}
+
+
+@app.post("/v1/images/upload")
+async def upload_image(
+    conversation_id: str,
+    message_id: str,
+    file: UploadFile = File(...),
+    api_key: ApiKey = Depends(validate_api_key_header),
+):
+    """Upload an image for a message (multimodal support)."""
+    from PIL import Image
+    import io
+
+    if file.content_type not in ALLOWED_IMAGE_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file type. Allowed: {', '.join(ALLOWED_IMAGE_TYPES)}"
+        )
+
+    content = await file.read()
+    if len(content) > MAX_IMAGE_SIZE:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Image too large. Max size: {MAX_IMAGE_SIZE // (1024*1024)}MB"
+        )
+
+    image_dir = IMAGE_DATA_DIR / conversation_id / message_id
+    image_dir.mkdir(parents=True, exist_ok=True)
+
+    existing_images = list(image_dir.glob("*"))
+    if len(existing_images) >= MAX_IMAGES_PER_MESSAGE:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Maximum {MAX_IMAGES_PER_MESSAGE} images per message"
+        )
+
+    sequence = f"{len(existing_images) + 1:03d}"
+    safe_filename = "".join(c for c in file.filename if c.isalnum() or c in "._-")
+    filename = f"{sequence}_{safe_filename}"
+    filepath = image_dir / filename
+
+    with open(filepath, "wb") as f:
+        f.write(content)
+
+    try:
+        with Image.open(io.BytesIO(content)) as img:
+            width, height = img.size
+    except Exception:
+        width, height = 0, 0
+
+    logger.info(f"Image uploaded: {filepath} ({len(content)} bytes, {width}x{height})")
+
+    return {
+        "filename": filename,
+        "path": str(filepath.relative_to(IMAGE_DATA_DIR.parent)),
+        "size": len(content),
+        "mimeType": file.content_type,
+        "width": width,
+        "height": height,
+    }
+
+
+@app.get("/v1/images/{conversation_id}/{message_id}/{filename}")
+async def get_image(
+    conversation_id: str,
+    message_id: str,
+    filename: str,
+    api_key: ApiKey = Depends(validate_api_key_header),
+):
+    """Retrieve an uploaded image."""
+    filepath = IMAGE_DATA_DIR / conversation_id / message_id / filename
+
+    if not filepath.exists():
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    if not filepath.is_relative_to(IMAGE_DATA_DIR):
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    return FileResponse(filepath)
 
 
 # ============================================================================
