@@ -205,6 +205,7 @@ async def query_tayne(message: discord.Message) -> Optional[str]:
         "X-Enable-Memory": "true",
         "X-Conversation-ID": f"discord-{channel_id}",
         "X-Project": "tayne-discord-bot",
+        "X-User-ID": str(message.author.id),
     }
     
     try:
