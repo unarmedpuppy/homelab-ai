@@ -27,7 +27,7 @@ providers:
     # Health Check Configuration
     healthCheckInterval: 30  # seconds
     healthCheckTimeout: 5    # seconds
-    healthCheckPath: "/health"
+    healthCheckPath: "/v1/models"  # vLLM standard health check endpoint
 
     # Authentication (null for local vLLM)
     authType: null
@@ -53,7 +53,7 @@ providers:
     # Health Check Configuration
     healthCheckInterval: 30  # seconds
     healthCheckTimeout: 5    # seconds
-    healthCheckPath: "/health"
+    healthCheckPath: "/v1/models"  # vLLM standard health check endpoint
 
     # Authentication (null for local vLLM)
     authType: null
