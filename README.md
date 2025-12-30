@@ -129,6 +129,23 @@ To inspect detailed RAM information:
 sudo dmidecode --type memory
 ```
 
+### GPU
+
+- **Model**: NVIDIA GeForce RTX 3070
+- **VRAM**: 8GB GDDR6
+- **PCIe**: Slot 07:00.0 (external vertical rack mount via PCIe riser)
+- **Use Case**: Local AI inference (vLLM), hardware transcoding
+
+**Driver Info**:
+```bash
+nvidia-smi
+```
+
+**Maintenance Log**:
+| Date | Action | Command |
+|------|--------|---------|
+| 2025-12-30 | Updated NVIDIA driver to 535.247.01 | `sudo apt install -y nvidia-driver && sudo reboot` |
+
 ### Storage
 
 - **Internal SSD**: 1TB

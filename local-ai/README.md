@@ -4,10 +4,13 @@ This directory contains the setup for running local LLMs on your Windows machine
 
 ## Architecture
 
-- **Windows Machine**: Runs the actual LLM models using vLLM (text) and custom inference servers (image) in Docker containers
-- **Remote Server**: Runs a proxy service (`local-ai-app`) that forwards requests to Windows
+- **Windows Machine (3090)**: Runs LLM models using vLLM in Docker containers
+- **Home Server (3070)**: Runs local models for fast routing (pending GPU setup)
+- **Local AI Router** (`apps/local-ai-router/`): Intelligent API router with OpenAI-compatible endpoints
+- **Local AI Dashboard** (`apps/local-ai-dashboard/`): React dashboard for chat, metrics, and conversation history
 - **Manager Service**: Automatically starts/stops model containers based on demand
-- **Model Types**: Supports both text generation (vLLM) and image generation (Diffusers) models
+
+> **Note**: The legacy `local-ai-app` proxy has been sunset. Use the router and dashboard instead.
 
 ## Quick Start
 
@@ -61,10 +64,18 @@ New-NetFirewallRule -DisplayName "LLM Manager 8000" -Direction Inbound -Protocol
 ### 3. Server Setup
 
 ```bash
-cd apps/local-ai-app
-# Verify WINDOWS_AI_HOST in docker-compose.yml matches your Windows IP (default: 192.168.86.63)
+# Start the Local AI Router
+cd apps/local-ai-router
+docker compose up -d
+
+# Start the Local AI Dashboard (optional - for web UI)
+cd apps/local-ai-dashboard
 docker compose up -d
 ```
+
+**Access Points:**
+- **API**: `https://local-ai-api.server.unarmedpuppy.com` (OpenAI-compatible)
+- **Dashboard**: `https://local-ai-dashboard.server.unarmedpuppy.com`
 
 ## Models Available
 
@@ -92,31 +103,35 @@ docker compose up -d
 
 ## Usage
 
-Access via: `http://local-ai.server.unarmedpuppy.com`
-
-**Web Chat Interface:**
-Visit the URL above for a ChatGPT-like interface with model selection, real-time chat, and mobile support.
+**Web Dashboard:**
+Visit `https://local-ai-dashboard.server.unarmedpuppy.com` for the chat interface with:
+- Streaming responses with status updates
+- Conversation history and search
+- Provider/model selection
+- Image upload for multimodal chat
 
 **API Usage:**
 ```bash
-curl -X POST http://local-ai.server.unarmedpuppy.com/v1/chat/completions \
+# Chat completion via router (auto-routes to best backend)
+curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "llama3-8b",
+    "model": "auto",
     "messages": [{"role": "user", "content": "Hello!"}],
     "max_tokens": 100
   }'
 
-# Image editing with Qwen Image Edit
-curl -X POST http://local-ai.server.unarmedpuppy.com/v1/images/generations \
+# Force routing to 3090
+curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
   -H "Content-Type: application/json" \
+  -H "X-Force-Big: true" \
   -d '{
-    "model": "qwen-image-edit",
-    "prompt": "Edit this image to add a sunset",
-    "n": 1,
-    "size": "1024x1024"
+    "model": "big",
+    "messages": [{"role": "user", "content": "Complex task..."}]
   }'
 ```
+
+See [Local AI Router README](../apps/local-ai-router/README.md) for full API documentation.
 
 ## Requirements
 

@@ -1429,7 +1429,7 @@ for chunk in client.chat.completions.create(
 - [x] Upload images from ChatInterface before sending messages
 - [ ] Implement two-step ModelSelector
 - [ ] Show provider/model in message metadata
-- [ ] Sunset local-ai-app
+- [x] Sunset local-ai-app (completed 2025-12-30, moved to `inactive/`)
 
 ### Phase 4: Operational Excellence
 - [ ] Add Prometheus metrics endpoint

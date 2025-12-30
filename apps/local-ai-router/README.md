@@ -305,4 +305,4 @@ Override gaming mode restrictions:
 
 - [Local AI Unified Architecture](../../agents/plans/local-ai-unified-architecture.md) - Full architecture plan
 - [Gaming PC Local AI](../../local-ai/README.md) - 3090 backend
-- [Local AI App](../local-ai-app/README.md) - Web chat UI
+- [Local AI Dashboard](../local-ai-dashboard/README.md) - Web dashboard UI

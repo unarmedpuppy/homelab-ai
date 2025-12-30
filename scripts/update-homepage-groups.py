@@ -52,7 +52,8 @@ CATEGORIES = {
         "maybe"
     ],
     "AI & Machine Learning": [
-        "local-ai-app",
+        "local-ai-router",
+        "local-ai-dashboard",
         "ollama-docker",
         "open-health"
     ],

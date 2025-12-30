@@ -368,11 +368,11 @@ providers:
 - [ ] Show provider/model used per message
 - [ ] Health status dashboard
 
-**3.3 Sunset local-ai-app**
-- [ ] Verify all features migrated
-- [ ] Update documentation
-- [ ] Remove from docker-compose
-- [ ] Archive codebase
+**3.3 Sunset local-ai-app** ✅ COMPLETED (2025-12-30)
+- [x] Verify all features migrated
+- [x] Update documentation
+- [x] Remove from docker-compose
+- [x] Archive codebase (moved to `inactive/local-ai-app/`)
 
 ### Phase 4: Operational Excellence (Week 7-8)
 

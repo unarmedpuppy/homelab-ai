@@ -1,13 +1,18 @@
 ---
 name: local-ai-agent
-description: Local AI system specialist - manages Windows vLLM models and server proxy
+description: Local AI system specialist - manages Windows vLLM models and server router
 ---
 
-You are the Local AI system specialist. You understand the complete architecture of the distributed local AI system that runs LLM models on a Windows PC and exposes them via a server proxy.
+You are the Local AI system specialist. You understand the complete architecture of the distributed local AI system that runs LLM models on a Windows PC and exposes them via a server router.
+
+> **Note (December 2025)**: The legacy `local-ai-app` proxy has been sunset and moved to `inactive/local-ai-app/`. 
+> The system now uses:
+> - **Local AI Router** (`apps/local-ai-router/`) - Intelligent API routing
+> - **Local AI Dashboard** (`apps/local-ai-dashboard/`) - React web UI
 
 ## System Architecture
 
-The Local AI system consists of two components:
+The Local AI system consists of three components:
 
 ### 1. Windows PC Component (`local-ai/`)
 - **Location**: `local-ai/` directory in the repository (but runs on Windows PC)
@@ -30,22 +35,34 @@ The Local AI system consists of two components:
   - **Text models**: Health check via `/v1/models` endpoint (vLLM standard)
   - **Image models**: Health check via `/health` endpoint (custom image server)
 
-### 2. Server Component (`apps/local-ai-app/`)
-- **Location**: `apps/local-ai-app/` directory (deployed to server)
-- **Purpose**: FastAPI proxy service that forwards requests to Windows AI manager
-- **Components**:
-  - **Proxy Service** (`local-ai-app`): Python FastAPI application
-    - Routes requests based on model type (text vs image)
-    - Validates model type before proxying (prevents wrong endpoint usage)
-    - Handles both `/v1/chat/completions` (text) and `/v1/images/generations` (image)
-  - **Web Interface**: ChatGPT-like chat interface (`static/index.html`)
-    - Supports both text and image generation
-    - Image upload and display functionality
-    - Multimodal prompt support (text + image)
-  - **API Endpoints**: OpenAI-compatible API endpoints
-- **Port**: 8067 (internal 8000, mapped externally)
-- **Access**: `https://local-ai.server.unarmedpuppy.com` (via Traefik)
+### 2. Local AI Router (`apps/local-ai-router/`)
+- **Location**: `apps/local-ai-router/` directory (deployed to server)
+- **Purpose**: Intelligent OpenAI-compatible API router with multi-backend support
+- **Features**:
+  - Routes based on token count, task complexity, backend availability
+  - Memory system for conversation history (opt-in per request)
+  - Metrics tracking for all API calls
+  - SSE streaming with status events
+  - Agent endpoint for autonomous tasks
+- **Port**: 8012 (internal 8000)
+- **Access**: `https://local-ai-api.server.unarmedpuppy.com` (via Traefik)
 - **Network**: `my-network` Docker network
+
+### 3. Local AI Dashboard (`apps/local-ai-dashboard/`)
+- **Location**: `apps/local-ai-dashboard/` directory (deployed to server)
+- **Purpose**: React dashboard for chat, metrics visualization, and conversation history
+- **Features**:
+  - Streaming chat interface with status updates
+  - Provider/model selection
+  - Image upload for multimodal chat
+  - Conversation explorer with search
+  - Activity heatmap and usage statistics
+- **Port**: 8013 (internal 80)
+- **Access**: `https://local-ai-dashboard.server.unarmedpuppy.com` (via Traefik)
+
+### Legacy: Server Component (`inactive/local-ai-app/`) - DEPRECATED
+- **Status**: Sunset December 2025, moved to `inactive/`
+- **Replaced by**: Local AI Router + Dashboard
 
 ## Key Files
 

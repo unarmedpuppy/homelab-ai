@@ -1,5 +1,15 @@
 # Local AI App
 
+> **⚠️ SUNSET NOTICE (December 2025)**: This service has been deprecated and moved to `inactive/`. 
+> 
+> **Use instead:**
+> - **Local AI Router**: `apps/local-ai-router/` - OpenAI-compatible API with intelligent routing
+> - **Local AI Dashboard**: `apps/local-ai-dashboard/` - React web dashboard with chat, metrics, and conversation history
+>
+> This code is preserved for reference only. Do not deploy.
+
+---
+
 This service acts as a proxy to call local AI models running on your Windows machine from your remote server. It provides a ChatGPT-like web interface and OpenAI-compatible API endpoints.
 
 ## Homepage Integration
