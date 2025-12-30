@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { memoryAPI } from '../api/client';
 import type { Conversation } from '../types/api';
 
-const getSourceBadge = (conv: Conversation) => {
+const getSourceBadge = (conv: { source?: string; project?: string }) => {
   const source = conv.source || conv.project || 'unknown';
   const colors: Record<string, string> = {
     discord: 'bg-indigo-900/50 text-indigo-300 border-indigo-700',
@@ -114,7 +114,8 @@ export default function ConversationExplorer() {
             </div>
           ) : (
             <div className="divide-y divide-gray-700">
-              {displayedConversations.map((conv) => {
+              {displayedConversations.map((item) => {
+                const conv = item as Conversation;
                 const badge = getSourceBadge(conv);
                 return (
                   <button
