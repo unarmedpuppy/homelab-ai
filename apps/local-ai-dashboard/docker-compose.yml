@@ -8,9 +8,9 @@ services:
     restart: unless-stopped
     environment:
       - TZ=America/Chicago
-      # API URL will be injected at build time via nginx env substitution
-      # For now, the frontend uses VITE_API_URL from build time
-      # In production, users access via external URL, so API calls go through browser to public router URL
+      # API key for proxying chat completions through nginx to local-ai-router
+      # This keeps the API key server-side (nginx) instead of exposing in browser
+      - LOCAL_AI_API_KEY=${LOCAL_AI_API_KEY}
     networks:
       - my-network
     labels:

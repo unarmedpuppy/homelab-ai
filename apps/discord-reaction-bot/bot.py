@@ -41,6 +41,7 @@ from tayne_persona import (
 # Configuration from environment
 DISCORD_TOKEN = os.environ['DISCORD_TOKEN']
 LOCAL_AI_URL = os.environ.get('LOCAL_AI_URL', 'http://local-ai-router:8000')
+LOCAL_AI_API_KEY = os.environ.get('LOCAL_AI_API_KEY', '')
 COOLDOWN_SECONDS = float(os.environ.get('TAYNE_COOLDOWN_SECONDS', DEFAULT_COOLDOWN_SECONDS))
 REACTION_CHANCE = float(os.environ.get('TAYNE_REACTION_CHANCE', DEFAULT_REACTION_CHANCE))
 RAPID_FIRE_THRESHOLD = int(os.environ.get('TAYNE_RAPID_FIRE_THRESHOLD', DEFAULT_RAPID_FIRE_THRESHOLD))
@@ -202,6 +203,7 @@ async def query_tayne(message: discord.Message) -> Optional[str]:
     
     headers = {
         "Content-Type": "application/json",
+        "Authorization": f"Bearer {LOCAL_AI_API_KEY}",
         "X-Enable-Memory": "true",
         "X-Conversation-ID": f"discord-{channel_id}",
         "X-Project": "tayne-discord-bot",

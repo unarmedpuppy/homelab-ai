@@ -9,6 +9,8 @@ services:
       - DISCORD_TOKEN=${DISCORD_TOKEN}
       # Local AI Router URL (default: http://local-ai-router:8000)
       - LOCAL_AI_URL=${LOCAL_AI_URL:-http://local-ai-router:8000}
+      # API key for authenticating with local-ai-router
+      - LOCAL_AI_API_KEY=${LOCAL_AI_API_KEY}
       # Rate limiting settings (all optional with sensible defaults)
       # - TAYNE_COOLDOWN_SECONDS=5
       # - TAYNE_REACTION_CHANCE=0.33
