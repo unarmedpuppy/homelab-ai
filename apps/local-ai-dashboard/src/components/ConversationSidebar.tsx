@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { memoryAPI } from '../api/client';
 import type { Conversation } from '../types/api';
 
@@ -61,6 +61,59 @@ export default function ConversationSidebar({
   onNewChat,
 }: ConversationSidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
+
+  const queryClient = useQueryClient();
+
+  const updateConversationMutation = useMutation({
+    mutationFn: ({ id, title }: { id: string; title: string }) =>
+      memoryAPI.updateConversation(id, { title }),
+    onMutate: async ({ id, title }) => {
+      await queryClient.cancelQueries({ queryKey: ['conversations'] });
+      const previousConversations = queryClient.getQueryData(['conversations']);
+      queryClient.setQueryData(['conversations'], (old: Conversation[] | undefined) =>
+        old?.map(conv =>
+          conv.id === id ? { ...conv, title } : conv
+        )
+      );
+      return { previousConversations };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousConversations) {
+        queryClient.setQueryData(['conversations'], context.previousConversations);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+    },
+  });
+
+  const handleStartEdit = (conversationId: string, currentTitle: string) => {
+    setEditingId(conversationId);
+    setEditValue(currentTitle);
+  };
+
+  const handleSaveEdit = () => {
+    if (editingId && editValue.trim()) {
+      updateConversationMutation.mutate({ id: editingId, title: editValue.trim() });
+    }
+    setEditingId(null);
+    setEditValue('');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditValue('');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSaveEdit();
+    } else if (e.key === 'Escape') {
+      handleCancelEdit();
+    }
+  };
 
   // Fetch all conversations
   const { data: conversations, isLoading } = useQuery({
@@ -130,10 +183,12 @@ export default function ConversationSidebar({
             {sortedConversations.map((item) => {
               const conv = item as Conversation;
               const badge = getSourceBadge(conv);
+              const isEditing = editingId === conv.id;
+              
               return (
                 <button
                   key={conv.id}
-                  onClick={() => onSelectConversation(conv.id)}
+                  onClick={() => !isEditing && onSelectConversation(conv.id)}
                   className={`w-full p-4 text-left hover:bg-gray-800 transition-colors ${
                     selectedConversationId === conv.id
                       ? 'bg-gray-800 border-l-2 border-blue-500'
@@ -148,9 +203,40 @@ export default function ConversationSidebar({
                       <span className="text-[10px] text-gray-500 truncate">@{conv.username}</span>
                     )}
                   </div>
-                  <div className="font-mono text-sm text-white truncate">
-                    {conv.title || conv.id}
-                  </div>
+                  
+                  {isEditing ? (
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        onBlur={handleSaveEdit}
+                        className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white text-sm font-mono focus:border-blue-500 focus:outline-none"
+                        autoFocus
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
+                  ) : (
+                    <div className="group flex items-center justify-between">
+                      <div className="font-mono text-sm text-white truncate flex-1">
+                        {conv.title || 'Untitled conversation'}
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStartEdit(conv.id, conv.title || '');
+                        }}
+                        className="ml-2 p-1 text-gray-500 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Rename conversation"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                  
                   <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
                     <span>▸ {conv.message_count || 0} msgs</span>
                     <span>•</span>

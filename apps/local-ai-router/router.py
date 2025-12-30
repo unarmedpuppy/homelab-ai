@@ -694,11 +694,12 @@ from memory import (
     get_conversation,
     create_conversation,
     delete_conversation,
+    update_conversation,
     get_conversation_messages,
     search_conversations,
     get_conversation_stats,
 )
-from models import ConversationCreate, SearchQuery
+from models import ConversationCreate, ConversationUpdate, SearchQuery
 
 
 @app.get("/memory/conversations")
@@ -746,6 +747,15 @@ async def api_delete_conversation(conversation_id: str):
     if not deleted:
         raise HTTPException(status_code=404, detail="Conversation not found")
     return {"status": "deleted", "conversation_id": conversation_id}
+
+
+@app.patch("/memory/conversations/{conversation_id}")
+async def api_update_conversation(conversation_id: str, update: ConversationUpdate):
+    """Update conversation metadata (title, etc.)."""
+    updated = update_conversation(conversation_id, update)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    return updated
 
 
 @app.post("/memory/search")
