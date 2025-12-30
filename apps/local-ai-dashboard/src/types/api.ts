@@ -135,3 +135,72 @@ export interface ChatCompletionResponse {
     total_tokens: number;
   };
 }
+
+// Provider Types
+export interface Provider {
+  id: string;
+  name: string;
+  type: 'local' | 'cloud';
+  status: 'online' | 'offline';
+  priority: number;
+  gpu?: string | null;
+  location?: string | null;
+  lastHealthCheck?: string | null;
+}
+
+export interface ProvidersResponse {
+  providers: Provider[];
+}
+
+export interface ProviderModel {
+  id: string;
+  name: string;
+  capabilities: {
+    vision?: boolean;
+    function_calling?: boolean;
+    streaming?: boolean;
+  };
+}
+
+export interface ProviderHealth {
+  is_healthy: boolean;
+  response_time_ms?: number;
+  checked_at?: string;
+  error?: string;
+  consecutive_failures: number;
+}
+
+export interface ProviderLoad {
+  current_requests: number;
+  max_concurrent: number;
+  utilization: number;
+}
+
+export interface ProviderConfig {
+  health_check_interval: number;
+  health_check_timeout: number;
+  health_check_path: string;
+  max_retries: number;
+  circuit_breaker_threshold: number;
+}
+
+export interface AdminProvider {
+  id: string;
+  name: string;
+  type: 'local' | 'cloud';
+  description?: string;
+  endpoint: string;
+  priority: number;
+  enabled: boolean;
+  health: ProviderHealth;
+  load: ProviderLoad;
+  models: ProviderModel[];
+  config: ProviderConfig;
+  metadata?: Record<string, any>;
+}
+
+export interface AdminProvidersResponse {
+  providers: AdminProvider[];
+  total_providers: number;
+  healthy_providers: number;
+}

@@ -10,6 +10,8 @@ import type {
   ModelUsage,
   ChatMessage,
   ChatCompletionResponse,
+  ProvidersResponse,
+  AdminProvidersResponse,
 } from '../types/api';
 
 // API base URL - defaults to public router endpoint
@@ -168,6 +170,19 @@ export const chatAPI = {
       { headers }
     );
 
+    return response.data;
+  },
+};
+
+// Providers API
+export const providersAPI = {
+  list: async () => {
+    const response = await apiClient.get<ProvidersResponse>('/providers');
+    return response.data;
+  },
+
+  listAdmin: async () => {
+    const response = await apiClient.get<AdminProvidersResponse>('/admin/providers');
     return response.data;
   },
 };
