@@ -109,6 +109,26 @@ export interface ChatMessage {
   content: string;
 }
 
+// Stream Event Types for SSE streaming with status
+export interface StreamEvent {
+  status: 'routing' | 'loading' | 'generating' | 'streaming' | 'done' | 'error';
+  message?: string;
+  content?: string;
+  model?: string;
+  backend?: string;
+  provider_name?: string;
+  timestamp: number;
+  estimated_time?: number;
+  delta?: string;
+  finish_reason?: string;
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+  error_detail?: string;
+}
+
 export interface ChatCompletionRequest {
   model: string;
   messages: ChatMessage[];
