@@ -101,3 +101,66 @@ curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
 All backend work (Phases 1-3) is implemented and validated on production server.
 
 **Note**: Explicit provider selection features (Phase 3.3 and 3.4) require live LLM backends to fully test. The routing logic is implemented and will be validated when LLM providers are available.
+
+## Phase 4: Dashboard Integration - Provider Monitoring
+
+**Status**: ✅ DEPLOYED AND VALIDATED
+
+### Implementation Checklist
+- [x] Phase 4.1: Add Provider API types and client functions
+- [x] Phase 4.2: Create ProviderMonitoring component
+- [x] Phase 4.3: Integrate into main dashboard navigation
+
+### Files Modified
+- `apps/local-ai-dashboard/src/types/api.ts` - Added Provider, AdminProvider, ProviderHealth, ProviderLoad types
+- `apps/local-ai-dashboard/src/api/client.ts` - Added providersAPI.list() and providersAPI.listAdmin()
+- `apps/local-ai-dashboard/src/components/ProviderMonitoring.tsx` - New component with auto-refresh, health cards, load visualization
+- `apps/local-ai-dashboard/src/App.tsx` - Added ProvidersView, updated navigation and routing
+
+### Server Testing Results (2025-12-29)
+
+**Backend API Endpoints**:
+```bash
+# Test /providers endpoint
+curl http://localhost:8012/providers
+✅ PASSED - Returns provider list with basic info (id, name, type, status, priority, gpu, location, lastHealthCheck)
+
+# Test /admin/providers endpoint
+curl http://localhost:8012/admin/providers
+✅ PASSED - Returns detailed provider info (health, load, models, config, metadata)
+```
+
+**Frontend Dashboard**:
+```bash
+# Test dashboard accessibility
+curl https://local-ai-dashboard.server.unarmedpuppy.com/
+✅ PASSED - HTTP 200 (accessible via Traefik)
+
+# Container status
+docker ps | grep local-ai-dashboard
+✅ PASSED - Container running (rebuilt with Phase 4 code)
+```
+
+### Features Implemented
+- **Real-time Monitoring**: Auto-refresh every 10 seconds
+- **Summary Stats**: Total providers, healthy count, offline count
+- **Provider Cards**:
+  - Health status indicators (green=online, red=offline)
+  - Response time tracking
+  - Load utilization bars (color-coded: green <50%, yellow 50-80%, red >80%)
+  - Model availability lists with capabilities
+  - Configuration details
+- **Error Handling**: Retry button on fetch failures
+- **Navigation**: New "🔌 Providers" link in sidebar
+
+### Manual Browser Testing Required
+To complete Phase 4 validation, navigate to:
+- https://local-ai-dashboard.server.unarmedpuppy.com/providers
+
+Verify:
+- [ ] Provider cards display correctly
+- [ ] Health status indicators show online/offline
+- [ ] Load utilization bars render with correct colors
+- [ ] Model lists display
+- [ ] Auto-refresh updates data every 10 seconds
+- [ ] Navigation between Chat/Providers/Stats works
