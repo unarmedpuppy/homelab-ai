@@ -7,13 +7,20 @@ services:
     restart: unless-stopped
     environment:
       - DISCORD_TOKEN=${DISCORD_TOKEN}
+      # Local AI Router URL (default: http://local-ai-router:8000)
+      - LOCAL_AI_URL=${LOCAL_AI_URL:-http://local-ai-router:8000}
+      # Rate limiting settings (all optional with sensible defaults)
+      # - TAYNE_COOLDOWN_SECONDS=5
+      # - TAYNE_REACTION_CHANCE=0.33
+      # - TAYNE_RAPID_FIRE_THRESHOLD=5
+      # - TAYNE_RAPID_FIRE_WINDOW=60
     networks:
       - my-network
     labels:
       - "homepage.group=Bots"
-      - "homepage.name=Discord Reaction Bot"
+      - "homepage.name=Tayne"
       - "homepage.icon=discord"
-      - "homepage.description=Reacts to messages with emojis"
+      - "homepage.description=Now Tayne I can get into"
 
 networks:
   my-network:
