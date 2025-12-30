@@ -9,7 +9,7 @@ interface ConversationSidebarProps {
   onNewChat: () => void;
 }
 
-const getSourceBadge = (conv: Conversation) => {
+const getSourceBadge = (conv: { source?: string; project?: string }) => {
   const source = conv.source || conv.project || 'unknown';
   const colors: Record<string, string> = {
     discord: 'bg-indigo-900/50 text-indigo-300 border-indigo-700',
@@ -127,7 +127,8 @@ export default function ConversationSidebar({
           </div>
         ) : (
           <div className="divide-y divide-gray-800">
-            {sortedConversations.map((conv) => {
+            {sortedConversations.map((item) => {
+              const conv = item as Conversation;
               const badge = getSourceBadge(conv);
               return (
                 <button
