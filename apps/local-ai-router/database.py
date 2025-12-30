@@ -85,10 +85,18 @@ def init_database():
                 tokens_completion INTEGER,
                 tool_calls TEXT,
                 tool_results TEXT,
+                image_refs TEXT,
                 metadata TEXT,
                 FOREIGN KEY (conversation_id) REFERENCES conversations(id)
             )
         """)
+
+        # Migration: Add image_refs column if it doesn't exist (for existing databases)
+        try:
+            cursor.execute("SELECT image_refs FROM messages LIMIT 1")
+        except sqlite3.OperationalError:
+            logger.info("Migrating: Adding image_refs column to messages table")
+            cursor.execute("ALTER TABLE messages ADD COLUMN image_refs TEXT")
 
         cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_messages_conversation
