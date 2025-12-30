@@ -163,6 +163,31 @@ def init_database():
             )
         """)
 
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS client_api_keys (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                key_hash TEXT NOT NULL UNIQUE,
+                key_prefix TEXT NOT NULL,
+                name TEXT NOT NULL,
+                created_at DATETIME NOT NULL,
+                last_used_at DATETIME,
+                expires_at DATETIME,
+                enabled BOOLEAN NOT NULL DEFAULT 1,
+                scopes TEXT,
+                metadata TEXT
+            )
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_client_api_keys_hash
+            ON client_api_keys(key_hash)
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_client_api_keys_enabled
+            ON client_api_keys(enabled)
+        """)
+
         conn.commit()
         logger.info("Database schema created successfully")
 
