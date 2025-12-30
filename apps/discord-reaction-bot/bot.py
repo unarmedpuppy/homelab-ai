@@ -108,6 +108,57 @@ def needs_fallback(response: str) -> bool:
     return False
 
 
+def clean_message_content(content: str, mentions: list) -> str:
+    """Remove bot mentions from message content."""
+    for mention in mentions:
+        content = content.replace(f'<@{mention.id}>', '')
+        content = content.replace(f'<@!{mention.id}>', '')
+    return content.strip()
+
+
+async def fetch_channel_history(channel: discord.TextChannel, limit: int = 10) -> list[dict]:
+    """
+    Fetch recent messages from channel to build conversation context.
+    
+    Args:
+        channel: The Discord channel to fetch from
+        limit: Max number of recent messages to fetch
+        
+    Returns:
+        List of message dicts in OpenAI format [{"role": ..., "content": ...}]
+    """
+    messages = []
+    
+    try:
+        async for msg in channel.history(limit=limit):
+            # Skip empty messages
+            if not msg.content:
+                continue
+                
+            # Clean the content
+            content = clean_message_content(msg.content, msg.mentions)
+            if not content:
+                continue
+            
+            # Determine role based on author
+            if msg.author == client.user:
+                role = "assistant"
+            else:
+                # Include author name for context
+                role = "user"
+                content = f"{msg.author.display_name}: {content}"
+            
+            messages.append({"role": role, "content": content})
+    except discord.errors.Forbidden:
+        print(f"Cannot read history in {channel}")
+    except Exception as e:
+        print(f"Error fetching channel history: {e}")
+    
+    # Reverse to get chronological order (oldest first)
+    messages.reverse()
+    return messages
+
+
 async def query_tayne(message: discord.Message) -> Optional[str]:
     """
     Query the local-ai-router with Tayne's persona.
@@ -121,22 +172,30 @@ async def query_tayne(message: discord.Message) -> Optional[str]:
     channel_id = str(message.channel.id)
     
     # Extract the actual message content, removing the mention
-    user_message = message.content
-    for mention in message.mentions:
-        user_message = user_message.replace(f'<@{mention.id}>', '')
-        user_message = user_message.replace(f'<@!{mention.id}>', '')
-    user_message = user_message.strip()
+    user_message = clean_message_content(message.content, message.mentions)
     
     # If empty after removing mentions, use a default
     if not user_message:
         user_message = "Hello Tayne!"
     
+    # Fetch recent channel history for context
+    history = await fetch_channel_history(message.channel, limit=15)
+    
+    # Build messages array: system prompt + history (excluding the current message which is last)
+    # History already includes the current message, so we use it directly
+    api_messages = [{"role": "system", "content": TAYNE_SYSTEM_PROMPT}]
+    
+    # Add history (which includes context from other users and Tayne's previous responses)
+    # Skip the last message since that's the current one we're responding to
+    if len(history) > 1:
+        api_messages.extend(history[:-1])
+    
+    # Add the current user message
+    api_messages.append({"role": "user", "content": f"{message.author.display_name}: {user_message}"})
+    
     payload = {
         "model": "auto",
-        "messages": [
-            {"role": "system", "content": TAYNE_SYSTEM_PROMPT},
-            {"role": "user", "content": user_message}
-        ],
+        "messages": api_messages,
         "max_tokens": 200,
         "temperature": 0.9,
     }
