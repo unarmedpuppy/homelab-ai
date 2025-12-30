@@ -15,6 +15,7 @@ import asyncio
 from agent import AgentRequest, AgentResponse, run_agent_loop, AGENT_TOOLS
 from auth import ApiKey, validate_api_key_header, get_request_priority
 from dependencies import get_request_tracker, log_chat_completion, RequestTracker
+from memory import generate_conversation_id
 from providers import ProviderManager, HealthChecker, ProviderSelection
 from stream import stream_chat_completion, stream_chat_completion_passthrough, StreamAccumulator
 # from middleware import MemoryMetricsMiddleware  # Replaced with dependency injection
@@ -491,6 +492,12 @@ async def chat_completions(
 ):
     """OpenAI-compatible chat completions with intelligent routing."""
     body = await request.json()
+
+    # Generate conversation ID early if memory is enabled but no ID provided
+    # This ensures the streaming response includes the conversation_id in the 'done' event
+    if tracker.enable_memory and not tracker.conversation_id:
+        tracker.conversation_id = generate_conversation_id()
+        logger.info(f"Generated conversation ID early for streaming: {tracker.conversation_id}")
 
     # Calculate request priority based on API key
     priority = get_request_priority(api_key)
