@@ -136,7 +136,7 @@ The router maintains **two separate systems** for tracking and storing data:
 
 **Purpose**: Logs all API requests for analytics and monitoring
 
-**Storage**: SQLite database (`data/memory.db` - metrics table)
+**Storage**: SQLite database (`data/local-ai-router.db` - metrics table)
 
 **Behavior**:
 - ✅ **Always enabled** by default
@@ -150,7 +150,7 @@ The router maintains **two separate systems** for tracking and storing data:
 
 **Purpose**: Stores conversation history for context and retrieval
 
-**Storage**: SQLite database (`data/memory.db` - conversations/messages tables)
+**Storage**: SQLite database (`data/local-ai-router.db` - conversations/messages tables)
 
 **Behavior**:
 - ⚠️ **Opt-in via headers** - NOT enabled by default for API requests
