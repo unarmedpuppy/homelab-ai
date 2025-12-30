@@ -255,6 +255,9 @@ async def on_message(message: discord.Message):
     if message.author == client.user:
         return
     
+    # Debug: Log all messages to see what's coming in
+    print(f"[DEBUG] Message from {message.author}: '{message.content[:100]}...' | Mentions: {[m.name for m in message.mentions]} | Bot in mentions: {client.user in message.mentions}")
+    
     # Check if Tayne was mentioned
     if client.user in message.mentions:
         await handle_mention(message)
