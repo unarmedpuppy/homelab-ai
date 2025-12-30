@@ -505,9 +505,13 @@ async def chat_completions(
         # Model cold starts can take 2-3 minutes, use 5 min timeout
         async with httpx.AsyncClient(timeout=300.0) as client:
             if stream:
-                # Stream the response
-                # TODO: Add metrics/memory logging for streaming responses
+                # Stream the response while accumulating for memory/metrics
+                accumulated_chunks = []
+                full_content = ""
+                metadata = {}
+
                 async def stream_response():
+                    nonlocal full_content, metadata
                     async with client.stream(
                         "POST",
                         endpoint_url,
@@ -515,12 +519,69 @@ async def chat_completions(
                         headers={"Content-Type": "application/json"},
                     ) as response:
                         async for chunk in response.aiter_bytes():
+                            # Store chunk for later processing
+                            accumulated_chunks.append(chunk)
+                            # Stream to client immediately
                             yield chunk
 
-                return StreamingResponse(
+                # Create response and start streaming
+                streaming_response = StreamingResponse(
                     stream_response(),
                     media_type="text/event-stream",
+                    background=None,  # We'll add background task after processing
                 )
+
+                # Process accumulated chunks after streaming completes (in background)
+                async def process_stream_completion():
+                    nonlocal full_content, metadata
+                    try:
+                        # Parse accumulated SSE chunks to extract data
+                        for chunk in accumulated_chunks:
+                            chunk_str = chunk.decode('utf-8')
+                            for line in chunk_str.split('\n'):
+                                if line.startswith('data: ') and line[6:] != '[DONE]':
+                                    try:
+                                        chunk_data = json.loads(line[6:])
+                                        # Accumulate content
+                                        if chunk_data.get('choices', [{}])[0].get('delta', {}).get('content'):
+                                            full_content += chunk_data['choices'][0]['delta']['content']
+                                        # Store metadata
+                                        if chunk_data.get('id'):
+                                            metadata['id'] = chunk_data['id']
+                                        if chunk_data.get('model'):
+                                            metadata['model'] = chunk_data['model']
+                                        if chunk_data.get('usage'):
+                                            metadata['usage'] = chunk_data['usage']
+                                    except json.JSONDecodeError:
+                                        pass
+
+                        # Construct response_data for logging
+                        response_data = {
+                            'id': metadata.get('id', 'unknown'),
+                            'object': 'chat.completion',
+                            'model': metadata.get('model', body.get('model', 'auto')),
+                            'choices': [{
+                                'index': 0,
+                                'message': {
+                                    'role': 'assistant',
+                                    'content': full_content,
+                                },
+                                'finish_reason': 'stop',
+                            }],
+                            'usage': metadata.get('usage', {}),
+                            'provider': selection.provider.id,
+                        }
+
+                        # Log to memory and metrics
+                        log_chat_completion(tracker, body, response_data, error=None)
+                        logger.info(f"Logged streaming response to memory (conversation: {tracker.conversation_id})")
+                    except Exception as e:
+                        logger.error(f"Failed to process streaming completion: {e}")
+
+                # Add background task to process after stream completes
+                background_tasks.add_task(process_stream_completion)
+
+                return streaming_response
             else:
                 # Non-streaming response
                 error = None
