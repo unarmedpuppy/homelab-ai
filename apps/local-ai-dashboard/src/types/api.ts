@@ -192,11 +192,16 @@ export interface ProvidersResponse {
 export interface ProviderModel {
   id: string;
   name: string;
+  context_window?: number;
+  max_tokens?: number;
+  is_default?: boolean;
   capabilities: {
     vision?: boolean;
     function_calling?: boolean;
     streaming?: boolean;
+    json_mode?: boolean;
   };
+  tags?: string[];
 }
 
 export interface ProviderHealth {

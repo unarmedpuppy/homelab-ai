@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { chatAPI, memoryAPI, providersAPI, imageAPI } from '../api/client';
 import type { ChatMessage, ImageRef } from '../types/api';
 import ImageUpload from './ImageUpload';
+import ProviderModelSelector from './ProviderModelSelector';
 
 interface MessageWithMetadata extends ChatMessage {
   model?: string;
@@ -19,7 +20,8 @@ interface ChatInterfaceProps {
 export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<MessageWithMetadata[]>([]);
   const [input, setInput] = useState('');
-  const [selectedModel, setSelectedModel] = useState('auto');
+  const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
+  const [selectedModel, setSelectedModel] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Advanced settings
@@ -59,20 +61,10 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  // Build model options from providers
-  const modelOptions = [
-    { value: 'auto', label: 'Auto (Intelligent Routing)', providerId: null, isDefault: false, isHealthy: true },
-    ...(providersData?.providers.flatMap(provider =>
-      provider.models.map(model => ({
-        value: `${provider.id}/${model.id}`,
-        label: `${model.name} (${provider.name})`,
-        providerId: provider.id,
-        modelId: model.id,
-        isDefault: false,
-        isHealthy: provider.health.is_healthy,
-      }))
-    ) || [])
-  ];
+  const getModelForAPI = (): string => {
+    if (!selectedProvider || !selectedModel) return 'auto';
+    return `${selectedProvider}/${selectedModel}`;
+  };
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -169,7 +161,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
 
     try {
       const stream = chatAPI.sendMessageStream({
-        model: selectedModel,
+        model: getModelForAPI(),
         messages: apiMessages,
         conversationId: activeConversationId || conversationId || undefined,
         temperature,
@@ -279,37 +271,18 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
 
   return (
     <div className="flex flex-col h-screen bg-black">
-      {/* Header */}
       <div className="border-b border-gray-800 p-4 bg-gray-900">
         <div className="flex items-center justify-between">
-          {/* Model Selector */}
-          <div className="flex items-center gap-4">
-            <label className="text-xs uppercase tracking-wider text-gray-500">
-              Model:
-            </label>
-            <select
-              value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value)}
-              disabled={isLoadingProviders}
-              className="px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white text-sm focus:border-blue-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoadingProviders ? (
-                <option value="auto">Loading models...</option>
-              ) : (
-                modelOptions.map(option => (
-                  <option
-                    key={option.value}
-                    value={option.value}
-                    disabled={option.isHealthy === false}
-                  >
-                    {option.label}{option.isHealthy === false ? ' (offline)' : ''}
-                  </option>
-                ))
-              )}
-            </select>
-          </div>
+          <ProviderModelSelector
+            providers={providersData?.providers || []}
+            isLoading={isLoadingProviders}
+            selectedProvider={selectedProvider}
+            selectedModel={selectedModel}
+            onProviderChange={setSelectedProvider}
+            onModelChange={setSelectedModel}
+            disabled={isStreaming}
+          />
 
-          {/* Settings Toggle */}
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
             className={`px-3 py-2 rounded text-sm font-medium transition-colors ${
