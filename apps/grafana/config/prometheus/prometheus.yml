@@ -1,6 +1,4 @@
-# Prometheus configuration
-# Copy this to apps/grafana/data/prometheus/ on the server
-# or merge the local-ai-router job with existing config
+# Prometheus configuration for home-server monitoring
 
 global:
   scrape_interval: 15s

@@ -92,10 +92,12 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./data/prometheus:/etc/prometheus
+      - ./config/prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
     command:
       - --web.enable-lifecycle
       - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
     networks:
       - my-network
 
@@ -107,6 +109,7 @@ services:
       - influxdb
       - loki
       - promtail
+      - prometheus
     # image: grafana/grafana:latest
     image: harbor.server.unarmedpuppy.com/docker-hub/grafana/grafana:latest
     restart: unless-stopped
@@ -114,6 +117,8 @@ services:
       - GF_SERVER_ROOT_URL=https://grafana.server.unarmedpuppy.com # optional
     volumes:
       - ./data/grafana:/var/lib/grafana
+      - ./config/provisioning:/etc/grafana/provisioning
+      - ./config/dashboards:/var/lib/grafana/dashboards
     ports:
       - 3010:3000
     networks:
@@ -150,6 +155,9 @@ services:
       - "homepage.icon=si-grafana"
       - "homepage.href=https://grafana.server.unarmedpuppy.com/d/sF7d-FHZz122/server?orgId=1&refresh=15m"
       - "homepage.description=Home Server telemetry & metrics"
+
+volumes:
+  prometheus_data:
 
 networks:
   my-network:
