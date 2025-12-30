@@ -71,6 +71,13 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Auto-scroll during streaming
+  useEffect(() => {
+    if (isStreaming && streamingContent) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [streamingContent, isStreaming]);
+
   // Load conversation when conversationId changes
   const { data: loadedConversation, isLoading: isLoadingConversation } = useQuery({
     queryKey: ['conversation', conversationId],
