@@ -328,3 +328,99 @@ curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
 **Manual Testing Required**: User must verify UI rendering and interactions in browser
 
 **Next Steps**: Manual browser testing to validate all Phase 5 features
+
+---
+
+## Phase 6: Streaming Responses
+
+**Status**: ✅ DEPLOYED (Manual testing required)
+
+### Implementation Checklist
+- [x] Phase 6.1: Backend SSE streaming (pre-existing - basic pass-through)
+- [x] Phase 6.2: Frontend EventSource Integration
+- [x] Phase 6.3: Real-time token display
+- [x] Phase 6.4: Error handling & state management
+
+### Phase 6.2: Frontend EventSource Integration
+
+**Files Modified**:
+- `apps/local-ai-dashboard/src/api/client.ts` - Added `sendMessageStreaming()` function
+- `apps/local-ai-dashboard/src/components/ChatInterface.tsx` - Streaming UI implementation
+
+**Frontend Changes**:
+- ✅ Added `sendMessageStreaming()` using fetch API with ReadableStream for SSE
+- ✅ Replaced mutation-based message sending with streaming callbacks
+- ✅ Real-time token accumulation and display
+- ✅ Live token counter during generation
+- ✅ Animated cursor (green pulsing) at end of streaming text
+- ✅ Loading states: "connecting..." before first token, "streaming... N tokens" during generation
+- ✅ Graceful error handling and cleanup
+- ✅ Auto-scroll to bottom as tokens arrive
+
+**Technical Implementation**:
+- Uses fetch `ReadableStream` for Server-Sent Events (SSE)
+- Parses SSE format: `data: JSON` lines terminated by `data: [DONE]`
+- Accumulates metadata (id, model, provider, usage, finish_reason) from stream chunks
+- Constructs final `ChatCompletionResponse` on stream completion
+- Three callbacks: `onToken`, `onComplete`, `onError`
+
+**Deployment**:
+```bash
+# Deployed 2025-12-29
+Commit: 0f1a253d - "feat(local-ai-dashboard): Add streaming response support (Phase 6)"
+Container rebuilt with --no-cache flag for fresh build
+✅ Dashboard accessible at https://local-ai-dashboard.server.unarmedpuppy.com/ (HTTP 200)
+```
+
+### Backend Streaming (Pre-existing)
+
+**Status**: ✅ Already implemented in `apps/local-ai-router/router.py` lines 507-523
+
+**Current Implementation**:
+- Basic pass-through streaming from provider to client
+- Returns `StreamingResponse` with `media_type="text/event-stream"`
+- Streams bytes directly from provider without modification
+
+**Note**: Backend streaming works but lacks advanced features like:
+- Provider info injection into stream
+- Metrics/memory logging for streaming responses
+- Token count tracking
+- Custom SSE event formatting
+
+These enhancements can be added in future iterations if needed.
+
+### Manual Browser Testing Required
+
+**⚠️ IMPORTANT**: The following tests require manual browser testing:
+
+Navigate to: https://local-ai-dashboard.server.unarmedpuppy.com/
+
+**Phase 6 Streaming Tests**:
+- [ ] Send message and observe real-time token streaming
+- [ ] "connecting..." appears before first token
+- [ ] "streaming... N tokens" counter updates in real-time
+- [ ] Green pulsing cursor appears at end of streaming text
+- [ ] Tokens appear smoothly word-by-word or character-by-character
+- [ ] Auto-scroll follows streaming content
+- [ ] Send button disabled during streaming
+- [ ] Final message appears with correct metadata (provider, model, tokens)
+- [ ] Error handling (network interruption, API errors)
+- [ ] Multiple messages stream correctly in sequence
+
+**Prerequisites**: Gaming PC vLLM must be running for full testing
+
+### Summary
+
+**Phase 6 Status**: ✅ Implementation complete, deployed to production
+
+**Deployed Features**:
+- Frontend streaming with Server-Sent Events
+- Real-time token-by-token display
+- Live streaming indicators and counters
+- Graceful error handling
+
+**Manual Testing Required**: User must verify streaming UX in browser
+
+**Backend Note**: Basic streaming already works. Advanced features (provider info injection, metrics logging) can be added later if needed.
+
+**Next Steps**: Manual browser testing + continue with remaining phases
