@@ -264,6 +264,7 @@ async def root():
             "health": "/health",
             "chat": "/v1/chat/completions",
             "agent": "/v1/agent/chat",
+            "admin": "/admin/providers",
             "memory": "/memory/*",
             "metrics": "/metrics/*",
             "rag": "/rag/*",
@@ -302,6 +303,92 @@ async def health_check() -> HealthResponse:
         backends=backend_status,
         gaming_mode=gaming_status.gaming_mode if gaming_status else None,
     )
+
+
+@app.get("/admin/providers")
+async def list_providers():
+    """
+    Admin endpoint: List all providers with detailed status and configuration.
+
+    Returns comprehensive provider information including:
+    - Provider metadata (name, type, endpoint, priority)
+    - Current health status and consecutive failures
+    - Load information (current requests vs max concurrent)
+    - Available models for each provider
+    - Health check history (if available)
+    """
+    if not provider_manager:
+        raise HTTPException(status_code=503, detail="Provider manager not initialized")
+
+    providers_info = []
+
+    for provider in provider_manager.get_all_providers():
+        # Get models for this provider
+        provider_models = [
+            {
+                "id": model.id,
+                "name": model.name,
+                "context_window": model.context_window,
+                "max_tokens": model.max_tokens,
+                "is_default": model.is_default,
+                "capabilities": {
+                    "streaming": model.capabilities.streaming,
+                    "function_calling": model.capabilities.function_calling,
+                    "vision": model.capabilities.vision,
+                    "json_mode": model.capabilities.json_mode,
+                },
+                "tags": model.tags,
+            }
+            for model in provider_manager.get_all_models()
+            if model.provider_id == provider.id
+        ]
+
+        # Get health check result if available
+        health_info = None
+        if health_checker:
+            health_status = health_checker.get_all_health_status()
+            if provider.id in health_status:
+                health_result = health_status[provider.id]
+                health_info = {
+                    "is_healthy": health_result.is_healthy,
+                    "response_time_ms": health_result.response_time_ms,
+                    "checked_at": health_result.checked_at.isoformat() if health_result.checked_at else None,
+                    "error": health_result.error,
+                }
+
+        providers_info.append({
+            "id": provider.id,
+            "name": provider.name,
+            "type": provider.type.value,
+            "description": provider.description,
+            "endpoint": provider.endpoint,
+            "priority": provider.priority,
+            "enabled": provider.enabled,
+            "health": {
+                "is_healthy": provider.is_healthy,
+                "consecutive_failures": provider.consecutive_failures,
+                "last_check": health_info,
+            },
+            "load": {
+                "current_requests": provider.current_requests,
+                "max_concurrent": provider.max_concurrent,
+                "utilization": round((provider.current_requests / provider.max_concurrent) * 100, 1) if provider.max_concurrent > 0 else 0,
+            },
+            "models": provider_models,
+            "config": {
+                "health_check_interval": provider.health_check_interval,
+                "health_check_timeout": provider.health_check_timeout,
+                "health_check_path": provider.health_check_path,
+                "auth_type": provider.auth_type.value if provider.auth_type else None,
+            },
+            "metadata": provider.metadata,
+        })
+
+    return {
+        "providers": providers_info,
+        "total_providers": len(providers_info),
+        "healthy_providers": sum(1 for p in providers_info if p["health"]["is_healthy"]),
+    }
 
 
 @app.get("/v1/models")
