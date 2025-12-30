@@ -132,6 +132,11 @@ See `agents/reference/` for detailed patterns and workflows.
   - SSH to server and `git pull` to deploy changes
   - This is the ONLY way to get changes to the server
   - No exceptions - even "quick fixes" must go through git
+- **🚨 NEVER EDIT `.beads/` ON THE SERVER VIA SSH** - Beads operations must be done locally
+  - `.beads/issues.jsonl` and other beads files are git-tracked
+  - If you SSH to the server, you CANNOT run `bd` commands that modify issues
+  - Workflow: Edit locally → commit → push → server does `git pull`
+  - Exception: If you're actually running directly on the server (not SSH), it's fine
 - Skip task status updates
 - Delete files without understanding dependencies
 - Make unrelated changes in a single commit
@@ -352,11 +357,13 @@ Specialized agent personalities are available in `agents/personas/`:
 | [server-agent](agents/personas/server-agent.md) | Server management and deployment specialist |
 | [backup-agent](agents/personas/backup-agent.md) | Backup configuration and B2 storage management |
 | [critical-thinking-agent](agents/personas/critical-thinking-agent.md) | Hyper-objective logic engine for strengthening thinking and decision-making |
+| [game-server-agent](agents/personas/game-server-agent.md) | Game server setup, monitoring (Uptime Kuma), and DNS configuration |
 
 For task coordination and finding work, reference the task-manager-agent persona.
 For server-specific tasks, reference the server-agent persona.
 For backup configuration and B2 management, reference the backup-agent persona.
 For critical analysis, decision review, or challenging assumptions, reference the critical-thinking-agent persona.
+For game server setup (Valheim, 7DTD, Minecraft, etc.), monitoring, and DNS, reference the game-server-agent persona.
 
 ## Deep-Dive Documentation
 
