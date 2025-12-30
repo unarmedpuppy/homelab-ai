@@ -172,6 +172,147 @@ export const chatAPI = {
 
     return response.data;
   },
+
+  sendMessageStreaming: async (params: {
+    model: string;
+    messages: ChatMessage[];
+    conversationId?: string;
+    temperature?: number;
+    max_tokens?: number;
+    top_p?: number;
+    frequency_penalty?: number;
+    presence_penalty?: number;
+    onToken: (token: string) => void;
+    onComplete: (response: ChatCompletionResponse) => void;
+    onError: (error: Error) => void;
+  }) => {
+    const {
+      conversationId,
+      messages,
+      model,
+      temperature,
+      max_tokens,
+      top_p,
+      frequency_penalty,
+      presence_penalty,
+      onToken,
+      onComplete,
+      onError,
+    } = params;
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'X-Enable-Memory': 'true',
+      'X-Project': 'dashboard',
+      'X-User-ID': 'dashboard-user',
+    };
+
+    if (conversationId) {
+      headers['X-Conversation-ID'] = conversationId;
+    }
+
+    const requestBody: Record<string, unknown> = {
+      model,
+      messages,
+      stream: true, // Enable streaming
+    };
+
+    if (temperature !== undefined) requestBody.temperature = temperature;
+    if (max_tokens !== undefined) requestBody.max_tokens = max_tokens;
+    if (top_p !== undefined) requestBody.top_p = top_p;
+    if (frequency_penalty !== undefined) requestBody.frequency_penalty = frequency_penalty;
+    if (presence_penalty !== undefined) requestBody.presence_penalty = presence_penalty;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/v1/chat/completions`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      if (!response.body) {
+        throw new Error('Response body is null');
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let fullContent = '';
+      let metadata: any = {};
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+        for (const line of lines) {
+          if (!line.trim() || line.startsWith(':')) continue; // Skip empty lines and comments
+
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6); // Remove 'data: ' prefix
+
+            if (data === '[DONE]') {
+              // Stream complete - construct final response
+              onComplete({
+                id: metadata.id || 'unknown',
+                object: 'chat.completion',
+                created: metadata.created || Math.floor(Date.now() / 1000),
+                model: metadata.model || model,
+                choices: [
+                  {
+                    index: 0,
+                    message: {
+                      role: 'assistant',
+                      content: fullContent,
+                    },
+                    finish_reason: metadata.finish_reason || 'stop',
+                  },
+                ],
+                usage: metadata.usage,
+                provider: metadata.provider,
+              } as ChatCompletionResponse);
+              return;
+            }
+
+            try {
+              const parsed = JSON.parse(data);
+
+              // Store metadata from first chunk
+              if (parsed.id) metadata.id = parsed.id;
+              if (parsed.model) metadata.model = parsed.model;
+              if (parsed.created) metadata.created = parsed.created;
+              if (parsed.provider) metadata.provider = parsed.provider;
+              if (parsed.usage) metadata.usage = parsed.usage;
+
+              // Extract token from delta
+              if (parsed.choices?.[0]?.delta?.content) {
+                const token = parsed.choices[0].delta.content;
+                fullContent += token;
+                onToken(token);
+              }
+
+              // Store finish reason
+              if (parsed.choices?.[0]?.finish_reason) {
+                metadata.finish_reason = parsed.choices[0].finish_reason;
+              }
+            } catch (e) {
+              console.error('Failed to parse SSE data:', data, e);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      onError(error instanceof Error ? error : new Error(String(error)));
+    }
+  },
 };
 
 // Providers API

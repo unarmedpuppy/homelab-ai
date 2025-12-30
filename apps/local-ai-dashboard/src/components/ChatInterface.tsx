@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { chatAPI, memoryAPI, providersAPI } from '../api/client';
 import type { ChatMessage } from '../types/api';
 
@@ -26,6 +26,11 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   const [topP, setTopP] = useState(1.0);
   const [frequencyPenalty, setFrequencyPenalty] = useState(0.0);
   const [presencePenalty, setPresencePenalty] = useState(0.0);
+
+  // Streaming state
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamingContent, setStreamingContent] = useState('');
+  const [streamingTokenCount, setStreamingTokenCount] = useState(0);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -82,46 +87,8 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
     }
   }, [loadedConversation, conversationId]);
 
-  const sendMessageMutation = useMutation({
-    mutationFn: async () => {
-      // messages already includes the userMessage from optimistic update in handleSendMessage
-      const newMessages: ChatMessage[] = messages.map(m => ({ role: m.role, content: m.content }));
-
-      return chatAPI.sendMessage({
-        model: selectedModel,
-        messages: newMessages,
-        conversationId: conversationId || undefined,
-        temperature,
-        max_tokens: maxTokens,
-        top_p: topP,
-        frequency_penalty: frequencyPenalty,
-        presence_penalty: presencePenalty,
-      });
-    },
-    onSuccess: (response) => {
-      const assistantMessage = response.choices[0].message;
-      // Add assistant response to existing messages
-      setMessages(prev => [
-        ...prev,
-        {
-          role: assistantMessage.role,
-          content: assistantMessage.content,
-          model: response.model,
-          tokens: response.usage?.completion_tokens,
-          provider: (response as any).provider, // Provider ID from Phase 3
-        },
-      ]);
-    },
-    onError: (error) => {
-      // Log error for debugging
-      console.error('Chat API error:', error);
-      // Remove the user message that failed to send
-      setMessages(prev => prev.slice(0, -1));
-    },
-  });
-
-  const handleSendMessage = () => {
-    if (!input.trim() || sendMessageMutation.isPending) return;
+  const handleSendMessage = async () => {
+    if (!input.trim() || isStreaming) return;
 
     const userMessage = input.trim();
 
@@ -129,8 +96,58 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setInput('');
 
-    // Send to API (messages state already includes the new user message)
-    sendMessageMutation.mutate();
+    // Reset streaming state
+    setStreamingContent('');
+    setStreamingTokenCount(0);
+    setIsStreaming(true);
+
+    // Prepare messages for API
+    const apiMessages: ChatMessage[] = [
+      ...messages.map(m => ({ role: m.role, content: m.content })),
+      { role: 'user', content: userMessage },
+    ];
+
+    // Call streaming API
+    await chatAPI.sendMessageStreaming({
+      model: selectedModel,
+      messages: apiMessages,
+      conversationId: conversationId || undefined,
+      temperature,
+      max_tokens: maxTokens,
+      top_p: topP,
+      frequency_penalty: frequencyPenalty,
+      presence_penalty: presencePenalty,
+      onToken: (token) => {
+        // Update streaming content as tokens arrive
+        setStreamingContent(prev => prev + token);
+        setStreamingTokenCount(prev => prev + 1);
+      },
+      onComplete: (response) => {
+        // Streaming complete - add final message
+        const assistantMessage = response.choices[0].message;
+        setMessages(prev => [
+          ...prev,
+          {
+            role: assistantMessage.role,
+            content: assistantMessage.content,
+            model: response.model,
+            tokens: response.usage?.completion_tokens,
+            provider: (response as any).provider,
+          },
+        ]);
+        setIsStreaming(false);
+        setStreamingContent('');
+        setStreamingTokenCount(0);
+      },
+      onError: (error) => {
+        console.error('Streaming error:', error);
+        setIsStreaming(false);
+        setStreamingContent('');
+        setStreamingTokenCount(0);
+        // Remove the user message that failed
+        setMessages(prev => prev.slice(0, -1));
+      },
+    });
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -339,23 +356,36 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
           ))
         )}
 
-        {/* Loading indicator */}
-        {sendMessageMutation.isPending && (
+        {/* Streaming message indicator */}
+        {isStreaming && streamingContent && (
+          <div className="group">
+            {/* Message Header */}
+            <div className="flex items-center gap-3 mb-2">
+              <div className="text-xs font-mono uppercase text-green-400">
+                ◂ ASSISTANT
+              </div>
+              <div className="text-xs text-gray-500">
+                streaming... {streamingTokenCount} tokens
+              </div>
+            </div>
+
+            {/* Message Content */}
+            <div className="p-4 rounded border bg-gray-900 border-green-900/30 mr-6">
+              <div className="text-gray-300 whitespace-pre-wrap text-sm">
+                {streamingContent}
+                <span className="inline-block w-2 h-4 bg-green-400 ml-1 animate-pulse"></span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Loading indicator (before first token) */}
+        {isStreaming && !streamingContent && (
           <div className="flex items-center gap-3 mb-2">
             <div className="text-xs font-mono uppercase text-green-400">
               ◂ ASSISTANT
             </div>
-            <div className="text-xs text-gray-500">typing...</div>
-          </div>
-        )}
-
-        {/* Error display */}
-        {sendMessageMutation.isError && (
-          <div className="bg-gray-800 border border-red-800 rounded p-4">
-            <div className="text-xs uppercase tracking-wider text-red-400 mb-2">Error</div>
-            <div className="text-red-300 text-sm">
-              {String(sendMessageMutation.error)}
-            </div>
+            <div className="text-xs text-gray-500">connecting...</div>
           </div>
         )}
 
@@ -375,10 +405,10 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
           />
           <button
             onClick={handleSendMessage}
-            disabled={!input.trim() || sendMessageMutation.isPending}
+            disabled={!input.trim() || isStreaming}
             className="px-6 py-3 bg-blue-600 text-white font-medium rounded hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors uppercase tracking-wider text-sm"
           >
-            {sendMessageMutation.isPending ? '...' : '▸ Send'}
+            {isStreaming ? '...' : '▸ Send'}
           </button>
         </div>
       </div>
