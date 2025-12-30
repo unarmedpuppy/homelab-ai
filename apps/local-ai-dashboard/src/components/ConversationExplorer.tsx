@@ -1,6 +1,21 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { memoryAPI } from '../api/client';
+import type { Conversation } from '../types/api';
+
+const getSourceBadge = (conv: Conversation) => {
+  const source = conv.source || conv.project || 'unknown';
+  const colors: Record<string, string> = {
+    discord: 'bg-indigo-900/50 text-indigo-300 border-indigo-700',
+    'tayne-discord-bot': 'bg-indigo-900/50 text-indigo-300 border-indigo-700',
+    dashboard: 'bg-emerald-900/50 text-emerald-300 border-emerald-700',
+    testing: 'bg-amber-900/50 text-amber-300 border-amber-700',
+    unknown: 'bg-gray-800 text-gray-400 border-gray-600',
+  };
+  const label = source.replace('tayne-discord-bot', 'discord').replace('-', ' ');
+  const colorClass = colors[source] || colors.unknown;
+  return { label, colorClass };
+};
 
 // Format date safely - handles multiple formats
 const formatDate = (dateInput: string | number | undefined | null): string => {
@@ -99,24 +114,41 @@ export default function ConversationExplorer() {
             </div>
           ) : (
             <div className="divide-y divide-gray-700">
-              {displayedConversations.map((conv) => (
-                <button
-                  key={conv.id}
-                  onClick={() => setSelectedConversation(conv.id)}
-                  className={`w-full p-4 text-left hover:bg-gray-700 transition-colors ${
-                    selectedConversation === conv.id ? 'bg-gray-700 border-l-2 border-blue-500' : ''
-                  }`}
-                >
-                  <div className="font-mono text-sm text-white truncate">
-                    {conv.id}
-                  </div>
-                  <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
-                    <span>▸ {conv.message_count || 0} msgs</span>
-                    <span>•</span>
-                    <span>{formatDate(conv.created_at)}</span>
-                  </div>
-                </button>
-              ))}
+              {displayedConversations.map((conv) => {
+                const badge = getSourceBadge(conv);
+                return (
+                  <button
+                    key={conv.id}
+                    onClick={() => setSelectedConversation(conv.id)}
+                    className={`w-full p-4 text-left hover:bg-gray-700 transition-colors ${
+                      selectedConversation === conv.id ? 'bg-gray-700 border-l-2 border-blue-500' : ''
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-0.5 text-xs rounded border ${badge.colorClass}`}>
+                        {badge.label}
+                      </span>
+                      {conv.username && (
+                        <span className="text-xs text-gray-500">@{conv.username}</span>
+                      )}
+                    </div>
+                    <div className="font-mono text-sm text-white truncate mt-1">
+                      {conv.title || conv.id}
+                    </div>
+                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                      <span>▸ {conv.message_count || 0} msgs</span>
+                      <span>•</span>
+                      <span>{formatDate(conv.created_at)}</span>
+                      {conv.total_tokens && (
+                        <>
+                          <span>•</span>
+                          <span>{conv.total_tokens.toLocaleString()} tokens</span>
+                        </>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
@@ -134,21 +166,32 @@ export default function ConversationExplorer() {
           <div className="bg-gray-800 rounded-lg border border-gray-700">
             {/* Header */}
             <div className="p-6 border-b border-gray-700">
-              <div className="text-xs uppercase tracking-wider text-gray-400 mb-2">
-                Conversation
+              <div className="flex items-center gap-3 mb-2">
+                <div className="text-xs uppercase tracking-wider text-gray-400">
+                  Conversation
+                </div>
+                {(() => {
+                  const badge = getSourceBadge(selectedConv);
+                  return (
+                    <span className={`px-2 py-0.5 text-xs rounded border ${badge.colorClass}`}>
+                      {badge.label}
+                    </span>
+                  );
+                })()}
               </div>
               <h2 className="text-lg font-mono text-white truncate">
-                {selectedConv.id}
+                {selectedConv.title || selectedConv.id}
               </h2>
               <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-gray-400">
-                {selectedConv.user_id && (
+                {(selectedConv.username || selectedConv.display_name) && (
                   <div>
-                    <span className="text-gray-500">User:</span> {selectedConv.user_id}
+                    <span className="text-gray-500">User:</span>{' '}
+                    {selectedConv.display_name || `@${selectedConv.username}`}
                   </div>
                 )}
-                {selectedConv.session_id && (
+                {selectedConv.source && (
                   <div>
-                    <span className="text-gray-500">Session:</span> {selectedConv.session_id}
+                    <span className="text-gray-500">Source:</span> {selectedConv.source}
                   </div>
                 )}
                 {selectedConv.project && (
@@ -156,9 +199,19 @@ export default function ConversationExplorer() {
                     <span className="text-gray-500">Project:</span> {selectedConv.project}
                   </div>
                 )}
+                {selectedConv.session_id && (
+                  <div>
+                    <span className="text-gray-500">Session:</span> {selectedConv.session_id}
+                  </div>
+                )}
                 <div>
                   <span className="text-gray-500">Created:</span> {formatDate(selectedConv.created_at)}
                 </div>
+                {selectedConv.total_tokens && (
+                  <div>
+                    <span className="text-gray-500">Tokens:</span> {selectedConv.total_tokens.toLocaleString()}
+                  </div>
+                )}
               </div>
             </div>
 

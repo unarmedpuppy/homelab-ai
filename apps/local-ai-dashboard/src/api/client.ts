@@ -196,7 +196,16 @@ export const chatAPI = {
       headers['X-Conversation-ID'] = conversationId;
     }
 
-    const requestBody = {
+    const requestBody: {
+      model: string;
+      messages: ChatMessage[];
+      stream: boolean;
+      temperature?: number;
+      max_tokens?: number;
+      top_p?: number;
+      frequency_penalty?: number;
+      presence_penalty?: number;
+    } = {
       model,
       messages,
       stream: true,
