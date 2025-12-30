@@ -155,17 +155,18 @@ def log_chat_completion(
                     )
                     logger.info(f"Created conversation: {conversation_id}")
 
-                # Store user message(s)
-                for msg in messages:
-                    role = msg.get("role", "user")
-                    content = msg.get("content")
-
+                # Store only the LAST user message (the new one)
+                # The messages array contains full conversation history, but we only
+                # want to store the new message to avoid duplicates
+                user_messages = [m for m in messages if m.get("role") == "user"]
+                if user_messages:
+                    last_user_msg = user_messages[-1]
                     add_message(
                         MessageCreate(
                             conversation_id=conversation_id,
-                            role=MessageRole(role),
-                            content=content,
-                            tokens_prompt=prompt_tokens if role == "user" else None,
+                            role=MessageRole.USER,
+                            content=last_user_msg.get("content"),
+                            tokens_prompt=prompt_tokens,
                         )
                     )
 
