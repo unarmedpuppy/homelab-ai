@@ -17,9 +17,14 @@ export interface Conversation {
   session_id?: string;
   user_id?: string;
   project?: string;
+  username?: string;
+  source?: string;
+  display_name?: string;
+  title?: string;
   created_at: string;
   updated_at: string;
   message_count?: number;
+  total_tokens?: number;
   messages?: Message[];
 }
 

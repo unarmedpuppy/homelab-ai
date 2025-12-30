@@ -1,12 +1,27 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { memoryAPI } from '../api/client';
+import type { Conversation } from '../types/api';
 
 interface ConversationSidebarProps {
   selectedConversationId: string | null;
   onSelectConversation: (id: string) => void;
   onNewChat: () => void;
 }
+
+const getSourceBadge = (conv: Conversation) => {
+  const source = conv.source || conv.project || 'unknown';
+  const colors: Record<string, string> = {
+    discord: 'bg-indigo-900/50 text-indigo-300 border-indigo-700',
+    'tayne-discord-bot': 'bg-indigo-900/50 text-indigo-300 border-indigo-700',
+    dashboard: 'bg-emerald-900/50 text-emerald-300 border-emerald-700',
+    testing: 'bg-amber-900/50 text-amber-300 border-amber-700',
+    unknown: 'bg-gray-800 text-gray-400 border-gray-600',
+  };
+  const label = source.replace('tayne-discord-bot', 'discord').replace('-', ' ');
+  const colorClass = colors[source] || colors.unknown;
+  return { label, colorClass };
+};
 
 // Format date safely - handles multiple formats
 const formatDate = (dateInput: string | number | undefined | null): string => {
@@ -112,31 +127,37 @@ export default function ConversationSidebar({
           </div>
         ) : (
           <div className="divide-y divide-gray-800">
-            {sortedConversations.map((conv) => (
-              <button
-                key={conv.id}
-                onClick={() => onSelectConversation(conv.id)}
-                className={`w-full p-4 text-left hover:bg-gray-800 transition-colors ${
-                  selectedConversationId === conv.id
-                    ? 'bg-gray-800 border-l-2 border-blue-500'
-                    : 'border-l-2 border-transparent'
-                }`}
-              >
-                <div className="font-mono text-sm text-white truncate">
-                  {conv.id}
-                </div>
-                <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
-                  <span>▸ {conv.message_count || 0} msgs</span>
-                  <span>•</span>
-                  <span>{formatDate(('updated_at' in conv ? conv.updated_at : undefined) || conv.created_at)}</span>
-                </div>
-                {'project' in conv && conv.project && (
-                  <div className="mt-1 text-xs text-gray-600">
-                    {conv.project}
+            {sortedConversations.map((conv) => {
+              const badge = getSourceBadge(conv);
+              return (
+                <button
+                  key={conv.id}
+                  onClick={() => onSelectConversation(conv.id)}
+                  className={`w-full p-4 text-left hover:bg-gray-800 transition-colors ${
+                    selectedConversationId === conv.id
+                      ? 'bg-gray-800 border-l-2 border-blue-500'
+                      : 'border-l-2 border-transparent'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`px-1.5 py-0.5 text-[10px] rounded border ${badge.colorClass}`}>
+                      {badge.label}
+                    </span>
+                    {conv.username && (
+                      <span className="text-[10px] text-gray-500 truncate">@{conv.username}</span>
+                    )}
                   </div>
-                )}
-              </button>
-            ))}
+                  <div className="font-mono text-sm text-white truncate">
+                    {conv.title || conv.id}
+                  </div>
+                  <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                    <span>▸ {conv.message_count || 0} msgs</span>
+                    <span>•</span>
+                    <span>{formatDate(conv.updated_at || conv.created_at)}</span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
