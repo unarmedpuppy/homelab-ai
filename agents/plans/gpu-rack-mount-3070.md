@@ -1,8 +1,9 @@
 # External Vertical GPU Mount Plan
 
-**Status**: In Progress (Shelf Purchased, Assembly Pending)
+**Status**: ✅ Complete
 **Created**: 2025-12-20
-**Last Updated**: 2025-12-28
+**Last Updated**: 2025-12-30
+**Completed**: 2025-12-30
 **Epic**: `home-server-n6y` (Hardware Upgrade Plan)
 **Related**: `home-server-bme` (Two-GPU Local AI Architecture)
 
@@ -12,8 +13,8 @@
 |---------|------|--------|
 | `home-server-n6y` | Epic: Hardware Upgrade Plan | Open |
 | `home-server-ngo` | Purchase 1U full-depth vented shelf | ✅ Complete (StarTech CABSHELF116V) |
-| `home-server-k33` | Install RTX 3070 in external vertical rack mount | Ready (unblocked) |
-| `home-server-6yo` | Install NVIDIA drivers + CUDA on Debian | Blocked by `k33` |
+| `home-server-k33` | Install RTX 3070 in external vertical rack mount | ✅ Complete (2025-12-30) |
+| `home-server-6yo` | Install NVIDIA drivers + CUDA on Debian | ✅ Complete (2025-12-30) |
 
 ## Overview
 
@@ -185,13 +186,16 @@ Washers eliminate play from slot clearance.
 
 ## Verification Checklist
 
-- [ ] GPU seated correctly in NZXT bracket
-- [ ] All M5 bolts torqued with washers
-- [ ] PCIe riser has no sharp bends
-- [ ] PCIe link speed shows Gen4 x16 in GPU-Z
-- [ ] GPU temps under load < 80°C
-- [ ] Server can slide out with GPU disconnected
-- [ ] No interference with rack airflow
+- [x] GPU seated correctly in NZXT bracket
+- [x] All M5 bolts torqued with washers
+- [x] PCIe riser has no sharp bends
+- [x] PCIe link speed verified (Gen4 x16)
+- [x] GPU temps under load acceptable
+- [x] Server can slide out with GPU disconnected
+- [x] No interference with rack airflow
+- [x] NVIDIA driver installed (535.247.01)
+- [x] CUDA 12.2 available
+- [x] Docker GPU support working (nvidia-container-toolkit)
 
 ## Rejected Options (Do Not Revisit)
 
@@ -211,6 +215,31 @@ This shelf architecture allows:
 - No changes to server chassis
 
 PSU sizing (SF750) already supports 3090 + system load.
+
+## Completion Summary (2025-12-30)
+
+**What was done**:
+1. Installed StarTech.com 1U vented shelf (CABSHELF116V) in rack above server at U3
+2. Mounted steel L-brackets vertically to shelf
+3. Attached NZXT vertical GPU bracket to L-brackets
+4. Installed RTX 3070 into NZXT bracket (vertical orientation, fans facing outward)
+5. Routed GLOTRENDS 400mm PCIe 4.0 x16 riser from motherboard to GPU
+6. Connected 8-pin PCIe power from PSU (YEZriler 25-inch/63cm cable)
+7. Installed NVIDIA driver 535.247.01 on Debian
+8. Installed nvidia-container-toolkit for Docker GPU support
+9. Verified GPU operation with `nvidia-smi` and Docker test container
+
+**Previous GPU removed**:
+- GT 1030 was removed from the system (no longer needed with RTX 3070)
+
+**Final Configuration**:
+```
+U3: 1U Shelf with RTX 3070 in vertical mount
+U4-U6: Server (3U Sliger CX3701)
+PCIe: 4.0 x16 riser connecting motherboard to external GPU
+Driver: NVIDIA 535.247.01
+CUDA: 12.2
+```
 
 ## Integration with Two-GPU Architecture
 

@@ -133,18 +133,34 @@ sudo dmidecode --type memory
 
 - **Model**: NVIDIA GeForce RTX 3070
 - **VRAM**: 8GB GDDR6
-- **PCIe**: Slot 07:00.0 (external vertical rack mount via PCIe riser)
+- **PCIe**: Slot 07:00.0 (external vertical rack mount via PCIe 4.0 x16 riser)
 - **Use Case**: Local AI inference (vLLM), hardware transcoding
+
+**Mount Configuration**:
+- **Type**: External vertical rack mount (GPU mounted above server on dedicated 1U shelf)
+- **Shelf**: StarTech.com CABSHELF116V (1U, 16" deep, vented, 44lb capacity)
+- **Bracket**: NZXT Vertical GPU Mounting Kit (AB-RH175-B1) on steel L-brackets
+- **Riser**: GLOTRENDS 400mm PCIe 4.0 x16 riser cable
+- **Orientation**: Vertical, fans facing outward for optimal airflow
+- **Serviceability**: Server remains fully removable - GPU mount is attached to rack shelf, not server chassis
+
+**Previous GPU** (Removed):
+- ~~GT 1030~~ - Removed during RTX 3070 installation
 
 **Driver Info**:
 ```bash
 nvidia-smi
+# Driver: 535.247.01
+# CUDA: 12.2
 ```
 
 **Maintenance Log**:
-| Date | Action | Command |
-|------|--------|---------|
-| 2025-12-30 | Updated NVIDIA driver to 535.247.01 | `sudo apt install -y nvidia-driver && sudo reboot` |
+| Date | Action | Command/Notes |
+|------|--------|---------------|
+| 2025-12-30 | Installed RTX 3070 in external rack mount | Completed rack mount project per `agents/plans/gpu-rack-mount-3070.md` |
+| 2025-12-30 | Removed GT 1030 | No longer needed with RTX 3070 |
+| 2025-12-30 | Installed NVIDIA driver 535.247.01 + CUDA 12.2 | `sudo apt install -y nvidia-driver && sudo reboot` |
+| 2025-12-30 | Installed nvidia-container-toolkit | Docker GPU support for containers |
 
 ### Storage
 

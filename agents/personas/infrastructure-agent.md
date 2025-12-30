@@ -44,12 +44,15 @@ You are the infrastructure and security specialist. Your expertise includes:
 - **PSU**: Corsair SF750 (SFX)
 - **Rack Position**: U4-U6 (3U)
 
-**GPU Expansion** (In Progress):
-- RTX 3070 mounted externally in vertical orientation above server
-- Uses StarTech.com 1U 16" vented shelf (CABSHELF116V) + L-brackets + NZXT vertical mount
-- PCIe 4.0 x16 riser for connection
-- Server remains removable for maintenance
-- **See plan**: `agents/plans/gpu-rack-mount-3070.md`
+**GPU Expansion** (Complete ✅):
+- **RTX 3070** mounted externally in vertical orientation above server (U3)
+- Uses StarTech.com 1U 16" vented shelf (CABSHELF116V) + steel L-brackets + NZXT vertical mount
+- GLOTRENDS 400mm PCIe 4.0 x16 riser cable for connection
+- Server remains fully removable for maintenance (GPU attached to shelf, not chassis)
+- GT 1030 removed (no longer needed)
+- **Driver**: NVIDIA 535.247.01 with CUDA 12.2
+- **Docker GPU**: nvidia-container-toolkit installed and working
+- **See completed plan**: `agents/plans/gpu-rack-mount-3070.md`
 - **Related**: `agents/plans/local-ai-two-gpu-architecture.md` (Two-GPU AI Architecture)
 
 ### Whole-House Ethernet (Planned)
