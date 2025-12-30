@@ -13,6 +13,7 @@ from typing import Optional
 import asyncio
 
 from agent import AgentRequest, AgentResponse, run_agent_loop, AGENT_TOOLS
+from auth import ApiKey, validate_api_key_header, get_request_priority
 from dependencies import get_request_tracker, log_chat_completion, RequestTracker
 from providers import ProviderManager, HealthChecker, ProviderSelection
 from stream import stream_chat_completion, StreamAccumulator
@@ -201,7 +202,7 @@ def has_force_big_signal(request: Request, body: dict) -> bool:
     return False
 
 
-async def route_request(request: Request, body: dict) -> ProviderSelection:
+async def route_request(request: Request, body: dict, priority: int = 1) -> ProviderSelection:
     """
     Determine which provider and model to route to using ProviderManager.
 
@@ -210,6 +211,11 @@ async def route_request(request: Request, body: dict) -> ProviderSelection:
     2. Explicit provider: {"provider": "server-3070"}
     3. Explicit provider + model: {"provider": "server-3070", "modelId": "qwen2.5-7b"}
     4. Shorthand: {"model": "server-3070/qwen2.5-14b"}
+
+    Args:
+        request: FastAPI Request object
+        body: Request body dict
+        priority: Request priority (0=high, 1=normal, 2=low). Used for routing decisions.
 
     Returns:
         ProviderSelection with provider and model information
@@ -480,13 +486,18 @@ async def list_models():
 async def chat_completions(
     request: Request,
     background_tasks: BackgroundTasks,
-    tracker: RequestTracker = Depends(get_request_tracker)
+    tracker: RequestTracker = Depends(get_request_tracker),
+    api_key: ApiKey = Depends(validate_api_key_header)
 ):
     """OpenAI-compatible chat completions with intelligent routing."""
     body = await request.json()
 
+    # Calculate request priority based on API key
+    priority = get_request_priority(api_key)
+    logger.info(f"Request from '{api_key.name}' (priority={priority})")
+
     # Route using ProviderManager
-    selection = await route_request(request, body)
+    selection = await route_request(request, body, priority=priority)
 
     # Update body with selected model ID
     body["model"] = selection.model.id

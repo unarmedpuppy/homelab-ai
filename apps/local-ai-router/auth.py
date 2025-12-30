@@ -12,6 +12,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional, Tuple, List
 
+from fastapi import Header, HTTPException
+
 from database import get_db_connection
 
 logger = logging.getLogger(__name__)
@@ -340,3 +342,107 @@ def get_api_key_by_id(key_id: int) -> Optional[dict]:
             'scopes': json.loads(row['scopes']) if row['scopes'] else None,
             'metadata': json.loads(row['metadata']) if row['metadata'] else None
         }
+
+
+# =============================================================================
+# FastAPI Authentication Dependency
+# =============================================================================
+
+async def validate_api_key_header(
+    authorization: Optional[str] = Header(None, alias="Authorization")
+) -> ApiKey:
+    """
+    FastAPI dependency to validate API key from Authorization header.
+    
+    Accepts:
+        - 'Authorization: Bearer lai_...'
+        - 'Authorization: lai_...'
+    
+    Returns:
+        ApiKey object if valid
+        
+    Raises:
+        HTTPException 401 if key is missing, invalid, or disabled
+    """
+    if not authorization:
+        logger.warning("Missing Authorization header")
+        raise HTTPException(
+            status_code=401,
+            detail="Missing Authorization header. Use 'Authorization: Bearer lai_...'",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+    
+    # Extract key from header (support both "Bearer lai_..." and "lai_...")
+    key = authorization
+    if authorization.lower().startswith("bearer "):
+        key = authorization[7:]  # Remove "Bearer " prefix
+    
+    key = key.strip()
+    
+    if not key:
+        logger.warning("Empty API key in Authorization header")
+        raise HTTPException(
+            status_code=401,
+            detail="Empty API key",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+    
+    # Validate the key
+    api_key = await validate_api_key(key)
+    
+    if api_key is None:
+        logger.warning(f"Invalid or disabled API key: {key[:8]}...")
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or disabled API key",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+    
+    logger.debug(f"Authenticated: {api_key.name} ({api_key.key_prefix}...)")
+    return api_key
+
+
+def get_request_priority(api_key: ApiKey) -> int:
+    """
+    Determine request priority based on API key properties.
+    
+    Priority levels:
+        0 - High priority (agent keys, critical services)
+        1 - Normal priority (default)
+        2 - Low priority (batch jobs, background tasks)
+    
+    Priority is determined by:
+        1. Key name prefix: 'agent-*' or 'critical-*' → priority 0
+        2. Key metadata: 'priority' field if present
+        3. Key scopes: 'agent' scope → priority 0
+        4. Default: priority 1
+    
+    Args:
+        api_key: Validated ApiKey object
+        
+    Returns:
+        Priority level (0 = highest, 2 = lowest)
+    """
+    # Check name prefix for agent or critical keys
+    name_lower = api_key.name.lower()
+    if name_lower.startswith("agent-") or name_lower.startswith("critical-"):
+        return 0
+    
+    # Check metadata for explicit priority
+    if api_key.metadata and "priority" in api_key.metadata:
+        try:
+            priority = int(api_key.metadata["priority"])
+            return max(0, min(2, priority))  # Clamp to 0-2
+        except (ValueError, TypeError):
+            pass
+    
+    # Check scopes for agent scope
+    if api_key.scopes and "agent" in api_key.scopes:
+        return 0
+    
+    # Check for low-priority indicators
+    if name_lower.startswith("batch-") or name_lower.startswith("background-"):
+        return 2
+    
+    # Default priority
+    return 1
