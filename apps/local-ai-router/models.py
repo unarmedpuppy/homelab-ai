@@ -231,3 +231,41 @@ class SearchQuery(BaseModel):
     end_date: Optional[datetime] = None
     limit: int = Field(10, ge=1, le=100)
     offset: int = Field(0, ge=0)
+
+
+# ============================================================================
+# Streaming Models
+# ============================================================================
+
+class StreamStatus(str, Enum):
+    """Stream event status types."""
+    ROUTING = "routing"
+    LOADING = "loading"
+    GENERATING = "generating"
+    STREAMING = "streaming"
+    DONE = "done"
+    ERROR = "error"
+
+
+class StreamEvent(BaseModel):
+    """
+    SSE stream event for real-time status updates.
+    
+    Emitted during chat completion requests to provide feedback on:
+    - Backend selection (routing)
+    - Model warmup (loading)
+    - Response generation progress (generating)
+    - Final completion (done)
+    """
+    status: StreamStatus
+    message: Optional[str] = Field(None, description="Human-readable status message")
+    content: Optional[str] = Field(None, description="Response content (for done status)")
+    model: Optional[str] = Field(None, description="Model used for generation")
+    backend: Optional[str] = Field(None, description="Backend/provider ID")
+    provider_name: Optional[str] = Field(None, description="Human-readable provider name")
+    timestamp: float = Field(..., description="Unix timestamp of event")
+    estimated_time: Optional[int] = Field(None, description="Estimated wait time in seconds")
+    delta: Optional[str] = Field(None, description="Incremental content chunk (for streaming status)")
+    finish_reason: Optional[str] = Field(None, description="Finish reason (stop, length, etc.)")
+    usage: Optional[Dict[str, int]] = Field(None, description="Token usage stats (for done status)")
+    error_detail: Optional[str] = Field(None, description="Error details (for error status)")

@@ -1,5 +1,6 @@
 """Local AI Router - Intelligent routing to multiple LLM backends."""
 import os
+import json
 import logging
 import httpx
 from pathlib import Path
@@ -14,6 +15,7 @@ import asyncio
 from agent import AgentRequest, AgentResponse, run_agent_loop, AGENT_TOOLS
 from dependencies import get_request_tracker, log_chat_completion, RequestTracker
 from providers import ProviderManager, HealthChecker, ProviderSelection
+from stream import stream_chat_completion, StreamAccumulator
 # from middleware import MemoryMetricsMiddleware  # Replaced with dependency injection
 
 # Configure logging
@@ -497,86 +499,35 @@ async def chat_completions(
         f"with model {selection.model.id}"
     )
 
-    # Track request with provider manager using context manager
     async with provider_manager.track_request(selection.provider.id):
-        # Determine if streaming
         stream = body.get("stream", False)
 
-        # Model cold starts can take 2-3 minutes, use 5 min timeout
         if stream:
-            # Stream the response while accumulating for memory/metrics
-            accumulated_chunks = []
-            full_content = ""
-            metadata = {}
+            accumulator = StreamAccumulator()
 
-            async def stream_response():
-                nonlocal full_content, metadata
-                # Create client inside generator so it doesn't close before streaming completes
-                async with httpx.AsyncClient(timeout=300.0) as client:
-                    async with client.stream(
-                        "POST",
-                        endpoint_url,
-                        json=body,
-                        headers={"Content-Type": "application/json"},
-                    ) as response:
-                        async for chunk in response.aiter_bytes():
-                            # Store chunk for later processing
-                            accumulated_chunks.append(chunk)
-                            # Stream to client immediately
-                            yield chunk
+            async def stream_with_status():
+                async for event_str in stream_chat_completion(selection, body):
+                    yield event_str
+                    
+                    if event_str.startswith('data: ') and event_str[6:].strip() != '[DONE]':
+                        try:
+                            event_data = json.loads(event_str[6:])
+                            accumulator.add_chunk(event_data)
+                        except json.JSONDecodeError:
+                            pass
 
-            # Process accumulated chunks after streaming completes (in background)
-            async def process_stream_completion():
-                nonlocal full_content, metadata
+            async def log_stream_completion():
                 try:
-                    # Parse accumulated SSE chunks to extract data
-                    for chunk in accumulated_chunks:
-                        chunk_str = chunk.decode('utf-8')
-                        for line in chunk_str.split('\n'):
-                            if line.startswith('data: ') and line[6:] != '[DONE]':
-                                try:
-                                    chunk_data = json.loads(line[6:])
-                                    # Accumulate content
-                                    if chunk_data.get('choices', [{}])[0].get('delta', {}).get('content'):
-                                        full_content += chunk_data['choices'][0]['delta']['content']
-                                    # Store metadata
-                                    if chunk_data.get('id'):
-                                        metadata['id'] = chunk_data['id']
-                                    if chunk_data.get('model'):
-                                        metadata['model'] = chunk_data['model']
-                                    if chunk_data.get('usage'):
-                                        metadata['usage'] = chunk_data['usage']
-                                except json.JSONDecodeError:
-                                    pass
-
-                    # Construct response_data for logging
-                    response_data = {
-                        'id': metadata.get('id', 'unknown'),
-                        'object': 'chat.completion',
-                        'model': metadata.get('model', body.get('model', 'auto')),
-                        'choices': [{
-                            'index': 0,
-                            'message': {
-                                'role': 'assistant',
-                                'content': full_content,
-                            },
-                            'finish_reason': 'stop',
-                        }],
-                        'usage': metadata.get('usage', {}),
-                        'provider': selection.provider.id,
-                    }
-
-                    # Log to memory and metrics
-                    log_chat_completion(tracker, body, response_data, error=None)
-                    logger.info(f"Logged streaming response to memory (conversation: {tracker.conversation_id})")
+                    response_data = accumulator.to_response_data(body)
+                    log_chat_completion(tracker, body, response_data, error=accumulator.error)
+                    logger.info(f"Logged streaming response (conversation: {tracker.conversation_id})")
                 except Exception as e:
-                    logger.error(f"Failed to process streaming completion: {e}")
+                    logger.error(f"Failed to log streaming completion: {e}")
 
-            # Add background task to process after stream completes
-            background_tasks.add_task(process_stream_completion)
+            background_tasks.add_task(log_stream_completion)
 
             return StreamingResponse(
-                stream_response(),
+                stream_with_status(),
                 media_type="text/event-stream",
             )
         else:
