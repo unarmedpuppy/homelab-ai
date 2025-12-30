@@ -209,3 +209,122 @@ except (KeyError, IndexError):
 **Commit**: `fc086ec4` - "fix(local-ai-router): Update vLLM health check endpoint to /v1/models"
 
 **Verified**: ✅ All 4 providers now showing as healthy (gaming-pc-3090, server-3070, zai, anthropic)
+
+---
+
+## Phase 5: Chat Experience Enhancement
+
+**Status**: ✅ DEPLOYED (Manual testing required)
+
+### Implementation Checklist
+- [x] Phase 5.1: Dynamic Model/Provider Selection
+- [x] Phase 5.2: Conversation Browsing & Search (pre-existing)
+- [x] Phase 5.3: Enhanced Message Metadata Display
+
+### Phase 5.1: Dynamic Model/Provider Selection
+
+**Files Modified**:
+- `apps/local-ai-dashboard/src/components/ChatInterface.tsx` - Dynamic provider/model loading
+
+**Changes**:
+- ✅ Replaced hardcoded MODEL_OPTIONS with dynamic provider/model fetching from `/admin/providers` API
+- ✅ Auto-refresh provider data every 30 seconds
+- ✅ Model selector format: `provider-id/model-id` (e.g., `gaming-pc-3090/qwen2.5-14b-awq`)
+- ✅ Models grouped by provider name (e.g., "Qwen 2.5 14B Instruct AWQ (Gaming PC (RTX 3090))")
+- ✅ Health-aware UI - offline providers disabled with "(offline)" label
+- ✅ Loading state while fetching providers
+- ✅ Provider metadata in message display (provider, model, backend, tokens)
+
+**Deployment**:
+```bash
+# Deployed 2025-12-29
+Commit: 5ffa92ea - "feat(local-ai-dashboard): Add dynamic provider/model selection (Phase 5.1)"
+Container rebuilt with --no-cache to ensure fresh build
+✅ Dashboard accessible at https://local-ai-dashboard.server.unarmedpuppy.com/ (HTTP 200)
+```
+
+### Phase 5.2: Conversation Browsing & Search
+
+**Status**: ✅ Pre-existing implementation in ConversationSidebar.tsx
+
+**Features**:
+- Search conversations by content
+- Display conversation list with metadata (ID, message count, timestamp)
+- Sort by most recent
+- New chat button
+
+### Phase 5.3: Enhanced Message Metadata
+
+**Status**: ✅ Implemented in Phase 5.1
+
+**Features**:
+- Provider ID displayed first in message metadata
+- Model name
+- Backend info
+- Token count with formatting (e.g., "1,234 tokens")
+
+### Manual Browser Testing Required
+
+**⚠️ IMPORTANT**: The following tests require manual browser testing as they involve React UI rendering:
+
+Navigate to: https://local-ai-dashboard.server.unarmedpuppy.com/
+
+**Phase 5.1 Tests** (Model/Provider Selection):
+- [ ] Model dropdown loads dynamically from API
+- [ ] Models display with provider names (e.g., "Qwen 2.5 14B Instruct AWQ (Gaming PC (RTX 3090))")
+- [ ] "Auto (Intelligent Routing)" option appears first
+- [ ] Offline providers show "(offline)" label and are disabled
+- [ ] Model selector updates every 30 seconds
+- [ ] Send test message with specific provider/model selection
+- [ ] Verify message metadata displays: provider, model, backend, tokens
+
+**Phase 5.2 Tests** (Conversation Browsing):
+- [ ] Conversation sidebar displays recent conversations
+- [ ] Search functionality filters conversations
+- [ ] Click conversation to load it
+- [ ] New Chat button clears current conversation
+
+**Phase 5.3 Tests** (Message Metadata):
+- [ ] Send message and verify assistant response shows metadata
+- [ ] Provider ID appears first
+- [ ] Token count formatted with commas
+- [ ] All metadata fields visible (provider, model, backend, tokens)
+
+### Backend Integration Test
+
+Test explicit provider selection via API:
+
+```bash
+# Test with Gaming PC provider
+curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gaming-pc-3090/qwen2.5-14b-awq",
+    "messages": [{"role": "user", "content": "Say hello"}]
+  }' | jq '.provider'
+# Expected: "gaming-pc-3090"
+
+# Test with Auto routing
+curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "auto",
+    "messages": [{"role": "user", "content": "Say hello"}]
+  }' | jq '.provider'
+# Expected: Provider ID of selected provider
+```
+
+**Note**: These tests require live vLLM backend on Gaming PC to fully validate.
+
+### Summary
+
+**Phase 5 Status**: ✅ Implementation complete, deployed to production
+
+**Deployed Features**:
+- Dynamic model/provider selection with real-time health status
+- Conversation browsing and search (pre-existing)
+- Enhanced message metadata with provider info
+
+**Manual Testing Required**: User must verify UI rendering and interactions in browser
+
+**Next Steps**: Manual browser testing to validate all Phase 5 features
