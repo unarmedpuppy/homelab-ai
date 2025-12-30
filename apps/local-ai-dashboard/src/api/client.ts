@@ -12,6 +12,7 @@ import type {
   ChatCompletionResponse,
   ProvidersResponse,
   AdminProvidersResponse,
+  StreamEvent,
 } from '../types/api';
 
 // API base URL - defaults to public router endpoint
@@ -171,6 +172,81 @@ export const chatAPI = {
     );
 
     return response.data;
+  },
+
+  sendMessageStream: async function* (params: {
+    model: string;
+    messages: ChatMessage[];
+    conversationId?: string;
+    temperature?: number;
+    max_tokens?: number;
+    top_p?: number;
+    frequency_penalty?: number;
+    presence_penalty?: number;
+  }): AsyncGenerator<StreamEvent, void, unknown> {
+    const { conversationId, messages, model, temperature, max_tokens, top_p, frequency_penalty, presence_penalty } = params;
+
+    const headers: Record<string, string> = {
+      'X-Enable-Memory': 'true',
+      'X-Project': 'dashboard',
+      'X-User-ID': 'dashboard-user',
+    };
+
+    if (conversationId) {
+      headers['X-Conversation-ID'] = conversationId;
+    }
+
+    const requestBody = {
+      model,
+      messages,
+      stream: true,
+    };
+
+    if (temperature !== undefined) requestBody.temperature = temperature;
+    if (max_tokens !== undefined) requestBody.max_tokens = max_tokens;
+    if (top_p !== undefined) requestBody.top_p = top_p;
+    if (frequency_penalty !== undefined) requestBody.frequency_penalty = frequency_penalty;
+    if (presence_penalty !== undefined) requestBody.presence_penalty = presence_penalty;
+
+    const response = await fetch(`${API_BASE_URL}/v1/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...headers,
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const reader = response.body!.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6);
+          if (data === '[DONE]') return;
+
+          try {
+            const event = JSON.parse(data) as StreamEvent;
+            yield event;
+          } catch (e) {
+            console.error('Failed to parse SSE event:', data);
+          }
+        }
+      }
+    }
   },
 
   sendMessageStreaming: async (params: {

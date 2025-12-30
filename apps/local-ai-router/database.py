@@ -43,10 +43,11 @@ def init_database():
     db_path = get_db_path()
 
     if db_path.exists():
-        logger.info(f"Database already exists at {db_path}")
-        return
+        logger.info(f"Database already exists at {db_path}, ensuring schema is up to date")
+    else:
+        logger.info(f"Initializing new database at {db_path}")
 
-    logger.info(f"Initializing new database at {db_path}")
+    # Always run schema creation - CREATE TABLE IF NOT EXISTS is idempotent
 
     with get_db_connection() as conn:
         cursor = conn.cursor()
