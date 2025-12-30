@@ -334,6 +334,8 @@ async def get_providers():
 
     Returns basic provider information for API consumers.
     """
+    from datetime import datetime
+
     if not provider_manager:
         raise HTTPException(status_code=503, detail="Provider manager not initialized")
 
