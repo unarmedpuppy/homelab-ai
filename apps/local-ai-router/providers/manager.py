@@ -18,6 +18,7 @@ from .models import (
     AuthType,
     ModelCapabilities,
 )
+from .model_state import ModelStateTracker, ModelState, ModelLoadState
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +49,12 @@ class ProviderManager:
         self.models: Dict[str, Model] = {}
         self.settings: Dict = {}
         self._lock = asyncio.Lock()
+        
+        # Model state tracker for warm/cold detection
+        self.model_state_tracker = ModelStateTracker(
+            warmth_timeout=float(os.getenv("MODEL_WARMTH_TIMEOUT", "300")),
+            default_warmup_ms=float(os.getenv("DEFAULT_WARMUP_MS", "5000")),
+        )
 
         # Load configuration
         self._load_config()
@@ -373,3 +380,92 @@ class ProviderManager:
         logger.info("Reloading provider configuration...")
         self._load_config()
         self._apply_env_overrides()
+
+    # =========================================================================
+    # Model State Tracking Methods
+    # =========================================================================
+
+    def is_model_loaded(self, provider_id: str, model_id: str) -> bool:
+        """
+        Check if a model is currently loaded (warm) on a provider.
+        
+        A warm model means it's loaded in GPU memory and ready for inference
+        without startup delay.
+        
+        Args:
+            provider_id: Provider ID
+            model_id: Model ID
+            
+        Returns:
+            True if model is likely loaded in GPU memory
+        """
+        return self.model_state_tracker.is_model_loaded(provider_id, model_id)
+
+    def estimate_warmup_time(
+        self,
+        provider_id: str,
+        model_id: str,
+        model_size_hint: Optional[str] = None,
+    ) -> int:
+        """
+        Estimate warmup time for a cold model in milliseconds.
+        
+        Uses historical data if available, otherwise falls back to
+        heuristics based on model size.
+        
+        Args:
+            provider_id: Provider ID
+            model_id: Model ID
+            model_size_hint: Optional size hint ("tiny", "small", "medium", "large", "xlarge")
+            
+        Returns:
+            Estimated warmup time in milliseconds
+        """
+        return self.model_state_tracker.estimate_warmup_time(
+            provider_id, model_id, model_size_hint
+        )
+
+    def get_model_state(self, provider_id: str, model_id: str) -> ModelState:
+        """
+        Get full state information for a model.
+        
+        Args:
+            provider_id: Provider ID
+            model_id: Model ID
+            
+        Returns:
+            ModelState with current state information
+        """
+        return self.model_state_tracker.get_model_state(provider_id, model_id)
+
+    def mark_model_used(
+        self,
+        provider_id: str,
+        model_id: str,
+        first_token_time_ms: Optional[float] = None,
+    ) -> None:
+        """
+        Mark that a model was successfully used.
+        
+        Should be called after a successful inference to update warm state.
+        
+        Args:
+            provider_id: Provider ID
+            model_id: Model ID
+            first_token_time_ms: Optional time to first token for warmup estimation
+        """
+        self.model_state_tracker.mark_model_used(
+            provider_id, model_id, first_token_time_ms
+        )
+
+    def get_warm_models(self, provider_id: Optional[str] = None) -> Dict[str, ModelState]:
+        """
+        Get all currently warm models.
+        
+        Args:
+            provider_id: Optional filter by provider
+            
+        Returns:
+            Dict of "provider_id/model_id" -> ModelState for warm models
+        """
+        return self.model_state_tracker.get_warm_models(provider_id)
