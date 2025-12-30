@@ -203,13 +203,29 @@ async def route_request(request: Request, body: dict) -> ProviderSelection:
     """
     Determine which provider and model to route to using ProviderManager.
 
+    Supports multiple selection modes:
+    1. Auto routing: {"model": "auto"}
+    2. Explicit provider: {"provider": "server-3070"}
+    3. Explicit provider + model: {"provider": "server-3070", "modelId": "qwen2.5-7b"}
+    4. Shorthand: {"model": "server-3070/qwen2.5-14b"}
+
     Returns:
         ProviderSelection with provider and model information
     """
     if not provider_manager:
         raise HTTPException(status_code=503, detail="Provider manager not initialized")
 
+    # Extract selection parameters
     requested_model = body.get("model", "auto")
+    requested_provider = body.get("provider")  # Explicit provider ID
+    requested_model_id = body.get("modelId")   # Explicit model ID
+
+    # Parse shorthand notation: "provider/model"
+    if "/" in requested_model:
+        parts = requested_model.split("/", 1)
+        requested_provider = parts[0]
+        requested_model_id = parts[1]
+        requested_model = "auto"  # Override since we have explicit provider/model
 
     # Handle model aliases (maintain backward compatibility)
     if requested_model in MODEL_ALIASES:
@@ -229,7 +245,11 @@ async def route_request(request: Request, body: dict) -> ProviderSelection:
 
     try:
         # Select provider using ProviderManager (it's async)
-        selection = await provider_manager.select_provider_and_model(requested_model)
+        selection = await provider_manager.select_provider_and_model(
+            requested_model,
+            provider_id=requested_provider,
+            model_id=requested_model_id
+        )
 
         if not selection:
             raise HTTPException(
@@ -240,7 +260,7 @@ async def route_request(request: Request, body: dict) -> ProviderSelection:
         logger.info(
             f"Routed to provider '{selection.provider.name}' "
             f"with model '{selection.model.name}' "
-            f"(requested: '{requested_model}')"
+            f"(requested: model='{requested_model}', provider='{requested_provider}', modelId='{requested_model_id}')"
         )
 
         return selection
@@ -264,6 +284,8 @@ async def root():
             "health": "/health",
             "chat": "/v1/chat/completions",
             "agent": "/v1/agent/chat",
+            "providers": "/providers",
+            "models": "/v1/models",
             "admin": "/admin/providers",
             "memory": "/memory/*",
             "metrics": "/metrics/*",
@@ -303,6 +325,33 @@ async def health_check() -> HealthResponse:
         backends=backend_status,
         gaming_mode=gaming_status.gaming_mode if gaming_status else None,
     )
+
+
+@app.get("/providers")
+async def get_providers():
+    """
+    List all configured providers with current health status.
+
+    Returns basic provider information for API consumers.
+    """
+    if not provider_manager:
+        raise HTTPException(status_code=503, detail="Provider manager not initialized")
+
+    providers_list = []
+
+    for provider in provider_manager.get_all_providers():
+        providers_list.append({
+            "id": provider.id,
+            "name": provider.name,
+            "type": provider.type.value,
+            "status": "online" if provider.is_healthy else "offline",
+            "priority": provider.priority,
+            "gpu": provider.metadata.get("gpu") if provider.metadata else None,
+            "location": provider.metadata.get("location") if provider.metadata else None,
+            "lastHealthCheck": provider.last_health_check.isoformat() if provider.last_health_check else None,
+        })
+
+    return {"providers": providers_list}
 
 
 @app.get("/admin/providers")
@@ -480,6 +529,10 @@ async def chat_completions(
                         json=body,
                     )
                     response_data = response.json()
+
+                    # Inject provider info into response
+                    # This allows clients to see which provider was used
+                    response_data["provider"] = selection.provider.id
 
                     # Log metrics and memory in background
                     background_tasks.add_task(
