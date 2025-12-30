@@ -348,7 +348,7 @@ async def get_providers():
             "priority": provider.priority,
             "gpu": provider.metadata.get("gpu") if provider.metadata else None,
             "location": provider.metadata.get("location") if provider.metadata else None,
-            "lastHealthCheck": provider.last_health_check.isoformat() if provider.last_health_check else None,
+            "lastHealthCheck": datetime.fromtimestamp(provider.last_health_check).isoformat() if provider.last_health_check else None,
         })
 
     return {"providers": providers_list}
