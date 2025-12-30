@@ -1,0 +1,55 @@
+x-enabled: true
+
+services:
+  vllm:
+    image: harbor.server.unarmedpuppy.com/docker-hub/vllm/vllm-openai:latest
+    container_name: local-ai-server
+    restart: unless-stopped
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - HF_HOME=/root/.cache/huggingface
+      # Uncomment if model requires authentication
+      # - HF_TOKEN=${HF_TOKEN}
+    volumes:
+      # Persist downloaded models
+      - huggingface-cache:/root/.cache/huggingface
+    ports:
+      - "8001:8000"
+    command: >
+      --model Qwen/Qwen2.5-7B-Instruct-AWQ
+      --quantization awq
+      --max-model-len 8192
+      --gpu-memory-utilization 0.85
+      --host 0.0.0.0
+      --port 8000
+      --served-model-name qwen2.5-7b-awq
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - my-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s  # Model loading takes time
+    labels:
+      - "homepage.group=AI"
+      - "homepage.name=Local AI Server (3070)"
+      - "homepage.icon=mdi-chip"
+      - "homepage.href=http://192.168.86.47:8001/v1/models"
+      - "homepage.description=vLLM on RTX 3070 - Qwen2.5-7B-AWQ (always-on)"
+
+volumes:
+  huggingface-cache:
+    name: local-ai-huggingface-cache
+
+networks:
+  my-network:
+    external: true
