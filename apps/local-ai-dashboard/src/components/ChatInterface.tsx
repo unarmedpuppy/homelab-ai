@@ -42,7 +42,15 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   // Image upload state
   const [pendingImages, setPendingImages] = useState<File[]>([]);
 
+  // Active conversation ID (captured from first response or passed from props)
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(conversationId);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Update activeConversationId when conversationId prop changes (e.g., selecting from sidebar)
+  useEffect(() => {
+    setActiveConversationId(conversationId);
+  }, [conversationId]);
 
   // Fetch providers for dynamic model selection
   const { data: providersData, isLoading: isLoadingProviders } = useQuery({
@@ -163,7 +171,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
       const stream = chatAPI.sendMessageStream({
         model: selectedModel,
         messages: apiMessages,
-        conversationId: conversationId || undefined,
+        conversationId: activeConversationId || conversationId || undefined,
         temperature,
         max_tokens: maxTokens,
         top_p: topP,
@@ -218,6 +226,10 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                 provider: event.provider_name,
               },
             ]);
+            // Capture conversation_id from the response for subsequent messages
+            if (event.conversation_id && !activeConversationId) {
+              setActiveConversationId(event.conversation_id);
+            }
             setIsStreaming(false);
             setStreamingContent('');
             setStreamingTokenCount(0);

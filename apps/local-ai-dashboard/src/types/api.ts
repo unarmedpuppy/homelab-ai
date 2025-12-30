@@ -143,6 +143,7 @@ export interface StreamEvent {
     total_tokens: number;
   };
   error_detail?: string;
+  conversation_id?: string;
 }
 
 export interface ChatCompletionRequest {

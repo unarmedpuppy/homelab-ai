@@ -262,7 +262,7 @@ class StreamStatus(str, Enum):
 class StreamEvent(BaseModel):
     """
     SSE stream event for real-time status updates.
-    
+
     Emitted during chat completion requests to provide feedback on:
     - Backend selection (routing)
     - Model warmup (loading)
@@ -281,3 +281,4 @@ class StreamEvent(BaseModel):
     finish_reason: Optional[str] = Field(None, description="Finish reason (stop, length, etc.)")
     usage: Optional[Dict[str, int]] = Field(None, description="Token usage stats (for done status)")
     error_detail: Optional[str] = Field(None, description="Error details (for error status)")
+    conversation_id: Optional[str] = Field(None, description="Conversation ID (for done status when memory is enabled)")

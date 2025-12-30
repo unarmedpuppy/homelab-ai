@@ -49,22 +49,24 @@ def create_stream_event(
 async def stream_chat_completion(
     selection: ProviderSelection,
     body: dict,
+    conversation_id: Optional[str] = None,
     timeout: float = 300.0,
 ) -> AsyncGenerator[str, None]:
     """
     Stream chat completion with status events.
-    
+
     Yields SSE-formatted events:
     1. routing - Backend selected
     2. loading - If model needs warmup (detected via slow response)
     3. streaming - Content chunks from backend
     4. done - Final completion with metadata
-    
+
     Args:
         selection: Provider and model selection from router
         body: Request body for chat completions
+        conversation_id: Optional conversation ID (for memory tracking)
         timeout: Request timeout in seconds
-        
+
     Yields:
         SSE-formatted strings (data: {...}\n\n)
     """
@@ -221,6 +223,7 @@ async def stream_chat_completion(
             provider_name=selection.provider.name,
             usage=metadata.get('usage'),
             finish_reason=metadata.get('finish_reason', 'stop'),
+            conversation_id=conversation_id,
         ).model_dump())
     
     yield format_sse_done()

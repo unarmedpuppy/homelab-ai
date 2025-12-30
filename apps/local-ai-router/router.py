@@ -529,7 +529,7 @@ async def chat_completions(
 
             if enhanced_streaming:
                 async def stream_generator():
-                    async for event_str in stream_chat_completion(selection, body):
+                    async for event_str in stream_chat_completion(selection, body, conversation_id=tracker.conversation_id):
                         yield event_str
                         if event_str.startswith('data: ') and event_str[6:].strip() != '[DONE]':
                             try:
