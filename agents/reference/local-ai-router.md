@@ -77,6 +77,65 @@ curl http://localhost:8012/metrics/dashboard
 | Server localhost | `http://localhost:8012` |
 | External (HTTPS) | `https://local-ai-api.server.unarmedpuppy.com` |
 
+## API Key Management
+
+Manage client API keys for authenticating requests to the Local AI Router.
+
+**Location:** `apps/local-ai-router/scripts/manage-api-keys.py`
+
+**Key Format:** `lai_{32_hex_chars}` (e.g., `lai_5f4d3c2b1a9e8d7c6b5a4e3d2c1b0a9f`)
+
+### CLI Commands
+
+```bash
+cd apps/local-ai-router
+
+# Create a new API key
+python scripts/manage-api-keys.py create "agent-1"
+
+# Create with expiration (90 days)
+python scripts/manage-api-keys.py create "temp-key" --expires-in-days 90
+
+# Create with scopes
+python scripts/manage-api-keys.py create "chat-only" --scopes chat,models
+
+# List active keys
+python scripts/manage-api-keys.py list
+
+# List all keys (including disabled)
+python scripts/manage-api-keys.py list --all
+
+# Show key details
+python scripts/manage-api-keys.py show <id>
+
+# Disable a key (soft delete)
+python scripts/manage-api-keys.py disable <id>
+
+# Re-enable a key
+python scripts/manage-api-keys.py enable <id>
+
+# Permanently delete a key
+python scripts/manage-api-keys.py delete <id>
+python scripts/manage-api-keys.py delete <id> --force  # Skip confirmation
+```
+
+### Security Notes
+
+- Keys are stored as SHA-256 hashes - the full key is only shown once at creation
+- Store keys securely after creation - they cannot be retrieved later
+- Use `disable` instead of `delete` to preserve audit trail
+- Keys can have optional expiration dates and scopes
+
+### Database Table
+
+Keys are stored in the `client_api_keys` table:
+- `key_hash` - SHA-256 hash for validation
+- `key_prefix` - First 8 chars for display (e.g., "lai_5f4d")
+- `name` - Human-readable identifier
+- `enabled` - Active/inactive status
+- `scopes` - Optional JSON array of allowed scopes
+- `expires_at` - Optional expiration timestamp
+
 ## Dashboard
 
 Access at: [https://local-ai-dashboard.server.unarmedpuppy.com](https://local-ai-dashboard.server.unarmedpuppy.com)
