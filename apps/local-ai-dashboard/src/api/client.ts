@@ -175,13 +175,20 @@ export const chatAPI = {
     if (frequency_penalty !== undefined) requestBody.frequency_penalty = frequency_penalty;
     if (presence_penalty !== undefined) requestBody.presence_penalty = presence_penalty;
 
-    const response = await apiClient.post<ChatCompletionResponse>(
-      '/v1/chat/completions',
-      requestBody,
-      { headers }
-    );
+    const response = await fetch('/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...headers,
+      },
+      body: JSON.stringify(requestBody),
+    });
 
-    return response.data;
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    return response.json() as Promise<ChatCompletionResponse>;
   },
 
   sendMessageStream: async function* (params: {
@@ -227,7 +234,7 @@ export const chatAPI = {
     if (frequency_penalty !== undefined) requestBody.frequency_penalty = frequency_penalty;
     if (presence_penalty !== undefined) requestBody.presence_penalty = presence_penalty;
 
-    const response = await fetch(`${API_BASE_URL}/v1/chat/completions`, {
+    const response = await fetch('/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -319,7 +326,7 @@ export const chatAPI = {
     if (presence_penalty !== undefined) requestBody.presence_penalty = presence_penalty;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/v1/chat/completions`, {
+      const response = await fetch('/api/v1/chat/completions', {
         method: 'POST',
         headers,
         body: JSON.stringify(requestBody),
