@@ -1,29 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { chatAPI, memoryAPI } from '../api/client';
+import { chatAPI, memoryAPI, providersAPI } from '../api/client';
 import type { ChatMessage } from '../types/api';
 
 interface MessageWithMetadata extends ChatMessage {
   model?: string;
   backend?: string;
   tokens?: number;
+  provider?: string;
 }
 
 interface ChatInterfaceProps {
   conversationId: string | null;
 }
-
-const MODEL_OPTIONS = [
-  { value: 'auto', label: 'Auto (Intelligent Routing)' },
-  { value: 'small', label: 'Small (3070)' },
-  { value: 'fast', label: 'Fast (3070)' },
-  { value: 'big', label: 'Big (3090)' },
-  { value: 'medium', label: 'Medium (3090)' },
-  { value: '3090', label: '3090 GPU' },
-  { value: 'gaming-pc', label: 'Gaming PC' },
-  { value: 'glm', label: 'GLM-4.7' },
-  { value: 'claude', label: 'Claude (OpenCode)' },
-];
 
 export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<MessageWithMetadata[]>([]);
@@ -39,6 +28,28 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   const [presencePenalty, setPresencePenalty] = useState(0.0);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Fetch providers for dynamic model selection
+  const { data: providersData, isLoading: isLoadingProviders } = useQuery({
+    queryKey: ['admin-providers'],
+    queryFn: () => providersAPI.listAdmin(),
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  // Build model options from providers
+  const modelOptions = [
+    { value: 'auto', label: 'Auto (Intelligent Routing)', providerId: null, isDefault: false, isHealthy: true },
+    ...(providersData?.providers.flatMap(provider =>
+      provider.models.map(model => ({
+        value: `${provider.id}/${model.id}`,
+        label: `${model.name} (${provider.name})`,
+        providerId: provider.id,
+        modelId: model.id,
+        isDefault: false,
+        isHealthy: provider.health.is_healthy,
+      }))
+    ) || [])
+  ];
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -97,6 +108,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
           content: assistantMessage.content,
           model: response.model,
           tokens: response.usage?.completion_tokens,
+          provider: (response as any).provider, // Provider ID from Phase 3
         },
       ]);
     },
@@ -141,13 +153,22 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
             <select
               value={selectedModel}
               onChange={(e) => setSelectedModel(e.target.value)}
-              className="px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white text-sm focus:border-blue-500 focus:outline-none"
+              disabled={isLoadingProviders}
+              className="px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white text-sm focus:border-blue-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {MODEL_OPTIONS.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
+              {isLoadingProviders ? (
+                <option value="auto">Loading models...</option>
+              ) : (
+                modelOptions.map(option => (
+                  <option
+                    key={option.value}
+                    value={option.value}
+                    disabled={option.isHealthy === false}
+                  >
+                    {option.label}{option.isHealthy === false ? ' (offline)' : ''}
+                  </option>
+                ))
+              )}
             </select>
           </div>
 
@@ -289,8 +310,13 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                 </div>
 
                 {/* Metadata (only for assistant messages) */}
-                {message.role === 'assistant' && (message.model || message.backend || message.tokens) && (
+                {message.role === 'assistant' && (message.model || message.backend || message.tokens || message.provider) && (
                   <div className="mt-3 pt-3 border-t border-gray-800 flex flex-wrap gap-4 text-xs text-gray-500">
+                    {message.provider && (
+                      <div>
+                        <span className="text-gray-600">provider:</span> {message.provider}
+                      </div>
+                    )}
                     {message.model && (
                       <div>
                         <span className="text-gray-600">model:</span> {message.model}
