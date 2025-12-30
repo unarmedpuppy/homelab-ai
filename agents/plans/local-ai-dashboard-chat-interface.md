@@ -4,16 +4,27 @@
 
 Add a ChatGPT-style chat interface to the Local AI Dashboard with sidebar navigation, conversation history, and model testing capabilities.
 
-## Current Status
+## Current Status (Updated 2025-12-29)
 
-**✅ Completed:**
-- Added chat completion types to `src/types/api.ts` (ChatMessage, ChatCompletionRequest, ChatCompletionResponse)
+**✅ Completed (Phases 1-6):**
+- ✅ Phase 1-3: Backend provider/model architecture, memory metadata, API endpoints
+- ✅ Phase 4: Provider monitoring dashboard with real-time health status
+- ✅ Phase 5: Dynamic model/provider selection in chat interface
+- ✅ Phase 6: Streaming responses with real-time token display
+- ✅ Chat completion types in `src/types/api.ts`
+- ✅ `src/api/client.ts` - chatAPI with streaming support
+- ✅ `src/components/ChatInterface.tsx` - Full chat interface with streaming
+- ✅ `src/components/ConversationSidebar.tsx` - Conversation history
+- ✅ `src/components/ProviderMonitoring.tsx` - Provider health dashboard
+- ✅ `src/App.tsx` - Sidebar layout with Chat/Providers/Stats navigation
+- ✅ Streaming memory persistence (commits 87e21e9e, 841d8e5b)
 
 **🚧 In Progress:**
-- Nothing currently
+- Validating streaming memory persistence (blocked: Gaming PC vLLM offline at 10.0.0.188:8080)
 
 **📋 Remaining:**
-- Everything else below
+- Manual browser testing of Phase 5 & 6 features (see TEST_SUMMARY.md)
+- Future enhancements: conversation editing, export, folders/tags
 
 ## Design Requirements
 
