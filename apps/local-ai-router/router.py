@@ -2,6 +2,8 @@
 import os
 import logging
 import httpx
+from pathlib import Path
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -11,16 +13,54 @@ import asyncio
 
 from agent import AgentRequest, AgentResponse, run_agent_loop, AGENT_TOOLS
 from dependencies import get_request_tracker, log_chat_completion, RequestTracker
+from providers import ProviderManager, HealthChecker, ProviderSelection
 # from middleware import MemoryMetricsMiddleware  # Replaced with dependency injection
 
 # Configure logging
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 logger = logging.getLogger(__name__)
 
+# Global provider manager and health checker
+provider_manager: Optional[ProviderManager] = None
+health_checker: Optional[HealthChecker] = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initialize and cleanup resources on app startup/shutdown."""
+    global provider_manager, health_checker
+
+    # Startup: Initialize ProviderManager and HealthChecker
+    config_path = Path(__file__).parent / "config" / "providers.yaml"
+    logger.info(f"Loading provider configuration from: {config_path}")
+
+    try:
+        provider_manager = ProviderManager(config_path=str(config_path))
+        logger.info(f"Loaded {len(provider_manager.providers)} providers, "
+                   f"{len(provider_manager.get_all_models())} models")
+
+        # Start health checker
+        health_checker = HealthChecker(provider_manager, check_interval=30)
+        await health_checker.start()
+        logger.info("Health checker started")
+
+    except Exception as e:
+        logger.error(f"Failed to initialize providers: {e}")
+        raise
+
+    yield
+
+    # Shutdown: Stop health checker
+    if health_checker:
+        await health_checker.stop()
+        logger.info("Health checker stopped")
+
+
 app = FastAPI(
     title="Local AI Router",
     description="OpenAI-compatible API router for multi-backend LLM inference",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # Enable CORS for dashboard access
@@ -159,73 +199,58 @@ def has_force_big_signal(request: Request, body: dict) -> bool:
     return False
 
 
-async def route_request(request: Request, body: dict) -> str:
-    """Determine which backend to route to."""
-    model = body.get("model", "auto")
+async def route_request(request: Request, body: dict) -> ProviderSelection:
+    """
+    Determine which provider and model to route to using ProviderManager.
 
-    # Resolve alias
-    if model in MODEL_ALIASES:
-        model = MODEL_ALIASES[model]
+    Returns:
+        ProviderSelection with provider and model information
+    """
+    if not provider_manager:
+        raise HTTPException(status_code=503, detail="Provider manager not initialized")
 
-    # 1. Explicit model request
-    if model in BACKENDS:
-        backend = BACKENDS[model]
-        if backend["available"]:
-            logger.info(f"Routing to {model} (explicit request)")
-            return model
-        else:
-            logger.warning(f"Backend {model} not available, falling back")
+    requested_model = body.get("model", "auto")
 
-    # 2. Check gaming mode
-    gaming_status = await get_gaming_pc_status()
-    gaming_mode_on = gaming_status.gaming_mode if gaming_status else False
+    # Handle model aliases (maintain backward compatibility)
+    if requested_model in MODEL_ALIASES:
+        # Resolve old alias to model ID
+        alias_target = MODEL_ALIASES[requested_model]
+        # Map old backend IDs to model IDs
+        if alias_target == "3090":
+            requested_model = "qwen2.5-14b-awq"  # Default 3090 model
+        elif alias_target == "3070":
+            requested_model = "llama3-8b"  # Default 3070 model
+        elif alias_target == "opencode-glm":
+            requested_model = "glm-4-flash"
+        elif alias_target == "opencode-claude":
+            requested_model = "claude-3-5-haiku"
+    # For "auto", "small", "fast", "medium", "big", pass through as-is
+    # The ProviderManager will handle them
 
-    # If gaming mode is on, only route to 3090 with force-big signal
-    if gaming_mode_on:
-        if has_force_big_signal(request, body):
-            logger.info("Force-big signal detected, routing to 3090 despite gaming mode")
-            return "3090"
+    try:
+        # Select provider using ProviderManager (it's async)
+        selection = await provider_manager.select_provider_and_model(requested_model)
 
-        # Prefer 3070 when gaming
-        if BACKENDS["3070"]["available"]:
-            logger.info("Gaming mode on, routing to 3070")
-            return "3070"
+        if not selection:
+            raise HTTPException(
+                status_code=503,
+                detail=f"No healthy provider available for model '{requested_model}'"
+            )
 
-        # No 3070 available, check if 3090 is still healthy
-        if await check_backend_health("3090"):
-            logger.info("Gaming mode on but 3070 unavailable, using 3090")
-            return "3090"
+        logger.info(
+            f"Routed to provider '{selection.provider.name}' "
+            f"with model '{selection.model.name}' "
+            f"(requested: '{requested_model}')"
+        )
 
-    # 3. Token-based routing
-    messages = body.get("messages", [])
-    estimated_tokens = estimate_tokens(messages)
-    logger.info(f"Estimated tokens: {estimated_tokens}")
+        return selection
 
-    # Small requests → 3070 (if available)
-    if estimated_tokens < SMALL_TOKEN_THRESHOLD:
-        if BACKENDS["3070"]["available"]:
-            logger.info("Small request, routing to 3070")
-            return "3070"
-
-    # Medium requests → 3090
-    if estimated_tokens < MEDIUM_TOKEN_THRESHOLD:
-        if await check_backend_health("3090"):
-            logger.info("Medium request, routing to 3090")
-            return "3090"
-
-    # Large/complex → OpenCode (when available)
-    if estimated_tokens >= MEDIUM_TOKEN_THRESHOLD:
-        if BACKENDS["opencode-glm"]["available"]:
-            logger.info("Large request, routing to OpenCode")
-            return "opencode-glm"
-
-    # 4. Fallback chain
-    for backend_id in ["3090", "3070", "opencode-glm"]:
-        if BACKENDS[backend_id]["available"] and await check_backend_health(backend_id):
-            logger.info(f"Fallback to {backend_id}")
-            return backend_id
-
-    raise HTTPException(status_code=503, detail="No healthy backends available")
+    except Exception as e:
+        logger.error(f"Routing error: {e}")
+        raise HTTPException(
+            status_code=503,
+            detail=f"Failed to route request: {str(e)}"
+        )
 
 
 @app.get("/")
@@ -249,26 +274,31 @@ async def root():
 
 @app.get("/health")
 async def health_check() -> HealthResponse:
-    """Health check with backend status."""
+    """Health check with provider status."""
+    if not provider_manager:
+        return HealthResponse(
+            status="unhealthy",
+            backends={"error": {"healthy": False, "reason": "Provider manager not initialized"}},
+        )
+
     backend_status = {}
 
-    for backend_id, backend in BACKENDS.items():
-        if backend["available"]:
-            backend_status[backend_id] = {
-                "name": backend["name"],
-                "healthy": await check_backend_health(backend_id),
-            }
-        else:
-            backend_status[backend_id] = {
-                "name": backend["name"],
-                "healthy": False,
-                "reason": "not configured",
-            }
+    # Get status from all providers
+    provider_statuses = provider_manager.get_provider_status()
+    for provider_id, status in provider_statuses.items():
+        backend_status[provider_id] = {
+            "name": status["name"],
+            "healthy": status["healthy"],
+            "enabled": status["enabled"],
+            "current_requests": status["current_requests"],
+            "max_concurrent": status["max_concurrent"],
+        }
 
+    # Check gaming mode (legacy compatibility)
     gaming_status = await get_gaming_pc_status()
 
     return HealthResponse(
-        status="healthy",
+        status="healthy" if any(s["healthy"] for s in backend_status.values()) else "degraded",
         backends=backend_status,
         gaming_mode=gaming_status.gaming_mode if gaming_status else None,
     )
@@ -277,21 +307,28 @@ async def health_check() -> HealthResponse:
 @app.get("/v1/models")
 async def list_models():
     """List available models (OpenAI-compatible)."""
+    if not provider_manager:
+        raise HTTPException(status_code=503, detail="Provider manager not initialized")
+
     models = []
 
-    # Add available backend models
-    if BACKENDS["3090"]["available"]:
-        models.extend([
-            {"id": "llama3-8b", "object": "model", "owned_by": "local"},
-            {"id": "qwen2.5-14b-awq", "object": "model", "owned_by": "local"},
-            {"id": "deepseek-coder", "object": "model", "owned_by": "local"},
-        ])
+    # Add all configured models
+    for model in provider_manager.get_all_models():
+        provider = provider_manager.get_provider(model.provider_id)
+        models.append({
+            "id": model.id,
+            "object": "model",
+            "owned_by": provider.type.value if provider else "unknown",
+            "created": 0,  # Not tracked
+            "provider": provider.name if provider else "unknown",
+        })
 
-    # Add routing aliases
+    # Add routing aliases for backward compatibility
     models.extend([
         {"id": "auto", "object": "model", "owned_by": "router"},
         {"id": "small", "object": "model", "owned_by": "router"},
         {"id": "fast", "object": "model", "owned_by": "router"},
+        {"id": "medium", "object": "model", "owned_by": "router"},
         {"id": "big", "object": "model", "owned_by": "router"},
     ])
 
@@ -307,92 +344,81 @@ async def chat_completions(
     """OpenAI-compatible chat completions with intelligent routing."""
     body = await request.json()
 
-    # Determine routing
-    backend_id = await route_request(request, body)
-    backend = BACKENDS[backend_id]
+    # Route using ProviderManager
+    selection = await route_request(request, body)
 
-    # Get the actual model to use from request, or default
-    requested_model = body.get("model", "auto")
+    # Update body with selected model ID
+    body["model"] = selection.model.id
 
-    # For 3090, map to actual model names
-    if backend_id == "3090":
-        if requested_model in ["auto", "small", "fast", "big", "3090", "gaming-pc"]:
-            # Use qwen for coding/complex tasks, llama for general
-            messages = body.get("messages", [])
-            content = " ".join(
-                str(m.get("content", ""))
-                for m in messages
-                if isinstance(m, dict)
-            ).lower()
+    # Build endpoint URL
+    endpoint_url = f"{selection.provider.endpoint.rstrip('/')}/v1/chat/completions"
 
-            # Simple heuristic: coding keywords → deepseek-coder
-            coding_keywords = ["code", "function", "class", "debug", "fix", "implement", "refactor"]
-            if any(kw in content for kw in coding_keywords):
-                body["model"] = "deepseek-coder"
+    logger.info(
+        f"Routing to {selection.provider.name} ({selection.provider.endpoint}) "
+        f"with model {selection.model.id}"
+    )
+
+    # Track request with provider manager using context manager
+    async with provider_manager.track_request(selection.provider.id):
+        # Determine if streaming
+        stream = body.get("stream", False)
+
+        # Model cold starts can take 2-3 minutes, use 5 min timeout
+        async with httpx.AsyncClient(timeout=300.0) as client:
+            if stream:
+                # Stream the response
+                # TODO: Add metrics/memory logging for streaming responses
+                async def stream_response():
+                    async with client.stream(
+                        "POST",
+                        endpoint_url,
+                        json=body,
+                        headers={"Content-Type": "application/json"},
+                    ) as response:
+                        async for chunk in response.aiter_bytes():
+                            yield chunk
+
+                return StreamingResponse(
+                    stream_response(),
+                    media_type="text/event-stream",
+                )
             else:
-                body["model"] = "qwen2.5-14b-awq"
+                # Non-streaming response
+                error = None
+                response_data = None
 
-    logger.info(f"Routing to {backend['name']} with model {body.get('model')}")
+                try:
+                    response = await client.post(
+                        endpoint_url,
+                        json=body,
+                    )
+                    response_data = response.json()
 
-    # Determine if streaming
-    stream = body.get("stream", False)
+                    # Log metrics and memory in background
+                    background_tasks.add_task(
+                        log_chat_completion,
+                        tracker,
+                        body,
+                        response_data,
+                        error=None
+                    )
 
-    # Model cold starts can take 2-3 minutes, use 5 min timeout
-    async with httpx.AsyncClient(timeout=300.0) as client:
-        if stream:
-            # Stream the response
-            # TODO: Add metrics/memory logging for streaming responses
-            async def stream_response():
-                async with client.stream(
-                    "POST",
-                    f"{backend['url']}/v1/chat/completions",
-                    json=body,
-                    headers={"Content-Type": "application/json"},
-                ) as response:
-                    async for chunk in response.aiter_bytes():
-                        yield chunk
+                    return response_data
 
-            return StreamingResponse(
-                stream_response(),
-                media_type="text/event-stream",
-            )
-        else:
-            # Non-streaming response
-            error = None
-            response_data = None
+                except Exception as e:
+                    error = str(e)
+                    logger.error(f"Chat completion error: {error}")
 
-            try:
-                response = await client.post(
-                    f"{backend['url']}/v1/chat/completions",
-                    json=body,
-                )
-                response_data = response.json()
+                    # Log error metric in background
+                    background_tasks.add_task(
+                        log_chat_completion,
+                        tracker,
+                        body,
+                        response_data=None,
+                        error=error
+                    )
 
-                # Log metrics and memory in background
-                background_tasks.add_task(
-                    log_chat_completion,
-                    tracker,
-                    body,
-                    response_data,
-                    error=None
-                )
-
-                return response_data
-
-            except Exception as e:
-                error = str(e)
-                logger.error(f"Chat completion error: {error}")
-
-                # Log error metric in background
-                background_tasks.add_task(
-                    log_chat_completion,
-                    tracker,
-                    body,
-                    response_data=None,
-                    error=error
-                )
-
-                raise
+                    raise
 
 
 @app.post("/gaming-mode")
