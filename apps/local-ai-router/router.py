@@ -398,10 +398,11 @@ async def list_providers():
             health_status = health_checker.get_all_health_status()
             if provider.id in health_status:
                 health_result = health_status[provider.id]
+                from datetime import datetime
                 health_info = {
                     "is_healthy": health_result.is_healthy,
                     "response_time_ms": health_result.response_time_ms,
-                    "checked_at": health_result.checked_at.isoformat() if health_result.checked_at else None,
+                    "checked_at": datetime.fromtimestamp(health_result.timestamp).isoformat() if health_result.timestamp else None,
                     "error": health_result.error,
                 }
 
