@@ -79,7 +79,7 @@ export default function ConversationSidebar({
       );
       return { previousConversations };
     },
-    onError: (err, variables, context) => {
+    onError: (_err, _variables, context) => {
       if (context?.previousConversations) {
         queryClient.setQueryData(['conversations'], context.previousConversations);
       }
