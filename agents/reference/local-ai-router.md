@@ -27,20 +27,84 @@ See [apps/local-ai-router/README.md](../../apps/local-ai-router/README.md) for c
 
 ## Memory Headers
 
-To save a conversation to memory, use one of these headers:
+To save a conversation to memory, use these headers:
+
+### Required Headers
 
 ```bash
-# Auto-generate conversation ID
+# Enable memory storage
 X-Enable-Memory: true
 
-# Use specific conversation ID
+# Identify the user making the request
+X-User-ID: user-123
+```
+
+**⚠️ IMPORTANT**: `X-User-ID` is currently **optional but strongly recommended**. It should be **required** in the future for proper user tracking (see task for enforcement).
+
+### Optional Headers
+
+```bash
+# Use specific conversation ID (auto-generated if omitted)
 X-Conversation-ID: my-conversation-123
 
-# Optional metadata
-X-Session-ID: session-abc
-X-User-ID: user-123
+# Project/application identifier (e.g., "dashboard", "tayne-discord-bot")
 X-Project: my-project
+
+# Session identifier for grouping related conversations
+X-Session-ID: session-abc
 ```
+
+### Header Details
+
+| Header | Status | Purpose | Example Values | Notes |
+|--------|--------|---------|----------------|-------|
+| `X-Enable-Memory` | **Required** | Enable conversation storage | `true` | Without this, conversation is NOT saved |
+| `X-User-ID` | **Recommended** | User identifier | `user-123`, Discord user ID, email | Should be unique per user. Currently optional but will be required. |
+| `X-Project` | Optional | Application/source identifier | `dashboard`, `tayne-discord-bot`, `testing` | Used for filtering and source badges in UI |
+| `X-Conversation-ID` | Optional | Specific conversation ID | `conv-abc-123`, `discord-{channel_id}` | Auto-generated if omitted |
+| `X-Session-ID` | Optional | Session grouping | `session-abc` | Rarely used |
+
+### Implementation Examples
+
+**Discord Bot**:
+```python
+headers = {
+    "Content-Type": "application/json",
+    "X-Enable-Memory": "true",
+    "X-Conversation-ID": f"discord-{channel_id}",  # One conversation per channel
+    "X-Project": "tayne-discord-bot",
+    "X-User-ID": str(message.author.id),  # Discord user ID
+}
+```
+
+**Dashboard/Web App**:
+```typescript
+const headers = {
+  'Content-Type': 'application/json',
+  'X-Enable-Memory': 'true',
+  'X-Project': 'dashboard',
+  'X-User-ID': 'dashboard-user',  // Or actual logged-in user ID
+  'X-Conversation-ID': conversationId || undefined,  // Omit for new conversations
+};
+```
+
+**CLI/Script**:
+```bash
+curl -X POST http://localhost:8012/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "X-Enable-Memory: true" \
+  -H "X-User-ID: josh" \
+  -H "X-Project: testing" \
+  -d '{"model": "auto", "messages": [...]}'
+```
+
+### Best Practices
+
+1. **Always provide X-User-ID** when using memory to enable proper user tracking
+2. **Use stable identifiers** for X-User-ID (database IDs, Discord IDs, emails) - not display names
+3. **Use descriptive X-Project values** to identify the source application (shows in dashboard badges)
+4. **Let X-Conversation-ID auto-generate** for new conversations unless you need specific ID format
+5. **Reuse X-Conversation-ID** for multi-turn conversations in the same context (e.g., same Discord channel)
 
 ## API Endpoints
 
