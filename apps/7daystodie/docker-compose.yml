@@ -33,12 +33,12 @@ services:
       - "26900:26900/udp"
       - "26901:26901/udp"
       - "26902:26902/udp"
-      # Web admin (optional)
-      - "8080:8080/tcp"
+      # Web admin (optional) - remapped to avoid conflicts
+      - "26980:8080/tcp"
       # Telnet (optional)
-      - "8081:8081/tcp"
+      - "26981:8081/tcp"
       # Alloc Fixes Map GUI (optional)
-      - "8082:8082/tcp"
+      - "26982:8082/tcp"
     ulimits:
       nofile:
         soft: "10240"
