@@ -27,13 +27,7 @@
       "name": "Check for Failed Containers",
       "type": "n8n-nodes-base.ssh",
       "typeVersion": 1.1,
-      "position": [450, 300],
-      "credentials": {
-        "ssh": {
-          "id": "server-ssh",
-          "name": "Server SSH"
-        }
-      }
+      "position": [450, 300]
     },
     {
       "parameters": {
@@ -83,13 +77,7 @@
       "name": "Get Container Logs",
       "type": "n8n-nodes-base.ssh",
       "typeVersion": 1.1,
-      "position": [1050, 300],
-      "credentials": {
-        "ssh": {
-          "id": "server-ssh",
-          "name": "Server SSH"
-        }
-      }
+      "position": [1050, 300]
     },
     {
       "parameters": {
