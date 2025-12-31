@@ -39,7 +39,7 @@ X-Enable-Memory: true
 X-User-ID: user-123
 ```
 
-**⚠️ IMPORTANT**: `X-User-ID` is currently **optional but strongly recommended**. It should be **required** in the future for proper user tracking (see task for enforcement).
+**⚠️ IMPORTANT**: `X-User-ID` is **REQUIRED** when memory is enabled. The API returns HTTP 400 if missing.
 
 ### Optional Headers
 
@@ -59,7 +59,7 @@ X-Session-ID: session-abc
 | Header | Status | Purpose | Example Values | Notes |
 |--------|--------|---------|----------------|-------|
 | `X-Enable-Memory` | **Required** | Enable conversation storage | `true` | Without this, conversation is NOT saved |
-| `X-User-ID` | **Recommended** | User identifier | `user-123`, Discord user ID, email | Should be unique per user. Currently optional but will be required. |
+| `X-User-ID` | **Required** | User identifier | `user-123`, Discord user ID, email | **Required when memory enabled.** Returns HTTP 400 if missing. |
 | `X-Project` | Optional | Application/source identifier | `dashboard`, `tayne-discord-bot`, `testing` | Used for filtering and source badges in UI |
 | `X-Conversation-ID` | Optional | Specific conversation ID | `conv-abc-123`, `discord-{channel_id}` | Auto-generated if omitted |
 | `X-Session-ID` | Optional | Session grouping | `session-abc` | Rarely used |
