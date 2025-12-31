@@ -7,7 +7,7 @@ from pathlib import Path
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException, Depends, BackgroundTasks, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse, FileResponse
+from fastapi.responses import StreamingResponse, FileResponse, JSONResponse
 from pydantic import BaseModel
 from typing import Optional
 import asyncio
@@ -633,9 +633,15 @@ async def chat_completions(
 
             background_tasks.add_task(log_stream_completion)
 
+            # Build response headers
+            response_headers = {}
+            if tracker.conversation_id:
+                response_headers["X-Conversation-ID"] = tracker.conversation_id
+
             return StreamingResponse(
                 stream_generator(),
                 media_type="text/event-stream",
+                headers=response_headers,
             )
         else:
             async with httpx.AsyncClient(timeout=300.0) as client:
@@ -670,7 +676,12 @@ async def chat_completions(
                         error=None
                     )
 
-                    return response_data
+                    # Return with conversation ID header for client tracking
+                    response_headers = {}
+                    if tracker.conversation_id:
+                        response_headers["X-Conversation-ID"] = tracker.conversation_id
+
+                    return JSONResponse(content=response_data, headers=response_headers)
 
                 except Exception as e:
                     error = str(e)

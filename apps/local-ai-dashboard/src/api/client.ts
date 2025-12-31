@@ -209,6 +209,7 @@ export const chatAPI = {
 
     const headers: Record<string, string> = {
       'X-Enable-Memory': 'true',
+      'X-Enhanced-Streaming': 'true',  // Enable status events with conversation_id
       'X-Project': 'dashboard',
       'X-User-ID': 'dashboard-user',
     };
