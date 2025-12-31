@@ -214,7 +214,13 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
             const finalContent = event.content || streamingContent;
             setMessages(prev => {
               const updated = [...prev];
-              const lastUserIndex = updated.findLastIndex(m => m.role === 'user');
+              let lastUserIndex = -1;
+              for (let i = updated.length - 1; i >= 0; i--) {
+                if (updated[i].role === 'user') {
+                  lastUserIndex = i;
+                  break;
+                }
+              }
               if (lastUserIndex !== -1 && event.usage?.prompt_tokens) {
                 updated[lastUserIndex] = {
                   ...updated[lastUserIndex],
