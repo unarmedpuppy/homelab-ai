@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { chatAPI, memoryAPI, providersAPI, imageAPI } from '../api/client';
 import type { ChatMessage, ImageRef } from '../types/api';
 import ImageUpload from './ImageUpload';
+import MarkdownContent from './MarkdownContent';
 import ProviderModelSelector from './ProviderModelSelector';
 
 interface MessageWithMetadata extends ChatMessage {
@@ -454,9 +455,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                     ))}
                   </div>
                 )}
-                <div className="text-gray-300 whitespace-pre-wrap text-sm">
-                  {message.content}
-                </div>
+                <MarkdownContent content={message.content} />
 
                 {/* Metadata for all messages */}
                 <div className="mt-3 pt-3 border-t border-gray-800 flex flex-wrap gap-4 text-xs text-gray-500">
@@ -518,10 +517,8 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
 
             {/* Message Content */}
             <div className="p-4 rounded border bg-gray-900 border-green-900/30 mr-6">
-              <div className="text-gray-300 whitespace-pre-wrap text-sm">
-                {streamingContent}
-                <span className="inline-block w-2 h-4 bg-green-400 ml-1 animate-pulse"></span>
-              </div>
+              <MarkdownContent content={streamingContent} />
+              <span className="inline-block w-2 h-4 bg-green-400 ml-1 animate-pulse"></span>
             </div>
           </div>
         )}

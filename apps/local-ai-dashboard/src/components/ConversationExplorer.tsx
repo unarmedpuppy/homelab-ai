@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { memoryAPI } from '../api/client';
 import type { Conversation } from '../types/api';
+import MarkdownContent from './MarkdownContent';
 
 const getSourceBadge = (conv: { source?: string; project?: string }) => {
   const source = conv.source || conv.project || 'unknown';
@@ -246,9 +247,7 @@ export default function ConversationExplorer() {
                         ? 'bg-gray-900 border-blue-900/30 ml-6'
                         : 'bg-gray-900 border-green-900/30 mr-6'
                     }`}>
-                      <div className="text-gray-300 whitespace-pre-wrap text-sm">
-                        {msg.content}
-                      </div>
+                      <MarkdownContent content={msg.content} />
 
                       {/* Metadata - show for ALL messages */}
                       <div className="mt-3 pt-3 border-t border-gray-800 flex flex-wrap gap-4 text-xs text-gray-500">
