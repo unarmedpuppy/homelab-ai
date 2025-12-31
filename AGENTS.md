@@ -132,11 +132,12 @@ See `agents/reference/` for detailed patterns and workflows.
   - SSH to server and `git pull` to deploy changes
   - This is the ONLY way to get changes to the server
   - No exceptions - even "quick fixes" must go through git
-- **🚨 NEVER EDIT `.beads/` ON THE SERVER VIA SSH** - Beads operations must be done locally
-  - `.beads/issues.jsonl` and other beads files are git-tracked
-  - If you SSH to the server, you CANNOT run `bd` commands that modify issues
-  - Workflow: Edit locally → commit → push → server does `git pull`
-  - Exception: If you're actually running directly on the server (not SSH), it's fine
+- **🚨 BEADS IS LOCAL-ONLY** - Beads tooling is NOT installed on the server
+  - `.beads/issues.jsonl` is git-tracked and synced via `git pull` to the server
+  - **No `bd` CLI, no beads daemon, no beads-ui on the server** - intentionally removed
+  - Git hooks on the server are disabled (no-ops) to prevent beads from running
+  - Workflow: Edit locally with `bd` → commit → push → server does `git pull`
+  - **Why**: A beads daemon running on the server caused sync conflicts by modifying `issues.jsonl` with stale data
 - Skip task status updates
 - Delete files without understanding dependencies
 - Make unrelated changes in a single commit

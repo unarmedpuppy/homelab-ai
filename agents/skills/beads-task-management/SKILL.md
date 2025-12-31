@@ -8,6 +8,15 @@ when_to_use: Creating, updating, querying tasks; finding ready work; managing de
 
 Manage tasks using [Beads](https://github.com/steveyegge/beads), a distributed issue tracker for AI agents with git-backed synchronization.
 
+## ⚠️ Important: Local-Only
+
+**Beads runs LOCALLY only, not on the server.**
+
+- The `bd` CLI is **not installed** on the home server
+- Run all `bd` commands locally, then sync via git push
+- The server receives updates via `git pull` only
+- See `agents/reference/beads.md#server-restrictions` for details
+
 ## Overview
 
 Beads provides:

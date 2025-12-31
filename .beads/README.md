@@ -2,6 +2,17 @@
 
 Welcome to Beads! This repository uses **Beads** for issue tracking - a modern, AI-native tool designed to live directly in your codebase alongside your code.
 
+## ⚠️ Important: Local-Only Usage
+
+**Beads tooling runs LOCALLY only, not on the server.**
+
+- The `bd` CLI, beads daemon, and beads-ui are **not installed** on the home server
+- This directory (`.beads/`) is git-tracked and syncs to the server via `git pull`
+- All `bd` commands must be run on your local machine, then pushed via git
+- The server's git hooks are disabled to prevent any beads operations
+
+**Why?** A beads daemon running on the server caused sync conflicts by modifying `issues.jsonl` with stale data.
+
 ## What is Beads?
 
 Beads is issue tracking that lives in your repo, making it perfect for AI coding agents and developers who want their issues close to their code. No web UI required - everything works through the CLI and integrates seamlessly with git.

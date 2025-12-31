@@ -274,6 +274,36 @@ bd dep add <login-id> <jwt-id> --type blocks
 | Component | `websocket`, `traefik`, `zfs`, `network`, `ui` |
 | Urgency | `urgent`, `blocking`, `tech-debt` |
 
+## Server Restrictions
+
+**⚠️ Beads is LOCAL-ONLY - Not installed on the server**
+
+The beads tooling (`bd` CLI, daemon, beads-ui) is intentionally **not installed** on the home server. This is by design:
+
+- **Why**: A beads daemon running on the server caused sync conflicts. It modified `issues.jsonl` with stale data from its internal database, preventing `git pull` from working.
+- **Git hooks disabled**: The server's `.git/hooks/` (post-merge, post-checkout, pre-commit, pre-push) are no-ops to prevent any beads operations.
+- **Data still syncs**: The `.beads/issues.jsonl` file is git-tracked and syncs to the server via normal `git pull`.
+
+**Correct Workflow:**
+```bash
+# LOCAL machine only:
+bd create "New task" -p 1
+bd update <id> --status in_progress
+bd close <id>
+
+# Sync to server:
+git add .beads/ && git commit -m "beads: update" && git push
+
+# Server just pulls (no bd commands):
+ssh server "cd ~/server && git pull"
+```
+
+**Never on the server:**
+- Don't install `bd` CLI
+- Don't run `bd daemon`
+- Don't install beads-ui
+- Don't run any `bd` commands
+
 ## Troubleshooting
 
 ### Sync Issues
