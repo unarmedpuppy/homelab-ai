@@ -18,12 +18,14 @@ import os
 import json
 import logging
 import asyncio
+import time
 from typing import Optional
 from pydantic import BaseModel, Field
 from enum import Enum
 
-# Import tools from the new package
 from tools import get_tool_definitions, execute_tool
+from agent_storage import create_agent_run, add_agent_step, complete_agent_run
+from models import AgentRunStatus
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +63,8 @@ class AgentRequest(BaseModel):
     working_directory: str = Field(default="/tmp", description="Working directory for file operations")
     model: str = Field(default="auto", description="Model to use (auto, big, etc.)")
     max_steps: int = Field(default=50, ge=1, le=100, description="Maximum steps before termination")
+    source: Optional[str] = Field(default=None, description="Source of request (n8n, api, dashboard)")
+    triggered_by: Optional[str] = Field(default=None, description="What triggered this run")
 
 
 class AgentStep(BaseModel):
@@ -74,6 +78,7 @@ class AgentStep(BaseModel):
 class AgentResponse(BaseModel):
     """Response from agent execution."""
     success: bool
+    run_id: Optional[str] = None
     final_answer: Optional[str] = None
     steps: list[AgentStep]
     total_steps: int
@@ -244,6 +249,14 @@ async def run_agent_loop(
 
     The model is a stateless decision oracle.
     """
+    run_id = create_agent_run(
+        task=request.task,
+        working_directory=request.working_directory,
+        model_requested=request.model,
+        source=request.source,
+        triggered_by=request.triggered_by
+    )
+    
     steps: list[AgentStep] = []
     messages = [
         {"role": "system", "content": build_system_prompt(request.task, request.working_directory)},
@@ -253,8 +266,9 @@ async def run_agent_loop(
     max_steps = min(request.max_steps, MAX_STEPS)
     terminated_reason = "max_steps_reached"
     final_answer = None
+    model_used = None
+    backend_used = None
     
-    # Get current tool definitions
     current_tools = get_agent_tools()
 
     for step_num in range(1, max_steps + 1):
@@ -295,32 +309,31 @@ async def run_agent_loop(
                 await asyncio.sleep(1)  # Brief backoff
 
         if not action:
-            # Failed after retries
             steps.append(AgentStep(
                 step_number=step_num,
                 action=AgentAction(action_type=ActionType.RESPONSE, response="Failed to get valid response"),
                 error=error
             ))
+            add_agent_step(run_id, step_num, "response", error=error)
             terminated_reason = "parse_failure"
             break
 
-        # Handle termination
         if action.action_type == ActionType.TERMINATE:
             steps.append(AgentStep(
                 step_number=step_num,
                 action=action
             ))
+            add_agent_step(run_id, step_num, "terminate")
             final_answer = action.final_answer
             terminated_reason = "completed"
             break
 
-        # Handle thinking (just log and continue)
         if action.action_type == ActionType.THINK:
             steps.append(AgentStep(
                 step_number=step_num,
                 action=action
             ))
-            # Add thinking to conversation and prompt for action
+            add_agent_step(run_id, step_num, "think", thinking=action.thinking)
             messages.append({"role": "assistant", "content": action.thinking})
             messages.append({
                 "role": "user",
@@ -328,21 +341,29 @@ async def run_agent_loop(
             })
             continue
 
-        # Execute tool call - using the new tools package
         if action.action_type == ActionType.TOOL_CALL and action.tool_call:
+            step_start = time.time()
             tool_result = execute_tool(
                 action.tool_call.name,
                 action.tool_call.arguments,
                 request.working_directory
             )
+            step_duration = int((time.time() - step_start) * 1000)
 
             steps.append(AgentStep(
                 step_number=step_num,
                 action=action,
                 tool_result=tool_result
             ))
+            
+            add_agent_step(
+                run_id, step_num, "tool_call",
+                tool_name=action.tool_call.name,
+                tool_args=action.tool_call.arguments,
+                tool_result=tool_result[:5000] if tool_result else None,
+                duration_ms=step_duration
+            )
 
-            # Add tool call and result to conversation
             messages.append({
                 "role": "assistant",
                 "content": None,
@@ -363,8 +384,21 @@ async def run_agent_loop(
 
             logger.info(f"Tool {action.tool_call.name} executed: {tool_result[:200]}...")
 
+    status = AgentRunStatus.COMPLETED if terminated_reason == "completed" else (
+        AgentRunStatus.MAX_STEPS if terminated_reason == "max_steps_reached" else AgentRunStatus.FAILED
+    )
+    complete_agent_run(
+        run_id,
+        status=status,
+        final_answer=final_answer,
+        model_used=model_used,
+        backend=backend_used,
+        error=None if terminated_reason == "completed" else terminated_reason
+    )
+
     return AgentResponse(
         success=terminated_reason == "completed",
+        run_id=run_id,
         final_answer=final_answer,
         steps=steps,
         total_steps=len(steps),

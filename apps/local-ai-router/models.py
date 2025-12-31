@@ -247,6 +247,73 @@ class SearchQuery(BaseModel):
     offset: int = Field(0, ge=0)
 
 
+class AgentRunStatus(str, Enum):
+    """Agent run status types."""
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    MAX_STEPS = "max_steps"
+    CANCELLED = "cancelled"
+
+
+class AgentStepRecord(BaseModel):
+    """Database record for an agent step."""
+    id: int
+    agent_run_id: str
+    step_number: int
+    action_type: str
+    tool_name: Optional[str] = None
+    tool_args: Optional[Dict[str, Any]] = None
+    tool_result: Optional[str] = None
+    thinking: Optional[str] = None
+    error: Optional[str] = None
+    started_at: datetime
+    duration_ms: Optional[int] = None
+
+    class Config:
+        from_attributes = True
+
+
+class AgentRunRecord(BaseModel):
+    """Database record for an agent run."""
+    id: str
+    task: str
+    working_directory: Optional[str] = None
+    model_requested: Optional[str] = None
+    model_used: Optional[str] = None
+    backend: Optional[str] = None
+    status: AgentRunStatus
+    final_answer: Optional[str] = None
+    total_steps: int = 0
+    started_at: datetime
+    completed_at: Optional[datetime] = None
+    duration_ms: Optional[int] = None
+    source: Optional[str] = None
+    triggered_by: Optional[str] = None
+    error: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+
+    class Config:
+        from_attributes = True
+
+
+class AgentRunWithSteps(AgentRunRecord):
+    """Agent run with all its steps."""
+    steps: List[AgentStepRecord] = []
+
+
+class AgentRunsStats(BaseModel):
+    """Aggregated statistics for agent runs."""
+    total_runs: int
+    completed: int
+    failed: int
+    running: int
+    avg_steps: float
+    avg_duration_ms: float
+    by_source: Dict[str, int]
+    by_status: Dict[str, int]
+
+
 # ============================================================================
 # Streaming Models
 # ============================================================================

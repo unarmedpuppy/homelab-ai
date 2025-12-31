@@ -960,6 +960,40 @@ async def list_agent_tools():
 
 
 # ============================================================================
+# Agent Runs API Endpoints
+# ============================================================================
+
+from agent_storage import list_agent_runs, get_agent_run, get_agent_runs_stats
+from models import AgentRunRecord, AgentRunWithSteps, AgentRunsStats
+
+
+@app.get("/agent/runs", response_model=list[AgentRunRecord])
+async def api_list_agent_runs(
+    status: Optional[str] = None,
+    source: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
+):
+    """List agent runs with optional filters."""
+    return list_agent_runs(status=status, source=source, limit=limit, offset=offset)
+
+
+@app.get("/agent/runs/stats", response_model=AgentRunsStats)
+async def api_agent_runs_stats():
+    """Get aggregated statistics for agent runs."""
+    return get_agent_runs_stats()
+
+
+@app.get("/agent/runs/{run_id}", response_model=AgentRunWithSteps)
+async def api_get_agent_run(run_id: str):
+    """Get a specific agent run with all its steps."""
+    run = get_agent_run(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="Agent run not found")
+    return run
+
+
+# ============================================================================
 # Memory API Endpoints
 # ============================================================================
 

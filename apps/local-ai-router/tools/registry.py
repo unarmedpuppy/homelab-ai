@@ -124,18 +124,11 @@ def _register_all_tools():
     All other capabilities (SSH, Docker, HTTP, deployment, etc.) are
     provided through skills that the agent discovers on-demand.
     """
-    # Core file operations
     from . import file_tools
-    
-    # Shell execution (for running skill scripts)
     from . import shell_tools
-    
-    # Git operations (fundamental to workflow)
     from . import git_tools
-    
-    # Skill discovery and execution (THE KEY TOOLS)
     from . import skill_tools
+    from . import server_tools
 
 
-# Register tools when module is imported
 _register_all_tools()

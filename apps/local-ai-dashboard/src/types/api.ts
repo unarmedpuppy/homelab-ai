@@ -253,3 +253,50 @@ export interface AdminProvidersResponse {
   total_providers: number;
   healthy_providers: number;
 }
+
+export interface AgentRunRecord {
+  id: string;
+  task: string;
+  working_directory: string | null;
+  model_requested: string | null;
+  model_used: string | null;
+  backend: string | null;
+  status: 'running' | 'completed' | 'failed' | 'max_steps' | 'cancelled';
+  final_answer: string | null;
+  total_steps: number;
+  started_at: string;
+  completed_at: string | null;
+  duration_ms: number | null;
+  source: string | null;
+  triggered_by: string | null;
+  error: string | null;
+}
+
+export interface AgentStepRecord {
+  id: number;
+  agent_run_id: string;
+  step_number: number;
+  action_type: string;
+  tool_name: string | null;
+  tool_args: Record<string, unknown> | null;
+  tool_result: string | null;
+  thinking: string | null;
+  error: string | null;
+  started_at: string;
+  duration_ms: number | null;
+}
+
+export interface AgentRunWithSteps extends AgentRunRecord {
+  steps: AgentStepRecord[];
+}
+
+export interface AgentRunsStats {
+  total_runs: number;
+  completed_runs: number;
+  failed_runs: number;
+  running_runs: number;
+  avg_duration_ms: number;
+  most_used_model: string;
+  runs_by_status: Record<string, number>;
+  runs_by_source: Record<string, number>;
+}

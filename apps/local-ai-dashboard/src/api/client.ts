@@ -14,6 +14,9 @@ import type {
   AdminProvidersResponse,
   StreamEvent,
   ImageRef,
+  AgentRunRecord,
+  AgentRunWithSteps,
+  AgentRunsStats,
 } from '../types/api';
 
 // API base URL - defaults to public router endpoint
@@ -459,6 +462,28 @@ export const imageAPI = {
     const messageId = parts[parts.length - 2];
     const filename = parts[parts.length - 1];
     return `/api/v1/images/${conversationId}/${messageId}/${filename}`;
+  },
+};
+
+export const agentRunsAPI = {
+  list: async (params?: {
+    status?: string;
+    source?: string;
+    limit?: number;
+    offset?: number;
+  }) => {
+    const response = await apiClient.get<AgentRunRecord[]>('/agent/runs', { params });
+    return response.data;
+  },
+
+  get: async (id: string) => {
+    const response = await apiClient.get<AgentRunWithSteps>(`/agent/runs/${id}`);
+    return response.data;
+  },
+
+  getStats: async () => {
+    const response = await apiClient.get<AgentRunsStats>('/agent/runs/stats');
+    return response.data;
   },
 };
 

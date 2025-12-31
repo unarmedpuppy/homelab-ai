@@ -20,10 +20,17 @@ services:
       # Memory & Metrics
       - ENABLE_MEMORY=${ENABLE_MEMORY:-1}
       - ENABLE_METRICS=${ENABLE_METRICS:-1}
+      # Server SSH access for agent
+      - SERVER_SSH_HOST=${SERVER_SSH_HOST:-192.168.86.47}
+      - SERVER_SSH_PORT=${SERVER_SSH_PORT:-4242}
+      - SERVER_SSH_USER=${SERVER_SSH_USER:-unarmedpuppy}
+      - SERVER_SSH_KEY=/root/.ssh/id_rsa
+      - SERVER_SSH_TIMEOUT=${SERVER_SSH_TIMEOUT:-60}
     volumes:
       - ./data:/data
-      # Mount skills directory for skill-based agent
       - ../../agents/skills:/app/agents/skills:ro
+      - ~/.ssh/id_rsa:/root/.ssh/id_rsa:ro
+      - ~/.ssh/known_hosts:/root/.ssh/known_hosts:ro
     ports:
       - "8012:8000"
     networks:

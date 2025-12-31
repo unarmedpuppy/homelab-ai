@@ -203,6 +203,66 @@ def init_database():
             ON client_api_keys(enabled)
         """)
 
+        # Create agent_runs table for tracking agent executions
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS agent_runs (
+                id TEXT PRIMARY KEY,
+                task TEXT NOT NULL,
+                working_directory TEXT,
+                model_requested TEXT,
+                model_used TEXT,
+                backend TEXT,
+                status TEXT NOT NULL,
+                final_answer TEXT,
+                total_steps INTEGER DEFAULT 0,
+                started_at DATETIME NOT NULL,
+                completed_at DATETIME,
+                duration_ms INTEGER,
+                source TEXT,
+                triggered_by TEXT,
+                error TEXT,
+                metadata TEXT
+            )
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_agent_runs_status
+            ON agent_runs(status)
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_agent_runs_started
+            ON agent_runs(started_at)
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_agent_runs_source
+            ON agent_runs(source)
+        """)
+
+        # Create agent_steps table for tracking individual steps
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS agent_steps (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                agent_run_id TEXT NOT NULL,
+                step_number INTEGER NOT NULL,
+                action_type TEXT NOT NULL,
+                tool_name TEXT,
+                tool_args TEXT,
+                tool_result TEXT,
+                thinking TEXT,
+                error TEXT,
+                started_at DATETIME NOT NULL,
+                duration_ms INTEGER,
+                FOREIGN KEY (agent_run_id) REFERENCES agent_runs(id)
+            )
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_agent_steps_run
+            ON agent_steps(agent_run_id)
+        """)
+
         conn.commit()
         logger.info("Database schema created successfully")
 
