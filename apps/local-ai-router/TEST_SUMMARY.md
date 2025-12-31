@@ -424,3 +424,53 @@ Navigate to: https://local-ai-dashboard.server.unarmedpuppy.com/
 **Backend Note**: Basic streaming already works. Advanced features (provider info injection, metrics logging) can be added later if needed.
 
 **Next Steps**: Manual browser testing + continue with remaining phases
+
+---
+
+## Memory Header Validation
+
+**Status**: ✅ IMPLEMENTED
+
+### X-User-ID Required When Memory Enabled
+
+**Implementation File**: `apps/local-ai-router/dependencies.py` (lines 55-67)
+
+**Behavior**:
+- When `X-Enable-Memory: true` header is present
+- If `X-User-ID` header is missing → Returns HTTP 400
+- Error message: "X-User-ID header is required when X-Enable-Memory is true..."
+
+**Test Cases**:
+
+```bash
+# ❌ SHOULD FAIL: Memory enabled without X-User-ID
+curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "X-Enable-Memory: true" \
+  -d '{"model": "auto", "messages": [{"role": "user", "content": "test"}]}'
+# Expected: HTTP 400, {"detail": "X-User-ID header is required when X-Enable-Memory is true..."}
+
+# ✅ SHOULD PASS: Memory enabled with X-User-ID
+curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "X-Enable-Memory: true" \
+  -H "X-User-ID: test-user-123" \
+  -d '{"model": "auto", "messages": [{"role": "user", "content": "test"}]}'
+# Expected: HTTP 200, normal chat completion response
+
+# ✅ SHOULD PASS: Memory disabled (no X-User-ID required)
+curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"model": "auto", "messages": [{"role": "user", "content": "test"}]}'
+# Expected: HTTP 200, normal chat completion response (no memory stored)
+
+# ✅ SHOULD PASS: Conversation ID without enable-memory (legacy support)
+curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "X-Conversation-ID: conv-123" \
+  -H "X-User-ID: test-user-123" \
+  -d '{"model": "auto", "messages": [{"role": "user", "content": "test"}]}'
+# Expected: HTTP 200, conversation stored with provided ID
+```
+
+**Documentation**: Updated in `apps/local-ai-router/README.md` under "Memory Headers" section
