@@ -109,7 +109,7 @@ BACKENDS = {
     "3070": {
         "url": LOCAL_3070_URL,
         "name": "Home Server (3070)",
-        "available": False,  # Not set up yet
+        "available": True,
     },
     "3090": {
         "url": GAMING_PC_URL,
@@ -119,12 +119,12 @@ BACKENDS = {
     "opencode-glm": {
         "url": OPENCODE_URL,
         "name": "OpenCode (GLM-4.7)",
-        "available": False,  # Not set up yet
+        "available": False,
     },
     "opencode-claude": {
         "url": OPENCODE_URL,
         "name": "OpenCode (Claude)",
-        "available": False,  # Not set up yet
+        "available": False,
     },
 }
 
@@ -212,50 +212,47 @@ async def route_request(request: Request, body: dict, priority: int = 1) -> Prov
     """
     Determine which provider and model to route to using ProviderManager.
 
-    Supports multiple selection modes:
-    1. Auto routing: {"model": "auto"}
-    2. Explicit provider: {"provider": "server-3070"}
-    3. Explicit provider + model: {"provider": "server-3070", "modelId": "qwen2.5-7b"}
-    4. Shorthand: {"model": "server-3070/qwen2.5-14b"}
-
-    Args:
-        request: FastAPI Request object
-        body: Request body dict
-        priority: Request priority (0=high, 1=normal, 2=low). Used for routing decisions.
-
-    Returns:
-        ProviderSelection with provider and model information
+    Routing priority:
+    1. Explicit model/provider requests are honored directly
+    2. Force-big signals escalate to 3090
+    3. Token count > 2000 escalates to 3090 (3070 has 2K context limit)
+    4. Default: route to 3070 (always-on, lower power)
     """
     if not provider_manager:
         raise HTTPException(status_code=503, detail="Provider manager not initialized")
 
-    # Extract selection parameters
     requested_model = body.get("model", "auto")
-    requested_provider = body.get("provider")  # Explicit provider ID
-    requested_model_id = body.get("modelId")   # Explicit model ID
+    requested_provider = body.get("provider")
+    requested_model_id = body.get("modelId")
 
-    # Parse shorthand notation: "provider/model"
     if "/" in requested_model:
         parts = requested_model.split("/", 1)
         requested_provider = parts[0]
         requested_model_id = parts[1]
-        requested_model = "auto"  # Override since we have explicit provider/model
+        requested_model = "auto"
 
-    # Handle model aliases (maintain backward compatibility)
     if requested_model in MODEL_ALIASES:
-        # Resolve old alias to model ID
         alias_target = MODEL_ALIASES[requested_model]
-        # Map old backend IDs to model IDs
         if alias_target == "3090":
-            requested_model = "qwen2.5-14b-awq"  # Default 3090 model
+            requested_model = "qwen2.5-14b-awq"
         elif alias_target == "3070":
-            requested_model = "llama3-8b"  # Default 3070 model
+            requested_model = "qwen2.5-7b-awq"
         elif alias_target == "opencode-glm":
             requested_model = "glm-4-flash"
         elif alias_target == "opencode-claude":
             requested_model = "claude-3-5-haiku"
-    # For "auto", "small", "fast", "medium", "big", pass through as-is
-    # The ProviderManager will handle them
+
+    # Token-based escalation for "auto" requests
+    if requested_model == "auto" and not requested_provider:
+        token_estimate = estimate_tokens(body.get("messages", []))
+        force_big = has_force_big_signal(request, body)
+        
+        if force_big or token_estimate > SMALL_TOKEN_THRESHOLD:
+            requested_model = "qwen2.5-14b-awq"
+            logger.info(f"Escalating to 3090: force_big={force_big}, tokens={token_estimate}")
+        else:
+            requested_model = "qwen2.5-7b-awq"
+            logger.info(f"Using 3070 (default): tokens={token_estimate}")
 
     try:
         # Select provider using ProviderManager (it's async)

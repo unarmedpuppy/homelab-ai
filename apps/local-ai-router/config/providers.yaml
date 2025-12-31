@@ -12,13 +12,13 @@
 # ============================================================================
 
 providers:
-  # Primary Local GPU - Gaming PC with RTX 3090
+  # Gaming PC with RTX 3090 - Escalation target for large context
   - id: gaming-pc-3090
     name: "Gaming PC (RTX 3090)"
     type: local
-    description: "Gaming PC with RTX 3090, primary local GPU for larger models"
+    description: "Gaming PC with RTX 3090 - used for large context (>2K tokens) or explicit requests"
     endpoint: "http://192.168.86.63:8000"
-    priority: 1  # Try first (lower = higher priority)
+    priority: 2  # Secondary - escalate from 3070 when needed
     enabled: true
 
     # Concurrency Control
@@ -38,13 +38,13 @@ providers:
     vram: "24GB"
     location: "gaming-pc"
 
-  # Secondary Local GPU - Home Server with RTX 3070
+  # Home Server with RTX 3070 - Default always-on backend
   - id: server-3070
     name: "Server (RTX 3070)"
     type: local
-    description: "Home server with RTX 3070, secondary local GPU for medium models"
-    endpoint: "http://local-ai-server:8000"  # Docker network: container_name:internal_port
-    priority: 2  # Try second
+    description: "Home server with RTX 3070 - always-on default for requests under 2K tokens"
+    endpoint: "http://local-ai-server:8000"
+    priority: 1  # Primary - default for all requests
     enabled: true
 
     # Concurrency Control
@@ -126,10 +126,10 @@ models:
   - id: qwen2.5-14b-awq
     name: "Qwen 2.5 14B Instruct AWQ"
     providerId: gaming-pc-3090
-    description: "Qwen 2.5 14B Instruct with AWQ quantization - stronger reasoning"
+    description: "Qwen 2.5 14B - use for large context or explicit 'big' requests"
     contextWindow: 32768
     maxTokens: 8192
-    isDefault: true  # Default model for this provider
+    isDefault: false
 
     # Cost Tracking (free for local models)
     costPer1kTokens: 0.0
@@ -180,10 +180,10 @@ models:
   - id: qwen2.5-7b-awq
     name: "Qwen 2.5 7B Instruct AWQ"
     providerId: server-3070
-    description: "Qwen 2.5 7B with AWQ quantization - default always-on model"
-    contextWindow: 8192
-    maxTokens: 4096
-    isDefault: true  # Default model for this provider
+    description: "Default always-on model - escalates to 3090 if context > 2K tokens"
+    contextWindow: 2048
+    maxTokens: 1024
+    isDefault: true
 
     # Cost Tracking
     costPer1kTokens: 0.0
