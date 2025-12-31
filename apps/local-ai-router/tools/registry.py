@@ -111,8 +111,9 @@ def _register_all_tools():
     from . import file_tools
     from . import shell_tools
     from . import git_tools
-    # Future: from . import ssh_tools
-    # Future: from . import docker_tools
+    from . import ssh_tools
+    from . import docker_tools
+    from . import http_tools
     # Future: from . import deploy_tools
 
 
