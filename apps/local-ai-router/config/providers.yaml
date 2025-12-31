@@ -43,7 +43,7 @@ providers:
     name: "Server (RTX 3070)"
     type: local
     description: "Home server with RTX 3070, secondary local GPU for medium models"
-    endpoint: "http://localhost:8001"  # Local to router container
+    endpoint: "http://local-ai-server:8000"  # Docker network: container_name:internal_port
     priority: 2  # Try second
     enabled: true
 
