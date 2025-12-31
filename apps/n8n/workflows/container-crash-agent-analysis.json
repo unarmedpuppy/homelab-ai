@@ -53,12 +53,12 @@
           },
           "conditions": [
             {
-              "id": "check-no-failures",
-              "leftValue": "={{ $json.no_failures }}",
-              "rightValue": true,
+              "id": "check-has-container",
+              "leftValue": "={{ $json.container_name }}",
+              "rightValue": "",
               "operator": {
-                "type": "boolean",
-                "operation": "notEquals"
+                "type": "string",
+                "operation": "isNotEmpty"
               }
             }
           ],
@@ -109,7 +109,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ task: $json.task, working_directory: $json.working_directory, model: $json.model, max_steps: $json.max_steps }) }}",
         "options": {
-          "timeout": 120000
+          "timeout": 300000
         }
       }
     },
