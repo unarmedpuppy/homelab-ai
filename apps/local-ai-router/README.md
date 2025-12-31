@@ -183,25 +183,28 @@ The router maintains **two separate systems** for tracking and storing data:
 **Behavior**:
 - ⚠️ **Opt-in via headers** - NOT enabled by default for API requests
 - ⚠️ Requires explicit request headers to save conversations
+- ⚠️ **X-User-ID is REQUIRED** when memory is enabled (returns HTTP 400 if missing)
 - ✅ Supports conversation threading and RAG search
 - ✅ Auto-generates conversation IDs if not provided
 
 **Enable Memory for a Request:**
 
 ```bash
-# Enable memory with header
+# Enable memory with header (X-User-ID is REQUIRED)
 curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "X-Enable-Memory: true" \
+  -H "X-User-ID: user123" \
   -d '{
     "model": "auto",
     "messages": [{"role": "user", "content": "Remember this conversation"}]
   }'
 
-# Or use a specific conversation ID
+# Or use a specific conversation ID (X-User-ID still required for new conversations)
 curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "X-Conversation-ID: my-conversation-123" \
+  -H "X-User-ID: user123" \
   -d '{
     "model": "auto",
     "messages": [{"role": "user", "content": "Continue our chat"}]
@@ -210,20 +213,20 @@ curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
 
 **Memory Headers:**
 
-| Header | Purpose | Example |
-|--------|---------|---------|
-| `X-Enable-Memory: true` | Save this conversation to memory | Auto-generates conversation ID |
-| `X-Conversation-ID: <id>` | Continue existing conversation | Use existing or create new |
-| `X-Session-ID: <id>` | Group conversations by session | Optional metadata |
-| `X-User-ID: <id>` | Associate with user | Optional metadata |
-| `X-Project: <name>` | Tag with project name | Optional metadata |
+| Header | Purpose | Required |
+|--------|---------|----------|
+| `X-Enable-Memory: true` | Save this conversation to memory | To enable memory |
+| `X-User-ID: <id>` | Associate with user | **REQUIRED** when memory enabled |
+| `X-Conversation-ID: <id>` | Continue existing conversation | Optional (auto-generated) |
+| `X-Session-ID: <id>` | Group conversations by session | Optional |
+| `X-Project: <name>` | Tag with project name | Optional |
 
 **Key Differences:**
 
 | Feature | Metrics | Memory |
 |---------|---------|--------|
 | **Enabled by default** | ✅ Yes | ❌ No (opt-in) |
-| **Requires headers** | ❌ No | ✅ Yes (`X-Enable-Memory` or `X-Conversation-ID`) |
+| **Requires headers** | ❌ No | ✅ Yes (`X-Enable-Memory` + `X-User-ID`) |
 | **Stores messages** | ❌ No | ✅ Yes (full conversation) |
 | **Used for analytics** | ✅ Yes | ❌ No |
 | **Used for RAG search** | ❌ No | ✅ Yes |

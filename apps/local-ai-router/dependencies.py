@@ -5,7 +5,7 @@ import os
 import time
 import logging
 from typing import Optional
-from fastapi import Request, BackgroundTasks
+from fastapi import Request, BackgroundTasks, HTTPException
 from datetime import datetime, timezone
 
 from database import init_database
@@ -50,8 +50,21 @@ class RequestTracker:
 
 
 async def get_request_tracker(request: Request) -> RequestTracker:
-    """Dependency to create a request tracker."""
-    return RequestTracker(request)
+    """Dependency to create a request tracker.
+    
+    Validates that X-User-ID is provided when memory is enabled.
+    """
+    tracker = RequestTracker(request)
+    
+    # Require X-User-ID when memory is enabled
+    if tracker.enable_memory and not tracker.user_id:
+        raise HTTPException(
+            status_code=400,
+            detail="X-User-ID header is required when X-Enable-Memory is true. "
+                   "This ensures all stored conversations have proper user attribution."
+        )
+    
+    return tracker
 
 
 def log_chat_completion(
