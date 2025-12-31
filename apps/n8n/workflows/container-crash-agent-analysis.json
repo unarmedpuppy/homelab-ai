@@ -95,7 +95,7 @@
       "position": [1450, 300],
       "parameters": {
         "method": "POST",
-        "url": "https://local-ai-api.server.unarmedpuppy.com/agent/run",
+        "url": "http://local-ai-router:8000/agent/run",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
