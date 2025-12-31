@@ -25,9 +25,15 @@
       },
       "id": "check-failures",
       "name": "Check for Failed Containers",
-      "type": "n8n-nodes-base.executeCommand",
-      "typeVersion": 1,
-      "position": [450, 300]
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1.1,
+      "position": [450, 300],
+      "credentials": {
+        "ssh": {
+          "id": "server-ssh",
+          "name": "Server SSH"
+        }
+      }
     },
     {
       "parameters": {
@@ -40,7 +46,7 @@
           "conditions": [
             {
               "id": "has-failures",
-              "leftValue": "={{ $json.stdout }}",
+              "leftValue": "={{ $json.output }}",
               "rightValue": "NO_FAILURES",
               "operator": {
                 "type": "string",
@@ -60,7 +66,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Parse failed containers into individual items\nconst stdout = $input.first().json.stdout;\nconst lines = stdout.split('\\n').filter(l => l.trim() && l !== 'NO_FAILURES');\nconst results = [];\n\nfor (const line of lines) {\n  const parts = line.split('|');\n  if (parts.length >= 3) {\n    const containerName = parts[0].trim();\n    const status = parts[1].trim();\n    const state = parts[2].trim();\n    \n    // Extract exit code if present\n    const exitCodeMatch = status.match(/Exited \\((\\d+)\\)/);\n    const exitCode = exitCodeMatch ? exitCodeMatch[1] : 'unknown';\n    \n    results.push({\n      container_name: containerName,\n      status: status,\n      state: state,\n      exit_code: exitCode,\n      timestamp: new Date().toISOString()\n    });\n  }\n}\n\nreturn results.map(r => ({ json: r }));"
+        "jsCode": "// Parse failed containers into individual items\nconst stdout = $input.first().json.output;\nconst lines = stdout.split('\\n').filter(l => l.trim() && l !== 'NO_FAILURES');\nconst results = [];\n\nfor (const line of lines) {\n  const parts = line.split('|');\n  if (parts.length >= 3) {\n    const containerName = parts[0].trim();\n    const status = parts[1].trim();\n    const state = parts[2].trim();\n    \n    // Extract exit code if present\n    const exitCodeMatch = status.match(/Exited \\((\\d+)\\)/);\n    const exitCode = exitCodeMatch ? exitCodeMatch[1] : 'unknown';\n    \n    results.push({\n      container_name: containerName,\n      status: status,\n      state: state,\n      exit_code: exitCode,\n      timestamp: new Date().toISOString()\n    });\n  }\n}\n\nreturn results.map(r => ({ json: r }));"
       },
       "id": "parse-failures",
       "name": "Parse Failed Containers",
@@ -75,13 +81,19 @@
       },
       "id": "get-logs",
       "name": "Get Container Logs",
-      "type": "n8n-nodes-base.executeCommand",
-      "typeVersion": 1,
-      "position": [1050, 300]
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1.1,
+      "position": [1050, 300],
+      "credentials": {
+        "ssh": {
+          "id": "server-ssh",
+          "name": "Server SSH"
+        }
+      }
     },
     {
       "parameters": {
-        "jsCode": "// Build the agent task from container data and logs\nconst container = $('Parse Failed Containers').first().json;\nconst logsResult = $input.first().json;\nconst logs = logsResult.stdout || logsResult.stderr || 'No logs available';\n\n// Truncate logs to avoid overwhelming the agent\nconst truncatedLogs = logs.length > 2000 \n  ? logs.substring(logs.length - 2000) \n  : logs;\n\n// Build a clear task for the agent\nconst task = `A Docker container has crashed and needs analysis.\n\n## Container Details\n- **Name**: ${container.container_name}\n- **Status**: ${container.status}\n- **Exit Code**: ${container.exit_code}\n- **Detected At**: ${container.timestamp}\n\n## Recent Logs (last 50 lines)\n\\`\\`\\`\n${truncatedLogs}\n\\`\\`\\`\n\n## Your Task\n1. Analyze the logs to identify the root cause of the crash\n2. Search for relevant troubleshooting skills using search_skills()\n3. Provide a summary of:\n   - What caused the crash\n   - Recommended fix\n   - Whether this is a recurring issue or one-time failure\n4. Do NOT restart the container automatically - just analyze and report`;\n\nreturn [{\n  json: {\n    task: task,\n    working_directory: '/tmp',\n    model: 'auto',\n    max_steps: 15,\n    container_name: container.container_name,\n    exit_code: container.exit_code\n  }\n}];"
+        "jsCode": "// Build the agent task from container data and logs\nconst container = $('Parse Failed Containers').first().json;\nconst logsResult = $input.first().json;\nconst logs = logsResult.output || 'No logs available';\n\n// Truncate logs to avoid overwhelming the agent\nconst truncatedLogs = logs.length > 2000 \n  ? logs.substring(logs.length - 2000) \n  : logs;\n\n// Build a clear task for the agent\nconst task = `A Docker container has crashed and needs analysis.\n\n## Container Details\n- **Name**: ${container.container_name}\n- **Status**: ${container.status}\n- **Exit Code**: ${container.exit_code}\n- **Detected At**: ${container.timestamp}\n\n## Recent Logs (last 50 lines)\n\\`\\`\\`\n${truncatedLogs}\n\\`\\`\\`\n\n## Your Task\n1. Analyze the logs to identify the root cause of the crash\n2. Search for relevant troubleshooting skills using search_skills()\n3. Provide a summary of:\n   - What caused the crash\n   - Recommended fix\n   - Whether this is a recurring issue or one-time failure\n4. Do NOT restart the container automatically - just analyze and report`;\n\nreturn [{\n  json: {\n    task: task,\n    working_directory: '/tmp',\n    model: 'auto',\n    max_steps: 15,\n    container_name: container.container_name,\n    exit_code: container.exit_code\n  }\n}];"
       },
       "id": "build-agent-task",
       "name": "Build Agent Task",
