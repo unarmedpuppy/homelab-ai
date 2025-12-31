@@ -474,3 +474,56 @@ curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
 ```
 
 **Documentation**: Updated in `apps/local-ai-router/README.md` under "Memory Headers" section
+
+---
+
+## Conversation Renaming Feature
+
+**Status**: ✅ TESTED (2025-12-30)
+
+**Task**: `home-server-2ve`
+
+### Backend API Tests
+
+**Endpoint**: `PATCH /memory/conversations/{id}`
+
+| Test | Expected | Actual | Status |
+|------|----------|--------|--------|
+| PATCH existing conversation with `{"title": "New Name"}` | 200 + updated conversation | 200 + `{"id": "mattermost-test", "title": "Mattermost Integration Test", "updated_at": "..."}` | ✅ PASS |
+| GET conversation after rename | Title persisted | `{"id": "mattermost-test", "title": "Mattermost Integration Test"}` | ✅ PASS |
+| PATCH non-existent conversation | 404 | `{"detail":"Conversation not found"}` HTTP 404 | ✅ PASS |
+
+**Test Commands:**
+```bash
+# Rename conversation
+curl -X PATCH "https://local-ai-api.server.unarmedpuppy.com/memory/conversations/mattermost-test" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Mattermost Integration Test"}'
+
+# Verify persistence
+curl "https://local-ai-api.server.unarmedpuppy.com/memory/conversations/mattermost-test" | jq '.conversation.title'
+
+# Test 404
+curl -w "\nHTTP: %{http_code}" -X PATCH "https://local-ai-api.server.unarmedpuppy.com/memory/conversations/non-existent-id" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Should Fail"}'
+```
+
+### Frontend UI Tests (Manual)
+
+**Dashboard URL**: https://local-ai-dashboard.server.unarmedpuppy.com/
+
+| Test | Steps | Expected |
+|------|-------|----------|
+| Inline edit trigger | Click on conversation title in sidebar | Inline text input appears with current title |
+| Save on Enter | Type new name, press Enter | Title updates, input closes |
+| Cancel on Escape | Type new name, press Escape | Input closes, title reverts |
+| Optimistic update | Save new title | Title updates immediately (before API response) |
+| Error rollback | Fail API call (e.g., network issue) | Title reverts to original |
+| Search with custom names | Search for custom title text | Conversations with matching titles appear |
+
+**Implementation Files:**
+- Backend: `apps/local-ai-router/memory.py` (`update_conversation()`)
+- Backend: `apps/local-ai-router/router.py` (`PATCH /memory/conversations/{id}`)
+- Frontend: `apps/local-ai-dashboard/src/api/client.ts` (`memoryAPI.updateConversation()`)
+- Frontend: `apps/local-ai-dashboard/src/components/ConversationSidebar.tsx` (inline edit UI)
