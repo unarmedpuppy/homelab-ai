@@ -84,7 +84,7 @@
       "typeVersion": 2,
       "position": [1250, 300],
       "parameters": {
-        "jsCode": "const container = $('Parse Failures').first().json;\nconst logs = $input.first().json.stdout || 'No logs available';\n\n// Truncate logs if too long\nconst truncatedLogs = logs.length > 2000 \n  ? logs.substring(logs.length - 2000) \n  : logs;\n\nconst task = `Analyze this Docker container failure. All information is provided below - DO NOT try to run docker commands (you don't have docker access).\n\n## Container Details\n- **Name**: ${container.container_name}\n- **Status**: ${container.status}\n- **Exit Code**: ${container.exit_code}\n- **Detected At**: ${container.timestamp}\n\n## Recent Logs (last 50 lines)\n\\`\\`\\`\n${truncatedLogs}\n\\`\\`\\`\n\n## Instructions\n1. Analyze the logs above to identify the root cause\n2. You may use search_skills() to find relevant troubleshooting guides\n3. You may use write_file() to save your analysis to /tmp/analysis.txt\n4. Provide your final_answer with:\n   - Root cause of the failure\n   - Recommended fix\n   - Severity (critical/warning/info)\n\nIMPORTANT: Do NOT run docker, systemctl, or other system commands - they will fail. Focus on analyzing the provided logs.`;\n\nreturn [{\n  json: {\n    task: task,\n    working_directory: '/tmp',\n    model: 'auto',\n    max_steps: 8,\n    container_name: container.container_name,\n    exit_code: container.exit_code\n  }\n}];"
+        "jsCode": "const container = $('Parse Failures').first().json;\nconst logs = $input.first().json.stdout || 'No logs available';\n\nconst truncatedLogs = logs.length > 2000 \n  ? logs.substring(logs.length - 2000) \n  : logs;\n\nconst task = `Analyze this Docker container failure and determine the root cause.\n\n## Container Details\n- **Name**: ${container.container_name}\n- **Status**: ${container.status}\n- **Exit Code**: ${container.exit_code}\n- **Detected At**: ${container.timestamp}\n\n## Recent Logs (last 50 lines)\n\\`\\`\\`\n${truncatedLogs}\n\\`\\`\\`\n\n## Available Tools\nYou have SSH access to the home server. Use these tools to investigate:\n- docker_ps() - List all containers and their status\n- docker_logs(container, tail) - Get more logs from a container\n- docker_inspect(container) - Get container details (health, restart count, etc.)\n- docker_restart(container) - Restart a container (only if confident it will help)\n- run_on_server(command) - Run any command on the server via SSH\n- search_skills(query) - Find troubleshooting guides\n\n## Instructions\n1. Analyze the provided logs for obvious errors\n2. If needed, use docker_inspect() to check health status and restart count\n3. If needed, use docker_logs() to get more context\n4. Search for relevant troubleshooting skills if the error is unclear\n5. Provide your final_answer with:\n   - Root cause of the failure\n   - Recommended fix\n   - Severity (critical/warning/info)\n   - Whether the container was auto-restarted (if applicable)`;\n\nreturn [{\n  json: {\n    task: task,\n    working_directory: '/tmp',\n    model: 'auto',\n    max_steps: 15,\n    source: 'n8n',\n    triggered_by: 'container-crash-monitor',\n    container_name: container.container_name,\n    exit_code: container.exit_code\n  }\n}];"
       }
     },
     {
@@ -107,7 +107,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ task: $json.task, working_directory: $json.working_directory, model: $json.model, max_steps: $json.max_steps }) }}",
+        "jsonBody": "={{ JSON.stringify({ task: $json.task, working_directory: $json.working_directory, model: $json.model, max_steps: $json.max_steps, source: $json.source, triggered_by: $json.triggered_by }) }}",
         "options": {
           "timeout": 300000
         }
@@ -149,7 +149,7 @@
       "typeVersion": 2,
       "position": [1850, 200],
       "parameters": {
-        "jsCode": "const agentResult = $input.first().json;\nconst taskData = $('Build Agent Task').first().json;\n\nreturn [{\n  json: {\n    status: 'success',\n    container_name: taskData.container_name,\n    exit_code: taskData.exit_code,\n    agent_analysis: agentResult.final_answer || 'No analysis provided',\n    steps_taken: agentResult.total_steps || 0,\n    timestamp: new Date().toISOString()\n  }\n}];"
+        "jsCode": "const agentResult = $input.first().json;\nconst taskData = $('Build Agent Task').first().json;\n\nreturn [{\n  json: {\n    status: 'success',\n    run_id: agentResult.run_id || null,\n    container_name: taskData.container_name,\n    exit_code: taskData.exit_code,\n    agent_analysis: agentResult.final_answer || 'No analysis provided',\n    steps_taken: agentResult.total_steps || 0,\n    timestamp: new Date().toISOString()\n  }\n}];"
       }
     },
     {
