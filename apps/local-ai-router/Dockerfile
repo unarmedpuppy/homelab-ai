@@ -9,6 +9,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application
 COPY *.py .
 COPY providers/ ./providers/
+COPY tools/ ./tools/
 COPY config/ ./config/
 COPY scripts/ ./scripts/
 COPY alembic/ ./alembic/
