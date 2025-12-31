@@ -10,7 +10,7 @@ services:
       - ./data/store:/store
       - ./data/config:/config
     environment:
-      - OTR_HOST=mosquitto
+      - OTR_HOST=owntracks-mosquitto
       - OTR_PORT=1883
       - OTR_USER=owntracks
       - OTR_PASS=${OTR_PASS:-changeme}
