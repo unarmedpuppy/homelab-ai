@@ -29,6 +29,8 @@ services:
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=${N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS}
       - N8N_RUNNERS_ENABLED=${N8N_RUNNERS_ENABLED}
       - N8N_BLOCK_ENV_ACCESS_IN_NODE=${N8N_BLOCK_ENV_ACCESS_IN_NODE}
+      # Enable executeCommand node (disabled by default in n8n v2.0+ for security)
+      - NODES_EXCLUDE=
     ports:
       - "5678:5678"
     volumes:
