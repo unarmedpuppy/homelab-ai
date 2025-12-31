@@ -55,6 +55,7 @@ class Settings(BaseSettings):
     # Local AI Router settings (for Tayne bot)
     local_ai_url: str = Field(default="http://local-ai-router:8000")
     local_ai_api_key: str = Field(default="")
+    tayne_webhook_token: str = Field(default="")
 
     class Config:
         env_file = ".env"

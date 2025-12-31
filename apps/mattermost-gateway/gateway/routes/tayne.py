@@ -188,6 +188,12 @@ async def handle_tayne_mention(
     """
     logger.info(f"Tayne mentioned by {user_name} in {channel_name}: {text[:50]}...")
     
+    # Validate webhook token if configured
+    settings = get_settings()
+    if settings.tayne_webhook_token and token != settings.tayne_webhook_token:
+        logger.warning(f"Invalid webhook token from {user_name}")
+        raise HTTPException(status_code=401, detail="Invalid webhook token")
+    
     # Check rate limiting
     is_limited, is_rapid_fire = is_rate_limited(user_id)
     
