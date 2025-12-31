@@ -110,41 +110,68 @@ curl -X POST https://local-ai-api.server.unarmedpuppy.com/gaming-mode?enable=fal
 curl -X POST https://local-ai-api.server.unarmedpuppy.com/stop-all
 ```
 
-### Agent Endpoint (Autonomous Tasks)
+### Agent Endpoint (Skill-Based Autonomous Tasks)
 
-Run autonomous agent tasks with a host-controlled loop. The agent can read/write files, execute shell commands, and search directories.
+Run autonomous agent tasks using a **skill-based architecture**. Instead of hardcoded capabilities, the agent discovers and follows skills from `agents/skills/` - the same skills used by human operators.
 
 ```bash
 # Run an agent task
 curl -X POST https://local-ai-api.server.unarmedpuppy.com/agent/run \
   -H "Content-Type: application/json" \
   -d '{
-    "task": "Create a Python script that prints hello world",
+    "task": "Restart the homepage container",
     "working_directory": "/tmp",
     "model": "auto",
     "max_steps": 20
   }'
 ```
 
-**Agent Design Principles:**
-- Host-controlled loop (not model-controlled)
-- Single-action constraint: model emits ONE action per turn
-- Host validates output and re-prompts on errors
-- Provider-agnostic: works with any model
+**Agent Workflow:**
+1. Agent receives task
+2. Calls `list_skills()` or `search_skills(query)` to discover capabilities
+3. Calls `read_skill(name)` to get detailed instructions
+4. Follows instructions using `run_shell` (same commands humans use)
+5. Calls `task_complete()` when done
 
-**Available Agent Tools:**
-- `read_file` - Read file contents
-- `write_file` - Create or overwrite files
-- `edit_file` - Make precise edits using string replacement
-- `run_shell` - Execute shell commands
-- `search_files` - Find files by pattern or content
-- `list_directory` - List directory contents
-- `task_complete` - Signal task completion
+**Design Principles:**
+- **Skill-based discovery** - Capabilities loaded on-demand, not upfront
+- **Same knowledge base** - Uses the same skills as local AI assistants
+- **Host-controlled loop** - Model emits ONE action per turn
+- **Provider-agnostic** - Works with any model
+
+**Core Tools (19 total):**
+
+| Category | Tools |
+|----------|-------|
+| **Skill Discovery** | `list_skills`, `read_skill`, `search_skills` |
+| **File Operations** | `read_file`, `write_file`, `edit_file`, `search_files`, `list_directory` |
+| **Shell** | `run_shell`, `task_complete` |
+| **Git** | `git_status`, `git_diff`, `git_log`, `git_add`, `git_commit`, `git_push`, `git_pull`, `git_branch`, `git_checkout` |
+
+**Available Skills (discovered on-demand):**
+
+The agent can discover any skill in `agents/skills/`. Examples:
+- `standard-deployment` - Deploy code to server
+- `connect-server` - SSH to server
+- `docker-container-management` - Container operations
+- `http-api-requests` - HTTP requests with curl
+- `check-service-health` - Health monitoring
+- `troubleshoot-container-failure` - Debug containers
 
 ```bash
 # List available agent tools
 curl https://local-ai-api.server.unarmedpuppy.com/agent/tools
+
+# Example: agent discovers and uses skills
+# Task: "Check Docker containers"
+# Agent flow:
+#   1. search_skills("docker") -> finds docker-container-management
+#   2. read_skill("docker-container-management") -> gets instructions
+#   3. run_shell("bash scripts/connect-server.sh 'docker ps'") -> executes
+#   4. task_complete("Found 15 running containers...") -> done
 ```
+
+See [agent-endpoint-usage skill](../../agents/skills/agent-endpoint-usage/SKILL.md) for complete documentation.
 
 ## Model Aliases
 
@@ -294,6 +321,7 @@ AGENT_MAX_STEPS=50          # Max steps per agent run
 AGENT_MAX_RETRIES=3         # Retries for malformed responses
 AGENT_ALLOWED_PATHS=/tmp    # Comma-separated allowed paths
 AGENT_SHELL_TIMEOUT=30      # Shell command timeout (seconds)
+AGENT_SKILLS_DIR=/app/agents/skills  # Skills directory (mounted from host)
 ```
 
 ## Force-Big Signals
