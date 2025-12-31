@@ -147,11 +147,13 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
       }
     }
 
-    // Add user message to UI with uploaded images
+    // Add user message to UI with uploaded images and routing info
+    const modelRequested = getModelForAPI();
     const userMessageWithImages: MessageWithMetadata = {
       role: 'user',
       content: userMessage,
       image_refs: uploadedImageRefs.length > 0 ? uploadedImageRefs : undefined,
+      model_requested: modelRequested,
     };
     setMessages(prev => [...prev, userMessageWithImages]);
 
@@ -210,16 +212,26 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
 
           case 'done':
             const finalContent = event.content || streamingContent;
-            setMessages(prev => [
-              ...prev,
-              {
-                role: 'assistant',
-                content: finalContent,
-                model: event.model,
-                tokens: event.usage?.completion_tokens,
-                provider: event.provider_name,
-              },
-            ]);
+            setMessages(prev => {
+              const updated = [...prev];
+              const lastUserIndex = updated.findLastIndex(m => m.role === 'user');
+              if (lastUserIndex !== -1 && event.usage?.prompt_tokens) {
+                updated[lastUserIndex] = {
+                  ...updated[lastUserIndex],
+                  tokens_prompt: event.usage.prompt_tokens,
+                };
+              }
+              return [
+                ...updated,
+                {
+                  role: 'assistant',
+                  content: finalContent,
+                  model: event.model,
+                  tokens: event.usage?.completion_tokens,
+                  provider: event.provider_name,
+                },
+              ];
+            });
             // Capture conversation_id from the response for subsequent messages
             if (event.conversation_id && !activeConversationId) {
               setActiveConversationId(event.conversation_id);
