@@ -381,6 +381,43 @@ class ProviderManager:
         self._load_config()
         self._apply_env_overrides()
 
+    def calculate_cost(
+        self,
+        provider_id: str,
+        model_id: Optional[str],
+        duration_ms: Optional[int],
+        total_tokens: Optional[int],
+    ) -> Optional[float]:
+        """
+        Calculate the cost of a request based on provider type.
+        
+        - Local providers: cost = (power_kw) × (duration_hours) × (electricity_rate)
+        - Cloud providers: cost = (total_tokens / 1000) × (cost_per_1k_tokens)
+        """
+        provider = self.providers.get(provider_id)
+        if not provider:
+            return None
+
+        electricity_rate = self.settings.get("electricityRateKwh", 0.166)
+
+        if provider.type == ProviderType.LOCAL:
+            if duration_ms is None or not provider.power_watts:
+                return None
+            power_kw = provider.power_watts / 1000.0
+            duration_hours = duration_ms / 1000.0 / 3600.0
+            cost = power_kw * duration_hours * electricity_rate
+            return round(cost, 8)
+
+        elif provider.type == ProviderType.CLOUD:
+            model = self.models.get(model_id) if model_id else None
+            if model is None or total_tokens is None:
+                return None
+            cost_per_1k = model.cost_per1k_tokens
+            cost = (total_tokens / 1000.0) * cost_per_1k
+            return round(cost, 8)
+
+        return None
+
     # =========================================================================
     # Model State Tracking Methods
     # =========================================================================

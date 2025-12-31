@@ -616,6 +616,16 @@ async def chat_completions(
                             'provider': selection.provider.id,
                             'provider_name': selection.provider.name,
                         }
+                    
+                    if provider_manager:
+                        usage = response_data.get("usage", {})
+                        response_data["cost_usd"] = provider_manager.calculate_cost(
+                            provider_id=selection.provider.id,
+                            model_id=selection.model.id,
+                            duration_ms=tracker.get_duration_ms(),
+                            total_tokens=usage.get("total_tokens"),
+                        )
+                    
                     log_chat_completion(tracker, body, response_data, error=None)
                     logger.info(f"Logged streaming response (conversation: {tracker.conversation_id})")
                 except Exception as e:
@@ -640,12 +650,18 @@ async def chat_completions(
                     )
                     response_data = response.json()
 
-                    # Inject provider info into response
-                    # This allows clients to see which provider was used
                     response_data["provider"] = selection.provider.id
                     response_data["provider_name"] = selection.provider.name
+                    
+                    if provider_manager:
+                        usage = response_data.get("usage", {})
+                        response_data["cost_usd"] = provider_manager.calculate_cost(
+                            provider_id=selection.provider.id,
+                            model_id=selection.model.id,
+                            duration_ms=tracker.get_duration_ms(),
+                            total_tokens=usage.get("total_tokens"),
+                        )
 
-                    # Log metrics and memory in background
                     background_tasks.add_task(
                         log_chat_completion,
                         tracker,

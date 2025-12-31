@@ -96,6 +96,7 @@ def log_chat_completion(
         total_tokens = None
         assistant_content = None
 
+        cost_usd = None
         if response_data and not error:
             usage = response_data.get("usage", {})
             prompt_tokens = usage.get("prompt_tokens")
@@ -103,11 +104,10 @@ def log_chat_completion(
             total_tokens = usage.get("total_tokens")
             model_used = response_data.get("model")
 
-            # Use actual provider from routing selection (passed via response_data)
             backend = response_data.get("provider")
             provider_name = response_data.get("provider_name")
+            cost_usd = response_data.get("cost_usd")
 
-            # Get assistant response
             choices = response_data.get("choices", [])
             if choices:
                 assistant_message = choices[0].get("message", {})
@@ -131,9 +131,10 @@ def log_chat_completion(
                         success=error is None,
                         error=error,
                         streaming=streaming,
-                        tool_calls_count=0,  # TODO: Extract from response
+                        tool_calls_count=0,
                         user_id=tracker.user_id,
                         project=tracker.project,
+                        cost_usd=cost_usd,
                     )
                 )
                 logger.debug(f"Logged metric for chat completion")

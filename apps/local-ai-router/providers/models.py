@@ -36,7 +36,7 @@ class Model(BaseModel):
     context_window: int = 4096
     max_tokens: int = 2048
     is_default: bool = False
-    cost_per_1k_tokens: float = 0.0
+    cost_per1k_tokens: float = 0.0
     capabilities: ModelCapabilities = Field(default_factory=ModelCapabilities)
     tags: List[str] = Field(default_factory=list)
     metadata: Dict[str, Any] = Field(default_factory=dict)
@@ -57,6 +57,7 @@ class Provider(BaseModel):
     health_check_path: str = "/health"
     auth_type: Optional[AuthType] = None
     auth_secret: Optional[str] = None
+    power_watts: Optional[int] = None
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
     # Runtime state (not from config)

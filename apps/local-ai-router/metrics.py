@@ -521,6 +521,11 @@ def get_daily_stats(
 
 def _row_to_metric(row: Any) -> Metric:
     """Convert database row to Metric model."""
+    try:
+        cost_usd = row["cost_usd"]
+    except (KeyError, IndexError):
+        cost_usd = None
+    
     return Metric(
         id=row["id"],
         timestamp=datetime.fromisoformat(row["timestamp"]),
@@ -541,6 +546,7 @@ def _row_to_metric(row: Any) -> Metric:
         tool_calls_count=row["tool_calls_count"],
         user_id=row["user_id"],
         project=row["project"],
+        cost_usd=cost_usd,
     )
 
 
