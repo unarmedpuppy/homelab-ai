@@ -9,7 +9,12 @@
 
 Running true frontier models (405B+) locally is impractical for homelabs - they require 200-400GB+ VRAM. However, the **sweet spot for 2025-2026 is the 70-120B parameter range**, which delivers GPT-4 class performance and is achievable with consumer hardware.
 
-**Recommendation**: Build toward **96-128GB total VRAM** using consumer GPUs (4x RTX 4090 or 2x RTX 5090 + existing cards). This covers 70B models at full precision and 120B+ at INT4/INT8, which is where open-source development is heading.
+**Recommendation**: Build a dedicated **2x RTX 3090 inference server** (48GB, ~$3,600 total build). This covers 70B INT4 and DeepSeek V3, which is GPT-4 class. The 3090 offers 90% of 4090 performance at 50% of the cost for LLM inference, and is the last consumer card with NVLink support.
+
+### User Decisions (2025-12-31)
+- **Form factor**: Full tower, separate from rack-mounted server
+- **3090 in gaming PC**: Keep it there for gaming
+- **Electrical**: Will need some electrical work (doable)
 
 ---
 
@@ -295,41 +300,108 @@ For 4x RTX 4090 build:
 
 Given:
 - Existing 3070 + 3090 (32GB)
-- Gaming PC constraint (3090 shared with gaming)
+- Gaming PC constraint (3090 stays for gaming)
 - Impending GPU price increases
 - Goal of frontier-capable local inference
+- Full tower preferred (separate from rack)
+- Electrical work is doable
 
 **Recommended Path**:
 
-#### Phase 1: Immediate (Before Tariffs - January 2025)
-**Buy 2x RTX 4090** (~$3,600-4,000 total)
+#### Phase 1: When Ready to Build
+**Buy 2x RTX 3090** (~$1,600-2,000 total for GPUs)
 
-- Total VRAM: 32GB (existing) + 48GB (new) = **80GB**
-- Can run: 70B INT4 comfortably, 70B INT8 with some offload
-- Keeps gaming PC separate
-- Build dedicated inference server (new chassis, PSU, motherboard)
+- Dedicated inference VRAM: **48GB** (tensor parallel via NVLink)
+- Can run: 70B INT4 comfortably, DeepSeek V3 (671B MoE)
+- Gaming PC stays untouched
+- Full tower build, separate from rack
 
-**Hardware for dedicated server**:
+**Hardware for dedicated server (full tower)**:
 | Component | Recommendation | Cost |
 |-----------|----------------|------|
-| 2x RTX 4090 | ASUS TUF or similar | $3,600 |
+| 2x RTX 3090 | Used, good condition | $1,800 |
+| NVLink Bridge | 3-slot spacing | $80 |
 | Motherboard | ASUS WS X670E (4x PCIe x16) | $500 |
 | CPU | Ryzen 9 7900X (for PCIe lanes) | $400 |
 | RAM | 128GB DDR5 (for model offloading) | $300 |
-| PSU | Corsair HX1500i or be quiet! 1500W | $300 |
-| Chassis | Define 7 XL or 4U rack | $200-400 |
+| PSU | Corsair HX1200i or similar 1200W | $200 |
+| Case | Fractal Define 7 XL or similar | $200 |
 | NVMe | 2TB for model storage | $150 |
-| **Total** | | **~$5,500-6,000** |
+| **Total** | | **~$3,630** |
 
-#### Phase 2: Mid 2025
-- Evaluate RTX 5090 pricing post-tariff adjustment
-- Consider adding 2 more 4090s OR upgrading to 5090s
-- Target: 128GB+ total VRAM
+**Why 3090 over 4090**:
+- Same 48GB VRAM (the bottleneck for model size)
+- 90% of token generation speed (memory-bandwidth bound)
+- NVLink support (4090 has none) - better multi-GPU efficiency
+- **$2,000 cheaper** - can buy 3rd GPU later
 
-#### Phase 3: When Needed
-- Retire 3070 from inference (keep for dev/testing)
-- Consolidate to dedicated multi-GPU server
-- 3090 returns to pure gaming duty
+#### Phase 2: When You Outgrow 48GB
+- Add 3rd RTX 3090 (72GB total) - ~$900
+- OR wait for used 5090s to become affordable
+- Requires HEDT platform (Threadripper) for 3+ GPUs with full lanes
+
+#### Phase 3: Future
+- 3070 on Debian server continues as always-on router/small model host
+- 3090 stays in gaming PC for gaming + occasional burst
+- 3090 tower becomes primary inference workhorse
+
+### Architecture After Build
+
+```
+┌─────────────────────────────────────────────┐
+│   NEW: 2x RTX 3090 Tower (48GB + NVLink)    │
+│   Primary inference - 70B INT4, DeepSeek V3 │
+│   Full tower, separate location             │
+└─────────────────────────────────────────────┘
+                    │
+                    │ (network routing)
+                    │
+┌─────────────────────────────────────────────┐
+│      Debian Server - RTX 3070 (8GB)         │
+│      Always-on router + small models        │
+│      Rack-mounted                           │
+└─────────────────────────────────────────────┘
+                    │
+                    │ (optional burst)
+                    │
+┌─────────────────────────────────────────────┐
+│      Gaming PC - RTX 3090 (24GB)            │
+│      Gaming primary, inference secondary    │
+└─────────────────────────────────────────────┘
+```
+
+### What This Unlocks (48GB 3090 Tower)
+
+| Model | Params | Quantization | VRAM Needed | Status | Speed |
+|-------|--------|--------------|-------------|--------|-------|
+| **Qwen 2.5 72B** | 72B | INT4 | ~36GB | ✅ Comfortable | 25-35 t/s |
+| **Llama 3.1 70B** | 70B | INT4 | ~35GB | ✅ Comfortable | 25-35 t/s |
+| **DeepSeek V3** | 671B MoE | Dynamic | ~37GB active | ✅ Works | 15-25 t/s |
+| **Qwen 2.5 32B** | 32B | FP16 | ~64GB | ⚠️ Needs RAM offload | 15-20 t/s |
+| **Qwen 2.5 32B** | 32B | INT8 | ~32GB | ✅ Easy | 30-45 t/s |
+| **Mixtral 8x22B** | 176B MoE | INT4 | ~45GB | ✅ Fits | 20-30 t/s |
+| **Command R+** | 104B | INT4 | ~52GB | ⚠️ Light offload | 15-25 t/s |
+
+**Capability Comparison:**
+
+| Capability | Before (32GB) | After (48GB dedicated) |
+|------------|---------------|------------------------|
+| Frontier chat | 32B max | 70B comfortably |
+| Coding models | 14B or slow 32B | 70B Qwen-Coder |
+| Long context | Limited | 32K-128K on 70B |
+| DeepSeek V3 | Can't run | Full 671B MoE |
+| Concurrent users | 1 | 2-3 simultaneous |
+| Local Claude-equivalent | No | Yes (70B ≈ Claude 3 Haiku+) |
+
+**Quality Tiers:**
+
+| Model Class | Comparable To | Your Hardware |
+|-------------|---------------|---------------|
+| 7-8B | GPT-3.5 (basic) | 3070 ✅ |
+| 14B | GPT-3.5 (good) | 3070/3090 ✅ |
+| 32-34B | GPT-3.5-turbo | 3090 tower ✅ |
+| 70-72B | Claude 3 Haiku / GPT-4-mini | 3090 tower ✅ |
+| DeepSeek V3 | GPT-4 | 3090 tower ✅ |
 
 ### Alternative: Mac Path
 
@@ -392,6 +464,294 @@ If you value simplicity over raw performance:
 - [gpu-rack-mount-3070.md](gpu-rack-mount-3070.md) - Physical mounting reference
 - External: llama.cpp multi-GPU documentation
 - External: vLLM tensor parallelism guide
+
+---
+
+## Deep Dive: Multi-GPU Mechanics
+
+### How Tensor Parallelism Actually Works
+
+You cannot simply "combine" VRAM across separate machines. A 70GB model needs 70GB in one interconnected system. Here's how multi-GPU actually works:
+
+**Tensor Parallelism** - The model is sliced vertically. Each GPU holds a portion of every layer's weights:
+
+```
+Single GPU (can't fit):
+┌─────────────────────────────────────────┐
+│            70B Model (40GB)             │
+│   Layer 1 | Layer 2 | ... | Layer 80    │
+└─────────────────────────────────────────┘
+
+Two GPUs (tensor parallel):
+┌───────────────────┐   ┌───────────────────┐
+│   GPU 0 (24GB)    │   │   GPU 1 (24GB)    │
+│   Left half of    │   │   Right half of   │
+│   every layer     │   │   every layer     │
+└───────────────────┘   └───────────────────┘
+         │                       │
+         └───────┬───────────────┘
+                 │
+          PCIe communication
+          after each layer
+```
+
+Each token generation step:
+1. GPU 0 computes its half
+2. GPU 1 computes its half
+3. They exchange results via PCIe
+4. Repeat for next layer
+
+### Software Commands
+
+**vLLM:**
+```bash
+vllm serve meta-llama/Llama-3.1-70B --tensor-parallel-size 2
+```
+
+**llama.cpp:**
+```bash
+./llama-server -m llama-70b.gguf --n-gpu-layers 99 --tensor-split 0.5,0.5
+```
+
+**Ollama:**
+```bash
+# Automatic - detects multiple GPUs
+ollama run llama3.1:70b
+```
+
+The software handles splitting automatically.
+
+### Communication Overhead
+
+Every layer requires GPU-to-GPU communication:
+
+| Interconnect | Bandwidth | Overhead per Token |
+|--------------|-----------|-------------------|
+| NVLink (A100) | 600 GB/s | ~5% |
+| NVLink (3090) | 112 GB/s | ~10-15% |
+| PCIe 4.0 x16 | 32 GB/s | ~20-30% |
+| PCIe 3.0 x16 | 16 GB/s | ~40-50% |
+
+### Practical Performance Impact
+
+| Config | Theoretical Speed | Actual Speed | Efficiency |
+|--------|-------------------|--------------|------------|
+| 1x 3090 (24GB model) | 40 t/s | 40 t/s | 100% |
+| 2x 3090 PCIe (48GB model) | 40 t/s | 30-35 t/s | 75-85% |
+| 2x 3090 NVLink (48GB model) | 40 t/s | 36-38 t/s | 90-95% |
+
+You lose ~15-25% to communication overhead. But you can run models that wouldn't fit at all on a single GPU.
+
+---
+
+## Deep Dive: NVLink Limitations
+
+### Consumer NVLink Only Connects 2 GPUs
+
+On consumer platforms, NVLink is point-to-point between exactly 2 cards:
+
+```
+What NVLink can do (consumer):
+
+┌─────────┐         ┌─────────┐
+│  3090   │◄═══════►│  3090   │   ✅ NVLink pair
+└─────────┘         └─────────┘
+
+
+What NVLink CANNOT do (consumer):
+
+┌─────────┐         ┌─────────┐         ┌─────────┐         ┌─────────┐
+│  3090   │◄═══════►│  3090   │◄═══════►│  3090   │◄═══════►│  3090   │   ❌ No chain
+└─────────┘         └─────────┘         └─────────┘         └─────────┘
+```
+
+Only datacenter GPUs (A100, H100) have **NVSwitch** which allows all-to-all NVLink connectivity.
+
+### NVLink Support by GPU
+
+| GPU | NVLink Support | Notes |
+|-----|----------------|-------|
+| RTX 3090 | ✅ Yes | 2-way, needs bridge (~$80) |
+| RTX 3090 Ti | ❌ No | Different design |
+| RTX 4090 | ❌ No | Consumer NVLink dropped |
+| RTX 5090 | ❌ No | PCIe only |
+| A6000 | ✅ Yes | Professional card |
+| A100 | ✅ Yes | + NVSwitch for multi-GPU |
+
+**Key insight**: RTX 3090 is the last consumer card with NVLink support.
+
+---
+
+## Deep Dive: 4x GPU Setups
+
+### How 4x 3090 Actually Works
+
+Since NVLink only connects 2 GPUs on consumer, 4x setups use PCIe:
+
+**Option A: All PCIe (Most Common)**
+
+```
+┌─────────┐   ┌─────────┐   ┌─────────┐   ┌─────────┐
+│ 3090 #0 │   │ 3090 #1 │   │ 3090 #2 │   │ 3090 #3 │
+└────┬────┘   └────┬────┘   └────┬────┘   └────┬────┘
+     │             │             │             │
+     └─────────────┴──────┬──────┴─────────────┘
+                          │
+                    ┌─────┴─────┐
+                    │    CPU    │
+                    │  PCIe 4.0 │
+                    └───────────┘
+
+All communication goes through CPU/PCIe
+~32 GB/s per link (shared)
+```
+
+**Option B: Two NVLink Pairs + PCIe Bridge**
+
+```
+┌─────────┐ NVLink ┌─────────┐       ┌─────────┐ NVLink ┌─────────┐
+│ 3090 #0 │◄══════►│ 3090 #1 │       │ 3090 #2 │◄══════►│ 3090 #3 │
+└────┬────┘        └────┬────┘       └────┬────┘        └────┬────┘
+     │                  │                 │                  │
+     └────────┬─────────┘                 └────────┬─────────┘
+              │                                    │
+              │◄──────────── PCIe ────────────────►│
+              │         (~32 GB/s)                 │
+
+Within pairs: 112 GB/s (fast)
+Between pairs: 32 GB/s (slow)
+```
+
+### Scaling Overhead
+
+| GPUs | Total VRAM | Communication Pattern | Overhead |
+|------|------------|----------------------|----------|
+| 1 | 24GB | None | 0% |
+| 2 | 48GB | 1 link | 15-25% |
+| 4 | 96GB | 6 links (all-pairs) | 30-50% |
+| 8 | 192GB | 28 links | 50-70% |
+
+**Why overhead grows**: Tensor parallelism requires all GPUs to sync after each layer. More GPUs = more waiting.
+
+### 4x 3090 Physical Requirements
+
+| Challenge | Details |
+|-----------|---------|
+| **Motherboard** | Need 4x PCIe x16 physical slots (HEDT/server board) |
+| **PCIe lanes** | Threadripper (64 lanes) or EPYC - consumer CPUs don't have enough |
+| **Power** | 4x 350W = 1,400W just for GPUs. Need 1600W+ PSU |
+| **Cooling** | 1,400W of heat in one case. Serious airflow required |
+| **Physical space** | 4x triple-slot cards = 12 slots worth of GPU |
+| **Cost** | 4x $900 = $3,600 in GPUs + $800 HEDT motherboard + $600 Threadripper |
+
+### When to Use 4x GPUs
+
+| Config | Sweet Spot For | Worth It? |
+|--------|----------------|-----------|
+| 2x 3090 (48GB) | 70B INT4, DeepSeek V3 | ✅ Yes - best value |
+| 4x 3090 (96GB) | 70B FP16, 120B INT4 | ⚠️ Maybe - diminishing returns |
+| 8x 3090 (192GB) | 70B+ FP16 with headroom | ❌ Buy datacenter GPUs instead |
+
+---
+
+## Deep Dive: RTX 3090 vs 4090 for LLM Inference
+
+### Head-to-Head Comparison
+
+| Spec | 2x RTX 3090 | 2x RTX 4090 |
+|------|-------------|-------------|
+| **Total VRAM** | 48GB | 48GB |
+| **Memory Bandwidth** | 1,872 GB/s | 2,016 GB/s |
+| **FP16 Compute** | 71 TFLOPS | 165 TFLOPS |
+| **TDP** | 700W | 900W |
+| **Street Price** | ~$1,600-2,000 | ~$3,600-4,000 |
+| **NVLink** | ✅ Yes | ❌ No |
+| **Price Difference** | — | **+$2,000** |
+
+### Why This Matters for LLMs
+
+LLM inference has two phases:
+
+1. **Prompt processing** (compute-bound) → 4090 wins by ~2x
+2. **Token generation** (memory-bandwidth-bound) → Nearly identical
+
+For interactive chat, you spend most time in token generation. The bottleneck is moving weights from VRAM to compute units, limited by memory bandwidth.
+
+**Memory bandwidth difference: only 8%** (936 GB/s vs 1008 GB/s per card)
+
+### Real-World Speed Comparison
+
+| Task | 2x 3090 | 2x 4090 | Difference |
+|------|---------|---------|------------|
+| Load 70B model | ~30 sec | ~25 sec | 4090 slightly faster |
+| Process 2K prompt | ~3 sec | ~1.5 sec | **4090 2x faster** |
+| Generate tokens | ~30 t/s | ~35 t/s | 4090 ~15% faster |
+| **Typical chat feel** | Fast | Slightly faster | Barely noticeable |
+
+### When 4090 Actually Matters
+
+| Use Case | 3090 | 4090 | Winner |
+|----------|------|------|--------|
+| Single-user chat | Good | Slightly better | **3090** (value) |
+| Long prompts (10K+) | Slower | Faster | 4090 |
+| Batched inference (multi-user) | Limited | Better | 4090 |
+| Fine-tuning | Slow | 2x faster | 4090 |
+| Image generation | Slower | 2x faster | 4090 |
+
+### Value Analysis
+
+**For single-user LLM inference:**
+
+| Option | Cost | Speed | Value Rating |
+|--------|------|-------|--------------|
+| 2x 3090 | ~$1,800 | 85-90% of 4090 | ⭐⭐⭐⭐⭐ |
+| 2x 4090 | ~$3,800 | 100% | ⭐⭐⭐ |
+
+**2x 3090s at $1,800 gets you 90% of the performance for 50% of the cost.**
+
+### 3090 Advantages
+
+1. **Same VRAM** (48GB) - the actual bottleneck for model size
+2. **Similar memory bandwidth** - the bottleneck for token generation
+3. **NVLink support** - slightly better multi-GPU efficiency
+4. **$2,000 savings** - can buy a 3rd GPU later
+
+### When to Buy 4090 Instead
+
+- You plan to serve multiple concurrent users
+- You'll do fine-tuning/training
+- You want FP8 quantization support
+- Long prompt processing speed matters
+- Money isn't the constraint
+
+---
+
+## Revised Recommendation: 2x RTX 3090
+
+### Updated Build (Best Value)
+
+Given the analysis above, **2x RTX 3090 is the better value** for single-user LLM inference:
+
+| Component | Recommendation | Cost |
+|-----------|----------------|------|
+| 2x RTX 3090 | Used, good condition | $1,800 |
+| NVLink Bridge | 3-slot spacing | $80 |
+| Motherboard | ASUS WS X670E or similar | $500 |
+| CPU | Ryzen 9 7900X | $400 |
+| RAM | 128GB DDR5 | $300 |
+| PSU | 1200W (lower than 4090 build) | $200 |
+| Case | Full tower | $200 |
+| NVMe | 2TB | $150 |
+| **Total** | | **~$3,630** |
+
+**Savings vs 4090 build: ~$2,000**
+
+### What to Do with Savings
+
+- 3rd RTX 3090 later (72GB total)
+- Electrical work for dedicated circuit
+- Better UPS
+- Future 5090 upgrade fund
 
 ---
 
