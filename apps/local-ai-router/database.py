@@ -98,6 +98,13 @@ def init_database():
             logger.info("Migrating: Adding image_refs column to messages table")
             cursor.execute("ALTER TABLE messages ADD COLUMN image_refs TEXT")
 
+        # Migration: Add cost_usd column to metrics table
+        try:
+            cursor.execute("SELECT cost_usd FROM metrics LIMIT 1")
+        except sqlite3.OperationalError:
+            logger.info("Migrating: Adding cost_usd column to metrics table")
+            cursor.execute("ALTER TABLE metrics ADD COLUMN cost_usd REAL")
+
         cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_messages_conversation
             ON messages(conversation_id)

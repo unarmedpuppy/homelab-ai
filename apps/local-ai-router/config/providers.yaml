@@ -37,6 +37,7 @@ providers:
     gpu: "RTX 3090"
     vram: "24GB"
     location: "gaming-pc"
+    powerWatts: 250  # Typical inference power draw (used for cost calculation)
 
   # Home Server with RTX 3070 - Default always-on backend
   - id: server-3070
@@ -63,6 +64,7 @@ providers:
     gpu: "RTX 3070"
     vram: "8GB"
     location: "home-server"
+    powerWatts: 180
 
   # Cloud Provider - Z.ai
   - id: zai
@@ -131,9 +133,6 @@ models:
     maxTokens: 8192
     isDefault: false
 
-    # Cost Tracking (free for local models)
-    costPer1kTokens: 0.0
-
     # Capabilities
     capabilities:
       streaming: true
@@ -155,9 +154,6 @@ models:
     contextWindow: 8192
     maxTokens: 4096
     isDefault: false
-
-    # Cost Tracking
-    costPer1kTokens: 0.0
 
     # Capabilities
     capabilities:
@@ -185,9 +181,6 @@ models:
     maxTokens: 1024
     isDefault: true
 
-    # Cost Tracking
-    costPer1kTokens: 0.0
-
     # Capabilities
     capabilities:
       streaming: true
@@ -210,9 +203,6 @@ models:
     contextWindow: 8192
     maxTokens: 4096
     isDefault: false
-
-    # Cost Tracking
-    costPer1kTokens: 0.0
 
     # Capabilities
     capabilities:
@@ -358,3 +348,8 @@ settings:
 
   # Warm/Cold Model Preference
   preferWarmModels: true  # Prefer warm models for local providers
+
+  # Cost Tracking - Electricity Rate
+  # Used to calculate cost for local GPU inference
+  # Formula: (power_kw) × (duration_hours) × (rate_per_kwh) = cost_usd
+  electricityRateKwh: 0.166  # $/kWh - update based on your utility rate

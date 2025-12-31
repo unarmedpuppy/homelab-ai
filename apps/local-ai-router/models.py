@@ -137,6 +137,7 @@ class MetricCreate(BaseModel):
     tool_calls_count: Optional[int] = 0
     user_id: Optional[str] = None
     project: Optional[str] = None
+    cost_usd: Optional[float] = None
 
 
 class Metric(BaseModel):
@@ -160,6 +161,7 @@ class Metric(BaseModel):
     tool_calls_count: Optional[int] = None
     user_id: Optional[str] = None
     project: Optional[str] = None
+    cost_usd: Optional[float] = None
 
     class Config:
         from_attributes = True

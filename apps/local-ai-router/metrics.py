@@ -30,8 +30,8 @@ def log_metric(metric: MetricCreate) -> Metric:
             (timestamp, date, conversation_id, session_id, endpoint,
              model_requested, model_used, backend, prompt_tokens,
              completion_tokens, total_tokens, duration_ms, success,
-             error, streaming, tool_calls_count, user_id, project)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             error, streaming, tool_calls_count, user_id, project, cost_usd)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 now,
@@ -52,6 +52,7 @@ def log_metric(metric: MetricCreate) -> Metric:
                 metric.tool_calls_count,
                 metric.user_id,
                 metric.project,
+                metric.cost_usd,
             ),
         )
         metric_id = cursor.lastrowid
