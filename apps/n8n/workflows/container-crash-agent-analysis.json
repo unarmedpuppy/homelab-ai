@@ -2,6 +2,11 @@
   "name": "Container Crash Agent Analysis",
   "nodes": [
     {
+      "id": "trigger",
+      "name": "Every 5 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300],
       "parameters": {
         "rule": {
           "interval": [
@@ -11,35 +16,34 @@
             }
           ]
         }
-      },
-      "id": "schedule-trigger",
-      "name": "Every 5 Minutes",
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.1,
-      "position": [250, 300]
+      }
     },
     {
-      "parameters": {
-        "command": "curl -s --unix-socket /var/run/docker.sock http://localhost/containers/json?all=true",
-        "additionalFields": {}
-      },
-      "id": "get-containers",
-      "name": "Get All Containers",
+      "id": "check-containers",
+      "name": "Check Containers",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
-      "position": [450, 300]
+      "position": [450, 300],
+      "parameters": {
+        "command": "docker ps -a --format '{{.Names}}|{{.Status}}|{{.State}}' | grep -E 'Exited|unhealthy|Restarting' || echo 'NO_FAILURES'"
+      }
     },
     {
-      "parameters": {
-        "jsCode": "// Parse container JSON and filter for failures\nconst stdout = $input.first().json.stdout;\nlet containers = [];\n\ntry {\n  containers = JSON.parse(stdout);\n} catch (e) {\n  return [];\n}\n\nconst results = [];\n\nfor (const container of containers) {\n  const state = container.State || '';\n  const status = container.Status || '';\n  const name = (container.Names && container.Names[0]) ? container.Names[0].replace(/^\\//, '') : 'unknown';\n  \n  // Check for exited, unhealthy, or restarting\n  const isExited = state === 'exited';\n  const isUnhealthy = status.toLowerCase().includes('unhealthy');\n  const isRestarting = state === 'restarting';\n  \n  if (isExited || isUnhealthy || isRestarting) {\n    // Extract exit code\n    const exitCodeMatch = status.match(/Exited \\((\\d+)\\)/);\n    const exitCode = exitCodeMatch ? exitCodeMatch[1] : 'unknown';\n    \n    results.push({\n      container_name: name,\n      container_id: container.Id ? container.Id.substring(0, 12) : 'unknown',\n      status: status,\n      state: state,\n      exit_code: exitCode,\n      timestamp: new Date().toISOString()\n    });\n  }\n}\n\nif (results.length === 0) {\n  return [{ json: { no_failures: true } }];\n}\n\nreturn results.map(r => ({ json: r }));"
-      },
-      "id": "parse-containers",
-      "name": "Parse and Filter Failures",
+      "id": "parse-failures",
+      "name": "Parse Failures",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [650, 300]
+      "position": [650, 300],
+      "parameters": {
+        "jsCode": "const stdout = $input.first().json.stdout || '';\n\n// If no failures, return marker\nif (stdout.trim() === 'NO_FAILURES' || !stdout.trim()) {\n  return [{ json: { no_failures: true } }];\n}\n\n// Parse failed containers\nconst lines = stdout.split('\\n').filter(l => l.trim());\nconst results = [];\n\nfor (const line of lines) {\n  const parts = line.split('|');\n  if (parts.length >= 3) {\n    const name = parts[0].trim();\n    const status = parts[1].trim();\n    const state = parts[2].trim();\n    \n    // Extract exit code if present\n    const exitMatch = status.match(/Exited \\((\\d+)\\)/);\n    const exitCode = exitMatch ? exitMatch[1] : 'unknown';\n    \n    results.push({\n      json: {\n        container_name: name,\n        status: status,\n        state: state,\n        exit_code: exitCode,\n        timestamp: new Date().toISOString()\n      }\n    });\n  }\n}\n\nreturn results.length > 0 ? results : [{ json: { no_failures: true } }];"
+      }
     },
     {
+      "id": "filter-failures",
+      "name": "Has Failures?",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [850, 300],
       "parameters": {
         "conditions": {
           "options": {
@@ -49,7 +53,7 @@
           },
           "conditions": [
             {
-              "id": "has-failures",
+              "id": "check-no-failures",
               "leftValue": "={{ $json.no_failures }}",
               "rightValue": true,
               "operator": {
@@ -61,35 +65,34 @@
           "combinator": "and"
         },
         "options": {}
-      },
-      "id": "filter-no-failures",
-      "name": "Has Failures?",
-      "type": "n8n-nodes-base.filter",
-      "typeVersion": 2,
-      "position": [850, 300]
+      }
     },
     {
-      "parameters": {
-        "command": "curl -s --unix-socket /var/run/docker.sock http://localhost/containers/{{ $json.container_id }}/logs?tail=50\\&stdout=true\\&stderr=true 2>&1 | strings || echo 'Could not get logs'",
-        "additionalFields": {}
-      },
       "id": "get-logs",
-      "name": "Get Container Logs",
+      "name": "Get Logs",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
-      "position": [1050, 300]
+      "position": [1050, 300],
+      "parameters": {
+        "command": "docker logs --tail 50 {{ $json.container_name }} 2>&1 || echo 'Could not get logs'"
+      }
     },
     {
-      "parameters": {
-        "jsCode": "// Build the agent task from container data and logs\nconst container = $('Parse and Filter Failures').first().json;\nconst logsResult = $input.first().json;\nconst logs = logsResult.stdout || 'No logs available';\n\n// Truncate logs to avoid overwhelming the agent\nconst truncatedLogs = logs.length > 2000 \n  ? logs.substring(logs.length - 2000) \n  : logs;\n\n// Build a clear task for the agent\nconst task = `A Docker container has crashed and needs analysis.\n\n## Container Details\n- **Name**: ${container.container_name}\n- **Status**: ${container.status}\n- **Exit Code**: ${container.exit_code}\n- **Detected At**: ${container.timestamp}\n\n## Recent Logs (last 50 lines)\n\\`\\`\\`\n${truncatedLogs}\n\\`\\`\\`\n\n## Your Task\n1. Analyze the logs to identify the root cause of the crash\n2. Search for relevant troubleshooting skills using search_skills()\n3. Provide a summary of:\n   - What caused the crash\n   - Recommended fix\n   - Whether this is a recurring issue or one-time failure\n4. Do NOT restart the container automatically - just analyze and report`;\n\nreturn [{\n  json: {\n    task: task,\n    working_directory: '/tmp',\n    model: 'auto',\n    max_steps: 15,\n    container_name: container.container_name,\n    exit_code: container.exit_code\n  }\n}];"
-      },
-      "id": "build-agent-task",
+      "id": "build-task",
       "name": "Build Agent Task",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1250, 300]
+      "position": [1250, 300],
+      "parameters": {
+        "jsCode": "const container = $('Parse Failures').first().json;\nconst logs = $input.first().json.stdout || 'No logs available';\n\n// Truncate logs if too long\nconst truncatedLogs = logs.length > 2000 \n  ? logs.substring(logs.length - 2000) \n  : logs;\n\nconst task = `A Docker container has crashed and needs analysis.\n\n## Container Details\n- **Name**: ${container.container_name}\n- **Status**: ${container.status}\n- **Exit Code**: ${container.exit_code}\n- **Detected At**: ${container.timestamp}\n\n## Recent Logs (last 50 lines)\n\\`\\`\\`\n${truncatedLogs}\n\\`\\`\\`\n\n## Your Task\n1. Analyze the logs to identify the root cause of the crash\n2. Search for relevant troubleshooting skills using search_skills()\n3. Provide a summary of:\n   - What caused the crash\n   - Recommended fix\n   - Whether this is a recurring issue or one-time failure\n4. Do NOT restart the container automatically - just analyze and report`;\n\nreturn [{\n  json: {\n    task: task,\n    working_directory: '/tmp',\n    model: 'auto',\n    max_steps: 15,\n    container_name: container.container_name,\n    exit_code: container.exit_code\n  }\n}];"
+      }
     },
     {
+      "id": "call-agent",
+      "name": "Call Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1450, 300],
       "parameters": {
         "method": "POST",
         "url": "https://local-ai-api.server.unarmedpuppy.com/agent/run",
@@ -108,14 +111,14 @@
         "options": {
           "timeout": 120000
         }
-      },
-      "id": "call-agent",
-      "name": "Call Agent Endpoint",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [1450, 300]
+      }
     },
     {
+      "id": "check-success",
+      "name": "Agent Succeeded?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1650, 300],
       "parameters": {
         "conditions": {
           "options": {
@@ -125,7 +128,7 @@
           },
           "conditions": [
             {
-              "id": "check-success",
+              "id": "success-check",
               "leftValue": "={{ $json.success }}",
               "rightValue": true,
               "operator": {
@@ -137,54 +140,49 @@
           "combinator": "and"
         },
         "options": {}
-      },
-      "id": "check-success",
-      "name": "Agent Succeeded?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
-      "position": [1650, 300]
+      }
     },
     {
-      "parameters": {
-        "jsCode": "// Format success result for logging/notification\nconst agentResult = $input.first().json;\nconst taskData = $('Build Agent Task').first().json;\n\nconst summary = {\n  status: 'success',\n  container_name: taskData.container_name,\n  exit_code: taskData.exit_code,\n  agent_analysis: agentResult.final_answer || 'No analysis provided',\n  steps_taken: agentResult.total_steps || 0,\n  timestamp: new Date().toISOString()\n};\n\nreturn [{ json: summary }];"
-      },
       "id": "format-success",
       "name": "Format Success",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1850, 200]
+      "position": [1850, 200],
+      "parameters": {
+        "jsCode": "const agentResult = $input.first().json;\nconst taskData = $('Build Agent Task').first().json;\n\nreturn [{\n  json: {\n    status: 'success',\n    container_name: taskData.container_name,\n    exit_code: taskData.exit_code,\n    agent_analysis: agentResult.final_answer || 'No analysis provided',\n    steps_taken: agentResult.total_steps || 0,\n    timestamp: new Date().toISOString()\n  }\n}];"
+      }
     },
     {
-      "parameters": {
-        "jsCode": "// Format error result for logging\nconst agentResult = $input.first().json;\nconst taskData = $('Build Agent Task').first().json;\n\nconst summary = {\n  status: 'error',\n  container_name: taskData.container_name,\n  exit_code: taskData.exit_code,\n  error: agentResult.error || agentResult.terminated_reason || 'Unknown error',\n  steps_taken: agentResult.total_steps || 0,\n  timestamp: new Date().toISOString()\n};\n\nreturn [{ json: summary }];"
-      },
       "id": "format-error",
       "name": "Format Error",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1850, 400]
+      "position": [1850, 400],
+      "parameters": {
+        "jsCode": "const agentResult = $input.first().json;\nconst taskData = $('Build Agent Task').first().json;\n\nreturn [{\n  json: {\n    status: 'error',\n    container_name: taskData.container_name,\n    exit_code: taskData.exit_code,\n    error: agentResult.error || agentResult.terminated_reason || 'Unknown error',\n    steps_taken: agentResult.total_steps || 0,\n    timestamp: new Date().toISOString()\n  }\n}];"
+      }
     }
   ],
   "connections": {
     "Every 5 Minutes": {
-      "main": [[{ "node": "Get All Containers", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Check Containers", "type": "main", "index": 0 }]]
     },
-    "Get All Containers": {
-      "main": [[{ "node": "Parse and Filter Failures", "type": "main", "index": 0 }]]
+    "Check Containers": {
+      "main": [[{ "node": "Parse Failures", "type": "main", "index": 0 }]]
     },
-    "Parse and Filter Failures": {
+    "Parse Failures": {
       "main": [[{ "node": "Has Failures?", "type": "main", "index": 0 }]]
     },
     "Has Failures?": {
-      "main": [[{ "node": "Get Container Logs", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Get Logs", "type": "main", "index": 0 }]]
     },
-    "Get Container Logs": {
+    "Get Logs": {
       "main": [[{ "node": "Build Agent Task", "type": "main", "index": 0 }]]
     },
     "Build Agent Task": {
-      "main": [[{ "node": "Call Agent Endpoint", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Call Agent", "type": "main", "index": 0 }]]
     },
-    "Call Agent Endpoint": {
+    "Call Agent": {
       "main": [[{ "node": "Agent Succeeded?", "type": "main", "index": 0 }]]
     },
     "Agent Succeeded?": {
@@ -194,13 +192,9 @@
       ]
     }
   },
-  "pinData": {},
   "settings": {
     "executionOrder": "v1"
   },
   "staticData": null,
-  "tags": [],
-  "triggerCount": 0,
-  "updatedAt": "2025-12-31T00:00:00.000Z",
-  "versionId": "2"
+  "tags": []
 }
