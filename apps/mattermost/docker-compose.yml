@@ -30,6 +30,8 @@ services:
       - MM_LOGSETTINGS_ENABLEDIAGNOSTICS=false
       - MM_SERVICESETTINGS_ENABLESECURITYFIXALERT=false
       - MM_SUPPORTSETTINGS_ENABLEASKCOMMUNITYMENUITEM=false
+      # Allow webhooks to internal services (mattermost-gateway for Tayne bot)
+      - MM_SERVICESETTINGS_ALLOWEDUNTRUSTEDINTERNALCONNECTIONS=mattermost-gateway
       # Redis configuration (optional but recommended)
       - MM_SERVICESETTINGS_SESSIONCACHEINMEMORY=false
       - MM_SERVICESETTINGS_SESSIONCACHEREDISURL=redis://redis:6379
