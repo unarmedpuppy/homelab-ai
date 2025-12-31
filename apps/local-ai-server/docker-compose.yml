@@ -2,7 +2,7 @@ x-enabled: true
 
 services:
   vllm:
-    image: harbor.server.unarmedpuppy.com/docker-hub/vllm/vllm-openai:v0.5.5
+    image: harbor.server.unarmedpuppy.com/docker-hub/vllm/vllm-openai:v0.4.0
     container_name: local-ai-server
     restart: unless-stopped
     runtime: nvidia
