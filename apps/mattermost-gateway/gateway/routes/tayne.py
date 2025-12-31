@@ -218,15 +218,32 @@ async def handle_tayne_mention(
         user_id=user_id,
     )
     
-    if response:
-        return {
-            "text": response,
-            "response_type": "comment",
-        }
+    # Get the Tayne bot client to post as Tayne (not as webhook)
+    tayne_bot = get_bot("tayne")
+    if tayne_bot and tayne_bot.is_configured():
+        try:
+            client = get_client(tayne_bot)
+            response_text = response if response else API_DOWN_MESSAGE
+            # Post as Tayne bot, replying to the original message
+            client.post_message(
+                channel=channel_id,
+                message=response_text,
+                thread_id=post_id,  # Reply in thread to the triggering message
+            )
+            # Return empty to avoid duplicate webhook response
+            return {}
+        except MattermostClientError as e:
+            logger.error(f"Failed to post as Tayne: {e}")
+            # Fall back to webhook response if bot post fails
+            return {
+                "text": response if response else API_DOWN_MESSAGE,
+                "response_type": "comment",
+            }
     else:
-        # API is down
+        # Fall back to webhook response if bot not configured
+        logger.warning("Tayne bot not configured, using webhook response")
         return {
-            "text": API_DOWN_MESSAGE,
+            "text": response if response else API_DOWN_MESSAGE,
             "response_type": "comment",
         }
 
