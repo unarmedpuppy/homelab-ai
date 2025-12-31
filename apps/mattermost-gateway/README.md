@@ -66,6 +66,41 @@ Health check endpoint.
 curl http://mattermost-gateway:8000/health
 ```
 
+## Tayne Bot (AI-Powered Responses)
+
+Tayne is an AI-powered bot that responds when @mentioned in Mattermost. It uses the local-ai-router for LLM responses with a surreal, absurdist personality.
+
+### Setup
+
+1. Create Tayne bot account in Mattermost (see below)
+2. Add `MATTERMOST_BOT_TAYNE_TOKEN` to `.env`
+3. Add `LOCAL_AI_URL` and `LOCAL_AI_API_KEY` to `.env`
+4. Create an Outgoing Webhook in Mattermost:
+   - Go to: Integrations > Outgoing Webhooks > Add
+   - Title: `Tayne Bot`
+   - Trigger Words: `@tayne`
+   - Callback URL: `http://mattermost-gateway:8000/webhook/tayne/mention`
+   - Channel: (leave blank for all channels, or select specific)
+
+### Endpoints
+
+**POST /webhook/tayne/mention** - Mattermost Outgoing Webhook handler
+- Receives form-encoded data from Mattermost when @tayne is mentioned
+- Queries local-ai-router with Tayne persona
+- Returns JSON response that Mattermost posts to the channel
+
+**GET /webhook/tayne/health** - Tayne health check
+```bash
+curl http://mattermost-gateway:8000/webhook/tayne/health
+```
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `LOCAL_AI_URL` | `http://local-ai-router:8000` | Local AI Router URL |
+| `LOCAL_AI_API_KEY` | (empty) | API key for local-ai-router |
+
 ## Bot Registry
 
 | Bot | Purpose | Token Env Var |

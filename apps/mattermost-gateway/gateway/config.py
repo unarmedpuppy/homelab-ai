@@ -52,6 +52,10 @@ class Settings(BaseSettings):
 
     channel_cache_ttl: int = Field(default=300)
 
+    # Local AI Router settings (for Tayne bot)
+    local_ai_url: str = Field(default="http://local-ai-router:8000")
+    local_ai_api_key: str = Field(default="")
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

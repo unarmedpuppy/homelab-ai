@@ -17,6 +17,8 @@ services:
       - GATEWAY_PORT=${GATEWAY_PORT:-8000}
       - GATEWAY_LOG_LEVEL=${GATEWAY_LOG_LEVEL:-INFO}
       - DEFAULT_CHANNEL=${DEFAULT_CHANNEL:-town-square}
+      - LOCAL_AI_URL=${LOCAL_AI_URL:-http://local-ai-router:8000}
+      - LOCAL_AI_API_KEY=${LOCAL_AI_API_KEY:-}
     ports:
       - "8011:8000"
     networks:
