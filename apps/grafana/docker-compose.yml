@@ -11,7 +11,7 @@ services:
     hostname: loki
     container_name: loki
     volumes:
-      - ./data/loki:/etc/loki # place loki-config.yml
+      - ./config/loki:/etc/loki # tracked config directory
     ports:
       - "127.0.0.1:3100:3100"
     restart: unless-stopped
@@ -70,7 +70,7 @@ services:
     depends_on:
       - influxdb
     volumes:
-      - ./data/telegraf:/etc/telegraf # place telegraf.conf
+      - ./config/telegraf:/etc/telegraf # tracked config directory
       - /:/hostfs:ro
       - /etc:/hostfs/etc:ro
       - /proc:/hostfs/proc:ro
