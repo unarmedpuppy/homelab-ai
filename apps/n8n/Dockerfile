@@ -1,8 +1,8 @@
+# Multi-stage build: copy docker CLI from official docker image
+FROM harbor.server.unarmedpuppy.com/docker-hub/library/docker:cli AS docker-cli
+
 FROM harbor.server.unarmedpuppy.com/docker-hub/n8nio/n8n:latest
 
 USER root
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    docker.io \
-    && rm -rf /var/lib/apt/lists/*
+COPY --from=docker-cli /usr/local/bin/docker /usr/local/bin/docker
 USER node
