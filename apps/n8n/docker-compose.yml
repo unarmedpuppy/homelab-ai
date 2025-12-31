@@ -3,8 +3,10 @@ version: '3.8'
 services:
   n8n:
     x-essential: true
-    # image: n8nio/n8n:latest
-    image: harbor.server.unarmedpuppy.com/docker-hub/n8nio/n8n:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: harbor.server.unarmedpuppy.com/library/n8n-custom:latest
     container_name: n8n
     restart: unless-stopped
     env_file:
