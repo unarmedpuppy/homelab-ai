@@ -141,7 +141,7 @@
       "id": "check-success",
       "name": "Agent Succeeded?",
       "type": "n8n-nodes-base.if",
-      "typeVersion": 1,
+      "typeVersion": 2,
       "position": [1650, 300]
     },
     {
@@ -199,7 +199,7 @@
     "executionOrder": "v1"
   },
   "staticData": null,
-  "tags": ["agent-integration", "container-monitoring"],
+  "tags": [],
   "triggerCount": 0,
   "updatedAt": "2025-12-31T00:00:00.000Z",
   "versionId": "1"
