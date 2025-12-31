@@ -339,6 +339,8 @@ class StreamAccumulator:
                 self.metadata['finish_reason'] = event['finish_reason']
             if event.get('backend'):
                 self.metadata['backend'] = event['backend']
+            if event.get('provider_name'):
+                self.metadata['provider_name'] = event['provider_name']
                 
         elif status == 'error':
             self.error = event.get('error_detail') or event.get('message')
@@ -359,4 +361,5 @@ class StreamAccumulator:
             }],
             'usage': self.metadata.get('usage', {}),
             'provider': self.metadata.get('backend'),
+            'provider_name': self.metadata.get('provider_name'),
         }

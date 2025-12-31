@@ -179,8 +179,8 @@ async def query_tayne(message: discord.Message) -> Optional[str]:
     if not user_message:
         user_message = "Hello Tayne!"
     
-    # Fetch recent channel history for context
-    history = await fetch_channel_history(message.channel, limit=15)
+    # Fetch recent channel history for context (5 messages keeps us under 2K token threshold)
+    history = await fetch_channel_history(message.channel, limit=5)
     
     # Build messages array: system prompt + history (excluding the current message which is last)
     # History already includes the current message, so we use it directly

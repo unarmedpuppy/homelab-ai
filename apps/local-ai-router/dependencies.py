@@ -77,6 +77,7 @@ def log_chat_completion(
         # Extract response data
         model_used = None
         backend = None
+        provider_name = None
         prompt_tokens = None
         completion_tokens = None
         total_tokens = None
@@ -89,15 +90,9 @@ def log_chat_completion(
             total_tokens = usage.get("total_tokens")
             model_used = response_data.get("model")
 
-            # Infer backend from model name
-            if model_used:
-                model_lower = model_used.lower()
-                if "qwen" in model_lower or "llama" in model_lower or "deepseek" in model_lower:
-                    backend = "3090"
-                elif "glm" in model_lower:
-                    backend = "opencode-glm"
-                elif "claude" in model_lower:
-                    backend = "opencode-claude"
+            # Use actual provider from routing selection (passed via response_data)
+            backend = response_data.get("provider")
+            provider_name = response_data.get("provider_name")
 
             # Get assistant response
             choices = response_data.get("choices", [])
@@ -189,6 +184,7 @@ def log_chat_completion(
                             role=MessageRole.USER,
                             content=last_user_msg.get("content"),
                             tokens_prompt=prompt_tokens,
+                            metadata={"model_requested": model_requested},
                         )
                     )
 
@@ -202,6 +198,7 @@ def log_chat_completion(
                             model_used=model_used,
                             backend=backend,
                             tokens_completion=completion_tokens,
+                            metadata={"provider_name": provider_name} if provider_name else None,
                         )
                     )
 

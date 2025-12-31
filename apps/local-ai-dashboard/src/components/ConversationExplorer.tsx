@@ -250,26 +250,46 @@ export default function ConversationExplorer() {
                         {msg.content}
                       </div>
 
-                      {/* Metadata */}
-                      {(msg.model_used || msg.backend || msg.tokens_completion) && (
-                        <div className="mt-3 pt-3 border-t border-gray-800 flex flex-wrap gap-4 text-xs text-gray-500">
-                          {msg.model_used && (
-                            <div>
-                              <span className="text-gray-600">model:</span> {msg.model_used}
-                            </div>
-                          )}
-                          {msg.backend && (
-                            <div>
-                              <span className="text-gray-600">backend:</span> {msg.backend}
-                            </div>
-                          )}
-                          {msg.tokens_completion && (
-                            <div>
-                              <span className="text-gray-600">tokens:</span> {msg.tokens_completion.toLocaleString()}
-                            </div>
-                          )}
-                        </div>
-                      )}
+                      {/* Metadata - show for ALL messages */}
+                      <div className="mt-3 pt-3 border-t border-gray-800 flex flex-wrap gap-4 text-xs text-gray-500">
+                        {msg.role === 'user' ? (
+                          <>
+                            {msg.tokens_prompt && (
+                              <div>
+                                <span className="text-gray-600">tokens:</span> {msg.tokens_prompt.toLocaleString()}
+                              </div>
+                            )}
+                            {(msg.model_requested || msg.metadata?.model_requested) && (
+                              <div>
+                                <span className="text-gray-600">routing:</span> {msg.model_requested || msg.metadata?.model_requested}
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            {(msg.provider_name || msg.metadata?.provider_name) && (
+                              <div>
+                                <span className="text-gray-600">provider:</span> {msg.provider_name || msg.metadata?.provider_name}
+                              </div>
+                            )}
+                            {msg.model_used && (
+                              <div>
+                                <span className="text-gray-600">model:</span> {msg.model_used}
+                              </div>
+                            )}
+                            {msg.backend && (
+                              <div>
+                                <span className="text-gray-600">backend:</span> {msg.backend}
+                              </div>
+                            )}
+                            {msg.tokens_completion && (
+                              <div>
+                                <span className="text-gray-600">tokens:</span> {msg.tokens_completion.toLocaleString()}
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))

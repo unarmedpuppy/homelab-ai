@@ -614,6 +614,7 @@ async def chat_completions(
                                 'finish_reason': 'stop',
                             }],
                             'provider': selection.provider.id,
+                            'provider_name': selection.provider.name,
                         }
                     log_chat_completion(tracker, body, response_data, error=None)
                     logger.info(f"Logged streaming response (conversation: {tracker.conversation_id})")
@@ -642,6 +643,7 @@ async def chat_completions(
                     # Inject provider info into response
                     # This allows clients to see which provider was used
                     response_data["provider"] = selection.provider.id
+                    response_data["provider_name"] = selection.provider.name
 
                     # Log metrics and memory in background
                     background_tasks.add_task(

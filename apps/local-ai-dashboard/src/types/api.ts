@@ -6,10 +6,17 @@ export interface Message {
   role: 'user' | 'assistant' | 'system';
   content: string;
   model_used?: string;
+  model_requested?: string;
   backend?: string;
+  provider_name?: string;
   tokens_prompt?: number;
   tokens_completion?: number;
   timestamp: string;
+  metadata?: {
+    model_requested?: string;
+    provider_name?: string;
+    [key: string]: unknown;
+  };
 }
 
 export interface Conversation {

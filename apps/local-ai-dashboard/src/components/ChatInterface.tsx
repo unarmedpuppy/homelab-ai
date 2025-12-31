@@ -7,8 +7,10 @@ import ProviderModelSelector from './ProviderModelSelector';
 
 interface MessageWithMetadata extends ChatMessage {
   model?: string;
+  model_requested?: string;
   backend?: string;
   tokens?: number;
+  tokens_prompt?: number;
   provider?: string;
   image_refs?: ImageRef[];
 }
@@ -438,31 +440,46 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                   {message.content}
                 </div>
 
-                {/* Metadata (only for assistant messages) */}
-                {message.role === 'assistant' && (message.model || message.backend || message.tokens || message.provider) && (
-                  <div className="mt-3 pt-3 border-t border-gray-800 flex flex-wrap gap-4 text-xs text-gray-500">
-                    {message.provider && (
-                      <div>
-                        <span className="text-gray-600">provider:</span> {message.provider}
-                      </div>
-                    )}
-                    {message.model && (
-                      <div>
-                        <span className="text-gray-600">model:</span> {message.model}
-                      </div>
-                    )}
-                    {message.backend && (
-                      <div>
-                        <span className="text-gray-600">backend:</span> {message.backend}
-                      </div>
-                    )}
-                    {message.tokens && (
-                      <div>
-                        <span className="text-gray-600">tokens:</span> {message.tokens.toLocaleString()}
-                      </div>
-                    )}
-                  </div>
-                )}
+                {/* Metadata for all messages */}
+                <div className="mt-3 pt-3 border-t border-gray-800 flex flex-wrap gap-4 text-xs text-gray-500">
+                  {message.role === 'user' ? (
+                    <>
+                      {message.tokens_prompt && (
+                        <div>
+                          <span className="text-gray-600">tokens:</span> {message.tokens_prompt.toLocaleString()}
+                        </div>
+                      )}
+                      {message.model_requested && (
+                        <div>
+                          <span className="text-gray-600">routing:</span> {message.model_requested}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {message.provider && (
+                        <div>
+                          <span className="text-gray-600">provider:</span> {message.provider}
+                        </div>
+                      )}
+                      {message.model && (
+                        <div>
+                          <span className="text-gray-600">model:</span> {message.model}
+                        </div>
+                      )}
+                      {message.backend && (
+                        <div>
+                          <span className="text-gray-600">backend:</span> {message.backend}
+                        </div>
+                      )}
+                      {message.tokens && (
+                        <div>
+                          <span className="text-gray-600">tokens:</span> {message.tokens.toLocaleString()}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           ))
