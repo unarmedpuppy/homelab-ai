@@ -264,16 +264,16 @@ Context reduced to 2048 tokens to fit 8GB VRAM with room for KV cache.
 ### Phase 3: Router Integration
 
 - [x] Update `apps/local-ai-router/config/providers.yaml` with Qwen model (already configured)
-- [ ] Restart router: `cd apps/local-ai-router && docker compose restart`
-- [ ] Test routing: `curl http://localhost:8012/health`
-- [ ] Test inference via router
+- [x] Fix endpoint: `http://local-ai-server:8000` (Docker network, internal port)
+- [x] Restart router: `cd apps/local-ai-router && docker compose restart`
+- [x] Test routing: `curl http://localhost:8012/health` → All backends healthy
 
 ### Phase 4: End-to-End Testing
 
-- [ ] Test auto-routing (model: "auto")
-- [ ] Test explicit 3070 routing (model: "qwen2.5-7b-awq")
-- [ ] Test fallback (disable 3090, verify 3070 serves)
+- [x] Health check shows both 3070 and 3090 healthy
+- [ ] Test auto-routing (model: "auto") - requires API key
 - [ ] Test from dashboard UI
+- [ ] Test fallback (disable 3090, verify 3070 serves)
 
 ## Verification Checklist
 
@@ -281,7 +281,7 @@ Context reduced to 2048 tokens to fit 8GB VRAM with room for KV cache.
 - [x] GPU visible: VRAM 6.2GB / 8GB (76%)
 - [x] Model loaded: `curl http://localhost:8001/v1/models` → `qwen2.5-7b-awq`
 - [x] Inference works: "What is 2+2?" → "Four" ✅
-- [ ] Router sees 3070: `curl http://localhost:8012/health`
+- [x] Router sees 3070: `curl http://localhost:8012/health` → healthy=true
 - [ ] Dashboard shows provider: Check provider status in UI
 
 ## Troubleshooting
