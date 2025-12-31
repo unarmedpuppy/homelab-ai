@@ -106,15 +106,35 @@ def execute_tool(name: str, arguments: dict, working_dir: str) -> str:
 # =============================================================================
 
 def _register_all_tools():
-    """Import and register all tool modules."""
-    # Import each tool module - they self-register on import
+    """Import and register all tool modules.
+    
+    Core Architecture: Skill-Based Agent
+    =====================================
+    Instead of hardcoding capabilities as Python tools, the agent
+    discovers and uses skills from agents/skills/ - the same skills
+    used by human operators.
+    
+    Core tools (always loaded):
+    - file_tools: read_file, write_file, edit_file, list_directory, search_files
+    - shell_tools: run_shell, task_complete
+    - skill_tools: list_skills, read_skill, search_skills
+    
+    Git tools are also included since they're fundamental to the workflow.
+    
+    All other capabilities (SSH, Docker, HTTP, deployment, etc.) are
+    provided through skills that the agent discovers on-demand.
+    """
+    # Core file operations
     from . import file_tools
+    
+    # Shell execution (for running skill scripts)
     from . import shell_tools
+    
+    # Git operations (fundamental to workflow)
     from . import git_tools
-    from . import ssh_tools
-    from . import docker_tools
-    from . import http_tools
-    # Future: from . import deploy_tools
+    
+    # Skill discovery and execution (THE KEY TOOLS)
+    from . import skill_tools
 
 
 # Register tools when module is imported

@@ -22,6 +22,8 @@ services:
       - ENABLE_METRICS=${ENABLE_METRICS:-1}
     volumes:
       - ./data:/data
+      # Mount skills directory for skill-based agent
+      - ../../agents/skills:/app/agents/skills:ro
     ports:
       - "8012:8000"
     networks:
