@@ -1,6 +1,6 @@
 # Bird Bookmark Processor
 # Node.js for Bird CLI + Python for processing
-FROM node:22-alpine
+FROM harbor.server.unarmedpuppy.com/docker-hub/library/node:22-alpine
 
 # Install Python and git
 RUN apk add --no-cache python3 py3-pip git bash curl

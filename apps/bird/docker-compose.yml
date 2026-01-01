@@ -33,15 +33,10 @@ services:
       - my-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.bird-api.rule=Host(`bird.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.bird-api.rule=Host(`bird-api.server.unarmedpuppy.com`)"
       - "traefik.http.routers.bird-api.entrypoints=websecure"
       - "traefik.http.routers.bird-api.tls.certresolver=myresolver"
       - "traefik.http.services.bird-api.loadbalancer.server.port=8000"
-      - "homepage.group=AI & Machine Learning"
-      - "homepage.name=Bird Viewer"
-      - "homepage.icon=si-x"
-      - "homepage.href=https://bird.server.unarmedpuppy.com"
-      - "homepage.description=Twitter bookmark viewer API"
 
 volumes:
   bird-data:

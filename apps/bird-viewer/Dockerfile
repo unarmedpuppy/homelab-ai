@@ -1,4 +1,4 @@
-FROM node:22-alpine AS builder
+FROM harbor.server.unarmedpuppy.com/docker-hub/library/node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -8,7 +8,7 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM nginx:alpine
+FROM harbor.server.unarmedpuppy.com/docker-hub/library/nginx:alpine
 
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
