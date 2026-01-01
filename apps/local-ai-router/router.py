@@ -896,6 +896,11 @@ async def call_llm_for_agent(
 ) -> dict:
     """Call the LLM through the router for agent use.
     
+    Uses context-aware routing based on token count:
+    - < 2K tokens: 3070 with qwen2.5-7b-awq (fast, always-on)
+    - 2K-8K tokens: 3090 with qwen2.5-14b-awq (larger context)
+    - > 8K tokens: 3090 with warning (may overflow)
+    
     Returns the response with additional _routing_info for tracking.
     """
     body = {
@@ -905,20 +910,47 @@ async def call_llm_for_agent(
         "tool_choice": tool_choice,
     }
 
-    # Route to appropriate backend
-    # For agent calls, we always use the 3090 with tool support
-    backend_id = "3090"
-    backend = BACKENDS[backend_id]
-    if not backend["available"]:
-        raise HTTPException(status_code=503, detail="No backend available for agent")
-
-    # Determine actual model - prefer qwen for tool calling
-    actual_model = body["model"]
-    if model in ["auto", "small", "fast", "big", "3090"]:
+    # Estimate tokens for context-aware routing
+    token_estimate = estimate_tokens(messages)
+    
+    # Context-aware routing for agent calls
+    if model in ["auto", "small", "fast"]:
+        if token_estimate < SMALL_TOKEN_THRESHOLD:
+            # Small context: use 3070 (faster, always-on)
+            backend_id = "3070"
+            actual_model = "qwen2.5-7b-awq"
+        else:
+            # Larger context: use 3090
+            backend_id = "3090"
+            actual_model = "qwen2.5-14b-awq"
+            if token_estimate > 8000:
+                logger.warning(f"Agent context very large ({token_estimate} tokens), may overflow 8K limit")
+    elif model in ["big", "3090"]:
+        # Explicit 3090 request
+        backend_id = "3090"
         actual_model = "qwen2.5-14b-awq"
-        body["model"] = actual_model
+    else:
+        # Specific model requested - try to route appropriately
+        backend_id = "3090"
+        actual_model = model
 
-    logger.info(f"Agent LLM call: model={actual_model}, backend={backend_id}, messages={len(messages)}")
+    # Check backend availability with fallback
+    backend = BACKENDS.get(backend_id)
+    if not backend or not backend["available"]:
+        # Fallback to other backend
+        fallback_id = "3090" if backend_id == "3070" else "3070"
+        fallback = BACKENDS.get(fallback_id)
+        if fallback and fallback["available"]:
+            logger.warning(f"Backend {backend_id} unavailable, falling back to {fallback_id}")
+            backend_id = fallback_id
+            backend = fallback
+            # Adjust model for fallback backend
+            actual_model = "qwen2.5-14b-awq" if fallback_id == "3090" else "qwen2.5-7b-awq"
+        else:
+            raise HTTPException(status_code=503, detail="No backend available for agent")
+
+    body["model"] = actual_model
+    logger.info(f"Agent LLM call: model={actual_model}, backend={backend_id}, tokens~{token_estimate}, messages={len(messages)}")
 
     async with httpx.AsyncClient(timeout=300.0) as client:
         response = await client.post(
