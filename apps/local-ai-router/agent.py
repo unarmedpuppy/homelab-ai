@@ -15,6 +15,7 @@ Tools are now organized in the tools/ package:
 """
 
 import os
+import re
 import json
 import logging
 import asyncio
@@ -175,6 +176,34 @@ def prune_context_if_needed(messages: list, max_tokens: int = 6000) -> list:
     return pruned
 
 
+def extract_tool_from_text(content: str) -> Optional[ToolCall]:
+    """
+    Fallback: extract tool call from plain text like 'search_skills("docker")'.
+    Some models output tool syntax as text instead of using tool_calls.
+    """
+    pattern = r'^(\w+)\s*\(\s*[\'"]?([^)]*?)[\'"]?\s*\)$'
+    match = re.match(pattern, content.strip())
+    if not match:
+        return None
+    
+    name = match.group(1)
+    arg_str = match.group(2).strip().strip("'\"")
+    
+    tool_arg_map = {
+        "search_skills": {"query": arg_str},
+        "read_skill": {"name": arg_str},
+        "list_skills": {"category": arg_str} if arg_str else {},
+        "read_file": {"path": arg_str},
+        "run_shell": {"command": arg_str},
+        "run_on_server": {"command": arg_str},
+        "task_complete": {"answer": arg_str},
+    }
+    
+    if name in tool_arg_map:
+        return ToolCall(name=name, arguments=tool_arg_map[name])
+    return None
+
+
 def parse_model_response(response: dict) -> tuple[AgentAction, Optional[str]]:
     """Parse model response into an AgentAction. Returns (action, error)."""
     try:
@@ -219,6 +248,21 @@ def parse_model_response(response: dict) -> tuple[AgentAction, Optional[str]]:
                 return AgentAction(
                     action_type=ActionType.TERMINATE,
                     final_answer=content
+                ), None
+
+            # Fallback: try to extract tool call from text
+            # Some models output "search_skills('docker')" as text instead of tool_calls
+            extracted = extract_tool_from_text(content)
+            if extracted:
+                logger.info(f"Extracted tool call from text: {extracted.name}")
+                if extracted.name == "task_complete":
+                    return AgentAction(
+                        action_type=ActionType.TERMINATE,
+                        final_answer=extracted.arguments.get("answer", "Task completed")
+                    ), None
+                return AgentAction(
+                    action_type=ActionType.TOOL_CALL,
+                    tool_call=extracted
                 ), None
 
             # Treat as thinking/response
