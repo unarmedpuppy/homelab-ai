@@ -91,30 +91,6 @@ providers:
     location: "cloud"
     notes: "OpenAI-compatible API. No rate limits or cost concerns."
 
-  # Cloud Provider - Anthropic (DISABLED - use claude-harness instead)
-  - id: anthropic
-    name: "Anthropic (Claude)"
-    type: cloud
-    description: "Anthropic Claude API - DISABLED (requires API key, use claude-harness for Claude Max)"
-    endpoint: "https://api.anthropic.com"
-    priority: 4  # Final fallback
-    enabled: false  # Disabled - use claude-harness instead
-
-    # Concurrency Control
-    maxConcurrent: 100  # Parallel requests OK (cloud service)
-
-    # Health Check Configuration
-    healthCheckInterval: 60  # seconds (less frequent for cloud)
-    healthCheckTimeout: 10   # seconds
-    healthCheckPath: "/v1/messages"  # Different endpoint
-
-    # Authentication
-    authType: "api_key"
-    authSecret: "ANTHROPIC_API_KEY"  # Environment variable name
-
-    # Metadata
-    location: "cloud"
-
   # Claude Harness - Claude Max subscription via Claude Code CLI
   # type: local -> uses /v1/chat/completions path (OpenAI-compatible, like vLLM)
   - id: claude-harness
