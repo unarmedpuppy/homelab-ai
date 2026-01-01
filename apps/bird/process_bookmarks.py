@@ -184,13 +184,17 @@ Respond with valid JSON in this exact format:
 }}"""
 
     try:
+        headers = {
+            "Content-Type": "application/json",
+            "X-Project": "bird-bookmark-processor",
+            "X-User-ID": "bird-bot"
+        }
+        if AI_API_KEY:
+            headers["Authorization"] = f"Bearer {AI_API_KEY}"
+        
         response = requests.post(
             f"{AI_ROUTER_URL}/v1/chat/completions",
-            headers={
-                "Content-Type": "application/json",
-                "X-Project": "bird-bookmark-processor",
-                "X-User-ID": "bird-bot"
-            },
+            headers=headers,
             json={
                 "model": "auto",
                 "messages": [
