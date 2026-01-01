@@ -20,7 +20,7 @@
     },
     {
       "parameters": {
-        "command": "cd ~/server/apps/bird && docker compose run --rm bird python process_bookmarks.py 2>&1",
+        "command": "docker run --rm --network my-network -v bird_bird-data:/app/data -e AUTH_TOKEN=$AUTH_TOKEN -e CT0=$CT0 -e TZ=America/Chicago bird-bird:latest python process_bookmarks.py 2>&1",
         "additionalFields": {
           "timeout": 300000
         }
