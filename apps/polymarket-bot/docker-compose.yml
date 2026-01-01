@@ -21,7 +21,9 @@ services:
       - GABAGOOL_DRY_RUN=true
       - GABAGOOL_MAX_DAILY_LOSS=10.0
       - GABAGOOL_DIRECTIONAL_ENABLED=false
-      - GABAGOOL_NEAR_RESOLUTION_ENABLED=false
+      # Near-resolution now isolated strategy (NearResolutionStrategy)
+      - NEAR_RESOLUTION_ENABLED=true
+      - NEAR_RESOLUTION_DRY_RUN=false
     ports:
       - "8500:8000"  # Prometheus metrics
       - "8501:8080"  # Dashboard UI
