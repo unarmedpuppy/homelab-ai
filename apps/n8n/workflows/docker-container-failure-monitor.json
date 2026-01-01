@@ -20,20 +20,14 @@
     },
     {
       "parameters": {
-        "command": "docker ps -a --format '{{.ID}}|{{.Names}}|{{.Status}}|{{.State}}'",
+        "command": "docker ps -a --format '{{.ID}}|{{.Names}}|{{.Status}}|{{.State}}' | grep -E 'Exited|unhealthy|Restarting' || echo 'NO_FAILURES'",
         "additionalFields": {}
       },
       "id": "check-containers",
       "name": "Check All Containers",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
-      "position": [450, 300],
-      "credentials": {
-        "docker": {
-          "id": "docker-socket",
-          "name": "Docker Socket"
-        }
-      }
+      "position": [450, 300]
     },
     {
       "parameters": {
@@ -46,15 +40,24 @@
           "conditions": [
             {
               "id": "filter-failures",
-              "leftValue": "={{ $json['Status'] }}",
-              "rightValue": "Exited (1)|Exited (2)|Exited (130)|Exited (137)|unhealthy|Restarting",
+              "leftValue": "={{ $json.stdout?.trim() }}",
+              "rightValue": "NO_FAILURES",
               "operator": {
                 "type": "string",
-                "operation": "contains"
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "filter-empty",
+              "leftValue": "={{ $json.stdout?.trim() }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
               }
             }
           ],
-          "combinator": "or"
+          "combinator": "and"
         },
         "options": {}
       },
@@ -66,7 +69,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Parse container status and extract details\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const data = item.json;\n  const parts = data.stdout.split('|');\n  \n  if (parts.length >= 4) {\n    const containerId = parts[0];\n    const containerName = parts[1];\n    const status = parts[2];\n    const state = parts[3];\n    \n    // Extract exit code if present\n    const exitCodeMatch = status.match(/Exited \\((\\d+)\\)/);\n    const exitCode = exitCodeMatch ? exitCodeMatch[1] : null;\n    \n    results.push({\n      container_id: containerId,\n      container_name: containerName,\n      status: status,\n      state: state,\n      exit_code: exitCode,\n      timestamp: new Date().toISOString()\n    });\n  }\n}\n\nreturn results.map(r => ({ json: r }));"
+        "jsCode": "// Parse container status and extract details from multi-line output\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const data = item.json;\n  const stdout = data.stdout || '';\n  \n  // Split by newlines to get each container line\n  const lines = stdout.split('\\n').filter(line => line.trim());\n  \n  for (const line of lines) {\n    const parts = line.split('|');\n    \n    if (parts.length >= 4) {\n      const containerId = parts[0].trim();\n      const containerName = parts[1].trim();\n      const status = parts[2].trim();\n      const state = parts[3].trim();\n      \n      // Extract exit code if present\n      const exitCodeMatch = status.match(/Exited \\((\\d+)\\)/);\n      const exitCode = exitCodeMatch ? exitCodeMatch[1] : null;\n      \n      results.push({\n        container_id: containerId,\n        container_name: containerName,\n        status: status,\n        state: state,\n        exit_code: exitCode,\n        timestamp: new Date().toISOString()\n      });\n    }\n  }\n}\n\nreturn results.map(r => ({ json: r }));"
       },
       "id": "parse-status",
       "name": "Parse Container Status",
@@ -76,70 +79,51 @@
     },
     {
       "parameters": {
-        "command": "docker logs --tail 100 {{ $json['container_id'] }}",
+        "command": "docker logs --tail 100 {{ $json['container_id'] }} 2>&1",
         "additionalFields": {}
       },
       "id": "get-logs",
       "name": "Get Container Logs",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
-      "position": [1050, 300],
-      "credentials": {
-        "docker": {
-          "id": "docker-socket",
-          "name": "Docker Socket"
-        }
-      }
+      "position": [1050, 300]
     },
     {
       "parameters": {
-        "command": "docker inspect {{ $json['container_id'] }} --format '{{json .}}'",
+        "command": "docker inspect {{ $json['container_id'] }} --format '{{json .State}}'",
         "additionalFields": {}
       },
       "id": "get-container-info",
       "name": "Get Container Info",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
-      "position": [1050, 450],
-      "credentials": {
-        "docker": {
-          "id": "docker-socket",
-          "name": "Docker Socket"
-        }
-      }
+      "position": [1050, 450]
     },
     {
       "parameters": {
-        "command": "docker stats {{ $json['container_id'] }} --no-stream --format '{{.CPUPerc}}|{{.MemUsage}}|{{.MemPerc}}'",
+        "command": "docker stats {{ $json['container_id'] }} --no-stream --format '{{.CPUPerc}}|{{.MemUsage}}|{{.MemPerc}}' 2>/dev/null || echo 'N/A|N/A|N/A'",
         "additionalFields": {}
       },
       "id": "get-resource-usage",
       "name": "Get Resource Usage",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
-      "position": [1050, 600],
-      "credentials": {
-        "docker": {
-          "id": "docker-socket",
-          "name": "Docker Socket"
-        }
-      }
+      "position": [1050, 600]
     },
     {
       "parameters": {
-        "jsCode": "// Combine all data into AI agent payload\nconst containerData = $('Parse Container Status').first().json;\nconst logsData = $('Get Container Logs').first().json;\nconst infoData = $('Get Container Info').first().json;\nconst resourceData = $('Get Resource Usage').first().json;\n\n// Parse resource usage\nlet cpuUsage = 'N/A';\nlet memoryUsage = 'N/A';\nlet memoryPercent = 'N/A';\n\nif (resourceData.stdout) {\n  const parts = resourceData.stdout.split('|');\n  if (parts.length >= 3) {\n    cpuUsage = parts[0].trim();\n    memoryUsage = parts[1].trim();\n    memoryPercent = parts[2].trim();\n  }\n}\n\n// Determine severity\nlet severity = 'medium';\nif (containerData.exit_code === '137' || containerData.status.includes('unhealthy')) {\n  severity = 'high';\n} else if (containerData.exit_code === '1' || containerData.exit_code === '2') {\n  severity = 'high';\n}\n\nconst payload = {\n  event_type: 'docker_container_failure',\n  severity: severity,\n  timestamp: new Date().toISOString(),\n  source: 'n8n-workflow',\n  workflow_name: 'Docker Container Failure Monitor',\n  event_data: {\n    container_name: containerData.container_name,\n    container_id: containerData.container_id,\n    status: containerData.status,\n    state: containerData.state,\n    exit_code: containerData.exit_code,\n    logs: logsData.stdout || logsData.stderr || 'No logs available',\n    resource_usage: {\n      cpu: cpuUsage,\n      memory: memoryUsage,\n      memory_percent: memoryPercent\n    },\n    container_info: infoData.stdout ? JSON.parse(infoData.stdout) : null\n  },\n  context: {\n    server_ip: process.env.SERVER_IP || '192.168.86.47',\n    server_path: process.env.SERVER_PATH || '~/server'\n  },\n  requested_action: 'analyze_and_recommend'\n};\n\nreturn [{ json: payload }];"
+        "jsCode": "// Build agent task for local-ai-router /agent/run endpoint\n// Use $itemIndex to get the correct container from Parse Container Status\nconst allContainers = $('Parse Container Status').all();\nconst containerData = allContainers[$itemIndex]?.json || allContainers[0]?.json;\nconst logsData = $('Get Container Logs').first().json;\nconst infoData = $('Get Container Info').first().json;\nconst resourceData = $('Get Resource Usage').first().json;\n\n// Parse resource usage\nlet cpuUsage = 'N/A';\nlet memoryUsage = 'N/A';\nlet memoryPercent = 'N/A';\n\nif (resourceData.stdout) {\n  const parts = resourceData.stdout.split('|');\n  if (parts.length >= 3) {\n    cpuUsage = parts[0].trim();\n    memoryUsage = parts[1].trim();\n    memoryPercent = parts[2].trim();\n  }\n}\n\n// Determine severity for task description\nlet severity = 'medium';\nconst exitCode = containerData?.exit_code;\nconst status = containerData?.status || '';\nif (exitCode === '137' || status.includes('unhealthy')) {\n  severity = 'high';\n} else if (exitCode === '1' || exitCode === '2') {\n  severity = 'high';\n} else if (status.includes('Restarting')) {\n  severity = 'high';\n}\n\n// Truncate logs for prompt (keep last 2000 chars)\nconst logs = logsData.stdout || logsData.stderr || 'No logs available';\nconst truncatedLogs = logs.length > 2000 ? logs.substring(logs.length - 2000) : logs;\n\n// Build the task prompt for the agent\nconst task = `Analyze this Docker container failure and determine the root cause.\n\n## Container Details\n- **Name**: ${containerData?.container_name || 'unknown'}\n- **ID**: ${containerData?.container_id || 'unknown'}\n- **Status**: ${containerData?.status || 'unknown'}\n- **State**: ${containerData?.state || 'unknown'}\n- **Exit Code**: ${containerData?.exit_code || 'N/A'}\n- **Severity**: ${severity}\n- **Detected At**: ${containerData?.timestamp || new Date().toISOString()}\n\n## Resource Usage\n- **CPU**: ${cpuUsage}\n- **Memory**: ${memoryUsage} (${memoryPercent})\n\n## Recent Logs\n\\`\\`\\`\n${truncatedLogs}\n\\`\\`\\`\n\n## Instructions\n1. Analyze the provided logs for obvious errors\n2. Use search_skills('docker') or search_skills('troubleshoot') to find relevant guides\n3. If needed, use run_shell to get more context (docker inspect, docker logs, etc.)\n4. Determine the root cause and recommended fix\n5. Call task_complete with your analysis including:\n   - Root cause of the failure\n   - Recommended fix\n   - Severity assessment (critical/warning/info)\n   - Whether auto-restart is recommended`;\n\n// Return AgentRequest schema for local-ai-router\nreturn [{\n  json: {\n    task: task,\n    working_directory: '/tmp',\n    model: 'auto',\n    max_steps: 15,\n    source: 'n8n',\n    triggered_by: 'docker-container-failure-monitor',\n    // Extra fields for downstream nodes (Telegram, etc.)\n    _container_name: containerData?.container_name || 'unknown',\n    _container_id: containerData?.container_id || 'unknown',\n    _status: containerData?.status || 'unknown',\n    _exit_code: containerData?.exit_code || null,\n    _severity: severity,\n    _logs_preview: truncatedLogs.substring(0, 500)\n  }\n}];"
       },
       "id": "format-payload",
-      "name": "Format AI Agent Payload",
+      "name": "Build Agent Task",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [1250, 400]
     },
     {
       "parameters": {
-        "url": "={{ $env.AI_AGENT_WEBHOOK_URL || 'https://n8n.server.unarmedpuppy.com/webhook/ai-agent' }}",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
+        "method": "POST",
+        "url": "http://local-ai-router:8000/agent/run",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -150,24 +134,17 @@
           ]
         },
         "sendBody": true,
-        "bodyParameters": {
-          "parameters": []
-        },
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json) }}",
-        "options": {}
+        "jsonBody": "={{ JSON.stringify({ task: $json.task, working_directory: $json.working_directory, model: $json.model, max_steps: $json.max_steps, source: $json.source, triggered_by: $json.triggered_by }) }}",
+        "options": {
+          "timeout": 300000
+        }
       },
       "id": "call-ai-agent",
-      "name": "Call AI Agent Webhook",
+      "name": "Call Local AI Agent",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [1450, 400],
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "ai-agent-webhook",
-          "name": "AI Agent Webhook Auth"
-        }
-      }
+      "typeVersion": 4.2,
+      "position": [1450, 400]
     },
     {
       "parameters": {
@@ -180,10 +157,10 @@
           "conditions": [
             {
               "id": "check-success",
-              "leftValue": "={{ $json['statusCode'] }}",
-              "rightValue": "200",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": true,
               "operator": {
-                "type": "number",
+                "type": "boolean",
                 "operation": "equals"
               }
             }
@@ -192,54 +169,34 @@
         "options": {}
       },
       "id": "check-response",
-      "name": "Check Response",
+      "name": "Agent Succeeded?",
       "type": "n8n-nodes-base.if",
-      "typeVersion": 1,
+      "typeVersion": 2,
       "position": [1650, 400]
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "log-success",
-              "name": "success",
-              "value": "AI agent webhook called successfully",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "// Format success result\nconst agentResult = $input.first().json;\nconst taskData = $('Build Agent Task').first().json;\n\nreturn [{\n  json: {\n    status: 'success',\n    run_id: agentResult.run_id || null,\n    container_name: taskData._container_name,\n    exit_code: taskData._exit_code,\n    severity: taskData._severity,\n    agent_analysis: agentResult.final_answer || 'No analysis provided',\n    steps_taken: agentResult.total_steps || 0,\n    terminated_reason: agentResult.terminated_reason || 'unknown',\n    timestamp: new Date().toISOString()\n  }\n}];"
       },
       "id": "log-success",
-      "name": "Log Success",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.2,
+      "name": "Format Success",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [1850, 300]
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "log-error",
-              "name": "error",
-              "value": "={{ $json['error'] || 'Unknown error' }}",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "// Format error result\nconst agentResult = $input.first().json;\nconst taskData = $('Build Agent Task').first().json;\n\nreturn [{\n  json: {\n    status: 'error',\n    run_id: agentResult.run_id || null,\n    container_name: taskData._container_name,\n    exit_code: taskData._exit_code,\n    severity: taskData._severity,\n    error: agentResult.terminated_reason || agentResult.error || 'Unknown error',\n    steps_taken: agentResult.total_steps || 0,\n    timestamp: new Date().toISOString()\n  }\n}];"
       },
       "id": "log-error",
-      "name": "Log Error",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.2,
+      "name": "Format Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [1850, 500]
     },
     {
       "parameters": {
-        "jsCode": "// Format Telegram message from event data\nconst eventData = $('Format AI Agent Payload').first().json;\n\nconst containerName = eventData.event_data?.container_name || 'Unknown';\nconst status = eventData.event_data?.status || 'Unknown';\nconst exitCode = eventData.event_data?.exit_code || 'N/A';\nconst severity = eventData.severity || 'medium';\nconst logs = eventData.event_data?.logs || 'No logs available';\nconst logsPreview = logs.substring(0, 500) + (logs.length > 500 ? '...' : '');\n\n// Emoji based on severity\nconst emoji = severity === 'high' ? '🚨' : severity === 'medium' ? '⚠️' : 'ℹ️';\n\nconst message = `${emoji} *Docker Container Failure*\\n\\n` +\n  `*Container:* ${containerName}\\n` +\n  `*Status:* ${status}\\n` +\n  `*Exit Code:* ${exitCode}\\n` +\n  `*Severity:* ${severity}\\n\\n` +\n  `*Logs Preview:*\\n\\`\\`\\`\\n${logsPreview}\\n\\`\\`\\``;\n\nreturn [{\n  json: {\n    chatId: process.env.TELEGRAM_CHAT_ID || '',\n    message: message\n  }\n}];"
+        "jsCode": "// Format Telegram message from task data and agent result\nconst taskData = $('Build Agent Task').first().json;\nconst agentResult = $('Call Local AI Agent').first().json;\n\nconst containerName = taskData._container_name || 'Unknown';\nconst status = taskData._status || 'Unknown';\nconst exitCode = taskData._exit_code || 'N/A';\nconst severity = taskData._severity || 'medium';\nconst logsPreview = taskData._logs_preview || 'No logs available';\n\n// Get agent analysis if successful\nconst agentSuccess = agentResult?.success === true;\nconst analysis = agentResult?.final_answer || 'Agent analysis pending or failed';\nconst analysisPreview = analysis.substring(0, 300) + (analysis.length > 300 ? '...' : '');\n\n// Emoji based on severity\nconst emoji = severity === 'high' ? '🚨' : severity === 'medium' ? '⚠️' : 'ℹ️';\nconst statusEmoji = agentSuccess ? '✅' : '❌';\n\nconst message = `${emoji} *Docker Container Failure*\\n\\n` +\n  `*Container:* ${containerName}\\n` +\n  `*Status:* ${status}\\n` +\n  `*Exit Code:* ${exitCode}\\n` +\n  `*Severity:* ${severity}\\n\\n` +\n  `${statusEmoji} *Agent Analysis:*\\n${analysisPreview}\\n\\n` +\n  `*Logs Preview:*\\n\\`\\`\\`\\n${logsPreview.substring(0, 300)}\\n\\`\\`\\``;\n\nreturn [{\n  json: {\n    chatId: process.env.TELEGRAM_CHAT_ID || '',\n    message: message\n  }\n}];"
       },
       "id": "format-telegram",
       "name": "Format Telegram Message",
@@ -288,31 +245,31 @@
       ]]
     },
     "Get Container Logs": {
-      "main": [[{ "node": "Format AI Agent Payload", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Build Agent Task", "type": "main", "index": 0 }]]
     },
     "Get Container Info": {
-      "main": [[{ "node": "Format AI Agent Payload", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Build Agent Task", "type": "main", "index": 0 }]]
     },
     "Get Resource Usage": {
-      "main": [[{ "node": "Format AI Agent Payload", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Build Agent Task", "type": "main", "index": 0 }]]
     },
-    "Format AI Agent Payload": {
+    "Build Agent Task": {
       "main": [[
-        { "node": "Call AI Agent Webhook", "type": "main", "index": 0 },
+        { "node": "Call Local AI Agent", "type": "main", "index": 0 },
         { "node": "Format Telegram Message", "type": "main", "index": 0 }
       ]]
     },
+    "Call Local AI Agent": {
+      "main": [[{ "node": "Agent Succeeded?", "type": "main", "index": 0 }]]
+    },
+    "Agent Succeeded?": {
+      "main": [
+        [{ "node": "Format Success", "type": "main", "index": 0 }],
+        [{ "node": "Format Error", "type": "main", "index": 0 }]
+      ]
+    },
     "Format Telegram Message": {
       "main": [[{ "node": "Send Telegram Notification", "type": "main", "index": 0 }]]
-    },
-    "Call AI Agent Webhook": {
-      "main": [[{ "node": "Check Response", "type": "main", "index": 0 }]]
-    },
-    "Check Response": {
-      "main": [
-        [{ "node": "Log Success", "type": "main", "index": 0 }],
-        [{ "node": "Log Error", "type": "main", "index": 0 }]
-      ]
     }
   },
   "pinData": {},
@@ -322,7 +279,6 @@
   "staticData": null,
   "tags": [],
   "triggerCount": 0,
-  "updatedAt": "2025-01-XXT00:00:00.000Z",
-  "versionId": "1"
+  "updatedAt": "2025-12-31T00:00:00.000Z",
+  "versionId": "2"
 }
-
