@@ -16,7 +16,8 @@ def create_agent_run(
     model_requested: str = "auto",
     source: Optional[str] = None,
     triggered_by: Optional[str] = None,
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = None,
+    system_prompt: Optional[str] = None
 ) -> str:
     run_id = str(uuid.uuid4())
     now = datetime.utcnow()
@@ -25,15 +26,16 @@ def create_agent_run(
         cursor = conn.cursor()
         cursor.execute("""
             INSERT INTO agent_runs 
-            (id, task, working_directory, model_requested, status, started_at, source, triggered_by, metadata)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (id, task, system_prompt, working_directory, model_requested, status, started_at, source, triggered_by, metadata)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             run_id,
             task,
+            system_prompt,
             working_directory,
             model_requested,
             AgentRunStatus.RUNNING.value,
-            now.isoformat() + "Z",  # Add Z suffix for proper UTC parsing in JavaScript
+            now.isoformat() + "Z",
             source,
             triggered_by,
             json.dumps(metadata) if metadata else None

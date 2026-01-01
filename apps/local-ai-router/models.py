@@ -279,6 +279,7 @@ class AgentRunRecord(BaseModel):
     """Database record for an agent run."""
     id: str
     task: str
+    system_prompt: Optional[str] = None
     working_directory: Optional[str] = None
     model_requested: Optional[str] = None
     model_used: Optional[str] = None

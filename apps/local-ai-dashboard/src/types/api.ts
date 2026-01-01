@@ -257,6 +257,7 @@ export interface AdminProvidersResponse {
 export interface AgentRunRecord {
   id: string;
   task: string;
+  system_prompt: string | null;
   working_directory: string | null;
   model_requested: string | null;
   model_used: string | null;

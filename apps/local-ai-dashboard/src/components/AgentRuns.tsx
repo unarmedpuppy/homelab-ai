@@ -329,6 +329,16 @@ export default function AgentRuns() {
                                 <span className="text-gray-300 ml-2">{run.model_used || 'auto'}</span>
                               </div>
                             </div>
+                            {expandedRunData.system_prompt && (
+                              <div className="mt-3">
+                                <ExpandableContent
+                                  content={expandedRunData.system_prompt}
+                                  label="System Prompt"
+                                  maxLength={200}
+                                  className="text-blue-300"
+                                />
+                              </div>
+                            )}
                             {run.error && (
                               <div className="mt-2 p-2 bg-red-900/20 border border-red-500/30 rounded text-sm text-red-400">
                                 <strong>Error:</strong> {run.error}

@@ -293,17 +293,20 @@ async def run_agent_loop(
 
     The model is a stateless decision oracle.
     """
+    system_prompt = build_system_prompt(request.task, request.working_directory)
+    
     run_id = create_agent_run(
         task=request.task,
         working_directory=request.working_directory,
         model_requested=request.model,
         source=request.source,
-        triggered_by=request.triggered_by
+        triggered_by=request.triggered_by,
+        system_prompt=system_prompt
     )
     
     steps: list[AgentStep] = []
     messages = [
-        {"role": "system", "content": build_system_prompt(request.task, request.working_directory)},
+        {"role": "system", "content": system_prompt},
         {"role": "user", "content": f"Please complete this task: {request.task}"}
     ]
 
