@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { postsAPI } from '../api/client';
+import { PostDetailModal } from './PostDetailModal';
 
 export function PostList() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['posts', page, search],
@@ -75,7 +77,11 @@ export function PostList() {
 
       <div className="space-y-4">
         {data?.posts.map((post) => (
-          <div key={post.id} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+          <div
+            key={post.id}
+            className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 cursor-pointer hover:border-zinc-700 hover:bg-zinc-900/80 transition-colors"
+            onClick={() => setSelectedPostId(post.id)}
+          >
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
@@ -86,7 +92,7 @@ export function PostList() {
                     <span className="text-zinc-500">@{post.author_username}</span>
                   )}
                 </div>
-                <p className="text-zinc-300 whitespace-pre-wrap break-words">
+                <p className="text-zinc-300 whitespace-pre-wrap break-words line-clamp-4">
                   {post.content}
                 </p>
                 {parseMediaUrls(post.media_urls).length > 0 && (
@@ -101,6 +107,7 @@ export function PostList() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-400 hover:text-blue-300 text-sm shrink-0"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   View
                 </a>
@@ -115,6 +122,13 @@ export function PostList() {
           </div>
         ))}
       </div>
+
+      {selectedPostId && (
+        <PostDetailModal
+          postId={selectedPostId}
+          onClose={() => setSelectedPostId(null)}
+        />
+      )}
 
       {data && data.pages > 1 && (
         <div className="flex items-center justify-center gap-2">
