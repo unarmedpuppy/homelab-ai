@@ -144,6 +144,20 @@ class HealthResponse(BaseModel):
     gaming_mode: Optional[bool] = None
 
 
+class ClaudeAgentRequest(BaseModel):
+    """Request for Claude agent - simple passthrough to Claude Harness."""
+    task: str
+    working_directory: str = "/tmp"
+    timeout: float = 300.0  # 5 minutes default
+
+
+class ClaudeAgentResponse(BaseModel):
+    """Response from Claude agent."""
+    success: bool
+    response: str
+    error: Optional[str] = None
+
+
 async def get_gaming_pc_status() -> Optional[GamingModeStatus]:
     """Check gaming PC status and gaming mode."""
     try:
@@ -294,7 +308,9 @@ async def root():
         "endpoints": {
             "health": "/health",
             "chat": "/v1/chat/completions",
-            "agent": "/v1/agent/chat",
+            "agent_local": "/agent/run",
+            "agent_claude": "/agent/run/claude",
+            "agent_tools": "/agent/tools",
             "providers": "/providers",
             "models": "/v1/models",
             "admin": "/admin/providers",
@@ -1012,6 +1028,79 @@ async def list_agent_tools():
         "tools": AGENT_TOOLS,
         "description": "Tools available to the agent for task completion"
     }
+
+
+@app.post("/agent/run/claude", response_model=ClaudeAgentResponse)
+async def run_claude_agent(request: ClaudeAgentRequest):
+    """
+    Run a task using Claude Code CLI (passthrough to Claude Harness).
+    
+    This is a simple passthrough to Claude Harness - Claude CLI handles all
+    agent logic internally (tools, loop, context, etc.). Unlike /agent/run,
+    which uses our custom agent loop with local models, this endpoint
+    delegates everything to Claude.
+    
+    Example:
+        curl -X POST http://localhost:8012/agent/run/claude \\
+            -H "Content-Type: application/json" \\
+            -d '{"task": "Analyze the codebase and suggest improvements"}'
+    """
+    logger.info(f"Claude agent task: {request.task[:100]}...")
+    
+    # Build prompt with working directory context
+    prompt = request.task
+    if request.working_directory != "/tmp":
+        prompt = f"Working directory: {request.working_directory}\n\n{request.task}"
+    
+    try:
+        # Simple passthrough to Claude Harness
+        async with httpx.AsyncClient(timeout=request.timeout) as client:
+            response = await client.post(
+                "http://host.docker.internal:8013/v1/chat/completions",
+                json={
+                    "messages": [{"role": "user", "content": prompt}],
+                    "model": "claude-sonnet",
+                }
+            )
+            
+            if response.status_code != 200:
+                logger.error(f"Claude Harness error: {response.status_code} - {response.text}")
+                return ClaudeAgentResponse(
+                    success=False,
+                    response="",
+                    error=f"Claude Harness error ({response.status_code}): {response.text[:500]}"
+                )
+            
+            result = response.json()
+            content = result["choices"][0]["message"]["content"]
+            
+            logger.info(f"Claude agent completed successfully ({len(content)} chars)")
+            return ClaudeAgentResponse(
+                success=True,
+                response=content
+            )
+            
+    except httpx.TimeoutException:
+        logger.error(f"Claude agent timeout after {request.timeout}s")
+        return ClaudeAgentResponse(
+            success=False,
+            response="",
+            error=f"Request timed out after {request.timeout} seconds"
+        )
+    except httpx.ConnectError as e:
+        logger.error(f"Claude Harness connection error: {e}")
+        return ClaudeAgentResponse(
+            success=False,
+            response="",
+            error="Cannot connect to Claude Harness. Is the service running? (systemctl status claude-harness)"
+        )
+    except Exception as e:
+        logger.error(f"Claude agent error: {e}")
+        return ClaudeAgentResponse(
+            success=False,
+            response="",
+            error=str(e)
+        )
 
 
 # ============================================================================

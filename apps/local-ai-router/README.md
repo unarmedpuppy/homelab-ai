@@ -191,6 +191,63 @@ curl https://local-ai-api.server.unarmedpuppy.com/agent/tools
 
 See [agent-endpoint-usage skill](../../agents/skills/agent-endpoint-usage/SKILL.md) for complete documentation.
 
+### Claude Agent Endpoint (Passthrough)
+
+A simple passthrough to Claude Code CLI via Claude Harness. Unlike `/agent/run` which uses our custom agent loop with local models, this endpoint delegates everything to Claude - it handles its own tools, context, and execution.
+
+```bash
+# Run a task with Claude
+curl -X POST https://local-ai-api.server.unarmedpuppy.com/agent/run/claude \
+  -H "Content-Type: application/json" \
+  -d '{
+    "task": "Analyze the error in server.py and suggest a fix",
+    "working_directory": "/home/user/project"
+  }'
+```
+
+**Request Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `task` | string | (required) | The task for Claude to accomplish |
+| `working_directory` | string | `/tmp` | Working directory hint for Claude |
+| `timeout` | float | 300.0 | Request timeout in seconds |
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "response": "I analyzed server.py and found...",
+  "error": null
+}
+```
+
+**Comparison: `/agent/run` vs `/agent/run/claude`**
+
+| Aspect | `/agent/run` (Local) | `/agent/run/claude` |
+|--------|---------------------|---------------------|
+| **Backend** | 3090 vLLM (qwen2.5-14b) | Claude Harness → Claude CLI |
+| **Agent Loop** | Our implementation (host-controlled) | Claude's implementation |
+| **Tools** | Our 19 skills-based tools | Claude's built-in tools |
+| **Step Tracking** | Yes (in our DB) | No (Claude handles internally) |
+| **Cost** | $0 (local GPU) | Claude Max subscription |
+| **Complexity** | High (we manage everything) | Low (passthrough) |
+
+**When to Use Which:**
+
+| Use `/agent/run` | Use `/agent/run/claude` |
+|------------------|-------------------------|
+| Need step-by-step tracking | Just need the answer |
+| Using our skills system | General coding questions |
+| Want to see tool calls | Complex reasoning tasks |
+| Cost-sensitive | Quality-critical |
+| Integration with dashboard | Quick one-off tasks |
+
+**Prerequisites:**
+- Claude Harness service running: `systemctl status claude-harness`
+- See [Claude Harness README](../claude-harness/README.md) for setup
+
 ## Model Aliases
 
 | Alias | Routes To |

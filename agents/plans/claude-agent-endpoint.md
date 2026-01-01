@@ -1,7 +1,8 @@
 # Claude Agent Endpoint Plan
 
 **Created**: 2026-01-01
-**Status**: Ready to Implement
+**Completed**: 2026-01-01
+**Status**: ✅ Implemented
 **Priority**: High
 
 ## Summary
@@ -159,11 +160,11 @@ curl -X POST http://localhost:8012/agent/run/claude \
 
 ## Success Criteria
 
-- [ ] `/agent/run/claude` endpoint exists
-- [ ] Simple request/response (no step tracking needed)
-- [ ] Proper error handling for Claude Harness unavailable
-- [ ] Timeout handling (Claude can take a while)
-- [ ] Documented in README
+- [x] `/agent/run/claude` endpoint exists
+- [x] Simple request/response (no step tracking needed)
+- [x] Proper error handling for Claude Harness unavailable
+- [x] Timeout handling (Claude can take a while)
+- [x] Documented in README
 
 ## Files to Modify
 
