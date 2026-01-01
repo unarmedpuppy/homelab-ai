@@ -14,6 +14,7 @@ services:
       - CT0=${CT0}
       # AI Router
       - AI_ROUTER_URL=http://local-ai-router:8000
+      - AI_API_KEY=${AI_API_KEY}
       # Git config
       - GIT_USER_NAME=Bird Bot
       - GIT_USER_EMAIL=bird@server.unarmedpuppy.com
