@@ -525,7 +525,7 @@ export const ttsAPI = {
     ttsAvailableCache = null;
   },
 
-  generateSpeech: async (text: string, voice: string = 'alloy'): Promise<Blob> => {
+  generateSpeech: async (text: string, voice: string = 'default'): Promise<Blob> => {
     const response = await fetch('/api/v1/audio/speech', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
