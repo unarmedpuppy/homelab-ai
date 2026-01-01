@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from database import Post, Run, get_db, init_db
+from database import Post, PostSource, Run, get_db, init_db
 from schemas import (
     PostListResponse,
     PostResponse,
@@ -83,6 +83,7 @@ async def list_posts(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     run_id: Optional[str] = Query(None),
+    source: Optional[str] = Query(None, description="Filter by source: bookmark, like, both"),
     author: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
     db: Session = Depends(get_db_session),
@@ -91,6 +92,10 @@ async def list_posts(
     
     if run_id:
         query = query.filter(Post.run_id == run_id)
+    
+    if source:
+        if source in ["bookmark", "like", "both", "manual"]:
+            query = query.filter(Post.source == source)
     
     if author:
         query = query.filter(Post.author_username.ilike(f"%{author}%"))
@@ -118,6 +123,70 @@ async def list_posts(
     )
 
 
+@app.get("/posts/bookmarks", response_model=PostListResponse)
+async def list_bookmarks(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    author: Optional[str] = Query(None),
+    search: Optional[str] = Query(None),
+    db: Session = Depends(get_db_session),
+):
+    """Get posts that were bookmarked (includes 'both' source)."""
+    query = db.query(Post).filter(
+        Post.source.in_([PostSource.BOOKMARK.value, PostSource.BOTH.value])
+    )
+    
+    if author:
+        query = query.filter(Post.author_username.ilike(f"%{author}%"))
+    if search:
+        query = query.filter(Post.content.ilike(f"%{search}%"))
+    
+    total = query.count()
+    pages = ceil(total / page_size) if total > 0 else 1
+    
+    posts = (
+        query
+        .order_by(Post.fetched_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
+    
+    return PostListResponse(posts=posts, total=total, page=page, page_size=page_size, pages=pages)
+
+
+@app.get("/posts/likes", response_model=PostListResponse)
+async def list_likes(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    author: Optional[str] = Query(None),
+    search: Optional[str] = Query(None),
+    db: Session = Depends(get_db_session),
+):
+    """Get posts that were liked (includes 'both' source)."""
+    query = db.query(Post).filter(
+        Post.source.in_([PostSource.LIKE.value, PostSource.BOTH.value])
+    )
+    
+    if author:
+        query = query.filter(Post.author_username.ilike(f"%{author}%"))
+    if search:
+        query = query.filter(Post.content.ilike(f"%{search}%"))
+    
+    total = query.count()
+    pages = ceil(total / page_size) if total > 0 else 1
+    
+    posts = (
+        query
+        .order_by(Post.fetched_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
+    
+    return PostListResponse(posts=posts, total=total, page=page, page_size=page_size, pages=pages)
+
+
 @app.get("/posts/{post_id}", response_model=PostResponse)
 async def get_post(post_id: str, db: Session = Depends(get_db_session)):
     post = db.query(Post).filter(Post.id == post_id).first()
@@ -135,9 +204,8 @@ async def get_stats(db: Session = Depends(get_db_session)):
     
     posts_by_source = {}
     source_counts = (
-        db.query(Run.source, func.count(Post.id))
-        .join(Post, Run.id == Post.run_id)
-        .group_by(Run.source)
+        db.query(Post.source, func.count(Post.id))
+        .group_by(Post.source)
         .all()
     )
     for source, count in source_counts:

@@ -54,6 +54,14 @@ class RunSource(str, Enum):
     MIXED = "mixed"
 
 
+class PostSource(str, Enum):
+    """Source type for an individual post."""
+    BOOKMARK = "bookmark"
+    LIKE = "like"
+    BOTH = "both"  # Post was both bookmarked and liked
+    MANUAL = "manual"
+
+
 class ApprovalStatus(str, Enum):
     """Approval status for a post."""
     PENDING = "pending"
@@ -87,6 +95,7 @@ class Post(Base):
     id = Column(String(12), primary_key=True, default=generate_id)
     run_id = Column(String(12), ForeignKey("runs.id"), nullable=True)
     tweet_id = Column(String(30), unique=True, nullable=False)
+    source = Column(String(20), nullable=False, default=PostSource.BOOKMARK.value)
     author_username = Column(String(100), nullable=True)
     author_display_name = Column(String(200), nullable=True)
     content = Column(Text, nullable=True)
@@ -161,6 +170,7 @@ class Approval(Base):
 # Create indexes for common queries
 Index("idx_posts_run", Post.run_id)
 Index("idx_posts_tweet", Post.tweet_id)
+Index("idx_posts_source", Post.source)
 Index("idx_categorizations_post", Categorization.post_id)
 Index("idx_approvals_status", Approval.status)
 Index("idx_runs_timestamp", Run.timestamp.desc())
@@ -226,13 +236,18 @@ class DatabaseSession:
 
 # Convenience functions for common operations
 
-def get_or_create_post(db, tweet_id: str, **kwargs) -> tuple[Post, bool]:
-    """Get existing post by tweet_id or create new one. Returns (post, created)."""
+def get_or_create_post(db, tweet_id: str, source: str = None, **kwargs) -> tuple[Post, bool]:
+    """Get existing post by tweet_id or create new one. Returns (post, created).
+    
+    If post exists and source differs, upgrades to 'both'.
+    """
     post = db.query(Post).filter(Post.tweet_id == tweet_id).first()
     if post:
+        if source and post.source != source and post.source != PostSource.BOTH.value:
+            post.source = PostSource.BOTH.value
         return post, False
     
-    post = Post(tweet_id=tweet_id, **kwargs)
+    post = Post(tweet_id=tweet_id, source=source or PostSource.BOOKMARK.value, **kwargs)
     db.add(post)
     return post, True
 

@@ -20,6 +20,7 @@ from dateutil import parser as date_parser
 from database import (
     DatabaseSession,
     Post,
+    PostSource,
     Run,
     RunSource,
     RunStatus,
@@ -139,7 +140,7 @@ def extract_media_urls(tweet: dict) -> Optional[str]:
     return json.dumps(urls) if urls else None
 
 
-def store_tweet(db, tweet: dict, run_id: str) -> bool:
+def store_tweet(db, tweet: dict, run_id: str, source: str) -> bool:
     """
     Store a single tweet in the database.
     Returns True if new tweet was stored, False if duplicate.
@@ -163,6 +164,7 @@ def store_tweet(db, tweet: dict, run_id: str) -> bool:
     post, created = get_or_create_post(
         db,
         tweet_id=str(tweet_id),
+        source=source,
         run_id=run_id,
         author_username=author_username,
         author_display_name=author_display_name,
@@ -173,7 +175,7 @@ def store_tweet(db, tweet: dict, run_id: str) -> bool:
     )
     
     if created:
-        log(f"Stored new tweet {tweet_id} by @{author_username}")
+        log(f"Stored new {source} {tweet_id} by @{author_username}")
     
     return created
 
@@ -185,50 +187,46 @@ def process_once():
     # Initialize database
     init_db()
     
-    # Fetch bookmarks and likes
     bookmarks = fetch_bookmarks()
     likes = fetch_likes()
     
-    # Combine and deduplicate by tweet ID
-    all_tweets = {}
-    for t in bookmarks:
-        tid = t.get("id")
-        if tid:
-            all_tweets[tid] = t
-    for t in likes:
-        tid = t.get("id")
-        if tid:
-            all_tweets[tid] = t
+    bookmark_ids = {t.get("id") for t in bookmarks if t.get("id")}
+    like_ids = {t.get("id") for t in likes if t.get("id")}
     
-    log(f"Total unique tweets fetched: {len(all_tweets)}")
+    log(f"Fetched {len(bookmarks)} bookmarks, {len(likes)} likes")
     
-    if not all_tweets:
+    if not bookmarks and not likes:
         log("No tweets fetched")
         return
     
-    # Determine source type
     if bookmarks and likes:
-        source = RunSource.MIXED.value
+        run_source = RunSource.MIXED.value
     elif bookmarks:
-        source = RunSource.BOOKMARKS.value
+        run_source = RunSource.BOOKMARKS.value
     else:
-        source = RunSource.LIKES.value
+        run_source = RunSource.LIKES.value
     
     # Create a run and store tweets
     with DatabaseSession() as db:
-        run = create_run(db, source)
+        run = create_run(db, run_source)
         log(f"Created run {run.id}")
         
         new_count = 0
         error = None
         
         try:
-            for tweet in all_tweets.values():
-                if store_tweet(db, tweet, run.id):
+            for tweet in bookmarks:
+                if store_tweet(db, tweet, run.id, PostSource.BOOKMARK.value):
+                    new_count += 1
+            
+            for tweet in likes:  # Upgrades to 'both' if already bookmarked
+                if store_tweet(db, tweet, run.id, PostSource.LIKE.value):
                     new_count += 1
             
             db.commit()
-            log(f"Stored {new_count} new tweets (skipped {len(all_tweets) - new_count} duplicates)")
+            
+            overlap = len(bookmark_ids & like_ids)
+            log(f"Stored {new_count} new posts ({overlap} in both bookmarks and likes)")
             
         except Exception as e:
             error = str(e)

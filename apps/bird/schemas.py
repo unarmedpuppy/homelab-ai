@@ -26,6 +26,7 @@ class RunListResponse(BaseModel):
 
 class PostBase(BaseModel):
     tweet_id: str
+    source: str
     author_username: Optional[str] = None
     author_display_name: Optional[str] = None
     content: Optional[str] = None
