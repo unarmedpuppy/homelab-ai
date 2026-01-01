@@ -33,7 +33,7 @@ def create_agent_run(
             working_directory,
             model_requested,
             AgentRunStatus.RUNNING.value,
-            now.isoformat(),
+            now.isoformat() + "Z",  # Add Z suffix for proper UTC parsing in JavaScript
             source,
             triggered_by,
             json.dumps(metadata) if metadata else None
@@ -72,7 +72,7 @@ def add_agent_step(
             tool_result,
             thinking,
             error,
-            now.isoformat(),
+            now.isoformat() + "Z",  # Add Z suffix for proper UTC parsing in JavaScript
             duration_ms
         ))
         step_id = cursor.lastrowid or 0
@@ -102,7 +102,9 @@ def complete_agent_run(
         cursor.execute("SELECT started_at FROM agent_runs WHERE id = ?", (agent_run_id,))
         row = cursor.fetchone()
         if row:
-            started_at = datetime.fromisoformat(row[0])
+            # Handle both old format (no Z) and new format (with Z)
+            started_str = row[0].rstrip("Z")
+            started_at = datetime.fromisoformat(started_str)
             duration_ms = int((now - started_at).total_seconds() * 1000)
         else:
             duration_ms = None
@@ -118,7 +120,7 @@ def complete_agent_run(
             model_used,
             backend,
             error,
-            now.isoformat(),
+            now.isoformat() + "Z",  # Add Z suffix for proper UTC parsing in JavaScript
             duration_ms,
             agent_run_id
         ))
