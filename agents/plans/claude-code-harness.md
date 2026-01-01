@@ -1,5 +1,8 @@
 # Claude Code Harness - Claude Max API Integration
 
+**Status**: ✅ Code Complete (pending server-side installation)
+**Created**: 2025-01-01
+
 ## Overview
 
 Enable the Local AI Router to use Claude models via the Claude Max subscription by wrapping Claude Code CLI in an OpenAI-compatible API harness running on the server.
@@ -132,13 +135,27 @@ claude -p "prompt" --model claude-3-5-sonnet
 
 ## Tasks
 
-1. [ ] Install Claude Code on server
-2. [ ] Authenticate Claude Code (one-time OAuth)
-3. [ ] Create harness FastAPI service
-4. [ ] Create systemd service file
-5. [ ] Update router providers.yaml
-6. [ ] Test end-to-end flow
-7. [ ] Update dashboard model list
+### Code (Complete)
+- [x] Create harness FastAPI service (`apps/claude-harness/main.py`)
+- [x] Create systemd service file (`apps/claude-harness/claude-harness.service`)
+- [x] Create management script (`apps/claude-harness/manage.sh`)
+- [x] Update router providers.yaml (added `claude-harness` provider)
+- [x] Disable old `anthropic` provider (requires API key)
+- [x] Update Claude models to use `claude-harness` provider
+- [x] Document setup process (`apps/claude-harness/README.md`)
+
+### Server Installation (Pending - Manual Steps)
+- [ ] Install Claude Code CLI: `npm install -g @anthropic-ai/claude-code`
+- [ ] Authenticate Claude Code: `claude` (follow OAuth flow)
+- [ ] Pull latest code: `cd ~/server && git pull`
+- [ ] Install service: `cd apps/claude-harness && sudo ./manage.sh install`
+- [ ] Test: `./manage.sh test`
+- [ ] Restart router: `cd ../local-ai-router && docker compose restart`
+
+### Verification
+- [ ] Health check: `curl http://localhost:8013/health`
+- [ ] Test via router: `curl -X POST http://localhost:8012/v1/chat/completions -d '{"model":"claude-sonnet",...}'`
+- [ ] Update dashboard model list (if needed)
 
 ## Rollback
 
@@ -151,5 +168,23 @@ If issues occur:
 
 - Conversation context management
 - Token usage tracking
-- Multiple model support
+- Multiple model support (Opus, Haiku when available via CLI)
 - Response caching for repeated queries
+- Auto-refresh of OAuth tokens (currently requires manual re-auth ~30 days)
+
+## Files Created
+
+| File | Purpose |
+|------|---------|
+| `apps/claude-harness/main.py` | FastAPI service wrapping Claude CLI |
+| `apps/claude-harness/requirements.txt` | Python dependencies |
+| `apps/claude-harness/claude-harness.service` | Systemd unit file |
+| `apps/claude-harness/manage.sh` | Management script (install/update/status/logs) |
+| `apps/claude-harness/README.md` | Full documentation with quick start |
+| `apps/local-ai-router/config/providers.yaml` | Updated with `claude-harness` provider |
+
+## Related
+
+- [Claude Harness README](../../apps/claude-harness/README.md) - Setup instructions
+- [Local AI Router](../../apps/local-ai-router/README.md) - Router documentation
+- [Local AI Unified Architecture](local-ai-unified-architecture.md) - Overall architecture

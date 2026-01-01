@@ -19,37 +19,34 @@ A unified local AI infrastructure with intelligent routing, multiple backends, a
 │                         LOCAL-AI-ROUTER                                      │
 │                    (Home Server - Always On)                                 │
 │                                                                              │
-│  Uses 3070 for quick routing decision, then dispatches to:                  │
-│                                                                              │
 │  Routing Logic:                                                              │
 │  1. Explicit model request? → Route to requested backend                    │
 │  2. Token estimate < 2K? → 3070 (fast)                                      │
 │  3. Gaming mode ON? → 3070 only (unless force-big)                          │
 │  4. Token estimate 2K-16K + 3090 available? → 3090                          │
-│  5. Complex/long context? → OpenCode (GLM-4.7 or Claude)                    │
+│  5. Complex/long context? → Z.ai or Claude Harness                          │
 │  6. Fallback → 3070                                                          │
 └──────────────────────────────────┬──────────────────────────────────────────┘
                                    │
-       ┌───────────────────────────┼───────────────────────────────┐
-       │                           │                               │
-       ▼                           ▼                               ▼
-┌─────────────────┐     ┌─────────────────┐             ┌─────────────────┐
-│   HOME SERVER   │     │   GAMING PC     │             │   OPENCODE      │
-│   RTX 3070      │     │   RTX 3090      │             │   CONTAINER     │
-│                 │     │                 │             │                 │
-│ • Always on     │     │ • Gaming mode   │             │ • GLM-4.7       │
-│ • Small models  │     │ • Medium models │             │ • Claude (sub)  │
-│ • Fast routing  │     │ • Coding/refact │             │ • External API  │
-│ • 7B-8B class   │     │ • 14B class     │             │ • Fallback      │
-│                 │     │                 │             │                 │
-│ Qwen3-Coder-7B  │     │ Qwen3-Coder-14B │             │ oh-my-opencode  │
-│ or Llama 3.1 8B │     │                 │             │                 │
-└─────────────────┘     └─────────────────┘             └─────────────────┘
-        │                        │                              │
-        └────────────────────────┴──────────────────────────────┘
-                                 │
-                                 ▼
-                    OpenAI-Compatible Response
+       ┌──────────────┬────────────┼────────────┬──────────────┐
+       │              │            │            │              │
+       ▼              ▼            ▼            ▼              ▼
+┌───────────┐  ┌───────────┐  ┌─────────┐  ┌─────────┐  ┌───────────┐
+│  SERVER   │  │ GAMING PC │  │  Z.AI   │  │ CLAUDE  │  │ ANTHROPIC │
+│  3070     │  │  3090     │  │ CLOUD   │  │ HARNESS │  │   API     │
+│           │  │           │  │         │  │         │  │           │
+│ ⏳ Pending │  │ ✅ Active  │  │ ✅ Active│  │ ✅ Active│  │ ❌ Disabled│
+│           │  │           │  │         │  │         │  │           │
+│ 7B-8B     │  │ 14B class │  │ GLM-4.7 │  │ Sonnet  │  │ Requires  │
+│ models    │  │ models    │  │ GLM-4.5 │  │ (Max)   │  │ API key   │
+└───────────┘  └───────────┘  └─────────┘  └─────────┘  └───────────┘
+                                              │
+                                              ▼
+                               ┌─────────────────────────┐
+                               │   Claude Code CLI       │
+                               │   (systemd on host)     │
+                               │   ~/.claude.json OAuth  │
+                               └─────────────────────────┘
 ```
 
 ## Current State (What Exists)
@@ -181,37 +178,55 @@ Configuration:
 - `AGENT_ALLOWED_PATHS=/tmp` - Comma-separated allowed paths for security
 - `AGENT_SHELL_TIMEOUT=30` - Shell command timeout (seconds)
 
-### 3. OpenCode Container (`apps/opencode-service/`)
+### 3. Claude Harness (`apps/claude-harness/`) ✅ IMPLEMENTED
 
-Containerized [OpenCode](https://github.com/sst/opencode) with [oh-my-opencode](https://github.com/code-yeongyu/oh-my-opencode) for subscription-based API access.
+FastAPI service wrapping Claude Code CLI for Claude Max subscription access.
 
-**Purpose**: Access Claude and GLM-4.7 via existing subscriptions (no API key fees)
+**Purpose**: Access Claude models via Claude Max subscription without API keys
+
+**Status**: ✅ Implemented and deployed
 
 **Features**:
-- Runs in Docker container
-- Uses oh-my-opencode for browser session auth
-- Exposes OpenAI-compatible API
-- Supports both GLM-4.7 and Claude
+- Runs as systemd service on host (not Docker)
+- Wraps `claude -p` CLI for headless operation
+- Exposes OpenAI-compatible `/v1/chat/completions` endpoint
+- Uses OAuth tokens from `~/.claude.json`
 
 **Architecture**:
 ```
 ┌─────────────────────────────────────────────┐
-│           OpenCode Service                   │
+│           Claude Harness (systemd:8013)     │
 ├─────────────────────────────────────────────┤
-│  FastAPI Wrapper                            │
+│  FastAPI Service                            │
 │    │                                        │
-│    ├─→ OpenCode (GLM-4.7)                   │
-│    │     └─→ oh-my-opencode (browser auth)  │
-│    │                                        │
-│    └─→ OpenCode (Claude)                    │
-│          └─→ oh-my-opencode (browser auth)  │
+│    └─→ claude -p "prompt" --no-input        │
+│          └─→ ~/.claude.json (OAuth tokens)  │
+│                └─→ api.anthropic.com        │
 └─────────────────────────────────────────────┘
 ```
 
-**TODO**: Research exact setup for oh-my-opencode in container
-- How to persist browser sessions?
-- How to handle auth expiry?
-- Rate limiting considerations?
+**Management**:
+```bash
+cd ~/server/apps/claude-harness
+sudo ./manage.sh install   # First-time setup
+sudo ./manage.sh update    # After git pull
+./manage.sh status         # Check health
+./manage.sh test           # Verify working
+```
+
+**Documentation**: [apps/claude-harness/README.md](../../apps/claude-harness/README.md)
+
+### 4. OpenCode Container (`apps/opencode-service/`) - SUPERSEDED
+
+~~Containerized OpenCode with oh-my-opencode for subscription-based API access.~~
+
+**Status**: ❌ Superseded by Claude Harness
+
+The Claude Harness approach is simpler and more reliable:
+- No browser session management
+- No container credential mounting
+- Standard OAuth via Claude Code CLI
+- Same subscription access (Claude Max)
 
 ### 4. Mattermost Gaming Mode Integration
 
@@ -263,14 +278,15 @@ Control gaming mode via Mattermost bot commands.
   - [x] Provider-agnostic design for easy model swapping
   - [x] Deployed at `/agent/run` and `/agent/tools`
 
-### Phase 3: OpenCode Container (`apps/opencode-service/`)
-- [ ] Research oh-my-opencode container setup
-- [ ] Create Dockerfile
-- [ ] Implement session persistence
-- [ ] Add FastAPI wrapper
-- [ ] Test GLM-4.7 access
-- [ ] Test Claude access
-- [ ] Connect to router
+### Phase 3: Claude Harness (`apps/claude-harness/`) ✅ COMPLETE
+- [x] Create FastAPI harness service
+- [x] Create systemd service file
+- [x] Create management script (`manage.sh`)
+- [x] Update router providers.yaml
+- [x] Document setup process
+- [ ] Install Claude Code CLI on server (manual step)
+- [ ] Authenticate Claude Code on server (manual step)
+- [ ] Run `sudo ./manage.sh install` on server
 
 ### Phase 4: Integration
 - [ ] Upgrade `apps/local-ai-app/` to use router
@@ -290,8 +306,8 @@ Control gaming mode via Mattermost bot commands.
 | Service | Location | Port | Purpose |
 |---------|----------|------|---------|
 | `local-ai-server` | `apps/local-ai-server/` | 8001 | 3070 inference (internal) |
-| `local-ai-router` | `apps/local-ai-router/` | 8000 | Main entry point |
-| `opencode-service` | `apps/opencode-service/` | 8002 | GLM/Claude access |
+| `local-ai-router` | `apps/local-ai-router/` | 8012 | Main entry point |
+| `claude-harness` | `apps/claude-harness/` | 8013 | Claude Max access (systemd) |
 | `local-ai-app` | `apps/local-ai-app/` | 8067 | Web UI (uses router) |
 | Gaming PC Manager | `local-ai/` | 8000* | 3090 inference |
 
@@ -413,10 +429,11 @@ curl https://local-ai-api.server.unarmedpuppy.com/agent/tools
 
 ## Open Questions
 
-1. **OpenCode session persistence** - How to keep browser sessions alive in container?
+1. ~~**OpenCode session persistence** - How to keep browser sessions alive in container?~~ → Solved by Claude Harness
 2. **Rate limiting** - Should we rate limit Claude/GLM calls?
 3. **Metrics** - What to track? Token usage, latency, routing decisions?
 4. **TTS** - Still planning Chatterbox Turbo on 3070? (from old plan)
+5. **Claude token refresh** - OAuth tokens may expire (~30 days), need re-authentication
 
 ## Decision Log
 
@@ -427,3 +444,5 @@ curl https://local-ai-api.server.unarmedpuppy.com/agent/tools
 | 2025-12-28 | Gaming mode = simple on/off | Keep it simple |
 | 2025-12-28 | Router uses token estimate | Automatic complexity detection |
 | 2025-12-28 | **Add host-controlled agent endpoint** | Enable programmatic autonomous tasks, mirroring OpenCode's proven design pattern for provider-agnostic agent execution |
+| 2025-01-01 | **Claude Harness over OpenCode container** | Simpler approach - wrap Claude Code CLI directly instead of containerizing OpenCode. Uses native OAuth, no browser session management needed. |
+| 2025-01-01 | **Systemd over Docker for harness** | Claude Code stores OAuth tokens in user home dir. Running as systemd service on host is simpler than mounting credentials into Docker. |

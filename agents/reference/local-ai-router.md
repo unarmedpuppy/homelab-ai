@@ -255,8 +255,52 @@ curl -X POST http://localhost:8012/v1/chat/completions \
   ]}'
 ```
 
+## Providers
+
+### Local GPU Backends
+
+| Provider | Hardware | Status | Use Case |
+|----------|----------|--------|----------|
+| `server-3070` | RTX 3070 (8GB) | ⏳ Pending | Small models, fast routing |
+| `gaming-pc-3090` | RTX 3090 (24GB) | ✅ Active | Medium models, coding tasks |
+
+### Cloud Backends
+
+| Provider | Service | Status | Use Case |
+|----------|---------|--------|----------|
+| `zai` | Z.ai Coding Plan | ✅ Active | GLM-4.7, unlimited usage |
+| `claude-harness` | Claude Max (via CLI) | ✅ Active | Claude Sonnet, subscription-based |
+| `anthropic` | Anthropic API | ❌ Disabled | Requires API key |
+
+### Claude Harness
+
+The router accesses Claude models via the **Claude Harness** - a FastAPI service that wraps the Claude Code CLI to provide OpenAI-compatible API access using your Claude Max subscription.
+
+**Architecture:**
+```
+Router (Docker) → Claude Harness (systemd:8013) → Claude CLI → Anthropic API
+```
+
+**Key Points:**
+- Runs as systemd service on host (not Docker) to access OAuth credentials
+- Uses `claude -p` headless mode
+- No API key needed - uses Claude Max subscription
+- Managed via `apps/claude-harness/manage.sh`
+
+**Management:**
+```bash
+cd ~/server/apps/claude-harness
+./manage.sh status          # Check health
+./manage.sh logs            # View logs
+sudo ./manage.sh restart    # Restart service
+sudo ./manage.sh update     # After git pull
+```
+
+**Documentation:** [apps/claude-harness/README.md](../../apps/claude-harness/README.md)
+
 ## Related
 
 - [Local AI Router README](../../apps/local-ai-router/README.md) - Full documentation
 - [Local AI Dashboard](../../apps/local-ai-dashboard/README.md) - Dashboard UI
+- [Claude Harness](../../apps/claude-harness/README.md) - Claude Max integration
 - [Skill: Test Local AI Router](../skills/test-local-ai-router/SKILL.md) - Testing tool

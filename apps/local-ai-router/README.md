@@ -22,11 +22,29 @@ Intelligent OpenAI-compatible API router for multi-backend LLM inference.
 
 ## Backends
 
+### Local GPU
+
 | Backend | Hardware | Status | Use Case |
 |---------|----------|--------|----------|
-| 3090 | Gaming PC | ✅ Active | Medium models, coding tasks |
-| 3070 | Home Server | ⏳ Pending | Small models, fast routing |
-| OpenCode | Container | ⏳ Pending | GLM-4.7, Claude via subscription |
+| `gaming-pc-3090` | RTX 3090 | ✅ Active | Medium models, coding tasks |
+| `server-3070` | RTX 3070 | ⏳ Pending | Small models, fast routing |
+
+### Cloud
+
+| Backend | Service | Status | Use Case |
+|---------|---------|--------|----------|
+| `zai` | Z.ai Coding Plan | ✅ Active | GLM-4.7, unlimited usage |
+| `claude-harness` | Claude Max (via CLI) | ✅ Active | Claude Sonnet, subscription-based |
+| `anthropic` | Anthropic API | ❌ Disabled | Requires API key |
+
+### Claude Harness
+
+The router can use Claude models via **Claude Harness** - a FastAPI service wrapping Claude Code CLI.
+
+- Runs as systemd service on host (port 8013)
+- Uses Claude Max subscription (no API key)
+- Management: `apps/claude-harness/manage.sh`
+- Docs: [apps/claude-harness/README.md](../claude-harness/README.md)
 
 ## Routing Logic
 
@@ -34,8 +52,8 @@ Intelligent OpenAI-compatible API router for multi-backend LLM inference.
 2. **Token estimate < 2K** → 3070 (fast path)
 3. **Gaming mode ON** → 3070 only (unless force-big)
 4. **Token 2K-16K + 3090 available** → 3090
-5. **Complex/long context** → OpenCode
-6. **Fallback** → 3070 → 3090 → OpenCode
+5. **Complex/long context** → Z.ai or Claude Harness
+6. **Fallback** → 3070 → 3090 → Cloud
 
 ## API Endpoints
 
