@@ -20,6 +20,9 @@ services:
       # Memory & Metrics
       - ENABLE_MEMORY=${ENABLE_MEMORY:-1}
       - ENABLE_METRICS=${ENABLE_METRICS:-1}
+      # Cloud Provider API Keys
+      - ZAI_API_KEY=${ZAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       # Server SSH access for agent
       - SERVER_SSH_HOST=${SERVER_SSH_HOST:-192.168.86.47}
       - SERVER_SSH_PORT=${SERVER_SSH_PORT:-4242}

@@ -70,8 +70,8 @@ providers:
   - id: zai
     name: "Z.ai"
     type: cloud
-    description: "Z.ai cloud API (GLM models) - slow but no rate limits"
-    endpoint: "https://api.z.ai"
+    description: "Z.ai cloud API (GLM models) - OpenAI-compatible, no rate limits"
+    endpoint: "https://api.z.ai/api/paas/v4"
     priority: 3  # Cloud fallback
     enabled: true
 
@@ -81,15 +81,15 @@ providers:
     # Health Check Configuration
     healthCheckInterval: 60  # seconds (less frequent for cloud)
     healthCheckTimeout: 10   # seconds (cloud may be slower)
-    healthCheckPath: "/health"
+    healthCheckPath: "/models"  # Use /models as health check (no /health endpoint)
 
     # Authentication
-    authType: "api_key"
+    authType: "bearer"
     authSecret: "ZAI_API_KEY"  # Environment variable name
 
     # Metadata
     location: "cloud"
-    notes: "Slow response times but no rate limits or cost concerns"
+    notes: "OpenAI-compatible API. No rate limits or cost concerns."
 
   # Cloud Provider - Anthropic
   - id: anthropic
@@ -221,25 +221,45 @@ models:
   # Z.ai Cloud Models
   # -------------------------------------------------------------------------
 
-  - id: glm-4-flash
-    name: "GLM-4 Flash"
+  - id: glm-4.7
+    name: "GLM-4.7"
     providerId: zai
-    description: "GLM-4 Flash - fast general purpose model"
+    description: "GLM-4.7 - latest flagship model with thinking support"
     contextWindow: 128000
     maxTokens: 4096
-    isDefault: true  # Default for Z.ai
+    isDefault: true
 
-    # Cost Tracking (pricing from Z.ai docs)
-    costPer1kTokens: 0.001  # Example: $0.001 per 1K tokens
+    costPer1kTokens: 0.002
 
-    # Capabilities
     capabilities:
       streaming: true
       functionCalling: true
       vision: false
       jsonMode: true
 
-    # Tags
+    tags:
+      - chat
+      - reasoning
+      - cloud
+      - large-context
+      - default
+
+  - id: glm-4-flash
+    name: "GLM-4 Flash"
+    providerId: zai
+    description: "GLM-4 Flash - fast general purpose model"
+    contextWindow: 128000
+    maxTokens: 4096
+    isDefault: false
+
+    costPer1kTokens: 0.001
+
+    capabilities:
+      streaming: true
+      functionCalling: true
+      vision: false
+      jsonMode: true
+
     tags:
       - chat
       - fast
@@ -254,17 +274,14 @@ models:
     maxTokens: 4096
     isDefault: false
 
-    # Cost Tracking
-    costPer1kTokens: 0.005  # Example pricing
+    costPer1kTokens: 0.005
 
-    # Capabilities
     capabilities:
       streaming: true
       functionCalling: true
       vision: false
       jsonMode: true
 
-    # Tags
     tags:
       - chat
       - reasoning

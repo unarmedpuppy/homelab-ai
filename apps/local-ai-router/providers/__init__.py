@@ -13,6 +13,12 @@ from .models import (
 )
 from .health import HealthChecker, HealthCheckResult
 from .model_state import ModelStateTracker, ModelState, ModelLoadState
+from .cloud import (
+    get_api_key,
+    get_auth_headers,
+    build_chat_completions_url,
+    build_request_headers,
+)
 
 __all__ = [
     "ProviderManager",
@@ -28,4 +34,8 @@ __all__ = [
     "ModelStateTracker",
     "ModelState",
     "ModelLoadState",
+    "get_api_key",
+    "get_auth_headers",
+    "build_chat_completions_url",
+    "build_request_headers",
 ]

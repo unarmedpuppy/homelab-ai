@@ -17,7 +17,7 @@ from typing import AsyncGenerator, Optional, Dict, Any
 import httpx
 
 from models import StreamEvent, StreamStatus
-from providers import ProviderSelection
+from providers import ProviderSelection, build_chat_completions_url, build_request_headers
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,8 @@ async def stream_chat_completion(
     Yields:
         SSE-formatted strings (data: {...}\n\n)
     """
-    endpoint_url = f"{selection.provider.endpoint.rstrip('/')}/v1/chat/completions"
+    endpoint_url = build_chat_completions_url(selection.provider)
+    request_headers = build_request_headers(selection.provider)
     
     yield format_sse(create_stream_event(
         status=StreamStatus.ROUTING,
@@ -102,7 +103,7 @@ async def stream_chat_completion(
                 "POST",
                 endpoint_url,
                 json=body,
-                headers={"Content-Type": "application/json"},
+                headers=request_headers,
             ) as response:
                 if response.status_code != 200:
                     error_text = await response.aread()
@@ -248,7 +249,8 @@ async def stream_chat_completion_passthrough(
     Yields:
         SSE-formatted strings exactly as received from backend
     """
-    endpoint_url = f"{selection.provider.endpoint.rstrip('/')}/v1/chat/completions"
+    endpoint_url = build_chat_completions_url(selection.provider)
+    request_headers = build_request_headers(selection.provider)
     
     try:
         async with httpx.AsyncClient(timeout=timeout) as client:
@@ -256,7 +258,7 @@ async def stream_chat_completion_passthrough(
                 "POST",
                 endpoint_url,
                 json=body,
-                headers={"Content-Type": "application/json"},
+                headers=request_headers,
             ) as response:
                 if response.status_code != 200:
                     error_text = await response.aread()

@@ -16,7 +16,7 @@ from agent import AgentRequest, AgentResponse, run_agent_loop, AGENT_TOOLS
 from auth import ApiKey, validate_api_key_header, get_request_priority
 from dependencies import get_request_tracker, log_chat_completion, RequestTracker
 from memory import generate_conversation_id
-from providers import ProviderManager, HealthChecker, ProviderSelection
+from providers import ProviderManager, HealthChecker, ProviderSelection, build_chat_completions_url, build_request_headers
 from stream import stream_chat_completion, stream_chat_completion_passthrough, StreamAccumulator
 import prometheus_metrics as prom
 # from middleware import MemoryMetricsMiddleware  # Replaced with dependency injection
@@ -556,8 +556,9 @@ async def chat_completions(
         else:
             logger.warning(f"Model {selection.model.id} doesn't support vision, images will be ignored")
 
-    # Build endpoint URL
-    endpoint_url = f"{selection.provider.endpoint.rstrip('/')}/v1/chat/completions"
+    # Build endpoint URL and request headers (handles cloud provider auth)
+    endpoint_url = build_chat_completions_url(selection.provider)
+    request_headers = build_request_headers(selection.provider)
 
     logger.info(
         f"Routing to {selection.provider.name} ({selection.provider.endpoint}) "
@@ -653,6 +654,7 @@ async def chat_completions(
                     response = await client.post(
                         endpoint_url,
                         json=body,
+                        headers=request_headers,
                     )
                     response_data = response.json()
 
