@@ -903,15 +903,21 @@ async def call_llm_for_agent(
     
     Returns the response with additional _routing_info for tracking.
     """
+    # Estimate tokens for context-aware routing
+    token_estimate = estimate_tokens(messages)
+    
+    # Calculate max_tokens: ensure at least 512 tokens for response
+    # Context windows: 3070 (qwen2.5-7b) = 8192, 3090 (qwen2.5-14b) = 8192
+    context_window = 8192
+    max_tokens = max(512, min(2048, context_window - token_estimate - 500))  # Reserve 500 for safety
+    
     body = {
         "model": model,
         "messages": messages,
         "tools": tools or [],
         "tool_choice": tool_choice,
+        "max_tokens": max_tokens,
     }
-
-    # Estimate tokens for context-aware routing
-    token_estimate = estimate_tokens(messages)
     
     # Context-aware routing for agent calls
     if model in ["auto", "small", "fast"]:

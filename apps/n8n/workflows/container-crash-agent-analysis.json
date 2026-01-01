@@ -36,7 +36,7 @@
       "typeVersion": 2,
       "position": [650, 300],
       "parameters": {
-        "jsCode": "// Get raw input\nconst rawInput = $input.first();\nconst rawJson = rawInput ? rawInput.json : null;\nconst stdout = rawJson?.stdout || rawJson?.output || rawJson?.data || '';\n\n// Check for no failures - return empty array to stop workflow\nif (!stdout || stdout.trim() === 'NO_FAILURES' || !stdout.trim()) {\n  return [];\n}\n\n// Parse failed containers\nconst lines = stdout.split('\\n').filter(l => l.trim());\nconst results = [];\n\nfor (const line of lines) {\n  const parts = line.split('|');\n  if (parts.length >= 3) {\n    const name = parts[0].trim();\n    const status = parts[1].trim();\n    const state = parts[2].trim();\n    \n    const exitMatch = status.match(/Exited \\((\\d+)\\)/);\n    const exitCode = exitMatch ? exitMatch[1] : null;\n    \n    results.push({\n      json: {\n        container_name: name,\n        status: status,\n        state: state,\n        exit_code: exitCode,\n        timestamp: new Date().toISOString()\n      }\n    });\n  }\n}\n\nreturn results;"
+        "jsCode": "// Get raw input - handle various n8n output formats\nconst rawInput = $input.first();\nif (!rawInput) return [];\n\nconst rawJson = rawInput.json || {};\n\n// Try multiple possible property names for command output\nconst stdout = rawJson.stdout || rawJson.output || rawJson.data || rawJson.result || '';\n\n// Check for no failures - return empty array to stop workflow\nif (!stdout || stdout.trim() === 'NO_FAILURES' || !stdout.trim()) {\n  return [];\n}\n\n// Parse failed containers\nconst lines = stdout.split('\\n').filter(l => l.trim() && l.includes('|'));\nconst results = [];\n\nfor (const line of lines) {\n  const parts = line.split('|');\n  if (parts.length >= 3) {\n    const name = parts[0].trim();\n    const status = parts[1].trim();\n    const state = parts[2].trim();\n    \n    // Skip if container name is empty\n    if (!name) continue;\n    \n    const exitMatch = status.match(/Exited \\((\\d+)\\)/);\n    const exitCode = exitMatch ? exitMatch[1] : null;\n    \n    results.push({\n      json: {\n        container_name: name,\n        status: status,\n        state: state,\n        exit_code: exitCode,\n        timestamp: new Date().toISOString()\n      }\n    });\n  }\n}\n\n// Only return results if we have valid containers\nreturn results.length > 0 ? results : [];"
       }
     },
     {
@@ -46,7 +46,7 @@
       "typeVersion": 1,
       "position": [850, 300],
       "parameters": {
-        "command": "CONTAINER='{{ $json[\"container_name\"] }}'; if [ -n \"$CONTAINER\" ]; then docker logs --tail 50 \"$CONTAINER\" 2>&1; else echo 'ERROR: No container name provided'; fi"
+        "command": "={{ 'docker logs --tail 50 \"' + $json.container_name + '\" 2>&1' }}"
       }
     },
     {
