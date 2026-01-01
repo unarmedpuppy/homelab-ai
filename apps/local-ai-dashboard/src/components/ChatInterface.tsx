@@ -1,7 +1,24 @@
 import { useState, useEffect, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { chatAPI, memoryAPI, providersAPI, imageAPI } from '../api/client';
 import type { ChatMessage, ImageRef } from '../types/api';
+
+function extractTitleFromFirstLine(text: string, maxLength: number = 50): string {
+  const firstLine = text.split(/\r?\n/)[0].trim();
+  
+  if (firstLine.length <= maxLength) {
+    return firstLine;
+  }
+  
+  const truncated = firstLine.slice(0, maxLength);
+  const lastSpaceIndex = truncated.lastIndexOf(' ');
+  
+  if (lastSpaceIndex > maxLength * 0.6) {
+    return truncated.slice(0, lastSpaceIndex) + '...';
+  }
+  
+  return truncated + '...';
+}
 import ImageUpload from './ImageUpload';
 import MarkdownContent from './MarkdownContent';
 import ProviderModelSelector from './ProviderModelSelector';
@@ -26,6 +43,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const queryClient = useQueryClient();
 
   // Advanced settings
   const [temperature, setTemperature] = useState(1.0);
@@ -51,6 +69,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   const [activeConversationId, setActiveConversationId] = useState<string | null>(conversationId);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const firstMessageRef = useRef<string | null>(null);
 
   // Update activeConversationId when conversationId prop changes (e.g., selecting from sidebar)
   useEffect(() => {
@@ -92,7 +111,6 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
 
   useEffect(() => {
     if (loadedConversation?.messages) {
-      // Convert loaded messages to chat format
       const chatMessages: MessageWithMetadata[] = loadedConversation.messages.map(msg => ({
         role: msg.role as 'user' | 'assistant' | 'system',
         content: msg.content,
@@ -101,9 +119,10 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
         tokens: msg.tokens_completion,
       }));
       setMessages(chatMessages);
+      firstMessageRef.current = null;
     } else if (!conversationId) {
-      // New chat - clear messages
       setMessages([]);
+      firstMessageRef.current = null;
     }
   }, [loadedConversation, conversationId]);
 
@@ -146,6 +165,11 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
         }, 2000);
         return;
       }
+    }
+
+    const isNewConversation = !activeConversationId && !conversationId;
+    if (isNewConversation && messages.length === 0) {
+      firstMessageRef.current = userMessage;
     }
 
     // Add user message to UI with uploaded images and routing info
@@ -239,10 +263,19 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                 },
               ];
             });
-            // Capture conversation_id from the response for subsequent messages
+            
             if (event.conversation_id && !activeConversationId) {
               setActiveConversationId(event.conversation_id);
+              
+              if (firstMessageRef.current) {
+                const autoTitle = extractTitleFromFirstLine(firstMessageRef.current);
+                memoryAPI.updateConversation(event.conversation_id, { title: autoTitle })
+                  .then(() => queryClient.invalidateQueries({ queryKey: ['conversations'] }))
+                  .catch(console.error);
+                firstMessageRef.current = null;
+              }
             }
+            
             setIsStreaming(false);
             setStreamingContent('');
             setStreamingTokenCount(0);
