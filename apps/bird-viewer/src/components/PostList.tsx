@@ -3,16 +3,34 @@ import { useQuery } from '@tanstack/react-query';
 import { postsAPI } from '../api/client';
 import { PostDetailModal } from './PostDetailModal';
 
+type SourceFilter = 'all' | 'bookmarks' | 'likes';
+
 export function PostList() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['posts', page, search],
-    queryFn: () => postsAPI.list({ page, page_size: 20, search: search || undefined }),
+    queryKey: ['posts', page, search, sourceFilter],
+    queryFn: () => {
+      const params = { page, page_size: 20, search: search || undefined };
+      switch (sourceFilter) {
+        case 'bookmarks':
+          return postsAPI.bookmarks(params);
+        case 'likes':
+          return postsAPI.likes(params);
+        default:
+          return postsAPI.list(params);
+      }
+    },
   });
+
+  const handleSourceChange = (source: SourceFilter) => {
+    setSourceFilter(source);
+    setPage(1);
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +68,25 @@ export function PostList() {
     );
   }
 
+  const sourceFilters: { key: SourceFilter; label: string }[] = [
+    { key: 'all', label: 'All' },
+    { key: 'bookmarks', label: 'Bookmarks' },
+    { key: 'likes', label: 'Likes' },
+  ];
+
+  const getSourceBadge = (source: string) => {
+    switch (source) {
+      case 'bookmark':
+        return <span className="px-2 py-0.5 text-xs rounded-full bg-blue-900/50 text-blue-300 border border-blue-800">Bookmark</span>;
+      case 'like':
+        return <span className="px-2 py-0.5 text-xs rounded-full bg-pink-900/50 text-pink-300 border border-pink-800">Like</span>;
+      case 'both':
+        return <span className="px-2 py-0.5 text-xs rounded-full bg-purple-900/50 text-purple-300 border border-purple-800">Both</span>;
+      default:
+        return <span className="px-2 py-0.5 text-xs rounded-full bg-zinc-800 text-zinc-400">{source}</span>;
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -69,6 +106,22 @@ export function PostList() {
             Search
           </button>
         </form>
+      </div>
+
+      <div className="flex gap-1 border-b border-zinc-800 pb-2">
+        {sourceFilters.map((filter) => (
+          <button
+            key={filter.key}
+            onClick={() => handleSourceChange(filter.key)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              sourceFilter === filter.key
+                ? 'bg-zinc-800 text-white'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
+            }`}
+          >
+            {filter.label}
+          </button>
+        ))}
       </div>
 
       <div className="text-sm text-zinc-400">
@@ -114,6 +167,7 @@ export function PostList() {
               )}
             </div>
             <div className="mt-3 pt-3 border-t border-zinc-800 flex items-center gap-4 text-xs text-zinc-500">
+              {getSourceBadge(post.source)}
               {post.tweet_created_at && (
                 <span>Posted: {formatDate(post.tweet_created_at)}</span>
               )}

@@ -219,6 +219,137 @@ async def get_stats(db: Session = Depends(get_db_session)):
     )
 
 
+# ============================================================================
+# Agent Endpoints - Simplified JSON for MCP tools and external agents
+# ============================================================================
+
+@app.get("/agent/posts")
+async def agent_list_posts(
+    source: Optional[str] = Query(None, description="Filter: bookmark, like, both"),
+    limit: int = Query(50, ge=1, le=200),
+    search: Optional[str] = Query(None),
+    db: Session = Depends(get_db_session),
+):
+    """
+    Simplified endpoint for agents to query posts.
+    Returns minimal JSON without pagination metadata.
+    """
+    query = db.query(Post)
+    
+    if source:
+        if source in ["bookmark", "like", "both", "manual"]:
+            query = query.filter(Post.source == source)
+        elif source == "bookmarks":
+            query = query.filter(Post.source.in_([PostSource.BOOKMARK.value, PostSource.BOTH.value]))
+        elif source == "likes":
+            query = query.filter(Post.source.in_([PostSource.LIKE.value, PostSource.BOTH.value]))
+    
+    if search:
+        query = query.filter(Post.content.ilike(f"%{search}%"))
+    
+    posts = query.order_by(Post.fetched_at.desc()).limit(limit).all()
+    
+    return {
+        "count": len(posts),
+        "posts": [
+            {
+                "tweet_id": p.tweet_id,
+                "source": p.source,
+                "author": p.author_username,
+                "content": p.content,
+                "url": p.url,
+                "posted_at": p.tweet_created_at.isoformat() if p.tweet_created_at else None,
+            }
+            for p in posts
+        ]
+    }
+
+
+@app.get("/agent/bookmarks")
+async def agent_list_bookmarks(
+    limit: int = Query(50, ge=1, le=200),
+    search: Optional[str] = Query(None),
+    db: Session = Depends(get_db_session),
+):
+    """Get bookmarked posts for agents. Returns only bookmark and both sources."""
+    query = db.query(Post).filter(
+        Post.source.in_([PostSource.BOOKMARK.value, PostSource.BOTH.value])
+    )
+    
+    if search:
+        query = query.filter(Post.content.ilike(f"%{search}%"))
+    
+    posts = query.order_by(Post.fetched_at.desc()).limit(limit).all()
+    
+    return {
+        "count": len(posts),
+        "posts": [
+            {
+                "tweet_id": p.tweet_id,
+                "author": p.author_username,
+                "content": p.content,
+                "url": p.url,
+                "posted_at": p.tweet_created_at.isoformat() if p.tweet_created_at else None,
+            }
+            for p in posts
+        ]
+    }
+
+
+@app.get("/agent/likes")
+async def agent_list_likes(
+    limit: int = Query(50, ge=1, le=200),
+    search: Optional[str] = Query(None),
+    db: Session = Depends(get_db_session),
+):
+    """Get liked posts for agents. Returns only like and both sources."""
+    query = db.query(Post).filter(
+        Post.source.in_([PostSource.LIKE.value, PostSource.BOTH.value])
+    )
+    
+    if search:
+        query = query.filter(Post.content.ilike(f"%{search}%"))
+    
+    posts = query.order_by(Post.fetched_at.desc()).limit(limit).all()
+    
+    return {
+        "count": len(posts),
+        "posts": [
+            {
+                "tweet_id": p.tweet_id,
+                "author": p.author_username,
+                "content": p.content,
+                "url": p.url,
+                "posted_at": p.tweet_created_at.isoformat() if p.tweet_created_at else None,
+            }
+            for p in posts
+        ]
+    }
+
+
+@app.get("/agent/stats")
+async def agent_stats(db: Session = Depends(get_db_session)):
+    """Get simple stats for agents."""
+    bookmark_count = db.query(func.count(Post.id)).filter(
+        Post.source.in_([PostSource.BOOKMARK.value, PostSource.BOTH.value])
+    ).scalar()
+    
+    like_count = db.query(func.count(Post.id)).filter(
+        Post.source.in_([PostSource.LIKE.value, PostSource.BOTH.value])
+    ).scalar()
+    
+    both_count = db.query(func.count(Post.id)).filter(
+        Post.source == PostSource.BOTH.value
+    ).scalar()
+    
+    return {
+        "bookmarks": bookmark_count,
+        "likes": like_count,
+        "both": both_count,
+        "unique_total": bookmark_count + like_count - both_count,
+    }
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

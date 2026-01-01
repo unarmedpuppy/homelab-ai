@@ -13,10 +13,13 @@ export interface RunListResponse {
   total: number;
 }
 
+export type PostSource = 'bookmark' | 'like' | 'both' | 'manual';
+
 export interface Post {
   id: string;
   run_id: string | null;
   tweet_id: string;
+  source: PostSource;
   author_username: string | null;
   author_display_name: string | null;
   content: string | null;
