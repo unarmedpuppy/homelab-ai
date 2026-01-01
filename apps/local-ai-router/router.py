@@ -894,7 +894,10 @@ async def call_llm_for_agent(
     tools: list = None,
     tool_choice: str = "auto"
 ) -> dict:
-    """Call the LLM through the router for agent use."""
+    """Call the LLM through the router for agent use.
+    
+    Returns the response with additional _routing_info for tracking.
+    """
     body = {
         "model": model,
         "messages": messages,
@@ -904,15 +907,18 @@ async def call_llm_for_agent(
 
     # Route to appropriate backend
     # For agent calls, we always use the 3090 with tool support
-    backend = BACKENDS["3090"]
+    backend_id = "3090"
+    backend = BACKENDS[backend_id]
     if not backend["available"]:
         raise HTTPException(status_code=503, detail="No backend available for agent")
 
     # Determine actual model - prefer qwen for tool calling
+    actual_model = body["model"]
     if model in ["auto", "small", "fast", "big", "3090"]:
-        body["model"] = "qwen2.5-14b-awq"
+        actual_model = "qwen2.5-14b-awq"
+        body["model"] = actual_model
 
-    logger.info(f"Agent LLM call: model={body['model']}, messages={len(messages)}")
+    logger.info(f"Agent LLM call: model={actual_model}, backend={backend_id}, messages={len(messages)}")
 
     async with httpx.AsyncClient(timeout=300.0) as client:
         response = await client.post(
@@ -926,7 +932,14 @@ async def call_llm_for_agent(
                 detail=f"Backend error: {response.text}"
             )
 
-        return response.json()
+        result = response.json()
+        # Add routing info for agent tracking
+        result["_routing_info"] = {
+            "model": actual_model,
+            "backend": backend_id,
+            "backend_name": backend["name"],
+        }
+        return result
 
 
 @app.post("/agent/run", response_model=AgentResponse)

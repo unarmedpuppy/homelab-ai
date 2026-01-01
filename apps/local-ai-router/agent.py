@@ -83,6 +83,9 @@ class AgentResponse(BaseModel):
     steps: list[AgentStep]
     total_steps: int
     terminated_reason: str
+    model_used: Optional[str] = None
+    backend: Optional[str] = None
+    backend_name: Optional[str] = None
 
 
 def get_agent_tools() -> list[dict]:
@@ -268,6 +271,7 @@ async def run_agent_loop(
     final_answer = None
     model_used = None
     backend_used = None
+    backend_name = None
     
     current_tools = get_agent_tools()
 
@@ -287,6 +291,13 @@ async def run_agent_loop(
                     tools=current_tools,
                     tool_choice="auto"
                 )
+
+                # Capture routing info if present (from call_llm_for_agent)
+                routing_info = response.pop("_routing_info", None)
+                if routing_info and not model_used:
+                    model_used = routing_info.get("model")
+                    backend_used = routing_info.get("backend")
+                    backend_name = routing_info.get("backend_name")
 
                 action, error = parse_model_response(response)
 
@@ -402,5 +413,8 @@ async def run_agent_loop(
         final_answer=final_answer,
         steps=steps,
         total_steps=len(steps),
-        terminated_reason=terminated_reason
+        terminated_reason=terminated_reason,
+        model_used=model_used,
+        backend=backend_used,
+        backend_name=backend_name,
     )

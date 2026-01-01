@@ -1,6 +1,7 @@
 import os
 import subprocess
 import logging
+import json
 
 from .registry import register_tool
 
@@ -23,6 +24,61 @@ ALLOWED_DOCKER_COMMANDS = [
     "docker stats",
     "docker top",
 ]
+
+# Maximum output size for tool results (to avoid LLM context overflow)
+MAX_OUTPUT_SIZE = 4000
+
+
+def _smart_truncate(output: str, command: str) -> str:
+    """
+    Smart truncation of command output to avoid LLM context overflow.
+    
+    - JSON output (docker inspect without --format): extract key fields only
+    - Long text output: keep first and last portions
+    - Already small output: return as-is
+    """
+    if len(output) <= MAX_OUTPUT_SIZE:
+        return output
+    
+    # Check if this looks like docker inspect JSON output
+    stripped = output.strip()
+    if stripped.startswith('[') or stripped.startswith('{'):
+        try:
+            data = json.loads(stripped)
+            
+            # Docker inspect returns a list with one item
+            if isinstance(data, list) and len(data) > 0:
+                item = data[0]
+                
+                # Extract only the most useful fields for troubleshooting
+                summary = {
+                    "Name": item.get("Name", ""),
+                    "State": item.get("State", {}),
+                    "RestartCount": item.get("RestartCount", 0),
+                    "Created": item.get("Created", ""),
+                    "Image": item.get("Config", {}).get("Image", ""),
+                    "Cmd": item.get("Config", {}).get("Cmd", []),
+                    "Env": [e for e in item.get("Config", {}).get("Env", []) 
+                           if not any(s in e.upper() for s in ["KEY", "SECRET", "PASSWORD", "TOKEN"])],
+                    "Mounts": [{"Source": m.get("Source"), "Destination": m.get("Destination")} 
+                              for m in item.get("Mounts", [])[:5]],
+                    "NetworkMode": item.get("HostConfig", {}).get("NetworkMode", ""),
+                    "PortBindings": item.get("HostConfig", {}).get("PortBindings", {}),
+                }
+                
+                result_str = json.dumps(summary, indent=2)
+                if len(result_str) <= MAX_OUTPUT_SIZE:
+                    return f"[Summarized docker inspect - full output was {len(output)} chars]\n{result_str}"
+        except (json.JSONDecodeError, KeyError, TypeError):
+            pass
+    
+    # For non-JSON or failed JSON parsing, do head/tail truncation
+    half = MAX_OUTPUT_SIZE // 2
+    return (
+        output[:half] + 
+        f"\n\n... [truncated {len(output) - MAX_OUTPUT_SIZE} chars] ...\n\n" + 
+        output[-half:]
+    )
 
 
 def _validate_server_command(command: str) -> tuple[bool, str]:
@@ -83,8 +139,8 @@ def _run_on_server(arguments: dict, working_dir: str) -> str:
         if result.returncode != 0:
             output += f"\n[exit code: {result.returncode}]"
         
-        if len(output) > 10000:
-            output = output[:10000] + "\n... (truncated)"
+        # Smart truncation: JSON output (docker inspect) gets summarized
+        output = _smart_truncate(output, command)
         
         return output if output.strip() else "(no output)"
         
