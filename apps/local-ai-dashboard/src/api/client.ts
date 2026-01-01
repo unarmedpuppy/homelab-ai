@@ -530,10 +530,10 @@ export const ttsAPI = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'tts-1',
+        model: 'chatterbox-turbo',
         input: text,
         voice,
-        response_format: 'mp3',
+        response_format: 'wav',
       }),
     });
 
