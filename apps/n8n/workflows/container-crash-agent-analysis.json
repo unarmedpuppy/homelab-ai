@@ -45,7 +45,7 @@
       "typeVersion": 1,
       "position": [850, 300],
       "parameters": {
-        "command": "docker logs --tail 50 {{ $json.container_name }} 2>&1 || echo 'Could not get logs'"
+        "command": "CONTAINER='{{ $json[\"container_name\"] }}'; if [ -n \"$CONTAINER\" ]; then docker logs --tail 50 \"$CONTAINER\" 2>&1; else echo 'ERROR: No container name provided'; fi"
       }
     },
     {
