@@ -19,7 +19,7 @@ claude
 # Tokens stored in ~/.claude.json
 
 # 4. Verify CLI works headless
-claude -p "Say hello" --no-input
+claude -p "Say hello"
 
 # 5. Pull latest code
 cd ~/server && git pull
@@ -55,6 +55,41 @@ All service management is done via `manage.sh`:
 | `sudo ./manage.sh stop` | Stop the service |
 | `sudo ./manage.sh uninstall` | Remove the service |
 | `./manage.sh test` | Run health check and test completion |
+
+### What `sudo ./manage.sh install` Does
+
+Step-by-step breakdown of the install command:
+
+| Step | Command | What it does |
+|------|---------|--------------|
+| 1 | `check_root` | Verifies you ran with sudo |
+| 2 | `check_claude_cli` | Verifies `claude` command is installed |
+| 3 | `check_python_deps` | Installs fastapi/uvicorn/pydantic if missing |
+| 4 | `cp SERVICE_FILE SYSTEMD_PATH` | Copies `claude-harness.service` to `/etc/systemd/system/` |
+| 5 | `systemctl daemon-reload` | Tells systemd to re-read service files |
+| 6 | `systemctl enable` | Enables auto-start on boot |
+| 7 | `systemctl start` | Starts the FastAPI service immediately |
+| 8 | `systemctl status` | Shows if it started successfully |
+
+**Files modified:**
+
+| Location | Action |
+|----------|--------|
+| `/etc/systemd/system/claude-harness.service` | Created (systemd service definition) |
+| `~/.local/lib/python*/...` | Maybe (Python packages if missing) |
+| Systemd state | Modified (service enabled and started) |
+
+**Safe to run?** Yes. The script:
+- Only touches its own service file
+- Doesn't modify system configs, PATH, or bashrc
+- Can be fully reversed with `sudo ./manage.sh uninstall`
+
+### Script Safety Features
+
+The script uses `set -euo pipefail`:
+- `set -e` → Exit immediately if any command fails
+- `set -u` → Error on undefined variables (catches typos)
+- `set -o pipefail` → Pipeline fails if any command in it fails
 
 ## Architecture
 
@@ -119,7 +154,7 @@ claude
 ### Step 3: Verify Headless Mode
 
 ```bash
-claude -p "Say hello in exactly 5 words" --no-input
+claude -p "Say hello in exactly 5 words"
 # Should output response without prompts
 ```
 
