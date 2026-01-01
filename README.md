@@ -720,6 +720,9 @@ sudo ufw allow 8080/tcp     # Rust (Web RCON)
 sudo ufw allow 53/tcp       # AdGuard DNS
 sudo ufw allow 53/udp       # AdGuard DNS
 sudo ufw allow 51820/udp    # WireGuard VPN
+
+# Docker network to host services (for containers reaching systemd services)
+sudo ufw allow from 192.168.160.0/20 to any port 8013 proto tcp  # Claude Harness (my-network)
 ```
 
 **6. Check Status**:
