@@ -2,6 +2,64 @@ import React, { useEffect, useState } from 'react';
 import { agentRunsAPI } from '../api/client';
 import type { AgentRunRecord, AgentRunWithSteps, AgentRunsStats } from '../types/api';
 
+function ExpandableContent({
+  content,
+  label,
+  maxLength = 150,
+  isJson = false,
+  className = '',
+}: {
+  content: string;
+  label: string;
+  maxLength?: number;
+  isJson?: boolean;
+  className?: string;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  
+  const displayContent = isJson ? content : content;
+  const needsExpansion = displayContent.length > maxLength;
+  
+  if (!needsExpansion) {
+    return (
+      <div className={`text-xs ${className}`}>
+        <strong>{label}:</strong>{' '}
+        {isJson ? (
+          <pre className="inline whitespace-pre-wrap font-mono">{displayContent}</pre>
+        ) : (
+          displayContent
+        )}
+      </div>
+    );
+  }
+  
+  return (
+    <div className={`text-xs ${className}`}>
+      <div className="flex items-start justify-between gap-2">
+        <strong className="shrink-0">{label}:</strong>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setExpanded(!expanded);
+          }}
+          className="text-blue-400 hover:text-blue-300 text-xs shrink-0"
+        >
+          {expanded ? 'Collapse' : 'Expand'}
+        </button>
+      </div>
+      {expanded ? (
+        <pre className="mt-1 p-2 bg-gray-900 rounded max-h-64 overflow-y-auto whitespace-pre-wrap font-mono text-xs border border-gray-700">
+          {displayContent}
+        </pre>
+      ) : (
+        <span className="text-gray-400">
+          {displayContent.slice(0, maxLength)}...
+        </span>
+      )}
+    </div>
+  );
+}
+
 export default function AgentRuns() {
   const [runs, setRuns] = useState<AgentRunRecord[]>([]);
   const [expandedRun, setExpandedRun] = useState<string | null>(null);
@@ -278,10 +336,12 @@ export default function AgentRuns() {
                             )}
                             {run.final_answer && (
                               <div className="mt-2">
-                                <strong className="text-gray-300">Final Answer:</strong>
-                                <div className="mt-1 p-2 bg-gray-800 rounded text-sm text-gray-300">
-                                  {truncateText(run.final_answer, 200)}
-                                </div>
+                                <ExpandableContent
+                                  content={run.final_answer}
+                                  label="Final Answer"
+                                  maxLength={200}
+                                  className="text-gray-300"
+                                />
                               </div>
                             )}
                           </div>
@@ -321,19 +381,29 @@ export default function AgentRuns() {
                                       </div>
                                     )}
                                     {step.thinking && (
-                                      <div className="text-xs text-gray-400 mb-1">
-                                        <strong>Thinking:</strong> {truncateText(step.thinking, 150)}
-                                      </div>
+                                      <ExpandableContent
+                                        content={step.thinking}
+                                        label="Thinking"
+                                        maxLength={150}
+                                        className="text-gray-400 mb-1"
+                                      />
                                     )}
                                     {step.tool_args && (
-                                      <div className="text-xs text-gray-400 mb-1">
-                                        <strong>Args:</strong> {JSON.stringify(step.tool_args, null, 2)}
-                                      </div>
+                                      <ExpandableContent
+                                        content={JSON.stringify(step.tool_args, null, 2)}
+                                        label="Args"
+                                        maxLength={150}
+                                        isJson={true}
+                                        className="text-gray-400 mb-1"
+                                      />
                                     )}
                                     {step.tool_result && (
-                                      <div className="text-xs text-gray-300 mb-1">
-                                        <strong>Result:</strong> {truncateText(step.tool_result, 150)}
-                                      </div>
+                                      <ExpandableContent
+                                        content={step.tool_result}
+                                        label="Result"
+                                        maxLength={150}
+                                        className="text-gray-300 mb-1"
+                                      />
                                     )}
                                     {step.error && (
                                       <div className="text-xs text-red-400">
