@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { chatAPI, memoryAPI, providersAPI, imageAPI, ttsAPI } from '../api/client';
+import { chatAPI, memoryAPI, providersAPI, imageAPI, ttsAPI, TTSError } from '../api/client';
 import type { ChatMessage, ImageRef } from '../types/api';
+import { Toast } from './Toast';
 
 function extractTitleFromFirstLine(text: string, maxLength: number = 50): string {
   const firstLine = text.split(/\r?\n/)[0].trim();
@@ -69,6 +70,8 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   const [ttsEnabled, setTtsEnabled] = useState(false);
   const [ttsPlayingIdx, setTtsPlayingIdx] = useState<number | null>(null);
   const [ttsGeneratingIdx, setTtsGeneratingIdx] = useState<number | null>(null);
+  
+  const [toast, setToast] = useState<{message: string, type: 'error' | 'info' | 'success'} | null>(null);
   const [ttsAvailable, setTtsAvailable] = useState(false);
 
   useEffect(() => {
@@ -351,6 +354,12 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
       console.error('TTS error:', error);
       setTtsGeneratingIdx(null);
       setTtsPlayingIdx(null);
+      
+      if (error instanceof TTSError) {
+        setToast({ message: error.userMessage, type: 'error' });
+      } else {
+        setToast({ message: 'TTS playback failed', type: 'error' });
+      }
     }
   };
 
@@ -694,6 +703,14 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
           </button>
         </div>
       </div>
+      
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

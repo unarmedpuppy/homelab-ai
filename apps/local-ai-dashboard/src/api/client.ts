@@ -493,12 +493,24 @@ export const agentRunsAPI = {
 
 let ttsAvailableCache: boolean | null = null;
 
+export class TTSError extends Error {
+  code: string;
+  userMessage: string;
+  
+  constructor(code: string, userMessage: string, technicalMessage?: string) {
+    super(technicalMessage || userMessage);
+    this.code = code;
+    this.userMessage = userMessage;
+    this.name = 'TTSError';
+  }
+}
+
 export const ttsAPI = {
   checkAvailable: async (): Promise<boolean> => {
     if (ttsAvailableCache !== null) return ttsAvailableCache;
     try {
-      const response = await apiClient.get('/health');
-      ttsAvailableCache = response.status === 200;
+      const response = await fetch('/api/health');
+      ttsAvailableCache = response.ok;
     } catch {
       ttsAvailableCache = false;
     }
@@ -509,17 +521,37 @@ export const ttsAPI = {
     return ttsAvailableCache === true;
   },
 
+  resetCache: () => {
+    ttsAvailableCache = null;
+  },
+
   generateSpeech: async (text: string, voice: string = 'alloy'): Promise<Blob> => {
-    const response = await apiClient.post('/v1/audio/speech', {
-      model: 'tts-1',
-      input: text,
-      voice,
-      response_format: 'mp3',
-    }, {
-      responseType: 'blob'
+    const response = await fetch('/api/v1/audio/speech', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'tts-1',
+        input: text,
+        voice,
+        response_format: 'mp3',
+      }),
     });
 
-    return response.data;
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'Unknown error');
+      
+      if (response.status === 401) {
+        throw new TTSError('AUTH_ERROR', 'TTS authentication failed. Please check API key configuration.');
+      } else if (response.status === 503) {
+        throw new TTSError('SERVICE_UNAVAILABLE', 'TTS service is unavailable. Gaming PC may be offline or in gaming mode.');
+      } else if (response.status === 504) {
+        throw new TTSError('TIMEOUT', 'TTS generation timed out. Try a shorter text.');
+      } else {
+        throw new TTSError('GENERATION_FAILED', `TTS generation failed: ${errorText}`);
+      }
+    }
+
+    return response.blob();
   },
 
   playAudio: (blob: Blob): Promise<void> => {
@@ -534,12 +566,12 @@ export const ttsAPI = {
       
       audio.onerror = (e) => {
         URL.revokeObjectURL(url);
-        reject(new Error(`Audio playback failed: ${e}`));
+        reject(new TTSError('PLAYBACK_FAILED', 'Audio playback failed. Check browser audio settings.', String(e)));
       };
       
       audio.play().catch((e) => {
         URL.revokeObjectURL(url);
-        reject(e);
+        reject(new TTSError('PLAYBACK_BLOCKED', 'Audio playback was blocked. Click to enable audio.', String(e)));
       });
     });
   },
