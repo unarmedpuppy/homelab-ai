@@ -97,15 +97,16 @@ docker compose up -d
 
 ## Features
 
-- **On-demand loading**: Models start only when requested
-- **Auto-shutdown**: Models stop after 10 minutes of inactivity
-- **Gaming Mode**: Prevent new models from starting while gaming or doing GPU-intensive work
+- **Keep-warm models**: TTS and default LLM auto-start on boot and stay loaded
+- **On-demand loading**: Other models start only when requested
+- **Gaming Mode**: Toggle to stop all models and free GPU for gaming
+- **No idle timeout**: Models stay loaded until gaming mode (no auto-shutdown)
 - **Resource Management**: Check status, force-stop models, and ensure GPU is free
 - **OpenAI compatibility**: Works with any OpenAI-compatible client
 - **GPU acceleration**: Uses NVIDIA GPU for fast inference
-- **Memory efficient**: Only loads models when needed
 - **Multimodal support**: Text, image, and TTS models
 - **Unified management**: Single manager service handles all model types
+- **Dashboard TTS**: Web dashboard can auto-play TTS responses
 
 ## Usage
 
@@ -210,6 +211,39 @@ The web dashboard provides:
 ```
 
 For complete documentation, see [GAMING_MODE.md](GAMING_MODE.md).
+
+## Keep-Warm Models
+
+Certain models are configured to stay loaded at all times (unless gaming mode is enabled):
+
+| Model | Type | Behavior |
+|-------|------|----------|
+| `qwen2.5-14b-awq` | LLM | Auto-starts on boot, stays warm |
+| `chatterbox-turbo` | TTS | Auto-starts on boot, stays warm |
+
+**How it works:**
+- On manager startup: Keep-warm models start automatically
+- During normal operation: No idle timeout, models stay loaded indefinitely
+- Gaming mode ON: All models stop (including keep-warm)
+- Gaming mode OFF: Keep-warm models restart automatically
+
+**Configuration** (`models.json`):
+```json
+{
+  "qwen2.5-14b-awq": {
+    "container": "vllm-qwen14b-awq",
+    "port": 8002,
+    "type": "text",
+    "keep_warm": true
+  },
+  "chatterbox-turbo": {
+    "container": "chatterbox-tts",
+    "port": 8006,
+    "type": "tts",
+    "keep_warm": true
+  }
+}
+```
 
 ## Deployment
 

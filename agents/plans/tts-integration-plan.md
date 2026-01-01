@@ -13,9 +13,9 @@ Implementation plan for adding Text-to-Speech capability using Chatterbox Turbo,
 | **API** | OpenAI-compatible `/v1/audio/speech` |
 | **Location** | `local-ai/tts-inference-server/` |
 
-## Phase 1: Integrated TTS Server (Current)
+## Phase 1: Integrated TTS Server
 
-**Status**: Code written, ready for deployment
+**Status**: ✅ Complete
 
 ### Deliverables
 - [x] TTS Inference Server (`local-ai/tts-inference-server/`)
@@ -26,6 +26,8 @@ Implementation plan for adding Text-to-Speech capability using Chatterbox Turbo,
 - [x] Manager integration (`models.json` updated)
 - [x] Build scripts (`build-tts-server.ps1`, `build-tts-server.sh`)
 - [x] Reference documentation (`agents/reference/tts-architecture.md`)
+- [x] Keep-warm behavior (auto-start on boot, stays loaded until gaming mode)
+- [x] Gaming mode integration (stops all models when enabled)
 
 ### Deployment Steps
 
@@ -74,13 +76,32 @@ Implementation plan for adding Text-to-Speech capability using Chatterbox Turbo,
    ```
 
 ### Success Criteria
-- [ ] Docker image builds successfully
-- [ ] Container starts and model loads
-- [ ] Health endpoint returns `{"status": "healthy"}`
-- [ ] Can generate speech via direct container access
-- [ ] Can generate speech via manager (on-demand start)
-- [ ] Container auto-stops after 10min idle
-- [ ] VRAM usage ~1.5GB
+- [x] Docker image builds successfully
+- [x] Container starts and model loads
+- [x] Health endpoint returns `{"status": "healthy"}`
+- [x] Can generate speech via direct container access
+- [x] Can generate speech via manager (on-demand start)
+- [x] Keep-warm behavior (auto-start, no idle timeout)
+- [x] Gaming mode stops/restarts keep-warm models
+- [ ] VRAM usage ~1.5GB (pending deployment verification)
+
+## Phase 1b: Dashboard Integration
+
+**Status**: ✅ Complete
+
+### Deliverables
+- [x] TTS API client in dashboard (`src/api/client.ts`)
+- [x] TTS toggle button in chat interface
+- [x] Auto-play audio after response completes
+- [x] Blob URL cleanup after playback
+- [x] Nginx proxy for TTS requests to Gaming PC
+- [x] TTS availability detection via `/tts/health`
+
+### Configuration
+Add to `apps/local-ai-dashboard/.env`:
+```env
+TTS_API_URL=http://<GAMING_PC_IP>:8000
+```
 
 ---
 

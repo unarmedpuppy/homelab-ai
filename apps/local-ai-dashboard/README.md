@@ -7,6 +7,9 @@ A modern React dashboard for visualizing Local AI Router metrics, conversations,
 - **Dashboard View**: Real-time metrics with activity heatmap, model usage charts, and performance stats
 - **Conversation Explorer**: Browse and search through conversation history with full message details
 - **RAG Playground**: Interactive semantic search to find similar conversations and retrieve context
+- **Chat Interface**: Send messages with streaming responses and provider selection
+- **TTS Toggle**: Auto-play text-to-speech for assistant responses (when enabled)
+- **Image Upload**: Multimodal chat with image attachments
 
 ## Tech Stack
 
@@ -49,6 +52,22 @@ VITE_API_URL=http://localhost:8012
 ```
 
 For Docker deployment, the API is accessed via the internal network at `http://local-ai-router:8000`.
+
+### TTS Configuration
+
+TTS is proxied through nginx to the Gaming PC's local-ai manager. Configure in `.env`:
+
+```env
+TTS_API_URL=http://<GAMING_PC_IP>:8000
+```
+
+**How TTS works:**
+1. Enable TTS via the 🔊 toggle button in the chat header
+2. After each assistant response, audio is generated via Chatterbox Turbo
+3. Audio auto-plays in the browser
+4. Memory is freed after playback (Blob URL revoked)
+
+**TTS availability:** The toggle only appears if TTS is configured and reachable.
 
 ## API Integration
 

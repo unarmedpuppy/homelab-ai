@@ -12,6 +12,8 @@ Reference document for the Text-to-Speech architecture decision and implementati
 | **API** | OpenAI-compatible `/v1/audio/speech` |
 | **Integration** | Docker container managed by `local-ai/manager` |
 | **Location** | `local-ai/tts-inference-server/` |
+| **Keep-Warm** | Auto-starts on boot, stays loaded until gaming mode |
+| **Dashboard** | TTS toggle for auto-play responses |
 
 ## Architecture Overview
 
@@ -36,15 +38,17 @@ Reference document for the Text-to-Speech architecture decision and implementati
 │   │   │  "chatterbox-turbo": {                                            │  │   │
 │   │   │      "container": "chatterbox-tts",                               │  │   │
 │   │   │      "port": 8006,                                                │  │   │
-│   │   │      "type": "tts"                                                │  │   │
+│   │   │      "type": "tts",                                               │  │   │
+│   │   │      "keep_warm": true                                            │  │   │
 │   │   │  }                                                                 │  │   │
 │   │   └──────────────────────────────────────────────────────────────────┘  │   │
 │   │                                                                          │   │
 │   │   Manager behavior:                                                      │   │
-│   │   1. Receives request with model="chatterbox-turbo"                     │   │
-│   │   2. Starts container if not running (on-demand)                        │   │
-│   │   3. Proxies request to container                                        │   │
-│   │   4. Auto-stops after 10min idle                                         │   │
+│   │   1. On boot: Auto-starts keep-warm models (TTS + qwen2.5)              │   │
+│   │   2. Receives request → proxies to container                            │   │
+│   │   3. No idle timeout (stays warm until gaming mode)                     │   │
+│   │   4. Gaming mode ON → stops all models                                   │   │
+│   │   5. Gaming mode OFF → restarts keep-warm models                        │   │
 │   │                                                                          │   │
 │   └──────────────────────────────┬──────────────────────────────────────────┘   │
 │                                  │                                               │
@@ -265,8 +269,33 @@ response.stream_to_file("speech.wav")
 5. **Caching**: Cache common phrases (greetings, etc.)
 6. **Metrics**: Track TTS usage in router metrics
 
+## Dashboard Integration
+
+The Local AI Dashboard has a TTS toggle for auto-playing assistant responses:
+
+```
+Dashboard (browser) → nginx /tts/ proxy → Gaming PC:8000 → Chatterbox TTS → WAV bytes → browser playback
+```
+
+**Configuration** (`apps/local-ai-dashboard/.env`):
+```env
+TTS_API_URL=http://<GAMING_PC_IP>:8000
+```
+
+**How it works:**
+1. User enables 🔊 TTS toggle in chat header
+2. After each assistant response, dashboard calls `/tts/v1/audio/speech`
+3. Nginx proxies to Gaming PC manager
+4. WAV bytes returned, Blob URL created
+5. Audio auto-plays in browser
+6. Blob URL revoked after playback (memory freed)
+
+**No files on disk** - audio is streamed in memory only.
+
 ## Related Documentation
 
-- [Chatterbox TTS Server](../../apps/chatterbox-tts/README.md)
+- [TTS Inference Server](../../local-ai/tts-inference-server/README.md)
+- [Local AI Manager](../../local-ai/README.md)
+- [Local AI Dashboard](../../apps/local-ai-dashboard/README.md)
 - [Local AI Router](../../apps/local-ai-router/README.md)
 - [Chatterbox Turbo on HuggingFace](https://huggingface.co/ResembleAI/chatterbox-turbo)
