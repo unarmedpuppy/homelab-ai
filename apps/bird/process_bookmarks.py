@@ -2,8 +2,8 @@
 """
 Bird Bookmark Processor
 
-Fetches X/Twitter bookmarks using Bird CLI, categorizes them with AI,
-and maintains a living document of technologies and learning resources.
+Fetches X/Twitter bookmarks and likes using Bird CLI and stores them
+in a SQLite database for later viewing and querying by external agents.
 """
 
 import json
@@ -15,18 +15,22 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-import requests
 from dateutil import parser as date_parser
+
+from database import (
+    DatabaseSession,
+    Post,
+    Run,
+    RunSource,
+    RunStatus,
+    complete_run,
+    create_run,
+    get_or_create_post,
+    init_db,
+)
 
 # Configuration
 DATA_DIR = Path("/app/data")
-REPO_DIR = Path("/repo")  # Mounted git repo
-LEARNING_DOC = REPO_DIR / "docs" / "learning-list.md"
-PROCESSED_FILE = DATA_DIR / "processed.json"
-BOOKMARKS_CACHE = DATA_DIR / "bookmarks.json"
-
-AI_ROUTER_URL = os.getenv("AI_ROUTER_URL", "http://local-ai-router:8000")
-AI_API_KEY = os.getenv("AI_API_KEY", "")  # Required for Local AI Router auth
 BOOKMARK_LIMIT = int(os.getenv("BOOKMARK_LIMIT", "50"))
 RUN_MODE = os.getenv("RUN_MODE", "cron")
 SLEEP_INTERVAL = int(os.getenv("SLEEP_INTERVAL", "21600"))  # 6 hours
@@ -106,296 +110,139 @@ def fetch_likes() -> list[dict]:
         return []
 
 
-def load_processed() -> set[str]:
-    """Load set of already processed tweet IDs."""
-    if PROCESSED_FILE.exists():
-        try:
-            data = json.loads(PROCESSED_FILE.read_text())
-            return set(data.get("processed_ids", []))
-        except Exception as e:
-            log(f"Error loading processed file: {e}")
-    return set()
-
-
-def save_processed(processed_ids: set[str]):
-    """Save set of processed tweet IDs."""
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    data = {
-        "processed_ids": list(processed_ids),
-        "last_updated": datetime.now().isoformat()
-    }
-    PROCESSED_FILE.write_text(json.dumps(data, indent=2))
-
-
-def categorize_with_ai(tweets: list[dict]) -> dict:
-    """
-    Send tweets to AI for categorization and summarization.
-    
-    Returns structured data with categories:
-    - technologies: Tools, frameworks, libraries to explore
-    - concepts: Ideas, patterns, methodologies to learn
-    - resources: Tutorials, articles, repos to read
-    - projects: Project ideas or inspirations
-    - other: Everything else
-    """
-    if not tweets:
-        return {"technologies": [], "concepts": [], "resources": [], "projects": [], "other": []}
-    
-    # Build context from tweets
-    tweet_summaries = []
-    for t in tweets:
-        author = t.get("author", {}).get("username", "unknown")
-        text = t.get("text", "")[:500]  # Limit length
-        tweet_id = t.get("id", "unknown")
-        tweet_summaries.append(f"Tweet {tweet_id} by @{author}:\n{text}\n")
-    
-    tweets_context = "\n---\n".join(tweet_summaries)
-    
-    prompt = f"""You are a technical curator helping organize bookmarked tweets into a learning list.
-
-Analyze these tweets and categorize each one. For each tweet, extract:
-1. A brief summary (1 sentence)
-2. The category: "technologies", "concepts", "resources", "projects", or "other"
-3. Any specific technologies, tools, or topics mentioned
-4. A priority score 1-5 (5 = must learn, 1 = nice to know)
-
-Focus on:
-- Programming languages, frameworks, libraries, tools
-- AI/ML technologies and techniques
-- Software architecture patterns
-- Developer productivity tools
-- Interesting projects or repos
-
-TWEETS:
-{tweets_context}
-
-Respond with valid JSON in this exact format:
-{{
-  "items": [
-    {{
-      "tweet_id": "...",
-      "summary": "...",
-      "category": "technologies|concepts|resources|projects|other",
-      "topics": ["topic1", "topic2"],
-      "priority": 1-5,
-      "url": "https://x.com/user/status/tweet_id"
-    }}
-  ]
-}}"""
-
+def parse_tweet_date(date_str: Optional[str]) -> Optional[datetime]:
+    """Parse tweet date string to datetime."""
+    if not date_str:
+        return None
     try:
-        headers = {
-            "Content-Type": "application/json",
-            "X-Project": "bird-bookmark-processor",
-            "X-User-ID": "bird-bot"
-        }
-        if AI_API_KEY:
-            headers["Authorization"] = f"Bearer {AI_API_KEY}"
-        
-        response = requests.post(
-            f"{AI_ROUTER_URL}/v1/chat/completions",
-            headers=headers,
-            json={
-                "model": "auto",
-                "messages": [
-                    {"role": "system", "content": "You are a helpful assistant that categorizes technical content. Always respond with valid JSON."},
-                    {"role": "user", "content": prompt}
-                ],
-                "temperature": 0.3,
-                "max_tokens": 4000
-            },
-            timeout=120
-        )
-        
-        if response.status_code != 200:
-            log(f"AI request failed: {response.status_code} - {response.text}")
-            return {"technologies": [], "concepts": [], "resources": [], "projects": [], "other": []}
-        
-        result = response.json()
-        content = result.get("choices", [{}])[0].get("message", {}).get("content", "")
-        
-        # Parse JSON from response (handle markdown code blocks)
-        content = content.strip()
-        if content.startswith("```"):
-            content = content.split("```")[1]
-            if content.startswith("json"):
-                content = content[4:]
-        
-        parsed = json.loads(content)
-        items = parsed.get("items", [])
-        
-        # Group by category
-        categorized = {"technologies": [], "concepts": [], "resources": [], "projects": [], "other": []}
-        for item in items:
-            cat = item.get("category", "other")
-            if cat in categorized:
-                categorized[cat].append(item)
-            else:
-                categorized["other"].append(item)
-        
-        log(f"Categorized {len(items)} items")
-        return categorized
-        
-    except Exception as e:
-        log(f"AI categorization error: {e}")
-        return {"technologies": [], "concepts": [], "resources": [], "projects": [], "other": []}
+        return date_parser.parse(date_str)
+    except Exception:
+        return None
 
 
-def update_learning_document(categorized: dict, existing_content: str = "") -> str:
-    """Generate updated learning document content."""
-    now = datetime.now().strftime("%Y-%m-%d %H:%M")
+def extract_media_urls(tweet: dict) -> Optional[str]:
+    """Extract media URLs from tweet and return as JSON string."""
+    media = tweet.get("media", [])
+    if not media:
+        return None
     
-    # Parse existing content to preserve manual additions
-    # For now, we'll append new items
+    urls = []
+    for item in media:
+        if isinstance(item, dict):
+            # Try various possible URL fields
+            url = item.get("url") or item.get("media_url") or item.get("media_url_https")
+            if url:
+                urls.append(url)
+        elif isinstance(item, str):
+            urls.append(item)
     
-    sections = []
-    sections.append(f"# Learning List\n\n_Auto-updated by Bird Bookmark Processor_\n_Last update: {now}_\n")
-    
-    # Technologies section
-    if categorized.get("technologies"):
-        sections.append("\n## Technologies to Explore\n")
-        for item in sorted(categorized["technologies"], key=lambda x: x.get("priority", 0), reverse=True):
-            priority = item.get("priority", 3)
-            priority_emoji = ["", ".", "..", "...", "....", "....."][min(priority, 5)]
-            topics = ", ".join(item.get("topics", []))
-            url = item.get("url", "")
-            sections.append(f"- [{priority_emoji}] **{topics}**: {item.get('summary', '')} [link]({url})")
-    
-    # Concepts section
-    if categorized.get("concepts"):
-        sections.append("\n## Concepts to Learn\n")
-        for item in sorted(categorized["concepts"], key=lambda x: x.get("priority", 0), reverse=True):
-            topics = ", ".join(item.get("topics", []))
-            url = item.get("url", "")
-            sections.append(f"- **{topics}**: {item.get('summary', '')} [link]({url})")
-    
-    # Resources section
-    if categorized.get("resources"):
-        sections.append("\n## Resources to Read\n")
-        for item in categorized["resources"]:
-            topics = ", ".join(item.get("topics", []))
-            url = item.get("url", "")
-            sections.append(f"- {item.get('summary', '')} ({topics}) [link]({url})")
-    
-    # Projects section
-    if categorized.get("projects"):
-        sections.append("\n## Project Ideas\n")
-        for item in categorized["projects"]:
-            url = item.get("url", "")
-            sections.append(f"- {item.get('summary', '')} [link]({url})")
-    
-    # Other section
-    if categorized.get("other"):
-        sections.append("\n## Other Bookmarks\n")
-        for item in categorized["other"]:
-            url = item.get("url", "")
-            sections.append(f"- {item.get('summary', '')} [link]({url})")
-    
-    return "\n".join(sections)
+    return json.dumps(urls) if urls else None
 
 
-def git_commit_changes(message: str):
-    """Commit changes to the mounted git repo."""
-    git_name = os.getenv("GIT_USER_NAME", "Bird Bot")
-    git_email = os.getenv("GIT_USER_EMAIL", "bird@server.unarmedpuppy.com")
+def store_tweet(db, tweet: dict, run_id: str) -> bool:
+    """
+    Store a single tweet in the database.
+    Returns True if new tweet was stored, False if duplicate.
+    """
+    tweet_id = tweet.get("id")
+    if not tweet_id:
+        log(f"Tweet missing ID, skipping")
+        return False
     
-    try:
-        # Configure git
-        subprocess.run(["git", "config", "user.name", git_name], cwd=REPO_DIR, check=True)
-        subprocess.run(["git", "config", "user.email", git_email], cwd=REPO_DIR, check=True)
-        
-        # Add and commit
-        subprocess.run(["git", "add", str(LEARNING_DOC)], cwd=REPO_DIR, check=True)
-        
-        # Check if there are changes to commit
-        result = subprocess.run(
-            ["git", "diff", "--cached", "--quiet"],
-            cwd=REPO_DIR,
-            capture_output=True
-        )
-        
-        if result.returncode != 0:  # Changes exist
-            subprocess.run(
-                ["git", "commit", "-m", message],
-                cwd=REPO_DIR,
-                check=True
-            )
-            log(f"Committed: {message}")
-            
-            # Push if remote exists
-            push_result = subprocess.run(
-                ["git", "push"],
-                cwd=REPO_DIR,
-                capture_output=True,
-                text=True
-            )
-            if push_result.returncode == 0:
-                log("Pushed to remote")
-            else:
-                log(f"Push failed (may need manual push): {push_result.stderr}")
-        else:
-            log("No changes to commit")
-            
-    except subprocess.CalledProcessError as e:
-        log(f"Git error: {e}")
-    except Exception as e:
-        log(f"Unexpected git error: {e}")
+    # Extract author info
+    author = tweet.get("author", {})
+    author_username = author.get("username") or author.get("screen_name")
+    author_display_name = author.get("name") or author.get("display_name")
+    
+    # Build tweet URL
+    url = None
+    if author_username and tweet_id:
+        url = f"https://x.com/{author_username}/status/{tweet_id}"
+    
+    # Try to get or create post
+    post, created = get_or_create_post(
+        db,
+        tweet_id=str(tweet_id),
+        run_id=run_id,
+        author_username=author_username,
+        author_display_name=author_display_name,
+        content=tweet.get("text"),
+        url=url,
+        media_urls=extract_media_urls(tweet),
+        tweet_created_at=parse_tweet_date(tweet.get("created_at")),
+    )
+    
+    if created:
+        log(f"Stored new tweet {tweet_id} by @{author_username}")
+    
+    return created
 
 
 def process_once():
     """Run one processing cycle."""
     log("Starting bookmark processing...")
     
-    # Load already processed IDs
-    processed_ids = load_processed()
-    log(f"Already processed: {len(processed_ids)} tweets")
+    # Initialize database
+    init_db()
     
     # Fetch bookmarks and likes
     bookmarks = fetch_bookmarks()
     likes = fetch_likes()
     
-    # Combine and deduplicate
-    all_tweets = {t.get("id"): t for t in bookmarks + likes}
+    # Combine and deduplicate by tweet ID
+    all_tweets = {}
+    for t in bookmarks:
+        tid = t.get("id")
+        if tid:
+            all_tweets[tid] = t
+    for t in likes:
+        tid = t.get("id")
+        if tid:
+            all_tweets[tid] = t
     
-    # Filter out already processed
-    new_tweets = [t for tid, t in all_tweets.items() if tid not in processed_ids]
-    log(f"New tweets to process: {len(new_tweets)}")
+    log(f"Total unique tweets fetched: {len(all_tweets)}")
     
-    if not new_tweets:
-        log("No new tweets to process")
+    if not all_tweets:
+        log("No tweets fetched")
         return
     
-    # Categorize with AI
-    categorized = categorize_with_ai(new_tweets)
+    # Determine source type
+    if bookmarks and likes:
+        source = RunSource.MIXED.value
+    elif bookmarks:
+        source = RunSource.BOOKMARKS.value
+    else:
+        source = RunSource.LIKES.value
     
-    # Count items
-    total_items = sum(len(v) for v in categorized.values())
-    if total_items == 0:
-        log("AI returned no categorized items")
-        return
-    
-    # Ensure docs directory exists
-    LEARNING_DOC.parent.mkdir(parents=True, exist_ok=True)
-    
-    # Load existing content if any
-    existing_content = ""
-    if LEARNING_DOC.exists():
-        existing_content = LEARNING_DOC.read_text()
-    
-    # Generate updated document
-    new_content = update_learning_document(categorized, existing_content)
-    
-    # Write document
-    LEARNING_DOC.write_text(new_content)
-    log(f"Updated {LEARNING_DOC}")
-    
-    # Mark tweets as processed
-    new_processed_ids = {t.get("id") for t in new_tweets if t.get("id")}
-    processed_ids.update(new_processed_ids)
-    save_processed(processed_ids)
-    
-    # Commit changes
-    git_commit_changes(f"bird: Update learning list with {total_items} items")
+    # Create a run and store tweets
+    with DatabaseSession() as db:
+        run = create_run(db, source)
+        log(f"Created run {run.id}")
+        
+        new_count = 0
+        error = None
+        
+        try:
+            for tweet in all_tweets.values():
+                if store_tweet(db, tweet, run.id):
+                    new_count += 1
+            
+            db.commit()
+            log(f"Stored {new_count} new tweets (skipped {len(all_tweets) - new_count} duplicates)")
+            
+        except Exception as e:
+            error = str(e)
+            log(f"Error storing tweets: {e}")
+            db.rollback()
+        
+        # Complete the run
+        complete_run(
+            db,
+            run,
+            success=(error is None),
+            error=error,
+            post_count=new_count
+        )
     
     log("Processing complete!")
 
@@ -404,7 +251,6 @@ def main():
     """Main entry point."""
     log("Bird Bookmark Processor starting...")
     log(f"Mode: {RUN_MODE}")
-    log(f"AI Router: {AI_ROUTER_URL}")
     log(f"Bookmark limit: {BOOKMARK_LIMIT}")
     
     # Verify Bird CLI is available

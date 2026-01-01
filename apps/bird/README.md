@@ -1,14 +1,13 @@
-# Bird - X/Twitter Bookmark Processor
+# Bird - X/Twitter Bookmark Storage
 
-Automated bookmark processor that fetches your X/Twitter bookmarks, categorizes them with AI, and maintains a living document of technologies and resources to learn.
+Automated bookmark fetcher that stores your X/Twitter bookmarks and likes in a SQLite database for viewing and querying.
 
 ## Overview
 
 This service:
 1. Fetches your X bookmarks and likes using the [Bird CLI](https://github.com/steipete/bird)
-2. Sends them to your local AI router for intelligent categorization
-3. Updates a markdown document (`docs/learning-list.md`) with organized content
-4. Commits changes to git automatically
+2. Stores them in a local SQLite database (`data/bird.db`)
+3. Provides a data source for the Bird Viewer UI and external agents
 
 ## Prerequisites
 
@@ -80,44 +79,33 @@ docker compose up -d
 |----------|---------|-------------|
 | `AUTH_TOKEN` | - | X.com auth_token cookie (required) |
 | `CT0` | - | X.com ct0 cookie (required) |
-| `AI_ROUTER_URL` | `http://local-ai-router:8000` | Local AI router endpoint |
 | `BOOKMARK_LIMIT` | `50` | Max bookmarks to fetch per run |
 | `RUN_MODE` | `cron` | `cron` (one-shot) or `daemon` (continuous) |
 | `SLEEP_INTERVAL` | `21600` | Seconds between runs in daemon mode (6 hours) |
-
-## Output
-
-The processor creates/updates `docs/learning-list.md` with sections:
-
-- **Technologies to Explore** - Tools, frameworks, libraries
-- **Concepts to Learn** - Ideas, patterns, methodologies  
-- **Resources to Read** - Tutorials, articles, repos
-- **Project Ideas** - Inspirations from bookmarks
-- **Other Bookmarks** - Uncategorized items
-
-Items are prioritized (1-5 scale) and tagged with relevant topics.
 
 ## Architecture
 
 ```
 ┌─────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│ Bird CLI    │────▶│ process_bookmarks│────▶│ local-ai-router │
-│ (fetch X)   │     │ .py              │     │ (categorize)    │
+│ Bird CLI    │────▶│ process_bookmarks│────▶│ SQLite Database │
+│ (fetch X)   │     │ .py              │     │ (data/bird.db)  │
 └─────────────┘     └──────────────────┘     └─────────────────┘
-                            │
-                            ▼
-                    ┌──────────────────┐
-                    │ docs/learning-   │
-                    │ list.md + git    │
-                    └──────────────────┘
+                                                     │
+                                                     ▼
+                                          ┌─────────────────────┐
+                                          │ Bird Viewer UI /    │
+                                          │ External Agents     │
+                                          └─────────────────────┘
 ```
 
-## Data Files
+## Database Schema
 
-| File | Purpose |
-|------|---------|
-| `data/processed.json` | Track processed tweet IDs (avoid duplicates) |
-| `data/bookmarks.json` | Cache of raw bookmark data |
+| Table | Purpose |
+|-------|---------|
+| `runs` | Processing runs (timestamp, source, status, post_count) |
+| `posts` | Stored tweets (tweet_id, author, content, url, media_urls) |
+| `categorizations` | AI categorization (for future use) |
+| `approvals` | Approval workflow (for future use) |
 
 ## Troubleshooting
 
@@ -125,21 +113,14 @@ Items are prioritized (1-5 scale) and tagged with relevant topics.
 
 Your Twitter cookies may have expired. Get fresh ones from your browser.
 
-### "AI request failed"
+### Database issues
 
-Check that local-ai-router is running:
+Check the database file exists and has correct permissions:
 ```bash
-curl http://localhost:8012/health
-```
-
-### "Git error"
-
-Ensure the repo mount is writable:
-```bash
-docker compose run --rm bird ls -la /repo
+docker compose run --rm bird ls -la /app/data/
 ```
 
 ## References
 
 - [Bird CLI](https://github.com/steipete/bird) - Twitter CLI tool
-- [Local AI Router](../local-ai-router/README.md) - AI inference router
+- [Bird Viewer](../beads-viewer/) - UI for viewing stored bookmarks (planned)

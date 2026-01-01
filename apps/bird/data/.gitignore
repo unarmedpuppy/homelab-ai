@@ -1,0 +1,6 @@
+# Ignore database and cache files
+*.db
+*.db-journal
+*.json
+!.gitkeep
+!.gitignore
