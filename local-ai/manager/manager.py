@@ -173,39 +173,13 @@ async def start_model_container(model_name: str):
 
 # --- Background Task ---
 async def reaper_task():
-    """Periodically stops idle model containers.
+    """Background task - currently a no-op since models stay warm until gaming mode.
     
-    Keep-warm models are only stopped when gaming mode is enabled.
-    Regular models are stopped after IDLE_TIMEOUT seconds of inactivity.
+    Models are only unloaded when gaming mode is toggled ON via stop_all_running_models().
+    This task remains for potential future use (e.g., health checks).
     """
     while True:
-        await asyncio.sleep(10)
-        now = time.time()
-        
-        # Check gaming mode state
-        is_gaming = False
-        if gaming_mode_lock is not None:
-            async with gaming_mode_lock:
-                is_gaming = gaming_mode
-        
-        for name, state in model_states.items():
-            keep_warm = state["config"].get("keep_warm", False)
-            
-            # Skip keep-warm models unless gaming mode is on
-            if keep_warm and not is_gaming:
-                continue
-            
-            if state["last_used"] == 0:
-                continue # Model has not been used yet
-
-            if now - state["last_used"] > IDLE_TIMEOUT:
-                async with state["lock"]:
-                    container_name = state["config"]["container"]
-                    container = get_container(container_name)
-                    if container and container.status == "running":
-                        print(f"[{name}] Stopping idle container: {container_name}")
-                        container.stop(timeout=10)
-                        state["last_used"] = 0 # Reset timer
+        await asyncio.sleep(60)  # Just keep the task alive for potential future use
 
 
 async def start_keep_warm_models():
@@ -224,20 +198,19 @@ async def start_keep_warm_models():
                 except Exception as e:
                     print(f"[{name}] Failed to start keep-warm container: {e}")
 
-async def stop_keep_warm_models():
-    """Stop all keep-warm models (typically when gaming mode is enabled)."""
+async def stop_all_running_models():
+    """Stop all running model containers (called when gaming mode is enabled)."""
     for name, state in model_states.items():
-        if state["config"].get("keep_warm", False):
-            container_name = state["config"]["container"]
-            container = get_container(container_name)
-            if container and container.status == "running":
-                print(f"[{name}] Stopping keep-warm container: {container_name}")
-                try:
-                    container.stop(timeout=10)
-                    state["last_used"] = 0  # Reset timer
-                    print(f"[{name}] Keep-warm container stopped")
-                except Exception as e:
-                    print(f"[{name}] Failed to stop keep-warm container: {e}")
+        container_name = state["config"]["container"]
+        container = get_container(container_name)
+        if container and container.status == "running":
+            print(f"[{name}] Stopping container for gaming mode: {container_name}")
+            try:
+                container.stop(timeout=10)
+                state["last_used"] = 0  # Reset timer
+                print(f"[{name}] Container stopped")
+            except Exception as e:
+                print(f"[{name}] Failed to stop container: {e}")
 
 # --- FastAPI Application ---
 @asynccontextmanager
@@ -322,10 +295,10 @@ async def set_gaming_mode(request: Request):
         mode_str = "enabled" if enable else "disabled"
         print(f"Gaming mode {mode_str}")
         
-        # Handle keep-warm models
+        # Handle models based on gaming mode transition
         if not old_mode and enable:
-            # Gaming mode just turned on - stop keep-warm models
-            await stop_keep_warm_models()
+            # Gaming mode just turned on - stop all running models
+            await stop_all_running_models()
         elif old_mode and not enable:
             # Gaming mode just turned off - restart keep-warm models
             await start_keep_warm_models()
