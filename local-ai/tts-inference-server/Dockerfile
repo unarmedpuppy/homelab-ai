@@ -9,12 +9,14 @@ WORKDIR /app
 # Install Python and dependencies
 RUN apt-get update && apt-get install -y \
     python3.11 \
+    python3.11-dev \
     python3.11-venv \
     python3-pip \
     curl \
     git \
     libsndfile1 \
     ffmpeg \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # Make python3.11 the default
