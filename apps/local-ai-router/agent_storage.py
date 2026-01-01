@@ -53,7 +53,9 @@ def add_agent_step(
     tool_result: Optional[str] = None,
     thinking: Optional[str] = None,
     error: Optional[str] = None,
-    duration_ms: Optional[int] = None
+    duration_ms: Optional[int] = None,
+    prompt_tokens: Optional[int] = None,
+    completion_tokens: Optional[int] = None
 ) -> int:
     now = datetime.utcnow()
     
@@ -61,8 +63,8 @@ def add_agent_step(
         cursor = conn.cursor()
         cursor.execute("""
             INSERT INTO agent_steps 
-            (agent_run_id, step_number, action_type, tool_name, tool_args, tool_result, thinking, error, started_at, duration_ms)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (agent_run_id, step_number, action_type, tool_name, tool_args, tool_result, thinking, error, started_at, duration_ms, prompt_tokens, completion_tokens)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             agent_run_id,
             step_number,
@@ -72,8 +74,10 @@ def add_agent_step(
             tool_result,
             thinking,
             error,
-            now.isoformat() + "Z",  # Add Z suffix for proper UTC parsing in JavaScript
-            duration_ms
+            now.isoformat() + "Z",
+            duration_ms,
+            prompt_tokens,
+            completion_tokens
         ))
         step_id = cursor.lastrowid or 0
         

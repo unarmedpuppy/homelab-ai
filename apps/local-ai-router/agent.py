@@ -324,10 +324,11 @@ async def run_agent_loop(
     for step_num in range(1, max_steps + 1):
         logger.info(f"Agent step {step_num}/{max_steps}")
 
-        # Call LLM with tools
         retries = 0
         action = None
         error = None
+        step_prompt_tokens = None
+        step_completion_tokens = None
 
         while retries < MAX_RETRIES:
             try:
@@ -340,19 +341,21 @@ async def run_agent_loop(
                     tool_choice="auto"
                 )
 
-                # Capture routing info if present (from call_llm_for_agent)
                 routing_info = response.pop("_routing_info", None)
                 if routing_info and not model_used:
                     model_used = routing_info.get("model")
                     backend_used = routing_info.get("backend")
                     backend_name = routing_info.get("backend_name")
 
+                usage = response.get("usage", {})
+                step_prompt_tokens = usage.get("prompt_tokens")
+                step_completion_tokens = usage.get("completion_tokens")
+
                 action, error = parse_model_response(response)
 
                 if action:
                     break
 
-                # Host-enforced retry with structured feedback
                 retries += 1
                 logger.warning(f"Parse error (retry {retries}): {error}")
                 messages.append({
@@ -365,7 +368,7 @@ async def run_agent_loop(
                 retries += 1
                 error = str(e)
                 logger.error(f"LLM call failed (retry {retries}): {e}")
-                await asyncio.sleep(1)  # Brief backoff
+                await asyncio.sleep(1)
 
         if not action:
             steps.append(AgentStep(
@@ -373,7 +376,8 @@ async def run_agent_loop(
                 action=AgentAction(action_type=ActionType.RESPONSE, response="Failed to get valid response"),
                 error=error
             ))
-            add_agent_step(run_id, step_num, "response", error=error)
+            add_agent_step(run_id, step_num, "response", error=error,
+                          prompt_tokens=step_prompt_tokens, completion_tokens=step_completion_tokens)
             terminated_reason = "parse_failure"
             break
 
@@ -382,7 +386,8 @@ async def run_agent_loop(
                 step_number=step_num,
                 action=action
             ))
-            add_agent_step(run_id, step_num, "terminate")
+            add_agent_step(run_id, step_num, "terminate",
+                          prompt_tokens=step_prompt_tokens, completion_tokens=step_completion_tokens)
             final_answer = action.final_answer
             terminated_reason = "completed"
             break
@@ -392,7 +397,8 @@ async def run_agent_loop(
                 step_number=step_num,
                 action=action
             ))
-            add_agent_step(run_id, step_num, "think", thinking=action.thinking)
+            add_agent_step(run_id, step_num, "think", thinking=action.thinking,
+                          prompt_tokens=step_prompt_tokens, completion_tokens=step_completion_tokens)
             messages.append({"role": "assistant", "content": action.thinking})
             messages.append({
                 "role": "user",
@@ -420,7 +426,9 @@ async def run_agent_loop(
                 tool_name=action.tool_call.name,
                 tool_args=action.tool_call.arguments,
                 tool_result=tool_result[:5000] if tool_result else None,
-                duration_ms=step_duration
+                duration_ms=step_duration,
+                prompt_tokens=step_prompt_tokens,
+                completion_tokens=step_completion_tokens
             )
 
             messages.append({

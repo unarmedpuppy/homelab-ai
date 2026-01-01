@@ -285,6 +285,8 @@ export interface AgentStepRecord {
   error: string | null;
   started_at: string;
   duration_ms: number | null;
+  prompt_tokens: number | null;
+  completion_tokens: number | null;
 }
 
 export interface AgentRunWithSteps extends AgentRunRecord {

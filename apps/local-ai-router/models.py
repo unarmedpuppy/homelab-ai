@@ -257,7 +257,6 @@ class AgentRunStatus(str, Enum):
 
 
 class AgentStepRecord(BaseModel):
-    """Database record for an agent step."""
     id: int
     agent_run_id: str
     step_number: int
@@ -269,6 +268,8 @@ class AgentStepRecord(BaseModel):
     error: Optional[str] = None
     started_at: datetime
     duration_ms: Optional[int] = None
+    prompt_tokens: Optional[int] = None
+    completion_tokens: Optional[int] = None
 
     class Config:
         from_attributes = True

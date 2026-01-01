@@ -263,6 +263,14 @@ def init_database():
             ON agent_steps(agent_run_id)
         """)
 
+        # Migration: Add token columns to agent_steps table
+        try:
+            cursor.execute("SELECT prompt_tokens FROM agent_steps LIMIT 1")
+        except sqlite3.OperationalError:
+            logger.info("Migrating: Adding token columns to agent_steps table")
+            cursor.execute("ALTER TABLE agent_steps ADD COLUMN prompt_tokens INTEGER")
+            cursor.execute("ALTER TABLE agent_steps ADD COLUMN completion_tokens INTEGER")
+
         conn.commit()
         logger.info("Database schema created successfully")
 

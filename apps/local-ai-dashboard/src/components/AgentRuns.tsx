@@ -289,43 +289,60 @@ export default function AgentRuns() {
                           <div>
                             <h4 className="text-sm font-semibold text-white mb-2">Execution Steps</h4>
                             <div className="space-y-2">
-                              {expandedRunData.steps.map((step) => (
-                                <div key={step.id} className="bg-gray-800 rounded p-3 text-sm">
-                                  <div className="flex items-start justify-between mb-2">
-                                    <span className="text-white font-medium">
-                                      Step {step.step_number}: {step.action_type}
-                                    </span>
-                                    <span className="text-xs text-gray-500">
-                                      {formatDuration(step.duration_ms)}
-                                    </span>
+                              {expandedRunData.steps.map((step, index) => {
+                                const cumulativePrompt = expandedRunData.steps
+                                  .slice(0, index + 1)
+                                  .reduce((sum, s) => sum + (s.prompt_tokens || 0), 0);
+                                const cumulativeCompletion = expandedRunData.steps
+                                  .slice(0, index + 1)
+                                  .reduce((sum, s) => sum + (s.completion_tokens || 0), 0);
+                                const hasTokens = step.prompt_tokens || step.completion_tokens;
+                                
+                                return (
+                                  <div key={step.id} className="bg-gray-800 rounded p-3 text-sm">
+                                    <div className="flex items-start justify-between mb-2">
+                                      <span className="text-white font-medium">
+                                        Step {step.step_number}: {step.action_type}
+                                      </span>
+                                      <div className="flex items-center gap-3 text-xs">
+                                        {hasTokens && (
+                                          <span className="text-purple-400" title={`Step: ${step.prompt_tokens || 0}+${step.completion_tokens || 0} | Cumulative: ${cumulativePrompt}+${cumulativeCompletion}`}>
+                                            {cumulativePrompt + cumulativeCompletion} tok
+                                          </span>
+                                        )}
+                                        <span className="text-gray-500">
+                                          {formatDuration(step.duration_ms)}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    {step.tool_name && (
+                                      <div className="text-xs text-blue-400 mb-1">
+                                        Tool: {step.tool_name}
+                                      </div>
+                                    )}
+                                    {step.thinking && (
+                                      <div className="text-xs text-gray-400 mb-1">
+                                        <strong>Thinking:</strong> {truncateText(step.thinking, 150)}
+                                      </div>
+                                    )}
+                                    {step.tool_args && (
+                                      <div className="text-xs text-gray-400 mb-1">
+                                        <strong>Args:</strong> {JSON.stringify(step.tool_args, null, 2)}
+                                      </div>
+                                    )}
+                                    {step.tool_result && (
+                                      <div className="text-xs text-gray-300 mb-1">
+                                        <strong>Result:</strong> {truncateText(step.tool_result, 150)}
+                                      </div>
+                                    )}
+                                    {step.error && (
+                                      <div className="text-xs text-red-400">
+                                        <strong>Error:</strong> {step.error}
+                                      </div>
+                                    )}
                                   </div>
-                                  {step.tool_name && (
-                                    <div className="text-xs text-blue-400 mb-1">
-                                      Tool: {step.tool_name}
-                                    </div>
-                                  )}
-                                  {step.thinking && (
-                                    <div className="text-xs text-gray-400 mb-1">
-                                      <strong>Thinking:</strong> {truncateText(step.thinking, 150)}
-                                    </div>
-                                  )}
-                                  {step.tool_args && (
-                                    <div className="text-xs text-gray-400 mb-1">
-                                      <strong>Args:</strong> {JSON.stringify(step.tool_args, null, 2)}
-                                    </div>
-                                  )}
-                                  {step.tool_result && (
-                                    <div className="text-xs text-gray-300 mb-1">
-                                      <strong>Result:</strong> {truncateText(step.tool_result, 150)}
-                                    </div>
-                                  )}
-                                  {step.error && (
-                                    <div className="text-xs text-red-400">
-                                      <strong>Error:</strong> {step.error}
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
+                                );
+                              })}
                             </div>
                           </div>
                         </div>
