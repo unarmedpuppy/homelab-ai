@@ -47,18 +47,20 @@ docker compose up
 
 This will:
 - Fetch your recent bookmarks and likes
-- Process new items through AI categorization
-- Update `docs/learning-list.md`
-- Commit and push changes
+- Store new tweets in the SQLite database
+- Skip duplicates automatically
 
 ### Scheduled Run (Cron)
 
-Add to your crontab on the server:
+Use the cron wrapper script for proper logging and lock file handling:
 
 ```bash
+# Add to crontab on server (crontab -e)
 # Run bookmark processor every 6 hours
-0 */6 * * * cd ~/server/apps/bird && docker compose up --build 2>&1 >> ~/server/logs/bird.log
+0 */6 * * * ~/server/scripts/bird-cron.sh
 ```
+
+**Logs**: `~/server/logs/bird.log`
 
 ### Daemon Mode (Continuous)
 
@@ -120,7 +122,12 @@ Check the database file exists and has correct permissions:
 docker compose run --rm bird ls -la /app/data/
 ```
 
+## Web Interface
+
+- **API**: https://bird-api.server.unarmedpuppy.com
+- **Viewer**: https://bird-viewer.server.unarmedpuppy.com
+
 ## References
 
 - [Bird CLI](https://github.com/steipete/bird) - Twitter CLI tool
-- [Bird Viewer](../beads-viewer/) - UI for viewing stored bookmarks (planned)
+- [Bird Viewer](../bird-viewer/) - React UI for viewing stored bookmarks

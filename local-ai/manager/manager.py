@@ -46,15 +46,19 @@ def load_models():
             # Default to "text" for backward compatibility
             config["type"] = "text"
             print(f"Warning: Model '{name}' missing 'type' field, defaulting to 'text'")
-        elif config["type"] not in ["text", "image"]:
+        elif config["type"] not in ["text", "image", "tts"]:
             print(f"Warning: Model '{name}' has invalid type '{config['type']}', defaulting to 'text'")
             config["type"] = "text"
     
     text_models = [name for name, s in model_states.items() if s["config"].get("type") == "text"]
     image_models = [name for name, s in model_states.items() if s["config"].get("type") == "image"]
-    print(f"Loaded {len(models)} models: {len(text_models)} text, {len(image_models)} image")
+    tts_models = [name for name, s in model_states.items() if s["config"].get("type") == "tts"]
+    keep_warm_models = [name for name, s in model_states.items() if s["config"].get("keep_warm", False)]
+    print(f"Loaded {len(models)} models: {len(text_models)} text, {len(image_models)} image, {len(tts_models)} tts")
     print(f"  Text models: {text_models}")
     print(f"  Image models: {image_models}")
+    print(f"  TTS models: {tts_models}")
+    print(f"  Keep-warm models: {keep_warm_models}")
 
 def get_container(name: str):
     """Gets a docker container by name, returns None if not found."""
@@ -80,23 +84,23 @@ async def wait_for_ready(model_name: str):
     start_time = time.time()
     
     # Different health check endpoints for different model types
-    # Both support /v1/models for OpenAI compatibility, but we can also check /health for image models
+    # All support /v1/models for OpenAI compatibility, but we can also check /health
     health_endpoints = [
-        f"http://{container_name}:8000/v1/models",  # OpenAI-compatible, works for both
-        f"http://{container_name}:8000/health",      # Image server health check
+        f"http://{container_name}:8000/v1/models",  # OpenAI-compatible, works for all
+        f"http://{container_name}:8000/health",      # Health check for image/tts servers
     ]
     
     while time.time() - start_time < START_TIMEOUT:
         try:
             async with httpx.AsyncClient() as client:
-                # Try /v1/models first (works for both vLLM and image server)
+                # Try /v1/models first (works for vLLM, image server, and TTS server)
                 res = await client.get(f"http://{container_name}:8000/v1/models", timeout=2)
                 if res.status_code == 200:
                     print(f"[{model_name}] Container is ready!")
                     return True
                 
-                # For image models, also try /health endpoint
-                if model_type == "image":
+                # For image and TTS models, also try /health endpoint
+                if model_type in ["image", "tts"]:
                     res = await client.get(f"http://{container_name}:8000/health", timeout=2)
                     if res.status_code == 200:
                         print(f"[{model_name}] Container is ready (via /health)!")
@@ -169,11 +173,28 @@ async def start_model_container(model_name: str):
 
 # --- Background Task ---
 async def reaper_task():
-    """Periodically stops idle model containers."""
+    """Periodically stops idle model containers.
+    
+    Keep-warm models are only stopped when gaming mode is enabled.
+    Regular models are stopped after IDLE_TIMEOUT seconds of inactivity.
+    """
     while True:
         await asyncio.sleep(10)
         now = time.time()
+        
+        # Check gaming mode state
+        is_gaming = False
+        if gaming_mode_lock is not None:
+            async with gaming_mode_lock:
+                is_gaming = gaming_mode
+        
         for name, state in model_states.items():
+            keep_warm = state["config"].get("keep_warm", False)
+            
+            # Skip keep-warm models unless gaming mode is on
+            if keep_warm and not is_gaming:
+                continue
+            
             if state["last_used"] == 0:
                 continue # Model has not been used yet
 
@@ -186,6 +207,38 @@ async def reaper_task():
                         container.stop(timeout=10)
                         state["last_used"] = 0 # Reset timer
 
+
+async def start_keep_warm_models():
+    """Start all keep-warm models on manager startup."""
+    for name, state in model_states.items():
+        if state["config"].get("keep_warm", False):
+            container_name = state["config"]["container"]
+            container = get_container(container_name)
+            if container and container.status != "running":
+                print(f"[{name}] Starting keep-warm container: {container_name}")
+                try:
+                    container.start()
+                    state["last_used"] = time.time()
+                    # Don't wait for ready here - let it load in background
+                    print(f"[{name}] Container started (loading in background)")
+                except Exception as e:
+                    print(f"[{name}] Failed to start keep-warm container: {e}")
+
+async def stop_keep_warm_models():
+    """Stop all keep-warm models (typically when gaming mode is enabled)."""
+    for name, state in model_states.items():
+        if state["config"].get("keep_warm", False):
+            container_name = state["config"]["container"]
+            container = get_container(container_name)
+            if container and container.status == "running":
+                print(f"[{name}] Stopping keep-warm container: {container_name}")
+                try:
+                    container.stop(timeout=10)
+                    state["last_used"] = 0  # Reset timer
+                    print(f"[{name}] Keep-warm container stopped")
+                except Exception as e:
+                    print(f"[{name}] Failed to stop keep-warm container: {e}")
+
 # --- FastAPI Application ---
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -193,6 +246,7 @@ async def lifespan(app: FastAPI):
     gaming_mode_lock = asyncio.Lock()
     load_models()
     asyncio.create_task(reaper_task())
+    await start_keep_warm_models()
     yield
 
 app = FastAPI(lifespan=lifespan)
@@ -219,7 +273,8 @@ async def status():
             "type": state["config"].get("type", "text"),
             "container": state["config"]["container"],
             "last_used": state["last_used"],
-            "idle_seconds": int(time.time() - state["last_used"]) if state["last_used"] > 0 else None
+            "idle_seconds": int(time.time() - state["last_used"]) if state["last_used"] > 0 else None,
+            "keep_warm": state["config"].get("keep_warm", False)
         }
         
         if container and container.status == "running":
@@ -266,6 +321,14 @@ async def set_gaming_mode(request: Request):
         gaming_mode = enable
         mode_str = "enabled" if enable else "disabled"
         print(f"Gaming mode {mode_str}")
+        
+        # Handle keep-warm models
+        if not old_mode and enable:
+            # Gaming mode just turned on - stop keep-warm models
+            await stop_keep_warm_models()
+        elif old_mode and not enable:
+            # Gaming mode just turned off - restart keep-warm models
+            await start_keep_warm_models()
     
     return {
         "gaming_mode": gaming_mode,

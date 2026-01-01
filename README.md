@@ -1366,6 +1366,12 @@ sudo crontab -e
 ```
 Auto-deletes watched TV episodes based on Sonarr's `auto-delete` tag. See [agents/reference/plex-cleanup.md](agents/reference/plex-cleanup.md) for details.
 
+**Bird Bookmark Processor** (Every 6 hours):
+```
+0 */6 * * * /home/unarmedpuppy/server/scripts/bird-cron.sh
+```
+Fetches X/Twitter bookmarks and likes, stores in SQLite database. See [apps/bird/README.md](apps/bird/README.md) for details.
+
 **Backup Rust Player Data** (First Wednesday of each month):
 ```
 0 0 1-7 * * [ "$(date +\%u)" = "3" ] && ~/server/scripts/backup-rust.sh

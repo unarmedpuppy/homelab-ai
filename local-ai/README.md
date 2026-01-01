@@ -87,7 +87,13 @@ docker compose up -d
 ### Image Generation Models (Diffusers)
 - **qwen-image-edit**: Qwen Image Edit 2509 (image generation and editing)
 
-**Note**: Image models use a separate inference engine (HuggingFace Diffusers) and run in different containers than text models. See `local-ai/image-inference-server/` for the image model server implementation.
+### Text-to-Speech Models (Chatterbox)
+- **chatterbox-turbo**: Chatterbox Turbo 350M (fast TTS with voice cloning)
+
+**Note**: Each model type uses a different inference engine:
+- Text models: vLLM
+- Image models: HuggingFace Diffusers (`image-inference-server/`)
+- TTS models: Chatterbox (`tts-inference-server/`)
 
 ## Features
 
@@ -98,8 +104,8 @@ docker compose up -d
 - **OpenAI compatibility**: Works with any OpenAI-compatible client
 - **GPU acceleration**: Uses NVIDIA GPU for fast inference
 - **Memory efficient**: Only loads models when needed
-- **Multimodal support**: Supports both text generation and image generation models
-- **Unified management**: Single manager service handles both text and image models
+- **Multimodal support**: Text, image, and TTS models
+- **Unified management**: Single manager service handles all model types
 
 ## Usage
 
@@ -131,7 +137,24 @@ curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
   }'
 ```
 
+**TTS Usage (Text-to-Speech):**
+```bash
+# Generate speech via manager (starts container on-demand)
+curl -X POST http://localhost:8000/v1/audio/speech \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "chatterbox-turbo",
+    "input": "Hello, this is Chatterbox Turbo!",
+    "voice": "default"
+  }' \
+  --output speech.wav
+
+# Play the audio
+ffplay speech.wav
+```
+
 See [Local AI Router README](../apps/local-ai-router/README.md) for full API documentation.
+See [TTS Inference Server README](./tts-inference-server/README.md) for TTS-specific documentation.
 
 ## Requirements
 
