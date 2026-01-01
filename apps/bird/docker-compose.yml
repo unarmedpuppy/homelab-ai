@@ -1,0 +1,40 @@
+x-enabled: true
+
+services:
+  bird:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bird
+    restart: "no"  # One-shot job, not always running
+    environment:
+      - TZ=America/Chicago
+      # Twitter/X Authentication
+      - AUTH_TOKEN=${AUTH_TOKEN}
+      - CT0=${CT0}
+      # AI Router
+      - AI_ROUTER_URL=http://local-ai-router:8000
+      # Git config
+      - GIT_USER_NAME=Bird Bot
+      - GIT_USER_EMAIL=bird@server.unarmedpuppy.com
+      # Processing options
+      - BOOKMARK_LIMIT=${BOOKMARK_LIMIT:-50}
+      - RUN_MODE=${RUN_MODE:-cron}
+      - SLEEP_INTERVAL=${SLEEP_INTERVAL:-21600}
+    volumes:
+      # Persistent data (processed IDs, cache)
+      - ./data:/app/data
+      # Mount the home-server repo for git commits
+      - ~/server:/repo
+    networks:
+      - my-network
+    labels:
+      # Homepage integration
+      - "homepage.group=AI & Machine Learning"
+      - "homepage.name=Bird"
+      - "homepage.icon=si-x"
+      - "homepage.description=X/Twitter bookmark processor"
+
+networks:
+  my-network:
+    external: true
