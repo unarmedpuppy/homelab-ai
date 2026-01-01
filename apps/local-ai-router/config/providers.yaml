@@ -244,10 +244,10 @@ models:
       - large-context
       - default
 
-  - id: glm-4-flash
-    name: "GLM-4 Flash"
+  - id: glm-4.5-air
+    name: "GLM-4.5 Air"
     providerId: zai
-    description: "GLM-4 Flash - fast general purpose model"
+    description: "GLM-4.5 Air - fast general purpose model"
     contextWindow: 128000
     maxTokens: 4096
     isDefault: false
@@ -266,15 +266,15 @@ models:
       - cloud
       - large-context
 
-  - id: glm-4-plus
-    name: "GLM-4 Plus"
+  - id: glm-4.6
+    name: "GLM-4.6"
     providerId: zai
-    description: "GLM-4 Plus - more capable, slower"
+    description: "GLM-4.6 - balanced capability and speed"
     contextWindow: 128000
     maxTokens: 4096
     isDefault: false
 
-    costPer1kTokens: 0.005
+    costPer1kTokens: 0.002
 
     capabilities:
       streaming: true
