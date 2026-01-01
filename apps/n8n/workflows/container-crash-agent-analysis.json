@@ -35,36 +35,7 @@
       "typeVersion": 2,
       "position": [650, 300],
       "parameters": {
-        "jsCode": "// Get raw input\nconst rawInput = $input.first();\nconst rawJson = rawInput ? rawInput.json : null;\nconst stdout = rawJson?.stdout || rawJson?.output || rawJson?.data || '';\n\n// Check for no failures\nif (!stdout || stdout.trim() === 'NO_FAILURES' || !stdout.trim()) {\n  return [];\n}\n\n// Parse failed containers\nconst lines = stdout.split('\\n').filter(l => l.trim());\nconst results = [];\n\nfor (const line of lines) {\n  const parts = line.split('|');\n  if (parts.length >= 3) {\n    const name = parts[0].trim();\n    const status = parts[1].trim();\n    const state = parts[2].trim();\n    \n    const exitMatch = status.match(/Exited \\((\\d+)\\)/);\n    const exitCode = exitMatch ? exitMatch[1] : null;\n    \n    results.push({\n      json: {\n        container_name: name,\n        status: status,\n        state: state,\n        exit_code: exitCode,\n        timestamp: new Date().toISOString()\n      }\n    });\n  }\n}\n\nreturn results;"
-      }
-    },
-    {
-      "id": "filter-failures",
-      "name": "Has Failures?",
-      "type": "n8n-nodes-base.filter",
-      "typeVersion": 2,
-      "position": [850, 300],
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "loose"
-          },
-          "conditions": [
-            {
-              "id": "check-has-container",
-              "leftValue": "={{ $json.container_name }}",
-              "rightValue": "",
-              "operator": {
-                "type": "string",
-                "operation": "isNotEmpty"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
+        "jsCode": "// Get raw input\nconst rawInput = $input.first();\nconst rawJson = rawInput ? rawInput.json : null;\nconst stdout = rawJson?.stdout || rawJson?.output || rawJson?.data || '';\n\n// Check for no failures - return empty array to stop workflow\nif (!stdout || stdout.trim() === 'NO_FAILURES' || !stdout.trim()) {\n  return [];\n}\n\n// Parse failed containers\nconst lines = stdout.split('\\n').filter(l => l.trim());\nconst results = [];\n\nfor (const line of lines) {\n  const parts = line.split('|');\n  if (parts.length >= 3) {\n    const name = parts[0].trim();\n    const status = parts[1].trim();\n    const state = parts[2].trim();\n    \n    const exitMatch = status.match(/Exited \\((\\d+)\\)/);\n    const exitCode = exitMatch ? exitMatch[1] : null;\n    \n    results.push({\n      json: {\n        container_name: name,\n        status: status,\n        state: state,\n        exit_code: exitCode,\n        timestamp: new Date().toISOString()\n      }\n    });\n  }\n}\n\nreturn results;"
       }
     },
     {
@@ -72,7 +43,7 @@
       "name": "Get Logs",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
-      "position": [1050, 300],
+      "position": [850, 300],
       "parameters": {
         "command": "docker logs --tail 50 {{ $json.container_name }} 2>&1 || echo 'Could not get logs'"
       }
@@ -82,7 +53,7 @@
       "name": "Build Agent Task",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1250, 300],
+      "position": [1050, 300],
       "parameters": {
         "jsCode": "// Use $itemIndex to get the correct container\nconst allContainers = $('Parse Failures').all();\nconst container = allContainers[$itemIndex]?.json || allContainers[0]?.json;\nconst logs = $input.first().json.stdout || 'No logs available';\n\nconst truncatedLogs = logs.length > 2000 \n  ? logs.substring(logs.length - 2000) \n  : logs;\n\n// Determine severity\nlet severity = 'medium';\nconst exitCode = container?.exit_code;\nconst status = container?.status || '';\nif (exitCode === '137' || status.includes('unhealthy')) {\n  severity = 'high';\n} else if (exitCode === '1' || exitCode === '2') {\n  severity = 'high';\n} else if (status.includes('Restarting')) {\n  severity = 'high';\n}\n\nconst task = `Analyze this Docker container failure and determine the root cause.\n\n## Container Details\n- **Name**: ${container?.container_name || 'unknown'}\n- **Status**: ${container?.status || 'unknown'}\n- **State**: ${container?.state || 'unknown'}\n- **Exit Code**: ${container?.exit_code || 'N/A'}\n- **Severity**: ${severity}\n- **Detected At**: ${container?.timestamp || new Date().toISOString()}\n\n## Recent Logs (last 50 lines)\n\\`\\`\\`\n${truncatedLogs}\n\\`\\`\\`\n\n## Instructions\n1. Analyze the provided logs for obvious errors\n2. Use search_skills('docker') or search_skills('troubleshoot') to find relevant guides\n3. If needed, use run_shell to get more context (docker inspect, docker logs, etc.)\n4. Determine the root cause and recommended fix\n5. Call task_complete with your analysis including:\n   - Root cause of the failure\n   - Recommended fix\n   - Severity assessment (critical/warning/info)\n   - Whether auto-restart is recommended`;\n\nreturn [{\n  json: {\n    task: task,\n    working_directory: '/tmp',\n    model: 'auto',\n    max_steps: 15,\n    source: 'n8n',\n    triggered_by: 'container-crash-monitor',\n    _container_name: container?.container_name || 'unknown',\n    _exit_code: container?.exit_code || null,\n    _severity: severity\n  }\n}];"
       }
@@ -92,7 +63,7 @@
       "name": "Call Agent",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1450, 300],
+      "position": [1250, 300],
       "parameters": {
         "method": "POST",
         "url": "http://local-ai-router:8000/agent/run",
@@ -118,7 +89,7 @@
       "name": "Agent Succeeded?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1650, 300],
+      "position": [1450, 300],
       "parameters": {
         "conditions": {
           "options": {
@@ -147,7 +118,7 @@
       "name": "Format Success",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1850, 200],
+      "position": [1650, 200],
       "parameters": {
         "jsCode": "const agentResult = $input.first().json;\nconst taskData = $('Build Agent Task').first().json;\n\nreturn [{\n  json: {\n    status: 'success',\n    run_id: agentResult.run_id || null,\n    container_name: taskData._container_name,\n    exit_code: taskData._exit_code,\n    severity: taskData._severity,\n    agent_analysis: agentResult.final_answer || 'No analysis provided',\n    steps_taken: agentResult.total_steps || 0,\n    terminated_reason: agentResult.terminated_reason || 'unknown',\n    timestamp: new Date().toISOString()\n  }\n}];"
       }
@@ -157,7 +128,7 @@
       "name": "Format Error",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1850, 400],
+      "position": [1650, 400],
       "parameters": {
         "jsCode": "const agentResult = $input.first().json;\nconst taskData = $('Build Agent Task').first().json;\n\nreturn [{\n  json: {\n    status: 'error',\n    run_id: agentResult.run_id || null,\n    container_name: taskData._container_name,\n    exit_code: taskData._exit_code,\n    severity: taskData._severity,\n    error: agentResult.terminated_reason || agentResult.error || 'Unknown error',\n    steps_taken: agentResult.total_steps || 0,\n    timestamp: new Date().toISOString()\n  }\n}];"
       }
@@ -171,9 +142,6 @@
       "main": [[{ "node": "Parse Failures", "type": "main", "index": 0 }]]
     },
     "Parse Failures": {
-      "main": [[{ "node": "Has Failures?", "type": "main", "index": 0 }]]
-    },
-    "Has Failures?": {
       "main": [[{ "node": "Get Logs", "type": "main", "index": 0 }]]
     },
     "Get Logs": {
@@ -198,5 +166,5 @@
   "staticData": null,
   "tags": [],
   "updatedAt": "2025-12-31T00:00:00.000Z",
-  "versionId": "2"
+  "versionId": "3"
 }
