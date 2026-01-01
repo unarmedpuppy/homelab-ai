@@ -919,41 +919,32 @@ async def call_llm_for_agent(
         "max_tokens": max_tokens,
     }
     
-    # Context-aware routing for agent calls
-    if model in ["auto", "small", "fast"]:
-        if token_estimate < SMALL_TOKEN_THRESHOLD:
-            # Small context: use 3070 (faster, always-on)
-            backend_id = "3070"
-            actual_model = "qwen2.5-7b-awq"
-        else:
-            # Larger context: use 3090
-            backend_id = "3090"
-            actual_model = "qwen2.5-14b-awq"
-            if token_estimate > 8000:
-                logger.warning(f"Agent context very large ({token_estimate} tokens), may overflow 8K limit")
-    elif model in ["big", "3090"]:
-        # Explicit 3090 request
-        backend_id = "3090"
-        actual_model = "qwen2.5-14b-awq"
-    else:
-        # Specific model requested - try to route appropriately
-        backend_id = "3090"
-        actual_model = model
+    # Agent calls ALWAYS use 3090 - tool definitions add ~2500-4000 tokens overhead
+    # that isn't counted in the token estimate. The 3070's 2048 context is too small.
+    # 
+    # Token breakdown for agent calls:
+    # - System prompt + user message: ~600-1500 tokens (estimated)
+    # - 24 tool definitions: ~2500-4000 tokens (NOT in estimate!)
+    # - Response: ~500-2000 tokens
+    # Total: easily 4000-7000+ tokens - requires 3090's larger context
+    backend_id = "3090"
+    actual_model = "qwen2.5-14b-awq"
+    
+    if token_estimate > 6000:
+        logger.warning(f"Agent context very large (~{token_estimate} tokens in messages + ~3000 tool tokens), may approach limit")
 
     # Check backend availability with fallback
     backend = BACKENDS.get(backend_id)
     if not backend or not backend["available"]:
-        # Fallback to other backend
-        fallback_id = "3090" if backend_id == "3070" else "3070"
-        fallback = BACKENDS.get(fallback_id)
+        # Try 3070 as fallback, but warn that it will likely fail
+        fallback = BACKENDS.get("3070")
         if fallback and fallback["available"]:
-            logger.warning(f"Backend {backend_id} unavailable, falling back to {fallback_id}")
-            backend_id = fallback_id
+            logger.warning(f"3090 unavailable for agent call - falling back to 3070. This will likely fail due to context size!")
+            backend_id = "3070"
             backend = fallback
-            # Adjust model for fallback backend
-            actual_model = "qwen2.5-14b-awq" if fallback_id == "3090" else "qwen2.5-7b-awq"
+            actual_model = "qwen2.5-7b-awq"
         else:
-            raise HTTPException(status_code=503, detail="No backend available for agent")
+            raise HTTPException(status_code=503, detail="No backend available for agent (3090 required for tool-heavy agent calls)")
 
     body["model"] = actual_model
     logger.info(f"Agent LLM call: model={actual_model}, backend={backend_id}, tokens~{token_estimate}, messages={len(messages)}")
