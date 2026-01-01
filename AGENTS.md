@@ -350,6 +350,7 @@ Agent-discoverable tool guides are in `agents/skills/`. Each tool has a `SKILL.m
 | [test-local-ai-router](agents/skills/test-local-ai-router/) | Test Local AI Router with memory and metrics tracking | - |
 | [gaming-pc-manager](agents/skills/gaming-pc-manager/) | Interact with Gaming PC's local-ai manager for model control | - |
 | [test-tts](agents/skills/test-tts/) | Test Text-to-Speech generation via Chatterbox Turbo | - |
+| [query-bird-posts](agents/skills/query-bird-posts/) | Query stored X/Twitter bookmarks and likes via Bird API | - |
 
 ## Agent Personas
 
