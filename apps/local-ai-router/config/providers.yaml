@@ -343,6 +343,31 @@ models:
       - large-context
       - premium
 
+  - id: claude-opus-4
+    name: "Claude Opus 4 (via Claude Max)"
+    providerId: claude-harness
+    description: "Claude Opus 4 via Claude Code CLI - most capable model"
+    contextWindow: 200000
+    maxTokens: 32000
+    isDefault: false
+
+    costPer1kTokens: 0
+
+    capabilities:
+      streaming: true
+      functionCalling: true
+      vision: true
+      jsonMode: true
+
+    tags:
+      - chat
+      - reasoning
+      - cloud
+      - vision
+      - large-context
+      - premium
+      - opus
+
 
 # ============================================================================
 # CONFIGURATION OPTIONS
