@@ -26,7 +26,8 @@ ALLOWED_DOCKER_COMMANDS = [
 ]
 
 # Maximum output size for tool results (to avoid LLM context overflow)
-MAX_OUTPUT_SIZE = 4000
+# Qwen 14B AWQ has ~8K context, so we need to be aggressive here
+MAX_OUTPUT_SIZE = 2000
 
 
 def _smart_truncate(output: str, command: str) -> str:

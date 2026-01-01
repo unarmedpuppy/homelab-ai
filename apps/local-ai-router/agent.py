@@ -179,11 +179,49 @@ Task: "Restart the homepage container"
 """
 
 
+def estimate_tokens(messages: list) -> int:
+    """Rough token estimation (~4 chars per token for English text)."""
+    total_chars = sum(len(str(m.get("content", ""))) for m in messages)
+    return total_chars // 4
+
+
+def prune_context_if_needed(messages: list, max_tokens: int = 6000) -> list:
+    """
+    Prune old tool results if context is getting too large.
+    Keeps system prompt and recent messages, summarizes old tool results.
+    """
+    estimated = estimate_tokens(messages)
+    if estimated <= max_tokens:
+        return messages
+    
+    logger.warning(f"Context too large (~{estimated} tokens), pruning old messages")
+    
+    pruned = []
+    for i, msg in enumerate(messages):
+        if msg.get("role") == "system":
+            pruned.append(msg)
+        elif msg.get("role") == "tool" and i < len(messages) - 4:
+            content = msg.get("content", "")
+            if len(content) > 500:
+                pruned.append({
+                    **msg,
+                    "content": f"[Summarized: {content[:200]}...]"
+                })
+            else:
+                pruned.append(msg)
+        else:
+            pruned.append(msg)
+    
+    logger.info(f"Pruned context: {estimated} -> ~{estimate_tokens(pruned)} tokens")
+    return pruned
+
+
 def parse_model_response(response: dict) -> tuple[AgentAction, Optional[str]]:
     """Parse model response into an AgentAction. Returns (action, error)."""
     try:
         choices = response.get("choices", [])
         if not choices:
+            logger.error(f"Empty choices in response. Full response: {json.dumps(response)[:500]}")
             return None, "No choices in response"
 
         message = choices[0].get("message", {})
@@ -285,8 +323,10 @@ async def run_agent_loop(
 
         while retries < MAX_RETRIES:
             try:
+                pruned_messages = prune_context_if_needed(messages)
+                
                 response = await call_llm(
-                    messages=messages,
+                    messages=pruned_messages,
                     model=request.model,
                     tools=current_tools,
                     tool_choice="auto"
