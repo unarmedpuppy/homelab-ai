@@ -294,6 +294,7 @@ Agent-discoverable tool guides are in `agents/skills/`. Each tool has a `SKILL.m
 | [standard-deployment](agents/skills/standard-deployment/) | Deploy code changes to server | `scripts/deploy-to-server.sh` |
 | [deploy-polymarket-bot](agents/skills/deploy-polymarket-bot/) | Safe polymarket-bot deployment (checks for active trades) | `agents/skills/deploy-polymarket-bot/deploy.sh` |
 | [connect-server](agents/skills/connect-server/) | Execute commands on server | `scripts/connect-server.sh` |
+| [connect-gaming-pc](agents/skills/connect-gaming-pc/) | Interactive SSH to Gaming PC (WSL) | `scripts/connect-gaming-pc.sh` |
 | [git-server-sync](agents/skills/git-server-sync/) | Sync git between local and server | `scripts/git-server-sync.sh` |
 
 ### Security

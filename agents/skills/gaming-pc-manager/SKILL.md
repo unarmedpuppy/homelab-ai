@@ -172,8 +172,21 @@ docker logs <container-name> --tail 50
 nvidia-smi
 ```
 
+## SSH Access
+
+For direct shell access to the Gaming PC:
+
+```bash
+bash scripts/connect-gaming-pc.sh
+bash scripts/connect-gaming-pc.sh "nvidia-smi"
+bash scripts/connect-gaming-pc.sh "docker ps"
+```
+
+See `agents/skills/connect-gaming-pc/` for details.
+
 ## Related
 
 - [Local AI README](../../../local-ai/README.md)
 - [Gaming Mode Documentation](../../../local-ai/GAMING_MODE.md)
 - [TTS Testing](../test-tts/SKILL.md)
+- [Connect Gaming PC](../connect-gaming-pc/SKILL.md)
