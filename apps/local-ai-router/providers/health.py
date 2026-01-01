@@ -8,6 +8,7 @@ from typing import Optional, Dict
 import httpx
 
 from .models import Provider, ProviderType
+from .cloud import get_auth_headers
 
 logger = logging.getLogger(__name__)
 
@@ -148,10 +149,11 @@ class HealthChecker:
             # Build health check URL
             health_url = f"{provider.endpoint.rstrip('/')}{provider.health_check_path}"
 
-            # Perform health check
+            # Perform health check with auth headers for cloud providers
             timeout = httpx.Timeout(provider.health_check_timeout)
+            headers = get_auth_headers(provider)
             async with httpx.AsyncClient(timeout=timeout) as client:
-                response = await client.get(health_url)
+                response = await client.get(health_url, headers=headers)
 
                 # Calculate response time
                 response_time_ms = (time.time() - start_time) * 1000
