@@ -66,12 +66,12 @@ providers:
     location: "home-server"
     powerWatts: 180
 
-  # Cloud Provider - Z.ai
+  # Cloud Provider - Z.ai (Coding Plan)
   - id: zai
-    name: "Z.ai"
+    name: "Z.ai Coding Plan"
     type: cloud
-    description: "Z.ai cloud API (GLM models) - OpenAI-compatible, no rate limits"
-    endpoint: "https://api.z.ai/api/paas/v4"
+    description: "Z.ai cloud API (GLM models) - Coding Plan subscription, unlimited usage"
+    endpoint: "https://api.z.ai/api/coding/paas/v4"
     priority: 3  # Cloud fallback
     enabled: true
 
