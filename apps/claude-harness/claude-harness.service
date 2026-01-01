@@ -8,7 +8,7 @@ User=unarmedpuppy
 Group=unarmedpuppy
 WorkingDirectory=/home/unarmedpuppy/server/apps/claude-harness
 Environment="PATH=/home/unarmedpuppy/.local/bin:/usr/local/bin:/usr/bin:/bin"
-ExecStart=/usr/bin/python3 -m uvicorn main:app --host 127.0.0.1 --port 8013
+ExecStart=/usr/bin/python3 -m uvicorn main:app --host 0.0.0.0 --port 8013
 Restart=always
 RestartSec=10
 
