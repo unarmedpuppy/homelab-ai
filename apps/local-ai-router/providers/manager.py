@@ -171,10 +171,11 @@ class ProviderManager:
                 provider = self.providers.get(provider_id)
                 if not provider:
                     raise ValueError(f"Provider not found: {provider_id}")
-                model = next((m for m in provider.models if m.id == model_id), None)
-                if not model:
+                # Look up model in self.models and verify it belongs to this provider
+                model = self.models.get(model_id)
+                if not model or model.provider_id != provider_id:
                     raise ValueError(f"Model {model_id} not found on provider {provider_id}")
-                return ProviderSelection(provider=provider, model=model)
+                return ProviderSelection(provider=provider, model=model, reason="explicit selection")
 
             # 1. Resolve model
             resolved_model_id = model_id or self._resolve_model(requested_model)
