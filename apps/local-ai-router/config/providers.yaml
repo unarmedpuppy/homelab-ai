@@ -116,9 +116,10 @@ providers:
     location: "cloud"
 
   # Claude Harness - Claude Max subscription via Claude Code CLI
+  # type: local -> uses /v1/chat/completions path (OpenAI-compatible, like vLLM)
   - id: claude-harness
     name: "Claude Harness (Claude Max)"
-    type: cloud
+    type: local
     description: "Claude Max subscription via Claude Code CLI wrapper - uses OAuth, no API key needed"
     endpoint: "http://host.docker.internal:8013"  # FastAPI service on host (via Docker's host-gateway)
     priority: 4  # Final fallback (same as old anthropic)
