@@ -26,6 +26,7 @@ PROCESSED_FILE = DATA_DIR / "processed.json"
 BOOKMARKS_CACHE = DATA_DIR / "bookmarks.json"
 
 AI_ROUTER_URL = os.getenv("AI_ROUTER_URL", "http://local-ai-router:8000")
+AI_API_KEY = os.getenv("AI_API_KEY", "")  # Required for Local AI Router auth
 BOOKMARK_LIMIT = int(os.getenv("BOOKMARK_LIMIT", "50"))
 RUN_MODE = os.getenv("RUN_MODE", "cron")
 SLEEP_INTERVAL = int(os.getenv("SLEEP_INTERVAL", "21600"))  # 6 hours

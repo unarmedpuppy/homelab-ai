@@ -298,6 +298,54 @@ sudo ./manage.sh update     # After git pull
 
 **Documentation:** [apps/claude-harness/README.md](../../apps/claude-harness/README.md)
 
+## Agent Endpoints
+
+Two agent endpoints with different architectures:
+
+| Endpoint | Backend | Architecture | Use Case |
+|----------|---------|--------------|----------|
+| `/agent/run` | 3090 vLLM | Our agent loop + tools | Tracked, step-by-step execution |
+| `/agent/run/claude` | Claude Harness | Passthrough to Claude CLI | Simple task → response |
+
+### Key Difference
+
+**Local Agent**: We control the loop, tools, and execution. Steps are tracked in our DB.
+
+**Claude Agent**: Claude CLI IS an agent. We just pass the task and get the result. No tracking needed.
+
+### Local Agent (Full Control)
+```bash
+curl -X POST http://localhost:8012/agent/run \
+  -H "Content-Type: application/json" \
+  -d '{
+    "task": "List files in /tmp",
+    "working_directory": "/tmp",
+    "max_steps": 10
+  }'
+# Returns: run_id, steps[], total_steps, model_used, backend
+```
+
+### Claude Agent (Passthrough)
+```bash
+curl -X POST http://localhost:8012/agent/run/claude \
+  -H "Content-Type: application/json" \
+  -d '{
+    "task": "Analyze this error and suggest a fix"
+  }'
+# Returns: { success, response }
+```
+
+### When to Use Which
+
+| Use Local (`/agent/run`) | Use Claude (`/agent/run/claude`) |
+|--------------------------|----------------------------------|
+| Need step tracking | Just need the answer |
+| Using our skills system | General coding questions |
+| Want dashboard visibility | Complex reasoning |
+| Cost-sensitive | Quality-critical |
+
+**Plan**: [Claude Agent Endpoint](../plans/claude-agent-endpoint.md)
+
 ## Related
 
 - [Local AI Router README](../../apps/local-ai-router/README.md) - Full documentation
