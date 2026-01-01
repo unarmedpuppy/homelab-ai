@@ -36,6 +36,8 @@ services:
       - ~/.ssh/known_hosts:/root/.ssh/known_hosts:ro
     ports:
       - "8012:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - my-network
     labels:

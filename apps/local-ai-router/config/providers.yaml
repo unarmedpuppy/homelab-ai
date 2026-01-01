@@ -120,7 +120,7 @@ providers:
     name: "Claude Harness (Claude Max)"
     type: cloud
     description: "Claude Max subscription via Claude Code CLI wrapper - uses OAuth, no API key needed"
-    endpoint: "http://192.168.86.47:8013"  # FastAPI service on host
+    endpoint: "http://host.docker.internal:8013"  # FastAPI service on host (via Docker's host-gateway)
     priority: 4  # Final fallback (same as old anthropic)
     enabled: true
 
