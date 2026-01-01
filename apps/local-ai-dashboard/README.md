@@ -55,19 +55,18 @@ For Docker deployment, the API is accessed via the internal network at `http://l
 
 ### TTS Configuration
 
-TTS is proxied through nginx to the Gaming PC's local-ai manager. Configure in `.env`:
+TTS is now proxied through the Local AI Router for unified access. The router handles routing to the Gaming PC's local-ai manager.
 
-```env
-TTS_API_URL=http://<GAMING_PC_IP>:8000
-```
+No additional configuration needed - TTS uses the same API key and endpoint as the main chat functionality.
 
 **How TTS works:**
 1. Enable TTS via the 🔊 toggle button in the chat header
-2. After each assistant response, audio is generated via Chatterbox Turbo
-3. Audio auto-plays in the browser
-4. Memory is freed after playback (Blob URL revoked)
+2. After each assistant response, TTS request goes through Local AI Router
+3. Router proxies to Gaming PC for Chatterbox Turbo generation
+4. Audio auto-plays in the browser
+5. Memory is freed after playback (Blob URL revoked)
 
-**TTS availability:** The toggle only appears if TTS is configured and reachable.
+**TTS availability:** The toggle appears if the Local AI Router is healthy and reachable.
 
 ## API Integration
 

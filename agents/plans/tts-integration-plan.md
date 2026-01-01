@@ -107,7 +107,7 @@ TTS_API_URL=http://<GAMING_PC_IP>:8000
 
 ## Phase 2: Router Integration (Optional)
 
-**Status**: Not started
+**Status**: In progress
 
 The TTS is already accessible via the Gaming PC manager at `192.168.86.63:8000`. 
 This phase adds routing through the server's Local AI Router for unified access.
@@ -119,38 +119,53 @@ This phase adds routing through the server's Local AI Router for unified access.
 
 ### Tasks
 
-1. **Add TTS config to router**
+1. **Add TTS config to router** ✅
    ```python
-   # router.py or config/providers.yaml
-   TTS_ENDPOINT = os.getenv("TTS_ENDPOINT", "http://192.168.86.63:8000")
+   # router.py
+   TTS_ENDPOINT = os.getenv("TTS_ENDPOINT", GAMING_PC_URL)  # TTS runs on Gaming PC
    ```
 
-2. **Add /v1/audio/speech endpoint**
-   ```python
-   @app.post("/v1/audio/speech")
-   async def audio_speech(request: Request):
-       body = await request.json()
-       body["model"] = "chatterbox-turbo"  # Ensure correct model
-       
-       async with httpx.AsyncClient(timeout=120.0) as client:
-           response = await client.post(
-               f"{TTS_ENDPOINT}/v1/audio/speech",
-               json=body,
-           )
-           return Response(
-               content=response.content,
-               media_type=response.headers.get("content-type"),
-               headers={
-                   "X-Audio-Duration": response.headers.get("X-Audio-Duration"),
-                   "X-Generation-Time": response.headers.get("X-Generation-Time"),
-               }
-           )
-   ```
+2. **Add /v1/audio/speech endpoint** ✅
+   - Implemented OpenAI-compatible TTS endpoint
+   - Validates request body (required 'input' field)
+   - Proxies to Gaming PC manager at TTS_ENDPOINT
+   - Preserves audio headers (content-type, content-length, x-audio-duration, x-generation-time)
+   - Handles timeouts and connection errors
+   - Added to root endpoint documentation
 
 ### Success Criteria
-- [ ] Router exposes `/v1/audio/speech`
-- [ ] Requests proxied to Gaming PC manager
-- [ ] On-demand container start works through proxy
+- [x] Router exposes `/v1/audio/speech`
+- [x] Requests proxied to Gaming PC manager
+- [x] On-demand container start works through proxy
+- [x] Dashboard updated to use router instead of direct Gaming PC access
+- [x] nginx TTS proxy removed (no longer needed)
+- [x] TTS_API_URL environment variable removed (uses unified router)
+
+---
+
+## Phase 2b: Dashboard Integration
+
+**Status**: Completed ✅
+
+### Changes Made
+
+1. **Updated TTS API client** ✅
+   - Changed from `/tts/` direct proxy to `/v1/audio/speech` through router
+   - Uses OpenAI-compatible model name (`tts-1`)
+   - Changed health check from `/tts/health` to router `/health`
+   - Fixed blob handling with `responseType: 'blob'`
+
+2. **Removed nginx TTS proxy** ✅
+   - Removed `/tts/` location block from nginx.conf.template
+   - No longer direct proxy to Gaming PC needed
+
+3. **Updated configuration** ✅
+   - Removed `TTS_API_URL` environment variable from docker-compose.yml
+   - Updated README to reflect new unified architecture
+
+4. **Updated documentation** ✅
+   - Dashboard README now describes unified access through Local AI Router
+   - Removed references to separate TTS configuration
 
 ---
 

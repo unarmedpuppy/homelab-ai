@@ -67,7 +67,8 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
 
   // TTS state
   const [ttsEnabled, setTtsEnabled] = useState(false);
-  const [ttsStatus, setTtsStatus] = useState<'idle' | 'generating' | 'playing' | 'error'>('idle');
+  const [ttsPlayingIdx, setTtsPlayingIdx] = useState<number | null>(null);
+  const [ttsGeneratingIdx, setTtsGeneratingIdx] = useState<number | null>(null);
   const [ttsAvailable, setTtsAvailable] = useState(false);
 
   useEffect(() => {
@@ -290,7 +291,9 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
             setStreamingTokenCount(0);
             setStreamStatus({ status: null });
             
-            handleTtsPlayback(finalContent);
+            if (ttsEnabled) {
+              handleTtsPlayback(finalContent, messages.length);
+            }
             break;
 
           case 'error':
@@ -334,21 +337,31 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
     }
   };
 
-  const handleTtsPlayback = async (text: string) => {
-    if (!ttsEnabled || !ttsAvailable) return;
+  const handleTtsPlayback = async (text: string, messageIdx?: number) => {
+    if (!ttsAvailable) return;
     
     try {
-      setTtsStatus('generating');
+      setTtsGeneratingIdx(messageIdx ?? -1);
       const audioBlob = await ttsAPI.generateSpeech(text);
-      setTtsStatus('playing');
+      setTtsGeneratingIdx(null);
+      setTtsPlayingIdx(messageIdx ?? -1);
       await ttsAPI.playAudio(audioBlob);
-      setTtsStatus('idle');
+      setTtsPlayingIdx(null);
     } catch (error) {
       console.error('TTS error:', error);
-      setTtsStatus('error');
-      setTimeout(() => setTtsStatus('idle'), 2000);
+      setTtsGeneratingIdx(null);
+      setTtsPlayingIdx(null);
     }
   };
+
+  const handlePlayMessageTts = (messageIdx: number) => {
+    const message = messages[messageIdx];
+    if (message && message.role === 'assistant') {
+      handleTtsPlayback(message.content, messageIdx);
+    }
+  };
+
+  const isTtsBusy = ttsGeneratingIdx !== null || ttsPlayingIdx !== null;
 
   return (
     <div className="flex flex-col h-screen bg-black">
@@ -368,18 +381,15 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
             {ttsAvailable && (
               <button
                 onClick={() => setTtsEnabled(!ttsEnabled)}
-                disabled={ttsStatus !== 'idle'}
+                disabled={isTtsBusy}
                 className={`px-3 py-2 rounded text-sm font-medium transition-colors flex items-center gap-2 ${
                   ttsEnabled
                     ? 'bg-purple-600 text-white'
                     : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700'
-                } ${ttsStatus !== 'idle' ? 'opacity-50 cursor-not-allowed' : ''}`}
-                title={ttsEnabled ? 'TTS enabled - responses will be spoken' : 'Enable TTS'}
+                } ${isTtsBusy ? 'opacity-50 cursor-not-allowed' : ''}`}
+                title={ttsEnabled ? 'Auto-TTS enabled - new responses will be spoken' : 'Enable auto-TTS'}
               >
-                🔊 TTS
-                {ttsStatus === 'generating' && <span className="text-xs">(generating...)</span>}
-                {ttsStatus === 'playing' && <span className="text-xs">(playing...)</span>}
-                {ttsStatus === 'error' && <span className="text-xs text-red-300">(error)</span>}
+                🔊 Auto
               </button>
             )}
             <button
@@ -537,7 +547,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                 <MarkdownContent content={message.content} />
 
                 {/* Metadata for all messages */}
-                <div className="mt-3 pt-3 border-t border-gray-800 flex flex-wrap gap-4 text-xs text-gray-500">
+                <div className="mt-3 pt-3 border-t border-gray-800 flex flex-wrap items-center gap-4 text-xs text-gray-500">
                   {message.role === 'user' ? (
                     <>
                       {message.tokens_prompt && (
@@ -553,6 +563,28 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                     </>
                   ) : (
                     <>
+                      {ttsAvailable && (
+                        <button
+                          onClick={() => handlePlayMessageTts(idx)}
+                          disabled={isTtsBusy}
+                          className={`flex items-center gap-1 px-2 py-1 rounded transition-colors ${
+                            ttsPlayingIdx === idx
+                              ? 'bg-purple-600 text-white'
+                              : ttsGeneratingIdx === idx
+                              ? 'bg-purple-900 text-purple-300'
+                              : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700'
+                          } ${isTtsBusy && ttsPlayingIdx !== idx && ttsGeneratingIdx !== idx ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          title="Play TTS"
+                        >
+                          {ttsGeneratingIdx === idx ? (
+                            <>⏳ Generating...</>
+                          ) : ttsPlayingIdx === idx ? (
+                            <>🔊 Playing...</>
+                          ) : (
+                            <>🔊 Play</>
+                          )}
+                        </button>
+                      )}
                       {message.provider && (
                         <div>
                           <span className="text-gray-600">provider:</span> {message.provider}

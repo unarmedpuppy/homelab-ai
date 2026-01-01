@@ -9,7 +9,6 @@ services:
     environment:
       - TZ=America/Chicago
       - LOCAL_AI_API_KEY=${LOCAL_AI_API_KEY}
-      - TTS_API_URL=${TTS_API_URL:-}
     networks:
       - my-network
     labels:

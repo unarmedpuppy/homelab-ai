@@ -7,7 +7,7 @@ from pathlib import Path
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException, Depends, BackgroundTasks, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse, FileResponse, JSONResponse
+from fastapi.responses import StreamingResponse, FileResponse, JSONResponse, Response
 from pydantic import BaseModel
 from typing import Optional
 import asyncio
@@ -89,6 +89,7 @@ app.add_middleware(
 GAMING_PC_URL = os.getenv("GAMING_PC_URL", "http://192.168.86.63:8000")
 LOCAL_3070_URL = os.getenv("LOCAL_3070_URL", "http://local-ai-server:8000")
 OPENCODE_URL = os.getenv("OPENCODE_URL", "http://opencode-service:8002")
+TTS_ENDPOINT = os.getenv("TTS_ENDPOINT", GAMING_PC_URL)  # TTS runs on Gaming PC
 
 SMALL_TOKEN_THRESHOLD = int(os.getenv("SMALL_TOKEN_THRESHOLD", "2000"))
 MEDIUM_TOKEN_THRESHOLD = int(os.getenv("MEDIUM_TOKEN_THRESHOLD", "16000"))
@@ -308,6 +309,7 @@ async def root():
         "endpoints": {
             "health": "/health",
             "chat": "/v1/chat/completions",
+            "tts": "/v1/audio/speech",
             "agent_local": "/agent/run",
             "agent_claude": "/agent/run/claude",
             "agent_tools": "/agent/tools",
@@ -740,6 +742,91 @@ async def stop_all_models():
             return response.json()
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Failed to stop models: {e}")
+
+# ============================================================================
+# TTS (Text-to-Speech) Endpoint
+# ============================================================================
+
+class TTSSpeechRequest(BaseModel):
+    """OpenAI-compatible TTS speech request."""
+    model: str = "tts-1"
+    input: str  # The text to synthesize
+    voice: str = "alloy"  # Voice to use (alloy, echo, fable, onyx, nova, shimmer)
+    response_format: str = "mp3"  # Format: mp3, opus, aac, flac, wav, pcm
+    speed: float = 1.0  # Speed: 0.25 to 4.0
+
+@app.post("/v1/audio/speech")
+async def text_to_speech(
+    request: Request,
+    api_key: ApiKey = Depends(validate_api_key_header)
+):
+    """
+    OpenAI-compatible text-to-speech endpoint.
+    
+    Proxies requests to Gaming PC manager which hosts Chatterbox TTS.
+    Returns audio data with appropriate headers.
+    
+    Example:
+        curl -X POST http://localhost:8012/v1/audio/speech \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer lai_xxx" \
+            -d '{
+                "model": "tts-1",
+                "input": "Hello, this is a test.",
+                "voice": "alloy",
+                "response_format": "mp3"
+            }' \
+            --output speech.mp3
+    """
+    try:
+        body = await request.json()
+        
+        # Validate required field
+        if "input" not in body:
+            raise HTTPException(status_code=400, detail="Missing required field: input")
+        
+        # Ensure model is set to our TTS model
+        body["model"] = "chatterbox-turbo"
+        
+        logger.info(f"TTS request: input='{body['input'][:50]}...', voice={body.get('voice', 'alloy')}")
+        
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            response = await client.post(
+                f"{TTS_ENDPOINT}/v1/audio/speech",
+                json=body,
+            )
+            
+            if response.status_code != 200:
+                error_msg = f"TTS generation failed: {response.text}"
+                logger.error(error_msg)
+                raise HTTPException(status_code=response.status_code, detail=error_msg)
+            
+            # Return audio data with headers from upstream
+            response_headers = {}
+            
+            # Copy relevant headers from TTS service
+            for header in ["content-type", "content-length", "x-audio-duration", "x-generation-time"]:
+                if header in response.headers:
+                    response_headers[header] = response.headers[header]
+            
+            return Response(
+                content=response.content,
+                headers=response_headers,
+                media_type=response.headers.get("content-type", "audio/mpeg")
+            )
+            
+    except httpx.TimeoutException:
+        error_msg = "TTS generation timed out"
+        logger.error(error_msg)
+        raise HTTPException(status_code=504, detail=error_msg)
+    except httpx.ConnectError as e:
+        error_msg = f"Cannot connect to TTS service: {e}"
+        logger.error(error_msg)
+        raise HTTPException(status_code=503, detail=error_msg)
+    except Exception as e:
+        error_msg = f"TTS generation failed: {e}"
+        logger.error(error_msg)
+        raise HTTPException(status_code=500, detail=error_msg)
 
 
 # ============================================================================

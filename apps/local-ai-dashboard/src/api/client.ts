@@ -491,15 +491,14 @@ export const agentRunsAPI = {
   },
 };
 
-// TTS API
 let ttsAvailableCache: boolean | null = null;
 
 export const ttsAPI = {
   checkAvailable: async (): Promise<boolean> => {
     if (ttsAvailableCache !== null) return ttsAvailableCache;
     try {
-      const response = await fetch('/tts/health', { method: 'GET' });
-      ttsAvailableCache = response.ok;
+      const response = await apiClient.get('/health');
+      ttsAvailableCache = response.status === 200;
     } catch {
       ttsAvailableCache = false;
     }
@@ -510,24 +509,17 @@ export const ttsAPI = {
     return ttsAvailableCache === true;
   },
 
-  generateSpeech: async (text: string, voice: string = 'default'): Promise<Blob> => {
-    const response = await fetch('/tts/v1/audio/speech', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'chatterbox-turbo',
-        input: text,
-        voice,
-        response_format: 'wav',
-      }),
+  generateSpeech: async (text: string, voice: string = 'alloy'): Promise<Blob> => {
+    const response = await apiClient.post('/v1/audio/speech', {
+      model: 'tts-1',
+      input: text,
+      voice,
+      response_format: 'mp3',
+    }, {
+      responseType: 'blob'
     });
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`TTS failed: ${error}`);
-    }
-
-    return response.blob();
+    return response.data;
   },
 
   playAudio: (blob: Blob): Promise<void> => {
