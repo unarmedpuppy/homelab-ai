@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { chatAPI, memoryAPI, providersAPI, imageAPI } from '../api/client';
+import { chatAPI, memoryAPI, providersAPI, imageAPI, ttsAPI } from '../api/client';
 import type { ChatMessage, ImageRef } from '../types/api';
 
 function extractTitleFromFirstLine(text: string, maxLength: number = 50): string {
@@ -64,6 +64,15 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
 
   // Image upload state
   const [pendingImages, setPendingImages] = useState<File[]>([]);
+
+  // TTS state
+  const [ttsEnabled, setTtsEnabled] = useState(false);
+  const [ttsStatus, setTtsStatus] = useState<'idle' | 'generating' | 'playing' | 'error'>('idle');
+  const [ttsAvailable, setTtsAvailable] = useState(false);
+
+  useEffect(() => {
+    ttsAPI.checkAvailable().then(setTtsAvailable);
+  }, []);
 
   // Active conversation ID (captured from first response or passed from props)
   const [activeConversationId, setActiveConversationId] = useState<string | null>(conversationId);
@@ -280,6 +289,8 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
             setStreamingContent('');
             setStreamingTokenCount(0);
             setStreamStatus({ status: null });
+            
+            handleTtsPlayback(finalContent);
             break;
 
           case 'error':
@@ -323,6 +334,22 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
     }
   };
 
+  const handleTtsPlayback = async (text: string) => {
+    if (!ttsEnabled || !ttsAvailable) return;
+    
+    try {
+      setTtsStatus('generating');
+      const audioBlob = await ttsAPI.generateSpeech(text);
+      setTtsStatus('playing');
+      await ttsAPI.playAudio(audioBlob);
+      setTtsStatus('idle');
+    } catch (error) {
+      console.error('TTS error:', error);
+      setTtsStatus('error');
+      setTimeout(() => setTtsStatus('idle'), 2000);
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen bg-black">
       <div className="border-b border-gray-800 p-4 bg-gray-900">
@@ -337,16 +364,35 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
             disabled={isStreaming}
           />
 
-          <button
-            onClick={() => setShowAdvanced(!showAdvanced)}
-            className={`px-3 py-2 rounded text-sm font-medium transition-colors ${
-              showAdvanced
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700'
-            }`}
-          >
-            ⚙️ Advanced
-          </button>
+          <div className="flex items-center gap-2">
+            {ttsAvailable && (
+              <button
+                onClick={() => setTtsEnabled(!ttsEnabled)}
+                disabled={ttsStatus !== 'idle'}
+                className={`px-3 py-2 rounded text-sm font-medium transition-colors flex items-center gap-2 ${
+                  ttsEnabled
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700'
+                } ${ttsStatus !== 'idle' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                title={ttsEnabled ? 'TTS enabled - responses will be spoken' : 'Enable TTS'}
+              >
+                🔊 TTS
+                {ttsStatus === 'generating' && <span className="text-xs">(generating...)</span>}
+                {ttsStatus === 'playing' && <span className="text-xs">(playing...)</span>}
+                {ttsStatus === 'error' && <span className="text-xs text-red-300">(error)</span>}
+              </button>
+            )}
+            <button
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className={`px-3 py-2 rounded text-sm font-medium transition-colors ${
+                showAdvanced
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700'
+              }`}
+            >
+              ⚙️ Advanced
+            </button>
+          </div>
         </div>
 
         {/* Advanced Settings Panel */}

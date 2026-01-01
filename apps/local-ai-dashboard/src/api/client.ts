@@ -24,6 +24,9 @@ import type {
 // For production: uses public HTTPS endpoint
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://local-ai-api.server.unarmedpuppy.com';
 
+// TTS is proxied through nginx at /tts/ to the Gaming PC manager
+// Configure TTS_API_URL in docker-compose environment
+
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -485,6 +488,68 @@ export const agentRunsAPI = {
   getStats: async () => {
     const response = await apiClient.get<AgentRunsStats>('/agent/runs/stats');
     return response.data;
+  },
+};
+
+// TTS API
+let ttsAvailableCache: boolean | null = null;
+
+export const ttsAPI = {
+  checkAvailable: async (): Promise<boolean> => {
+    if (ttsAvailableCache !== null) return ttsAvailableCache;
+    try {
+      const response = await fetch('/tts/health', { method: 'GET' });
+      ttsAvailableCache = response.ok;
+    } catch {
+      ttsAvailableCache = false;
+    }
+    return ttsAvailableCache;
+  },
+
+  isAvailable: (): boolean => {
+    return ttsAvailableCache === true;
+  },
+
+  generateSpeech: async (text: string, voice: string = 'default'): Promise<Blob> => {
+    const response = await fetch('/tts/v1/audio/speech', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'chatterbox-turbo',
+        input: text,
+        voice,
+        response_format: 'wav',
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`TTS failed: ${error}`);
+    }
+
+    return response.blob();
+  },
+
+  playAudio: (blob: Blob): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      
+      audio.onended = () => {
+        URL.revokeObjectURL(url);
+        resolve();
+      };
+      
+      audio.onerror = (e) => {
+        URL.revokeObjectURL(url);
+        reject(new Error(`Audio playback failed: ${e}`));
+      };
+      
+      audio.play().catch((e) => {
+        URL.revokeObjectURL(url);
+        reject(e);
+      });
+    });
   },
 };
 

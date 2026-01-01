@@ -8,9 +8,8 @@ services:
     restart: unless-stopped
     environment:
       - TZ=America/Chicago
-      # API key for proxying chat completions through nginx to local-ai-router
-      # This keeps the API key server-side (nginx) instead of exposing in browser
       - LOCAL_AI_API_KEY=${LOCAL_AI_API_KEY}
+      - TTS_API_URL=${TTS_API_URL:-}
     networks:
       - my-network
     labels:
