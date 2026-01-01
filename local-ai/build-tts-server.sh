@@ -1,12 +1,8 @@
 #!/bin/bash
-# Build TTS Inference Server Docker image
-# Run from local-ai directory: ./build-tts-server.sh
-
 set -e
 
 echo "Building TTS Inference Server Docker image..."
 
-# Build the image
 docker build -t tts-inference-server:latest ./tts-inference-server
 
 echo ""
