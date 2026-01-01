@@ -155,7 +155,7 @@ def _run_on_server(arguments: dict, working_dir: str) -> str:
 
 register_tool(
     name="run_on_server",
-    description="Execute a command on the home server via SSH. Use this to run docker commands, check logs, restart services, etc.",
+    description="Execute a raw command on the home server via SSH. PREFER specialized tools: docker_ps, docker_logs, docker_inspect, docker_restart - they return cleaner, semantic output. Only use run_on_server for commands without a specialized tool.",
     parameters={
         "type": "object",
         "properties": {
@@ -203,19 +203,46 @@ register_tool(
 
 
 def _docker_logs(arguments: dict, working_dir: str) -> str:
+    """Get container logs with error extraction."""
     container = arguments["container"]
-    tail = arguments.get("tail", 100)
+    tail = arguments.get("tail", 50)
     
     if not container.replace("-", "").replace("_", "").isalnum():
         return "Error: Invalid container name"
     
     cmd = f"docker logs {container} --tail {tail} 2>&1"
-    return _run_on_server({"command": cmd}, working_dir)
+    raw = _run_on_server({"command": cmd}, working_dir)
+    
+    lines = raw.strip().split('\n')
+    errors = [l for l in lines if any(kw in l.lower() for kw in ['error', 'fatal', 'failed', 'exception', 'panic', 'critical'])]
+    warnings = [l for l in lines if 'warn' in l.lower() and l not in errors]
+    
+    parts = [f"Container: {container}", f"Last {len(lines)} log lines analyzed"]
+    
+    if errors:
+        parts.append(f"\nERRORS FOUND ({len(errors)}):")
+        for e in errors[-5:]:
+            parts.append(f"  - {e[:200]}")
+    
+    if warnings and len(warnings) <= 5:
+        parts.append(f"\nWarnings ({len(warnings)}):")
+        for w in warnings[-3:]:
+            parts.append(f"  - {w[:200]}")
+    elif warnings:
+        parts.append(f"\nWarnings: {len(warnings)} found (showing last 3)")
+        for w in warnings[-3:]:
+            parts.append(f"  - {w[:200]}")
+    
+    if not errors and not warnings:
+        parts.append("\nNo errors or warnings detected in recent logs.")
+        parts.append(f"\nLast 3 lines:\n" + "\n".join(lines[-3:]))
+    
+    return "\n".join(parts)
 
 
 register_tool(
     name="docker_logs",
-    description="Get logs from a Docker container on the home server.",
+    description="Get container logs with automatic error/warning extraction. Returns summary of issues found. Use this instead of run_on_server for log analysis.",
     parameters={
         "type": "object",
         "properties": {
@@ -225,7 +252,7 @@ register_tool(
             },
             "tail": {
                 "type": "integer",
-                "description": "Number of lines to show (default: 100)"
+                "description": "Number of lines to analyze (default: 50)"
             }
         },
         "required": ["container"]
@@ -262,29 +289,47 @@ register_tool(
 
 
 def _docker_inspect(arguments: dict, working_dir: str) -> str:
+    """Get container status with semantic, actionable output."""
     container = arguments["container"]
     
     if not container.replace("-", "").replace("_", "").isalnum():
         return "Error: Invalid container name"
     
-    format_str = arguments.get("format", "{{.State.Status}} {{.State.Health.Status}} {{.RestartCount}}")
-    cmd = f"docker inspect {container} --format '{format_str}'"
-    return _run_on_server({"command": cmd}, working_dir)
+    format_template = '{"status":"{{.State.Status}}","health":"{{.State.Health.Status}}","restarts":{{.RestartCount}},"started":"{{.State.StartedAt}}","error":"{{.State.Error}}","oom":{{.State.OOMKilled}}}'
+    cmd = f"docker inspect {container} --format '{format_template}'"
+    raw = _run_on_server({"command": cmd}, working_dir)
+    
+    try:
+        data = json.loads(raw.strip())
+        parts = [f"Container: {container}"]
+        parts.append(f"Status: {data['status']}")
+        
+        if data.get('health') and data['health'] != '<no value>':
+            parts.append(f"Health: {data['health']}")
+        
+        if data.get('restarts', 0) > 0:
+            parts.append(f"RestartCount: {data['restarts']} (indicates instability)")
+        
+        if data.get('oom'):
+            parts.append("WARNING: Container was OOM killed (out of memory)")
+        
+        if data.get('error'):
+            parts.append(f"LastError: {data['error']}")
+            
+        return "\n".join(parts)
+    except (json.JSONDecodeError, KeyError):
+        return raw
 
 
 register_tool(
     name="docker_inspect",
-    description="Inspect a Docker container to get status, health, restart count, etc.",
+    description="Get container health status. Returns semantic summary: status, health, restart count, errors. Use this instead of run_on_server for container inspection.",
     parameters={
         "type": "object",
         "properties": {
             "container": {
                 "type": "string",
                 "description": "Container name or ID"
-            },
-            "format": {
-                "type": "string",
-                "description": "Go template format string (default: status, health, restart count)"
             }
         },
         "required": ["container"]

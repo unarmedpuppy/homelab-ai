@@ -139,15 +139,23 @@ Skills are the same guides that human operators use.
 - `search_skills(query)` - Search skills by keyword  
 - `read_skill(name)` - Read full skill instructions
 
-**Execution:**
-- `run_shell(command)` - Execute shell commands (from skill instructions)
+**Docker (USE THESE - they return clean, semantic output):**
+- `docker_ps(filter?)` - List containers with status
+- `docker_inspect(container)` - Get container health, restart count, errors
+- `docker_logs(container, tail?)` - Get logs with automatic error extraction
+- `docker_restart(container)` - Restart a container
+
+**Server (raw command - use sparingly):**
+- `run_on_server(command)` - Raw SSH command (prefer specialized tools above)
+
+**File Operations:**
 - `read_file(path)` - Read file contents
 - `write_file(path, content)` - Write/create files
 - `edit_file(path, old, new)` - Edit files precisely
 - `list_directory(path)` - List directory contents
 - `search_files(pattern, path?)` - Search for files
 
-**Git (fundamental operations):**
+**Git:**
 - `git_status`, `git_diff`, `git_log`, `git_add`, `git_commit`, etc.
 
 **Completion:**
