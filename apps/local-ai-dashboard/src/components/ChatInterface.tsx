@@ -586,7 +586,12 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                           title="Play TTS"
                         >
                           {ttsGeneratingIdx === idx ? (
-                            <>⏳ Generating...</>
+                            <>
+                              <div className="flex items-center gap-1">
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-300"></div>
+                                <span>Generating...</span>
+                              </div>
+                            </>
                           ) : ttsPlayingIdx === idx ? (
                             <>🔊 Playing...</>
                           ) : (
