@@ -188,6 +188,7 @@ export default function AgentRuns() {
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Task</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Model / Backend</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Steps</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Duration</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Source</th>
@@ -210,8 +211,23 @@ export default function AgentRuns() {
                       <div className="text-sm text-gray-300" title={run.task}>
                         {truncateText(run.task)}
                       </div>
-                      {run.model_used && (
-                        <div className="text-xs text-gray-500 mt-1">{run.model_used}</div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {run.model_used || run.backend ? (
+                        <div>
+                          {run.model_used && (
+                            <div className="text-sm text-blue-400 font-mono">
+                              {run.model_used.replace('qwen2.5-', 'qwen/')}
+                            </div>
+                          )}
+                          {(run.backend_name || run.backend) && (
+                            <div className="text-xs text-gray-500 mt-0.5">
+                              {run.backend_name || run.backend}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-gray-500 text-sm">auto</span>
                       )}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-300">
@@ -229,7 +245,7 @@ export default function AgentRuns() {
                   </tr>
                   {expandedRun === run.id && expandedRunData && (
                     <tr className="bg-gray-900/50">
-                      <td colSpan={6} className="px-4 py-4">
+                      <td colSpan={7} className="px-4 py-4">
                         <div className="space-y-4">
                           <div className="border-b border-gray-700 pb-2">
                             <h4 className="text-sm font-semibold text-white mb-2">Run Details</h4>
@@ -248,7 +264,11 @@ export default function AgentRuns() {
                               </div>
                               <div>
                                 <span className="text-gray-400">Backend:</span>
-                                <span className="text-gray-300 ml-2">{run.backend || 'N/A'}</span>
+                                <span className="text-gray-300 ml-2">{run.backend_name || run.backend || 'N/A'}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-400">Model Used:</span>
+                                <span className="text-gray-300 ml-2">{run.model_used || 'auto'}</span>
                               </div>
                             </div>
                             {run.error && (

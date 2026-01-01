@@ -261,6 +261,7 @@ export interface AgentRunRecord {
   model_requested: string | null;
   model_used: string | null;
   backend: string | null;
+  backend_name: string | null;
   status: 'running' | 'completed' | 'failed' | 'max_steps' | 'cancelled';
   final_answer: string | null;
   total_steps: number;
