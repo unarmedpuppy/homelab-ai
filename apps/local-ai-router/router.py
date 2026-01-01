@@ -87,7 +87,7 @@ app.add_middleware(
 
 # Configuration from environment
 GAMING_PC_URL = os.getenv("GAMING_PC_URL", "http://192.168.86.63:8000")
-LOCAL_3070_URL = os.getenv("LOCAL_3070_URL", "http://local-ai-server:8001")
+LOCAL_3070_URL = os.getenv("LOCAL_3070_URL", "http://local-ai-server:8000")
 OPENCODE_URL = os.getenv("OPENCODE_URL", "http://opencode-service:8002")
 
 SMALL_TOKEN_THRESHOLD = int(os.getenv("SMALL_TOKEN_THRESHOLD", "2000"))

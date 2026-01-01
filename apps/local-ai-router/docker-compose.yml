@@ -10,7 +10,7 @@ services:
       - TZ=America/Chicago
       # Backend endpoints
       - GAMING_PC_URL=${GAMING_PC_URL:-http://192.168.86.63:8000}
-      - LOCAL_3070_URL=${LOCAL_3070_URL:-http://local-ai-server:8001}
+      - LOCAL_3070_URL=${LOCAL_3070_URL:-http://local-ai-server:8000}
       - OPENCODE_URL=${OPENCODE_URL:-http://opencode-service:8002}
       # Routing thresholds
       - SMALL_TOKEN_THRESHOLD=${SMALL_TOKEN_THRESHOLD:-2000}

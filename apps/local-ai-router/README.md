@@ -302,7 +302,7 @@ Environment variables:
 ```bash
 # Backend endpoints
 GAMING_PC_URL=http://192.168.86.63:8000
-LOCAL_3070_URL=http://local-ai-server:8001
+LOCAL_3070_URL=http://local-ai-server:8000
 OPENCODE_URL=http://opencode-service:8002
 
 # Routing thresholds
