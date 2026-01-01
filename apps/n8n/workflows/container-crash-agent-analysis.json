@@ -1,5 +1,6 @@
 {
   "name": "Container Crash Agent Analysis",
+  "active": true,
   "nodes": [
     {
       "id": "trigger",
