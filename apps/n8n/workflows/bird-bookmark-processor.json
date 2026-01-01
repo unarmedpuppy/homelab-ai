@@ -1,0 +1,122 @@
+{
+  "name": "Bird Bookmark Processor",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 6
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Every 6 Hours",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "command": "cd ~/server/apps/bird && docker compose run --rm bird python process_bookmarks.py 2>&1",
+        "additionalFields": {
+          "timeout": 300000
+        }
+      },
+      "id": "run-bird-processor",
+      "name": "Run Bird Processor",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse bird processor output\nconst output = $input.first().json.stdout || '';\nconst stderr = $input.first().json.stderr || '';\nconst exitCode = $input.first().json.exitCode;\n\n// Extract stats from output\nconst storedMatch = output.match(/Stored (\\d+) new tweets/);\nconst skippedMatch = output.match(/skipped (\\d+) duplicates/);\nconst runIdMatch = output.match(/Created run ([a-f0-9]+)/);\n\nconst newTweets = storedMatch ? parseInt(storedMatch[1]) : 0;\nconst skipped = skippedMatch ? parseInt(skippedMatch[1]) : 0;\nconst runId = runIdMatch ? runIdMatch[1] : null;\n\nconst success = exitCode === 0 && output.includes('Processing complete');\n\nreturn [{\n  json: {\n    success,\n    exitCode,\n    runId,\n    newTweets,\n    skipped,\n    totalProcessed: newTweets + skipped,\n    timestamp: new Date().toISOString(),\n    output: output.substring(0, 2000),\n    stderr: stderr.substring(0, 500)\n  }\n}];"
+      },
+      "id": "parse-output",
+      "name": "Parse Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-failure",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-success",
+      "name": "Check Success",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "content": "## Bird Processor Failed\n\n**Time:** {{ $json.timestamp }}\n**Exit Code:** {{ $json.exitCode }}\n\n### Error Output\n```\n{{ $json.stderr || $json.output }}\n```",
+        "options": {}
+      },
+      "id": "format-failure",
+      "name": "Format Failure Message",
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [1050, 400]
+    },
+    {
+      "parameters": {
+        "content": "## Bird Processor Success\n\n**Time:** {{ $json.timestamp }}\n**Run ID:** {{ $json.runId }}\n**New Tweets:** {{ $json.newTweets }}\n**Skipped (duplicates):** {{ $json.skipped }}",
+        "options": {}
+      },
+      "id": "format-success",
+      "name": "Format Success (Optional Log)",
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [1050, 200]
+    }
+  ],
+  "connections": {
+    "Every 6 Hours": {
+      "main": [[{ "node": "Run Bird Processor", "type": "main", "index": 0 }]]
+    },
+    "Run Bird Processor": {
+      "main": [[{ "node": "Parse Output", "type": "main", "index": 0 }]]
+    },
+    "Parse Output": {
+      "main": [[{ "node": "Check Success", "type": "main", "index": 0 }]]
+    },
+    "Check Success": {
+      "main": [
+        [{ "node": "Format Success (Optional Log)", "type": "main", "index": 0 }],
+        [{ "node": "Format Failure Message", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["automation", "bird", "twitter"],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-01T00:00:00.000Z",
+  "versionId": "1"
+}

@@ -50,17 +50,20 @@ This will:
 - Store new tweets in the SQLite database
 - Skip duplicates automatically
 
-### Scheduled Run (Cron)
+### Scheduled Run (n8n)
 
-Use the cron wrapper script for proper logging and lock file handling:
+Import the n8n workflow for automated processing:
 
+1. Open n8n: https://n8n.server.unarmedpuppy.com
+2. Import workflow from: `apps/n8n/workflows/bird-bookmark-processor.json`
+3. Activate the workflow
+
+The workflow runs every 6 hours, parses output, and can notify on failures.
+
+**Alternative (cron)**: If you prefer cron, use `scripts/bird-cron.sh`:
 ```bash
-# Add to crontab on server (crontab -e)
-# Run bookmark processor every 6 hours
 0 */6 * * * ~/server/scripts/bird-cron.sh
 ```
-
-**Logs**: `~/server/logs/bird.log`
 
 ### Daemon Mode (Continuous)
 
