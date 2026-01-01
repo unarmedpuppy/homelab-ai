@@ -1137,6 +1137,50 @@ tmux list-sessions
 
 **Routing**: Traefik file-based config in `apps/traefik/fileConfig.yml` (not Docker labels, since ttyd runs as systemd service).
 
+#### Claude Harness (Claude Max API)
+
+OpenAI-compatible API wrapper for Claude Code CLI. Enables the Local AI Router to use Claude models via Claude Max subscription without API keys.
+
+**Access**:
+- **Local**: `http://localhost:8013`
+- **Via Router**: `http://localhost:8012/v1/chat/completions` with `model: "claude-sonnet"`
+
+**Systemd Service** (installed on server, not Docker):
+- `claude-harness.service` - FastAPI service wrapping Claude Code CLI
+
+**Service File**:
+- `/etc/systemd/system/claude-harness.service`
+
+**Installed Dependencies**:
+- `@anthropic-ai/claude-code` (via npm: `sudo npm install -g @anthropic-ai/claude-code`)
+- Python packages: `uvicorn`, `fastapi`, `pydantic` (system packages via apt)
+
+**Management** (use the management script):
+```bash
+cd ~/server/apps/claude-harness
+./manage.sh status              # Check service status and health
+./manage.sh logs 50             # View last 50 log lines
+./manage.sh test                # Run health check and test completion
+sudo ./manage.sh restart        # Restart service
+sudo ./manage.sh update         # Update after git pull
+```
+
+**Authentication**: Claude Code uses OAuth tokens stored in `~/.claude.json`. Re-authenticate by running `claude` interactively if tokens expire (~30 days).
+
+**Documentation**: [apps/claude-harness/README.md](./apps/claude-harness/README.md)
+
+### Non-Docker Services Summary
+
+Services running as systemd units (not in Docker containers):
+
+| Service | Port | Purpose | Management |
+|---------|------|---------|------------|
+| `opencode-tmux.service` | - | Persistent tmux session | `systemctl status opencode-tmux` |
+| `opencode-ttyd.service` | 7681 | Web terminal | `systemctl status opencode-ttyd` |
+| `claude-harness.service` | 8013 | Claude Max API | `./manage.sh status` |
+
+**Why not Docker?** These services need access to host resources (tmux sessions, OAuth tokens in `~/.claude.json`) that are simpler to manage via systemd than Docker volume mounts.
+
 #### Game Servers
 
 **Rust Server**:
@@ -1199,6 +1243,43 @@ sudo apt-get install -y nodejs
 ```bash
 sudo npm i -g @immich/cli
 ```
+
+#### Claude Code CLI
+```bash
+sudo npm install -g @anthropic-ai/claude-code
+```
+Used by Claude Harness service. Requires one-time OAuth authentication:
+```bash
+claude  # Follow URL to authenticate with Claude Max account
+```
+Tokens stored in `~/.claude.json`.
+
+### Server Dependencies Summary
+
+Packages installed directly on server (needed for bare metal restore):
+
+**Via apt:**
+```bash
+sudo apt install -y \
+  python3-pip \
+  tmux \
+  rclone \
+  lm-sensors \
+  fancontrol
+```
+
+**Via npm (global):**
+```bash
+sudo npm install -g @anthropic-ai/claude-code @immich/cli
+```
+
+**Via pip (system packages, already installed):**
+- `uvicorn` - ASGI server (in `/usr/lib/python3/dist-packages`)
+- `fastapi` - Web framework
+- `pydantic` - Data validation
+
+**Manual installs:**
+- `ttyd` v1.7.7 - Installed to `/usr/local/bin/ttyd` from [GitHub releases](https://github.com/tsl0922/ttyd/releases)
 
 ---
 

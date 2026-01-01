@@ -124,7 +124,7 @@ async def call_claude_cli(prompt: str, model: str = DEFAULT_MODEL) -> str:
     actual_model = model_config.get("alias_for", model)
     
     # Build command
-    cmd = ["claude", "-p", prompt, "--no-input"]
+    cmd = ["claude", "-p", prompt]
     
     logger.info(f"Calling Claude CLI with model hint: {actual_model}")
     logger.debug(f"Prompt length: {len(prompt)} chars")
