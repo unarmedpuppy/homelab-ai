@@ -350,6 +350,6 @@ class StreamEvent(BaseModel):
     estimated_time: Optional[int] = Field(None, description="Estimated wait time in seconds")
     delta: Optional[str] = Field(None, description="Incremental content chunk (for streaming status)")
     finish_reason: Optional[str] = Field(None, description="Finish reason (stop, length, etc.)")
-    usage: Optional[Dict[str, int]] = Field(None, description="Token usage stats (for done status)")
+    usage: Optional[Dict[str, Any]] = Field(None, description="Token usage stats (for done status)")
     error_detail: Optional[str] = Field(None, description="Error details (for error status)")
     conversation_id: Optional[str] = Field(None, description="Conversation ID (for done status when memory is enabled)")
