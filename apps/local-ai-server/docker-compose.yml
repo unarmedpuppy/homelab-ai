@@ -19,7 +19,7 @@ services:
     command: >
       --model Qwen/Qwen2.5-7B-Instruct-AWQ
       --quantization awq
-      --max-model-len 2048
+      --max-model-len 8192
       --gpu-memory-utilization 0.95
       --enforce-eager
       --host 0.0.0.0
