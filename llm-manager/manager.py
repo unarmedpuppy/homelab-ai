@@ -138,9 +138,18 @@ def create_vllm_container(model_id: str):
     if card.get("quantization"):
         cmd.extend(["--quantization", card["quantization"]])
     
+    # Determine context length - use card's default, but cap based on VRAM for safety
     context_len = card.get("default_context", 4096)
+    if gpu_vram_gb <= 8:
+        # 8GB cards need reduced context for KV cache to fit
+        context_len = min(context_len, 2048)
+    
     cmd.extend(["--max-model-len", str(context_len)])
-    cmd.extend(["--gpu-memory-utilization", "0.90"])
+    cmd.extend(["--gpu-memory-utilization", "0.95"])
+    
+    # AWQ quantized models benefit from enforce-eager (better memory efficiency)
+    if card.get("quantization") == "awq":
+        cmd.extend(["--enforce-eager"])
     
     print(f"[{model_id}] Creating container: {container_name}")
     print(f"[{model_id}] Image: {VLLM_IMAGE}")
