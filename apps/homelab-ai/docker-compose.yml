@@ -6,6 +6,7 @@
 #   - llm-router: OpenAI-compatible API router with intelligent backend selection
 #   - dashboard: React metrics dashboard with conversation explorer
 #   - llm-manager: Unified LLM orchestrator for RTX 3070 (always-on mode)
+#   - claude-harness: Claude Code CLI wrapper (built locally, needs OAuth tokens)
 #
 # Usage:
 #   docker compose -f apps/homelab-ai/docker-compose.yml up -d
@@ -109,6 +110,36 @@ services:
       - "homepage.icon=mdi-chip"
       - "homepage.href=http://192.168.86.47:8015/status"
       - "homepage.description=Always-on LLM on RTX 3070"
+
+  claude-harness:
+    build:
+      context: ../claude-harness
+      args:
+        USER_ID: 1000
+        GROUP_ID: 1000
+    container_name: claude-harness
+    restart: unless-stopped
+    ports:
+      - "8013:8013"
+    volumes:
+      - /home/unarmedpuppy/.claude.json:/home/appuser/.claude.json:rw
+      - /home/unarmedpuppy/.claude:/home/appuser/.claude:rw
+    environment:
+      - TZ=America/Chicago
+    networks:
+      - my-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8013/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "homepage.group=AI"
+      - "homepage.name=Claude Harness"
+      - "homepage.icon=mdi-robot"
+      - "homepage.href=http://192.168.86.47:8013/health"
+      - "homepage.description=Claude Code CLI API wrapper"
 
 networks:
   my-network:

@@ -1,0 +1,11 @@
+# Docker ignore for claude-harness
+__pycache__
+*.pyc
+*.pyo
+.git
+.gitignore
+*.md
+*.service
+manage.sh
+docker-compose.yml
+.dockerignore
