@@ -6,6 +6,7 @@ Supports both always-on (server) and on-demand (gaming PC) modes.
 """
 import asyncio
 import docker
+from docker.types import DeviceRequest
 import httpx
 import json
 import os
@@ -25,6 +26,7 @@ START_TIMEOUT = int(os.getenv("START_TIMEOUT", "180"))
 MODELS_CONFIG_PATH = os.getenv("MODELS_CONFIG_PATH", "/app/models.json")
 VLLM_IMAGE = os.getenv("VLLM_IMAGE", "vllm/vllm-openai:latest")
 HF_CACHE_PATH = os.getenv("HF_CACHE_PATH", "/root/.cache/huggingface")
+DOCKER_NETWORK = os.getenv("DOCKER_NETWORK", "ai-network")  # Network for spawned containers
 
 # --- Global State ---
 docker_client = docker.from_env()
@@ -122,12 +124,10 @@ def create_vllm_container(model_id: str):
     state = model_states[model_id]
     container_name = state["container_name"]
     
-    # Check if container already exists
     existing = get_container(container_name)
     if existing:
         return existing
     
-    # Build vLLM command arguments
     cmd = [
         "--model", card["hf_model"],
         "--host", "0.0.0.0",
@@ -140,11 +140,11 @@ def create_vllm_container(model_id: str):
     
     context_len = card.get("default_context", 4096)
     cmd.extend(["--max-model-len", str(context_len)])
-    
-    # GPU memory utilization (leave some headroom)
     cmd.extend(["--gpu-memory-utilization", "0.90"])
     
     print(f"[{model_id}] Creating container: {container_name}")
+    print(f"[{model_id}] Image: {VLLM_IMAGE}")
+    print(f"[{model_id}] Network: {DOCKER_NETWORK}")
     print(f"[{model_id}] Command: {' '.join(cmd)}")
     
     try:
@@ -153,7 +153,9 @@ def create_vllm_container(model_id: str):
             name=container_name,
             command=cmd,
             detach=True,
-            runtime="nvidia",
+            device_requests=[
+                DeviceRequest(count=1, capabilities=[['gpu']])
+            ],
             environment={
                 "NVIDIA_VISIBLE_DEVICES": "all",
                 "HF_HOME": "/root/.cache/huggingface",
@@ -161,7 +163,7 @@ def create_vllm_container(model_id: str):
             volumes={
                 "huggingface-cache": {"bind": "/root/.cache/huggingface", "mode": "rw"}
             },
-            network="ai-network",
+            network=DOCKER_NETWORK,
             labels={
                 "managed-by": "vllm-manager",
                 "model-id": model_id,
