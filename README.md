@@ -415,6 +415,57 @@ git push origin main
 
 **PAT Permissions Required**: `repo` scope (full control of private repositories)
 
+#### Claude Deploy Security Hardening
+
+By default, `claude-deploy` in the docker group can run ANY docker command (including destructive ones like `docker system prune -af --volumes`). To lock it down:
+
+**Remove from docker group and add sudoers whitelist:**
+```bash
+# Remove from docker group
+sudo gpasswd -d claude-deploy docker
+
+# Create sudoers file with whitelisted commands
+sudo tee /etc/sudoers.d/claude-deploy << 'EOF'
+# Claude-deploy - restricted docker access
+# Safe read/restart commands only - NO delete operations
+
+# View operations
+claude-deploy ALL=(ALL) NOPASSWD: /usr/bin/docker ps *
+claude-deploy ALL=(ALL) NOPASSWD: /usr/bin/docker logs *
+claude-deploy ALL=(ALL) NOPASSWD: /usr/bin/docker inspect *
+claude-deploy ALL=(ALL) NOPASSWD: /usr/bin/docker images
+claude-deploy ALL=(ALL) NOPASSWD: /usr/bin/docker stats *
+
+# Restart operations (safe)
+claude-deploy ALL=(ALL) NOPASSWD: /usr/bin/docker restart *
+claude-deploy ALL=(ALL) NOPASSWD: /usr/bin/docker start *
+claude-deploy ALL=(ALL) NOPASSWD: /usr/bin/docker stop *
+
+# Compose operations (in server directory only)
+claude-deploy ALL=(ALL) NOPASSWD: /usr/bin/docker compose -f /home/unarmedpuppy/server/apps/*/docker-compose.yml *
+
+# Git operations (for deployments)
+claude-deploy ALL=(ALL) NOPASSWD: /usr/bin/git -C /home/unarmedpuppy/server *
+EOF
+
+# Validate sudoers syntax
+sudo visudo -cf /etc/sudoers.d/claude-deploy
+```
+
+**After hardening**, SSH commands from container require `sudo`:
+```bash
+# Commands now require sudo prefix
+sudo docker ps
+sudo docker restart claude-harness
+sudo docker compose -f /home/unarmedpuppy/server/apps/homelab-ai/docker-compose.yml up -d
+```
+
+**What's blocked** (no sudo entry = denied):
+- `docker rm` - can't delete containers
+- `docker rmi` - can't delete images
+- `docker volume rm` - can't delete volumes
+- `docker system prune` - can't wipe everything
+
 ---
 
 ## Storage Configuration
