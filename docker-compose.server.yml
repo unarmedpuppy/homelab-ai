@@ -1,0 +1,99 @@
+# Server deployment - Router, Dashboard, vLLM Manager
+# 
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.server.yml up -d
+#
+# Environment variables (set in .env):
+#   HARBOR_REGISTRY - Harbor registry URL
+#   DOMAIN - Domain for Traefik labels (e.g., server.unarmedpuppy.com)
+
+services:
+  llm-router:
+    image: ${HARBOR_REGISTRY:-harbor.local}/library/llm-router:latest
+    container_name: llm-router
+    restart: unless-stopped
+    ports:
+      - "8012:8000"
+    environment:
+      - VLLM_MANAGER_URL=http://vllm-manager:8000
+      - ENABLE_METRICS=1
+      - ENABLE_MEMORY=1
+      - LOG_LEVEL=INFO
+    volumes:
+      - router-data:/app/data
+    networks:
+      - ai-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.llm-router.rule=Host(`local-ai-api.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.llm-router.entrypoints=websecure"
+      - "traefik.http.routers.llm-router.tls.certresolver=myresolver"
+      - "traefik.http.services.llm-router.loadbalancer.server.port=8000"
+      - "homepage.group=AI"
+      - "homepage.name=LLM Router"
+      - "homepage.icon=mdi-api"
+      - "homepage.href=https://local-ai-api.${DOMAIN:-localhost}/health"
+      - "homepage.description=OpenAI-compatible API router"
+
+  dashboard:
+    image: ${HARBOR_REGISTRY:-harbor.local}/library/local-ai-dashboard:latest
+    container_name: local-ai-dashboard
+    restart: unless-stopped
+    ports:
+      - "8014:80"
+    environment:
+      - VITE_API_URL=http://llm-router:8000
+    networks:
+      - ai-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ai-dashboard.rule=Host(`local-ai-dashboard.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.ai-dashboard.entrypoints=websecure"
+      - "traefik.http.routers.ai-dashboard.tls.certresolver=myresolver"
+      - "traefik.http.services.ai-dashboard.loadbalancer.server.port=80"
+      - "homepage.group=AI"
+      - "homepage.name=AI Dashboard"
+      - "homepage.icon=mdi-chart-line"
+      - "homepage.href=https://local-ai-dashboard.${DOMAIN:-localhost}"
+      - "homepage.description=Metrics and conversation explorer"
+
+  vllm-manager:
+    image: ${HARBOR_REGISTRY:-harbor.local}/library/vllm-manager:latest
+    container_name: vllm-manager
+    restart: unless-stopped
+    ports:
+      - "8015:8000"
+    environment:
+      - MODE=always-on
+      - DEFAULT_MODEL=qwen2.5-7b-awq
+      - GAMING_MODE_ENABLED=false
+      - IDLE_TIMEOUT=0
+      - VLLM_IMAGE=${HARBOR_REGISTRY:-harbor.local}/docker-hub/vllm/vllm-openai:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - huggingface-cache:/root/.cache/huggingface
+    networks:
+      - ai-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    labels:
+      - "homepage.group=AI"
+      - "homepage.name=vLLM Manager (Server)"
+      - "homepage.icon=mdi-chip"
+      - "homepage.href=http://${SERVER_IP:-localhost}:8015/status"
+      - "homepage.description=Always-on vLLM on RTX 3070"
+
+networks:
+  ai-network:
+    external: true
+
+volumes:
+  huggingface-cache:
+    external: true
+  router-data:
+    external: true

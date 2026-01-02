@@ -1,0 +1,91 @@
+# Gaming PC deployment - vLLM Manager, Image Server, TTS Server
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.gaming.yml up -d
+#
+# Environment variables (set in .env):
+#   HARBOR_REGISTRY - Harbor registry URL
+
+services:
+  vllm-manager:
+    image: ${HARBOR_REGISTRY:-harbor.local}/library/vllm-manager:latest
+    container_name: vllm-manager
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - MODE=on-demand
+      - DEFAULT_MODEL=qwen2.5-14b-awq
+      - GAMING_MODE_ENABLED=true
+      - IDLE_TIMEOUT=600
+      - VLLM_IMAGE=${HARBOR_REGISTRY:-harbor.local}/docker-hub/vllm/vllm-openai:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - huggingface-cache:/root/.cache/huggingface
+    networks:
+      - ai-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  image-server:
+    image: ${HARBOR_REGISTRY:-harbor.local}/library/image-server:latest
+    container_name: image-server
+    restart: unless-stopped
+    ports:
+      - "8005:8000"
+    environment:
+      - MODEL_ID=black-forest-labs/FLUX.1-schnell
+    volumes:
+      - huggingface-cache:/root/.cache/huggingface
+    networks:
+      - ai-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  tts-server:
+    image: ${HARBOR_REGISTRY:-harbor.local}/library/tts-server:latest
+    container_name: tts-server
+    restart: unless-stopped
+    ports:
+      - "8006:8000"
+    volumes:
+      - huggingface-cache:/root/.cache/huggingface
+    networks:
+      - ai-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # Optional: Web dashboard for gaming mode control
+  gaming-dashboard:
+    image: ${HARBOR_REGISTRY:-harbor.local}/library/local-ai-dashboard:latest
+    container_name: gaming-dashboard
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      - VITE_API_URL=http://vllm-manager:8000
+    networks:
+      - ai-network
+
+networks:
+  ai-network:
+    external: true
+
+volumes:
+  huggingface-cache:
+    external: true

@@ -1,74 +1,59 @@
 # Homelab AI
 
-Local AI infrastructure for home server deployment. OpenAI-compatible API routing, metrics dashboard, and inference servers.
+Local AI infrastructure for home server deployment. OpenAI-compatible API routing, metrics dashboard, and unified vLLM orchestration.
 
 ## Components
 
-| Component | Description | Deployment |
-|-----------|-------------|------------|
-| **Router** | OpenAI-compatible API router with intelligent backend selection | Home Server (Docker) |
-| **Dashboard** | React metrics dashboard with conversation explorer | Home Server (Docker) |
-| **Manager** | Container lifecycle manager for GPU inference | Gaming PC (local build) |
-| **Image Server** | Diffusers-based image generation | Gaming PC (local build) |
-| **TTS Server** | Chatterbox Turbo text-to-speech | Gaming PC (local build) |
+| Component | Description | Harbor Image |
+|-----------|-------------|--------------|
+| **llm-router** | OpenAI-compatible API router with intelligent backend selection | `llm-router:latest` |
+| **dashboard** | React metrics dashboard with conversation explorer | `local-ai-dashboard:latest` |
+| **vllm-manager** | Unified vLLM orchestrator with GPU auto-detection and model cards | `vllm-manager:latest` |
+| **image-server** | Diffusers-based image generation (FLUX) | `image-server:latest` |
+| **tts-server** | Chatterbox Turbo text-to-speech | `tts-server:latest` |
+
+All images are built via CI/CD and pushed to Harbor on merge to main.
 
 ## Quick Start
 
-### Home Server (via Harbor)
+### Server Deployment
 
-The router and dashboard are published to Harbor and consumed by home-server:
+```bash
+# Clone and configure
+git clone git@github.com:unarmedpuppy/homelab-ai.git
+cd homelab-ai
+cp .env.example .env
+# Edit .env with your Harbor registry URL
 
-```yaml
-# In home-server/apps/local-ai-router/docker-compose.yml
-services:
-  local-ai-router:
-    image: ${HARBOR_REGISTRY}/${HARBOR_PROJECT}/local-ai-router:latest
+# Deploy server stack (router, dashboard, vllm-manager)
+docker compose -f docker-compose.yml -f docker-compose.server.yml up -d
+```
+
+### Gaming PC Deployment
+
+```bash
+# Same repo, different compose file
+docker compose -f docker-compose.yml -f docker-compose.gaming.yml up -d
 ```
 
 ### Local Development
 
 ```bash
-# Clone the repo
-git clone git@github.com:unarmedpuppy/homelab-ai.git
-cd homelab-ai
-
-# Copy environment and configure
-cp .env.example .env
-# Edit .env with your values
-
-# Run router locally
-cd router
+# LLM Router
+cd llm-router
 pip install -r requirements.txt
 uvicorn router:app --host 0.0.0.0 --port 8000
 
-# Run dashboard locally
+# Dashboard
 cd dashboard
 npm install
 npm run dev
+
+# vLLM Manager
+cd vllm-manager
+pip install -r requirements.txt
+uvicorn manager:app --host 0.0.0.0 --port 8000
 ```
-
-### Gaming PC
-
-```powershell
-# Clone and build
-git clone git@github.com:unarmedpuppy/homelab-ai.git
-cd homelab-ai\scripts
-.\build-tts-server.ps1
-```
-
-## Configuration
-
-All environment-specific configuration is done via `.env` file. Copy `.env.example` and fill in your values:
-
-```bash
-cp .env.example .env
-```
-
-Key configuration:
-- `HARBOR_REGISTRY` - Your Harbor registry URL
-- `GAMING_PC_URL` - IP/port of your gaming PC running the manager
-- `SERVER_SSH_*` - SSH access for agent endpoint
-- `DOMAIN` - Your domain for Traefik labels
 
 ## Architecture
 
@@ -79,44 +64,102 @@ Key configuration:
                                     └────────┬────────┘
                                              │
                                     ┌────────▼────────┐
-                                    │   Router        │
+                                    │   LLM Router    │
                                     │ (OpenAI API)    │
                                     └────────┬────────┘
                          ┌───────────────────┼───────────────────┐
                          │                   │                   │
                 ┌────────▼────────┐ ┌────────▼────────┐ ┌────────▼────────┐
-                │  Gaming PC      │ │  Server GPU     │ │  Cloud          │
-                │  (Primary GPU)  │ │  (Fallback)     │ │  (Overflow)     │
-                │  - Manager      │ │  - vLLM         │ │                 │
-                │  - TTS          │ │                 │ │                 │
-                │  - Image        │ │                 │ │                 │
+                │  Gaming PC      │ │  Server         │ │  Cloud          │
+                │  vllm-manager   │ │  vllm-manager   │ │  (Overflow)     │
+                │  (on-demand)    │ │  (always-on)    │ │                 │
+                │  + image-server │ │                 │ │                 │
+                │  + tts-server   │ │                 │ │                 │
                 └─────────────────┘ └─────────────────┘ └─────────────────┘
 ```
 
-## Harbor Images
+## vLLM Manager
 
-Images are tagged with both `:latest` and `:SHA`:
+The unified model orchestrator that runs on both server and Gaming PC:
 
+### Configuration via Environment Variables
+
+| Variable | Server | Gaming PC | Description |
+|----------|--------|-----------|-------------|
+| `MODE` | `always-on` | `on-demand` | Keep model loaded vs load on request |
+| `DEFAULT_MODEL` | `qwen2.5-7b-awq` | `qwen2.5-14b-awq` | Model to load at startup |
+| `GAMING_MODE_ENABLED` | `false` | `true` | Enable gaming mode feature |
+| `IDLE_TIMEOUT` | `0` | `600` | Seconds before unloading idle models |
+
+### Model Cards
+
+Models are defined in `vllm-manager/models.json` with VRAM requirements:
+
+```json
+{
+  "models": [
+    {
+      "id": "qwen2.5-7b-awq",
+      "hf_model": "Qwen/Qwen2.5-7B-Instruct-AWQ",
+      "vram_gb": 5,
+      "type": "text"
+    }
+  ]
+}
 ```
-${HARBOR_REGISTRY}/${HARBOR_PROJECT}/local-ai-router:latest
-${HARBOR_REGISTRY}/${HARBOR_PROJECT}/local-ai-dashboard:latest
-```
+
+At startup, the manager detects GPU VRAM and filters to models that fit.
+
+### API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /status` | Detailed status of all models and GPU |
+| `GET /v1/models` | OpenAI-compatible model list |
+| `POST /start/{model_id}` | Explicitly start a model |
+| `POST /stop/{model_id}` | Stop a model |
+| `POST /gaming-mode` | Toggle gaming mode |
+| `POST /v1/chat/completions` | Proxy to running model |
+
+## Docker Compose Files
+
+| File | Purpose |
+|------|---------|
+| `docker-compose.yml` | Base (networks, volumes) |
+| `docker-compose.server.yml` | Server stack (router, dashboard, vllm-manager) |
+| `docker-compose.gaming.yml` | Gaming PC stack (vllm-manager, image-server, tts-server) |
 
 ## CI/CD
 
-GitHub Actions automatically builds and pushes to Harbor on merge to main:
+GitHub Actions builds all 5 images on merge to main:
 
-- **Trigger**: Push to `main` with changes in `router/` or `dashboard/`
-- **Steps**: Lint → Test → Build → Push to Harbor
-- **Tags**: `:latest` and `:SHA`
+- **llm-router** - Python FastAPI
+- **dashboard** - React/Vite + nginx
+- **vllm-manager** - Python FastAPI
+- **image-server** - Python + Diffusers (CUDA)
+- **tts-server** - Python + Chatterbox (CUDA)
 
 Required GitHub Secrets:
-- `HARBOR_USERNAME`
-- `HARBOR_PASSWORD`
+- `HARBOR_REGISTRY` - Harbor registry URL
+- `HARBOR_USERNAME` - Harbor username
+- `HARBOR_PASSWORD` - Harbor password
+
+## Configuration
+
+All environment-specific configuration is done via `.env` file:
+
+```bash
+cp .env.example .env
+```
+
+Key variables:
+- `HARBOR_REGISTRY` - Your Harbor registry URL
+- `DOMAIN` - Your domain for Traefik labels
+- `SERVER_IP` - Server IP for homepage labels
 
 ## Documentation
 
-- [Router Documentation](router/README.md)
+- [LLM Router Documentation](llm-router/README.md)
 - [Dashboard Documentation](dashboard/README.md)
 - [Agent Skills](agents/skills/)
 - [Reference Docs](agents/reference/)

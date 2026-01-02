@@ -1,0 +1,74 @@
+{
+  "models": [
+    {
+      "id": "qwen2.5-7b-awq",
+      "name": "Qwen 2.5 7B AWQ",
+      "hf_model": "Qwen/Qwen2.5-7B-Instruct-AWQ",
+      "quantization": "awq",
+      "type": "text",
+      "vram_gb": 5,
+      "max_context": 8192,
+      "default_context": 4096
+    },
+    {
+      "id": "qwen2.5-14b-awq",
+      "name": "Qwen 2.5 14B AWQ",
+      "hf_model": "Qwen/Qwen2.5-14B-Instruct-AWQ",
+      "quantization": "awq",
+      "type": "text",
+      "vram_gb": 10,
+      "max_context": 16384,
+      "default_context": 8192
+    },
+    {
+      "id": "qwen2.5-32b-awq",
+      "name": "Qwen 2.5 32B AWQ",
+      "hf_model": "Qwen/Qwen2.5-32B-Instruct-AWQ",
+      "quantization": "awq",
+      "type": "text",
+      "vram_gb": 20,
+      "max_context": 32768,
+      "default_context": 16384
+    },
+    {
+      "id": "llama3-8b",
+      "name": "Llama 3 8B",
+      "hf_model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "quantization": null,
+      "type": "text",
+      "vram_gb": 16,
+      "max_context": 8192,
+      "default_context": 4096
+    },
+    {
+      "id": "deepseek-coder-7b",
+      "name": "DeepSeek Coder 7B",
+      "hf_model": "deepseek-ai/deepseek-coder-7b-instruct-v1.5",
+      "quantization": null,
+      "type": "text",
+      "vram_gb": 14,
+      "max_context": 16384,
+      "default_context": 8192
+    },
+    {
+      "id": "flux-schnell",
+      "name": "FLUX Schnell",
+      "hf_model": "black-forest-labs/FLUX.1-schnell",
+      "quantization": null,
+      "type": "image",
+      "vram_gb": 12,
+      "max_context": null,
+      "default_context": null
+    },
+    {
+      "id": "chatterbox-turbo",
+      "name": "Chatterbox Turbo TTS",
+      "hf_model": "resemble-ai/chatterbox",
+      "quantization": null,
+      "type": "tts",
+      "vram_gb": 4,
+      "max_context": null,
+      "default_context": null
+    }
+  ]
+}
