@@ -31,21 +31,21 @@ docker compose -f apps/homelab-ai/docker-compose.yml restart
 
 | Service | URL | Purpose |
 |---------|-----|---------|
-| LLM Router | https://local-ai-api.server.unarmedpuppy.com | OpenAI-compatible API |
-| Dashboard | https://local-ai-dashboard.server.unarmedpuppy.com | Metrics and conversation explorer |
+| LLM Router | https://homelab-ai-api.server.unarmedpuppy.com | OpenAI-compatible API |
+| Dashboard | https://homelab-ai.server.unarmedpuppy.com | Metrics and conversation explorer |
 | LLM Manager | http://192.168.86.47:8015/status | Model status and control |
 
 ## API Quick Reference
 
 ```bash
 # Health check
-curl https://local-ai-api.server.unarmedpuppy.com/health
+curl https://homelab-ai-api.server.unarmedpuppy.com/health
 
 # List models
-curl https://local-ai-api.server.unarmedpuppy.com/v1/models
+curl https://homelab-ai-api.server.unarmedpuppy.com/v1/models
 
 # Chat completion
-curl https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
+curl https://homelab-ai-api.server.unarmedpuppy.com/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model": "qwen2.5-7b-awq", "messages": [{"role": "user", "content": "Hello"}]}'
 ```

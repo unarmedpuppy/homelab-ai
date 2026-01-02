@@ -35,19 +35,19 @@ services:
       - my-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.llm-router.rule=Host(`local-ai-api.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.llm-router.rule=Host(`homelab-ai-api.server.unarmedpuppy.com`)"
       - "traefik.http.routers.llm-router.entrypoints=websecure"
       - "traefik.http.routers.llm-router.tls.certresolver=myresolver"
       - "traefik.http.services.llm-router.loadbalancer.server.port=8000"
       - "homepage.group=AI"
       - "homepage.name=LLM Router"
       - "homepage.icon=mdi-api"
-      - "homepage.href=https://local-ai-api.server.unarmedpuppy.com/health"
+      - "homepage.href=https://homelab-ai-api.server.unarmedpuppy.com/health"
       - "homepage.description=OpenAI-compatible API router"
 
   dashboard:
     image: harbor.server.unarmedpuppy.com/library/local-ai-dashboard:latest
-    container_name: local-ai-dashboard
+    container_name: homelab-ai-dashboard
     restart: unless-stopped
     ports:
       - "8014:80"
@@ -57,14 +57,14 @@ services:
       - my-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.ai-dashboard.rule=Host(`local-ai-dashboard.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.ai-dashboard.rule=Host(`homelab-ai.server.unarmedpuppy.com`)"
       - "traefik.http.routers.ai-dashboard.entrypoints=websecure"
       - "traefik.http.routers.ai-dashboard.tls.certresolver=myresolver"
       - "traefik.http.services.ai-dashboard.loadbalancer.server.port=80"
       - "homepage.group=AI"
       - "homepage.name=AI Dashboard"
       - "homepage.icon=mdi-chart-line"
-      - "homepage.href=https://local-ai-dashboard.server.unarmedpuppy.com"
+      - "homepage.href=https://homelab-ai.server.unarmedpuppy.com"
       - "homepage.description=Metrics and conversation explorer"
 
   llm-manager:
