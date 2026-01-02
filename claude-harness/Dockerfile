@@ -9,11 +9,12 @@
 
 FROM python:3.11-slim
 
-# Install Node.js, Git, and SSH client
+# Install Node.js, Git, SSH client, and su-exec for privilege dropping
 RUN apt-get update && apt-get install -y \
     curl \
     git \
     openssh-client \
+    su-exec \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && apt-get clean \
@@ -37,15 +38,13 @@ COPY main.py .
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
-# Create credentials directory (will be a volume mount point)
-RUN mkdir -p /home/appuser/.claude && \
-    chown -R appuser:appuser /home/appuser /app
+# Create directories (volumes will be mounted at runtime)
+RUN mkdir -p /home/appuser/.claude /home/appuser/.ssh /workspace && \
+    chown -R appuser:appuser /home/appuser /app /workspace
 
-# Switch to app user
-USER appuser
-
-# Set HOME for Claude CLI to find credentials
+# Stay as root - entrypoint will fix volume permissions then drop to appuser
 ENV HOME=/home/appuser
+ENV APPUSER=appuser
 
 # Expose port
 EXPOSE 8013

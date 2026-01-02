@@ -1,32 +1,42 @@
 #!/bin/bash
 set -euo pipefail
 
-# Claude Code Harness - Container Entrypoint
-#
-# Checks for OAuth authentication before starting the service.
-# If not authenticated, provides instructions for one-time auth.
-#
-# Volume mount: /home/appuser/.claude (directory)
-# Claude CLI expects: /home/appuser/.claude.json (file)
-# Solution: Symlink the file from the volume directory
-
-CLAUDE_VOLUME_DIR="$HOME/.claude"
-CLAUDE_CONFIG="$HOME/.claude.json"
+APPUSER="${APPUSER:-appuser}"
+CLAUDE_VOLUME_DIR="/home/$APPUSER/.claude"
+CLAUDE_CONFIG="/home/$APPUSER/.claude.json"
 CLAUDE_CONFIG_IN_VOLUME="$CLAUDE_VOLUME_DIR/.claude.json"
+SSH_DIR="/home/$APPUSER/.ssh"
+WORKSPACE_DIR="/workspace"
 
-# Create symlink if volume has the token file but symlink doesn't exist
-if [ -f "$CLAUDE_CONFIG_IN_VOLUME" ] && [ ! -L "$CLAUDE_CONFIG" ]; then
-    ln -sf "$CLAUDE_CONFIG_IN_VOLUME" "$CLAUDE_CONFIG"
-    echo "Symlinked $CLAUDE_CONFIG -> $CLAUDE_CONFIG_IN_VOLUME"
-fi
+fix_volume_permissions() {
+    chown -R "$APPUSER:$APPUSER" "$CLAUDE_VOLUME_DIR" 2>/dev/null || true
+    chown -R "$APPUSER:$APPUSER" "$SSH_DIR" 2>/dev/null || true
+    chown -R "$APPUSER:$APPUSER" "$WORKSPACE_DIR" 2>/dev/null || true
+    chmod 700 "$SSH_DIR" 2>/dev/null || true
+}
 
-# Check if Claude CLI is authenticated
-if [ ! -f "$CLAUDE_CONFIG" ] && [ ! -f "$CLAUDE_CONFIG_IN_VOLUME" ]; then
+setup_ssh_key() {
+    if [ ! -f "$SSH_DIR/id_ed25519" ]; then
+        echo "Generating SSH key for deployments..."
+        su-exec "$APPUSER" ssh-keygen -t ed25519 -f "$SSH_DIR/id_ed25519" -N "" -C "claude-harness@container"
+        echo ""
+        echo "SSH public key (add to claude-deploy@server authorized_keys):"
+        cat "$SSH_DIR/id_ed25519.pub"
+        echo ""
+    fi
+}
+
+setup_claude_symlink() {
+    if [ -f "$CLAUDE_CONFIG_IN_VOLUME" ] && [ ! -L "$CLAUDE_CONFIG" ]; then
+        su-exec "$APPUSER" ln -sf "$CLAUDE_CONFIG_IN_VOLUME" "$CLAUDE_CONFIG"
+        echo "Symlinked $CLAUDE_CONFIG -> $CLAUDE_CONFIG_IN_VOLUME"
+    fi
+}
+
+wait_for_auth() {
     echo "=============================================="
     echo "ERROR: Claude CLI not authenticated"
     echo "=============================================="
-    echo ""
-    echo "OAuth tokens not found."
     echo ""
     echo "To authenticate (one-time setup):"
     echo ""
@@ -38,24 +48,23 @@ if [ ! -f "$CLAUDE_CONFIG" ] && [ ! -f "$CLAUDE_CONFIG_IN_VOLUME" ]; then
     echo "  5. Restart the container: docker restart claude-harness"
     echo ""
     echo "=============================================="
-    
     echo "Container staying alive for authentication..."
-    
     tail -f /dev/null
+}
+
+fix_volume_permissions
+setup_ssh_key
+setup_claude_symlink
+
+if [ ! -f "$CLAUDE_CONFIG" ] && [ ! -f "$CLAUDE_CONFIG_IN_VOLUME" ]; then
+    wait_for_auth
 fi
 
-# Verify token file has content
 if [ ! -s "$CLAUDE_CONFIG" ] && [ ! -s "$CLAUDE_CONFIG_IN_VOLUME" ]; then
     echo "ERROR: Token file exists but is empty"
     echo "Re-authenticate: docker exec -it claude-harness claude"
     tail -f /dev/null
 fi
 
-if [ -f "$CLAUDE_CONFIG_IN_VOLUME" ] && [ ! -L "$CLAUDE_CONFIG" ]; then
-    ln -sf "$CLAUDE_CONFIG_IN_VOLUME" "$CLAUDE_CONFIG"
-fi
-
 echo "OAuth tokens found. Starting Claude Harness..."
-
-# Start the FastAPI service
-exec uvicorn main:app --host 0.0.0.0 --port 8013
+exec su-exec "$APPUSER" uvicorn main:app --host 0.0.0.0 --port 8013
