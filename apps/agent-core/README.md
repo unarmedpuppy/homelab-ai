@@ -6,7 +6,7 @@ Platform-agnostic AI agent service. Hosts multiple AI personas (Tayne, Sentinel,
 
 - **Internal URL**: http://agent-core:8000 (Docker network)
 - **External URL**: https://agent-core.server.unarmedpuppy.com
-- **Local Port**: 8020
+- **Local Port**: 8022
 - **Status**: Active
 
 ## Quick Start
@@ -19,13 +19,13 @@ cp .env.example .env
 docker compose up -d
 
 # Test health
-curl http://localhost:8020/health
+curl http://localhost:8022/health
 
 # List agents
-curl http://localhost:8020/v1/agents
+curl http://localhost:8022/v1/agents
 
 # Chat with Tayne
-curl -X POST http://localhost:8020/v1/agent/tayne/chat \
+curl -X POST http://localhost:8022/v1/agent/tayne/chat \
   -H "Content-Type: application/json" \
   -d '{
     "message": "Hello Tayne!",
@@ -117,7 +117,7 @@ Platform Adapters          Agent Core              LLM Backend
 pip install -r requirements.txt
 
 # Run locally
-uvicorn main:app --reload --port 8020
+uvicorn main:app --reload --port 8022
 
 # Run tests
 pytest
