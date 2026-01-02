@@ -2,6 +2,7 @@
 #
 # OpenAI-compatible API wrapper for Claude Code CLI.
 # OAuth tokens stored in Docker volume (claude-credentials).
+# Built via GitHub Actions CI/CD - see .github/workflows/build-and-push.yml
 #
 # First-time setup:
 #   docker exec -it claude-harness claude
