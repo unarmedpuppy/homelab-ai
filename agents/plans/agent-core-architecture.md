@@ -1,6 +1,6 @@
 # Agent Core Architecture Plan
 
-**Status**: In Progress (Phase 3 Complete)
+**Status**: In Progress (Phase 4 Complete)
 **Created**: 2026-01-01
 **Epic**: home-server-xja - Tayne Bot - Multi-Platform Chat Bot
 
@@ -315,19 +315,20 @@ You mentioned wanting to work on the trading bot - want me to block some time?"
 
 ---
 
-### Phase 4: Tool Framework + READ_ONLY Tools
+### Phase 4: Tool Framework + READ_ONLY Tools ✅
 **Goal**: Agents can call tools, public users get read-only access
 
 **Deliverables**:
-- [ ] Tool registry with role annotations
-- [ ] Access control middleware
-- [ ] READ_ONLY tools:
-  - `service_status` - Docker container status
-  - `disk_usage` - System disk usage
-  - `container_logs` - Tail container logs
-  - `bird_posts` - Query Bird API
-  - `trading_status` - Polymarket bot status
-- [ ] Tool discovery endpoint: `GET /v1/tools`
+- [x] Tool registry with role annotations (`tools/registry.py`)
+- [x] Tool base class with OpenAI function format (`tools/base.py`)
+- [x] READ_ONLY tools:
+  - [x] `service_status` - Docker container status
+  - [x] `disk_usage` - System disk usage
+  - [x] `container_logs` - Tail container logs
+  - [ ] `bird_posts` - Query Bird API (deferred to Phase 4.5)
+  - [ ] `trading_status` - Polymarket bot status (deferred to Phase 4.5)
+- [x] Tool discovery endpoint: `GET /v1/tools`
+- [x] Chat endpoint wired for tool calling with iterative execution
 
 **Validation**: Ask Tayne "what's the server status?" and get real data
 
