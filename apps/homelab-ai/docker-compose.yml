@@ -39,10 +39,16 @@ services:
           - local-ai-router  # Backwards compat for dashboard image
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.llm-router.rule=Host(`homelab-ai-api.server.unarmedpuppy.com`) || Host(`local-ai-api.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.llm-router.rule=Host(`homelab-ai-api.server.unarmedpuppy.com`)"
       - "traefik.http.routers.llm-router.entrypoints=websecure"
       - "traefik.http.routers.llm-router.tls.certresolver=myresolver"
+      - "traefik.http.routers.llm-router.middlewares=llm-router-cors"
       - "traefik.http.services.llm-router.loadbalancer.server.port=8000"
+      - "traefik.http.middlewares.llm-router-cors.headers.accesscontrolallowmethods=GET,POST,PUT,DELETE,OPTIONS"
+      - "traefik.http.middlewares.llm-router-cors.headers.accesscontrolallowheaders=Content-Type,Authorization"
+      - "traefik.http.middlewares.llm-router-cors.headers.accesscontrolalloworiginlist=https://homelab-ai.server.unarmedpuppy.com"
+      - "traefik.http.middlewares.llm-router-cors.headers.accesscontrolmaxage=100"
+      - "traefik.http.middlewares.llm-router-cors.headers.addvaryheader=true"
       - "homepage.group=AI"
       - "homepage.name=LLM Router"
       - "homepage.icon=mdi-api"
