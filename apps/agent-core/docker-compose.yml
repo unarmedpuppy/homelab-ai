@@ -22,7 +22,7 @@ services:
       # Mount backup script
       - /home/unarmedpuppy/server/scripts:/server/scripts:ro
     ports:
-      - "8020:8000"
+      - "8021:8000"
     networks:
       - my-network
     labels:
