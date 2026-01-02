@@ -29,7 +29,7 @@ services:
       - ZAI_API_KEY=${ZAI_API_KEY:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
     volumes:
-      - ./data:/app/data
+      - ./data:/data
       - ../../agents/skills:/app/agents/skills:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
