@@ -4,7 +4,7 @@ services:
     container_name: agent-core
     restart: unless-stopped
     environment:
-      - LOCAL_AI_URL=${LOCAL_AI_URL:-http://local-ai-router:8000}
+      - LOCAL_AI_URL=${LOCAL_AI_URL:-http://llm-router:8000}
       - LOCAL_AI_API_KEY=${LOCAL_AI_API_KEY:-}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       # Media API keys (get from server config files)
