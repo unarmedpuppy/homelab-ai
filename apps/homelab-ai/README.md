@@ -56,18 +56,36 @@ Source code and development happens in the [homelab-ai](https://github.com/unarm
 
 Images are built via CI/CD and pushed to Harbor on merge to main.
 
+## Data Migration (IMPORTANT)
+
+**Before first deploy**, copy existing data from the old local-ai-router:
+
+```bash
+# On the server, create data directory and copy existing data
+mkdir -p ~/server/apps/homelab-ai/data
+cp -r ~/server/apps/local-ai-router/data/* ~/server/apps/homelab-ai/data/
+
+# Verify the database was copied
+ls -la ~/server/apps/homelab-ai/data/
+# Should show: local-ai-router.db (contains conversations, metrics, etc.)
+```
+
+This preserves all your:
+- Conversation history
+- Metrics data  
+- RAG search embeddings
+
 ## Volumes
 
-| Volume | Purpose |
-|--------|---------|
-| `huggingface-cache` | Model weights cache |
-| `router-data` | Router metrics and memory database |
+| Volume | Location | Purpose |
+|--------|----------|---------|
+| `./data` | Bind mount | Router database (conversations, metrics) |
+| `huggingface-cache` | Named volume | Model weights cache |
 
-Both volumes are external and should be created before first run:
+Create the external volume before first run:
 
 ```bash
 docker volume create huggingface-cache
-docker volume create router-data
 ```
 
 ## Network

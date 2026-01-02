@@ -20,12 +20,17 @@ services:
     ports:
       - "8012:8000"
     environment:
+      - TZ=America/Chicago
       - LOCAL_3070_URL=http://llm-manager:8000
+      - GAMING_PC_URL=${GAMING_PC_URL:-http://192.168.86.63:8000}
       - ENABLE_METRICS=1
       - ENABLE_MEMORY=1
       - LOG_LEVEL=INFO
+      - ZAI_API_KEY=${ZAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
     volumes:
-      - router-data:/app/data
+      - ./data:/app/data
+      - ../../agents/skills:/app/agents/skills:ro
     networks:
       - my-network
     labels:
@@ -99,6 +104,4 @@ networks:
 
 volumes:
   huggingface-cache:
-    external: true
-  router-data:
     external: true
