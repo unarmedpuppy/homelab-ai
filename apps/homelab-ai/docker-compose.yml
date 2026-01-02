@@ -119,10 +119,22 @@ services:
       - "8013:8013"
     volumes:
       - claude-credentials:/home/appuser/.claude
+      - claude-workspace:/workspace
+      - claude-ssh:/home/appuser/.ssh
     environment:
       - TZ=America/Chicago
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - GIT_AUTHOR_NAME=Claude Code
+      - GIT_AUTHOR_EMAIL=claude@server.unarmedpuppy.com
+      - GIT_COMMITTER_NAME=Claude Code
+      - GIT_COMMITTER_EMAIL=claude@server.unarmedpuppy.com
+      - DEPLOY_HOST=192.168.86.47
+      - DEPLOY_USER=claude-deploy
+      - DEPLOY_PORT=4242
     networks:
       - my-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8013/health"]
       interval: 30s
@@ -144,3 +156,5 @@ volumes:
   huggingface-cache:
     external: true
   claude-credentials:
+  claude-workspace:
+  claude-ssh:
