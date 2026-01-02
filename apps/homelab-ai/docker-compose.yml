@@ -34,7 +34,9 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
-      - my-network
+      my-network:
+        aliases:
+          - local-ai-router  # Backwards compat for dashboard image
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.llm-router.rule=Host(`homelab-ai-api.server.unarmedpuppy.com`)"
