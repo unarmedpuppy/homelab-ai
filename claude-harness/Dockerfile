@@ -9,12 +9,12 @@
 
 FROM python:3.11-slim
 
-# Install Node.js, Git, SSH client, and su-exec for privilege dropping
+# Install Node.js, Git, SSH client, and gosu for privilege dropping
 RUN apt-get update && apt-get install -y \
     curl \
     git \
     openssh-client \
-    su-exec \
+    gosu \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && apt-get clean \

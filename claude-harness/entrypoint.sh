@@ -18,7 +18,7 @@ fix_volume_permissions() {
 setup_ssh_key() {
     if [ ! -f "$SSH_DIR/id_ed25519" ]; then
         echo "Generating SSH key for deployments..."
-        su-exec "$APPUSER" ssh-keygen -t ed25519 -f "$SSH_DIR/id_ed25519" -N "" -C "claude-harness@container"
+        gosu "$APPUSER" ssh-keygen -t ed25519 -f "$SSH_DIR/id_ed25519" -N "" -C "claude-harness@container"
         echo ""
         echo "SSH public key (add to claude-deploy@server authorized_keys):"
         cat "$SSH_DIR/id_ed25519.pub"
@@ -28,7 +28,7 @@ setup_ssh_key() {
 
 setup_claude_symlink() {
     if [ -f "$CLAUDE_CONFIG_IN_VOLUME" ] && [ ! -L "$CLAUDE_CONFIG" ]; then
-        su-exec "$APPUSER" ln -sf "$CLAUDE_CONFIG_IN_VOLUME" "$CLAUDE_CONFIG"
+        gosu "$APPUSER" ln -sf "$CLAUDE_CONFIG_IN_VOLUME" "$CLAUDE_CONFIG"
         echo "Symlinked $CLAUDE_CONFIG -> $CLAUDE_CONFIG_IN_VOLUME"
     fi
 }
@@ -67,4 +67,4 @@ if [ ! -s "$CLAUDE_CONFIG" ] && [ ! -s "$CLAUDE_CONFIG_IN_VOLUME" ]; then
 fi
 
 echo "OAuth tokens found. Starting Claude Harness..."
-exec su-exec "$APPUSER" uvicorn main:app --host 0.0.0.0 --port 8013
+exec gosu "$APPUSER" uvicorn main:app --host 0.0.0.0 --port 8013
