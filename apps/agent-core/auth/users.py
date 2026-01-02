@@ -21,7 +21,18 @@ class UserInfo:
 
 # Whitelisted users - add platform:user_id mappings here
 # Format: "platform:user_id" -> {"role": ToolRole, "name": "Display Name"}
+#
+# ROLE CAPABILITIES:
+#   PUBLIC  - Can use read-only tools (service_status, game_server_status, disk_usage)
+#   TRUSTED - PUBLIC + can use control tools (restart_game_server, restart_container)
+#   ADMIN   - TRUSTED + admin tools (docker_compose_up/down, trigger_backup)
+#
+# To get Discord user IDs:
+#   Enable Developer Mode in Discord (Settings > App Settings > Advanced)
+#   Right-click user > Copy User ID
+#
 WHITELISTED_USERS: dict[str, dict] = {
+    # ===== ADMINS (full access) =====
     # Discord - Josh
     "discord:244649852473049088": {
         "role": ToolRole.ADMIN,
@@ -31,6 +42,13 @@ WHITELISTED_USERS: dict[str, dict] = {
     # "mattermost:USER_ID_HERE": {
     #     "role": ToolRole.ADMIN,
     #     "name": "Josh",
+    # },
+    
+    # ===== TRUSTED (can restart game servers) =====
+    # Add Discord users who should be able to restart game servers
+    # "discord:USER_ID_HERE": {
+    #     "role": ToolRole.TRUSTED,
+    #     "name": "Friend Name",
     # },
 }
 

@@ -12,8 +12,10 @@ def _register_tools():
     from .read_only.service_status import ServiceStatusTool
     from .read_only.disk_usage import DiskUsageTool
     from .read_only.container_logs import ContainerLogsTool
+    from .read_only.game_server_status import GameServerStatusTool
     
     from .control.restart_container import RestartContainerTool
+    from .control.restart_game_server import RestartGameServerTool
     from .control.docker_compose import DockerComposeUpTool, DockerComposeDownTool
     from .control.trigger_backup import TriggerBackupTool
     
@@ -25,7 +27,9 @@ def _register_tools():
         ServiceStatusTool(),
         DiskUsageTool(),
         ContainerLogsTool(),
+        GameServerStatusTool(),
         RestartContainerTool(),
+        RestartGameServerTool(),
         DockerComposeUpTool(),
         DockerComposeDownTool(),
         TriggerBackupTool(),
