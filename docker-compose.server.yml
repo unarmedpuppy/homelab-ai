@@ -1,7 +1,10 @@
 # Server deployment - Router, Dashboard, LLM Manager
 # 
 # Usage:
-#   docker compose -f docker-compose.yml -f docker-compose.server.yml up -d
+#   docker compose -f docker-compose.server.yml up -d
+#
+# Note: This file is standalone for server deployment. Uses my-network (external)
+#       which should already exist from other server services (traefik, etc.).
 #
 # Environment variables (set in .env):
 #   HARBOR_REGISTRY - Harbor registry URL
@@ -22,7 +25,7 @@ services:
     volumes:
       - router-data:/app/data
     networks:
-      - ai-network
+      - my-network
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.llm-router.rule=Host(`local-ai-api.${DOMAIN:-localhost}`)"
@@ -45,7 +48,7 @@ services:
       - VITE_API_URL=http://llm-router:8000
       - LOCAL_AI_API_KEY=lai_7f4011a4fead244ab5224f085ffbad59
     networks:
-      - ai-network
+      - my-network
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ai-dashboard.rule=Host(`local-ai-dashboard.${DOMAIN:-localhost}`)"
@@ -70,12 +73,12 @@ services:
       - GAMING_MODE_ENABLED=false
       - IDLE_TIMEOUT=0
       - VLLM_IMAGE=${HARBOR_REGISTRY:-harbor.local}/docker-hub/vllm/vllm-openai:latest
-      - DOCKER_NETWORK=ai-network
+      - DOCKER_NETWORK=my-network
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - huggingface-cache:/root/.cache/huggingface
     networks:
-      - ai-network
+      - my-network
     deploy:
       resources:
         reservations:
@@ -91,7 +94,7 @@ services:
       - "homepage.description=Always-on LLM on RTX 3070"
 
 networks:
-  ai-network:
+  my-network:
     external: true
 
 volumes:
