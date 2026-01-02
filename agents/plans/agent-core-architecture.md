@@ -1,6 +1,6 @@
 # Agent Core Architecture Plan
 
-**Status**: In Progress (Phase 1 Complete)
+**Status**: In Progress (Phase 3 Complete)
 **Created**: 2026-01-01
 **Epic**: home-server-xja - Tayne Bot - Multi-Platform Chat Bot
 
@@ -297,16 +297,21 @@ You mentioned wanting to work on the trading bot - want me to block some time?"
 
 ---
 
-### Phase 3: Mattermost Adapter Refactor
+### Phase 3: Mattermost Adapter Refactor ✅
 **Goal**: Mattermost gateway calls agent-core for Tayne
 
 **Deliverables**:
-- [ ] Refactor `apps/mattermost-gateway/gateway/routes/tayne.py`
-- [ ] Map Mattermost user ID to platform-agnostic user ID
-- [ ] Remove duplicate `tayne_persona.py` from gateway
-- [ ] Update health check to include agent-core status
+- [x] Refactor `apps/mattermost-gateway/gateway/routes/tayne.py`
+- [x] Add `agent_core_url` to config.py Settings class
+- [x] Map Mattermost user ID to platform-agnostic user ID
+- [x] Update `tayne_persona.py` to match agent-core version (kept for fallback)
+- [x] Fallback to direct local-ai-router if agent-core unreachable
+- [x] Update health check to include agent-core status
+- [x] Update docker-compose.yml with AGENT_CORE_URL env var
 
 **Validation**: Both Discord and Mattermost Tayne work, single persona source
+
+**Safety net**: If agent-core is down, falls back to direct local-ai-router call
 
 ---
 

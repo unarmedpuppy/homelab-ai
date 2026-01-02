@@ -2,7 +2,7 @@
 Tayne Mattermost Bot - Webhook Handler
 
 Receives Mattermost outgoing webhook requests when @tayne is mentioned,
-queries local-ai-router with Tayne persona, and responds.
+routes to agent-core (with fallback to direct local-ai-router), and responds.
 """
 
 from __future__ import annotations
@@ -34,25 +34,17 @@ from ..tayne_persona import (
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["tayne"])
 
-# Rate limiting state (in-memory, resets on restart)
 user_cooldowns: dict[str, float] = defaultdict(float)
 user_message_times: dict[str, list[float]] = defaultdict(list)
 
 
 def is_rate_limited(user_id: str) -> tuple[bool, bool]:
-    """
-    Check if user is rate limited.
-    
-    Returns:
-        (is_limited, is_rapid_fire): Tuple indicating if limited and if it's rapid fire spam
-    """
+    """Returns (is_limited, is_rapid_fire)."""
     now = time.time()
     
-    # Check basic cooldown
     if now - user_cooldowns[user_id] < DEFAULT_COOLDOWN_SECONDS:
         return True, False
     
-    # Check rapid-fire spam (many messages in short window)
     user_message_times[user_id] = [
         t for t in user_message_times[user_id] 
         if now - t < DEFAULT_RAPID_FIRE_WINDOW
@@ -62,15 +54,11 @@ def is_rate_limited(user_id: str) -> tuple[bool, bool]:
     if len(user_message_times[user_id]) > DEFAULT_RAPID_FIRE_THRESHOLD:
         return True, True
     
-    # Update cooldown
     user_cooldowns[user_id] = now
     return False, False
 
 
 def needs_fallback(response: str) -> bool:
-    """
-    Detect if the LLM response has gone off the rails or broken character.
-    """
     if len(response) > DEFAULT_MAX_RESPONSE_LENGTH:
         return True
     
@@ -83,25 +71,71 @@ def needs_fallback(response: str) -> bool:
 
 
 def clean_message(text: str, trigger_word: str) -> str:
-    """Remove trigger word from message."""
-    # Remove the trigger word (case insensitive)
     import re
     cleaned = re.sub(re.escape(trigger_word), '', text, flags=re.IGNORECASE).strip()
     return cleaned if cleaned else "Hello Tayne!"
 
 
-async def query_tayne(
+async def query_agent_core(
     message: str,
     user_name: str,
     channel_id: str,
     user_id: str,
 ) -> str | None:
-    """
-    Query local-ai-router with Tayne's persona.
+    """Query agent-core for Tayne response. Returns None if unavailable."""
+    settings = get_settings()
+    agent_core_url = settings.agent_core_url
     
-    Returns:
-        Response text, or None if the API call failed
-    """
+    if not agent_core_url:
+        logger.warning("AGENT_CORE_URL not configured")
+        return None
+    
+    payload = {
+        "message": message,
+        "user": {
+            "platform": "mattermost",
+            "platform_user_id": user_id,
+            "display_name": user_name,
+        },
+        "conversation_id": f"mattermost-{channel_id}",
+        "context": {
+            "channel_id": channel_id,
+        },
+    }
+    
+    try:
+        async with httpx.AsyncClient(timeout=DEFAULT_REQUEST_TIMEOUT) as client:
+            response = await client.post(
+                f"{agent_core_url}/v1/agent/tayne/chat",
+                json=payload,
+                headers={"Content-Type": "application/json"},
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                return data.get("response")
+            else:
+                logger.warning(f"Agent-core returned status {response.status_code}")
+                return None
+                
+    except httpx.TimeoutException:
+        logger.warning("Agent-core request timed out")
+        return None
+    except httpx.RequestError as e:
+        logger.warning(f"Agent-core connection error: {e}")
+        return None
+    except Exception as e:
+        logger.error(f"Unexpected error querying agent-core: {e}")
+        return None
+
+
+async def query_local_ai_direct(
+    message: str,
+    user_name: str,
+    channel_id: str,
+    user_id: str,
+) -> str | None:
+    """Fallback: Query local-ai-router directly with Tayne persona."""
     settings = get_settings()
     local_ai_url = settings.local_ai_url
     local_ai_api_key = settings.local_ai_api_key
@@ -145,25 +179,40 @@ async def query_tayne(
                 data = response.json()
                 response_text = data["choices"][0]["message"]["content"]
                 
-                # Check guardrails
                 if needs_fallback(response_text):
                     logger.info(f"Guardrail triggered, using fallback. Original: {response_text[:100]}...")
                     return random.choice(FALLBACK_QUOTES)
                 
                 return response_text
             else:
-                logger.error(f"API returned status {response.status_code}: {response.text}")
+                logger.error(f"Local AI returned status {response.status_code}: {response.text}")
                 return None
                 
     except httpx.TimeoutException:
-        logger.error("API request timed out")
+        logger.error("Local AI request timed out")
         return None
     except httpx.RequestError as e:
-        logger.error(f"API connection error: {e}")
+        logger.error(f"Local AI connection error: {e}")
         return None
     except Exception as e:
-        logger.error(f"Unexpected error querying API: {e}")
+        logger.error(f"Unexpected error querying Local AI: {e}")
         return None
+
+
+async def query_tayne(
+    message: str,
+    user_name: str,
+    channel_id: str,
+    user_id: str,
+) -> str | None:
+    """Query Tayne via agent-core, with fallback to direct local-ai-router."""
+    response = await query_agent_core(message, user_name, channel_id, user_id)
+    if response:
+        logger.info("Response from agent-core")
+        return response
+    
+    logger.info("Agent-core unavailable, falling back to direct local-ai-router")
+    return await query_local_ai_direct(message, user_name, channel_id, user_id)
 
 
 @router.post("/webhook/tayne/mention")
@@ -180,21 +229,14 @@ async def handle_tayne_mention(
     text: str = Form(default=""),
     trigger_word: str = Form(default="@tayne"),
 ) -> dict[str, Any]:
-    """
-    Handle Mattermost outgoing webhook when @tayne is mentioned.
-    
-    Mattermost sends form-encoded data, we respond with JSON.
-    The response is automatically posted back to the channel.
-    """
+    """Handle Mattermost outgoing webhook when @tayne is mentioned."""
     logger.info(f"Tayne mentioned by {user_name} in {channel_name}: {text[:50]}...")
     
-    # Validate webhook token if configured
     settings = get_settings()
     if settings.tayne_webhook_token and token != settings.tayne_webhook_token:
         logger.warning(f"Invalid webhook token from {user_name}")
         raise HTTPException(status_code=401, detail="Invalid webhook token")
     
-    # Check rate limiting
     is_limited, is_rapid_fire = is_rate_limited(user_id)
     
     if is_limited:
@@ -207,10 +249,8 @@ async def handle_tayne_mention(
             "response_type": "comment",
         }
     
-    # Clean the message (remove trigger word)
     cleaned_message = clean_message(text, trigger_word)
     
-    # Query Tayne
     response = await query_tayne(
         message=cleaned_message,
         user_name=user_name,
@@ -218,29 +258,24 @@ async def handle_tayne_mention(
         user_id=user_id,
     )
     
-    # Get the Tayne bot client to post as Tayne (not as webhook)
     tayne_bot = get_bot("tayne")
     if tayne_bot and tayne_bot.is_configured():
         try:
             client = get_client(tayne_bot)
             response_text = response if response else API_DOWN_MESSAGE
-            # Post as Tayne bot, replying to the original message
             client.post_message(
                 channel=channel_id,
                 message=response_text,
-                thread_id=post_id,  # Reply in thread to the triggering message
+                thread_id=post_id,
             )
-            # Return empty to avoid duplicate webhook response
             return {}
         except MattermostClientError as e:
             logger.error(f"Failed to post as Tayne: {e}")
-            # Fall back to webhook response if bot post fails
             return {
                 "text": response if response else API_DOWN_MESSAGE,
                 "response_type": "comment",
             }
     else:
-        # Fall back to webhook response if bot not configured
         logger.warning("Tayne bot not configured, using webhook response")
         return {
             "text": response if response else API_DOWN_MESSAGE,
@@ -250,10 +285,18 @@ async def handle_tayne_mention(
 
 @router.get("/webhook/tayne/health")
 async def tayne_health() -> dict[str, Any]:
-    """Health check for Tayne webhook."""
+    """Health check for Tayne webhook including agent-core status."""
     settings = get_settings()
     
-    # Check if local-ai-router is reachable
+    agent_core_healthy = False
+    if settings.agent_core_url:
+        try:
+            async with httpx.AsyncClient(timeout=5) as client:
+                response = await client.get(f"{settings.agent_core_url}/v1/health")
+                agent_core_healthy = response.status_code == 200
+        except Exception:
+            pass
+    
     local_ai_healthy = False
     if settings.local_ai_url:
         try:
@@ -263,13 +306,24 @@ async def tayne_health() -> dict[str, Any]:
         except Exception:
             pass
     
-    # Check if Tayne bot is configured in Mattermost
     tayne_bot = get_bot("tayne")
     tayne_configured = tayne_bot is not None and tayne_bot.is_configured()
     
+    all_healthy = agent_core_healthy and tayne_configured
+    degraded = (not agent_core_healthy and local_ai_healthy) and tayne_configured
+    
+    if all_healthy:
+        status = "healthy"
+    elif degraded:
+        status = "degraded"
+    else:
+        status = "unhealthy"
+    
     return {
-        "status": "healthy" if (local_ai_healthy and tayne_configured) else "degraded",
+        "status": status,
+        "agent_core": "connected" if agent_core_healthy else "disconnected",
         "local_ai_router": "connected" if local_ai_healthy else "disconnected",
         "tayne_bot_configured": tayne_configured,
+        "agent_core_url": settings.agent_core_url or "not configured",
         "local_ai_url": settings.local_ai_url or "not configured",
     }

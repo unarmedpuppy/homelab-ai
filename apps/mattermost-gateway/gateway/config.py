@@ -52,7 +52,10 @@ class Settings(BaseSettings):
 
     channel_cache_ttl: int = Field(default=300)
 
-    # Local AI Router settings (for Tayne bot)
+    # Agent Core settings (primary route for Tayne)
+    agent_core_url: str = Field(default="http://agent-core:8000")
+    
+    # Local AI Router settings (fallback for Tayne bot)
     local_ai_url: str = Field(default="http://local-ai-router:8000")
     local_ai_api_key: str = Field(default="")
     tayne_webhook_token: str = Field(default="")
