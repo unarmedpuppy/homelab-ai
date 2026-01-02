@@ -75,6 +75,29 @@ This preserves all your:
 - Metrics data  
 - RAG search embeddings
 
+## Environment Variables
+
+Create `.env` from the example template:
+
+```bash
+# On the server
+cd ~/server/apps/homelab-ai
+cp .env.example .env
+nano .env  # Fill in your API keys
+```
+
+**Required variables:**
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `ZAI_API_KEY` | Z.ai API key for GLM models | Yes (if using Z.ai) |
+| `ANTHROPIC_API_KEY` | Anthropic API key for Claude | Optional (if using Claude Harness) |
+| `GAMING_PC_URL` | Gaming PC endpoint | No (defaults to `http://192.168.86.63:8000`) |
+
+**Get API keys:**
+- Z.ai: https://z.ai (use existing key from 1Password)
+- Anthropic: https://console.anthropic.com/settings/keys
+
 ## Volumes
 
 | Volume | Location | Purpose |
