@@ -21,7 +21,7 @@ services:
       - "8012:8000"
     environment:
       - TZ=America/Chicago
-      - LOCAL_3070_URL=http://llm-manager:8000
+      - LOCAL_3070_URL=http://local-ai-server:8000
       - GAMING_PC_URL=${GAMING_PC_URL:-http://192.168.86.63:8000}
       - ENABLE_METRICS=1
       - ENABLE_MEMORY=1
