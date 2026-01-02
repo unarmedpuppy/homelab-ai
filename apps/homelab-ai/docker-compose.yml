@@ -57,6 +57,7 @@ services:
       - "8014:80"
     environment:
       - VITE_API_URL=http://llm-router:8000
+      - LOCAL_AI_API_KEY=not-required
     networks:
       - my-network
     labels:
