@@ -31,6 +31,8 @@ services:
     volumes:
       - ./data:/app/data
       - ../../agents/skills:/app/agents/skills:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - my-network
     labels:
