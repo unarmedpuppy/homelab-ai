@@ -39,7 +39,7 @@ services:
           - local-ai-router  # Backwards compat for dashboard image
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.llm-router.rule=Host(`homelab-ai-api.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.llm-router.rule=Host(`homelab-ai-api.server.unarmedpuppy.com`) || Host(`local-ai-api.server.unarmedpuppy.com`)"
       - "traefik.http.routers.llm-router.entrypoints=websecure"
       - "traefik.http.routers.llm-router.tls.certresolver=myresolver"
       - "traefik.http.services.llm-router.loadbalancer.server.port=8000"
