@@ -1,0 +1,36 @@
+services:
+  agent-core:
+    build: .
+    container_name: agent-core
+    restart: unless-stopped
+    environment:
+      - LOCAL_AI_URL=${LOCAL_AI_URL:-http://local-ai-router:8000}
+      - LOCAL_AI_API_KEY=${LOCAL_AI_API_KEY:-}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    ports:
+      - "8020:8000"
+    networks:
+      - my-network
+    labels:
+      # Traefik configuration
+      - "traefik.enable=true"
+      - "traefik.http.routers.agent-core.rule=Host(`agent-core.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.agent-core.entrypoints=websecure"
+      - "traefik.http.routers.agent-core.tls.certresolver=myresolver"
+      - "traefik.http.services.agent-core.loadbalancer.server.port=8000"
+      # Homepage configuration
+      - "homepage.group=AI & Automation"
+      - "homepage.name=Agent Core"
+      - "homepage.icon=robot"
+      - "homepage.href=https://agent-core.server.unarmedpuppy.com"
+      - "homepage.description=Platform-agnostic AI agents"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  my-network:
+    external: true

@@ -1,6 +1,6 @@
 # Agent Core Architecture Plan
 
-**Status**: Planning
+**Status**: In Progress (Phase 1 Complete)
 **Created**: 2026-01-01
 **Epic**: home-server-xja - Tayne Bot - Multi-Platform Chat Bot
 
@@ -267,13 +267,13 @@ You mentioned wanting to work on the trading bot - want me to block some time?"
 **Goal**: Working agent-core service with Tayne, accessible via HTTP
 
 **Deliverables**:
-- [ ] `apps/agent-core/` service structure
-- [ ] Agent registry with Tayne persona (consolidated from both sources)
-- [ ] Basic chat endpoint: `POST /v1/agent/tayne/chat`
-- [ ] Routes to local-ai-router for LLM
-- [ ] Health endpoint
-- [ ] Docker compose, Traefik labels
-- [ ] Integration tests
+- [x] `apps/agent-core/` service structure
+- [x] Agent registry with Tayne persona (updated: helpful first, dry humor second)
+- [x] Basic chat endpoint: `POST /v1/agent/tayne/chat`
+- [x] Routes to local-ai-router for LLM
+- [x] Health endpoint
+- [x] Docker compose, Traefik labels
+- [ ] Integration tests (deferred to testing phase)
 
 **Validation**: Can curl agent-core and get Tayne response
 
