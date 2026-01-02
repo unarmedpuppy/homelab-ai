@@ -363,6 +363,58 @@ docker exec -u appuser claude-harness ssh -vvv -p 4242 claude-deploy@192.168.86.
 - SSH volume: `claude-ssh` (persists SSH keys across container restarts)
 - Source: `homelab-ai` repo (`claude-harness/` directory)
 
+#### Claude Harness GitHub Access
+
+The claude-harness container can clone, commit, and push to GitHub repositories using a Personal Access Token (PAT).
+
+**Environment Variables** (in `apps/homelab-ai/.env`):
+```bash
+GITHUB_TOKEN=ghp_xxxxxxxxxxxx  # PAT with repo write access
+```
+
+**Docker Compose Config** (already set in `apps/homelab-ai/docker-compose.yml`):
+```yaml
+environment:
+  - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+  - GIT_AUTHOR_NAME=Claude Code
+  - GIT_AUTHOR_EMAIL=claude@server.unarmedpuppy.com
+  - GIT_COMMITTER_NAME=Claude Code
+  - GIT_COMMITTER_EMAIL=claude@server.unarmedpuppy.com
+```
+
+**First-Time Git Setup** (run once after container starts):
+```bash
+docker exec -u appuser claude-harness bash -c '
+git config --global user.name "Claude Code"
+git config --global user.email "claude@server.unarmedpuppy.com"
+git config --global credential.helper "!f() { echo username=x-access-token; echo password=\$GITHUB_TOKEN; }; f"
+'
+```
+
+**Test GitHub Access**:
+```bash
+# Clone a repo
+docker exec -u appuser claude-harness bash -c '
+cd /workspace
+git clone https://github.com/unarmedpuppy/home-server.git test-repo --depth 1
+ls test-repo
+'
+
+# Verify push access (creates and removes test file)
+docker exec -u appuser claude-harness bash -c '
+cd /workspace/test-repo
+echo "test" > .test-file
+git add .test-file && git commit -m "test: verify push access"
+git push origin main
+git rm .test-file && git commit -m "chore: cleanup test"
+git push origin main
+'
+```
+
+**Workspace Volume**: Repos cloned to `/workspace` persist in the `claude-workspace` Docker volume.
+
+**PAT Permissions Required**: `repo` scope (full control of private repositories)
+
 ---
 
 ## Storage Configuration
