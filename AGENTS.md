@@ -132,6 +132,10 @@ See `agents/reference/` for detailed patterns and workflows.
   - SSH to server and `git pull` to deploy changes
   - This is the ONLY way to get changes to the server
   - No exceptions - even "quick fixes" must go through git
+- **🚨 NEVER MANUALLY BUILD DOCKER IMAGES** - Use CI/CD pipelines
+  - **homelab-ai services**: Push to `homelab-ai` repo → GitHub Actions builds → pushes to Harbor → then deploy on server
+  - See `agents/skills/deploy-homelab-ai-service/` for the correct workflow
+  - Never run `docker build` and `docker push` manually for these services
 - **🚨 BEADS IS LOCAL-ONLY** - Beads tooling is NOT installed on the server
   - `.beads/issues.jsonl` is git-tracked and synced via `git pull` to the server
   - **No `bd` CLI, no beads daemon, no beads-ui on the server** - intentionally removed
@@ -292,6 +296,7 @@ Agent-discoverable tool guides are in `agents/skills/`. Each tool has a `SKILL.m
 | Tool | Purpose | Script |
 |------|---------|--------|
 | [standard-deployment](agents/skills/standard-deployment/) | Deploy code changes to server | `scripts/deploy-to-server.sh` |
+| [deploy-homelab-ai-service](agents/skills/deploy-homelab-ai-service/) | Deploy homelab-ai services via GitHub Actions CI/CD | - |
 | [deploy-polymarket-bot](agents/skills/deploy-polymarket-bot/) | Safe polymarket-bot deployment (checks for active trades) | `agents/skills/deploy-polymarket-bot/deploy.sh` |
 | [connect-server](agents/skills/connect-server/) | Execute commands on server | `scripts/connect-server.sh` |
 | [connect-gaming-pc](agents/skills/connect-gaming-pc/) | Interactive SSH to Gaming PC (WSL) | `scripts/connect-gaming-pc.sh` |
