@@ -137,6 +137,27 @@ Images are pushed to Harbor on merge to main. The registry URL is configured via
 
 Home-server pulls these images via docker-compose.
 
+## Skills
+
+Agent-discoverable workflow guides in `agents/skills/`:
+
+| Skill | Purpose |
+|-------|---------|
+| [connect-gaming-pc](agents/skills/connect-gaming-pc/) | SSH to Gaming PC (WSL) |
+| [gaming-pc-manager](agents/skills/gaming-pc-manager/) | Interact with Gaming PC's local-ai manager |
+| [test-local-ai-router](agents/skills/test-local-ai-router/) | Test router with memory and metrics |
+| [test-tts](agents/skills/test-tts/) | Test Text-to-Speech via Chatterbox |
+
+## Reference Documentation
+
+| Document | Purpose |
+|----------|---------|
+| [local-ai-router.md](agents/reference/local-ai-router.md) | Quick reference for router API |
+| [local-ai-router-usage.md](agents/reference/local-ai-router-usage.md) | Detailed usage examples |
+| [local-ai-router-metrics.md](agents/reference/local-ai-router-metrics.md) | Metrics and memory system |
+| [local-ai-implementation-details.md](agents/reference/local-ai-implementation-details.md) | Implementation details |
+| [local-ai-architecture-audit.md](agents/reference/local-ai-architecture-audit.md) | Architecture audit |
+
 ## Related Repositories
 
 - **home-server**: Deployment configuration, pulls images from Harbor
