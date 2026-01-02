@@ -1,0 +1,49 @@
+services:
+  manager:
+    # Build the manager image from the Dockerfile in the ./manager directory
+    build: ./manager
+    container_name: vllm-manager
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Timeout for auto-stopping idle model containers (in seconds)
+      - IDLE_TIMEOUT=600
+      # Max time to wait for a model container to become ready (in seconds)
+      - START_TIMEOUT=180
+      # Path to the model configuration file inside the container
+      - MODELS_CONFIG_PATH=/app/models.json
+    volumes:
+      # Mount the Docker socket to allow the manager to control other containers
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Mount the models config, allowing changes without rebuilding the image
+      - ./models.json:/app/models.json
+      # Mount model weights and cache from the host to persist them
+      - ./models:/models
+      - ./cache:/root/.cache/hf
+    networks:
+      - my-network
+
+  web-dashboard:
+    # Web dashboard for gaming mode management
+    build: ./web-dashboard
+    container_name: local-ai-dashboard
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - MANAGER_URL=http://vllm-manager:8000
+      - MANAGER_URL_FALLBACK=http://localhost:8000
+      - HOST=0.0.0.0
+      - PORT=8080
+    depends_on:
+      - manager
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    # This configuration assumes you have an external network named 'my-network'.
+    # If not, you can create it with 'docker network create my-network'
+    # or change this to 'driver: bridge' to use a default bridge network.
+    external: true
