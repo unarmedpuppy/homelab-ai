@@ -13,11 +13,10 @@
 
 providers:
   # Gaming PC with RTX 3090 - Escalation target for large context
-  # Endpoint configured via PROVIDER_GAMING_PC_3090_ENDPOINT or GAMING_PC_URL env var
   - id: gaming-pc-3090
     name: "Gaming PC (RTX 3090)"
     type: local
-    description: "Gaming PC with RTX 3090 - used for large context (>2K tokens) or explicit requests"
+    description: "Gaming PC with RTX 3090 via llm-manager - large context or explicit requests"
     endpoint: "${GAMING_PC_URL:-http://gaming-pc.local:8000}"
     priority: 2  # Secondary - escalate from 3070 when needed
     enabled: true
@@ -28,7 +27,7 @@ providers:
     # Health Check Configuration
     healthCheckInterval: 30  # seconds
     healthCheckTimeout: 5    # seconds
-    healthCheckPath: "/v1/models"  # vLLM standard health check endpoint
+    healthCheckPath: "/health"  # llm-manager health endpoint
 
     # Authentication (null for local vLLM)
     authType: null
@@ -44,8 +43,8 @@ providers:
   - id: server-3070
     name: "Server (RTX 3070)"
     type: local
-    description: "Home server with RTX 3070 - always-on default for requests under 2K tokens"
-    endpoint: "http://local-ai-server:8000"
+    description: "Home server with RTX 3070 via llm-manager - always-on default"
+    endpoint: "${LOCAL_3070_URL:-http://llm-manager:8000}"
     priority: 1  # Primary - default for all requests
     enabled: true
 
@@ -55,7 +54,7 @@ providers:
     # Health Check Configuration
     healthCheckInterval: 30  # seconds
     healthCheckTimeout: 5    # seconds
-    healthCheckPath: "/v1/models"  # vLLM standard health check endpoint
+    healthCheckPath: "/health"  # llm-manager health endpoint
 
     # Authentication (null for local vLLM)
     authType: null

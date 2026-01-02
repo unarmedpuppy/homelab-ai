@@ -15,7 +15,7 @@ services:
     ports:
       - "8012:8000"
     environment:
-      - VLLM_MANAGER_URL=http://llm-manager:8000
+      - LOCAL_3070_URL=http://llm-manager:8000
       - ENABLE_METRICS=1
       - ENABLE_MEMORY=1
       - LOG_LEVEL=INFO

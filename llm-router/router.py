@@ -87,7 +87,7 @@ app.add_middleware(
 
 # Configuration from environment
 GAMING_PC_URL = os.getenv("GAMING_PC_URL", "http://gaming-pc.local:8000")
-LOCAL_3070_URL = os.getenv("LOCAL_3070_URL", "http://local-ai-server:8000")
+LOCAL_3070_URL = os.getenv("LOCAL_3070_URL", "http://llm-manager:8000")
 OPENCODE_URL = os.getenv("OPENCODE_URL", "http://opencode-service:8002")
 TTS_ENDPOINT = os.getenv("TTS_ENDPOINT", GAMING_PC_URL)  # TTS runs on Gaming PC
 
