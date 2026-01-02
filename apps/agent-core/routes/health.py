@@ -3,8 +3,8 @@
 import httpx
 from fastapi import APIRouter
 
-from ..config import get_settings
-from ..agents import list_agents
+from config import get_settings
+from agents import list_agents
 
 router = APIRouter(tags=["health"])
 

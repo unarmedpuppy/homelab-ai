@@ -6,10 +6,10 @@ import httpx
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from ..agents import get_agent, list_agents
-from ..auth import resolve_user_role
-from ..config import get_settings
-from ..tools import get_tool, get_openai_tools, ToolRole
+from agents import get_agent, list_agents
+from auth import resolve_user_role
+from config import get_settings
+from tools import get_tool, get_openai_tools, ToolRole
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["chat"])

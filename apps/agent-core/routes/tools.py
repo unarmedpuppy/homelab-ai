@@ -4,7 +4,7 @@ from typing import Any, Optional
 
 from fastapi import APIRouter
 
-from ..tools import list_tools, ToolCategory, ToolRole
+from tools import list_tools, ToolCategory, ToolRole
 
 router = APIRouter(tags=["tools"])
 
