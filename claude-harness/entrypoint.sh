@@ -33,6 +33,21 @@ setup_claude_symlink() {
     fi
 }
 
+setup_git_config() {
+    # Configure git using environment variables from docker-compose
+    if [ -n "${GIT_AUTHOR_NAME:-}" ]; then
+        gosu "$APPUSER" git config --global user.name "$GIT_AUTHOR_NAME"
+    fi
+    if [ -n "${GIT_AUTHOR_EMAIL:-}" ]; then
+        gosu "$APPUSER" git config --global user.email "$GIT_AUTHOR_EMAIL"
+    fi
+    # Set up credential helper to use GITHUB_TOKEN for authentication
+    if [ -n "${GITHUB_TOKEN:-}" ]; then
+        gosu "$APPUSER" git config --global credential.helper '!f() { echo "username=x-access-token"; echo "password=$GITHUB_TOKEN"; }; f'
+        echo "Git configured with GitHub token authentication"
+    fi
+}
+
 wait_for_auth() {
     echo "=============================================="
     echo "ERROR: Claude CLI not authenticated"
@@ -55,6 +70,7 @@ wait_for_auth() {
 fix_volume_permissions
 setup_ssh_key
 setup_claude_symlink
+setup_git_config
 
 if [ ! -f "$CLAUDE_CONFIG" ] && [ ! -f "$CLAUDE_CONFIG_IN_VOLUME" ]; then
     wait_for_auth
