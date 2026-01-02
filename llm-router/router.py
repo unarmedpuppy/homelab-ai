@@ -76,7 +76,8 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://local-ai-dashboard.server.unarmedpuppy.com",
+        "https://homelab-ai.server.unarmedpuppy.com",
+        "https://local-ai-dashboard.server.unarmedpuppy.com",  # Legacy alias
         "http://localhost:5173",  # Vite dev server
         "http://localhost:3000",   # Common dev port
     ],
