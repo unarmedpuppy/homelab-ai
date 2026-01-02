@@ -16,7 +16,7 @@ providers:
   - id: gaming-pc-3090
     name: "Gaming PC (RTX 3090)"
     type: local
-    description: "Gaming PC with RTX 3090 via llm-manager - large context or explicit requests"
+    description: "Gaming PC with RTX 3090 via LM Studio - large context or explicit requests"
     endpoint: "${GAMING_PC_URL:-http://gaming-pc.local:8000}"
     priority: 2  # Secondary - escalate from 3070 when needed
     enabled: true
@@ -27,7 +27,7 @@ providers:
     # Health Check Configuration
     healthCheckInterval: 30  # seconds
     healthCheckTimeout: 5    # seconds
-    healthCheckPath: "/health"  # llm-manager health endpoint
+    healthCheckPath: "/v1/models"  # LM Studio uses /v1/models (no /health endpoint)
 
     # Authentication (null for local vLLM)
     authType: null
