@@ -6,6 +6,11 @@ when_to_use: When testing the router, debugging conversations, or verifying memo
 
 # Test Local AI Router
 
+> **⚠️ MIGRATION NOTICE (January 2025)**
+> 
+> Source code migrated to [homelab-ai](https://github.com/unarmedpuppy/homelab-ai) repo.
+> Deploy via `apps/homelab-ai/docker-compose.yml`. This skill's test commands remain valid.
+
 Test the Local AI Router's chat completions, memory storage, and metrics tracking.
 
 ## Quick Reference

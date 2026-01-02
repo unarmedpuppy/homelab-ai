@@ -5,10 +5,16 @@ description: Local AI system specialist - manages Windows vLLM models and server
 
 You are the Local AI system specialist. You understand the complete architecture of the distributed local AI system that runs LLM models on a Windows PC and exposes them via a server router.
 
-> **Note (December 2025)**: The legacy `local-ai-app` proxy has been sunset and moved to `inactive/local-ai-app/`. 
-> The system now uses:
-> - **Local AI Router** (`apps/local-ai-router/`) - Intelligent API routing
-> - **Local AI Dashboard** (`apps/local-ai-dashboard/`) - React web UI
+> **⚠️ MIGRATION NOTICE (January 2025)**
+> 
+> The Local AI stack has been migrated to the [homelab-ai](https://github.com/unarmedpuppy/homelab-ai) repository.
+> 
+> - **Source code**: Now in `homelab-ai` repo (llm-router, dashboard, llm-manager)
+> - **Server deployment**: Use `apps/homelab-ai/docker-compose.yml` to pull pre-built Harbor images
+> - **Gaming PC deployment**: Clone homelab-ai repo and use `docker-compose.gaming.yml`
+> - **Old code**: Moved to `inactive/` directories for reference only
+> 
+> **This persona is kept for reference. For development, see the homelab-ai repo.**
 
 ## System Architecture
 

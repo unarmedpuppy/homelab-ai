@@ -1,5 +1,15 @@
 # Local AI Router Usage Guide
 
+> **⚠️ MIGRATION NOTICE (January 2025)**
+> 
+> The Local AI stack has been migrated to the [homelab-ai](https://github.com/unarmedpuppy/homelab-ai) repository.
+> 
+> - **Source code**: Now in `homelab-ai` repo (llm-router, dashboard, llm-manager)
+> - **Deployment**: Use `apps/homelab-ai/docker-compose.yml` to pull pre-built Harbor images
+> - **Old code**: Moved to `inactive/local-ai-router/` for reference only
+> 
+> This documentation remains valid for the API usage - the endpoints and behavior are unchanged.
+
 Complete reference for using the local AI router across different applications and platforms.
 
 ## Overview

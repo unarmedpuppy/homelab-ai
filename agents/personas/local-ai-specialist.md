@@ -1,5 +1,15 @@
 # Local AI Specialist Agent
 
+> **⚠️ MIGRATION NOTICE (January 2025)**
+> 
+> The Local AI stack has been migrated to the [homelab-ai](https://github.com/unarmedpuppy/homelab-ai) repository.
+> 
+> - **Source code**: Now in `homelab-ai` repo (llm-router, dashboard, llm-manager)
+> - **Deployment**: Use `apps/homelab-ai/docker-compose.yml` to pull pre-built Harbor images
+> - **Old code**: Moved to `inactive/` directories for reference only
+> 
+> **This persona is kept for reference. For development, see the homelab-ai repo.**
+
 ## Purpose
 
 Specialized agent for working on the Local AI Router & Dashboard system - a multi-provider LLM routing service with conversation memory, provider health monitoring, and a ChatGPT-style web interface.
@@ -8,7 +18,7 @@ Specialized agent for working on the Local AI Router & Dashboard system - a mult
 
 ### Core Components
 
-1. **Local AI Router** (`apps/local-ai-router/`)
+1. **Local AI Router** (source: `homelab-ai/llm-router/`)
    - FastAPI-based OpenAI-compatible API server
    - Multi-provider routing with intelligent provider selection
    - Conversation memory with SQLite + vector embeddings

@@ -348,7 +348,7 @@ Agent-discoverable tool guides are in `agents/skills/`. Each tool has a `SKILL.m
 | [edit-wiki-content](agents/skills/edit-wiki-content/) | Edit Wiki.js pages via API | `apps/wiki/edit-wiki.py` |
 | [post-to-mattermost](agents/skills/post-to-mattermost/) | Post messages to Mattermost via gateway | - |
 | [test-local-ai-router](agents/skills/test-local-ai-router/) | Test Local AI Router with memory and metrics tracking | - |
-| [gaming-pc-manager](agents/skills/gaming-pc-manager/) | Interact with Gaming PC's local-ai manager for model control | - |
+| [gaming-pc-manager](agents/skills/gaming-pc-manager/) | Interact with Gaming PC's llm-manager for model control (via homelab-ai) | - |
 | [test-tts](agents/skills/test-tts/) | Test Text-to-Speech generation via Chatterbox Turbo | - |
 | [query-bird-posts](agents/skills/query-bird-posts/) | Query stored X/Twitter bookmarks and likes via Bird API | - |
 
@@ -384,7 +384,7 @@ For game server setup (Valheim, 7DTD, Minecraft, etc.), monitoring, and DNS, ref
 | `agents/reference/plan_act.md` | Planning and workflow documentation |
 | `agents/reference/storage/` | Storage and ZFS reference guides |
 | `agents/reference/backups.md` | **Backup systems** - B2, rsnapshot, disaster recovery |
-| `agents/reference/local-ai-router.md` | **Local AI Router** - Quick reference for memory/metrics systems |
+| `agents/reference/local-ai-router.md` | **Local AI Router** - Quick reference for memory/metrics systems (source migrated to homelab-ai repo) |
 | `agents/plans/` | Implementation plans and strategies |
 | `agents/skills/` | Tool-specific guides |
 

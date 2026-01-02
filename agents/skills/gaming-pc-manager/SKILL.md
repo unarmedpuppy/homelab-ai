@@ -1,12 +1,17 @@
 ---
 name: gaming-pc-manager
-description: Interact with Gaming PC's local-ai manager for model control
+description: Interact with Gaming PC's llm-manager for model control
 when_to_use: When managing GPU models on Gaming PC, checking status, or toggling gaming mode
 ---
 
 # Gaming PC Manager
 
-Manage GPU models on the Gaming PC (RTX 3090) via the local-ai manager API.
+> **⚠️ MIGRATION NOTICE (January 2025)**
+> 
+> Gaming PC now deploys from the [homelab-ai](https://github.com/unarmedpuppy/homelab-ai) repository.
+> The component is now called `llm-manager`. Old code in `inactive/local-ai-gaming-pc/`.
+
+Manage GPU models on the Gaming PC (RTX 3090) via the llm-manager API.
 
 ## Gaming PC Details
 
@@ -15,7 +20,7 @@ Manage GPU models on the Gaming PC (RTX 3090) via the local-ai manager API.
 | **IP** | `192.168.86.63` (or your Gaming PC IP) |
 | **Manager Port** | `8000` |
 | **GPU** | RTX 3090 (24GB VRAM) |
-| **Location** | `local-ai/` directory on Gaming PC |
+| **Source** | [homelab-ai](https://github.com/unarmedpuppy/homelab-ai) repo |
 
 ## Manager Endpoints
 
@@ -186,7 +191,6 @@ See `agents/skills/connect-gaming-pc/` for details.
 
 ## Related
 
-- [Local AI README](../../../local-ai/README.md)
-- [Gaming Mode Documentation](../../../local-ai/GAMING_MODE.md)
+- [homelab-ai repo](https://github.com/unarmedpuppy/homelab-ai) - Source code for llm-manager
 - [TTS Testing](../test-tts/SKILL.md)
 - [Connect Gaming PC](../connect-gaming-pc/SKILL.md)

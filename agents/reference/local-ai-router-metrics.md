@@ -1,8 +1,18 @@
 # Local AI Router - Prometheus Metrics Reference
 
+> **⚠️ MIGRATION NOTICE (January 2025)**
+> 
+> The Local AI stack has been migrated to the [homelab-ai](https://github.com/unarmedpuppy/homelab-ai) repository.
+> 
+> - **Source code**: Now in `homelab-ai` repo (llm-router, dashboard, llm-manager)
+> - **Deployment**: Use `apps/homelab-ai/docker-compose.yml` to pull pre-built Harbor images
+> - **Old code**: Moved to `inactive/local-ai-router/` for reference only
+> 
+> This documentation remains valid for the metrics reference - the metrics system is unchanged.
+
 Quick reference for the Prometheus metrics exposed by the Local AI Router.
 
-**Related**: [Local AI Router README](../../apps/local-ai-router/README.md) | [Grafana Dashboard](#grafana-dashboard)
+**Related**: [homelab-ai repo](https://github.com/unarmedpuppy/homelab-ai) | [Grafana Dashboard](#grafana-dashboard)
 
 ## Overview
 

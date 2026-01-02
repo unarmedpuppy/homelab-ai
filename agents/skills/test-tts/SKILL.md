@@ -6,6 +6,11 @@ when_to_use: When testing TTS functionality, debugging audio generation, or veri
 
 # Test TTS (Text-to-Speech)
 
+> **⚠️ MIGRATION NOTICE (January 2025)**
+> 
+> TTS Server source code migrated to [homelab-ai](https://github.com/unarmedpuppy/homelab-ai) repo.
+> Gaming PC now deploys from homelab-ai. This skill's test commands remain valid.
+
 Test Chatterbox Turbo TTS generation via the Gaming PC manager.
 
 ## Quick Test
