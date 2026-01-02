@@ -124,7 +124,8 @@ async def call_claude_cli(prompt: str, model: str = DEFAULT_MODEL) -> str:
     actual_model = model_config.get("alias_for", model)
     
     # Build command
-    cmd = ["claude", "-p", prompt]
+    # --dangerously-skip-permissions: Container is sandboxed, allow all tools including SSH
+    cmd = ["claude", "-p", "--dangerously-skip-permissions", prompt]
     
     logger.info(f"Calling Claude CLI with model hint: {actual_model}")
     logger.debug(f"Prompt length: {len(prompt)} chars")
