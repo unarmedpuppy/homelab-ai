@@ -1,7 +1,11 @@
 # Claude Code Harness - Containerized
 #
 # OpenAI-compatible API wrapper for Claude Code CLI.
-# Requires OAuth tokens mounted from host (~/.claude.json, ~/.claude/)
+# OAuth tokens stored in Docker volume (claude-credentials).
+#
+# First-time setup:
+#   docker exec -it claude-harness claude
+#   (Follow OAuth flow in browser, tokens persist in volume)
 
 FROM python:3.11-slim
 
@@ -16,12 +20,8 @@ RUN apt-get update && apt-get install -y \
 # Install Claude Code CLI globally
 RUN npm install -g @anthropic-ai/claude-code
 
-# Create app user with specific UID to match host user (for OAuth token access)
-# This allows the container to read/write ~/.claude.json mounted from host
-ARG USER_ID=1000
-ARG GROUP_ID=1000
-RUN groupadd -g ${GROUP_ID} appuser && \
-    useradd -m -u ${USER_ID} -g appuser appuser
+# Create non-root user for security
+RUN useradd -m -s /bin/bash appuser
 
 # Set up working directory
 WORKDIR /app
@@ -30,12 +30,14 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
+# Copy application code and entrypoint
 COPY main.py .
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
 
-# Create directories for Claude credentials (will be mounted)
+# Create credentials directory (will be a volume mount point)
 RUN mkdir -p /home/appuser/.claude && \
-    chown -R appuser:appuser /home/appuser
+    chown -R appuser:appuser /home/appuser /app
 
 # Switch to app user
 USER appuser
@@ -46,9 +48,9 @@ ENV HOME=/home/appuser
 # Expose port
 EXPOSE 8013
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+# Health check - allow longer start period for first-time auth
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:8013/health || exit 1
 
-# Run the service
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8013"]
+# Use entrypoint script to check for auth before starting
+ENTRYPOINT ["/app/entrypoint.sh"]

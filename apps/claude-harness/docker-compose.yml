@@ -1,32 +1,22 @@
-# Claude Code Harness - Docker Compose
+# Claude Code Harness - Docker Compose (Standalone)
 #
-# Containerized OpenAI-compatible API wrapper for Claude Code CLI.
+# For local testing only. Production uses homelab-ai docker-compose.
 #
-# Prerequisites:
-#   - OAuth tokens already exist at ~/.claude.json on the host
-#   - Run `claude` interactively on host first to authenticate
-#
-# Usage:
+# First-time setup:
 #   docker compose up -d
-#
-# Note: This is a standalone compose file. For production, claude-harness
-# is included in apps/homelab-ai/docker-compose.yml
+#   docker exec -it claude-harness claude
+#   (Follow OAuth flow, then restart)
 
 services:
   claude-harness:
     build:
       context: .
-      args:
-        USER_ID: 1000
-        GROUP_ID: 1000
     container_name: claude-harness
     restart: unless-stopped
     ports:
       - "8013:8013"
     volumes:
-      # Mount OAuth credentials from host (READ-WRITE for token refresh)
-      - /home/unarmedpuppy/.claude.json:/home/appuser/.claude.json:rw
-      - /home/unarmedpuppy/.claude:/home/appuser/.claude:rw
+      - claude-credentials:/home/appuser/.claude
     environment:
       - TZ=America/Chicago
     networks:
@@ -37,6 +27,9 @@ services:
       - "homepage.icon=mdi-robot"
       - "homepage.href=http://192.168.86.47:8013/health"
       - "homepage.description=Claude Code CLI API wrapper"
+
+volumes:
+  claude-credentials:
 
 networks:
   my-network:
