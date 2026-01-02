@@ -9,7 +9,7 @@ services:
     restart: unless-stopped
     environment:
       - TZ=America/Chicago
-      - CF_DNS_API_TOKEN=UkNN8yUoQoIBJkM9AnRvvlmCy2QpjDwblqaEPJ9A
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
     ports:
       - "80:80"
       - "443:443"
