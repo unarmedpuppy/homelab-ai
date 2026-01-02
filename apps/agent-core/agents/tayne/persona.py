@@ -9,7 +9,7 @@ actually useful while retaining charm.
 """
 
 import random
-from ..registry import AgentBase
+from ..base import AgentBase
 
 
 # Updated system prompt - helpful first, humor second

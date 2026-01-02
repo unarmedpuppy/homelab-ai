@@ -5,54 +5,10 @@ Discovers and manages agent instances. Each agent has a unique ID,
 persona configuration, and default settings.
 """
 
-from abc import ABC, abstractmethod
 from typing import Optional
 
-# Import agents
+from .base import AgentBase
 from .tayne import TayneAgent
-
-
-class AgentBase(ABC):
-    """Base class for all agents."""
-    
-    @property
-    @abstractmethod
-    def agent_id(self) -> str:
-        """Unique identifier for this agent."""
-        pass
-    
-    @property
-    @abstractmethod
-    def name(self) -> str:
-        """Human-readable name."""
-        pass
-    
-    @property
-    @abstractmethod
-    def description(self) -> str:
-        """Short description of this agent."""
-        pass
-    
-    @property
-    @abstractmethod
-    def system_prompt(self) -> str:
-        """System prompt defining agent personality."""
-        pass
-    
-    @property
-    def model(self) -> str:
-        """Default model to use. 'auto' lets router choose."""
-        return "auto"
-    
-    @property
-    def max_tokens(self) -> int:
-        """Default max tokens for responses."""
-        return 200
-    
-    @property
-    def temperature(self) -> float:
-        """Default temperature for responses."""
-        return 0.9
 
 
 # Registry of available agents
