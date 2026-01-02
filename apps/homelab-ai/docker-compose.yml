@@ -29,7 +29,7 @@ services:
       - ZAI_API_KEY=${ZAI_API_KEY:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
     volumes:
-      - ./data:/app/data
+      - llm-router-data:/app/data
       - ../../agents/skills:/app/agents/skills:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -63,7 +63,7 @@ services:
       - "8014:80"
     environment:
       - VITE_API_URL=http://llm-router:8000
-      - LOCAL_AI_API_KEY=not-required
+      - LOCAL_AI_API_KEY=${LLM_ROUTER_API_KEY:-}
     networks:
       - my-network
     labels:
@@ -117,3 +117,4 @@ networks:
 volumes:
   huggingface-cache:
     external: true
+  llm-router-data:
