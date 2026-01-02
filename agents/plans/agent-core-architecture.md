@@ -285,11 +285,11 @@ You mentioned wanting to work on the trading bot - want me to block some time?"
 **Goal**: Discord bot calls agent-core instead of direct LLM
 
 **Deliverables**:
-- [ ] Refactor `apps/discord-reaction-bot/bot.py` to call agent-core
-- [ ] Map Discord user ID to platform-agnostic user ID
-- [ ] Keep all Discord-specific features (reactions, rate limiting)
-- [ ] Fallback to direct LLM if agent-core unreachable (safety net)
-- [ ] Remove duplicate `tayne_persona.py`
+- [x] Refactor `apps/discord-reaction-bot/bot.py` to call agent-core
+- [x] Map Discord user ID to platform-agnostic user ID
+- [x] Keep all Discord-specific features (reactions, rate limiting)
+- [x] Fallback to direct LLM if agent-core unreachable (safety net)
+- [x] Update `tayne_persona.py` with new persona (kept for fallback)
 
 **Validation**: Discord Tayne works, responses come from agent-core
 

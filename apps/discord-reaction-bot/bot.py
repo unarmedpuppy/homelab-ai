@@ -1,16 +1,15 @@
 """
 Tayne Discord Bot
 
-An AI-powered Discord bot with absurdist/surreal humor inspired by the 
-Tim & Eric "Celery Man" sketch. Responds when mentioned, maintains channel
-conversation context, and has appropriate guardrails.
+Discord adapter for the Tayne agent. Calls agent-core for AI responses,
+with fallback to direct local-ai-router if agent-core is unavailable.
 
 Features:
-- LLM-powered responses via local-ai-router when @mentioned
-- Channel-based conversation memory
+- Routes to agent-core for Tayne persona responses
+- Fallback to direct LLM if agent-core down
+- Channel-based conversation context
 - Rate limiting and spam protection
-- Fallback quotes when guardrails trigger
-- Random emoji reactions on non-mentions (33% chance)
+- Random emoji reactions on non-mentions
 """
 
 import asyncio
@@ -24,11 +23,11 @@ import aiohttp
 import discord
 
 from tayne_persona import (
-    TAYNE_SYSTEM_PROMPT,
     FALLBACK_QUOTES,
     API_DOWN_MESSAGE,
     RATE_LIMITED_RESPONSES,
     TAYNE_REACTIONS,
+    TAYNE_SYSTEM_PROMPT,
     CHARACTER_BREAK_PHRASES,
     DEFAULT_COOLDOWN_SECONDS,
     DEFAULT_REACTION_CHANCE,
@@ -40,6 +39,7 @@ from tayne_persona import (
 
 # Configuration from environment
 DISCORD_TOKEN = os.environ['DISCORD_TOKEN']
+AGENT_CORE_URL = os.environ.get('AGENT_CORE_URL', 'http://agent-core:8000')
 LOCAL_AI_URL = os.environ.get('LOCAL_AI_URL', 'http://local-ai-router:8000')
 LOCAL_AI_API_KEY = os.environ.get('LOCAL_AI_API_KEY', '')
 COOLDOWN_SECONDS = float(os.environ.get('TAYNE_COOLDOWN_SECONDS', DEFAULT_COOLDOWN_SECONDS))
@@ -58,49 +58,30 @@ user_message_times: dict[int, list[float]] = defaultdict(list)
 
 
 def is_rate_limited(user_id: int) -> tuple[bool, bool]:
-    """
-    Check if user is rate limited.
-    
-    Returns:
-        (is_limited, is_rapid_fire): Tuple indicating if limited and if it's rapid fire spam
-    """
+    """Check if user is rate limited. Returns (is_limited, is_rapid_fire)."""
     now = time.time()
     
-    # Check basic cooldown
     if now - user_cooldowns[user_id] < COOLDOWN_SECONDS:
         return True, False
     
-    # Check rapid-fire spam (many messages in short window)
-    # Clean old timestamps
     user_message_times[user_id] = [
         t for t in user_message_times[user_id] 
         if now - t < RAPID_FIRE_WINDOW
     ]
-    
-    # Add current timestamp
     user_message_times[user_id].append(now)
     
-    # Check if over threshold
     if len(user_message_times[user_id]) > RAPID_FIRE_THRESHOLD:
         return True, True
     
-    # Update cooldown
     user_cooldowns[user_id] = now
     return False, False
 
 
 def needs_fallback(response: str) -> bool:
-    """
-    Detect if the LLM response has gone off the rails or broken character.
-    
-    Returns:
-        True if we should use a fallback quote instead
-    """
-    # Too long - Tayne should be concise
+    """Detect if the LLM response broke character and needs fallback."""
     if len(response) > DEFAULT_MAX_RESPONSE_LENGTH:
         return True
     
-    # Check for character breaks (AI revealing itself)
     response_lower = response.lower()
     for phrase in CHARACTER_BREAK_PHRASES:
         if phrase in response_lower:
@@ -117,35 +98,22 @@ def clean_message_content(content: str, mentions: list) -> str:
     return content.strip()
 
 
-async def fetch_channel_history(channel: discord.TextChannel, limit: int = 10) -> list[dict]:
-    """
-    Fetch recent messages from channel to build conversation context.
-    
-    Args:
-        channel: The Discord channel to fetch from
-        limit: Max number of recent messages to fetch
-        
-    Returns:
-        List of message dicts in OpenAI format [{"role": ..., "content": ...}]
-    """
+async def fetch_channel_history(channel: discord.TextChannel, limit: int = 5) -> list[dict]:
+    """Fetch recent messages from channel to build conversation context."""
     messages = []
     
     try:
         async for msg in channel.history(limit=limit):
-            # Skip empty messages
             if not msg.content:
                 continue
                 
-            # Clean the content
             content = clean_message_content(msg.content, msg.mentions)
             if not content:
                 continue
             
-            # Determine role based on author
             if msg.author == client.user:
                 role = "assistant"
             else:
-                # Include author name for context
                 role = "user"
                 content = f"{msg.author.display_name}: {content}"
             
@@ -155,43 +123,60 @@ async def fetch_channel_history(channel: discord.TextChannel, limit: int = 10) -
     except Exception as e:
         print(f"Error fetching channel history: {e}")
     
-    # Reverse to get chronological order (oldest first)
     messages.reverse()
     return messages
 
 
-async def query_tayne(message: discord.Message) -> Optional[str]:
-    """
-    Query the local-ai-router with Tayne's persona.
-    
-    Args:
-        message: The Discord message that mentioned Tayne
-        
-    Returns:
-        Response text, or None if the API call failed
-    """
+async def query_agent_core(message: discord.Message, user_message: str, history: list[dict]) -> Optional[str]:
+    """Query agent-core for Tayne response. Returns None if agent-core unavailable."""
     channel_id = str(message.channel.id)
     
-    # Extract the actual message content, removing the mention
-    user_message = clean_message_content(message.content, message.mentions)
+    payload = {
+        "message": user_message,
+        "user": {
+            "platform": "discord",
+            "platform_user_id": str(message.author.id),
+            "display_name": message.author.display_name,
+        },
+        "conversation_id": f"discord-{channel_id}",
+        "context": {
+            "channel_name": getattr(message.channel, 'name', 'dm'),
+            "history": history[:-1] if len(history) > 1 else [],
+        },
+    }
     
-    # If empty after removing mentions, use a default
-    if not user_message:
-        user_message = "Hello Tayne!"
+    try:
+        timeout = aiohttp.ClientTimeout(total=DEFAULT_REQUEST_TIMEOUT)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.post(
+                f"{AGENT_CORE_URL}/v1/agent/tayne/chat",
+                json=payload,
+                headers={"Content-Type": "application/json"},
+            ) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    return data.get("response")
+                else:
+                    print(f"Agent-core returned status {resp.status}")
+                    return None
+    except asyncio.TimeoutError:
+        print("Agent-core request timed out")
+        return None
+    except aiohttp.ClientError as e:
+        print(f"Agent-core connection error: {e}")
+        return None
+    except Exception as e:
+        print(f"Unexpected error querying agent-core: {e}")
+        return None
+
+
+async def query_local_ai_direct(message: discord.Message, user_message: str, history: list[dict]) -> Optional[str]:
+    """Fallback: Query local-ai-router directly with Tayne persona."""
+    channel_id = str(message.channel.id)
     
-    # Fetch recent channel history for context (5 messages keeps us under 2K token threshold)
-    history = await fetch_channel_history(message.channel, limit=5)
-    
-    # Build messages array: system prompt + history (excluding the current message which is last)
-    # History already includes the current message, so we use it directly
     api_messages = [{"role": "system", "content": TAYNE_SYSTEM_PROMPT}]
-    
-    # Add history (which includes context from other users and Tayne's previous responses)
-    # Skip the last message since that's the current one we're responding to
     if len(history) > 1:
         api_messages.extend(history[:-1])
-    
-    # Add the current user message
     api_messages.append({"role": "user", "content": f"{message.author.display_name}: {user_message}"})
     
     payload = {
@@ -222,43 +207,58 @@ async def query_tayne(message: discord.Message) -> Optional[str]:
                     data = await resp.json()
                     response_text = data["choices"][0]["message"]["content"]
                     
-                    # Check guardrails
                     if needs_fallback(response_text):
                         print(f"Guardrail triggered, using fallback. Original: {response_text[:100]}...")
                         return random.choice(FALLBACK_QUOTES)
                     
                     return response_text
                 else:
-                    print(f"API returned status {resp.status}")
+                    print(f"Local AI API returned status {resp.status}")
                     return None
     except asyncio.TimeoutError:
-        print("API request timed out")
+        print("Local AI API request timed out")
         return None
     except aiohttp.ClientError as e:
-        print(f"API connection error: {e}")
+        print(f"Local AI API connection error: {e}")
         return None
     except Exception as e:
-        print(f"Unexpected error querying API: {e}")
+        print(f"Unexpected error querying Local AI API: {e}")
         return None
+
+
+async def query_tayne(message: discord.Message) -> Optional[str]:
+    """Query Tayne via agent-core, with fallback to direct local-ai-router."""
+    user_message = clean_message_content(message.content, message.mentions)
+    if not user_message:
+        user_message = "Hello Tayne!"
+    
+    history = await fetch_channel_history(message.channel, limit=5)
+    
+    # Try agent-core first
+    response = await query_agent_core(message, user_message, history)
+    if response:
+        print("Response from agent-core")
+        return response
+    
+    # Fallback to direct local-ai-router
+    print("Agent-core unavailable, falling back to direct local-ai-router")
+    return await query_local_ai_direct(message, user_message, history)
 
 
 @client.event
 async def on_ready():
-    """Called when the bot successfully connects to Discord."""
     print(f'{client.user} has connected to Discord!')
     print(f'Tayne is ready. Now Tayne I can get into.')
+    print(f'Agent Core URL: {AGENT_CORE_URL}')
+    print(f'Fallback URL: {LOCAL_AI_URL}')
     print(f'Connected to {len(client.guilds)} guild(s)')
 
 
 @client.event
 async def on_message(message: discord.Message):
-    """Handle incoming Discord messages."""
-    
-    # Don't respond to our own messages
     if message.author == client.user:
         return
     
-    # Check if Tayne was mentioned (proper mention OR plain text "@tayne")
     is_mentioned = client.user in message.mentions
     is_text_mention = "@tayne" in message.content.lower()
     
@@ -266,21 +266,16 @@ async def on_message(message: discord.Message):
         await handle_mention(message)
         return
     
-    # Non-mention: Maybe react with emoji (33% chance by default)
     if random.random() < REACTION_CHANCE:
         await add_random_reaction(message)
 
 
 async def handle_mention(message: discord.Message):
-    """Handle a message that mentions Tayne."""
-    
-    # Check rate limiting
     is_limited, is_rapid_fire = is_rate_limited(message.author.id)
     
     if is_limited:
         response = random.choice(RATE_LIMITED_RESPONSES)
         if is_rapid_fire:
-            # Extra sass for spammers
             response = random.choice(FALLBACK_QUOTES)
         
         try:
@@ -289,7 +284,6 @@ async def handle_mention(message: discord.Message):
             print(f"Cannot send message in {message.channel}")
         return
     
-    # Show typing indicator while we query the API
     async with message.channel.typing():
         response = await query_tayne(message)
     
@@ -299,7 +293,6 @@ async def handle_mention(message: discord.Message):
         except discord.errors.Forbidden:
             print(f"Cannot send message in {message.channel}")
     else:
-        # API is down - send canned response
         try:
             await message.channel.send(API_DOWN_MESSAGE)
         except discord.errors.Forbidden:
@@ -307,7 +300,6 @@ async def handle_mention(message: discord.Message):
 
 
 async def add_random_reaction(message: discord.Message):
-    """Add a random Tayne-appropriate emoji reaction to a message."""
     emoji = random.choice(TAYNE_REACTIONS)
     
     try:
@@ -315,12 +307,10 @@ async def add_random_reaction(message: discord.Message):
     except discord.errors.Forbidden:
         print(f"Cannot add reaction in {message.channel}")
     except discord.errors.HTTPException as e:
-        # Handle unknown emoji or other issues
         print(f"Error adding reaction: {e}")
     except Exception as e:
         print(f"Unexpected error adding reaction: {e}")
 
 
-# Run the bot
 if __name__ == "__main__":
     client.run(DISCORD_TOKEN)
