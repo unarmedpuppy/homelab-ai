@@ -1,5 +1,3 @@
-"""Tool registry - discovers and manages available tools."""
-
 from typing import Optional
 
 from .base import ToolBase, ToolCategory, ToolRole
@@ -15,10 +13,25 @@ def _register_tools():
     from .read_only.disk_usage import DiskUsageTool
     from .read_only.container_logs import ContainerLogsTool
     
+    from .control.restart_container import RestartContainerTool
+    from .control.docker_compose import DockerComposeUpTool, DockerComposeDownTool
+    from .control.trigger_backup import TriggerBackupTool
+    
+    from .media.sonarr_search import SonarrSearchTool
+    from .media.radarr_search import RadarrSearchTool
+    from .media.plex_control import PlexScanLibraryTool
+    
     tools = [
         ServiceStatusTool(),
         DiskUsageTool(),
         ContainerLogsTool(),
+        RestartContainerTool(),
+        DockerComposeUpTool(),
+        DockerComposeDownTool(),
+        TriggerBackupTool(),
+        SonarrSearchTool(),
+        RadarrSearchTool(),
+        PlexScanLibraryTool(),
     ]
     
     for tool in tools:

@@ -1,5 +1,3 @@
-"""Chat endpoints for agent interactions."""
-
 import json
 import logging
 from typing import Any, Optional
@@ -9,6 +7,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from ..agents import get_agent, list_agents
+from ..auth import resolve_user_role
 from ..config import get_settings
 from ..tools import get_tool, get_openai_tools, ToolRole
 
@@ -181,9 +180,16 @@ async def chat_with_agent(
     user_prefix = request.user.display_name or request.user.platform_user_id
     messages.append({"role": "user", "content": f"{user_prefix}: {request.message}"})
     
+    user_role, user_info = resolve_user_role(
+        platform=request.user.platform,
+        platform_user_id=request.user.platform_user_id,
+        display_name=request.user.display_name or request.user.platform_user_id,
+    )
+    logger.info(f"User {user_info.display_name} ({request.user.platform}:{request.user.platform_user_id}) resolved to role: {user_role.value}")
+    
     tools = []
     if request.enable_tools:
-        tools = get_openai_tools(ToolRole.PUBLIC)
+        tools = get_openai_tools(user_role)
     
     user_id = f"{request.user.platform}:{request.user.platform_user_id}"
     

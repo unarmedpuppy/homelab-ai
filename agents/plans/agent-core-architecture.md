@@ -1,6 +1,6 @@
 # Agent Core Architecture Plan
 
-**Status**: In Progress (Phase 4 Complete)
+**Status**: In Progress (Phase 5 Complete)
 **Created**: 2026-01-01
 **Epic**: home-server-xja - Tayne Bot - Multi-Platform Chat Bot
 
@@ -334,21 +334,28 @@ You mentioned wanting to work on the trading bot - want me to block some time?"
 
 ---
 
-### Phase 5: CONTROL & MEDIA Tools (Whitelisted)
+### Phase 5: CONTROL & MEDIA Tools (Whitelisted) ✅
 **Goal**: Admin users can control server via chat
 
 **Deliverables**:
-- [ ] User whitelist configuration
-- [ ] CONTROL tools:
-  - `restart_container` - Restart a Docker container
-  - `trigger_backup` - Run backup script
-  - `docker_compose_up` / `docker_compose_down`
-- [ ] MEDIA tools:
-  - `sonarr_search` - Search for TV shows
-  - `radarr_search` - Search for movies
-  - `plex_control` - Scan library, etc.
+- [x] User whitelist configuration (`auth/users.py` with Discord ID 244649852473049088)
+- [x] Auth middleware for role resolution (`auth/middleware.py`)
+- [x] CONTROL tools:
+  - [x] `restart_container` - Restart a Docker container
+  - [x] `trigger_backup` - Run backup script
+  - [x] `docker_compose_up` / `docker_compose_down`
+- [x] MEDIA tools:
+  - [x] `sonarr_search` - Search for TV shows
+  - [x] `radarr_search` - Search for movies
+  - [x] `plex_scan_library` - Scan Plex library
+- [x] Chat endpoint wired with role-based tool access
 
 **Validation**: "Restart jellyfin" works from Discord (for admin), fails gracefully for others
+
+**Note**: API keys for Sonarr/Radarr/Plex need to be configured via environment variables. Get from server config files:
+- Sonarr: `/home/unarmedpuppy/server/apps/media-download/sonarr/config/config.xml` (look for `<ApiKey>`)
+- Radarr: `/home/unarmedpuppy/server/apps/media-download/radarr/config/config.xml`
+- Plex: Check apps/plex/ for token config
 
 ---
 

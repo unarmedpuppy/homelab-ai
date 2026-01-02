@@ -7,6 +7,20 @@ services:
       - LOCAL_AI_URL=${LOCAL_AI_URL:-http://local-ai-router:8000}
       - LOCAL_AI_API_KEY=${LOCAL_AI_API_KEY:-}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      # Media API keys (get from server config files)
+      - SONARR_URL=${SONARR_URL:-http://sonarr:8989}
+      - SONARR_API_KEY=${SONARR_API_KEY:-}
+      - RADARR_URL=${RADARR_URL:-http://radarr:7878}
+      - RADARR_API_KEY=${RADARR_API_KEY:-}
+      - PLEX_URL=${PLEX_URL:-http://plex:32400}
+      - PLEX_TOKEN=${PLEX_TOKEN:-}
+    volumes:
+      # Docker socket for container control
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Mount server apps directory for docker-compose operations
+      - /home/unarmedpuppy/server/apps:/server/apps:ro
+      # Mount backup script
+      - /home/unarmedpuppy/server/scripts:/server/scripts:ro
     ports:
       - "8020:8000"
     networks:
