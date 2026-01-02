@@ -2,10 +2,11 @@
 Provider Manager - Intelligent routing with concurrency awareness.
 """
 import os
+import re
 import yaml
 import logging
 import asyncio
-from typing import Optional, List, Dict, Tuple
+from typing import Optional, List, Dict, Tuple, Any
 from pathlib import Path
 from contextlib import asynccontextmanager
 
@@ -71,6 +72,8 @@ class ProviderManager:
             with open(config_file, "r") as f:
                 raw_config = yaml.safe_load(f)
 
+            raw_config = self._expand_env_vars(raw_config)
+
             # Parse providers
             for p in raw_config.get("providers", []):
                 # Convert camelCase keys to snake_case
@@ -109,6 +112,34 @@ class ProviderManager:
             ).lstrip("_")
             result[snake_key] = value
         return result
+
+    def _expand_env_vars(self, value: Any) -> Any:
+        """
+        Recursively expand ${VAR:-default} style environment variables in values.
+        
+        Handles:
+        - ${VAR} - replaced with env var or empty string
+        - ${VAR:-default} - replaced with env var or default value
+        - Nested dicts and lists
+        """
+        if isinstance(value, str):
+            # Pattern for ${VAR} or ${VAR:-default}
+            pattern = r'\$\{([^}:]+)(?::-([^}]*))?\}'
+            
+            def replacer(match):
+                var_name = match.group(1)
+                default = match.group(2) if match.group(2) is not None else ''
+                result = os.environ.get(var_name, default)
+                logger.debug(f"Expanding ${{{var_name}}}: '{result}'")
+                return result
+            
+            return re.sub(pattern, replacer, value)
+        elif isinstance(value, dict):
+            return {k: self._expand_env_vars(v) for k, v in value.items()}
+        elif isinstance(value, list):
+            return [self._expand_env_vars(item) for item in value]
+        else:
+            return value
 
     def _apply_env_overrides(self):
         """Apply environment variable overrides to providers."""
