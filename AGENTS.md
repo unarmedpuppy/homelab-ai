@@ -27,6 +27,10 @@ homelab-ai/
 │   └── models.json         # Model cards with VRAM requirements
 ├── image-server/           # Diffusers image inference
 ├── tts-server/             # Chatterbox TTS inference
+├── claude-harness/         # Claude Max CLI wrapper (host systemd service)
+│   ├── main.py
+│   ├── claude-harness.service
+│   └── manage.sh
 ├── agents/
 │   ├── skills/             # Workflow guides
 │   ├── reference/          # Documentation

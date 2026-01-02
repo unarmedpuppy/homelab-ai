@@ -1,0 +1,22 @@
+[Unit]
+Description=Claude Code Harness - OpenAI-compatible API for Claude Code CLI
+After=network.target
+
+[Service]
+Type=simple
+User=unarmedpuppy
+Group=unarmedpuppy
+WorkingDirectory=/home/unarmedpuppy/server/apps/claude-harness
+Environment="PATH=/home/unarmedpuppy/.local/bin:/usr/local/bin:/usr/bin:/bin"
+ExecStart=/usr/bin/python3 -m uvicorn main:app --host 0.0.0.0 --port 8013
+Restart=always
+RestartSec=10
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/unarmedpuppy/.claude
+
+[Install]
+WantedBy=multi-user.target

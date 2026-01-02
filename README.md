@@ -4,15 +4,16 @@ Local AI infrastructure for home server deployment. OpenAI-compatible API routin
 
 ## Components
 
-| Component | Description | Harbor Image |
-|-----------|-------------|--------------|
-| **llm-router** | OpenAI-compatible API router with intelligent backend selection | `llm-router:latest` |
-| **dashboard** | React metrics dashboard with conversation explorer | `local-ai-dashboard:latest` |
-| **llm-manager** | Unified LLM orchestrator with GPU auto-detection and model cards | `llm-manager:latest` |
-| **image-server** | Diffusers-based image generation (FLUX) | `image-server:latest` |
-| **tts-server** | Chatterbox Turbo text-to-speech | `tts-server:latest` |
+| Component | Description | Deployment |
+|-----------|-------------|------------|
+| **llm-router** | OpenAI-compatible API router with intelligent backend selection | Harbor: `llm-router:latest` |
+| **dashboard** | React metrics dashboard with conversation explorer | Harbor: `local-ai-dashboard:latest` |
+| **llm-manager** | Unified LLM orchestrator with GPU auto-detection and model cards | Harbor: `llm-manager:latest` |
+| **image-server** | Diffusers-based image generation (FLUX) | Harbor: `image-server:latest` |
+| **tts-server** | Chatterbox Turbo text-to-speech | Harbor: `tts-server:latest` |
+| **claude-harness** | Claude Max wrapper via Claude Code CLI | Host systemd service |
 
-All images are built via CI/CD and pushed to Harbor on merge to main.
+Docker images are built via CI/CD and pushed to Harbor on merge to main. Claude-harness runs as a host systemd service (see `claude-harness/README.md`).
 
 ## Quick Start
 
