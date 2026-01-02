@@ -1,4 +1,4 @@
-# Server deployment - Router, Dashboard, vLLM Manager
+# Server deployment - Router, Dashboard, LLM Manager
 # 
 # Usage:
 #   docker compose -f docker-compose.yml -f docker-compose.server.yml up -d
@@ -15,7 +15,7 @@ services:
     ports:
       - "8012:8000"
     environment:
-      - VLLM_MANAGER_URL=http://vllm-manager:8000
+      - VLLM_MANAGER_URL=http://llm-manager:8000
       - ENABLE_METRICS=1
       - ENABLE_MEMORY=1
       - LOG_LEVEL=INFO
@@ -57,9 +57,9 @@ services:
       - "homepage.href=https://local-ai-dashboard.${DOMAIN:-localhost}"
       - "homepage.description=Metrics and conversation explorer"
 
-  vllm-manager:
-    image: ${HARBOR_REGISTRY:-harbor.local}/library/vllm-manager:latest
-    container_name: vllm-manager
+  llm-manager:
+    image: ${HARBOR_REGISTRY:-harbor.local}/library/llm-manager:latest
+    container_name: llm-manager
     restart: unless-stopped
     ports:
       - "8015:8000"
@@ -83,10 +83,10 @@ services:
               capabilities: [gpu]
     labels:
       - "homepage.group=AI"
-      - "homepage.name=vLLM Manager (Server)"
+      - "homepage.name=LLM Manager (Server)"
       - "homepage.icon=mdi-chip"
       - "homepage.href=http://${SERVER_IP:-localhost}:8015/status"
-      - "homepage.description=Always-on vLLM on RTX 3070"
+      - "homepage.description=Always-on LLM on RTX 3070"
 
 networks:
   ai-network:

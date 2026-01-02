@@ -1,4 +1,4 @@
-# Gaming PC deployment - vLLM Manager, Image Server, TTS Server
+# Gaming PC deployment - LLM Manager, Image Server, TTS Server
 #
 # Usage:
 #   docker compose -f docker-compose.yml -f docker-compose.gaming.yml up -d
@@ -7,9 +7,9 @@
 #   HARBOR_REGISTRY - Harbor registry URL
 
 services:
-  vllm-manager:
-    image: ${HARBOR_REGISTRY:-harbor.local}/library/vllm-manager:latest
-    container_name: vllm-manager
+  llm-manager:
+    image: ${HARBOR_REGISTRY:-harbor.local}/library/llm-manager:latest
+    container_name: llm-manager
     restart: unless-stopped
     ports:
       - "8000:8000"
@@ -78,7 +78,7 @@ services:
     ports:
       - "8080:80"
     environment:
-      - VITE_API_URL=http://vllm-manager:8000
+      - VITE_API_URL=http://llm-manager:8000
     networks:
       - ai-network
 

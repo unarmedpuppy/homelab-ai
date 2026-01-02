@@ -4,7 +4,7 @@
 
 ## Project Summary
 
-Local AI infrastructure providing OpenAI-compatible API routing, metrics dashboard, and unified vLLM orchestration. All components are published as Docker images to Harbor via CI/CD.
+Local AI infrastructure providing OpenAI-compatible API routing, metrics dashboard, and unified LLM orchestration. All components are published as Docker images to Harbor via CI/CD.
 
 **Tech Stack**: Python (FastAPI), TypeScript (React/Vite), Docker
 
@@ -21,7 +21,7 @@ homelab-ai/
 │   ├── Dockerfile
 │   ├── src/
 │   └── package.json
-├── vllm-manager/           # Unified vLLM orchestrator
+├── llm-manager/            # Unified LLM orchestrator
 │   ├── Dockerfile
 │   ├── manager.py          # Main application
 │   └── models.json         # Model cards with VRAM requirements
@@ -44,13 +44,13 @@ homelab-ai/
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.server.yml up -d
 ```
-Deploys: llm-router, dashboard, vllm-manager (always-on mode)
+Deploys: llm-router, dashboard, llm-manager (always-on mode)
 
 ### Gaming PC
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.gaming.yml up -d
 ```
-Deploys: vllm-manager (on-demand mode), image-server, tts-server
+Deploys: llm-manager (on-demand mode), image-server, tts-server
 
 ## Configuration
 
@@ -78,8 +78,8 @@ cd dashboard
 npm install
 npm run dev
 
-# vLLM Manager development
-cd vllm-manager
+# LLM Manager development
+cd llm-manager
 pip install -r requirements.txt
 uvicorn manager:app --reload --port 8000
 
@@ -131,7 +131,7 @@ git push origin main  # Triggers GitHub Actions
 ### LLM Router (`llm-router/`)
 
 OpenAI-compatible API that routes to multiple backends:
-- vllm-manager instances (server, Gaming PC)
+- llm-manager instances (server, Gaming PC)
 - Cloud providers (overflow)
 
 **Key files**:
@@ -151,9 +151,9 @@ React dashboard for metrics and conversation explorer:
 - `src/App.tsx` - Main application
 - `src/components/` - UI components
 
-### vLLM Manager (`vllm-manager/`)
+### LLM Manager (`llm-manager/`)
 
-Unified vLLM orchestrator for both server and Gaming PC:
+Unified LLM orchestrator for both server and Gaming PC:
 - Auto-detects GPU VRAM and filters available models
 - Supports always-on (server) and on-demand (Gaming PC) modes
 - Gaming mode support for shared GPU use
@@ -185,7 +185,7 @@ All 5 images are built via CI/CD:
 |-------|-----------|
 | `llm-router:latest` | LLM Router |
 | `local-ai-dashboard:latest` | Dashboard |
-| `vllm-manager:latest` | vLLM Manager |
+| `llm-manager:latest` | LLM Manager |
 | `image-server:latest` | Image Server |
 | `tts-server:latest` | TTS Server |
 
@@ -196,7 +196,7 @@ Agent-discoverable workflow guides in `agents/skills/`:
 | Skill | Purpose |
 |-------|---------|
 | [connect-gaming-pc](agents/skills/connect-gaming-pc/) | SSH to Gaming PC (WSL) |
-| [gaming-pc-manager](agents/skills/gaming-pc-manager/) | Interact with vllm-manager |
+| [gaming-pc-manager](agents/skills/gaming-pc-manager/) | Interact with llm-manager |
 | [test-local-ai-router](agents/skills/test-local-ai-router/) | Test router with memory and metrics |
 | [test-tts](agents/skills/test-tts/) | Test Text-to-Speech via Chatterbox |
 

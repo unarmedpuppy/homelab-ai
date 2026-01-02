@@ -8,7 +8,7 @@ Local AI infrastructure for home server deployment. OpenAI-compatible API routin
 |-----------|-------------|--------------|
 | **llm-router** | OpenAI-compatible API router with intelligent backend selection | `llm-router:latest` |
 | **dashboard** | React metrics dashboard with conversation explorer | `local-ai-dashboard:latest` |
-| **vllm-manager** | Unified vLLM orchestrator with GPU auto-detection and model cards | `vllm-manager:latest` |
+| **llm-manager** | Unified LLM orchestrator with GPU auto-detection and model cards | `llm-manager:latest` |
 | **image-server** | Diffusers-based image generation (FLUX) | `image-server:latest` |
 | **tts-server** | Chatterbox Turbo text-to-speech | `tts-server:latest` |
 
@@ -25,7 +25,7 @@ cd homelab-ai
 cp .env.example .env
 # Edit .env with your Harbor registry URL
 
-# Deploy server stack (router, dashboard, vllm-manager)
+# Deploy server stack (router, dashboard, llm-manager)
 docker compose -f docker-compose.yml -f docker-compose.server.yml up -d
 ```
 
@@ -49,8 +49,8 @@ cd dashboard
 npm install
 npm run dev
 
-# vLLM Manager
-cd vllm-manager
+# LLM Manager
+cd llm-manager
 pip install -r requirements.txt
 uvicorn manager:app --host 0.0.0.0 --port 8000
 ```
@@ -71,14 +71,14 @@ uvicorn manager:app --host 0.0.0.0 --port 8000
                          │                   │                   │
                 ┌────────▼────────┐ ┌────────▼────────┐ ┌────────▼────────┐
                 │  Gaming PC      │ │  Server         │ │  Cloud          │
-                │  vllm-manager   │ │  vllm-manager   │ │  (Overflow)     │
+                │  llm-manager    │ │  llm-manager    │ │  (Overflow)     │
                 │  (on-demand)    │ │  (always-on)    │ │                 │
                 │  + image-server │ │                 │ │                 │
                 │  + tts-server   │ │                 │ │                 │
                 └─────────────────┘ └─────────────────┘ └─────────────────┘
 ```
 
-## vLLM Manager
+## LLM Manager
 
 The unified model orchestrator that runs on both server and Gaming PC:
 
@@ -93,7 +93,7 @@ The unified model orchestrator that runs on both server and Gaming PC:
 
 ### Model Cards
 
-Models are defined in `vllm-manager/models.json` with VRAM requirements:
+Models are defined in `llm-manager/models.json` with VRAM requirements:
 
 ```json
 {
@@ -126,8 +126,8 @@ At startup, the manager detects GPU VRAM and filters to models that fit.
 | File | Purpose |
 |------|---------|
 | `docker-compose.yml` | Base (networks, volumes) |
-| `docker-compose.server.yml` | Server stack (router, dashboard, vllm-manager) |
-| `docker-compose.gaming.yml` | Gaming PC stack (vllm-manager, image-server, tts-server) |
+| `docker-compose.server.yml` | Server stack (router, dashboard, llm-manager) |
+| `docker-compose.gaming.yml` | Gaming PC stack (llm-manager, image-server, tts-server) |
 
 ## CI/CD
 
@@ -135,7 +135,7 @@ GitHub Actions builds all 5 images on merge to main:
 
 - **llm-router** - Python FastAPI
 - **dashboard** - React/Vite + nginx
-- **vllm-manager** - Python FastAPI
+- **llm-manager** - Python FastAPI
 - **image-server** - Python + Diffusers (CUDA)
 - **tts-server** - Python + Chatterbox (CUDA)
 
