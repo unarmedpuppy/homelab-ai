@@ -69,16 +69,43 @@ Migrate from GitHub-centric to Gitea-centric Git workflow:
 **Objective**: Ensure infrastructure is ready
 
 - [ ] Verify Gitea stability (uptime, backups working)
-- [ ] Set up Gitea Actions runner
+- [ ] Set up Gitea Actions runner (Docker-based)
 - [ ] Create GitHub PAT with push access for mirrors
 - [ ] Document current GitHub Actions workflows
 - [ ] Inventory all repos (GitHub, local-only, private)
+- [ ] Add Gitea to rclone/Backblaze backup schedule
 - [ ] Set up monitoring/alerting for Gitea
+
+**Gitea Actions Runner Setup** (Docker-based):
+
+```yaml
+# Add to apps/gitea/docker-compose.yml
+  gitea-runner:
+    image: harbor.server.unarmedpuppy.com/docker-hub/gitea/act_runner:latest
+    container_name: gitea-runner
+    restart: unless-stopped
+    depends_on:
+      - gitea
+    environment:
+      - GITEA_INSTANCE_URL=https://gitea.server.unarmedpuppy.com
+      - GITEA_RUNNER_REGISTRATION_TOKEN=${GITEA_RUNNER_TOKEN}
+      - GITEA_RUNNER_NAME=home-server-runner
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - gitea-runner-data:/data
+    networks:
+      - my-network
+```
+
+**Get Runner Token**:
+1. Gitea Admin → Actions → Runners → Create new runner
+2. Copy registration token to `.env` as `GITEA_RUNNER_TOKEN`
 
 **Deliverables**:
 - Gitea Actions runner operational
-- Repo inventory spreadsheet
+- Repo inventory complete
 - Backup verification
+- Runner can build Docker images
 
 ### Phase 1: Import All Repos to Gitea (1 day)
 
@@ -282,13 +309,89 @@ If critical issues arise:
 - [ ] Documentation updated
 - [ ] Monitoring/alerting in place
 
-## Open Questions
+## Decisions
 
-1. **Runner infrastructure**: Use Docker-based runner or dedicated VM?
-2. **Secrets management**: How to securely store Harbor credentials in Gitea?
-3. **Backup frequency**: How often should Gitea data be backed up?
-4. **External collaborators**: If any repos need external contributors, GitHub might still be better
-5. **Mobile/web editing**: GitHub web UI is more polished - is this needed?
+| Question | Decision |
+|----------|----------|
+| Runner infrastructure | Docker-based runner |
+| Backup frequency | Nightly via rclone + Backblaze B2 |
+| External collaborators | None - Gitea private by default |
+| Mobile/web editing | Not needed |
+| GitHub visibility | Public mirrors (backup), Gitea is private |
+
+## Edge Case: GitHub Contributions
+
+If someone contributes to a public GitHub mirror (PR, issue, direct push):
+
+**Scenario**: Gitea pushes to GitHub, but someone submits a PR on GitHub.
+
+**Handling Options**:
+
+### Option A: Manual Pull (Recommended for rare cases)
+```bash
+# On local machine, add GitHub as secondary remote
+git remote add github https://github.com/unarmedpuppy/REPO.git
+git fetch github
+git merge github/main  # or cherry-pick specific commits
+git push origin main   # Push to Gitea, which mirrors back to GitHub
+```
+
+### Option B: Gitea Scheduled Pull (If contributions are frequent)
+Set up a cron job or Gitea Action to periodically check GitHub for new commits:
+```yaml
+# .gitea/workflows/sync-from-github.yml
+name: Sync from GitHub
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Every 6 hours
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fetch and merge from GitHub
+        run: |
+          git remote add github https://github.com/unarmedpuppy/${{ github.repository }}.git || true
+          git fetch github
+          if git rev-list HEAD..github/main --count | grep -q '^0$'; then
+            echo "No new commits on GitHub"
+          else
+            git merge github/main --no-edit
+            git push origin main
+          fi
+```
+
+### Option C: Webhook-based (Most complex)
+GitHub webhook triggers Gitea to pull on any push to GitHub. Requires:
+- GitHub webhook pointing to Gitea
+- Gitea endpoint to handle webhook
+- More infrastructure, probably overkill
+
+**Recommendation**: Start with Option A (manual). If GitHub contributions become frequent, implement Option B.
+
+## Edge Case: Web/Mobile Editing
+
+If you ever need to make quick edits without a full dev environment:
+
+**Gitea Web Editor**:
+- Gitea has built-in web editor (click file → Edit)
+- Less polished than GitHub but functional
+- Accessible at https://gitea.server.unarmedpuppy.com
+
+**VS Code Server (Alternative)**:
+- Could deploy code-server or VS Code tunnel for full IDE in browser
+- More setup but much better editing experience
+- Consider if web editing becomes frequent
+
+**Current Setup**:
+- OpenCode Terminal at https://terminal.server.unarmedpuppy.com provides CLI access
+- Can use `vim`/`nano` for quick edits via terminal
+
+**Recommendation**: Gitea web editor is sufficient for rare quick fixes. No additional infrastructure needed.
 
 ## Related Files
 
