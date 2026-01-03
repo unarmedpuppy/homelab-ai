@@ -24,6 +24,14 @@ setup_ssh_key() {
         cat "$SSH_DIR/id_ed25519.pub"
         echo ""
     fi
+    
+    # Copy user's authorized_keys for inbound SSH if mounted
+    if [ -f "/etc/ssh/user_authorized_keys" ]; then
+        cp /etc/ssh/user_authorized_keys "$SSH_DIR/authorized_keys"
+        chown "$APPUSER:$APPUSER" "$SSH_DIR/authorized_keys"
+        chmod 600 "$SSH_DIR/authorized_keys"
+        echo "Copied authorized_keys for SSH access"
+    fi
 }
 
 setup_claude_symlink() {
@@ -34,17 +42,34 @@ setup_claude_symlink() {
 }
 
 setup_git_config() {
-    # Configure git using environment variables from docker-compose
     if [ -n "${GIT_AUTHOR_NAME:-}" ]; then
         gosu "$APPUSER" git config --global user.name "$GIT_AUTHOR_NAME"
     fi
     if [ -n "${GIT_AUTHOR_EMAIL:-}" ]; then
         gosu "$APPUSER" git config --global user.email "$GIT_AUTHOR_EMAIL"
     fi
-    # Set up credential helper to use GITHUB_TOKEN for authentication
     if [ -n "${GITHUB_TOKEN:-}" ]; then
         gosu "$APPUSER" git config --global credential.helper '!f() { echo "username=x-access-token"; echo "password=$GITHUB_TOKEN"; }; f'
         echo "Git configured with GitHub token authentication"
+    fi
+}
+
+start_sshd() {
+    echo "Starting SSH server..."
+    /usr/sbin/sshd
+}
+
+setup_workspace() {
+    cd "$WORKSPACE_DIR"
+    
+    if [ ! -d "home-server" ] && [ -n "${GITHUB_TOKEN:-}" ]; then
+        echo "Cloning home-server repository..."
+        gosu "$APPUSER" git clone https://github.com/unarmedpuppy/home-server.git || true
+    fi
+    
+    if [ ! -d "homelab-ai" ] && [ -n "${GITHUB_TOKEN:-}" ]; then
+        echo "Cloning homelab-ai repository..."
+        gosu "$APPUSER" git clone https://github.com/unarmedpuppy/homelab-ai.git || true
     fi
 }
 
@@ -71,6 +96,8 @@ fix_volume_permissions
 setup_ssh_key
 setup_claude_symlink
 setup_git_config
+start_sshd
+setup_workspace
 
 if [ ! -f "$CLAUDE_CONFIG" ] && [ ! -f "$CLAUDE_CONFIG_IN_VOLUME" ]; then
     wait_for_auth

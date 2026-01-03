@@ -10,16 +10,25 @@
 
 FROM python:3.11-slim
 
-# Install Node.js, Git, SSH client, and gosu for privilege dropping
+# Install Node.js, Git, SSH (client + server), tmux, and gosu for privilege dropping
 RUN apt-get update && apt-get install -y \
     curl \
     git \
     openssh-client \
+    openssh-server \
+    tmux \
     gosu \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir /var/run/sshd
+
+# Configure SSH server - key-only auth, allow appuser
+RUN sed -i 's/#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config && \
+    sed -i 's/#PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config && \
+    sed -i 's/#PubkeyAuthentication.*/PubkeyAuthentication yes/' /etc/ssh/sshd_config && \
+    echo "AllowUsers appuser" >> /etc/ssh/sshd_config
 
 # Install Claude Code CLI globally
 RUN npm install -g @anthropic-ai/claude-code
@@ -51,8 +60,8 @@ RUN mkdir -p /home/appuser/.claude /home/appuser/.ssh /workspace && \
 ENV HOME=/home/appuser
 ENV APPUSER=appuser
 
-# Expose port
-EXPOSE 8013
+# Expose ports (API and SSH)
+EXPOSE 8013 22
 
 # Health check - allow longer start period for first-time auth
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
