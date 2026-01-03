@@ -12,7 +12,14 @@ on:
       - 'tts-server/**'
       - 'claude-harness/**'
       - '.github/workflows/build-and-push.yml'
-  workflow_dispatch:  # Allow manual trigger
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: 'Deploy after build'
+        type: boolean
+        default: false
 
 env:
   HARBOR_REGISTRY: ${{ secrets.HARBOR_REGISTRY }}
@@ -214,3 +221,23 @@ jobs:
             ${{ secrets.HARBOR_REGISTRY }}/library/claude-harness:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  deploy:
+    needs: [build-llm-router, build-dashboard, build-llm-manager, build-image-server, build-tts-server, build-claude-harness]
+    if: always() && !failure() && !cancelled() && (startsWith(github.ref, 'refs/tags/') || inputs.deploy == true)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          script: |
+            cd /home/unarmedpuppy/server
+            sudo git pull origin main
+            cd apps/homelab-ai
+            sudo docker compose pull
+            sudo docker compose up -d --remove-orphans
+            sudo docker image prune -f
