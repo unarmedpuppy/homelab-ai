@@ -1484,6 +1484,51 @@ Services running as systemd units (not in Docker containers):
 
 **Why not Docker?** These services need access to host resources (tmux sessions, OAuth tokens in `~/.claude.json`) that are simpler to manage via systemd than Docker volume mounts.
 
+#### Gitea (Self-Hosted Git)
+
+Self-hosted Git service with pull mirrors from GitHub for backup and offline access.
+
+**Access**:
+- **Web**: https://gitea.server.unarmedpuppy.com
+- **SSH**: `ssh://git@gitea.server.unarmedpuppy.com:2223`
+- **Ports**: 3007 (web), 2223 (SSH)
+
+**Purpose**:
+- Backup of all GitHub repositories (19 repos mirrored)
+- Offline access to code when internet is down
+- Future: Local CI/CD alternative to GitHub Actions
+
+**Mirror Configuration**:
+- Pull mirrors sync every 8 hours from GitHub
+- Uses GitHub PAT for authentication
+- Mirrors are read-only (push to GitHub, not Gitea)
+
+**Management Commands**:
+```bash
+# Check status
+docker ps | grep gitea
+
+# View logs
+docker logs gitea --tail 50
+
+# Trigger manual sync for a repo
+curl -X POST "https://gitea.server.unarmedpuppy.com/api/v1/repos/unarmedpuppy/REPO_NAME/mirror-sync" \
+  -H "Authorization: token YOUR_GITEA_TOKEN"
+```
+
+**Setup New Mirrors**:
+```bash
+# Bulk setup (all repos)
+bash scripts/setup-gitea-mirrors.sh
+
+# Single repo - see agents/skills/add-gitea-mirror/SKILL.md
+```
+
+**Documentation**:
+- App README: [apps/gitea/README.md](./apps/gitea/README.md)
+- Mirror Skill: [agents/skills/add-gitea-mirror/SKILL.md](./agents/skills/add-gitea-mirror/SKILL.md)
+- Agent Persona: [agents/personas/gitea-agent.md](./agents/personas/gitea-agent.md)
+
 #### Game Servers
 
 **Rust Server**:

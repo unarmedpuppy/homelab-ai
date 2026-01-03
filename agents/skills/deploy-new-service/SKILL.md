@@ -108,3 +108,9 @@ services:
       - PGID=1000
 ```
 
+## Related Tasks
+
+After deploying a new service that has its own repository:
+- Add the repo to Gitea mirrors for backup: `agents/skills/add-gitea-mirror/SKILL.md`
+- See `agents/personas/gitea-agent.md` for Gitea management
+
