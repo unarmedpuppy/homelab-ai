@@ -112,12 +112,12 @@ services:
       - GITEA_INSTANCE_URL=http://gitea:3000
       - GITEA_RUNNER_REGISTRATION_TOKEN=${GITEA_RUNNER_TOKEN}
       - GITEA_RUNNER_NAME=local-runner
-      - GITEA_RUNNER_LABELS=ubuntu-latest:docker://catthehacker/ubuntu:act-latest,ubuntu-22.04:docker://catthehacker/ubuntu:act-latest
+      - GITEA_RUNNER_LABELS=ubuntu-latest:docker://harbor.server.unarmedpuppy.com/ghcr/catthehacker/ubuntu:act-latest,ubuntu-22.04:docker://harbor.server.unarmedpuppy.com/ghcr/catthehacker/ubuntu:act-latest
     command: >
       sh -c '
         cd /data &&
         if [ ! -f .runner ]; then
-          act_runner register --no-interactive --instance http://gitea:3000 --token $${GITEA_RUNNER_REGISTRATION_TOKEN} --name local-runner --labels "ubuntu-latest:docker://catthehacker/ubuntu:act-latest,ubuntu-22.04:docker://catthehacker/ubuntu:act-latest" --config /config/config.yaml
+          act_runner register --no-interactive --instance http://gitea:3000 --token $${GITEA_RUNNER_REGISTRATION_TOKEN} --name local-runner --labels "ubuntu-latest:docker://harbor.server.unarmedpuppy.com/ghcr/catthehacker/ubuntu:act-latest,ubuntu-22.04:docker://harbor.server.unarmedpuppy.com/ghcr/catthehacker/ubuntu:act-latest" --config /config/config.yaml
         fi &&
         act_runner daemon --config /config/config.yaml
       '

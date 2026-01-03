@@ -18,7 +18,7 @@ cache:
 container:
   network: ""
   privileged: true
-  options: -v /var/run/docker.sock:/var/run/docker.sock
+  options: ""
   workdir_parent:
   valid_volumes:
     - /var/run/docker.sock
