@@ -503,7 +503,7 @@ sudo tee /etc/sudoers.d/github-deploy << 'EOF'
 github-deploy ALL=(ALL) NOPASSWD: /usr/bin/docker compose *
 github-deploy ALL=(ALL) NOPASSWD: /usr/bin/docker pull *
 github-deploy ALL=(ALL) NOPASSWD: /usr/bin/docker image prune -f
-github-deploy ALL=(ALL) NOPASSWD: /usr/bin/git -C /home/unarmedpuppy/server *
+github-deploy ALL=(ALL) NOPASSWD: /usr/bin/git *
 EOF
 
 # 5. Validate sudoers syntax
@@ -511,6 +511,10 @@ sudo visudo -cf /etc/sudoers.d/github-deploy
 
 # 6. Grant access to server directory
 sudo usermod -aG unarmedpuppy github-deploy
+
+# 7. Fix directory permissions for github-deploy access
+chmod 711 /home/unarmedpuppy
+chmod -R g+rX /home/unarmedpuppy/server
 ```
 
 **Verify Setup**:
