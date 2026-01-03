@@ -17,12 +17,12 @@ cache:
 
 container:
   network: my-network
-  privileged: false
-  options: -v /var/run/docker.sock:/var/run/docker.sock
+  privileged: true
+  options: -v /var/run/docker.sock:/var/run/docker.sock --group-add docker
   workdir_parent:
   valid_volumes:
     - /var/run/docker.sock
-  docker_host: ""
+  docker_host: unix:///var/run/docker.sock
   force_pull: false
 
 host:
