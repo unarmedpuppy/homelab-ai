@@ -1,6 +1,6 @@
 # Gitea as Source of Truth - Migration Plan
 
-**Status**: IN PROGRESS (Phase 4 - Developer Workflow)  
+**Status**: COMPLETE (Pending Harbor secrets)  
 **Created**: 2026-01-03  
 **Last Updated**: 2026-01-03  
 **Author**: Agent-assisted planning
@@ -13,8 +13,8 @@
 | Phase 1: Import Repos | COMPLETE | All 20 repos in Gitea |
 | Phase 2: Push Mirrors | COMPLETE | 8 repos with push mirrors to GitHub |
 | Phase 3: CI/CD Migration | COMPLETE | Workflows created for 7 repos, deploy secrets configured |
-| Phase 4: Developer Workflow | IN PROGRESS | Script created, docs updated |
-| Phase 5: Cutover | PENDING | |
+| Phase 4: Developer Workflow | COMPLETE | Remotes switched, SSH config added, docs updated |
+| Phase 5: Cutover | COMPLETE | AGENTS.md updated, Gitea is source of truth |
 
 **USER ACTION REQUIRED**: Add `HARBOR_USERNAME` and `HARBOR_PASSWORD` secrets to repos in Gitea (Settings → Actions → Secrets)
 
