@@ -229,8 +229,7 @@ export interface ProviderConfig {
   health_check_interval: number;
   health_check_timeout: number;
   health_check_path: string;
-  max_retries: number;
-  circuit_breaker_threshold: number;
+  auth_type?: string | null;
 }
 
 export interface AdminProvider {

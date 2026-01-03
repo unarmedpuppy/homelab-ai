@@ -474,6 +474,15 @@ async def list_providers():
                     "error": health_result.error,
                 }
 
+        # Flatten health info to match dashboard's expected structure
+        health_data = {
+            "is_healthy": provider.is_healthy,
+            "consecutive_failures": provider.consecutive_failures,
+            "response_time_ms": health_info.get("response_time_ms") if health_info else None,
+            "checked_at": health_info.get("checked_at") if health_info else None,
+            "error": health_info.get("error") if health_info else None,
+        }
+
         providers_info.append({
             "id": provider.id,
             "name": provider.name,
@@ -482,11 +491,7 @@ async def list_providers():
             "endpoint": provider.endpoint,
             "priority": provider.priority,
             "enabled": provider.enabled,
-            "health": {
-                "is_healthy": provider.is_healthy,
-                "consecutive_failures": provider.consecutive_failures,
-                "last_check": health_info,
-            },
+            "health": health_data,
             "load": {
                 "current_requests": provider.current_requests,
                 "max_concurrent": provider.max_concurrent,
