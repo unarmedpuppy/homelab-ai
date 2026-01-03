@@ -1,6 +1,6 @@
 # Gitea as Source of Truth - Migration Plan
 
-**Status**: PLANNING  
+**Status**: IN PROGRESS (Phase 0)  
 **Created**: 2026-01-03  
 **Author**: Agent-assisted planning
 
@@ -68,8 +68,9 @@ Migrate from GitHub-centric to Gitea-centric Git workflow:
 
 **Objective**: Ensure infrastructure is ready
 
-- [ ] Verify Gitea stability (uptime, backups working)
-- [ ] Set up Gitea Actions runner (Docker-based)
+- [x] Verify Gitea stability (uptime, backups working)
+- [x] Set up Gitea Actions runner (Docker-based)
+- [x] Test Gitea Actions on a repo (pokedex - confirmed working)
 - [ ] Create GitHub PAT with push access for mirrors
 - [ ] Document current GitHub Actions workflows
 - [ ] Inventory all repos (GitHub, local-only, private)
