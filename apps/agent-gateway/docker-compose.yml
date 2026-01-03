@@ -1,0 +1,87 @@
+x-enabled: true
+
+services:
+  agent-core:
+    image: harbor.server.unarmedpuppy.com/library/agent-core:latest
+    container_name: agent-core
+    restart: unless-stopped
+    environment:
+      - LOCAL_AI_URL=${LOCAL_AI_URL:-http://llm-router:8000}
+      - LOCAL_AI_API_KEY=${LOCAL_AI_API_KEY:-}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - SONARR_URL=${SONARR_URL:-http://sonarr:8989}
+      - SONARR_API_KEY=${SONARR_API_KEY:-}
+      - RADARR_URL=${RADARR_URL:-http://radarr:7878}
+      - RADARR_API_KEY=${RADARR_API_KEY:-}
+      - PLEX_URL=${PLEX_URL:-http://plex:32400}
+      - PLEX_TOKEN=${PLEX_TOKEN:-}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /home/unarmedpuppy/server/apps:/server/apps:ro
+      - /home/unarmedpuppy/server/scripts:/server/scripts:ro
+    ports:
+      - "8022:8000"
+    networks:
+      - my-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.agent-core.rule=Host(`agent-core.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.agent-core.entrypoints=websecure"
+      - "traefik.http.routers.agent-core.tls.certresolver=myresolver"
+      - "traefik.http.services.agent-core.loadbalancer.server.port=8000"
+      - "homepage.group=AI & Automation"
+      - "homepage.name=Agent Core"
+      - "homepage.icon=robot"
+      - "homepage.href=https://agent-core.server.unarmedpuppy.com"
+      - "homepage.description=Platform-agnostic AI agents"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  agent-gateway:
+    image: harbor.server.unarmedpuppy.com/library/agent-gateway:latest
+    container_name: agent-gateway
+    restart: unless-stopped
+    environment:
+      - AGENT_CORE_URL=http://agent-core:8000
+      - LOCAL_AI_URL=${LOCAL_AI_URL:-http://llm-router:8000}
+      - LOCAL_AI_API_KEY=${LOCAL_AI_API_KEY:-}
+      - GATEWAY_LOG_LEVEL=${GATEWAY_LOG_LEVEL:-INFO}
+      - DISCORD_TOKEN=${DISCORD_TOKEN:-}
+      - MATTERMOST_URL=${MATTERMOST_URL:-mattermost.server.unarmedpuppy.com}
+      - MATTERMOST_SCHEME=${MATTERMOST_SCHEME:-https}
+      - MATTERMOST_PORT=${MATTERMOST_PORT:-443}
+      - MATTERMOST_BOT_TAYNE_TOKEN=${MATTERMOST_BOT_TAYNE_TOKEN:-}
+      - MATTERMOST_BOT_MONITOR_TOKEN=${MATTERMOST_BOT_MONITOR_TOKEN:-}
+      - MATTERMOST_BOT_TRADING_TOKEN=${MATTERMOST_BOT_TRADING_TOKEN:-}
+      - TAYNE_WEBHOOK_TOKEN=${TAYNE_WEBHOOK_TOKEN:-}
+    ports:
+      - "8023:8000"
+    networks:
+      - my-network
+    depends_on:
+      - agent-core
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.agent-gateway.rule=Host(`agent-gateway.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.agent-gateway.entrypoints=websecure"
+      - "traefik.http.routers.agent-gateway.tls.certresolver=myresolver"
+      - "traefik.http.services.agent-gateway.loadbalancer.server.port=8000"
+      - "homepage.group=AI & Automation"
+      - "homepage.name=Agent Gateway"
+      - "homepage.icon=mdi-api"
+      - "homepage.href=https://agent-gateway.server.unarmedpuppy.com/health"
+      - "homepage.description=Discord & Mattermost unified gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+networks:
+  my-network:
+    external: true
