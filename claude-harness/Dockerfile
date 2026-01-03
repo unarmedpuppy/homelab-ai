@@ -22,7 +22,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get install -y nodejs \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-    && mkdir /var/run/sshd
+    && mkdir -p /var/run/sshd
 
 # Configure SSH server - key-only auth, allow appuser
 RUN sed -i 's/#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config && \
