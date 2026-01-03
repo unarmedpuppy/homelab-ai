@@ -26,4 +26,4 @@ container:
   force_pull: false
 
 host:
-  workdir_parent:
+  workdir_parent: /data/workspace
