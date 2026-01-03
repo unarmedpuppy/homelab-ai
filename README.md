@@ -74,6 +74,7 @@ du -sh server/apps/bedrock-viz/
 - **root** - Root user
 - **unarmedpuppy** - Primary user (added to sudoers file)
 - **claude-deploy** - Restricted service account for Claude Harness deployments (see [Claude Deploy User](#claude-deploy-user))
+- **github-deploy** - Restricted service account for GitHub Actions CI/CD deployments (see [GitHub Deploy User](#github-deploy-user))
 - **Docker Group ID**: 994 (`stat -c '%g' /var/run/docker.sock`)
 
 ### Prevent System Suspend
@@ -472,6 +473,87 @@ sudo docker compose -f /home/unarmedpuppy/server/apps/homelab-ai/docker-compose.
 - `docker rmi` - can't delete images
 - `docker volume rm` - can't delete volumes
 - `docker system prune` - can't wipe everything
+
+#### GitHub Deploy User
+
+Restricted service account for GitHub Actions CI/CD to deploy code changes via SSH on tag push.
+
+**Purpose**: Allows GitHub Actions workflows to SSH into the server for git pull and docker compose operations without exposing the main user account.
+
+**Created**: 2025-01-02
+
+**Complete Setup** (run all commands on server):
+
+```bash
+# 1. Create user with bash shell
+sudo useradd -m -s /bin/bash github-deploy
+
+# 2. Set up SSH directory with public key
+sudo mkdir -p /home/github-deploy/.ssh
+echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBj72n4xRrLNU4mNNao+jNip11q/NbwbH1imNkhzT8qX github-actions-deploy' | sudo tee /home/github-deploy/.ssh/authorized_keys
+sudo chmod 700 /home/github-deploy/.ssh
+sudo chmod 600 /home/github-deploy/.ssh/authorized_keys
+sudo chown -R github-deploy:github-deploy /home/github-deploy/.ssh
+
+# 3. Unlock account (required - new users are locked by default)
+sudo usermod -p '*' github-deploy
+
+# 4. Set up restricted sudo access
+sudo tee /etc/sudoers.d/github-deploy << 'EOF'
+github-deploy ALL=(ALL) NOPASSWD: /usr/bin/docker compose *
+github-deploy ALL=(ALL) NOPASSWD: /usr/bin/docker pull *
+github-deploy ALL=(ALL) NOPASSWD: /usr/bin/docker image prune -f
+github-deploy ALL=(ALL) NOPASSWD: /usr/bin/git -C /home/unarmedpuppy/server *
+EOF
+
+# 5. Validate sudoers syntax
+sudo visudo -cf /etc/sudoers.d/github-deploy
+
+# 6. Grant access to server directory
+sudo usermod -aG unarmedpuppy github-deploy
+```
+
+**Verify Setup**:
+```bash
+# Test SSH from local machine (private key at ~/.ssh/github-deploy-key)
+ssh -p 4242 -i ~/.ssh/github-deploy-key github-deploy@192.168.86.47 'whoami'
+# Should output: github-deploy
+
+# Test docker access
+ssh -p 4242 -i ~/.ssh/github-deploy-key github-deploy@192.168.86.47 'sudo docker ps --format "{{.Names}}" | head -3'
+```
+
+**SSH Key**: Private key stored locally at `~/.ssh/github-deploy-key`. Public key added to server authorized_keys.
+
+**GitHub Secrets Required** (in each repo using auto-deploy):
+| Secret | Value |
+|--------|-------|
+| `DEPLOY_HOST` | `73.94.229.18` (external IP) |
+| `DEPLOY_PORT` | `4242` |
+| `DEPLOY_USER` | `github-deploy` |
+| `DEPLOY_SSH_KEY` | Contents of `~/.ssh/github-deploy-key` |
+
+**Access Scope**:
+- SSH key-only authentication (no password login possible)
+- **NOT in docker group** (uses sudo whitelist)
+- Restricted sudo via `/etc/sudoers.d/github-deploy`:
+  - `sudo docker compose *` (full compose control)
+  - `sudo docker pull *` (pull images)
+  - `sudo docker image prune -f` (cleanup)
+  - `sudo git -C /home/unarmedpuppy/server *` (git in server dir)
+- **Blocked**: `docker rm`, `docker rmi`, `docker volume rm`, `docker system prune`
+
+**Troubleshooting**:
+
+| Issue | Solution |
+|-------|----------|
+| `Permission denied (publickey)` | Check: 1) Key in authorized_keys matches, 2) Account is unlocked (`sudo usermod -p '*' github-deploy`) |
+| `Connection refused` | Ensure port 4242 is forwarded on router to 192.168.86.47:4242 |
+| `permission denied` for docker | Use `sudo docker ...` (not in docker group) |
+
+**Related**:
+- Skill: `agents/skills/github-actions-auto-deploy/` (in shared agents repo)
+- Example workflow: `agent-gateway/.github/workflows/build-and-push.yml`
 
 ---
 
@@ -1032,6 +1114,30 @@ labels:
 ## Security Configuration
 
 ### System Security
+
+#### SSH Intrusion Prevention (fail2ban)
+
+fail2ban is installed and configured to protect SSH from brute force attacks.
+
+**Status**: ✅ Active (configured 2025-01-02)
+
+**Configuration** (`/etc/fail2ban/jail.local`):
+- **Port**: 4242
+- **Max retries**: 3 attempts
+- **Ban time**: 24 hours
+- **Find time**: 10 minutes
+- **Backend**: systemd journal
+
+**Useful Commands**:
+```bash
+sudo fail2ban-client status           # Check overall status
+sudo fail2ban-client status sshd      # Check SSH jail
+sudo fail2ban-client set sshd unbanip <IP>  # Unban an IP
+sudo fail2ban-client set sshd banip <IP>    # Ban an IP manually
+sudo tail -f /var/log/fail2ban.log    # View logs
+```
+
+**Setup Script**: `scripts/setup-fail2ban.sh`
 
 #### Malware Check (Lynis)
 ```bash
