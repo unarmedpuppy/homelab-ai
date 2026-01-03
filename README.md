@@ -164,3 +164,7 @@ Key variables:
 - [Dashboard Documentation](dashboard/README.md)
 - [Agent Skills](agents/skills/)
 - [Reference Docs](agents/reference/)
+
+---
+
+*Last tested: 2026-01-02*
