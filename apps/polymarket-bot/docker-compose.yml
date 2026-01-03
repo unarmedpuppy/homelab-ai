@@ -1,6 +1,6 @@
 services:
   polymarket-bot:
-    image: registry.server.unarmedpuppy.com/polymarket-bot:latest
+    image: harbor.server.unarmedpuppy.com/library/polymarket-bot:latest
     container_name: polymarket-bot
     restart: unless-stopped
     logging:
