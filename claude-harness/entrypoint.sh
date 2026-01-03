@@ -60,17 +60,19 @@ start_sshd() {
 }
 
 setup_workspace() {
-    cd "$WORKSPACE_DIR"
-    
-    if [ ! -d "home-server" ] && [ -n "${GITHUB_TOKEN:-}" ]; then
-        echo "Cloning home-server repository..."
-        gosu "$APPUSER" git clone https://github.com/unarmedpuppy/home-server.git || true
-    fi
-    
-    if [ ! -d "homelab-ai" ] && [ -n "${GITHUB_TOKEN:-}" ]; then
-        echo "Cloning homelab-ai repository..."
-        gosu "$APPUSER" git clone https://github.com/unarmedpuppy/homelab-ai.git || true
-    fi
+    (
+        cd "$WORKSPACE_DIR"
+        
+        if [ ! -d "home-server" ] && [ -n "${GITHUB_TOKEN:-}" ]; then
+            echo "Cloning home-server repository..."
+            gosu "$APPUSER" git clone https://github.com/unarmedpuppy/home-server.git || true
+        fi
+        
+        if [ ! -d "homelab-ai" ] && [ -n "${GITHUB_TOKEN:-}" ]; then
+            echo "Cloning homelab-ai repository..."
+            gosu "$APPUSER" git clone https://github.com/unarmedpuppy/homelab-ai.git || true
+        fi
+    )
 }
 
 wait_for_auth() {
