@@ -54,6 +54,15 @@ setup_git_config() {
     fi
 }
 
+setup_claude_yolo() {
+    local bashrc="/home/$APPUSER/.bashrc"
+    if ! grep -q "claude.*dangerously-skip-permissions" "$bashrc" 2>/dev/null; then
+        echo 'alias claude="claude --dangerously-skip-permissions"' >> "$bashrc"
+        echo "cd /workspace" >> "$bashrc"
+        chown "$APPUSER:$APPUSER" "$bashrc"
+    fi
+}
+
 start_sshd() {
     echo "Starting SSH server..."
     /usr/sbin/sshd
@@ -98,6 +107,7 @@ fix_volume_permissions
 setup_ssh_key
 setup_claude_symlink
 setup_git_config
+setup_claude_yolo
 start_sshd
 setup_workspace
 
