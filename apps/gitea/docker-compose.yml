@@ -107,14 +107,19 @@ services:
     restart: unless-stopped
     environment:
       - TZ=America/Chicago
-      - CONFIG_FILE=/config/config.yaml
       - GITEA_INSTANCE_URL=http://gitea:3000
       - GITEA_RUNNER_REGISTRATION_TOKEN=${GITEA_RUNNER_TOKEN}
       - GITEA_RUNNER_NAME=local-runner
       - GITEA_RUNNER_LABELS=ubuntu-latest:docker://node:20-bookworm,ubuntu-22.04:docker://node:20-bookworm
+    command: >
+      sh -c '
+        if [ ! -f /data/.runner ]; then
+          act_runner register --no-interactive --instance http://gitea:3000 --token ${GITEA_RUNNER_REGISTRATION_TOKEN} --name local-runner --labels ubuntu-latest:docker://node:20-bookworm,ubuntu-22.04:docker://node:20-bookworm
+        fi
+        act_runner daemon
+      '
     volumes:
       - act-runner-data:/data
-      - act-runner-config:/config
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - my-network
@@ -126,7 +131,6 @@ volumes:
   gitea-config:
   gitea-db-data:
   act-runner-data:
-  act-runner-config:
 
 networks:
   my-network:
