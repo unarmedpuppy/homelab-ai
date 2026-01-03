@@ -5,10 +5,10 @@ Self-hosted Git service with pull mirrors from GitHub for backup and offline acc
 ## Access
 
 - **URL**: https://gitea.server.unarmedpuppy.com
-- **SSH**: `ssh://git@gitea.server.unarmedpuppy.com:2222`
+- **SSH**: `ssh://git@gitea.server.unarmedpuppy.com:2223`
 - **Ports**: 
-  - `3005` - Web interface
-  - `2222` - SSH (git operations)
+  - `3007` - Web interface
+  - `2223` - SSH (git operations)
 - **Status**: Active
 
 ## Configuration

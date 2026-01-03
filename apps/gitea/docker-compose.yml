@@ -19,7 +19,7 @@ services:
       - GITEA__server__ROOT_URL=https://gitea.server.unarmedpuppy.com/
       - GITEA__server__HTTP_PORT=3000
       - GITEA__server__SSH_DOMAIN=gitea.server.unarmedpuppy.com
-      - GITEA__server__SSH_PORT=2222
+      - GITEA__server__SSH_PORT=2223
       - GITEA__server__SSH_LISTEN_PORT=2222
       # Service
       - GITEA__service__DISABLE_REGISTRATION=true
@@ -35,8 +35,8 @@ services:
       # OAuth2 JWT
       - GITEA__oauth2__JWT_SECRET=${GITEA_JWT_SECRET}
     ports:
-      - "3005:3000"
-      - "2222:2222"
+      - "3007:3000"
+      - "2223:2222"
     volumes:
       - gitea-data:/var/lib/gitea
       - gitea-config:/etc/gitea
