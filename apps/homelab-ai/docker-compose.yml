@@ -117,10 +117,12 @@ services:
     restart: unless-stopped
     ports:
       - "8013:8013"
+      - "2222:22"
     volumes:
       - claude-credentials:/home/appuser/.claude
       - claude-workspace:/workspace
       - claude-ssh:/home/appuser/.ssh
+      - /home/unarmedpuppy/.ssh/authorized_keys:/etc/ssh/user_authorized_keys:ro
     environment:
       - TZ=America/Chicago
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
