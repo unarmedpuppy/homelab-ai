@@ -1,8 +1,23 @@
 # Gitea Actions & CI/CD Setup
 
 **Created**: 2026-01-03
-**Status**: In Progress
-**Last Session**: Gitea Actions working, GitHub Actions workflows added to repos
+**Status**: BLOCKED - Runner not creating job containers
+**Last Session**: Runner picks up tasks but never starts job containers
+
+## Current Blocker
+
+The act_runner picks up workflow tasks but never actually creates/starts job containers. Logs show:
+- Task picked up: `task 14 repo is homelab/pokedex`
+- Container config created with Docker socket mount and privileged mode
+- **But no container is ever started**
+
+Docker itself works fine on the server (`docker run --rm catthehacker/ubuntu:act-latest echo 'test'` succeeds).
+
+**Possible causes to investigate:**
+1. Runner version issue (v0.2.13)
+2. Configuration issue with `container.options`
+3. Resource constraints
+4. Network creation issue
 
 ## Summary
 
