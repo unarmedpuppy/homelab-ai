@@ -35,7 +35,7 @@ services:
       - "homepage.description=Interactive Brokers Gateway for API trading"
 
   bot:
-    image: registry.server.unarmedpuppy.com/trading-bot:latest
+    image: harbor.server.unarmedpuppy.com/library/trading-bot:latest
     container_name: trading-bot
     environment:
       # Database

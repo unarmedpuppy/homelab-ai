@@ -22,7 +22,7 @@ services:
       start_period: 10s
 
   backend:
-    image: registry.server.unarmedpuppy.com/trading-journal-backend:latest
+    image: harbor.server.unarmedpuppy.com/library/trading-journal-backend:latest
     container_name: trading-journal-backend
     restart: unless-stopped
     ports:
@@ -53,7 +53,7 @@ services:
       start_period: 40s
 
   frontend:
-    image: registry.server.unarmedpuppy.com/trading-journal-frontend:latest
+    image: harbor.server.unarmedpuppy.com/library/trading-journal-frontend:latest
     container_name: trading-journal-frontend
     restart: unless-stopped
     ports:

@@ -4,7 +4,7 @@ x-external: true
 
 services:
   maptapdat:
-    image: registry.server.unarmedpuppy.com/maptapdat:latest
+    image: harbor.server.unarmedpuppy.com/library/maptapdat:latest
     container_name: maptapdat
     restart: unless-stopped
     environment:
