@@ -1,3 +1,5 @@
+x-enabled: false
+
 services:
   agent-core:
     build: .
