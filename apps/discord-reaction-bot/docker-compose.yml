@@ -8,7 +8,7 @@ services:
     environment:
       - DISCORD_TOKEN=${DISCORD_TOKEN}
       - AGENT_CORE_URL=${AGENT_CORE_URL:-http://agent-core:8000}
-      - LOCAL_AI_URL=${LOCAL_AI_URL:-http://local-ai-router:8000}
+      - LOCAL_AI_URL=${LOCAL_AI_URL:-http://llm-router:8000}
       - LOCAL_AI_API_KEY=${LOCAL_AI_API_KEY}
       # Rate limiting settings (all optional with sensible defaults)
       # - TAYNE_COOLDOWN_SECONDS=5

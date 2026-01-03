@@ -18,7 +18,7 @@ services:
       - GATEWAY_LOG_LEVEL=${GATEWAY_LOG_LEVEL:-INFO}
       - DEFAULT_CHANNEL=${DEFAULT_CHANNEL:-town-square}
       - AGENT_CORE_URL=${AGENT_CORE_URL:-http://agent-core:8000}
-      - LOCAL_AI_URL=${LOCAL_AI_URL:-http://local-ai-router:8000}
+      - LOCAL_AI_URL=${LOCAL_AI_URL:-http://llm-router:8000}
       - LOCAL_AI_API_KEY=${LOCAL_AI_API_KEY:-}
       - TAYNE_WEBHOOK_TOKEN=${TAYNE_WEBHOOK_TOKEN:-}
     ports:
