@@ -20,25 +20,19 @@ fi
 
 REPOS=(
     "agent-gateway"
-    "agents"
-    "agents-mono"
     "beads-viewer"
-    "budget"
-    "chatterbox-tts-service"
     "home-server"
     "homelab-ai"
     "maptapdat"
-    "media-downs-dockerized"
-    "opencode-terminal"
     "pokedex"
     "polyjuiced"
-    "shared-agent-skills"
-    "smart-home-3d"
-    "tcg-scraper"
-    "trading-bot"
-    "trading-journal"
     "workflow-agents"
 )
+
+# Repos NOT on GitHub (local only, don't mirror):
+# agents, agents-mono, budget, chatterbox-tts-service, life-os,
+# media-downs-dockerized, opencode-terminal, shared-agent-skills,
+# smart-home-3d, tcg-scraper, trading-bot, trading-journal
 
 create_mirror() {
     local repo_name="$1"

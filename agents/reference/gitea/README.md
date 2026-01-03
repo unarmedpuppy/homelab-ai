@@ -93,28 +93,35 @@ curl -X POST "https://gitea.server.unarmedpuppy.com/api/v1/repos/unarmedpuppy/re
 
 ## Mirrored Repositories
 
-| Repository | Type |
-|------------|------|
-| agent-gateway | Pull Mirror |
-| agents | Pull Mirror |
-| agents-mono | Pull Mirror |
-| beads-viewer | Pull Mirror |
-| budget | Pull Mirror |
-| chatterbox-tts-service | Pull Mirror |
-| home-server | Pull Mirror |
-| homelab-ai | Pull Mirror |
-| maptapdat | Pull Mirror |
-| media-downs-dockerized | Pull Mirror |
-| opencode-terminal | Pull Mirror |
-| pokedex | Pull Mirror |
-| polyjuiced | Pull Mirror |
-| shared-agent-skills | Pull Mirror |
-| smart-home-3d | Pull Mirror |
-| tcg-scraper | Pull Mirror |
-| trading-bot | Pull Mirror |
-| trading-journal | Pull Mirror |
-| workflow-agents | Pull Mirror |
-| life-os | Local Only |
+### Active Mirrors (8 repos)
+
+| Repository | Status |
+|------------|--------|
+| agent-gateway | ✅ Pull Mirror |
+| beads-viewer | ✅ Pull Mirror |
+| home-server | ✅ Pull Mirror |
+| homelab-ai | ✅ Pull Mirror |
+| maptapdat | ✅ Pull Mirror |
+| pokedex | ✅ Pull Mirror |
+| polyjuiced | ✅ Pull Mirror |
+| workflow-agents | ✅ Pull Mirror |
+
+### Not on GitHub (12 repos - local only)
+
+| Repository | Notes |
+|------------|-------|
+| agents | Not on GitHub |
+| agents-mono | Not on GitHub |
+| budget | Not on GitHub |
+| chatterbox-tts-service | Not on GitHub |
+| life-os | Private - Gitea only |
+| media-downs-dockerized | Not on GitHub |
+| opencode-terminal | Not on GitHub |
+| shared-agent-skills | Not on GitHub |
+| smart-home-3d | Not on GitHub |
+| tcg-scraper | Not on GitHub |
+| trading-bot | Not on GitHub |
+| trading-journal | Not on GitHub |
 
 ## Maintenance
 

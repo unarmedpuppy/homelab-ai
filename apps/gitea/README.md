@@ -44,28 +44,35 @@ Copy `env.template` to `.env` and fill in:
 
 ## Mirrored Repositories
 
-| Repository | Source | Type |
-|------------|--------|------|
-| agent-gateway | GitHub | Pull Mirror |
-| agents | GitHub | Pull Mirror |
-| agents-mono | GitHub | Pull Mirror |
-| beads-viewer | GitHub | Pull Mirror |
-| budget | GitHub | Pull Mirror |
-| chatterbox-tts-service | GitHub | Pull Mirror |
-| home-server | GitHub | Pull Mirror |
-| homelab-ai | GitHub | Pull Mirror |
-| maptapdat | GitHub | Pull Mirror |
-| media-downs-dockerized | GitHub | Pull Mirror |
-| opencode-terminal | GitHub | Pull Mirror |
-| pokedex | GitHub | Pull Mirror |
-| polyjuiced | GitHub | Pull Mirror |
-| shared-agent-skills | GitHub | Pull Mirror |
-| smart-home-3d | GitHub | Pull Mirror |
-| tcg-scraper | GitHub | Pull Mirror |
-| trading-bot | GitHub | Pull Mirror |
-| trading-journal | GitHub | Pull Mirror |
-| workflow-agents | GitHub | Pull Mirror |
-| life-os | - | Local Only |
+### Active Mirrors (GitHub → Gitea)
+
+| Repository | Status |
+|------------|--------|
+| agent-gateway | ✅ Mirrored |
+| beads-viewer | ✅ Mirrored |
+| home-server | ✅ Mirrored |
+| homelab-ai | ✅ Mirrored |
+| maptapdat | ✅ Mirrored |
+| pokedex | ✅ Mirrored |
+| polyjuiced | ✅ Mirrored |
+| workflow-agents | ✅ Mirrored |
+
+### Not on GitHub (Local Only / Private)
+
+| Repository | Notes |
+|------------|-------|
+| agents | Not on GitHub |
+| agents-mono | Not on GitHub |
+| budget | Not on GitHub |
+| chatterbox-tts-service | Not on GitHub |
+| life-os | Private - Gitea only |
+| media-downs-dockerized | Not on GitHub |
+| opencode-terminal | Not on GitHub |
+| shared-agent-skills | Not on GitHub |
+| smart-home-3d | Not on GitHub |
+| tcg-scraper | Not on GitHub |
+| trading-bot | Not on GitHub |
+| trading-journal | Not on GitHub |
 
 ## Maintenance
 
