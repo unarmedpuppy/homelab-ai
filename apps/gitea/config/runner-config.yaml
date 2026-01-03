@@ -16,7 +16,7 @@ cache:
   port: 0
 
 container:
-  network: ""
+  network: my-network
   privileged: true
   options: ""
   workdir_parent:
