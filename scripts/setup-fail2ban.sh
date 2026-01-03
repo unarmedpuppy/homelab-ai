@@ -76,7 +76,8 @@ enabled = true
 # SSH port (change if different)
 port = 4242
 filter = sshd
-logpath = /var/log/auth.log
+# Use systemd journal (Debian 12+ doesn't use auth.log)
+backend = systemd
 maxretry = 3
 bantime = 86400  # 24 hours for SSH
 findtime = 600   # 10 minutes
