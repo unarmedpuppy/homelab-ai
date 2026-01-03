@@ -1,0 +1,108 @@
+services:
+  gitea:
+    # image: gitea/gitea:1.22-rootless
+    image: harbor.server.unarmedpuppy.com/docker-hub/gitea/gitea:1.22-rootless
+    container_name: gitea
+    restart: unless-stopped
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+      - TZ=America/Chicago
+      # Database
+      - GITEA__database__DB_TYPE=postgres
+      - GITEA__database__HOST=gitea-db:5432
+      - GITEA__database__NAME=gitea
+      - GITEA__database__USER=${GITEA_DB_USER}
+      - GITEA__database__PASSWD=${GITEA_DB_PASSWORD}
+      # Server
+      - GITEA__server__DOMAIN=gitea.server.unarmedpuppy.com
+      - GITEA__server__ROOT_URL=https://gitea.server.unarmedpuppy.com/
+      - GITEA__server__HTTP_PORT=3000
+      - GITEA__server__SSH_DOMAIN=gitea.server.unarmedpuppy.com
+      - GITEA__server__SSH_PORT=2222
+      - GITEA__server__SSH_LISTEN_PORT=2222
+      # Service
+      - GITEA__service__DISABLE_REGISTRATION=true
+      - GITEA__service__REQUIRE_SIGNIN_VIEW=false
+      # Mirror settings
+      - GITEA__mirror__ENABLED=true
+      - GITEA__mirror__DEFAULT_INTERVAL=8h
+      - GITEA__mirror__MIN_INTERVAL=10m
+      # Security
+      - GITEA__security__INSTALL_LOCK=true
+      - GITEA__security__SECRET_KEY=${GITEA_SECRET_KEY}
+      - GITEA__security__INTERNAL_TOKEN=${GITEA_INTERNAL_TOKEN}
+      # OAuth2 JWT
+      - GITEA__oauth2__JWT_SECRET=${GITEA_JWT_SECRET}
+    ports:
+      - "3005:3000"
+      - "2222:2222"
+    volumes:
+      - gitea-data:/var/lib/gitea
+      - gitea-config:/etc/gitea
+    networks:
+      - my-network
+    depends_on:
+      gitea-db:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTP to HTTPS redirect
+      - "traefik.http.middlewares.gitea-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.gitea-redirect.middlewares=gitea-redirect"
+      - "traefik.http.routers.gitea-redirect.rule=Host(`gitea.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.gitea-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.gitea-local.rule=Host(`gitea.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.gitea-local.priority=100"
+      - "traefik.http.routers.gitea-local.entrypoints=websecure"
+      - "traefik.http.routers.gitea-local.tls.certresolver=myresolver"
+      - "traefik.http.routers.gitea-local.service=gitea"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.gitea.rule=Host(`gitea.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.gitea.priority=1"
+      - "traefik.http.routers.gitea.entrypoints=websecure"
+      - "traefik.http.routers.gitea.tls.certresolver=myresolver"
+      - "traefik.http.routers.gitea.tls=true"
+      - "traefik.http.routers.gitea.middlewares=gitea-auth"
+      - "traefik.http.routers.gitea.service=gitea"
+      # Service and auth middleware
+      - "traefik.http.services.gitea.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.gitea-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.gitea-auth.basicauth.realm=Gitea"
+      # Homepage labels
+      - "homepage.group=Infrastructure"
+      - "homepage.name=Gitea"
+      - "homepage.icon=si-gitea"
+      - "homepage.href=https://gitea.server.unarmedpuppy.com"
+      - "homepage.description=Self-hosted Git service with GitHub mirrors"
+
+  gitea-db:
+    # image: postgres:16-alpine
+    image: harbor.server.unarmedpuppy.com/docker-hub/library/postgres:16-alpine
+    container_name: gitea-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=gitea
+      - POSTGRES_USER=${GITEA_DB_USER}
+      - POSTGRES_PASSWORD=${GITEA_DB_PASSWORD}
+      - TZ=America/Chicago
+    volumes:
+      - gitea-db-data:/var/lib/postgresql/data
+    networks:
+      - my-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${GITEA_DB_USER:-gitea} -d gitea"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  gitea-data:
+  gitea-config:
+  gitea-db-data:
+
+networks:
+  my-network:
+    external: true
