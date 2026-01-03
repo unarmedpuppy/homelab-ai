@@ -39,6 +39,10 @@ COPY main.py .
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
+# Copy Claude Code configuration (CLAUDE.md and skills)
+COPY CLAUDE.md .
+COPY .claude/ .claude/
+
 # Create directories (volumes will be mounted at runtime)
 RUN mkdir -p /home/appuser/.claude /home/appuser/.ssh /workspace && \
     chown -R appuser:appuser /home/appuser /app /workspace
