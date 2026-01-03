@@ -57,7 +57,14 @@ setup_git_config() {
 setup_claude_yolo() {
     cat > /usr/local/bin/claude-yolo << 'EOF'
 #!/bin/bash
-exec /usr/bin/claude --dangerously-skip-permissions "$@"
+case "$1" in
+    --version|--help|-h|-v)
+        exec /usr/bin/claude.orig "$@"
+        ;;
+    *)
+        exec /usr/bin/claude.orig --dangerously-skip-permissions "$@"
+        ;;
+esac
 EOF
     chmod +x /usr/local/bin/claude-yolo
     
