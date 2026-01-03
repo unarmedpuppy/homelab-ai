@@ -91,22 +91,63 @@ curl -X POST "https://gitea.server.unarmedpuppy.com/api/v1/repos/unarmedpuppy/re
 | `GITHUB_PAT` | GitHub mirror auth |
 | `GITEA_API_TOKEN` | Gitea API access |
 
-## Mirrored Repositories
+## Gitea Actions
 
-### Active Mirrors (8 repos)
+### Runner Status
+
+Runner: `gitea-act-runner` (Docker-based)
+
+Check status:
+```bash
+docker ps --filter name=gitea-act-runner
+```
+
+### Required Secrets
+
+Configure at: **Gitea → Site Administration → Actions → Secrets** (for org-wide) or per-repo in Settings → Actions → Secrets.
+
+| Secret | Value | Purpose |
+|--------|-------|---------|
+| `HARBOR_USERNAME` | Harbor robot account or admin | Registry auth |
+| `HARBOR_PASSWORD` | Harbor password | Registry auth |
+| `DEPLOY_HOST` | `192.168.86.47` | SSH deploy target |
+| `DEPLOY_PORT` | `4242` | SSH port |
+| `DEPLOY_USER` | `unarmedpuppy` | SSH username |
+| `DEPLOY_SSH_KEY` | Contents of `~/.ssh/github-deploy-key` | SSH private key |
+
+### Workflow Files Location
+
+Workflows go in `.gitea/workflows/` (same syntax as GitHub Actions).
+
+### Repos with Gitea Workflows
+
+| Repository | Workflow | Status |
+|------------|----------|--------|
+| pokedex | `.gitea/workflows/test.yml` | Active |
+| maptapdat | `.gitea/workflows/build.yml` | Ready |
+| homelab-ai | `.gitea/workflows/build.yml` | Ready |
+| beads-viewer | `.gitea/workflows/build.yml` | Ready |
+| smart-home-3d | `.gitea/workflows/build.yml` | Ready |
+| opencode-terminal | `.gitea/workflows/build.yml` | Ready |
+| trading-journal | `.gitea/workflows/build.yml` | Ready |
+| trading-bot | `.gitea/workflows/build.yml` | Ready |
+
+## Push Mirrors (Gitea → GitHub)
+
+### Active Push Mirrors (8 repos)
 
 | Repository | Status |
 |------------|--------|
-| agent-gateway | ✅ Pull Mirror |
-| beads-viewer | ✅ Pull Mirror |
-| home-server | ✅ Pull Mirror |
-| homelab-ai | ✅ Pull Mirror |
-| maptapdat | ✅ Pull Mirror |
-| pokedex | ✅ Pull Mirror |
-| polyjuiced | ✅ Pull Mirror |
-| workflow-agents | ✅ Pull Mirror |
+| agent-gateway | ✅ Push Mirror to GitHub |
+| beads-viewer | ✅ Push Mirror to GitHub |
+| home-server | ✅ Push Mirror to GitHub |
+| homelab-ai | ✅ Push Mirror to GitHub |
+| maptapdat | ✅ Push Mirror to GitHub |
+| pokedex | ✅ Push Mirror to GitHub |
+| polyjuiced | ✅ Push Mirror to GitHub |
+| workflow-agents | ✅ Push Mirror to GitHub |
 
-### Not on GitHub (12 repos - local only)
+### Local Only (12 repos - not on GitHub)
 
 | Repository | Notes |
 |------------|-------|

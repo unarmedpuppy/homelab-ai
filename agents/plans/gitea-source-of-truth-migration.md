@@ -1,8 +1,22 @@
 # Gitea as Source of Truth - Migration Plan
 
-**Status**: IN PROGRESS (Phase 0)  
+**Status**: IN PROGRESS (Phase 4 - Developer Workflow)  
 **Created**: 2026-01-03  
+**Last Updated**: 2026-01-03  
 **Author**: Agent-assisted planning
+
+## Progress Summary
+
+| Phase | Status | Notes |
+|-------|--------|-------|
+| Phase 0: Preparation | COMPLETE | Runner deployed, tested on pokedex |
+| Phase 1: Import Repos | COMPLETE | All 20 repos in Gitea |
+| Phase 2: Push Mirrors | COMPLETE | 8 repos with push mirrors to GitHub |
+| Phase 3: CI/CD Migration | COMPLETE | Workflows created for 7 repos, deploy secrets configured |
+| Phase 4: Developer Workflow | IN PROGRESS | Script created, docs updated |
+| Phase 5: Cutover | PENDING | |
+
+**USER ACTION REQUIRED**: Add `HARBOR_USERNAME` and `HARBOR_PASSWORD` secrets to repos in Gitea (Settings → Actions → Secrets)
 
 ## Overview
 
@@ -179,19 +193,19 @@ Gitea Repo Settings → Mirror Settings:
 - life-os
 - Others as needed
 
-### Phase 3: Migrate CI/CD to Gitea Actions (2-3 days)
+### Phase 3: Migrate CI/CD to Gitea Actions (2-3 days) - COMPLETE
 
 **Objective**: Build pipelines run in Gitea, not GitHub
 
 **Prerequisites**:
-- Gitea Actions runner with Docker access
-- Runner can push to Harbor registry
-- Runner has necessary secrets
+- [x] Gitea Actions runner with Docker access
+- [x] Runner can push to Harbor registry
+- [ ] Runner has necessary secrets (HARBOR creds need user input)
 
 **Tasks**:
-- [ ] Set up Gitea Actions runner (Docker-based)
-- [ ] Migrate workflows repo-by-repo
-- [ ] Add Harbor registry credentials to Gitea secrets
+- [x] Set up Gitea Actions runner (Docker-based)
+- [x] Migrate workflows repo-by-repo
+- [ ] Add Harbor registry credentials to Gitea secrets (USER ACTION)
 - [ ] Test builds on Gitea before disabling GitHub Actions
 - [ ] Disable GitHub Actions workflows after verification
 
@@ -199,11 +213,18 @@ Gitea Repo Settings → Mirror Settings:
 
 | Repo | Has CI/CD | Workflow Type | Migration Status |
 |------|-----------|---------------|------------------|
-| homelab-ai | Yes | Build + push to Harbor | Pending |
-| agent-gateway | Yes | Build + push to Harbor | Pending |
-| trading-bot | Yes | Build + push to Harbor | Pending |
-| trading-journal | Yes | Build + push to Harbor | Pending |
-| (others) | TBD | TBD | TBD |
+| homelab-ai | Yes | Build + push to Harbor (6 images) | `.gitea/workflows/build.yml` created |
+| beads-viewer | Yes | Build + push + deploy | `.gitea/workflows/build.yml` created |
+| trading-bot | Yes | Build + push to Harbor | `.gitea/workflows/build.yml` created |
+| trading-journal | Yes | Build + push (2 images) | `.gitea/workflows/build.yml` created |
+| maptapdat | Yes | Build + push to Harbor | `.gitea/workflows/build.yml` created |
+| smart-home-3d | Yes | Build + push to Harbor | `.gitea/workflows/build.yml` created |
+| opencode-terminal | Yes | Build + push to Harbor | `.gitea/workflows/build.yml` created |
+| pokedex | Yes | Build + push + deploy | `.gitea/workflows/test.yml` (existing) |
+
+**Secrets Configured**:
+- DEPLOY_HOST, DEPLOY_PORT, DEPLOY_USER, DEPLOY_SSH_KEY: Added to beads-viewer, homelab-ai, pokedex
+- HARBOR_USERNAME, HARBOR_PASSWORD: USER ACTION REQUIRED
 
 **Gitea Actions vs GitHub Actions**:
 - Gitea Actions is ~95% compatible with GitHub Actions syntax
@@ -230,24 +251,33 @@ jobs:
           docker push harbor.server.unarmedpuppy.com/library/${{ github.repository }}:${{ github.ref_name }}
 ```
 
-### Phase 4: Update Developer Workflows (1 day)
+### Phase 4: Update Developer Workflows (1 day) - IN PROGRESS
 
 **Objective**: All development points to Gitea
 
 **Tasks**:
 - [ ] Update git remotes on all local clones
-- [ ] Update SSH config for Gitea
-- [ ] Update documentation
+- [x] Update SSH config for Gitea (documented)
+- [x] Update documentation (Gitea reference updated)
 - [ ] Update any scripts that reference GitHub URLs
 
-**Git Remote Update**:
+**Automated Script**:
+```bash
+# Use the switch script for each repo:
+./scripts/switch-to-gitea.sh /path/to/repo
+
+# Or from within a repo:
+cd /path/to/repo && ~/repos/personal/home-server/scripts/switch-to-gitea.sh
+```
+
+**Manual Git Remote Update**:
 ```bash
 # For each local repo:
-git remote set-url origin git@gitea.server.unarmedpuppy.com:unarmedpuppy/REPO.git
+git remote set-url origin ssh://git@gitea.server.unarmedpuppy.com:2223/unarmedpuppy/REPO.git
 
 # Or add Gitea as new remote, keep GitHub:
 git remote rename origin github
-git remote add origin git@gitea.server.unarmedpuppy.com:unarmedpuppy/REPO.git
+git remote add origin ssh://git@gitea.server.unarmedpuppy.com:2223/unarmedpuppy/REPO.git
 ```
 
 **SSH Config** (`~/.ssh/config`):
@@ -258,6 +288,22 @@ Host gitea.server.unarmedpuppy.com
     User git
     IdentityFile ~/.ssh/id_ed25519
 ```
+
+**Repos to Switch**:
+| Repo | Status |
+|------|--------|
+| home-server | Pending |
+| homelab-ai | Pending |
+| beads-viewer | Pending |
+| maptapdat | Pending |
+| smart-home-3d | Pending |
+| opencode-terminal | Pending |
+| trading-bot | Pending |
+| trading-journal | Pending |
+| pokedex | Pending |
+| polyjuiced | Pending |
+| workflow-agents | Pending |
+| agent-gateway | Pending |
 
 ### Phase 5: Cutover & Cleanup (1 day)
 
