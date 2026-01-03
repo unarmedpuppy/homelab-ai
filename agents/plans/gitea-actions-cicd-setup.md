@@ -1,23 +1,27 @@
 # Gitea Actions & CI/CD Setup
 
 **Created**: 2026-01-03
-**Status**: BLOCKED - Runner not creating job containers
-**Last Session**: Runner picks up tasks but never starts job containers
+**Status**: WORKING - Need to configure repo secrets
+**Last Session**: Runner creating containers and executing steps successfully
 
-## Current Blocker
+## Current State
 
-The act_runner picks up workflow tasks but never actually creates/starts job containers. Logs show:
-- Task picked up: `task 14 repo is homelab/pokedex`
-- Container config created with Docker socket mount and privileged mode
-- **But no container is ever started**
+✅ **WORKING:**
+- act_runner registered and picking up jobs
+- Job containers created on `my-network`
+- Workflow steps executing (checkout, git operations work)
+- Docker CLI available in job containers
 
-Docker itself works fine on the server (`docker run --rm catthehacker/ubuntu:act-latest echo 'test'` succeeds).
+❌ **Remaining:**
+- Configure secrets in Gitea for `homelab/pokedex` repo
+- Test full build → push → deploy flow
 
-**Possible causes to investigate:**
-1. Runner version issue (v0.2.13)
-2. Configuration issue with `container.options`
-3. Resource constraints
-4. Network creation issue
+## Key Fixes Applied
+
+1. **Runner container must be `privileged: true`** - Required for Docker-in-Docker
+2. **Job containers must be on `my-network`** - So they can resolve `gitea` hostname
+3. **Use Harbor image path in labels** - `docker://harbor.server.unarmedpuppy.com/ghcr/catthehacker/ubuntu:act-latest`
+4. **Remove duplicate docker socket mount** - Was causing issues with duplicate binds
 
 ## Summary
 
@@ -78,6 +82,21 @@ Added Gitea Actions workflow to pokedex for testing:
 - `.gitea/workflows/test.yml` - Now contains full build/deploy workflow
 
 ## What's Not Done
+
+### Gitea Secrets Configuration (PRIORITY)
+
+Configure these secrets in Gitea for `homelab/pokedex`:
+1. Go to: https://gitea.server.unarmedpuppy.com/homelab/pokedex/settings/actions/secrets
+2. Add these secrets:
+
+| Secret | Value |
+|--------|-------|
+| `REGISTRY_USERNAME` | Harbor username (e.g., `admin`) |
+| `REGISTRY_PASSWORD` | Harbor password |
+| `DEPLOY_HOST` | `192.168.86.47` (internal IP) |
+| `DEPLOY_PORT` | `4242` |
+| `DEPLOY_USER` | `github-deploy` |
+| `DEPLOY_SSH_KEY` | Contents of `~/.ssh/github-deploy-key` |
 
 ### GitHub Secrets Configuration
 
