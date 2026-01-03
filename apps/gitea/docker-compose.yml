@@ -102,39 +102,25 @@ services:
       retries: 5
 
   act-runner:
-    # Using catthehacker/ubuntu:act-latest as runner base for Docker CLI + tools
-    image: harbor.server.unarmedpuppy.com/ghcr/catthehacker/ubuntu:act-latest
+    image: harbor.server.unarmedpuppy.com/docker-hub/gitea/act_runner:latest
     container_name: gitea-act-runner
     restart: unless-stopped
-    user: root
+    privileged: true
     environment:
       - TZ=America/Chicago
       - CONFIG_FILE=/config/config.yaml
       - GITEA_INSTANCE_URL=http://gitea:3000
       - GITEA_RUNNER_REGISTRATION_TOKEN=${GITEA_RUNNER_TOKEN}
       - GITEA_RUNNER_NAME=local-runner
-      # Use host execution - runs jobs directly in this container
-      - GITEA_RUNNER_LABELS=ubuntu-latest:host,ubuntu-22.04:host
-    entrypoint: /bin/bash
-    command:
-      - -c
-      - |
-        # Install act_runner
-        curl -sL https://gitea.com/gitea/act_runner/releases/download/v0.2.11/act_runner-0.2.11-linux-amd64 -o /usr/local/bin/act_runner
-        chmod +x /usr/local/bin/act_runner
-        
-        # Register if needed
-        if [ ! -f /data/.runner ]; then
-          act_runner register --no-interactive \
-            --instance http://gitea:3000 \
-            --token ${GITEA_RUNNER_REGISTRATION_TOKEN} \
-            --name local-runner \
-            --labels "ubuntu-latest:host,ubuntu-22.04:host" \
-            --config /config/config.yaml
-        fi
-        
-        # Run daemon
+      - GITEA_RUNNER_LABELS=ubuntu-latest:docker://catthehacker/ubuntu:act-latest,ubuntu-22.04:docker://catthehacker/ubuntu:act-latest
+    command: >
+      sh -c '
+        cd /data &&
+        if [ ! -f .runner ]; then
+          act_runner register --no-interactive --instance http://gitea:3000 --token $${GITEA_RUNNER_REGISTRATION_TOKEN} --name local-runner --labels "ubuntu-latest:docker://catthehacker/ubuntu:act-latest,ubuntu-22.04:docker://catthehacker/ubuntu:act-latest" --config /config/config.yaml
+        fi &&
         act_runner daemon --config /config/config.yaml
+      '
     volumes:
       - act-runner-data:/data
       - ./config/runner-config.yaml:/config/config.yaml:ro
