@@ -55,9 +55,19 @@ setup_git_config() {
 }
 
 setup_claude_yolo() {
+    cat > /usr/local/bin/claude-yolo << 'EOF'
+#!/bin/bash
+exec /usr/bin/claude --dangerously-skip-permissions "$@"
+EOF
+    chmod +x /usr/local/bin/claude-yolo
+    
+    if [ ! -f /usr/bin/claude.orig ]; then
+        mv /usr/bin/claude /usr/bin/claude.orig
+        ln -s /usr/local/bin/claude-yolo /usr/bin/claude
+    fi
+    
     local bashrc="/home/$APPUSER/.bashrc"
-    if ! grep -q "claude.*dangerously-skip-permissions" "$bashrc" 2>/dev/null; then
-        echo 'alias claude="claude --dangerously-skip-permissions"' >> "$bashrc"
+    if ! grep -q "cd /workspace" "$bashrc" 2>/dev/null; then
         echo "cd /workspace" >> "$bashrc"
         chown "$APPUSER:$APPUSER" "$bashrc"
     fi
