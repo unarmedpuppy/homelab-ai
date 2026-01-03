@@ -2,7 +2,7 @@ x-enabled: true
 
 services:
   beads-ui:
-    image: registry.server.unarmedpuppy.com/beads-viewer:latest
+    image: harbor.server.unarmedpuppy.com/library/beads-viewer:latest
     container_name: beads-ui
     restart: unless-stopped
     environment:
