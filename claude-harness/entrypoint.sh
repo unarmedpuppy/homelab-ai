@@ -54,6 +54,25 @@ setup_git_config() {
     fi
 }
 
+setup_gpg_signing() {
+    local gpg_key_file="/etc/gpg-key.asc"
+    local gpg_dir="/home/$APPUSER/.gnupg"
+    
+    if [ -f "$gpg_key_file" ] && [ -n "${GPG_KEY_ID:-}" ]; then
+        mkdir -p "$gpg_dir"
+        chmod 700 "$gpg_dir"
+        chown "$APPUSER:$APPUSER" "$gpg_dir"
+        
+        gosu "$APPUSER" gpg --batch --import "$gpg_key_file" 2>/dev/null || true
+        
+        gosu "$APPUSER" git config --global user.signingkey "$GPG_KEY_ID"
+        gosu "$APPUSER" git config --global commit.gpgsign true
+        gosu "$APPUSER" git config --global gpg.program gpg
+        
+        echo "GPG signing configured with key $GPG_KEY_ID"
+    fi
+}
+
 setup_claude_yolo() {
     cat > /usr/local/bin/claude-yolo << 'EOF'
 #!/bin/bash
@@ -124,6 +143,7 @@ fix_volume_permissions
 setup_ssh_key
 setup_claude_symlink
 setup_git_config
+setup_gpg_signing
 setup_claude_yolo
 start_sshd
 setup_workspace
