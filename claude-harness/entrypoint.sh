@@ -49,7 +49,10 @@ setup_git_config() {
         gosu "$APPUSER" git config --global user.email "$GIT_AUTHOR_EMAIL"
     fi
     if [ -n "${GITHUB_TOKEN:-}" ]; then
-        gosu "$APPUSER" git config --global credential.helper '!f() { echo "username=x-access-token"; echo "password=$GITHUB_TOKEN"; }; f'
+        gosu "$APPUSER" git config --global credential.helper store
+        echo "https://x-access-token:${GITHUB_TOKEN}@github.com" > "/home/$APPUSER/.git-credentials"
+        chown "$APPUSER:$APPUSER" "/home/$APPUSER/.git-credentials"
+        chmod 600 "/home/$APPUSER/.git-credentials"
         echo "Git configured with GitHub token authentication"
     fi
 }
