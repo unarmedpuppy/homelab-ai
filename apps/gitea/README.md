@@ -41,6 +41,51 @@ Copy `env.template` to `.env` and fill in:
 - `GITEA_INTERNAL_TOKEN` - Generate with `openssl rand -hex 64`
 - `GITEA_JWT_SECRET` - Generate with `openssl rand -base64 32`
 - `GITHUB_PAT` - Personal Access Token for mirror authentication
+- `GITEA_RUNNER_TOKEN` - Runner registration token (get from Gitea UI)
+
+## Gitea Actions (CI/CD)
+
+Gitea Actions provides GitHub Actions-compatible CI/CD pipelines.
+
+### Setup
+
+1. **Get runner token**: Site Administration > Actions > Runners > Create new Runner
+2. **Add to `.env`**: `GITEA_RUNNER_TOKEN=<token>`
+3. **Restart services**: `docker compose up -d`
+
+### Creating Workflows
+
+Workflows go in `.gitea/workflows/` (or `.github/workflows/`):
+
+```yaml
+name: Build and Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: echo "Building..."
+```
+
+### Runner Labels
+
+The act_runner supports:
+- `ubuntu-latest` - Node 20 on Debian Bookworm
+- `ubuntu-22.04` - Node 20 on Debian Bookworm
+
+### Troubleshooting
+
+```bash
+docker logs gitea-act-runner
+docker exec gitea-act-runner act_runner list
+```
 
 ## Mirrored Repositories
 

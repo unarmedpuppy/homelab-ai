@@ -34,6 +34,9 @@ services:
       - GITEA__security__INTERNAL_TOKEN=${GITEA_INTERNAL_TOKEN}
       # OAuth2 JWT
       - GITEA__oauth2__JWT_SECRET=${GITEA_JWT_SECRET}
+      # Actions (CI/CD)
+      - GITEA__actions__ENABLED=true
+      - GITEA__actions__DEFAULT_ACTIONS_URL=github
     ports:
       - "3007:3000"
       - "2223:2222"
@@ -98,10 +101,32 @@ services:
       timeout: 5s
       retries: 5
 
+  act-runner:
+    image: harbor.server.unarmedpuppy.com/docker-hub/gitea/act_runner:latest
+    container_name: gitea-act-runner
+    restart: unless-stopped
+    environment:
+      - TZ=America/Chicago
+      - CONFIG_FILE=/config/config.yaml
+      - GITEA_INSTANCE_URL=http://gitea:3000
+      - GITEA_RUNNER_REGISTRATION_TOKEN=${GITEA_RUNNER_TOKEN}
+      - GITEA_RUNNER_NAME=local-runner
+      - GITEA_RUNNER_LABELS=ubuntu-latest:docker://node:20-bookworm,ubuntu-22.04:docker://node:20-bookworm
+    volumes:
+      - act-runner-data:/data
+      - act-runner-config:/config
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - my-network
+    depends_on:
+      - gitea
+
 volumes:
   gitea-data:
   gitea-config:
   gitea-db-data:
+  act-runner-data:
+  act-runner-config:
 
 networks:
   my-network:
