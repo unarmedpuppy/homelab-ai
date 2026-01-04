@@ -1,0 +1,17 @@
+--extractor-args
+youtube:player_client=web
+-f
+bestaudio[ext=m4a]/bestaudio/best
+--retries
+10
+--fragment-retries
+10
+--file-access-retries
+3
+--retry-sleep
+3
+--socket-timeout
+30
+--cookies
+/root/.config/yt-dlp/cookies.txt
+

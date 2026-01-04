@@ -1,0 +1,35 @@
+{
+  "audio_providers": ["youtube-music"],
+  "lyrics_providers": ["genius", "musixmatch"],
+  "ffmpeg": "ffmpeg",
+  "bitrate": "320k",
+  "ffmpeg_args": [],
+  "format": "mp3",
+  "save_file": "{artists} - {title}.{output-ext}",
+  "m3u": null,
+  "output": "{filepath}",
+  "simple_tui": false,
+  "print_errors": false,
+  "sponsor_block": false,
+  "preload": false,
+  "archive": null,
+  "cookie_file": null,
+  "threads": 4,
+  "no_encode": false,
+  "portable": false,
+  "headless": false,
+  "overwrite": "skip",
+  "restrict": null,
+  "print_errors": true,
+  "yt_dlp_args": [
+    "--retries", "10",
+    "--fragment-retries", "10",
+    "--file-access-retries", "3",
+    "--retry-sleep", "1",
+    "--socket-timeout", "30",
+    "--extractor-args", "youtube:player_client=android",
+    "-f", "18/bestaudio[ext=m4a]/bestaudio/best",
+    "--audio-format", "mp3"
+  ]
+}
+
