@@ -128,4 +128,4 @@ npm install shared-agent-skills --registry https://gitea.server.unarmedpuppy.com
 
 ## Adding Skills to the Package
 
-See [shared-agent-skills/AGENTS.md](../../shared-agent-skills/AGENTS.md) for contributing new skills.
+See `shared-agent-skills/AGENTS.md` for contributing new skills.
