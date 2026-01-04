@@ -1,7 +1,7 @@
 --extractor-args
-youtube:player_client=android
+youtube:player_client=web
 -f
-18/bestaudio[ext=m4a]/bestaudio/best
+bestaudio[ext=m4a]/bestaudio/best
 --retries
 10
 --fragment-retries
@@ -9,7 +9,9 @@ youtube:player_client=android
 --file-access-retries
 3
 --retry-sleep
-1
+3
 --socket-timeout
 30
+--cookies
+/root/.config/yt-dlp/cookies.txt
 
