@@ -20,6 +20,8 @@ services:
       - TZ=America/Chicago
       # Enable crossplay for Xbox/Game Pass players (generates Join Code)
       - CROSSPLAY=true
+      # World Modifier: Allow all items (metals/ores) through portals
+      - SERVER_ARGS=-modifier portals casual
       - BACKUPS=true
       - BACKUPS_CRON=0 */6 * * *
       - BACKUPS_MAX_AGE=7

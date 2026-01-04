@@ -31,6 +31,7 @@ Dockerized Valheim dedicated server using [lloesche/valheim-server](https://gith
 - **Auto-backups**: Every 6 hours, keeps 7 days
 - **Auto-updates**: Daily at 5 AM
 - **Auto-restart**: Daily at 6 AM (after updates)
+- **Metals through portals**: Enabled via native World Modifier (no mods required)
 
 ## Connecting
 
