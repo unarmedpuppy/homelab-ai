@@ -1254,25 +1254,44 @@ Expected subnet: `192.168.160.0/20`, Gateway: `192.168.160.1`
 
 ### Docker Maintenance
 
-**Prune Old Images**:
-```bash
-docker rmi $(docker images -a -q)
-docker system prune -a -f
-```
+Automated maintenance runs weekly via `scripts/docker-maintenance.sh`. The script:
+- Removes stopped containers (orphans from deleted apps)
+- Removes unused images
+- Removes unused networks
+- Cleans build cache
+- Does NOT prune volumes (too risky for data loss)
 
-**View Reclaimable Space**:
+**Manual Commands**:
 ```bash
+# Run maintenance script manually
+bash ~/server/scripts/docker-maintenance.sh
+
+# View reclaimable space
 docker system df
-```
 
-**Prune Unused Volumes**:
-```bash
+# Prune unused volumes (use with caution!)
 docker volume prune
 ```
 
-**Cron Job for Weekly Pruning**:
+**Cron Job** (user crontab, runs Monday 5:00 AM):
 ```
-0 5 * * 1 docker system prune -a -f
+0 5 * * 1 ~/server/scripts/docker-maintenance.sh >> ~/server/logs/docker-maintenance.log 2>&1
+```
+
+### System Tuning
+
+**inotify Limits** (required for apps like slskd that watch many files):
+
+Config file: `/etc/sysctl.d/99-inotify.conf`
+```
+fs.inotify.max_user_instances = 512
+fs.inotify.max_user_watches = 524288
+```
+
+To apply after creating/updating the config:
+```bash
+sudo cp ~/server/scripts/sysctl.d/99-inotify.conf /etc/sysctl.d/
+sudo sysctl -p /etc/sysctl.d/99-inotify.conf
 ```
 
 ### NVIDIA GPU Support (Optional)
@@ -1695,10 +1714,11 @@ stress --cpu 8
 sudo crontab -e
 ```
 
-**Prune Docker Images** (Weekly, Monday at 5:00 AM):
+**Docker Maintenance** (Weekly, Monday at 5:00 AM):
 ```
-0 5 * * 1 docker system prune -a -f
+0 5 * * 1 ~/server/scripts/docker-maintenance.sh >> ~/server/logs/docker-maintenance.log 2>&1
 ```
+Prunes stopped containers, unused images, networks, and build cache. See [Docker Maintenance](#docker-maintenance) for details.
 
 **Restart Machine** (Nightly at 5:15 AM):
 ```
