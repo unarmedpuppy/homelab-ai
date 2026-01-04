@@ -40,3 +40,5 @@ agents/skills/*/node_modules/
 
 apps/ytdl-sub/config/*
 logs/*
+# Workspace Agents
+agents/.workspace-agents.json
