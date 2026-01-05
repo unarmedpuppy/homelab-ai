@@ -1,4 +1,4 @@
-x-enabled: false
+x-enabled: true
 
 services:
   agent-core:
