@@ -1,0 +1,25 @@
+[Unit]
+Description=Harbor Auto-Deployer
+Documentation=https://github.com/unarmedpuppy/home-server
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=unarmedpuppy
+Group=docker
+WorkingDirectory=/home/unarmedpuppy/server/scripts
+ExecStart=/usr/bin/python3 /home/unarmedpuppy/server/scripts/harbor-deployer.py --config /home/unarmedpuppy/server/scripts/harbor-deployer.json
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/unarmedpuppy/server/logs
+
+[Install]
+WantedBy=multi-user.target

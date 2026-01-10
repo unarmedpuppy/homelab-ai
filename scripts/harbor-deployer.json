@@ -1,0 +1,17 @@
+{
+  "poll_interval": 60,
+  "harbor_url": "https://harbor.server.unarmedpuppy.com",
+  "mattermost_webhook": "https://mattermost.server.unarmedpuppy.com/hooks/1cow4rcy4iy88fc1y3t8urrwuh",
+  "label": "com.centurylinklabs.watchtower.enable",
+  "log_file": "/home/unarmedpuppy/server/logs/harbor-deployer.log",
+  "compose_base_path": "/home/unarmedpuppy/server/apps",
+  "container_to_app": {
+    "llm-router": "homelab-ai",
+    "llm-manager": "homelab-ai",
+    "homelab-ai-dashboard": "homelab-ai",
+    "claude-harness": "homelab-ai",
+    "agent-core": "agent-gateway",
+    "agent-gateway": "agent-gateway",
+    "polymarket-bot": "polyjuiced"
+  }
+}
