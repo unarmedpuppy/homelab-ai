@@ -121,8 +121,9 @@ jobs:
           CHANGED_APPS="${{ steps.changed_apps.outputs.apps }}"
 
           echo "=== Pulling latest code on server ==="
+          # Run git pull as unarmedpuppy user who has SSH access to Gitea
           ssh -i $SSH_KEY -p $SSH_PORT $SSH_USER@$SSH_HOST \
-            "cd ${{ env.SERVER_PATH }} && sudo git -C ${{ env.SERVER_PATH }} pull"
+            "sudo -u unarmedpuppy git -C ${{ env.SERVER_PATH }} pull"
 
           echo "=== Restarting changed apps ==="
           FAILED_APPS=""
