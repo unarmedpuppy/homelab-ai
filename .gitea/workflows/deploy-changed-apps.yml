@@ -24,7 +24,8 @@ jobs:
           CURRENT_TAG="${GITHUB_REF_NAME}"
 
           # Get the previous tag (second most recent)
-          PREV_TAG=$(git tag --sort=-v:refname | grep -v "^${CURRENT_TAG}$" | head -n1)
+          # Use || true to prevent grep from failing when no matches (first tag scenario)
+          PREV_TAG=$(git tag --sort=-v:refname | grep -v "^${CURRENT_TAG}$" | head -n1 || true)
 
           # If no previous tag, use the first commit
           if [ -z "$PREV_TAG" ]; then
