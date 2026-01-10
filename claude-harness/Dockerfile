@@ -18,11 +18,20 @@ RUN apt-get update && apt-get install -y \
     openssh-server \
     tmux \
     gosu \
+    jq \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /var/run/sshd
+
+# Install beads CLI (pre-built binary)
+# Note: If binary not available, beads features will be skipped
+RUN curl -fsSL https://github.com/steveyegge/beads/releases/latest/download/beads-linux-x86_64.tar.gz \
+    | tar -xz -C /usr/local/bin 2>/dev/null || echo "Beads binary not available, skipping"
+
+# Install code-server for browser-based VS Code
+RUN curl -fsSL https://code-server.dev/install.sh | sh
 
 # Configure SSH server - key-only auth, allow appuser
 RUN sed -i 's/#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config && \
@@ -60,8 +69,8 @@ RUN mkdir -p /home/appuser/.claude /home/appuser/.ssh /workspace && \
 ENV HOME=/home/appuser
 ENV APPUSER=appuser
 
-# Expose ports (API and SSH)
-EXPOSE 8013 22
+# Expose ports (API, SSH, and code-server)
+EXPOSE 8013 22 8443
 
 # Health check - allow longer start period for first-time auth
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \

@@ -110,17 +110,145 @@ start_sshd() {
 setup_workspace() {
     (
         cd "$WORKSPACE_DIR"
-        
-        if [ ! -d "home-server" ] && [ -n "${GITHUB_TOKEN:-}" ]; then
-            echo "Cloning home-server repository..."
-            gosu "$APPUSER" git clone https://github.com/unarmedpuppy/home-server.git || true
-        fi
-        
-        if [ ! -d "homelab-ai" ] && [ -n "${GITHUB_TOKEN:-}" ]; then
-            echo "Cloning homelab-ai repository..."
-            gosu "$APPUSER" git clone https://github.com/unarmedpuppy/homelab-ai.git || true
+
+        # All homelab repos to clone
+        # Using Gitea (local) as primary, GitHub as fallback
+        HOMELAB_REPOS=(
+            "home-server"
+            "homelab-ai"
+            "pokedex"
+            "polyjuiced"
+            "agent-gateway"
+            "beads-viewer"
+            "maptapdat"
+            "trading-bot"
+            "trading-journal"
+            "workflows"
+        )
+
+        for repo in "${HOMELAB_REPOS[@]}"; do
+            if [ ! -d "$repo" ]; then
+                echo "Cloning $repo..."
+                # Try Gitea first (local, faster), fall back to GitHub
+                if [ -n "${GITEA_TOKEN:-}" ]; then
+                    gosu "$APPUSER" git clone "https://oauth2:${GITEA_TOKEN}@gitea.server.unarmedpuppy.com/homelab/${repo}.git" || \
+                    gosu "$APPUSER" git clone "https://github.com/unarmedpuppy/${repo}.git" || true
+                elif [ -n "${GITHUB_TOKEN:-}" ]; then
+                    gosu "$APPUSER" git clone "https://github.com/unarmedpuppy/${repo}.git" || true
+                fi
+            fi
+        done
+
+        # Create workspace-level AGENTS.md if it doesn't exist
+        if [ ! -f "AGENTS.md" ]; then
+            echo "Creating workspace AGENTS.md..."
+            cat > AGENTS.md << 'AGENTS_EOF'
+# Homelab Workspace - Agent Instructions
+
+This is the unified development workspace for all homelab projects.
+
+## Workspace Structure
+
+- `/workspace/` - Root workspace (you are here)
+- `/workspace/.beads/` - Unified task database
+- `/workspace/<repo>/` - Individual project repos
+
+## Task Management
+
+All tasks tracked in /workspace/.beads/:
+```bash
+bd ready              # Find unblocked work
+bd list               # View all tasks
+bd create "title" -p 1  # Create task
+bd close <id>         # Complete task
+```
+
+## Deployment
+
+- **Code changes**: Push tag → CI builds → Harbor Deployer auto-deploys
+- **Config changes**: Push to home-server → Gitea Actions deploys
+
+## Per-Repo Context
+
+Each repo has its own AGENTS.md with specific instructions:
+- `home-server/AGENTS.md` - Server infrastructure, Docker apps
+- `homelab-ai/AGENTS.md` - AI services (router, dashboard, etc.)
+
+## Quick Commands
+
+```bash
+# SSH to server (if needed for debugging)
+ssh -p 4242 claude-deploy@host.docker.internal 'sudo docker ps'
+
+# Check all repo status
+for d in */; do [ -d "$d/.git" ] && echo "=== $d ===" && git -C "$d" status -s; done
+
+# Pull all repos
+for d in */; do [ -d "$d/.git" ] && git -C "$d" pull; done
+
+# Push all repos with changes
+for d in */; do [ -d "$d/.git" ] && git -C "$d" diff --quiet || (cd "$d" && git push); done
+```
+
+## Access Methods
+
+| Device | Method | Command |
+|--------|--------|---------|
+| Laptop/PC | SSH | `ssh appuser@server:22` (container SSH port) |
+| Laptop/PC | VS Code | Remote-SSH extension |
+| Phone | Web terminal | ttyd at terminal.server.unarmedpuppy.com |
+| Any | code-server | (if installed) |
+
+## Boundaries
+
+### Always Do
+- Use `bd` commands for task tracking
+- Commit after logical units of work
+- Pull before starting work
+
+### Never Do
+- Work in multiple environments simultaneously (pick one)
+- Forget to push changes
+- Ignore failing tests
+AGENTS_EOF
+            chown "$APPUSER:$APPUSER" AGENTS.md
         fi
     )
+}
+
+setup_beads() {
+    (
+        cd "$WORKSPACE_DIR"
+
+        # Initialize beads if not already done and bd command exists
+        if [ ! -d ".beads" ] && command -v bd &> /dev/null; then
+            echo "Initializing beads in workspace..."
+            gosu "$APPUSER" bd init --prefix "workspace-" || true
+        fi
+
+        # Start beads daemon if available
+        if command -v bd &> /dev/null; then
+            echo "Starting beads daemon..."
+            gosu "$APPUSER" bd daemon start &> /dev/null &
+        fi
+    )
+}
+
+start_code_server() {
+    if command -v code-server &> /dev/null; then
+        echo "Starting code-server on port 8443..."
+        # Create code-server config
+        mkdir -p "/home/$APPUSER/.config/code-server"
+        cat > "/home/$APPUSER/.config/code-server/config.yaml" << EOF
+bind-addr: 0.0.0.0:8443
+auth: none
+cert: false
+EOF
+        chown -R "$APPUSER:$APPUSER" "/home/$APPUSER/.config"
+
+        # Start code-server in background
+        gosu "$APPUSER" code-server --user-data-dir "/home/$APPUSER/.code-server" "$WORKSPACE_DIR" &
+    fi
 }
 
 wait_for_auth() {
@@ -150,6 +278,8 @@ setup_gpg_signing
 setup_claude_yolo
 start_sshd
 setup_workspace
+setup_beads
+start_code_server
 
 if [ ! -f "$CLAUDE_CONFIG" ] && [ ! -f "$CLAUDE_CONFIG_IN_VOLUME" ]; then
     wait_for_auth
