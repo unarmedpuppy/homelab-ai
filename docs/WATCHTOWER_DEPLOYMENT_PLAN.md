@@ -12,7 +12,7 @@
 | Update reusable workflow | Done | SSH deploy removed, pushes :latest tag |
 | Add labels to custom apps | Done | 9 containers now watched |
 | Test deployment pipeline | Done | Tested with pokedex v1.0.3 |
-| Mattermost notifications | Pending | Shoutrrr format issues, disabled for now |
+| Mattermost notifications | Ready to Test | Configured with mattermost:// Shoutrrr format |
 
 ### Currently Auto-Deploying (9 containers)
 
