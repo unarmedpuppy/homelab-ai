@@ -10,9 +10,10 @@ services:
       - WATCHTOWER_INCLUDE_RESTARTING=true
       - WATCHTOWER_ROLLING_RESTART=true
       - WATCHTOWER_LABEL_ENABLE=true
-      - WATCHTOWER_NOTIFICATIONS=shoutrrr
-      - WATCHTOWER_NOTIFICATION_URL=slack://mattermost.server.unarmedpuppy.com:443/hooks/${MATTERMOST_WEBHOOK_ID}
-      - WATCHTOWER_NOTIFICATION_TEMPLATE={{range .}}{{.Message}}{{end}}
+      # Notifications disabled for now - need to configure Mattermost webhook properly
+      # See docs/WATCHTOWER_DEPLOYMENT_PLAN.md for details
+      # - WATCHTOWER_NOTIFICATIONS=shoutrrr
+      # - WATCHTOWER_NOTIFICATION_URL=...
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /etc/localtime:/etc/localtime:ro
