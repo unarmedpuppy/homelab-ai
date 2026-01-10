@@ -1,231 +1,62 @@
-name: Build and Push Docker Images
+name: Build and Deploy
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - 'llm-router/**'
-      - 'dashboard/**'
-      - 'llm-manager/**'
-      - 'image-server/**'
-      - 'tts-server/**'
-      - 'claude-harness/**'
-      - '.gitea/workflows/build.yml'
-    tags:
-      - 'v*'
+    branches: [main]
+    tags: ['v*']
   workflow_dispatch:
-    inputs:
-      deploy:
-        description: 'Deploy after build'
-        type: boolean
-        default: false
-
-env:
-  REGISTRY: harbor.server.unarmedpuppy.com
 
 jobs:
-  detect-changes:
-    runs-on: ubuntu-latest
-    outputs:
-      llm-router: ${{ steps.filter.outputs.llm-router }}
-      dashboard: ${{ steps.filter.outputs.dashboard }}
-      llm-manager: ${{ steps.filter.outputs.llm-manager }}
-      image-server: ${{ steps.filter.outputs.image-server }}
-      tts-server: ${{ steps.filter.outputs.tts-server }}
-      claude-harness: ${{ steps.filter.outputs.claude-harness }}
-    steps:
-      - uses: actions/checkout@v4
-      
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            llm-router:
-              - 'llm-router/**'
-            dashboard:
-              - 'dashboard/**'
-            llm-manager:
-              - 'llm-manager/**'
-            image-server:
-              - 'image-server/**'
-            tts-server:
-              - 'tts-server/**'
-            claude-harness:
-              - 'claude-harness/**'
-
   build-llm-router:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.llm-router == 'true' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Harbor
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.HARBOR_USERNAME }}
-          password: ${{ secrets.HARBOR_PASSWORD }}
-
-      - name: Build and push LLM Router
-        uses: docker/build-push-action@v6
-        with:
-          context: ./llm-router
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/library/llm-router:latest
-            ${{ env.REGISTRY }}/library/llm-router:${{ github.sha }}
+    uses: unarmedpuppy/workflows/.gitea/workflows/docker-build.yml@main
+    with:
+      image_name: library/llm-router
+      app_path: apps/homelab-ai
+      dockerfile: llm-router/Dockerfile
+      context: llm-router
+    secrets: inherit
 
   build-dashboard:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.dashboard == 'true' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Harbor
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.HARBOR_USERNAME }}
-          password: ${{ secrets.HARBOR_PASSWORD }}
-
-      - name: Build and push Dashboard
-        uses: docker/build-push-action@v6
-        with:
-          context: ./dashboard
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/library/local-ai-dashboard:latest
-            ${{ env.REGISTRY }}/library/local-ai-dashboard:${{ github.sha }}
+    uses: unarmedpuppy/workflows/.gitea/workflows/docker-build.yml@main
+    with:
+      image_name: library/local-ai-dashboard
+      app_path: apps/homelab-ai
+      dockerfile: dashboard/Dockerfile
+      context: dashboard
+    secrets: inherit
 
   build-llm-manager:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.llm-manager == 'true' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Harbor
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.HARBOR_USERNAME }}
-          password: ${{ secrets.HARBOR_PASSWORD }}
-
-      - name: Build and push LLM Manager
-        uses: docker/build-push-action@v6
-        with:
-          context: ./llm-manager
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/library/llm-manager:latest
-            ${{ env.REGISTRY }}/library/llm-manager:${{ github.sha }}
+    uses: unarmedpuppy/workflows/.gitea/workflows/docker-build.yml@main
+    with:
+      image_name: library/llm-manager
+      app_path: apps/homelab-ai
+      dockerfile: llm-manager/Dockerfile
+      context: llm-manager
+    secrets: inherit
 
   build-image-server:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.image-server == 'true' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Harbor
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.HARBOR_USERNAME }}
-          password: ${{ secrets.HARBOR_PASSWORD }}
-
-      - name: Build and push Image Server
-        uses: docker/build-push-action@v6
-        with:
-          context: ./image-server
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/library/image-server:latest
-            ${{ env.REGISTRY }}/library/image-server:${{ github.sha }}
+    uses: unarmedpuppy/workflows/.gitea/workflows/docker-build.yml@main
+    with:
+      image_name: library/image-server
+      app_path: apps/homelab-ai
+      dockerfile: image-server/Dockerfile
+      context: image-server
+    secrets: inherit
 
   build-tts-server:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.tts-server == 'true' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Harbor
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.HARBOR_USERNAME }}
-          password: ${{ secrets.HARBOR_PASSWORD }}
-
-      - name: Build and push TTS Server
-        uses: docker/build-push-action@v6
-        with:
-          context: ./tts-server
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/library/tts-server:latest
-            ${{ env.REGISTRY }}/library/tts-server:${{ github.sha }}
+    uses: unarmedpuppy/workflows/.gitea/workflows/docker-build.yml@main
+    with:
+      image_name: library/tts-server
+      app_path: apps/homelab-ai
+      dockerfile: tts-server/Dockerfile
+      context: tts-server
+    secrets: inherit
 
   build-claude-harness:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.claude-harness == 'true' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Harbor
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.HARBOR_USERNAME }}
-          password: ${{ secrets.HARBOR_PASSWORD }}
-
-      - name: Build and push Claude Harness
-        uses: docker/build-push-action@v6
-        with:
-          context: ./claude-harness
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/library/claude-harness:latest
-            ${{ env.REGISTRY }}/library/claude-harness:${{ github.sha }}
-
-  deploy:
-    needs: [build-llm-router, build-dashboard, build-llm-manager, build-image-server, build-tts-server, build-claude-harness]
-    if: always() && !failure() && !cancelled() && (startsWith(github.ref, 'refs/tags/') || inputs.deploy == true)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to server
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_PORT }}
-          script: |
-            cd /home/unarmedpuppy/server
-            git pull origin main
-            cd apps/homelab-ai
-            docker compose pull
-            docker compose up -d --remove-orphans
-            docker image prune -f
+    uses: unarmedpuppy/workflows/.gitea/workflows/docker-build.yml@main
+    with:
+      image_name: library/claude-harness
+      app_path: apps/homelab-ai
+      dockerfile: claude-harness/Dockerfile
+      context: claude-harness
+    secrets: inherit
