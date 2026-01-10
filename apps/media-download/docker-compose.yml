@@ -729,6 +729,68 @@ services:
       - "homepage.icon=si-qbittorrent"
       - "homepage.description=Usenet download client"
 
+
+  # ===== COBALT - YouTube/Music Downloader =====
+  # Self-hosted media downloader that bypasses YouTube bot detection
+  cobalt:
+    image: harbor.server.unarmedpuppy.com/ghcr/imputnet/cobalt:11
+    init: true
+    read_only: true
+    restart: unless-stopped
+    container_name: cobalt
+    ports:
+      - "9000:9000"
+    environment:
+      - API_URL=https://cobalt.server.unarmedpuppy.com/
+      - API_PORT=9000
+      # Use local yt-session-generator for YouTube auth tokens
+      - YOUTUBE_SESSION_SERVER=http://yt-session-generator:8080
+    networks:
+      - media-download-network
+      - my-network
+    depends_on:
+      - yt-session-generator
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.cobalt-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.cobalt-redirect.middlewares=cobalt-redirect"
+      - "traefik.http.routers.cobalt-redirect.rule=Host(`cobalt.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.cobalt-redirect.entrypoints=web"
+      # Local network access (no auth) - highest priority
+      - "traefik.http.routers.cobalt-local.rule=Host(`cobalt.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
+      - "traefik.http.routers.cobalt-local.priority=100"
+      - "traefik.http.routers.cobalt-local.entrypoints=websecure"
+      - "traefik.http.routers.cobalt-local.tls.certresolver=myresolver"
+      # External access (requires auth) - lowest priority
+      - "traefik.http.routers.cobalt.rule=Host(`cobalt.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.cobalt.priority=1"
+      - "traefik.http.routers.cobalt.entrypoints=websecure"
+      - "traefik.http.routers.cobalt.tls.certresolver=myresolver"
+      - "traefik.http.routers.cobalt.tls=true"
+      - "traefik.http.routers.cobalt.middlewares=cobalt-auth"
+      # Service and auth middleware
+      - "traefik.http.services.cobalt.loadbalancer.server.port=9000"
+      - "traefik.http.middlewares.cobalt-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
+      - "traefik.http.middlewares.cobalt-auth.basicauth.realm=Cobalt"
+      # Homepage labels
+      - "homepage.group=Media & Entertainment"
+      - "homepage.name=Cobalt"
+      - "homepage.href=https://cobalt.server.unarmedpuppy.com"
+      - "homepage.icon=mdi-youtube"
+      - "homepage.description=YouTube/Music downloader API"
+
+  # YouTube Session Generator - provides poToken for YouTube authentication
+  yt-session-generator:
+    image: harbor.server.unarmedpuppy.com/ghcr/imputnet/yt-session-generator:webserver
+    init: true
+    restart: unless-stopped
+    container_name: yt-session-generator
+    networks:
+      - media-download-network
+    # Internal only - accessed by cobalt container
+
 networks:
   media-download-network:
     driver: bridge

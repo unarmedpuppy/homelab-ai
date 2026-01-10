@@ -1,0 +1,27 @@
+version: "3"
+services:
+  spotdl:
+    container_name: spotdl
+    image: harbor.server.unarmedpuppy.com/docker-hub/spotdl/spotify-downloader:latest
+    entrypoint: /bin/sh
+    command: -c "pip install --upgrade yt-dlp bgutil-ytdlp-pot-provider && apk add --no-cache nodejs deno && uv run --project /app spotdl web --host 0.0.0.0 --web-use-output-dir"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Chicago
+      - UMASK=002
+      - SPOTDL_CONFIG_DIR=/app/.config/spotdl
+      - SPOTDL_LOG_LEVEL=DEBUG
+    ports:
+      - 8800:8800
+    volumes:
+      - ./data:/music
+      - ./config:/app/.config/spotdl
+      - ./yt-dlp-config:/root/.config/yt-dlp
+    restart: unless-stopped
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    external: true
