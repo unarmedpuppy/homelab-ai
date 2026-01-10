@@ -58,39 +58,60 @@ image: harbor.server.unarmedpuppy.com/lscr/linuxserver/sonarr:latest
 
 See `apps/harbor/README.md` for complete Harbor documentation.
 
-## Deployment - Watchtower Auto-Deploy
+## Deployment
 
-**Custom apps deploy automatically via Watchtower.** No SSH, no manual steps.
+Two automated deployment methods handle different types of changes:
 
-### How It Works
+| Change Type | Method | Trigger |
+|-------------|--------|---------|
+| **Code changes** (custom apps) | Watchtower | New Docker image |
+| **Config changes** (docker-compose.yml) | Gitea Actions | Git tag push |
+
+### Watchtower - Code Changes (Custom Apps)
+
+For custom apps with their own repos (trading-bot, pokedex, etc.):
 
 ```
 git tag v1.0.x → push → Gitea Actions builds → Harbor (:latest) → Watchtower auto-deploys (~1 min)
 ```
 
-1. **Tag and push** to Gitea (e.g., `git tag v1.0.5 && git push origin v1.0.5`)
-2. **Gitea Actions** builds the image and pushes to Harbor (both version tag AND `:latest`)
-3. **Watchtower** (running on server) polls Harbor every 60 seconds
-4. When it detects a new `:latest` digest, it automatically pulls and restarts the container
-
-### Watched Containers
-
-Only containers with this label are auto-deployed:
+Only containers with this label are watched:
 ```yaml
 labels:
   - "com.centurylinklabs.watchtower.enable=true"
 ```
 
-Third-party apps (Plex, Sonarr, etc.) don't have this label and are updated manually.
+### Gitea Actions - Config Changes (docker-compose.yml)
+
+For changes to docker-compose files in this repo (labels, env vars, ports, volumes):
+
+```
+git tag v1.0.x → push → Gitea Actions → SSH to server → git pull → restart changed apps
+```
+
+**Usage:**
+```bash
+# 1. Make changes to docker-compose files
+vim apps/media-download/docker-compose.yml
+
+# 2. Commit and tag
+git add . && git commit -m "fix: update overseerr traefik labels"
+git tag v1.0.5
+git push origin main --tags
+```
+
+The workflow auto-detects which `apps/` directories changed and only restarts those services.
+
+See `agents/skills/gitea-deploy-workflow/SKILL.md` for complete documentation.
 
 ### When to SSH to Server
 
 SSH is only needed for:
-- **docker-compose.yml changes** (new env vars, ports, volumes) - run `git pull && docker compose up -d`
 - **First-time app setup** - initial `docker compose up -d`
 - **Debugging** - viewing logs, checking container status
+- **Emergency fixes** - when automated deployment fails
 
-See `docs/WATCHTOWER_DEPLOYMENT_PLAN.md` for complete documentation.
+See `docs/WATCHTOWER_DEPLOYMENT_PLAN.md` for Watchtower documentation.
 
 ## Quick Commands
 
@@ -160,10 +181,10 @@ See `agents/reference/` for detailed patterns and workflows.
 
 ### Never Do
 - Commit secrets or credentials (use `.env` files, gitignored)
-- **🚨 NEVER SSH TO DEPLOY CODE CHANGES** - Watchtower handles deployments automatically
+- **🚨 NEVER SSH TO DEPLOY** - Both code and config changes deploy automatically
   - For code changes: `git tag v1.0.x && git push origin v1.0.x` → Watchtower auto-deploys
-  - For docker-compose.yml changes: SSH and `git pull && docker compose up -d` (rare)
-  - See [Deployment - Watchtower Auto-Deploy](#deployment---watchtower-auto-deploy)
+  - For docker-compose.yml changes: `git tag v1.0.x && git push origin main --tags` → Gitea Actions auto-deploys
+  - See [Deployment](#deployment)
 - **🚨 NEVER MANUALLY BUILD DOCKER IMAGES** - Use Gitea Actions CI/CD
   - Push tag to app repo → Gitea Actions builds → pushes to Harbor → Watchtower deploys
   - Never run `docker build` and `docker push` manually for custom apps
@@ -326,8 +347,9 @@ Agent-discoverable tool guides are in `agents/skills/`. Each tool has a `SKILL.m
 ### Deployment & Git
 | Tool | Purpose | Script |
 |------|---------|--------|
-| **Watchtower (auto)** | Auto-deploy custom apps on tag push | See `docs/WATCHTOWER_DEPLOYMENT_PLAN.md` |
-| [connect-server](agents/skills/connect-server/) | SSH for debugging/docker-compose changes | `scripts/connect-server.sh` |
+| **Watchtower (auto)** | Auto-deploy custom apps on image change | See `docs/WATCHTOWER_DEPLOYMENT_PLAN.md` |
+| [gitea-deploy-workflow](agents/skills/gitea-deploy-workflow/) | Auto-deploy docker-compose changes on tag push | `.gitea/workflows/deploy-changed-apps.yml` |
+| [connect-server](agents/skills/connect-server/) | SSH for debugging/first-time setup | `scripts/connect-server.sh` |
 | [connect-gaming-pc](agents/skills/connect-gaming-pc/) | Interactive SSH to Gaming PC (WSL) | `scripts/connect-gaming-pc.sh` |
 | [git-server-sync](agents/skills/git-server-sync/) | Sync git between local and server | `scripts/git-server-sync.sh` |
 

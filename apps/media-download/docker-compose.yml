@@ -498,22 +498,13 @@ services:
       - "traefik.http.routers.overseerr-redirect.middlewares=overseerr-redirect"
       - "traefik.http.routers.overseerr-redirect.rule=Host(`overseerr.server.unarmedpuppy.com`)"
       - "traefik.http.routers.overseerr-redirect.entrypoints=web"
-      # Local network access (no auth) - highest priority
-      - "traefik.http.routers.overseerr-local.rule=Host(`overseerr.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
-      - "traefik.http.routers.overseerr-local.priority=100"
-      - "traefik.http.routers.overseerr-local.entrypoints=websecure"
-      - "traefik.http.routers.overseerr-local.tls.certresolver=myresolver"
-      # External access (requires auth) - lowest priority
+      # Main router - no basic auth (Overseerr has built-in Plex OAuth)
       - "traefik.http.routers.overseerr.rule=Host(`overseerr.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.overseerr.priority=1"
       - "traefik.http.routers.overseerr.entrypoints=websecure"
       - "traefik.http.routers.overseerr.tls.certresolver=myresolver"
       - "traefik.http.routers.overseerr.tls=true"
-      - "traefik.http.routers.overseerr.middlewares=overseerr-auth"
-      # Service and auth middleware
+      # Service definition
       - "traefik.http.services.overseerr.loadbalancer.server.port=5055"
-      - "traefik.http.middlewares.overseerr-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
-      - "traefik.http.middlewares.overseerr-auth.basicauth.realm=Overseerr"
       # Homepage labels
       - "homepage.group=Media & Entertainment"
       - "homepage.name=Overseerr"

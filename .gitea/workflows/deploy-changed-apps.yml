@@ -1,0 +1,165 @@
+name: Deploy Changed Apps
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  SERVER_PATH: /home/unarmedpuppy/server
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for tag comparison
+
+      - name: Get previous tag
+        id: prev_tag
+        run: |
+          # Get current tag from ref
+          CURRENT_TAG="${GITHUB_REF_NAME}"
+
+          # Get the previous tag (second most recent)
+          PREV_TAG=$(git tag --sort=-v:refname | grep -v "^${CURRENT_TAG}$" | head -n1)
+
+          # If no previous tag, use the first commit
+          if [ -z "$PREV_TAG" ]; then
+            PREV_TAG=$(git rev-list --max-parents=0 HEAD)
+            echo "No previous tag found, using initial commit: $PREV_TAG"
+          else
+            echo "Previous tag: $PREV_TAG"
+          fi
+
+          echo "prev_tag=$PREV_TAG" >> $GITHUB_OUTPUT
+          echo "current_tag=$CURRENT_TAG" >> $GITHUB_OUTPUT
+
+      - name: Detect changed apps
+        id: changed_apps
+        run: |
+          PREV_TAG="${{ steps.prev_tag.outputs.prev_tag }}"
+          CURRENT_TAG="${{ steps.prev_tag.outputs.current_tag }}"
+
+          echo "Comparing $PREV_TAG to $CURRENT_TAG"
+
+          # Get changed files in apps/ directory
+          CHANGED_FILES=$(git diff --name-only "$PREV_TAG" "$CURRENT_TAG" -- apps/)
+
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No changes in apps/ directory"
+            echo "apps=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          # Extract unique app directories (apps/APP_NAME)
+          # Filter out nested directories like apps/n8n/ai-agent-webhook
+          CHANGED_APPS=$(echo "$CHANGED_FILES" | \
+            grep -E '^apps/[^/]+/' | \
+            sed 's|^apps/\([^/]*\)/.*|\1|' | \
+            sort -u | \
+            tr '\n' ' ')
+
+          echo "Changed apps: $CHANGED_APPS"
+          echo "apps=$CHANGED_APPS" >> $GITHUB_OUTPUT
+
+      - name: Setup SSH
+        if: steps.changed_apps.outputs.apps != ''
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          # Add server to known hosts
+          ssh-keyscan -p ${{ secrets.DEPLOY_PORT }} ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Deploy to server
+        if: steps.changed_apps.outputs.apps != ''
+        env:
+          SSH_KEY: ~/.ssh/deploy_key
+          SSH_USER: ${{ secrets.DEPLOY_USER }}
+          SSH_HOST: ${{ secrets.DEPLOY_HOST }}
+          SSH_PORT: ${{ secrets.DEPLOY_PORT }}
+        run: |
+          CHANGED_APPS="${{ steps.changed_apps.outputs.apps }}"
+
+          echo "=== Pulling latest code on server ==="
+          ssh -i $SSH_KEY -p $SSH_PORT $SSH_USER@$SSH_HOST \
+            "cd ${{ env.SERVER_PATH }} && sudo git -C ${{ env.SERVER_PATH }} pull"
+
+          echo "=== Restarting changed apps ==="
+          FAILED_APPS=""
+          SUCCESS_APPS=""
+
+          for app in $CHANGED_APPS; do
+            APP_PATH="${{ env.SERVER_PATH }}/apps/$app"
+            COMPOSE_FILE="$APP_PATH/docker-compose.yml"
+
+            echo "--- Processing: $app ---"
+
+            # Check if docker-compose.yml exists
+            if ! ssh -i $SSH_KEY -p $SSH_PORT $SSH_USER@$SSH_HOST "test -f $COMPOSE_FILE"; then
+              echo "Warning: $COMPOSE_FILE not found, skipping $app"
+              continue
+            fi
+
+            # Run docker compose up -d
+            echo "Running docker compose up -d for $app"
+            if ssh -i $SSH_KEY -p $SSH_PORT $SSH_USER@$SSH_HOST \
+              "cd $APP_PATH && sudo docker compose up -d"; then
+              echo "Successfully restarted: $app"
+              SUCCESS_APPS="$SUCCESS_APPS $app"
+            else
+              echo "Error: Failed to restart $app"
+              FAILED_APPS="$FAILED_APPS $app"
+            fi
+          done
+
+          echo "=== Deployment Summary ==="
+          echo "Successful: $SUCCESS_APPS"
+          echo "Failed: $FAILED_APPS"
+
+          # Fail the job if any apps failed
+          if [ -n "$FAILED_APPS" ]; then
+            echo "Some apps failed to deploy"
+            exit 1
+          fi
+
+          echo "=== Deployment complete ==="
+
+      - name: Send Mattermost notification (success)
+        if: success() && steps.changed_apps.outputs.apps != ''
+        run: |
+          CHANGED_APPS="${{ steps.changed_apps.outputs.apps }}"
+          TAG="${{ steps.prev_tag.outputs.current_tag }}"
+
+          # Format apps list for notification
+          APPS_LIST=$(echo "$CHANGED_APPS" | tr ' ' '\n' | grep -v '^$' | sed 's/^/- /' | tr '\n' '\\n')
+
+          curl -s -X POST "${{ secrets.MATTERMOST_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"text\": \":white_check_mark: **home-server deployed** (\`$TAG\`)\n\nApps updated:\n$APPS_LIST\"
+            }"
+
+      - name: Send Mattermost notification (failure)
+        if: failure()
+        run: |
+          TAG="${{ steps.prev_tag.outputs.current_tag }}"
+
+          curl -s -X POST "${{ secrets.MATTERMOST_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"text\": \":x: **home-server deployment failed** (\`$TAG\`)\n\nCheck Gitea Actions for details.\"
+            }"
+
+      - name: No changes detected
+        if: steps.changed_apps.outputs.apps == ''
+        run: |
+          echo "No apps changed between tags. Nothing to deploy."
+          echo "This is expected for documentation-only or script-only changes."
