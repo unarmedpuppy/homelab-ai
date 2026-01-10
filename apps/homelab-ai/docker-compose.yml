@@ -121,6 +121,7 @@ services:
     ports:
       - "8013:8013"
       - "2222:22"
+      - "8443:8443"
     volumes:
       - claude-credentials:/home/appuser/.claude
       - claude-workspace:/workspace
@@ -129,6 +130,7 @@ services:
       - ./.gpg-key.asc:/etc/gpg-key.asc:ro
     environment:
       - TZ=America/Chicago
+      - GITEA_TOKEN=${GITEA_TOKEN:-}
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
       - GIT_AUTHOR_NAME=Joshua Jenquist
       - GIT_AUTHOR_EMAIL=github@jenquist.com
