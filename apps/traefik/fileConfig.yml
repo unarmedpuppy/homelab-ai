@@ -69,6 +69,12 @@ http:
   serversTransports:
     insecureTransport:
       insecureSkipVerify: true
+    # Transport for Harbor registry - large image uploads need longer timeouts
+    harborTransport:
+      forwardingTimeouts:
+        dialTimeout: "30s"
+        responseHeaderTimeout: "0s"  # 0 = no timeout for response headers
+        idleConnTimeout: "900s"      # 15 minutes for idle connections
 
   ## MIDDLEWARES ##
   middlewares:

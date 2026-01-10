@@ -260,6 +260,8 @@ services:
       - "traefik.http.routers.harbor.tls.certresolver=myresolver"
       - "traefik.http.routers.harbor.tls=true"
       - "traefik.http.services.harbor.loadbalancer.server.port=8080"
+      # Use custom transport with longer timeouts for large image uploads
+      - "traefik.http.services.harbor.loadbalancer.serversTransport=harborTransport@file"
       # Homepage labels
       - "homepage.group=Infrastructure"
       - "homepage.name=Harbor Registry"
