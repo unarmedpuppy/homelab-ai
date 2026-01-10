@@ -11,7 +11,8 @@ services:
       - WATCHTOWER_ROLLING_RESTART=true
       - WATCHTOWER_LABEL_ENABLE=true
       - WATCHTOWER_NOTIFICATIONS=shoutrrr
-      - WATCHTOWER_NOTIFICATION_URL=generic+https://mattermost.server.unarmedpuppy.com/hooks/${MATTERMOST_WEBHOOK_ID}?template=json
+      - WATCHTOWER_NOTIFICATION_URL=slack://mattermost.server.unarmedpuppy.com:443/hooks/${MATTERMOST_WEBHOOK_ID}
+      - WATCHTOWER_NOTIFICATION_TEMPLATE={{range .}}{{.Message}}{{end}}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /etc/localtime:/etc/localtime:ro
