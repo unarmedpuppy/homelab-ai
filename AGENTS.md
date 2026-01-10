@@ -5,9 +5,10 @@
 ## ⚠️ Critical Requirements
 
 **Before doing anything:**
-1. **🔍 CHECK TOOLS FIRST**: Always check `agents/skills/` before solving problems or looking up commands
-2. **📝 CREATE TOOLS**: If you solve a problem, create a tool in `agents/skills/` for future use
-3. **📋 USE BEADS FOR TASKS**: All task management **MUST** use Beads (`bd` commands) - never create manual task lists
+1. **🖥️ CHECK YOUR CONTEXT**: Determine if you're running locally or on the server. If your working directory is `/home/unarmedpuppy/server`, you ARE on the server - run commands directly, do NOT use `scripts/connect-server.sh`
+2. **🔍 CHECK TOOLS FIRST**: Always check `agents/skills/` before solving problems or looking up commands
+3. **📝 CREATE TOOLS**: If you solve a problem, create a tool in `agents/skills/` for future use
+4. **📋 USE BEADS FOR TASKS**: All task management **MUST** use Beads (`bd` commands) - never create manual task lists
 
 **Quick Reference:**
 ```bash

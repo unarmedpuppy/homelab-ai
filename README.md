@@ -811,8 +811,10 @@ directory_name_encryption = true
 
 **Cron job** (user crontab):
 ```
-0 3 * * * /home/unarmedpuppy/server/scripts/backup-to-b2.sh >> /home/unarmedpuppy/server/logs/backups/cron.log 2>&1
+30 5 * * * /home/unarmedpuppy/server/scripts/backup-to-b2.sh >> /home/unarmedpuppy/server/logs/backups/cron.log 2>&1
 ```
+
+> **TEMPORARY (Jan 2026)**: Schedule changed from 1:00 AM to 5:30 AM to allow initial B2 sync to complete. The server restarts at 5:00 AM daily, which was terminating backups after only 4 hours. Running at 5:30 AM gives ~23.5 hours per day. **Revert to `0 1 * * *` once initial sync completes.**
 
 #### Usage
 
