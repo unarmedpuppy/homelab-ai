@@ -58,6 +58,40 @@ image: harbor.server.unarmedpuppy.com/lscr/linuxserver/sonarr:latest
 
 See `apps/harbor/README.md` for complete Harbor documentation.
 
+## Deployment - Watchtower Auto-Deploy
+
+**Custom apps deploy automatically via Watchtower.** No SSH, no manual steps.
+
+### How It Works
+
+```
+git tag v1.0.x → push → Gitea Actions builds → Harbor (:latest) → Watchtower auto-deploys (~1 min)
+```
+
+1. **Tag and push** to Gitea (e.g., `git tag v1.0.5 && git push origin v1.0.5`)
+2. **Gitea Actions** builds the image and pushes to Harbor (both version tag AND `:latest`)
+3. **Watchtower** (running on server) polls Harbor every 60 seconds
+4. When it detects a new `:latest` digest, it automatically pulls and restarts the container
+
+### Watched Containers
+
+Only containers with this label are auto-deployed:
+```yaml
+labels:
+  - "com.centurylinklabs.watchtower.enable=true"
+```
+
+Third-party apps (Plex, Sonarr, etc.) don't have this label and are updated manually.
+
+### When to SSH to Server
+
+SSH is only needed for:
+- **docker-compose.yml changes** (new env vars, ports, volumes) - run `git pull && docker compose up -d`
+- **First-time app setup** - initial `docker compose up -d`
+- **Debugging** - viewing logs, checking container status
+
+See `docs/WATCHTOWER_DEPLOYMENT_PLAN.md` for complete documentation.
+
 ## Quick Commands
 
 ```bash
@@ -126,16 +160,13 @@ See `agents/reference/` for detailed patterns and workflows.
 
 ### Never Do
 - Commit secrets or credentials (use `.env` files, gitignored)
-- **🚨 NEVER MAKE CHANGES DIRECTLY ON THE SERVER** - This is absolutely forbidden without explicit user approval
-  - **ONLY** make changes locally in the git repository
-  - Commit and push to git
-  - SSH to server and `git pull` to deploy changes
-  - This is the ONLY way to get changes to the server
-  - No exceptions - even "quick fixes" must go through git
-- **🚨 NEVER MANUALLY BUILD DOCKER IMAGES** - Use CI/CD pipelines
-  - **homelab-ai services**: Push to `homelab-ai` repo → GitHub Actions builds → pushes to Harbor → then deploy on server
-  - See `agents/skills/deploy-homelab-ai-service/` for the correct workflow
-  - Never run `docker build` and `docker push` manually for these services
+- **🚨 NEVER SSH TO DEPLOY CODE CHANGES** - Watchtower handles deployments automatically
+  - For code changes: `git tag v1.0.x && git push origin v1.0.x` → Watchtower auto-deploys
+  - For docker-compose.yml changes: SSH and `git pull && docker compose up -d` (rare)
+  - See [Deployment - Watchtower Auto-Deploy](#deployment---watchtower-auto-deploy)
+- **🚨 NEVER MANUALLY BUILD DOCKER IMAGES** - Use Gitea Actions CI/CD
+  - Push tag to app repo → Gitea Actions builds → pushes to Harbor → Watchtower deploys
+  - Never run `docker build` and `docker push` manually for custom apps
 - **🚨 BEADS IS LOCAL-ONLY** - Beads tooling is NOT installed on the server
   - `.beads/issues.jsonl` is git-tracked and synced via `git pull` to the server
   - **No `bd` CLI, no beads daemon, no beads-ui on the server** - intentionally removed
@@ -295,10 +326,8 @@ Agent-discoverable tool guides are in `agents/skills/`. Each tool has a `SKILL.m
 ### Deployment & Git
 | Tool | Purpose | Script |
 |------|---------|--------|
-| [standard-deployment](agents/skills/standard-deployment/) | Deploy code changes to server | `scripts/deploy-to-server.sh` |
-| [deploy-homelab-ai-service](agents/skills/deploy-homelab-ai-service/) | Deploy homelab-ai services via GitHub Actions CI/CD | - |
-| [deploy-polymarket-bot](agents/skills/deploy-polymarket-bot/) | Safe polymarket-bot deployment (checks for active trades) | `agents/skills/deploy-polymarket-bot/deploy.sh` |
-| [connect-server](agents/skills/connect-server/) | Execute commands on server | `scripts/connect-server.sh` |
+| **Watchtower (auto)** | Auto-deploy custom apps on tag push | See `docs/WATCHTOWER_DEPLOYMENT_PLAN.md` |
+| [connect-server](agents/skills/connect-server/) | SSH for debugging/docker-compose changes | `scripts/connect-server.sh` |
 | [connect-gaming-pc](agents/skills/connect-gaming-pc/) | Interactive SSH to Gaming PC (WSL) | `scripts/connect-gaming-pc.sh` |
 | [git-server-sync](agents/skills/git-server-sync/) | Sync git between local and server | `scripts/git-server-sync.sh` |
 
@@ -383,8 +412,8 @@ For game server setup (Valheim, 7DTD, Minecraft, etc.), monitoring, and DNS, ref
 | `agents/reference/beads.md` | **Beads CLI reference (bd)** - comprehensive command guide |
 | `agents/reference/beads-viewer.md` | **Beads Viewer reference (bv)** - AI graph sidecar |
 | `agents/skills/beads-task-management/` | Beads workflow guide |
+| `docs/WATCHTOWER_DEPLOYMENT_PLAN.md` | **Watchtower auto-deployment** - how custom apps deploy |
 | `agents/reference/docker.md` | Docker patterns and best practices |
-| `agents/reference/deployment.md` | Deployment workflows |
 | `agents/reference/homepage-labels.md` | Homepage dashboard labels (groups, icons, hrefs) |
 | `agents/reference/plan_act.md` | Planning and workflow documentation |
 | `agents/reference/storage/` | Storage and ZFS reference guides |

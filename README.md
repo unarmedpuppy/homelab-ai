@@ -1805,7 +1805,39 @@ scp -P 4242 unarmedpuppy@192.168.86.47:<remote_path> <local_file>
 
 ## Development Workflow
 
-### Workspace Automations
+### Custom App Deployment (Watchtower)
+
+**Custom apps (in `homelab/` org repos) deploy automatically via Watchtower.** No SSH required.
+
+```
+git tag v1.0.x → push → Gitea Actions builds → Harbor (:latest) → Watchtower auto-deploys (~1 min)
+```
+
+**How it works:**
+1. Push a tag to app repo (e.g., `git tag v1.0.5 && git push origin v1.0.5`)
+2. Gitea Actions builds the Docker image and pushes to Harbor (version tag + `:latest`)
+3. Watchtower (running on server) polls Harbor every 60 seconds
+4. When it detects a new `:latest` digest, it automatically pulls and restarts the container
+
+**Watched containers** have this label in their docker-compose.yml:
+```yaml
+labels:
+  - "com.centurylinklabs.watchtower.enable=true"
+```
+
+See `docs/WATCHTOWER_DEPLOYMENT_PLAN.md` for complete documentation.
+
+### Docker-Compose Changes
+
+For config changes (new env vars, ports, volumes), SSH is still required:
+```bash
+ssh unarmedpuppy@192.168.86.47 -p 4242
+cd ~/server/apps/<app>
+git pull
+docker compose up -d
+```
+
+### Workspace Automations (home-server repo)
 
 The [Run on Save](https://marketplace.visualstudio.com/items?itemName=emeraldwalk.RunOnSave) extension is enabled in this repository. Settings are in `.vscode/settings.json`.
 
@@ -1815,16 +1847,12 @@ The [Run on Save](https://marketplace.visualstudio.com/items?itemName=emeraldwal
 3. Push to remote repository
 4. SSH into the home server and run the same git operations
 
-This effectively syncs any changes made locally to the server automatically.
+This syncs docker-compose.yml changes to the server automatically.
 
 ### Repository Structure
 
-- **Root**: `/Users/joshuajenquist/repos/personal/home-server` (local)
+- **Root**: `/Users/joshuajenquist/repos/personal/homelab/home-server` (local)
 - **Server**: `~/server` (usually `/home/unarmedpuppy/server`)
-
-### Git Sync Script
-
-The `scripts/git-server-sync.sh` script handles automatic synchronization between local repository and server.
 
 ---
 

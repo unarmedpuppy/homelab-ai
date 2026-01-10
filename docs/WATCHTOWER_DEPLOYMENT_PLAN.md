@@ -1,39 +1,71 @@
 # Watchtower Auto-Deployment Plan
 
+## Status: IMPLEMENTED
+
+**Last Updated**: 2026-01-10
+
+## Implementation Progress
+
+| Step | Status | Notes |
+|------|--------|-------|
+| Add Watchtower to home-server | Done | Running, polling every 60s |
+| Update reusable workflow | Done | SSH deploy removed, pushes :latest tag |
+| Add labels to custom apps | Done | 9 containers now watched |
+| Test deployment pipeline | Done | Tested with pokedex v1.0.3 |
+| Mattermost notifications | Pending | Shoutrrr format issues, disabled for now |
+
+### Currently Auto-Deploying (9 containers)
+
+| Container | Image |
+|-----------|-------|
+| agent-core | library/agent-core:latest |
+| agent-gateway | library/agent-gateway:latest |
+| llm-router | library/llm-router:latest |
+| homelab-ai-dashboard | library/local-ai-dashboard:latest |
+| llm-manager | library/llm-manager:latest |
+| claude-harness | library/claude-harness:latest |
+| pokedex | library/pokedex:latest |
+| polymarket-bot | library/polymarket-bot:latest |
+| trading-bot | library/trading-bot:latest |
+
+### Pending First Build
+
+These apps have Watchtower labels but need their first CI build to Harbor:
+
+| App | Reason |
+|-----|--------|
+| beads-viewer | Image not in Harbor yet |
+| maptapdat | Image not in Harbor yet |
+| smart-home-3d | Image not in Harbor yet |
+| trading-journal | Images (frontend/backend) not in Harbor yet |
+
+---
+
 ## Overview
 
 Replace SSH-based deployments with automated image updates using Watchtower. When a new image is pushed to Harbor, Watchtower automatically pulls and restarts the affected containers.
 
-## Current State
+## How It Works Now
 
 ```
-Developer pushes tag → Gitea Actions builds image → Pushes to Harbor → SSH to server → docker compose pull/up
+Developer pushes tag → Gitea Actions builds → Pushes to Harbor (v1.0.x + :latest)
+                                                        ↓
+                                        Watchtower polls every 60 seconds
+                                                        ↓
+                                        Detects new :latest digest → pulls → restarts
+```
+
+**No SSH required. No manual deployment steps.**
+
+## Previous State (Deprecated)
+
+```
+Developer pushes tag → Gitea Actions builds → Pushes to Harbor → SSH to server → docker compose pull/up
                                                                         ↑
                                                             FAILING (auth issues)
 ```
 
-**Problems:**
-- SSH authentication is fragile
-- Requires secrets management for SSH keys
-- Tight coupling between CI and server
-
-## Target State
-
-```
-Developer pushes tag → Gitea Actions builds image → Pushes to Harbor (v1.0.2 + latest)
-                                                            ↓
-                                            Watchtower polls Harbor every 5 min
-                                                            ↓
-                                            Detects new digest for :latest tag
-                                                            ↓
-                                            Pulls image, restarts container
-```
-
-**Benefits:**
-- No SSH needed from CI
-- Decoupled build and deploy
-- Self-healing (Watchtower retries on failure)
-- Simple to understand and debug
+This approach was fragile due to SSH key management and tight CI/server coupling.
 
 ## Architecture
 
