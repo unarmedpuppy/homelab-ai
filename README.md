@@ -1500,8 +1500,58 @@ Services running as systemd units (not in Docker containers):
 | `opencode-tmux.service` | - | Persistent tmux session | `systemctl status opencode-tmux` |
 | `opencode-ttyd.service` | 7681 | Web terminal | `systemctl status opencode-ttyd` |
 | `claude-harness.service` | 8013 | Claude Max API | `./manage.sh status` |
+| `harbor-deployer.service` | - | Auto-deploy containers from Harbor | `systemctl status harbor-deployer` |
 
-**Why not Docker?** These services need access to host resources (tmux sessions, OAuth tokens in `~/.claude.json`) that are simpler to manage via systemd than Docker volume mounts.
+**Why not Docker?** These services need access to host resources (tmux sessions, OAuth tokens in `~/.claude.json`, Docker socket) that are simpler to manage via systemd than Docker volume mounts.
+
+#### Harbor Deployer (Auto-Deployment)
+
+Custom Python service that replaces Watchtower for auto-deploying container updates from Harbor registry.
+
+**How it works:**
+1. Polls Harbor registry every 60 seconds for image digest changes
+2. Compares remote digest with running container's digest
+3. If different: pulls new image, stops container, restarts via docker compose
+4. Sends Mattermost notification on successful deploy
+
+**Watched containers** have this label in their docker-compose.yml:
+```yaml
+labels:
+  - "com.centurylinklabs.watchtower.enable=true"
+```
+
+**Management Commands:**
+```bash
+# Check service status
+sudo systemctl status harbor-deployer
+
+# View logs
+journalctl -u harbor-deployer -f
+tail -f ~/server/logs/harbor-deployer.log
+
+# Restart service
+sudo systemctl restart harbor-deployer
+
+# Test manually (dry-run)
+python3 ~/server/scripts/harbor-deployer.py --dry-run --once --debug
+
+# Check specific container
+python3 ~/server/scripts/harbor-deployer.py --dry-run --once --container pokedex
+```
+
+**Configuration:** `scripts/harbor-deployer.json`
+- `poll_interval`: Seconds between checks (default: 60)
+- `harbor_url`: Harbor registry URL
+- `mattermost_webhook`: Notification webhook URL
+- `container_to_app`: Maps container names to compose directories
+
+**Service Files:**
+- Script: `scripts/harbor-deployer.py`
+- Config: `scripts/harbor-deployer.json`
+- Systemd: `/etc/systemd/system/harbor-deployer.service`
+- Install: `scripts/install-harbor-deployer.sh`
+
+**Dependencies:** `python3-docker` (via apt)
 
 #### Gitea (Self-Hosted Git)
 
@@ -1805,19 +1855,20 @@ scp -P 4242 unarmedpuppy@192.168.86.47:<remote_path> <local_file>
 
 ## Development Workflow
 
-### Custom App Deployment (Watchtower)
+### Custom App Deployment (Harbor Deployer)
 
-**Custom apps (in `homelab/` org repos) deploy automatically via Watchtower.** No SSH required.
+**Custom apps (in `homelab/` org repos) deploy automatically via Harbor Deployer.** No SSH required.
 
 ```
-git tag v1.0.x → push → Gitea Actions builds → Harbor (:latest) → Watchtower auto-deploys (~1 min)
+git tag v1.0.x → push → Gitea Actions builds → Harbor (:latest) → Harbor Deployer auto-deploys (~1 min)
 ```
 
 **How it works:**
 1. Push a tag to app repo (e.g., `git tag v1.0.5 && git push origin v1.0.5`)
 2. Gitea Actions builds the Docker image and pushes to Harbor (version tag + `:latest`)
-3. Watchtower (running on server) polls Harbor every 60 seconds
-4. When it detects a new `:latest` digest, it automatically pulls and restarts the container
+3. Harbor Deployer (systemd service) polls Harbor every 60 seconds
+4. When it detects a new `:latest` digest, it automatically pulls and restarts the container via docker compose
+5. Sends Mattermost notification on successful deploy
 
 **Watched containers** have this label in their docker-compose.yml:
 ```yaml
@@ -1825,7 +1876,7 @@ labels:
   - "com.centurylinklabs.watchtower.enable=true"
 ```
 
-See `docs/WATCHTOWER_DEPLOYMENT_PLAN.md` for complete documentation.
+See [Harbor Deployer](#harbor-deployer-auto-deployment) for management commands and configuration.
 
 ### Docker-Compose Changes
 

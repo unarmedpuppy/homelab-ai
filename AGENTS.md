@@ -64,21 +64,28 @@ Two automated deployment methods handle different types of changes:
 
 | Change Type | Method | Trigger |
 |-------------|--------|---------|
-| **Code changes** (custom apps) | Watchtower | New Docker image |
+| **Code changes** (custom apps) | Harbor Deployer | New Docker image |
 | **Config changes** (docker-compose.yml) | Gitea Actions | Git tag push |
 
-### Watchtower - Code Changes (Custom Apps)
+### Harbor Deployer - Code Changes (Custom Apps)
 
 For custom apps with their own repos (trading-bot, pokedex, etc.):
 
 ```
-git tag v1.0.x → push → Gitea Actions builds → Harbor (:latest) → Watchtower auto-deploys (~1 min)
+git tag v1.0.x → push → Gitea Actions builds → Harbor (:latest) → Harbor Deployer auto-deploys (~1 min)
 ```
 
 Only containers with this label are watched:
 ```yaml
 labels:
   - "com.centurylinklabs.watchtower.enable=true"
+```
+
+**Management Commands:**
+```bash
+sudo systemctl status harbor-deployer      # Check status
+journalctl -u harbor-deployer -f           # View logs
+python3 ~/server/scripts/harbor-deployer.py --dry-run --once --debug  # Test
 ```
 
 ### Gitea Actions - Config Changes (docker-compose.yml)
@@ -111,7 +118,7 @@ SSH is only needed for:
 - **Debugging** - viewing logs, checking container status
 - **Emergency fixes** - when automated deployment fails
 
-See `docs/WATCHTOWER_DEPLOYMENT_PLAN.md` for Watchtower documentation.
+See `README.md` section "Harbor Deployer (Auto-Deployment)" for configuration and management.
 
 ## Quick Commands
 
@@ -182,11 +189,11 @@ See `agents/reference/` for detailed patterns and workflows.
 ### Never Do
 - Commit secrets or credentials (use `.env` files, gitignored)
 - **🚨 NEVER SSH TO DEPLOY** - Both code and config changes deploy automatically
-  - For code changes: `git tag v1.0.x && git push origin v1.0.x` → Watchtower auto-deploys
+  - For code changes: `git tag v1.0.x && git push origin v1.0.x` → Harbor Deployer auto-deploys
   - For docker-compose.yml changes: `git tag v1.0.x && git push origin main --tags` → Gitea Actions auto-deploys
   - See [Deployment](#deployment)
 - **🚨 NEVER MANUALLY BUILD DOCKER IMAGES** - Use Gitea Actions CI/CD
-  - Push tag to app repo → Gitea Actions builds → pushes to Harbor → Watchtower deploys
+  - Push tag to app repo → Gitea Actions builds → pushes to Harbor → Harbor Deployer deploys
   - Never run `docker build` and `docker push` manually for custom apps
 - **🚨 BEADS IS LOCAL-ONLY** - Beads tooling is NOT installed on the server
   - `.beads/issues.jsonl` is git-tracked and synced via `git pull` to the server
@@ -347,7 +354,7 @@ Agent-discoverable tool guides are in `agents/skills/`. Each tool has a `SKILL.m
 ### Deployment & Git
 | Tool | Purpose | Script |
 |------|---------|--------|
-| **Watchtower (auto)** | Auto-deploy custom apps on image change | See `docs/WATCHTOWER_DEPLOYMENT_PLAN.md` |
+| **Harbor Deployer** | Auto-deploy custom apps on image change | `scripts/harbor-deployer.py` |
 | [gitea-deploy-workflow](agents/skills/gitea-deploy-workflow/) | Auto-deploy docker-compose changes on tag push | `.gitea/workflows/deploy-changed-apps.yml` |
 | [connect-server](agents/skills/connect-server/) | SSH for debugging/first-time setup | `scripts/connect-server.sh` |
 | [connect-gaming-pc](agents/skills/connect-gaming-pc/) | Interactive SSH to Gaming PC (WSL) | `scripts/connect-gaming-pc.sh` |
@@ -434,7 +441,7 @@ For game server setup (Valheim, 7DTD, Minecraft, etc.), monitoring, and DNS, ref
 | `agents/reference/beads.md` | **Beads CLI reference (bd)** - comprehensive command guide |
 | `agents/reference/beads-viewer.md` | **Beads Viewer reference (bv)** - AI graph sidecar |
 | `agents/skills/beads-task-management/` | Beads workflow guide |
-| `docs/WATCHTOWER_DEPLOYMENT_PLAN.md` | **Watchtower auto-deployment** - how custom apps deploy |
+| `scripts/harbor-deployer.py` | **Harbor Deployer** - auto-deployment service for custom apps |
 | `agents/reference/docker.md` | Docker patterns and best practices |
 | `agents/reference/homepage-labels.md` | Homepage dashboard labels (groups, icons, hrefs) |
 | `agents/reference/plan_act.md` | Planning and workflow documentation |
