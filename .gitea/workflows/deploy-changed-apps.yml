@@ -73,11 +73,30 @@ jobs:
         if: steps.changed_apps.outputs.apps != ''
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 700 ~/.ssh
+
+          # Write SSH key - handle potential newline issues
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
+
+          # Debug: Show key format (first/last lines only, no sensitive data)
+          echo "SSH key file created, checking format..."
+          head -1 ~/.ssh/deploy_key
+          tail -1 ~/.ssh/deploy_key
+          wc -l ~/.ssh/deploy_key
 
           # Add server to known hosts
           ssh-keyscan -p ${{ secrets.DEPLOY_PORT }} ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+          # Test SSH connection
+          echo "Testing SSH connection..."
+          ssh -i ~/.ssh/deploy_key -p ${{ secrets.DEPLOY_PORT }} -o BatchMode=yes -o ConnectTimeout=10 ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "echo 'SSH connection successful'" || {
+            echo "SSH connection failed. Check that:"
+            echo "1. DEPLOY_SSH_KEY secret contains the full private key with proper newlines"
+            echo "2. The public key is in /home/github-deploy/.ssh/authorized_keys on the server"
+            echo "3. The github-deploy user exists and has correct permissions"
+            exit 1
+          }
 
       - name: Deploy to server
         if: steps.changed_apps.outputs.apps != ''
