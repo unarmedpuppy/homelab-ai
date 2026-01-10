@@ -81,16 +81,28 @@ jobs:
 
           # Debug: Show key format (first/last lines only, no sensitive data)
           echo "SSH key file created, checking format..."
-          head -1 ~/.ssh/deploy_key
-          tail -1 ~/.ssh/deploy_key
-          wc -l ~/.ssh/deploy_key
+          echo "First line: $(head -1 ~/.ssh/deploy_key)"
+          echo "Last line: $(tail -1 ~/.ssh/deploy_key)"
+          echo "Line count: $(wc -l < ~/.ssh/deploy_key)"
+          echo "Byte count: $(wc -c < ~/.ssh/deploy_key)"
 
           # Add server to known hosts
           ssh-keyscan -p ${{ secrets.DEPLOY_PORT }} ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
-          # Test SSH connection
+          # Test SSH connection with verbose output
           echo "Testing SSH connection..."
-          ssh -i ~/.ssh/deploy_key -p ${{ secrets.DEPLOY_PORT }} -o BatchMode=yes -o ConnectTimeout=10 ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "echo 'SSH connection successful'" || {
+          # Get secret values
+          DEPLOY_HOST_VAL="${{ secrets.DEPLOY_HOST }}"
+          DEPLOY_PORT_VAL="${{ secrets.DEPLOY_PORT }}"
+          DEPLOY_USER_VAL="${{ secrets.DEPLOY_USER }}"
+          # Debug: show secret lengths to detect whitespace issues
+          echo "Before trim - Host length: ${#DEPLOY_HOST_VAL}, Port length: ${#DEPLOY_PORT_VAL}, User length: ${#DEPLOY_USER_VAL}"
+          # Trim whitespace
+          DEPLOY_HOST_VAL=$(echo "$DEPLOY_HOST_VAL" | tr -d '[:space:]')
+          DEPLOY_PORT_VAL=$(echo "$DEPLOY_PORT_VAL" | tr -d '[:space:]')
+          DEPLOY_USER_VAL=$(echo "$DEPLOY_USER_VAL" | tr -d '[:space:]')
+          echo "After trim - Host length: ${#DEPLOY_HOST_VAL}, Port length: ${#DEPLOY_PORT_VAL}, User length: ${#DEPLOY_USER_VAL}"
+          ssh -vvv -i ~/.ssh/deploy_key -p "$DEPLOY_PORT_VAL" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no "${DEPLOY_USER_VAL}@${DEPLOY_HOST_VAL}" "echo 'SSH connection successful'" 2>&1 || {
             echo "SSH connection failed. Check that:"
             echo "1. DEPLOY_SSH_KEY secret contains the full private key with proper newlines"
             echo "2. The public key is in /home/github-deploy/.ssh/authorized_keys on the server"
@@ -109,8 +121,9 @@ jobs:
           CHANGED_APPS="${{ steps.changed_apps.outputs.apps }}"
 
           echo "=== Pulling latest code on server ==="
+          # Run git pull as unarmedpuppy user who has SSH access to Gitea
           ssh -i $SSH_KEY -p $SSH_PORT $SSH_USER@$SSH_HOST \
-            "cd ${{ env.SERVER_PATH }} && sudo git -C ${{ env.SERVER_PATH }} pull"
+            "sudo -u unarmedpuppy git -C ${{ env.SERVER_PATH }} pull"
 
           echo "=== Restarting changed apps ==="
           FAILED_APPS=""
