@@ -91,8 +91,18 @@ jobs:
 
           # Test SSH connection with verbose output
           echo "Testing SSH connection..."
-          echo "Host: ${{ secrets.DEPLOY_HOST }}, Port: ${{ secrets.DEPLOY_PORT }}, User: ${{ secrets.DEPLOY_USER }}"
-          ssh -vvv -i ~/.ssh/deploy_key -p ${{ secrets.DEPLOY_PORT }} -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "echo 'SSH connection successful'" 2>&1 || {
+          # Get secret values
+          DEPLOY_HOST_VAL="${{ secrets.DEPLOY_HOST }}"
+          DEPLOY_PORT_VAL="${{ secrets.DEPLOY_PORT }}"
+          DEPLOY_USER_VAL="${{ secrets.DEPLOY_USER }}"
+          # Debug: show secret lengths to detect whitespace issues
+          echo "Before trim - Host length: ${#DEPLOY_HOST_VAL}, Port length: ${#DEPLOY_PORT_VAL}, User length: ${#DEPLOY_USER_VAL}"
+          # Trim whitespace
+          DEPLOY_HOST_VAL=$(echo "$DEPLOY_HOST_VAL" | tr -d '[:space:]')
+          DEPLOY_PORT_VAL=$(echo "$DEPLOY_PORT_VAL" | tr -d '[:space:]')
+          DEPLOY_USER_VAL=$(echo "$DEPLOY_USER_VAL" | tr -d '[:space:]')
+          echo "After trim - Host length: ${#DEPLOY_HOST_VAL}, Port length: ${#DEPLOY_PORT_VAL}, User length: ${#DEPLOY_USER_VAL}"
+          ssh -vvv -i ~/.ssh/deploy_key -p "$DEPLOY_PORT_VAL" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no "${DEPLOY_USER_VAL}@${DEPLOY_HOST_VAL}" "echo 'SSH connection successful'" 2>&1 || {
             echo "SSH connection failed. Check that:"
             echo "1. DEPLOY_SSH_KEY secret contains the full private key with proper newlines"
             echo "2. The public key is in /home/github-deploy/.ssh/authorized_keys on the server"
