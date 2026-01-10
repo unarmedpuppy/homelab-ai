@@ -10,6 +10,7 @@ services:
     networks:
       - my-network
     labels:
+      - "com.centurylinklabs.watchtower.enable=true"
       # Traefik labels
       - "traefik.enable=true"
       # HTTPS redirect

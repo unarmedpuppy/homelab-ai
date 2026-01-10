@@ -155,6 +155,7 @@ services:
     #   ib-gateway:
     #     condition: service_healthy
     labels:
+      - "com.centurylinklabs.watchtower.enable=true"
       - "traefik.enable=true"
       - "traefik.docker.network=my-network"
       # HTTPS redirect

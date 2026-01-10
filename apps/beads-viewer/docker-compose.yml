@@ -23,6 +23,7 @@ services:
     networks:
       - my-network
     labels:
+      - "com.centurylinklabs.watchtower.enable=true"
       # Traefik configuration
       - "traefik.enable=true"
       # HTTP to HTTPS redirect

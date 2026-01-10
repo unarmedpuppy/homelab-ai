@@ -25,6 +25,8 @@ services:
     image: harbor.server.unarmedpuppy.com/library/trading-journal-backend:latest
     container_name: trading-journal-backend
     restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     ports:
       - "8102:8000"
     environment:
@@ -71,6 +73,7 @@ services:
     networks:
       - my-network
     labels:
+      - "com.centurylinklabs.watchtower.enable=true"
       - "traefik.enable=true"
       - "traefik.docker.network=my-network"
       # HTTPS redirect

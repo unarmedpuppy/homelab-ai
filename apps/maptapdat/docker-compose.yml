@@ -17,6 +17,7 @@ services:
     networks:
       - my-network
     labels:
+      - "com.centurylinklabs.watchtower.enable=true"
       - "traefik.enable=true"
       # HTTP configuration
       - "traefik.http.routers.maptapdat.rule=Host(`maptapdat.server.unarmedpuppy.com`)"
