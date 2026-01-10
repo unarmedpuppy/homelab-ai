@@ -81,9 +81,10 @@ jobs:
 
           # Debug: Show key format (first/last lines only, no sensitive data)
           echo "SSH key file created, checking format..."
-          head -1 ~/.ssh/deploy_key
-          tail -1 ~/.ssh/deploy_key
-          wc -l ~/.ssh/deploy_key
+          echo "First line: $(head -1 ~/.ssh/deploy_key)"
+          echo "Last line: $(tail -1 ~/.ssh/deploy_key)"
+          echo "Line count: $(wc -l < ~/.ssh/deploy_key)"
+          echo "Byte count: $(wc -c < ~/.ssh/deploy_key)"
 
           # Add server to known hosts
           ssh-keyscan -p ${{ secrets.DEPLOY_PORT }} ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
