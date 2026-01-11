@@ -569,6 +569,43 @@ services:
       - "homepage.icon=si-goodreads"
       - "homepage.description=Books automation"
 
+  # Kavita - Self-contained ebook/manga reader (replaces Calibre + Calibre-Web)
+  kavita:
+    image: harbor.server.unarmedpuppy.com/docker-hub/jvmilazz0/kavita:latest
+    container_name: media-download-kavita
+    environment:
+      - TZ=${TZ:-America/Chicago}
+    volumes:
+      - ./kavita/config:/kavita/config
+      - ${MEDIA_PATH:-/jenquist-cloud/archive/entertainment-media}/books:/books
+    ports:
+      - "8084:5000"
+    restart: unless-stopped
+    networks:
+      - media-download-network
+      - my-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=my-network"
+      # HTTPS redirect
+      - "traefik.http.middlewares.kavita-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.kavita-redirect.middlewares=kavita-redirect"
+      - "traefik.http.routers.kavita-redirect.rule=Host(`kavita.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.kavita-redirect.entrypoints=web"
+      # Main router - no basic auth (Kavita has built-in auth)
+      - "traefik.http.routers.kavita.rule=Host(`kavita.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.kavita.entrypoints=websecure"
+      - "traefik.http.routers.kavita.tls.certresolver=myresolver"
+      - "traefik.http.routers.kavita.tls=true"
+      # Service definition
+      - "traefik.http.services.kavita.loadbalancer.server.port=5000"
+      # Homepage labels
+      - "homepage.group=Media & Entertainment"
+      - "homepage.name=Kavita"
+      - "homepage.href=https://kavita.server.unarmedpuppy.com"
+      - "homepage.icon=si-bookstack"
+      - "homepage.description=Ebook and manga reader"
+
   # Usenet Downloader (Alternative)
   sabnzbd:
     # image: lscr.io/linuxserver/sabnzbd:latest
