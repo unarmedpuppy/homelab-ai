@@ -48,13 +48,26 @@ setup_git_config() {
     if [ -n "${GIT_AUTHOR_EMAIL:-}" ]; then
         gosu "$APPUSER" git config --global user.email "$GIT_AUTHOR_EMAIL"
     fi
+
+    # Set up credential helper
+    gosu "$APPUSER" git config --global credential.helper store
+    local creds_file="/home/$APPUSER/.git-credentials"
+    > "$creds_file"  # Clear/create file
+
+    # Gitea credentials (primary - for all homelab repos)
+    if [ -n "${GITEA_TOKEN:-}" ]; then
+        echo "https://oauth2:${GITEA_TOKEN}@gitea.server.unarmedpuppy.com" >> "$creds_file"
+        echo "Git configured with Gitea token authentication"
+    fi
+
+    # GitHub credentials (secondary - for external dependencies)
     if [ -n "${GITHUB_TOKEN:-}" ]; then
-        gosu "$APPUSER" git config --global credential.helper store
-        echo "https://x-access-token:${GITHUB_TOKEN}@github.com" > "/home/$APPUSER/.git-credentials"
-        chown "$APPUSER:$APPUSER" "/home/$APPUSER/.git-credentials"
-        chmod 600 "/home/$APPUSER/.git-credentials"
+        echo "https://x-access-token:${GITHUB_TOKEN}@github.com" >> "$creds_file"
         echo "Git configured with GitHub token authentication"
     fi
+
+    chown "$APPUSER:$APPUSER" "$creds_file"
+    chmod 600 "$creds_file"
 }
 
 setup_gpg_signing() {
@@ -128,13 +141,21 @@ setup_workspace() {
 
         for repo in "${HOMELAB_REPOS[@]}"; do
             if [ ! -d "$repo" ]; then
-                echo "Cloning $repo..."
-                # Try Gitea first (local, faster), fall back to GitHub
+                echo "Cloning $repo from Gitea..."
+                # Use Gitea exclusively for homelab repos (not GitHub)
                 if [ -n "${GITEA_TOKEN:-}" ]; then
-                    gosu "$APPUSER" git clone "https://oauth2:${GITEA_TOKEN}@gitea.server.unarmedpuppy.com/homelab/${repo}.git" || \
-                    gosu "$APPUSER" git clone "https://github.com/unarmedpuppy/${repo}.git" || true
-                elif [ -n "${GITHUB_TOKEN:-}" ]; then
-                    gosu "$APPUSER" git clone "https://github.com/unarmedpuppy/${repo}.git" || true
+                    gosu "$APPUSER" git clone "https://gitea.server.unarmedpuppy.com/homelab/${repo}.git" || {
+                        echo "Warning: Failed to clone $repo from Gitea"
+                    }
+                else
+                    echo "Warning: GITEA_TOKEN not set, cannot clone $repo"
+                fi
+            else
+                # Repo exists - ensure remote is Gitea, not GitHub
+                local current_remote=$(git -C "$repo" remote get-url origin 2>/dev/null || true)
+                if [[ "$current_remote" == *"github.com"* ]]; then
+                    echo "Fixing $repo remote: GitHub -> Gitea"
+                    gosu "$APPUSER" git -C "$repo" remote set-url origin "https://gitea.server.unarmedpuppy.com/homelab/${repo}.git"
                 fi
             fi
         done
