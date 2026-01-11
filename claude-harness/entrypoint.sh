@@ -137,6 +137,7 @@ setup_workspace() {
             "trading-bot"
             "trading-journal"
             "workflows"
+            "shua-ledger"
         )
 
         for repo in "${HOMELAB_REPOS[@]}"; do
