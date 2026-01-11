@@ -121,7 +121,7 @@ services:
     ports:
       - "8013:8013"
       - "2222:22"
-      - "8443:8443"
+      - "8016:8443"
     volumes:
       - claude-credentials:/home/appuser/.claude
       - claude-workspace:/workspace
