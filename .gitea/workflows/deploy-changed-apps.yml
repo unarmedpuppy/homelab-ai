@@ -75,38 +75,17 @@ jobs:
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
 
-          # Write SSH key - handle potential newline issues
+          # Write SSH key
           printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-
-          # Debug: Show key format (first/last lines only, no sensitive data)
-          echo "SSH key file created, checking format..."
-          echo "First line: $(head -1 ~/.ssh/deploy_key)"
-          echo "Last line: $(tail -1 ~/.ssh/deploy_key)"
-          echo "Line count: $(wc -l < ~/.ssh/deploy_key)"
-          echo "Byte count: $(wc -c < ~/.ssh/deploy_key)"
 
           # Add server to known hosts
           ssh-keyscan -p ${{ secrets.DEPLOY_PORT }} ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
-          # Test SSH connection with verbose output
+          # Test SSH connection
           echo "Testing SSH connection..."
-          # Get secret values
-          DEPLOY_HOST_VAL="${{ secrets.DEPLOY_HOST }}"
-          DEPLOY_PORT_VAL="${{ secrets.DEPLOY_PORT }}"
-          DEPLOY_USER_VAL="${{ secrets.DEPLOY_USER }}"
-          # Debug: show secret lengths to detect whitespace issues
-          echo "Before trim - Host length: ${#DEPLOY_HOST_VAL}, Port length: ${#DEPLOY_PORT_VAL}, User length: ${#DEPLOY_USER_VAL}"
-          # Trim whitespace
-          DEPLOY_HOST_VAL=$(echo "$DEPLOY_HOST_VAL" | tr -d '[:space:]')
-          DEPLOY_PORT_VAL=$(echo "$DEPLOY_PORT_VAL" | tr -d '[:space:]')
-          DEPLOY_USER_VAL=$(echo "$DEPLOY_USER_VAL" | tr -d '[:space:]')
-          echo "After trim - Host length: ${#DEPLOY_HOST_VAL}, Port length: ${#DEPLOY_PORT_VAL}, User length: ${#DEPLOY_USER_VAL}"
-          ssh -vvv -i ~/.ssh/deploy_key -p "$DEPLOY_PORT_VAL" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no "${DEPLOY_USER_VAL}@${DEPLOY_HOST_VAL}" "echo 'SSH connection successful'" 2>&1 || {
-            echo "SSH connection failed. Check that:"
-            echo "1. DEPLOY_SSH_KEY secret contains the full private key with proper newlines"
-            echo "2. The public key is in /home/github-deploy/.ssh/authorized_keys on the server"
-            echo "3. The github-deploy user exists and has correct permissions"
+          ssh -i ~/.ssh/deploy_key -p ${{ secrets.DEPLOY_PORT }} -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "echo 'SSH connection successful'" || {
+            echo "SSH connection failed. Check secrets: DEPLOY_SSH_KEY, DEPLOY_HOST, DEPLOY_PORT, DEPLOY_USER"
             exit 1
           }
 
@@ -171,25 +150,38 @@ jobs:
           CHANGED_APPS="${{ steps.changed_apps.outputs.apps }}"
           TAG="${{ steps.prev_tag.outputs.current_tag }}"
 
-          # Format apps list for notification
-          APPS_LIST=$(echo "$CHANGED_APPS" | tr ' ' '\n' | grep -v '^$' | sed 's/^/- /' | tr '\n' '\\n')
+          # Format apps list for notification (space-separated to bullet list)
+          APPS_LIST=$(echo "$CHANGED_APPS" | tr ' ' '\n' | grep -v '^$' | sed 's/^/- /' | awk '{printf "%s\\n", $0}')
 
-          curl -s -X POST "${{ secrets.MATTERMOST_WEBHOOK_URL }}" \
+          # Send notification with error checking
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "${{ secrets.MATTERMOST_WEBHOOK_URL }}" \
             -H "Content-Type: application/json" \
             -d "{
               \"text\": \":white_check_mark: **home-server deployed** (\`$TAG\`)\n\nApps updated:\n$APPS_LIST\"
-            }"
+            }")
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "Warning: Mattermost notification failed with HTTP $HTTP_CODE"
+          else
+            echo "Mattermost notification sent successfully"
+          fi
 
       - name: Send Mattermost notification (failure)
         if: failure()
         run: |
           TAG="${{ steps.prev_tag.outputs.current_tag }}"
 
-          curl -s -X POST "${{ secrets.MATTERMOST_WEBHOOK_URL }}" \
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "${{ secrets.MATTERMOST_WEBHOOK_URL }}" \
             -H "Content-Type: application/json" \
             -d "{
               \"text\": \":x: **home-server deployment failed** (\`$TAG\`)\n\nCheck Gitea Actions for details.\"
-            }"
+            }")
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "Warning: Mattermost notification failed with HTTP $HTTP_CODE"
+          else
+            echo "Mattermost notification sent successfully"
+          fi
 
       - name: No changes detected
         if: steps.changed_apps.outputs.apps == ''
