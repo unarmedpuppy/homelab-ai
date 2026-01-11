@@ -33,14 +33,15 @@ jobs:
       context: llm-manager
     secrets: inherit
 
-  build-image-server:
-    uses: unarmedpuppy/workflows/.gitea/workflows/docker-build.yml@main
-    with:
-      image_name: library/image-server
-      app_path: apps/homelab-ai
-      dockerfile: image-server/Dockerfile
-      context: image-server
-    secrets: inherit
+  # TEMPORARILY DISABLED - layer 962dc23e0a16 failing to push to Harbor
+  # build-image-server:
+  #   uses: unarmedpuppy/workflows/.gitea/workflows/docker-build.yml@main
+  #   with:
+  #     image_name: library/image-server
+  #     app_path: apps/homelab-ai
+  #     dockerfile: image-server/Dockerfile
+  #     context: image-server
+  #   secrets: inherit
 
   build-tts-server:
     uses: unarmedpuppy/workflows/.gitea/workflows/docker-build.yml@main
