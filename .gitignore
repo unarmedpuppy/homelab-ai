@@ -1,6 +1,17 @@
 # macOS
 .DS_Store
 
+# Top-level directories that shouldn't be tracked
+/data/
+/logs/
+/bird/
+/network/
+
+# Stray files
+*.db
+!.beads/*.db
+protonvpn-wg0.conf
+
 # Python
 __pycache__/
 *.py[cod]
@@ -42,6 +53,6 @@ agents/skills/*/node_modules/
 # agents/**/*.pyc - covered by global rule
 
 apps/ytdl-sub/config/*
-logs/*
+
 # Workspace Agents
 agents/.workspace-agents.json
