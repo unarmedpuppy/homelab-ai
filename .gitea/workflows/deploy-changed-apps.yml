@@ -70,7 +70,6 @@ jobs:
           echo "apps=$CHANGED_APPS" >> $GITHUB_OUTPUT
 
       - name: Setup SSH
-        if: steps.changed_apps.outputs.apps != ''
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
@@ -89,7 +88,18 @@ jobs:
             exit 1
           }
 
-      - name: Deploy to server
+      - name: Pull latest code
+        env:
+          SSH_KEY: ~/.ssh/deploy_key
+          SSH_USER: ${{ secrets.DEPLOY_USER }}
+          SSH_HOST: ${{ secrets.DEPLOY_HOST }}
+          SSH_PORT: ${{ secrets.DEPLOY_PORT }}
+        run: |
+          echo "=== Pulling latest code on server ==="
+          ssh -i $SSH_KEY -p $SSH_PORT $SSH_USER@$SSH_HOST \
+            "sudo -u unarmedpuppy git -C ${{ env.SERVER_PATH }} pull"
+
+      - name: Restart changed apps
         if: steps.changed_apps.outputs.apps != ''
         env:
           SSH_KEY: ~/.ssh/deploy_key
@@ -98,11 +108,6 @@ jobs:
           SSH_PORT: ${{ secrets.DEPLOY_PORT }}
         run: |
           CHANGED_APPS="${{ steps.changed_apps.outputs.apps }}"
-
-          echo "=== Pulling latest code on server ==="
-          # Run git pull as unarmedpuppy user who has SSH access to Gitea
-          ssh -i $SSH_KEY -p $SSH_PORT $SSH_USER@$SSH_HOST \
-            "sudo -u unarmedpuppy git -C ${{ env.SERVER_PATH }} pull"
 
           echo "=== Restarting changed apps ==="
           FAILED_APPS=""
@@ -189,8 +194,8 @@ jobs:
             echo "Mattermost notification sent successfully"
           fi
 
-      - name: No changes detected
+      - name: No apps to restart
         if: steps.changed_apps.outputs.apps == ''
         run: |
-          echo "No apps changed between tags. Nothing to deploy."
-          echo "This is expected for documentation-only or script-only changes."
+          echo "No apps changed between tags. Code pulled but no containers restarted."
+          echo "This is expected for workflow, documentation, or script-only changes."
