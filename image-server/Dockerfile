@@ -1,21 +1,20 @@
 # Dockerfile for image model inference server
 # Uses HuggingFace Diffusers with FastAPI
+# PyTorch base image - large layers are pre-cached in registries
 
-FROM nvidia/cuda:12.1.0-runtime-ubuntu22.04
+FROM pytorch/pytorch:2.2.0-cuda12.1-cudnn8-runtime
 
 # Set working directory
 WORKDIR /app
 
-# Install Python and dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    python3.11 \
-    python3-pip \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python packages
+# Install Python packages (torch/torchvision come from base image)
 COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY app/ ./app/

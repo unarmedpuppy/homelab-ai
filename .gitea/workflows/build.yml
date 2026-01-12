@@ -33,25 +33,24 @@ jobs:
       context: llm-manager
     secrets: inherit
 
-  # TEMPORARILY DISABLED - large PyTorch layers timing out on Harbor upload
-  # TODO: Fix Harbor nginx timeout settings, then re-enable
-  # build-image-server:
-  #   uses: unarmedpuppy/workflows/.gitea/workflows/docker-build.yml@main
-  #   with:
-  #     image_name: library/image-server
-  #     app_path: apps/homelab-ai
-  #     dockerfile: image-server/Dockerfile
-  #     context: image-server
-  #   secrets: inherit
+  # Re-enabled after switching to PyTorch base images (large layers now pre-cached)
+  build-image-server:
+    uses: unarmedpuppy/workflows/.gitea/workflows/docker-build.yml@main
+    with:
+      image_name: library/image-server
+      app_path: apps/homelab-ai
+      dockerfile: image-server/Dockerfile
+      context: image-server
+    secrets: inherit
 
-  # build-tts-server:
-  #   uses: unarmedpuppy/workflows/.gitea/workflows/docker-build.yml@main
-  #   with:
-  #     image_name: library/tts-server
-  #     app_path: apps/homelab-ai
-  #     dockerfile: tts-server/Dockerfile
-  #     context: tts-server
-  #   secrets: inherit
+  build-tts-server:
+    uses: unarmedpuppy/workflows/.gitea/workflows/docker-build.yml@main
+    with:
+      image_name: library/tts-server
+      app_path: apps/homelab-ai
+      dockerfile: tts-server/Dockerfile
+      context: tts-server
+    secrets: inherit
 
   build-claude-harness:
     uses: unarmedpuppy/workflows/.gitea/workflows/docker-build.yml@main

@@ -8,10 +8,8 @@ pydantic>=2.0.0
 # Chatterbox TTS (0.1.6 has tts_turbo module)
 chatterbox-tts>=0.1.6
 
-# PyTorch with CUDA (pre-installed in base image, but specify for completeness)
-# These are installed via pip with --index-url for CUDA support
-torch>=2.0.0
-torchaudio>=2.0.0
+# PyTorch with CUDA - PROVIDED BY BASE IMAGE (pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime)
+# Do NOT add torch or torchaudio here - they come pre-installed
 
 # Audio processing
 soundfile>=0.12.0

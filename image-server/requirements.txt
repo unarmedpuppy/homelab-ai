@@ -1,12 +1,14 @@
 # Image inference server requirements
 # Updated for Qwen Image Edit 2509 support
 # Requires diffusers 0.30.0+ and transformers 4.51.3+
+#
+# PyTorch with CUDA - PROVIDED BY BASE IMAGE (pytorch/pytorch:2.2.0-cuda12.1-cudnn8-runtime)
+# Do NOT add torch or torchvision here - they come pre-installed
+
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 diffusers>=0.30.0
 transformers>=4.51.3
-torch>=2.2.0
-torchvision>=0.17.0
 accelerate>=0.30.0
 pillow>=10.1.0
 numpy>=1.24.3

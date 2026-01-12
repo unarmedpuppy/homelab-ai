@@ -1,17 +1,14 @@
 # Dockerfile for TTS inference server
 # Uses Chatterbox Turbo with FastAPI
+# PyTorch base image - large layers are pre-cached in registries
 
-FROM nvidia/cuda:12.1.0-runtime-ubuntu22.04
+FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
 
 # Set working directory
 WORKDIR /app
 
-# Install Python and dependencies
+# Install system dependencies for audio processing
 RUN apt-get update && apt-get install -y \
-    python3.11 \
-    python3.11-dev \
-    python3.11-venv \
-    python3-pip \
     curl \
     git \
     libsndfile1 \
@@ -19,15 +16,9 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Make python3.11 the default
-RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
-
-# Install numpy first (required by pkuseg during setup.py)
-RUN pip3 install --no-cache-dir numpy
-
-# Install Python packages
+# Install Python packages (torch/torchaudio come from base image)
 COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY app/ ./app/
