@@ -5,7 +5,7 @@
 ## ⚠️ Critical Requirements
 
 **Before doing anything:**
-1. **🖥️ CHECK YOUR CONTEXT**: Determine if you're running locally or on the server. If your working directory is `/home/unarmedpuppy/server`, you ARE on the server - run commands directly, do NOT use `scripts/connect-server.sh`
+1. **🏠 ALL CHANGES ARE LOCAL**: Never make code changes on the server. Make changes here locally → commit → push → tag to deploy. SSH to server is for troubleshooting only (view logs, restart containers). See [When to SSH to Server](#when-to-ssh-to-server).
 2. **🔍 CHECK TOOLS FIRST**: Always check `agents/skills/` before solving problems or looking up commands
 3. **📝 CREATE TOOLS**: If you solve a problem, create a tool in `agents/skills/` for future use
 4. **📋 USE BEADS FOR TASKS**: All task management **MUST** use Beads (`bd` commands) - never create manual task lists
@@ -114,10 +114,27 @@ See `agents/skills/gitea-deploy-workflow/SKILL.md` for complete documentation.
 
 ### When to SSH to Server
 
-SSH is only needed for:
-- **First-time app setup** - initial `docker compose up -d`
-- **Debugging** - viewing logs, checking container status
-- **Emergency fixes** - when automated deployment fails
+SSH is **only for troubleshooting** - viewing logs, checking container status, restarting containers. **Never make code changes on the server.**
+
+**Allowed via SSH (read-only troubleshooting):**
+- View logs: `docker logs <container> --tail 100`
+- Check status: `docker ps`, `docker compose ps`
+- Restart containers: `docker compose restart <service>`
+- Check resources: `df -h`, `free -h`, `htop`
+- First-time app setup: `docker compose up -d` (new services only)
+
+**Never do via SSH:**
+- Edit files (docker-compose.yml, configs, scripts, code)
+- Run `git pull` manually (automated deployment handles this)
+- Make any changes that should be tracked in git
+
+**If you need to make changes**, follow this workflow:
+1. Make changes locally in this repo
+2. Commit and push to main
+3. Tag a release: `git tag v1.0.x && git push origin v1.0.x`
+4. Wait for automated deployment
+
+**If asked to make server changes directly**, ask for explicit permission first and explain the proper workflow.
 
 See `README.md` section "Harbor Deployer (Auto-Deployment)" for configuration and management.
 
@@ -189,6 +206,11 @@ See `agents/reference/` for detailed patterns and workflows.
 
 ### Never Do
 - Commit secrets or credentials (use `.env` files, gitignored)
+- **🚨 NEVER MAKE CODE CHANGES ON THE SERVER** - All changes must be made locally
+  - SSH is for troubleshooting only (view logs, check status, restart containers)
+  - Never edit files on the server (docker-compose.yml, configs, scripts, code)
+  - If you need to fix something, make the change locally → commit → push → tag → auto-deploy
+  - **If explicitly asked to make server changes, ask for permission first** and explain the proper workflow
 - **🚨 NEVER SSH TO DEPLOY** - Both code and config changes deploy automatically
   - For code changes: `git tag v1.0.x && git push origin v1.0.x` → Harbor Deployer auto-deploys
   - For docker-compose.yml changes: `git tag v1.0.x && git push origin main --tags` → Gitea Actions auto-deploys
@@ -357,7 +379,7 @@ Agent-discoverable tool guides are in `agents/skills/`. Each tool has a `SKILL.m
 |------|---------|--------|
 | **Harbor Deployer** | Auto-deploy custom apps on image change | `scripts/harbor-deployer.py` |
 | [gitea-deploy-workflow](agents/skills/gitea-deploy-workflow/) | Auto-deploy docker-compose changes on tag push | `.gitea/workflows/deploy-changed-apps.yml` |
-| [connect-server](agents/skills/connect-server/) | SSH for debugging/first-time setup | `scripts/connect-server.sh` |
+| [connect-server](agents/skills/connect-server/) | SSH for troubleshooting only (logs, status, restarts) - never for code changes | `scripts/connect-server.sh` |
 | [connect-gaming-pc](agents/skills/connect-gaming-pc/) | Interactive SSH to Gaming PC (WSL) | `scripts/connect-gaming-pc.sh` |
 | [git-server-sync](agents/skills/git-server-sync/) | Sync git between local and server | `scripts/git-server-sync.sh` |
 
