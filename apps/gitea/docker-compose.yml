@@ -48,7 +48,16 @@ services:
     depends_on:
       gitea-db:
         condition: service_healthy
+    healthcheck:
+      # Check both web API and SSH service are responding
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000/api/healthz && (echo | nc -w 2 localhost 2222 | head -1 | grep -q SSH)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     labels:
+      # Enable autoheal to restart when unhealthy
+      - "autoheal=true"
       - "traefik.enable=true"
       - "traefik.docker.network=my-network"
       # HTTP to HTTPS redirect
@@ -129,6 +138,20 @@ services:
       - my-network
     depends_on:
       - gitea
+
+  autoheal:
+    image: harbor.server.unarmedpuppy.com/docker-hub/willfarrell/autoheal:latest
+    container_name: gitea-autoheal
+    restart: unless-stopped
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=autoheal
+      - AUTOHEAL_INTERVAL=30
+      - AUTOHEAL_START_PERIOD=60
+      - AUTOHEAL_DEFAULT_STOP_TIMEOUT=10
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - my-network
 
 volumes:
   gitea-data:
