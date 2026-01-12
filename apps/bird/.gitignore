@@ -1,6 +1,0 @@
-# Environment file with secrets
-.env
-
-# Persistent data (processed IDs, cache)
-data/processed.json
-data/bookmarks.json
