@@ -120,6 +120,12 @@ jobs:
               continue
             fi
 
+            # Check if app is disabled (x-enabled: false)
+            if ssh -i $SSH_KEY -p $SSH_PORT $SSH_USER@$SSH_HOST "grep -q '^x-enabled: false' $COMPOSE_FILE"; then
+              echo "Skipping $app (disabled via x-enabled: false)"
+              continue
+            fi
+
             # Run docker compose up -d
             echo "Running docker compose up -d for $app"
             if ssh -i $SSH_KEY -p $SSH_PORT $SSH_USER@$SSH_HOST \
