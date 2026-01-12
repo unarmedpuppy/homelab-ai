@@ -546,22 +546,13 @@ services:
       - "traefik.http.routers.lazylibrarian-redirect.middlewares=lazylibrarian-redirect"
       - "traefik.http.routers.lazylibrarian-redirect.rule=Host(`lazylibrarian.server.unarmedpuppy.com`)"
       - "traefik.http.routers.lazylibrarian-redirect.entrypoints=web"
-      # Local network access (no auth) - highest priority
-      - "traefik.http.routers.lazylibrarian-local.rule=Host(`lazylibrarian.server.unarmedpuppy.com`) && ClientIP(`192.168.86.0/24`)"
-      - "traefik.http.routers.lazylibrarian-local.priority=100"
-      - "traefik.http.routers.lazylibrarian-local.entrypoints=websecure"
-      - "traefik.http.routers.lazylibrarian-local.tls.certresolver=myresolver"
-      # External access (requires auth) - lowest priority
+      # Main router - no basic auth (LazyLibrarian has built-in auth)
       - "traefik.http.routers.lazylibrarian.rule=Host(`lazylibrarian.server.unarmedpuppy.com`)"
-      - "traefik.http.routers.lazylibrarian.priority=1"
       - "traefik.http.routers.lazylibrarian.entrypoints=websecure"
       - "traefik.http.routers.lazylibrarian.tls.certresolver=myresolver"
       - "traefik.http.routers.lazylibrarian.tls=true"
-      - "traefik.http.routers.lazylibrarian.middlewares=lazylibrarian-auth"
-      # Service and auth middleware
+      # Service definition
       - "traefik.http.services.lazylibrarian.loadbalancer.server.port=5299"
-      - "traefik.http.middlewares.lazylibrarian-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
-      - "traefik.http.middlewares.lazylibrarian-auth.basicauth.realm=LazyLibrarian"
       # Homepage labels
       - "homepage.group=Media & Entertainment"
       - "homepage.name=LazyLibrarian"
