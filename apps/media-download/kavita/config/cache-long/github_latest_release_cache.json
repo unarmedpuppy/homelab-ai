@@ -1,0 +1,34 @@
+{
+  "CurrentVersion": "0.8.8.3",
+  "UpdateVersion": "0.8.8.3",
+  "UpdateBody": "\u003Cp\u003ELooks like there were a few issues with OIDC and a bug in OPDS Pagination that didn\u0027t surface during testing. If you want to help us avoid hotfixes, join our nightly program and expand our testing capability. See you in v0.8.9. \u003C/p\u003E\n\u003Ch1\u003EChanged\u003C/h1\u003E\n\u003Cul\u003E\n\u003Cli\u003EChanged: Kavita will now filter out unsupported scopes before requesting them from your OIDC provider \u003C/li\u003E\n\u003Cli\u003EChanged: OIDC providers are now required to use tls (https)\u003C/li\u003E\n\u003C/ul\u003E\n\u003Ch1\u003EFixed\u003C/h1\u003E\n\u003Cul\u003E\n\u003Cli\u003EFixed: Fixed a bug where announcements with images would scale weird\u003C/li\u003E\n\u003Cli\u003EFixed: Fixed some OPDS feeds not including next markers (pagination) for certain total sizes. \u003C/li\u003E\n\u003Cli\u003EFixed: Fixed OIDC not working when a custom base URL is set \u003C/li\u003E\n\u003Cli\u003EFixed: Fixed admin users having age restrictions applied when created with default permissions via OIDC\u003C/li\u003E\n\u003Cli\u003EFixed: Fixed not being able to set default age restriction to Not Applicable once changed\u003C/li\u003E\n\u003Cli\u003EFixed: Fixed a race condition when changing both metadata and cover image of an entity, where one of the changes could be lost \u003C/li\u003E\n\u003Cli\u003EFixed: Fixed OPDS not working correctly when a base URL is set\u003C/li\u003E\n\u003C/ul\u003E\n",
+  "UpdateTitle": "v0.8.8.3 - OIDC and OPDS Hotfix",
+  "UpdateUrl": "https://github.com/Kareadita/Kavita/releases/tag/v0.8.8.3",
+  "IsDocker": true,
+  "IsPrerelease": false,
+  "PublishDate": "2025-10-23T12:31:49Z",
+  "IsOnNightlyInRelease": false,
+  "IsReleaseNewer": false,
+  "IsReleaseEqual": true,
+  "Added": [],
+  "Removed": [],
+  "Changed": [
+    "Kavita will now filter out unsupported scopes before requesting them from your OIDC provider",
+    "OIDC providers are now required to use tls (https)"
+  ],
+  "Fixed": [
+    "Fixed a bug where announcements with images would scale weird",
+    "Fixed some OPDS feeds not including next markers (pagination) for certain total sizes.",
+    "Fixed OIDC not working when a custom base URL is set",
+    "Fixed admin users having age restrictions applied when created with default permissions via OIDC",
+    "Fixed not being able to set default age restriction to Not Applicable once changed",
+    "Fixed a race condition when changing both metadata and cover image of an entity, where one of the changes could be lost",
+    "Fixed OPDS not working correctly when a base URL is set"
+  ],
+  "Theme": [],
+  "Developer": [],
+  "Api": [],
+  "FeatureRequests": [],
+  "KnownIssues": [],
+  "BlogPart": "\u003Cp\u003ELooks like there were a few issues with OIDC and a bug in OPDS Pagination that didn\u0027t surface during testing. If you want to help us avoid hotfixes, join our nightly program and expand our testing capability. See you in v0.8.9.\u003C/p\u003E\n"
+}
