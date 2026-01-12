@@ -177,6 +177,23 @@ jobs:
             echo "Mattermost notification sent successfully"
           fi
 
+      - name: Send Mattermost notification (sync only)
+        if: success() && steps.changed_apps.outputs.apps == ''
+        run: |
+          TAG="${{ steps.prev_tag.outputs.current_tag }}"
+
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "${{ secrets.MATTERMOST_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"text\": \":arrows_counterclockwise: **home-server synced** (\`$TAG\`)\n\nCode pulled, no apps restarted.\"
+            }")
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "Warning: Mattermost notification failed with HTTP $HTTP_CODE"
+          else
+            echo "Mattermost notification sent successfully"
+          fi
+
       - name: Send Mattermost notification (failure)
         if: failure()
         run: |
