@@ -47,7 +47,7 @@ services:
       - "traefik.http.middlewares.soulsync-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.soulsync-auth.basicauth.realm=SoulSync"
       # Homepage integration
-      - "homepage.group=Media & Entertainment"
+      - "homepage.group=Media"
       - "homepage.name=SoulSync"
       - "homepage.icon=si-solid"
       - "homepage.href=https://soulsync.server.unarmedpuppy.com"

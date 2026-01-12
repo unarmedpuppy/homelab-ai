@@ -85,7 +85,7 @@ services:
       - "traefik.http.middlewares.nzbhydra2-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.nzbhydra2-auth.basicauth.realm=NZBHydra2"
       # Homepage labels
-      - "homepage.group=Media & Entertainment"
+      - "homepage.group=Media"
       - "homepage.name=NZBHydra2"
       - "homepage.href=https://nzbhydra2.server.unarmedpuppy.com"
       - "homepage.icon=si-searxng"
@@ -134,7 +134,7 @@ services:
       - "traefik.http.middlewares.jackett-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.jackett-auth.basicauth.realm=Jackett"
       # Homepage labels
-      - "homepage.group=Media & Entertainment"
+      - "homepage.group=Media"
       - "homepage.name=Jackett"
       - "homepage.href=https://jackett.server.unarmedpuppy.com"
       - "homepage.icon=si-searxng"
@@ -183,7 +183,7 @@ services:
       - "traefik.http.middlewares.prowlarr-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.prowlarr-auth.basicauth.realm=Prowlarr"
       # Homepage labels
-      - "homepage.group=Media & Entertainment"
+      - "homepage.group=Media"
       - "homepage.name=Prowlarr"
       - "homepage.href=https://prowlarr.server.unarmedpuppy.com"
       - "homepage.icon=si-prettier"
@@ -305,7 +305,7 @@ services:
       - "traefik.http.middlewares.sonarr-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.sonarr-auth.basicauth.realm=Sonarr"
       # Homepage labels
-      - "homepage.group=Media & Entertainment"
+      - "homepage.group=Media"
       - "homepage.name=Sonarr"
       - "homepage.href=https://sonarr.server.unarmedpuppy.com"
       - "homepage.icon=si-sonarr"
@@ -358,7 +358,7 @@ services:
       - "traefik.http.middlewares.radarr-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.radarr-auth.basicauth.realm=Radarr"
       # Homepage labels
-      - "homepage.group=Media & Entertainment"
+      - "homepage.group=Media"
       - "homepage.name=Radarr"
       - "homepage.href=https://radarr.server.unarmedpuppy.com"
       - "homepage.icon=si-radarr"
@@ -411,7 +411,7 @@ services:
       - "traefik.http.middlewares.lidarr-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.lidarr-auth.basicauth.realm=Lidarr"
       # Homepage labels
-      - "homepage.group=Media & Entertainment"
+      - "homepage.group=Media"
       - "homepage.name=Lidarr"
       - "homepage.href=https://lidarr.server.unarmedpuppy.com"
       - "homepage.icon=si-lidarr"
@@ -463,7 +463,7 @@ services:
       - "traefik.http.middlewares.bazarr-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.bazarr-auth.basicauth.realm=Bazarr"
       # Homepage labels
-      - "homepage.group=Media & Entertainment"
+      - "homepage.group=Media"
       - "homepage.name=Bazarr"
       - "homepage.href=https://bazarr.server.unarmedpuppy.com"
       - "homepage.icon=si-vlcmediaplayer"
@@ -506,7 +506,7 @@ services:
       # Service definition
       - "traefik.http.services.overseerr.loadbalancer.server.port=5055"
       # Homepage labels
-      - "homepage.group=Media & Entertainment"
+      - "homepage.group=Media"
       - "homepage.name=Overseerr"
       - "homepage.href=https://overseerr.server.unarmedpuppy.com"
       - "homepage.icon=si-plex"
@@ -554,7 +554,7 @@ services:
       # Service definition
       - "traefik.http.services.lazylibrarian.loadbalancer.server.port=5299"
       # Homepage labels
-      - "homepage.group=Media & Entertainment"
+      - "homepage.group=Media"
       - "homepage.name=LazyLibrarian"
       - "homepage.href=https://lazylibrarian.server.unarmedpuppy.com"
       - "homepage.icon=si-goodreads"
@@ -591,7 +591,7 @@ services:
       # Service definition
       - "traefik.http.services.kavita.loadbalancer.server.port=5000"
       # Homepage labels
-      - "homepage.group=Media & Entertainment"
+      - "homepage.group=Media"
       - "homepage.name=Kavita"
       - "homepage.href=https://kavita.server.unarmedpuppy.com"
       - "homepage.icon=si-bookstack"
@@ -642,7 +642,7 @@ services:
       - "traefik.http.middlewares.sabnzbd-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.sabnzbd-auth.basicauth.realm=SABnzbd"
       # Homepage labels
-      - "homepage.group=Media & Entertainment"
+      - "homepage.group=Media"
       - "homepage.name=SABnzbd"
       - "homepage.href=https://sabnzbd.server.unarmedpuppy.com"
       - "homepage.icon=si-qbittorrent"
@@ -694,7 +694,7 @@ services:
       - "traefik.http.middlewares.cobalt-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.cobalt-auth.basicauth.realm=Cobalt"
       # Homepage labels
-      - "homepage.group=Media & Entertainment"
+      - "homepage.group=Media"
       - "homepage.name=Cobalt"
       - "homepage.href=https://cobalt.server.unarmedpuppy.com"
       - "homepage.icon=mdi-youtube"

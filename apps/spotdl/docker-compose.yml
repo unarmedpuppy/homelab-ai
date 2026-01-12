@@ -48,7 +48,7 @@ services:
       - "traefik.http.middlewares.spotifydl-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.spotifydl-auth.basicauth.realm=SpotifyDL"
       # Homepage labels
-      - "homepage.group=Media & Entertainment"
+      - "homepage.group=Media"
       - "homepage.name=SpotifyDL"
       - "homepage.icon=si-spotify"
       - "homepage.href=https://spotifydl.server.unarmedpuppy.com"

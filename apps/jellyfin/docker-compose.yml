@@ -51,7 +51,7 @@ services:
       - "traefik.http.middlewares.jellyfin-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.jellyfin-auth.basicauth.realm=Jellyfin"
       # Homepage labels
-      - "homepage.group=Media & Entertainment"
+      - "homepage.group=Media"
       - "homepage.name=Cache"
       - "homepage.icon=si-jellyfin"
       - "homepage.href=https://jellyfin.server.unarmedpuppy.com"

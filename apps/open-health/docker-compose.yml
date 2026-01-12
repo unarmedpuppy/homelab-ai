@@ -47,7 +47,7 @@ services:
       - "traefik.http.middlewares.open-health-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.open-health-auth.basicauth.realm=OpenHealth"
       # Homepage labels
-      - "homepage.group=AI & Machine Learning"
+      - "homepage.group=AI"
       - "homepage.name=OpenHealth"
       - "homepage.icon=si-anthropic"
       - "homepage.href=https://open-health.server.unarmedpuppy.com"

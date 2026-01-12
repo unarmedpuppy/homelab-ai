@@ -86,7 +86,7 @@ services:
       - "traefik.http.middlewares.maybe-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.maybe-auth.basicauth.realm=Maybe"
       # Homepage labels
-      - "homepage.group=Finance & Trading"
+      - "homepage.group=Finance"
       - "homepage.name=Maybe"
       - "homepage.icon=si-cashapp"
       - "homepage.href=https://maybe.server.unarmedpuppy.com"

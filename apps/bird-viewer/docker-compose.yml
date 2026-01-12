@@ -17,7 +17,7 @@ services:
       - "traefik.http.routers.bird-viewer.entrypoints=websecure"
       - "traefik.http.routers.bird-viewer.tls.certresolver=myresolver"
       - "traefik.http.services.bird-viewer.loadbalancer.server.port=80"
-      - "homepage.group=AI & Machine Learning"
+      - "homepage.group=AI"
       - "homepage.name=Bird Viewer"
       - "homepage.icon=si-x"
       - "homepage.href=https://bird-viewer.server.unarmedpuppy.com"

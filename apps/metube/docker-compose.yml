@@ -41,7 +41,7 @@ services:
       - "traefik.http.middlewares.metube-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.metube-auth.basicauth.realm=MeTube"
       # Homepage labels
-      - "homepage.group=Media & Entertainment"
+      - "homepage.group=Media"
       - "homepage.name=MyTube"
       - "homepage.icon=si-youtubekids"
       - "homepage.href=https://metube.server.unarmedpuppy.com"

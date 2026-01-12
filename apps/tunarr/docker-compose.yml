@@ -43,7 +43,7 @@ services:
       - "traefik.http.middlewares.tunarr-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.tunarr-auth.basicauth.realm=Tunarr"
       # Homepage labels
-      - "homepage.group=Media & Entertainment"
+      - "homepage.group=Media"
       - "homepage.name=Tunarr"
       - "homepage.icon=si-plex"
       - "homepage.href=https://tunarr.server.unarmedpuppy.com"

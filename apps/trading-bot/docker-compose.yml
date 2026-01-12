@@ -29,7 +29,7 @@ services:
       retries: 5
       start_period: 120s  # IB Gateway takes time to start
     labels:
-      - "homepage.group=Finance & Trading"
+      - "homepage.group=Finance"
       - "homepage.name=IB Gateway"
       - "homepage.icon=si-tradingview"
       - "homepage.description=Interactive Brokers Gateway for API trading"
@@ -180,7 +180,7 @@ services:
       - "traefik.http.middlewares.trading-bot-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.trading-bot-auth.basicauth.realm=Trading-Bot"
       # Homepage labels
-      - "homepage.group=Finance & Trading"
+      - "homepage.group=Finance"
       - "homepage.name=Trading Dashboard"
       - "homepage.icon=si-tradingview"
       - "homepage.href=https://trading-bot.server.unarmedpuppy.com/dashboard"

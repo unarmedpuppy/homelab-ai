@@ -98,7 +98,7 @@ services:
       - "traefik.http.middlewares.trading-journal-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.trading-journal-auth.basicauth.realm=Trading-Journal"
       # Homepage labels
-      - "homepage.group=Finance & Trading"
+      - "homepage.group=Finance"
       - "homepage.name=Trading Journal"
       - "homepage.icon=si-tradingview"
       - "homepage.href=https://trading-journal.server.unarmedpuppy.com"

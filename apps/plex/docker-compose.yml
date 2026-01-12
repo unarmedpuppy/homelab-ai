@@ -37,7 +37,7 @@ services:
             - "traefik.http.services.plex.loadbalancer.server.port=32400"
             - "traefik.http.middlewares.plex-https-redirect.redirectscheme.scheme=https"
             - "traefik.http.routers.plex.middlewares=plex-https-redirect"
-            - "homepage.group=Media & Entertainment"
+            - "homepage.group=Media"
             - "homepage.name=Plex"
             - "homepage.icon=si-plex"
             - "homepage.href=https://plex.server.unarmedpuppy.com"

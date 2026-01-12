@@ -65,7 +65,7 @@ services:
       - "traefik.http.routers.mattermost.tls.certresolver=myresolver"
       - "traefik.http.services.mattermost.loadbalancer.server.port=8065"
       # Homepage labels
-      - "homepage.group=Social & News"
+      - "homepage.group=Social"
       - "homepage.name=Mattermost"
       - "homepage.icon=si-mattermost"
       - "homepage.href=https://mattermost.server.unarmedpuppy.com"

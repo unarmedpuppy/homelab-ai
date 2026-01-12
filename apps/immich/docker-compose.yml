@@ -51,7 +51,7 @@ services:
       - "traefik.http.middlewares.photos-auth.basicauth.users=unarmedpuppy:$$apr1$$yE.A6vVX$$p7.fpGKw5Unp0UW6H/2c.0"
       - "traefik.http.middlewares.photos-auth.basicauth.realm=Immich"
       # Homepage labels
-      - "homepage.group=Media & Entertainment"
+      - "homepage.group=Media"
       - "homepage.name=Immich"
       - "homepage.icon=si-immich"
       - "homepage.href=https://photos.server.unarmedpuppy.com"
