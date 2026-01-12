@@ -1,0 +1,20 @@
+groups:
+  - name: trading-bot-alerts
+    rules:
+      - alert: TradingBotDown
+        expr: up{job="trading-bot"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Trading Bot is down"
+          description: "Trading Bot has been down for more than 1 minute."
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{job="trading-bot",status=~"5.."}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate on Trading Bot"
+          description: "Trading Bot is experiencing a high error rate (> 10% 5xx responses)."

@@ -1,3 +1,7 @@
+# DISABLED: Images not yet built/pushed to Harbor
+# Build trading-journal-frontend and trading-journal-backend images and push to Harbor to enable
+x-enabled: false
+
 version: '3.8'
 
 services:
