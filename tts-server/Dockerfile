@@ -2,7 +2,7 @@
 # Uses Chatterbox Turbo with FastAPI
 # PyTorch base image - large layers are pre-cached in registries
 
-FROM harbor.server.unarmedpuppy.com/docker-hub/pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
+FROM harbor.server.unarmedpuppy.com/library/pytorch-base:2.1.0-cuda12.1
 
 # Set working directory
 WORKDIR /app
