@@ -77,6 +77,11 @@ entryPoints:
   # HTTPS endpoint, with domain wildcard
   websecure:
     address: :443
+    transport:
+      respondingTimeouts:
+        readTimeout: "0"      # No timeout for reading request (large uploads)
+        writeTimeout: "0"     # No timeout for writing response
+        idleTimeout: "600s"   # 10 min idle timeout (Harbor needs time to process large layers)
     forwardedHeaders:
       # Reuse list of Cloudflare Trusted IP's above for HTTPS requests
       trustedIPs: *trustedIps
