@@ -7,6 +7,9 @@ FROM harbor.server.unarmedpuppy.com/library/pytorch-base:2.1.0-cuda12.1
 # Set working directory
 WORKDIR /app
 
+# Prevent interactive prompts during apt-get (tzdata, etc.)
+ENV DEBIAN_FRONTEND=noninteractive
+
 # Install system dependencies for audio processing
 RUN apt-get update && apt-get install -y \
     curl \
