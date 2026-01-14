@@ -345,10 +345,15 @@ class HarborDeployer:
             container_name = container.name
 
             try:
-                # Get image name
-                image_name = container.image.tags[0] if container.image.tags else None
+                # Get image name - prefer Config (what compose specified) over tags
+                # This ensures we check :latest even if old version tags exist locally
+                image_name = container.attrs["Config"].get("Image")
                 if not image_name:
-                    image_name = container.attrs["Config"]["Image"]
+                    image_name = container.image.tags[0] if container.image.tags else None
+
+                if not image_name:
+                    self.logger.warning(f"  Could not determine image for {container_name}")
+                    continue
 
                 self.logger.debug(f"Checking {container_name} ({image_name})")
 
