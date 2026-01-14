@@ -13,7 +13,7 @@ The server uses a **3-2-1 backup strategy**:
 |--------|------|-------|----------|-----------|
 | **ZFS RAID-Z1** | All data | 4x 7.3TB drives | Real-time | N/A (primary) |
 | **rsnapshot** | Server configs | `/jenquist-cloud/backups/` | Every 4 hours | 3 alpha, 2 beta, 1 gamma, 1 delta |
-| **Backblaze B2** | Entire ZFS pool | Cloud (encrypted) | Daily 3 AM | Indefinite |
+| **Backblaze B2** | Essential directories only | Cloud (encrypted) | Daily 5:30 AM | Indefinite |
 
 ## Backblaze B2 Cloud Backup
 
@@ -23,11 +23,33 @@ The server uses a **3-2-1 backup strategy**:
 |-----------|-------|
 | **Provider** | Backblaze B2 Cloud Storage |
 | **Bucket** | `jenquist-cloud` |
-| **Source** | `/jenquist-cloud` (entire ZFS pool) |
+| **Source** | `/jenquist-cloud` (selective directories only) |
 | **Tool** | rclone with crypt encryption |
 | **Encryption** | AES-256 (files) + EME (filenames) |
-| **Schedule** | Daily at 3:00 AM (cron) |
+| **Schedule** | Daily at 5:30 AM (cron) |
 | **Cost** | ~$6/TB/month storage, $0.01/GB download |
+
+### What's Backed Up (Selective Backup)
+
+As of January 2026, only essential directories are backed up to reduce costs:
+
+| Directory | Description | Approx Size |
+|-----------|-------------|-------------|
+| `archive/personal-media/` | Photos, documents, memories | Variable |
+| `archive/entertainment-media/Music/` | Music collection | ~95 GiB |
+| `backups/` | rsnapshot local backups | Variable |
+| `vault/` | Secure storage | Variable |
+
+**NOT backed up** (can be re-downloaded):
+- `archive/entertainment-media/Films/`
+- `archive/entertainment-media/Shows/`
+- `archive/entertainment-media/tv/`
+- `archive/entertainment-media/Kids/`
+- `archive/entertainment-media/youtube/`
+- `harbor/` (Docker registry cache)
+- `archive/media-downloads-temp/`
+
+**Current B2 size**: ~547 GiB (~$3.30/month)
 
 ### Encryption
 
@@ -43,7 +65,8 @@ All data is encrypted **client-side** before upload using rclone crypt:
 
 | File | Location | Purpose |
 |------|----------|---------|
-| Backup script | `scripts/backup-to-b2.sh` | Main backup script |
+| Selective backup script | `scripts/backup-to-b2-selective.sh` | **Active** - backs up essential dirs only |
+| Full backup script | `scripts/backup-to-b2.sh` | Legacy - backs up entire pool (not used) |
 | rclone config | `~/.config/rclone/rclone.conf` | B2 credentials + encryption |
 | Logs | `~/server/logs/backups/backup-*.log` | Per-run logs |
 | Cron log | `~/server/logs/backups/cron.log` | Scheduled run output |
@@ -68,10 +91,10 @@ directory_name_encryption = true
 
 ```
 # User crontab (crontab -e)
-30 5 * * * /home/unarmedpuppy/server/scripts/backup-to-b2.sh >> /home/unarmedpuppy/server/logs/backups/cron.log 2>&1
+30 5 * * * /home/unarmedpuppy/server/scripts/backup-to-b2-selective.sh >> /home/unarmedpuppy/server/logs/backups/cron.log 2>&1
 ```
 
-> **TEMPORARY (Jan 2026)**: Schedule changed from 1:00 AM to 5:30 AM to allow initial B2 sync to complete. The server restarts at 5:00 AM daily, which was terminating backups after only 4 hours. Running at 5:30 AM gives ~23.5 hours per day. **Revert to `0 1 * * *` once initial sync completes.**
+Runs daily at 5:30 AM (after the 5:00 AM server restart).
 
 ### Common Operations
 
@@ -92,14 +115,17 @@ tail -100 ~/server/logs/backups/cron.log
 
 #### Run Manual Backup
 ```bash
-# Full backup
-bash ~/server/scripts/backup-to-b2.sh
+# Selective backup (essential directories only)
+bash ~/server/scripts/backup-to-b2-selective.sh
 
 # Dry-run (preview only)
-bash ~/server/scripts/backup-to-b2.sh --dry-run
+bash ~/server/scripts/backup-to-b2-selective.sh --dry-run
 
 # Background with logging
-nohup bash ~/server/scripts/backup-to-b2.sh > ~/server/logs/backups/manual-backup.log 2>&1 &
+nohup bash ~/server/scripts/backup-to-b2-selective.sh > ~/server/logs/backups/manual-backup.log 2>&1 &
+
+# Full backup (legacy - backs up entire pool, use with caution)
+bash ~/server/scripts/backup-to-b2.sh
 ```
 
 #### Prioritize Specific Folder
@@ -429,7 +455,8 @@ zpool status jenquist-cloud
 
 | What | Where |
 |------|-------|
-| B2 backup script | `scripts/backup-to-b2.sh` |
+| B2 selective backup script | `scripts/backup-to-b2-selective.sh` (active) |
+| B2 full backup script | `scripts/backup-to-b2.sh` (legacy) |
 | Backup configurator | `scripts/backup-configurator.py` |
 | Backup configs | `~/.backup-configs.json` |
 | B2 logs | `~/server/logs/backups/` |
