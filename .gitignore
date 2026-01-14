@@ -56,3 +56,5 @@ apps/ytdl-sub/config/*
 
 # Workspace Agents
 agents/.workspace-agents.json
+
+apps/media-download/kavita/config/*
