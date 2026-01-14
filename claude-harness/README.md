@@ -174,13 +174,35 @@ sudo ./manage.sh install
 
 ## Endpoints
 
+### Synchronous (OpenAI-compatible)
+
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/health` | GET | Health check |
+| `/health` | GET | Health check (shows job counts, timeouts) |
 | `/v1/models` | GET | List available models |
-| `/v1/chat/completions` | POST | Chat completions (OpenAI-compatible) |
+| `/v1/chat/completions` | POST | Chat completions (30 min timeout) |
+
+### Async Job Queue (Fire-and-Forget)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/v1/jobs` | POST | Create async job, returns immediately |
+| `/v1/jobs` | GET | List all jobs (filter by status) |
+| `/v1/jobs/{job_id}` | GET | Get job status and result |
+| `/v1/jobs/{job_id}` | DELETE | Delete completed/failed job |
+
+## Configuration
+
+Timeouts are configurable via environment variables:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CLAUDE_SYNC_TIMEOUT` | 1800 (30 min) | Timeout for `/v1/chat/completions` |
+| `CLAUDE_ASYNC_TIMEOUT` | 7200 (2 hr) | Timeout for `/v1/jobs` async tasks |
 
 ## Usage Examples
+
+### Synchronous Chat Completion
 
 ```bash
 # Direct to harness (for testing)
@@ -192,6 +214,129 @@ curl -X POST http://localhost:8013/v1/chat/completions \
 curl -X POST http://localhost:8012/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"claude-sonnet","messages":[{"role":"user","content":"Hello!"}]}'
+```
+
+### Async Job Queue (Fire-and-Forget)
+
+For long-running autonomous tasks (CI/CD, n8n workflows, etc.):
+
+**1. Create a Job**
+
+```bash
+curl -X POST http://claude-harness.server.unarmedpuppy.com/v1/jobs \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Update the README in trading-bot, commit the changes, push to git, and create release tag v1.2.3",
+    "working_directory": "/workspace/trading-bot",
+    "system_prompt": "Complete all work autonomously. Commit with descriptive messages. Push to git. Create and push version tags when releasing."
+  }'
+```
+
+**Response (immediate):**
+
+```json
+{
+  "job_id": "job-abc123def456",
+  "status": "pending",
+  "message": "Job created and queued for execution",
+  "poll_url": "/v1/jobs/job-abc123def456"
+}
+```
+
+**2. Poll for Status**
+
+```bash
+curl http://claude-harness.server.unarmedpuppy.com/v1/jobs/job-abc123def456
+```
+
+**Response:**
+
+```json
+{
+  "id": "job-abc123def456",
+  "status": "completed",
+  "prompt": "Update the README in trading-bot...",
+  "model": "claude-sonnet-4-20250514",
+  "created_at": "2025-01-13T20:00:00",
+  "started_at": "2025-01-13T20:00:01",
+  "completed_at": "2025-01-13T20:05:30",
+  "result": "I've updated the README with the new API documentation...",
+  "duration_seconds": 329.5
+}
+```
+
+**3. List Jobs**
+
+```bash
+# All jobs
+curl http://claude-harness.server.unarmedpuppy.com/v1/jobs
+
+# Filter by status
+curl "http://claude-harness.server.unarmedpuppy.com/v1/jobs?status=running"
+curl "http://claude-harness.server.unarmedpuppy.com/v1/jobs?status=completed"
+```
+
+**4. Delete Completed Job**
+
+```bash
+curl -X DELETE http://claude-harness.server.unarmedpuppy.com/v1/jobs/job-abc123def456
+```
+
+### Job Request Parameters
+
+| Parameter | Required | Default | Description |
+|-----------|----------|---------|-------------|
+| `prompt` | Yes | - | The task for Claude to execute |
+| `model` | No | `claude-sonnet-4-20250514` | Model to use |
+| `working_directory` | No | `/workspace` | Working directory (must be under `/workspace`) |
+| `system_prompt` | No | - | System prompt prepended to the task |
+
+### Job Statuses
+
+| Status | Description |
+|--------|-------------|
+| `pending` | Job created, waiting to start |
+| `running` | Claude is working on the task |
+| `completed` | Task finished successfully |
+| `failed` | Task failed with an error |
+| `timeout` | Task exceeded the 2-hour timeout |
+
+## n8n Integration
+
+### Fire-and-Forget Workflow
+
+Use an HTTP Request node in n8n to trigger autonomous Claude tasks:
+
+**HTTP Request Node Settings:**
+- **Method:** POST
+- **URL:** `http://claude-harness.server.unarmedpuppy.com/v1/jobs`
+- **Body Content Type:** JSON
+- **Body:**
+
+```json
+{
+  "prompt": "{{ $json.task_description }}",
+  "working_directory": "/workspace/{{ $json.repo_name }}",
+  "system_prompt": "You are an autonomous development agent. Complete all work, commit changes with descriptive messages, push to git. If releasing, create a semver tag and push it."
+}
+```
+
+### Poll for Completion (Optional)
+
+Add a second workflow or use n8n's Wait node + HTTP Request to poll:
+
+1. **Wait Node:** 30 seconds
+2. **HTTP Request:** GET `/v1/jobs/{{ $json.job_id }}`
+3. **IF Node:** Check if `status == "completed"` or `status == "failed"`
+4. **Loop back** to Wait if still `running`
+
+### Example: Auto-Release on PR Merge
+
+```
+Webhook (PR merged) → HTTP Request (create job) → Respond "Job queued"
+                              ↓
+                    Claude: pulls latest, runs tests,
+                    bumps version, commits, tags, pushes
 ```
 
 ## Router Configuration
@@ -256,10 +401,11 @@ docker exec -it local-ai-router curl http://host.docker.internal:8013/health
 
 ## Limitations
 
-1. **No streaming**: Claude CLI outputs complete response, chunked after completion
-2. **Sequential requests**: One request at a time (Claude CLI limitation)
-3. **Rate limits**: Claude Max limits apply
-4. **Token expiry**: Re-authenticate if tokens expire (~30 days)
+1. **No true streaming**: Claude CLI outputs complete response, then chunked to client
+2. **Sequential execution**: One Claude task at a time (CLI limitation). Jobs queue up.
+3. **In-memory job store**: Jobs are lost on service restart. Use for fire-and-forget, not critical workflows.
+4. **Rate limits**: Claude Max subscription limits apply
+5. **Token expiry**: Re-authenticate if OAuth tokens expire (~30 days)
 
 ## Files
 
