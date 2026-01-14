@@ -261,6 +261,21 @@ async def call_claude_cli(
         raise HTTPException(status_code=500, detail="Claude CLI not found")
 
 
+async def git_fetch_origin(working_directory: str):
+    """Fetch latest from origin before starting work."""
+    try:
+        process = await asyncio.create_subprocess_exec(
+            "git", "fetch", "origin", "--prune",
+            cwd=working_directory,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        await asyncio.wait_for(process.communicate(), timeout=60.0)
+        logger.info(f"Fetched latest from origin in {working_directory}")
+    except Exception as e:
+        logger.warning(f"Git fetch failed in {working_directory}: {e}")
+
+
 async def execute_job(job_id: str):
     """Execute a job in the background."""
     job = jobs.get(job_id)
@@ -273,6 +288,10 @@ async def execute_job(job_id: str):
     job.started_at = datetime.utcnow().isoformat()
 
     logger.info(f"Starting job {job_id}")
+
+    # Always fetch latest from origin before starting work
+    working_dir = job.working_directory or "/workspace"
+    await git_fetch_origin(working_dir)
 
     try:
         result = await call_claude_cli(

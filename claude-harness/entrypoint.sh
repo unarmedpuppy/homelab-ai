@@ -138,6 +138,7 @@ setup_workspace() {
             "trading-journal"
             "workflows"
             "shua-ledger"
+            "bird"
         )
 
         for repo in "${HOMELAB_REPOS[@]}"; do
@@ -158,6 +159,9 @@ setup_workspace() {
                     echo "Fixing $repo remote: GitHub -> Gitea"
                     gosu "$APPUSER" git -C "$repo" remote set-url origin "https://gitea.server.unarmedpuppy.com/homelab/${repo}.git"
                 fi
+                # Always fetch latest from origin on startup
+                echo "Fetching latest for $repo..."
+                gosu "$APPUSER" git -C "$repo" fetch origin --prune 2>/dev/null || true
             fi
         done
 
