@@ -43,6 +43,7 @@ services:
       - CT0=${CT0:-}
     volumes:
       - bird-data:/app/data
+      - /jenquist-cloud/archive/hosted-content/bird-media:/media
     networks:
       - my-network
     labels:
