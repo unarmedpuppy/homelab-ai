@@ -1,17 +1,27 @@
+# Bird Stack - Twitter/X Bookmark Viewer
+#
+# Components:
+#   - bird-viewer: React frontend for viewing bookmarks/likes
+#   - bird-api: FastAPI backend serving data from SQLite
+#
+# The bird processor (fetcher) runs separately via n8n trigger or manual invocation.
+# It shares the bird-data volume with bird-api.
+
 x-enabled: true
 
 services:
   bird-viewer:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: harbor.server.unarmedpuppy.com/library/bird-viewer:latest
     container_name: bird-viewer
     restart: unless-stopped
     environment:
       - TZ=America/Chicago
+    depends_on:
+      - bird-api
     networks:
       - my-network
     labels:
+      - "com.centurylinklabs.watchtower.enable=true"
       - "traefik.enable=true"
       - "traefik.http.routers.bird-viewer.rule=Host(`bird-viewer.server.unarmedpuppy.com`)"
       - "traefik.http.routers.bird-viewer.entrypoints=websecure"
@@ -23,6 +33,34 @@ services:
       - "homepage.href=https://bird-viewer.server.unarmedpuppy.com"
       - "homepage.description=Twitter bookmark viewer"
 
+  bird-api:
+    image: harbor.server.unarmedpuppy.com/library/bird-api:latest
+    container_name: bird-api
+    restart: unless-stopped
+    environment:
+      - TZ=America/Chicago
+      - AUTH_TOKEN=${AUTH_TOKEN:-}
+      - CT0=${CT0:-}
+    volumes:
+      - bird-data:/app/data
+    networks:
+      - my-network
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "traefik.enable=true"
+      - "traefik.http.routers.bird-api.rule=Host(`bird-api.server.unarmedpuppy.com`)"
+      - "traefik.http.routers.bird-api.entrypoints=websecure"
+      - "traefik.http.routers.bird-api.tls.certresolver=myresolver"
+      - "traefik.http.services.bird-api.loadbalancer.server.port=8000"
+      - "homepage.group=AI"
+      - "homepage.name=Bird API"
+      - "homepage.icon=mdi-api"
+      - "homepage.href=https://bird-api.server.unarmedpuppy.com/health"
+      - "homepage.description=Bird bookmark API"
+
 networks:
   my-network:
     external: true
+
+volumes:
+  bird-data:
