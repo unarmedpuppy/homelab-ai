@@ -44,6 +44,8 @@ DEFAULT_CONFIG = {
         "agent-core": "agent-gateway",
         "agent-gateway": "agent-gateway",
         "polymarket-bot": "polyjuiced",
+        "bird-api": "bird-viewer",
+        "bird-viewer": "bird-viewer",
     },
 }
 
