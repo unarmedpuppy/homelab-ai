@@ -260,6 +260,54 @@ setup_beads() {
     )
 }
 
+setup_shared_skills() {
+    echo "Setting up shared-agent-skills..."
+
+    # Install/update shared-agent-skills globally from Gitea registry
+    npm install -g shared-agent-skills@latest \
+        --registry https://gitea.server.unarmedpuppy.com/api/packages/unarmedpuppy/npm/ \
+        2>/dev/null || echo "Warning: Could not install shared-agent-skills"
+
+    # Link skills into each workspace repo that has a .claude directory or package.json
+    (
+        cd "$WORKSPACE_DIR"
+
+        for repo in */; do
+            repo_name="${repo%/}"
+
+            # Skip if not a git repo
+            [ ! -d "$repo/.git" ] && continue
+
+            # Create .claude/skills if repo uses Claude
+            if [ -f "$repo/CLAUDE.md" ] || [ -d "$repo/.claude" ] || [ -f "$repo/package.json" ]; then
+                echo "Linking skills to $repo_name..."
+                mkdir -p "$repo/.claude/skills"
+
+                # Run link-skills if available
+                if command -v link-skills &> /dev/null; then
+                    (cd "$repo" && gosu "$APPUSER" link-skills --verbose 2>/dev/null) || true
+                else
+                    # Manual symlink fallback
+                    local skills_dir=$(npm root -g 2>/dev/null)/shared-agent-skills/skills
+                    if [ -d "$skills_dir" ]; then
+                        for skill_dir in "$skills_dir"/*/; do
+                            skill_name=$(basename "$skill_dir")
+                            skill_file="$skill_dir/SKILL.md"
+                            if [ -f "$skill_file" ]; then
+                                ln -sf "$skill_file" "$repo/.claude/skills/${skill_name}.md" 2>/dev/null || true
+                            fi
+                        done
+                    fi
+                fi
+
+                chown -R "$APPUSER:$APPUSER" "$repo/.claude" 2>/dev/null || true
+            fi
+        done
+    )
+
+    echo "Shared skills setup complete"
+}
+
 start_code_server() {
     if command -v code-server &> /dev/null; then
         echo "Starting code-server on port 8443..."
@@ -305,6 +353,7 @@ setup_claude_yolo
 start_sshd
 setup_workspace
 setup_beads
+setup_shared_skills
 start_code_server
 
 if [ ! -f "$CLAUDE_CONFIG" ] && [ ! -f "$CLAUDE_CONFIG_IN_VOLUME" ]; then
