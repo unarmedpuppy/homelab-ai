@@ -235,13 +235,14 @@ class HarborDeployer:
             container.stop(timeout=30)
             container.remove()
 
-            # Restart via docker compose
+            # Restart via docker compose (run from app dir to load .env)
             self.logger.info(f"  Starting via docker compose...")
             result = subprocess.run(
                 ["docker", "compose", "-f", str(compose_path), "up", "-d"],
                 capture_output=True,
                 text=True,
                 timeout=120,
+                cwd=compose_path.parent,
             )
 
             if result.returncode != 0:
