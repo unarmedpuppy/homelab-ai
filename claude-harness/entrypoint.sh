@@ -55,9 +55,10 @@ setup_git_config() {
     > "$creds_file"  # Clear/create file
 
     # Gitea credentials (primary - for all homelab repos)
+    # Use internal Docker network address to avoid Traefik auth header issues
     if [ -n "${GITEA_TOKEN:-}" ]; then
-        echo "https://oauth2:${GITEA_TOKEN}@gitea.server.unarmedpuppy.com" >> "$creds_file"
-        echo "Git configured with Gitea token authentication"
+        echo "http://oauth2:${GITEA_TOKEN}@gitea:3000" >> "$creds_file"
+        echo "Git configured with Gitea token authentication (internal: gitea:3000)"
     fi
 
     # GitHub credentials (secondary - for external dependencies)
@@ -144,20 +145,20 @@ setup_workspace() {
         for repo in "${HOMELAB_REPOS[@]}"; do
             if [ ! -d "$repo" ]; then
                 echo "Cloning $repo from Gitea..."
-                # Use Gitea exclusively for homelab repos (not GitHub)
+                # Use internal Docker network address (gitea:3000) to avoid Traefik auth issues
                 if [ -n "${GITEA_TOKEN:-}" ]; then
-                    gosu "$APPUSER" git clone "https://gitea.server.unarmedpuppy.com/homelab/${repo}.git" || {
+                    gosu "$APPUSER" git clone "http://gitea:3000/homelab/${repo}.git" || {
                         echo "Warning: Failed to clone $repo from Gitea"
                     }
                 else
                     echo "Warning: GITEA_TOKEN not set, cannot clone $repo"
                 fi
             else
-                # Repo exists - ensure remote is Gitea, not GitHub
+                # Repo exists - ensure remote is internal Gitea, not GitHub or external Gitea
                 local current_remote=$(git -C "$repo" remote get-url origin 2>/dev/null || true)
-                if [[ "$current_remote" == *"github.com"* ]]; then
-                    echo "Fixing $repo remote: GitHub -> Gitea"
-                    gosu "$APPUSER" git -C "$repo" remote set-url origin "https://gitea.server.unarmedpuppy.com/homelab/${repo}.git"
+                if [[ "$current_remote" == *"github.com"* ]] || [[ "$current_remote" == *"gitea.server.unarmedpuppy.com"* ]]; then
+                    echo "Fixing $repo remote -> internal Gitea"
+                    gosu "$APPUSER" git -C "$repo" remote set-url origin "http://gitea:3000/homelab/${repo}.git"
                 fi
                 # Always fetch latest from origin on startup
                 echo "Fetching latest for $repo..."
