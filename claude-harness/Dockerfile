@@ -42,6 +42,11 @@ RUN sed -i 's/#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config && \
 # Install Claude Code CLI globally
 RUN npm install -g @anthropic-ai/claude-code
 
+# Install Beads CLI (bd) for task management
+RUN curl -sSL https://raw.githubusercontent.com/steveyegge/beads/main/scripts/install.sh | bash \
+    && mv /root/.local/bin/bd /usr/local/bin/bd \
+    && chmod +x /usr/local/bin/bd
+
 # Create non-root user for security
 RUN useradd -m -s /bin/bash appuser
 

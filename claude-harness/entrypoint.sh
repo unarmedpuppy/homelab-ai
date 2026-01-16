@@ -24,7 +24,7 @@ setup_ssh_key() {
         cat "$SSH_DIR/id_ed25519.pub"
         echo ""
     fi
-    
+
     # Copy user's authorized_keys for inbound SSH if mounted
     if [ -f "/etc/ssh/user_authorized_keys" ]; then
         cp /etc/ssh/user_authorized_keys "$SSH_DIR/authorized_keys"
@@ -74,18 +74,18 @@ setup_git_config() {
 setup_gpg_signing() {
     local gpg_key_file="/etc/gpg-key.asc"
     local gpg_dir="/home/$APPUSER/.gnupg"
-    
+
     if [ -f "$gpg_key_file" ] && [ -n "${GPG_KEY_ID:-}" ]; then
         mkdir -p "$gpg_dir"
         chmod 700 "$gpg_dir"
         chown "$APPUSER:$APPUSER" "$gpg_dir"
-        
+
         gosu "$APPUSER" gpg --batch --import "$gpg_key_file" 2>/dev/null || true
-        
+
         gosu "$APPUSER" git config --global user.signingkey "$GPG_KEY_ID"
         gosu "$APPUSER" git config --global commit.gpgsign true
         gosu "$APPUSER" git config --global gpg.program gpg
-        
+
         echo "GPG signing configured with key $GPG_KEY_ID"
     fi
 }
@@ -103,12 +103,12 @@ case "$1" in
 esac
 EOF
     chmod +x /usr/local/bin/claude-yolo
-    
+
     if [ ! -f /usr/bin/claude.orig ]; then
         mv /usr/bin/claude /usr/bin/claude.orig
         ln -s /usr/local/bin/claude-yolo /usr/bin/claude
     fi
-    
+
     local bashrc="/home/$APPUSER/.bashrc"
     if ! grep -q "cd /workspace" "$bashrc" 2>/dev/null; then
         echo "cd /workspace" >> "$bashrc"
@@ -201,13 +201,14 @@ setup_beads() {
     (
         cd "$WORKSPACE_DIR"
 
-        # Initialize beads if not already done and bd command exists
-        if [ ! -d ".beads" ] && command -v bd &> /dev/null; then
-            echo "Initializing beads in workspace..."
-            gosu "$APPUSER" bd init --prefix "workspace-" || true
+        # Symlink workspace .beads to home-server's beads (source of truth)
+        # This keeps beads data git-tracked in home-server
+        if [ -d "home-server/.beads" ] && [ ! -e ".beads" ]; then
+            gosu "$APPUSER" ln -sf "$WORKSPACE_DIR/home-server/.beads" ".beads"
+            echo "Linked workspace .beads → home-server/.beads (source of truth)"
         fi
 
-        # Start beads daemon if available
+        # Start beads daemon if bd command exists
         if command -v bd &> /dev/null; then
             echo "Starting beads daemon..."
             gosu "$APPUSER" bd daemon start &> /dev/null &
@@ -216,51 +217,78 @@ setup_beads() {
 }
 
 setup_shared_skills() {
-    echo "Setting up shared-agent-skills..."
+    # Aggregate skills from ALL repos into /workspace/.claude/skills/
+    # This replaces the npm shared-agent-skills package approach
+    local skills_target="$WORKSPACE_DIR/.claude/skills"
 
-    # Install/update shared-agent-skills globally from Gitea registry
-    npm install -g shared-agent-skills@latest \
-        --registry https://gitea.server.unarmedpuppy.com/api/packages/unarmedpuppy/npm/ \
-        2>/dev/null || echo "Warning: Could not install shared-agent-skills"
+    # Create skills directory
+    gosu "$APPUSER" mkdir -p "$skills_target"
 
-    # Link skills into each workspace repo that has a .claude directory or package.json
-    (
-        cd "$WORKSPACE_DIR"
+    # Remove old symlinks (handles renamed/removed skills)
+    find "$skills_target" -type l -delete 2>/dev/null || true
 
-        for repo in */; do
-            repo_name="${repo%/}"
+    # Scan ALL repos for skills and aggregate them
+    local count=0
+    local collisions=0
+    for repo in "$WORKSPACE_DIR"/*/; do
+        local repo_name=$(basename "$repo")
 
-            # Skip if not a git repo
-            [ ! -d "$repo/.git" ] && continue
+        # Check both patterns: agents/skills/ (preferred) and .claude/skills/
+        for skills_dir in "$repo"agents/skills "$repo".claude/skills; do
+            [ -d "$skills_dir" ] || continue
 
-            # Create .claude/skills if repo uses Claude
-            if [ -f "$repo/CLAUDE.md" ] || [ -d "$repo/.claude" ] || [ -f "$repo/package.json" ]; then
-                echo "Linking skills to $repo_name..."
-                mkdir -p "$repo/.claude/skills"
+            # Pattern 1: agents/skills/skill-name/SKILL.md
+            for skill_file in "$skills_dir"/*/SKILL.md; do
+                [ -f "$skill_file" ] || continue
 
-                # Run link-skills if available
-                if command -v link-skills &> /dev/null; then
-                    (cd "$repo" && gosu "$APPUSER" link-skills --verbose 2>/dev/null) || true
-                else
-                    # Manual symlink fallback
-                    local skills_dir=$(npm root -g 2>/dev/null)/shared-agent-skills/skills
-                    if [ -d "$skills_dir" ]; then
-                        for skill_dir in "$skills_dir"/*/; do
-                            skill_name=$(basename "$skill_dir")
-                            skill_file="$skill_dir/SKILL.md"
-                            if [ -f "$skill_file" ]; then
-                                ln -sf "$skill_file" "$repo/.claude/skills/${skill_name}.md" 2>/dev/null || true
-                            fi
-                        done
-                    fi
+                local name=$(basename "$(dirname "$skill_file")")
+
+                # Check for collision
+                if [ -L "$skills_target/${name}.md" ]; then
+                    echo "WARN: Skill collision '$name' from $repo_name (skipping)"
+                    collisions=$((collisions + 1))
+                    continue
                 fi
 
-                chown -R "$APPUSER:$APPUSER" "$repo/.claude" 2>/dev/null || true
-            fi
-        done
-    )
+                gosu "$APPUSER" ln -sf "$skill_file" "$skills_target/${name}.md"
+                count=$((count + 1))
+            done
 
-    echo "Shared skills setup complete"
+            # Pattern 2: .claude/skills/skill-name.md (direct files, not symlinks)
+            for skill_file in "$skills_dir"/*.md; do
+                [ -f "$skill_file" ] || continue
+                # Skip if it's a symlink (avoid double-counting)
+                [ -L "$skill_file" ] && continue
+                # Skip README
+                [[ "$(basename "$skill_file")" == "README.md" ]] && continue
+
+                local name=$(basename "$skill_file" .md)
+
+                if [ -L "$skills_target/${name}.md" ]; then
+                    echo "WARN: Skill collision '$name' from $repo_name (skipping)"
+                    collisions=$((collisions + 1))
+                    continue
+                fi
+
+                gosu "$APPUSER" ln -sf "$skill_file" "$skills_target/${name}.md"
+                count=$((count + 1))
+            done
+        done
+    done
+
+    echo "Linked $count skills from all repos to $skills_target"
+    [ $collisions -gt 0 ] && echo "WARN: $collisions skill collisions detected"
+
+    # Create CLAUDE.md at workspace root if missing
+    if [ ! -f "$WORKSPACE_DIR/CLAUDE.md" ]; then
+        if [ -f "$WORKSPACE_DIR/AGENTS.md" ]; then
+            gosu "$APPUSER" cp "$WORKSPACE_DIR/AGENTS.md" "$WORKSPACE_DIR/CLAUDE.md"
+            echo "Created CLAUDE.md from AGENTS.md"
+        elif [ -f "$WORKSPACE_DIR/home-server/AGENTS.md" ]; then
+            gosu "$APPUSER" cp "$WORKSPACE_DIR/home-server/AGENTS.md" "$WORKSPACE_DIR/CLAUDE.md"
+            echo "Created CLAUDE.md from home-server/AGENTS.md"
+        fi
+    fi
 }
 
 start_code_server() {

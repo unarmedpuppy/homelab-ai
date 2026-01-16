@@ -573,17 +573,68 @@ docker exec claude-harness tail -f /workspace/.ralph-wiggum.log
 4. **Rate limits**: Claude Max subscription limits apply
 5. **Token expiry**: Re-authenticate if OAuth tokens expire (~30 days)
 
+## Workspace Setup (Docker Version)
+
+The Docker version of claude-harness includes automatic workspace configuration on startup:
+
+### Skills Aggregation
+
+Skills are automatically discovered and symlinked from all repos in `/workspace`:
+
+```
+/workspace/.claude/skills/           # Aggregated skills
+├── deploy-new-service.md → ../home-server/agents/skills/.../SKILL.md
+├── create-daily-digest.md → ../bird/agents/skills/.../SKILL.md
+├── check-positions.md → ../trading-bot/agents/skills/.../SKILL.md
+└── ...
+```
+
+**How it works:**
+- On startup, scans all `/workspace/*/` repos
+- Looks for skills in `agents/skills/*/SKILL.md` or `.claude/skills/*.md`
+- Creates symlinks in `/workspace/.claude/skills/`
+- Warns on name collisions (first repo alphabetically wins)
+
+**Adding skills to your repo:**
+```
+your-repo/
+└── agents/skills/
+    └── your-skill-name/
+        └── SKILL.md
+```
+
+### Beads Task Management
+
+The `bd` CLI is pre-installed for task management. Tasks are stored in `home-server/.beads/` (source of truth) with a symlink at `/workspace/.beads`:
+
+```bash
+cd /workspace
+bd ready              # Find unblocked work
+bd list               # View all tasks
+bd create "title"     # Create task (writes to home-server/.beads/)
+bd close <id>         # Complete task
+```
+
+**Committing task changes:**
+```bash
+cd /workspace/home-server
+git add .beads && git commit -m "task: description"
+git push
+```
+
 ## Files
 
 ```
-apps/claude-harness/
+claude-harness/                      # Docker version (homelab-ai)
+├── Dockerfile                 # Container definition
 ├── main.py                    # FastAPI service
 ├── ralph-wiggum.sh            # Autonomous task loop script
+├── entrypoint.sh              # Startup script (skills, beads, repos)
 ├── requirements.txt           # Python dependencies
 ├── claude-harness.service     # Systemd unit file
 ├── manage.sh                  # Management script
-├── entrypoint.sh              # Container startup script
-├── Dockerfile                 # Container build definition
+├── CLAUDE.md                  # Agent instructions
+├── .claude/skills/            # Container-specific skills
 └── README.md                  # This file
 ```
 
