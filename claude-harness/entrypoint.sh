@@ -160,9 +160,12 @@ setup_workspace() {
                     echo "Fixing $repo remote -> internal Gitea"
                     gosu "$APPUSER" git -C "$repo" remote set-url origin "http://gitea:3000/homelab/${repo}.git"
                 fi
-                # Always fetch latest from origin on startup
-                echo "Fetching latest for $repo..."
-                gosu "$APPUSER" git -C "$repo" fetch origin --prune 2>/dev/null || true
+                # Pull latest on startup (fast-forward only to avoid conflicts)
+                echo "Pulling latest for $repo..."
+                gosu "$APPUSER" git -C "$repo" pull --ff-only 2>/dev/null || {
+                    echo "Warning: Could not fast-forward $repo, fetching instead"
+                    gosu "$APPUSER" git -C "$repo" fetch origin --prune 2>/dev/null || true
+                }
             fi
         done
 
