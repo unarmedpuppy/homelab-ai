@@ -94,6 +94,7 @@ services:
       - IDLE_TIMEOUT=0
       - VLLM_IMAGE=harbor.server.unarmedpuppy.com/docker-hub/vllm/vllm-openai:v0.4.0
       - DOCKER_NETWORK=my-network
+      - GPU_MEMORY_UTILIZATION=0.70
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - huggingface-cache:/root/.cache/huggingface
