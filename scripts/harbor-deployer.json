@@ -12,6 +12,8 @@
     "claude-harness": "homelab-ai",
     "agent-core": "agent-gateway",
     "agent-gateway": "agent-gateway",
-    "polymarket-bot": "polyjuiced"
+    "polymarket-bot": "polyjuiced",
+    "bird-api": "bird-viewer",
+    "bird-viewer": "bird-viewer"
   }
 }
