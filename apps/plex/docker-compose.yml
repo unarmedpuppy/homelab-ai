@@ -16,13 +16,15 @@ services:
             - ./data/transcode:/transcode
             - /jenquist-cloud/archive:/data
         restart: unless-stopped
+        devices:
+          - /dev/dri:/dev/dri
         deploy:
           resources:
             reservations:
               devices:
                 - driver: nvidia
                   count: 1
-                  capabilities: [gpu]
+                  capabilities: [gpu, video]
         ports:
           - "32400:32400/tcp"
           - "3005:3005/tcp"
