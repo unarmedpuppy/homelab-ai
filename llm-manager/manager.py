@@ -27,6 +27,7 @@ MODELS_CONFIG_PATH = os.getenv("MODELS_CONFIG_PATH", "/app/models.json")
 VLLM_IMAGE = os.getenv("VLLM_IMAGE", "vllm/vllm-openai:latest")
 HF_CACHE_PATH = os.getenv("HF_CACHE_PATH", "/root/.cache/huggingface")
 DOCKER_NETWORK = os.getenv("DOCKER_NETWORK", "ai-network")  # Network for spawned containers
+GPU_MEMORY_UTILIZATION = float(os.getenv("GPU_MEMORY_UTILIZATION", "0.95"))  # vLLM gpu-memory-utilization
 
 # --- Global State ---
 docker_client = docker.from_env()
@@ -145,7 +146,7 @@ def create_vllm_container(model_id: str):
         context_len = min(context_len, 2048)
     
     cmd.extend(["--max-model-len", str(context_len)])
-    cmd.extend(["--gpu-memory-utilization", "0.95"])
+    cmd.extend(["--gpu-memory-utilization", str(GPU_MEMORY_UTILIZATION)])
     
     # AWQ quantized models benefit from enforce-eager (better memory efficiency)
     if card.get("quantization") == "awq":
