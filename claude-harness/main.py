@@ -217,6 +217,14 @@ async def call_claude_cli(
     if timeout is None:
         timeout = SYNC_TIMEOUT
 
+    # Validate working directory exists
+    if not os.path.isdir(working_directory):
+        logger.error(f"Working directory does not exist: {working_directory}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Working directory does not exist: {working_directory}"
+        )
+
     # Resolve model aliases
     model_config = AVAILABLE_MODELS.get(model, {})
     actual_model = model_config.get("alias_for", model)
