@@ -9,6 +9,7 @@ export type { RetroButtonProps } from './RetroButton';
 export { RetroPanel } from './RetroPanel';
 export type { RetroPanelProps } from './RetroPanel';
 export { RetroProgress } from './RetroProgress';
+export type { RetroProgressProps } from './RetroProgress';
 export { RetroInput } from './RetroInput';
 export { RetroSelect } from './RetroSelect';
 export { RetroCheckbox } from './RetroCheckbox';

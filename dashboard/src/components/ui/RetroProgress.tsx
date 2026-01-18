@@ -1,8 +1,9 @@
-interface RetroProgressProps {
+export interface RetroProgressProps {
   value: number; // 0-100
   showLabel?: boolean;
   variant?: 'default' | 'success' | 'warning' | 'danger';
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md';
+  segments?: number; // Number of segments (default 10)
   className?: string;
 }
 
@@ -11,39 +12,59 @@ export function RetroProgress({
   showLabel = false,
   variant = 'default',
   size = 'md',
+  segments = 10,
   className = '',
 }: RetroProgressProps) {
   const clampedValue = Math.min(100, Math.max(0, value));
 
-  const variantClasses = {
-    default: '',
-    success: 'retro-progress-bar-success',
-    warning: 'retro-progress-bar-warning',
-    danger: 'retro-progress-bar-danger',
+  // Calculate how many segments should be filled
+  const filledSegments = Math.round((clampedValue / 100) * segments);
+
+  const variantColors = {
+    default: 'var(--retro-accent-cyan)',
+    success: 'var(--retro-accent-green)',
+    warning: 'var(--retro-accent-yellow)',
+    danger: 'var(--retro-accent-red)',
   };
 
-  const sizeClasses = {
-    sm: 'h-1',
-    md: 'h-2',
-    lg: 'h-3',
+  const sizeHeights = {
+    sm: '6px',
+    md: '8px',
   };
 
-  // Auto-determine variant based on value if not specified
-  const autoVariant = variant === 'default'
-    ? clampedValue >= 100
-      ? 'success'
-      : clampedValue >= 75
-        ? 'warning'
-        : 'default'
-    : variant;
+  const segmentHeight = sizeHeights[size];
+  const fillColor = variantColors[variant];
 
   return (
     <div className={`flex items-center gap-2 ${className}`.trim()}>
-      <div className={`retro-progress flex-1 ${sizeClasses[size]}`}>
-        <div
-          className={`retro-progress-bar ${variantClasses[autoVariant]} ${sizeClasses[size]}`}
-          style={{ width: `${clampedValue}%` }}
-        />
+      <div
+        className="retro-progress-segmented"
+        style={{
+          display: 'flex',
+          gap: '2px',
+          background: 'var(--retro-bg-dark)',
+          border: '1px solid var(--retro-border)',
+          padding: '2px',
+          flex: 1,
+          borderRadius: 'var(--retro-radius-sm)',
+        }}
+      >
+        {Array.from({ length: segments }, (_, index) => {
+          const isFilled = index < filledSegments;
+          return (
+            <div
+              key={index}
+              className="retro-progress__segment"
+              style={{
+                flex: 1,
+                height: segmentHeight,
+                background: isFilled ? fillColor : 'var(--retro-bg-medium)',
+                transition: 'background 0.2s ease',
+                borderRadius: '1px',
+              }}
+            />
+          );
+        })}
       </div>
       {showLabel && (
         <span className="text-xs font-bold text-[var(--retro-text-secondary)] min-w-[3ch] text-right">

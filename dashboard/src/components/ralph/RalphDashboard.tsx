@@ -198,7 +198,7 @@ export function RalphDashboard() {
               {/* Progress */}
               {status.running && status.total_tasks > 0 && (
                 <div className="space-y-2">
-                  <RetroProgress value={progress} showLabel variant="default" size="lg" />
+                  <RetroProgress value={progress} showLabel variant="default" size="md" />
                   <div className="text-xs text-[var(--retro-text-muted)]">
                     {status.completed_tasks} / {status.total_tasks} tasks completed
                     {status.failed_tasks > 0 && (
