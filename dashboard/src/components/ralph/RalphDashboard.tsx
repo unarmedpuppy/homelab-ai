@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import type { RalphStatus, RalphStartParams } from '../../types/beads';
 import { ralphAPI, beadsAPI } from '../../api/client';
 import {
@@ -214,9 +215,17 @@ export function RalphDashboard() {
               {status.current_task && (
                 <div className="space-y-1">
                   <div className="text-xs text-[var(--retro-text-muted)]">Current Task:</div>
-                  <div className="text-sm text-[var(--retro-text-primary)]">
-                    {status.current_task_title || status.current_task}
-                  </div>
+                  <Link
+                    to={`/beads?task=${status.current_task}`}
+                    className="text-sm text-[var(--retro-accent-cyan)] hover:text-[var(--retro-text-primary)] hover:underline transition-colors block"
+                  >
+                    <span className="text-[var(--retro-text-muted)] mr-2">{status.current_task}</span>
+                    {status.current_task_title && (
+                      <span className="text-[var(--retro-text-primary)]">
+                        - "{status.current_task_title}"
+                      </span>
+                    )}
+                  </Link>
                 </div>
               )}
 
