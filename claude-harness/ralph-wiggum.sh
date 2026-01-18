@@ -284,11 +284,12 @@ get_working_dir() {
     fi
 
     # No repo label found, try LLM determination
-    log_warn "No repo:* label found, using LLM to determine working directory..."
+    # Note: log to stderr (>&2) to avoid polluting return value
+    log_warn "No repo:* label found, using LLM to determine working directory..." >&2
     repo_dir=$(determine_working_dir_with_llm "$task_json")
 
     if [ -n "$repo_dir" ]; then
-        log_info "LLM determined working directory: $repo_dir"
+        log_info "LLM determined working directory: $repo_dir" >&2
         echo "$repo_dir"
         return 0
     fi
