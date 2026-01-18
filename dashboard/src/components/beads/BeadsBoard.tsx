@@ -111,6 +111,17 @@ export function BeadsBoard() {
     }
   };
 
+  // Handle selecting a task by ID (used for blocked-by links)
+  const handleSelectTaskById = async (taskId: string) => {
+    try {
+      const task = await beadsAPI.getTask(taskId);
+      setSelectedTask(task);
+    } catch {
+      // Task not found, do nothing
+      console.warn(`Task ${taskId} not found`);
+    }
+  };
+
   const getColumnTasks = (column: Column) => {
     return tasks.filter(column.filter);
   };
@@ -229,11 +240,12 @@ export function BeadsBoard() {
 
         {/* Task Detail Panel (desktop) */}
         {selectedTask && (
-          <div className="hidden lg:block w-80 flex-shrink-0 border-l border-[var(--retro-border)]">
+          <div className="hidden lg:block w-80 flex-shrink-0 border-l border-[var(--retro-border)] overflow-hidden">
             <BeadsTaskDetail
               task={selectedTask}
               onClose={() => setSelectedTask(null)}
               onUpdate={handleTaskUpdate}
+              onSelectTask={handleSelectTaskById}
             />
           </div>
         )}
@@ -246,6 +258,7 @@ export function BeadsBoard() {
             task={selectedTask}
             onClose={() => setSelectedTask(null)}
             onUpdate={handleTaskUpdate}
+            onSelectTask={handleSelectTaskById}
           />
         </div>
       )}

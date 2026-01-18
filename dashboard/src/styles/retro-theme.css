@@ -1048,6 +1048,55 @@
   animation: retro-glow-pulse 2s ease-in-out infinite;
 }
 
+/* Task Detail Panel - Slide-in animation */
+@keyframes retro-slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes retro-slide-out-right {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.retro-task-detail-panel {
+  animation: retro-slide-in-right 0.25s ease-out forwards;
+}
+
+.retro-task-detail-panel--closing {
+  animation: retro-slide-out-right 0.2s ease-in forwards;
+}
+
+/* Mobile: Full-screen slide-up */
+@media (max-width: 1023px) {
+  @keyframes retro-slide-up-full {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .retro-task-detail-panel {
+    animation: retro-slide-up-full 0.25s ease-out forwards;
+  }
+}
+
 /* ================================================
    Responsive Layout System
    ================================================ */
