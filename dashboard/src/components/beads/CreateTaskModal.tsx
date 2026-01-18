@@ -11,7 +11,7 @@ import { REPO_LABELS, TASK_TYPES, PRIORITIES } from '../../types/beads';
 interface CreateTaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreated: () => void;
+  onCreated: (taskId: string) => void;
 }
 
 export function CreateTaskModal({
@@ -31,8 +31,14 @@ export function CreateTaskModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!title.trim()) {
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) {
       setError('Title is required');
+      return;
+    }
+
+    if (trimmedTitle.length < 5) {
+      setError('Title must be at least 5 characters');
       return;
     }
 
@@ -52,8 +58,8 @@ export function CreateTaskModal({
         labels.push(...extra);
       }
 
-      await beadsAPI.createTask({
-        title: title.trim(),
+      const createdTask = await beadsAPI.createTask({
+        title: trimmedTitle,
         priority,
         type: taskType,
         labels,
@@ -68,7 +74,7 @@ export function CreateTaskModal({
       setRepoLabel('');
       setAdditionalLabels('');
 
-      onCreated();
+      onCreated(createdTask.id);
       onClose();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to create task');
@@ -97,7 +103,7 @@ export function CreateTaskModal({
           <RetroButton
             variant="primary"
             onClick={handleSubmit}
-            disabled={loading || !title.trim() || !repoLabel}
+            disabled={loading || title.trim().length < 5 || !repoLabel}
             loading={loading}
           >
             CREATE TASK

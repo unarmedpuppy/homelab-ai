@@ -7,6 +7,7 @@ import { BeadsStatsHeader } from './BeadsStatsHeader';
 import { BeadsLabelFilter } from './BeadsLabelFilter';
 import { CreateTaskModal } from './CreateTaskModal';
 import { useIsMobile } from '../../hooks/useMediaQuery';
+import { Toast } from '../Toast';
 
 const POLL_INTERVAL = 5000; // 5 seconds
 
@@ -45,6 +46,7 @@ export function BeadsBoard() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [activeColumn, setActiveColumn] = useState<'backlog' | 'in_progress' | 'done'>('backlog');
   const [showFilterDrawer, setShowFilterDrawer] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const isMobile = useIsMobile();
 
   const fetchData = useCallback(async () => {
@@ -100,6 +102,11 @@ export function BeadsBoard() {
   const handleRefresh = () => {
     setLoading(true);
     fetchData();
+  };
+
+  const handleTaskCreated = (taskId: string) => {
+    setSuccessMessage(`Task ${taskId.slice(0, 8)} created`);
+    handleRefresh();
   };
 
   const handleTaskUpdate = () => {
@@ -308,8 +315,17 @@ export function BeadsBoard() {
       <CreateTaskModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        onCreated={handleRefresh}
+        onCreated={handleTaskCreated}
       />
+
+      {/* Success Toast */}
+      {successMessage && (
+        <Toast
+          message={successMessage}
+          type="success"
+          onClose={() => setSuccessMessage(null)}
+        />
+      )}
     </div>
   );
 }
