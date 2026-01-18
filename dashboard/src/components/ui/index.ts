@@ -5,6 +5,7 @@ export { RetroCard } from './RetroCard';
 export type { RetroCardProps } from './RetroCard';
 export { RetroBadge, getPriorityVariant, getPriorityLabel, getStatusVariant, getStatusLabel } from './RetroBadge';
 export { RetroButton } from './RetroButton';
+export type { RetroButtonProps } from './RetroButton';
 export { RetroPanel } from './RetroPanel';
 export { RetroProgress } from './RetroProgress';
 export { RetroInput } from './RetroInput';
