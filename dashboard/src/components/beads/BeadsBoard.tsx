@@ -266,7 +266,7 @@ export function BeadsBoard() {
             ))}
           </div>
 
-          {/* Mobile: Single column */}
+          {/* Mobile: Single column with compact cards */}
           <div className="sm:hidden flex-1 overflow-y-auto p-4">
             <div className="space-y-3">
               {getColumnTasks(columns.find(c => c.id === activeColumn)!).map(task => (
@@ -275,6 +275,7 @@ export function BeadsBoard() {
                   task={task}
                   selected={selectedTask?.id === task.id}
                   onClick={() => setSelectedTask(task)}
+                  compact={true}
                 />
               ))}
               {getColumnTasks(columns.find(c => c.id === activeColumn)!).length === 0 && (

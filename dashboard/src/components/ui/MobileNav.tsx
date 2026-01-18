@@ -14,7 +14,7 @@ const defaultNavItems: NavItem[] = [
   { to: '/beads', icon: '📋', label: 'Beads', view: 'beads' },
   { to: '/ralph', icon: '🔄', label: 'Ralph', view: 'ralph' },
   { to: '/providers', icon: '🔌', label: 'Prov', view: 'providers' },
-  { to: '/stats', icon: '📊', label: 'Stats', view: 'stats' },
+  { to: '/agents', icon: '🤖', label: 'Agents', view: 'agents' },
 ];
 
 export interface MobileNavProps {
