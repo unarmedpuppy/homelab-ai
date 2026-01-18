@@ -298,6 +298,39 @@ get_working_dir() {
     return 1
 }
 
+# Pull all git repos in workspace to ensure we have latest code
+pull_all_repos() {
+    log_info "Pulling all repos in workspace..."
+    local failed_repos=""
+
+    for dir in "$WORKSPACE_DIR"/*/; do
+        if [ -d "$dir/.git" ]; then
+            local repo_name
+            repo_name=$(basename "$dir")
+
+            if (cd "$dir" && git fetch origin --prune 2>/dev/null && git pull --rebase 2>/dev/null); then
+                if $VERBOSE; then
+                    log_info "  Pulled: $repo_name"
+                fi
+            else
+                # Try to handle dirty working tree
+                if (cd "$dir" && git stash 2>/dev/null && git pull --rebase 2>/dev/null && git stash pop 2>/dev/null); then
+                    log_warn "  Pulled with stash: $repo_name"
+                else
+                    log_warn "  Failed to pull: $repo_name (may have conflicts)"
+                    failed_repos="$failed_repos $repo_name"
+                fi
+            fi
+        fi
+    done
+
+    if [ -n "$failed_repos" ]; then
+        log_warn "Some repos failed to pull:$failed_repos"
+    else
+        log_success "All repos pulled successfully"
+    fi
+}
+
 # Run bd command from beads directory
 run_bd() {
     (cd "$BEADS_DIR" && bd "$@")
@@ -755,6 +788,9 @@ main() {
     # Sync beads at start
     log_info "Syncing beads..."
     (cd "$BEADS_DIR" && bd sync 2>/dev/null) || log_warn "Beads sync failed, continuing anyway"
+
+    # Pull all repos to ensure we're working with latest code
+    pull_all_repos
 
     # Count initial tasks
     REMAINING_TASKS=$(count_ready_tasks)
