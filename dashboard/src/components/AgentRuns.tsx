@@ -1,6 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { agentRunsAPI } from '../api/client';
 import type { AgentRunRecord, AgentRunWithSteps, AgentRunsStats } from '../types/api';
+import { RetroPanel, RetroButton, RetroBadge, RetroCard, RetroStatCard } from './ui';
+
+// Hook for mobile detection
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== 'undefined' ? window.innerWidth < breakpoint : false
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < breakpoint);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [breakpoint]);
+
+  return isMobile;
+}
 
 function ExpandableContent({
   content,
@@ -16,48 +35,84 @@ function ExpandableContent({
   className?: string;
 }) {
   const [expanded, setExpanded] = useState(false);
-  
+
   const displayContent = isJson ? content : content;
   const needsExpansion = displayContent.length > maxLength;
-  
+
   if (!needsExpansion) {
     return (
       <div className={`text-xs ${className}`}>
-        <strong>{label}:</strong>{' '}
+        <strong className="text-[var(--retro-text-secondary)]">{label}:</strong>{' '}
         {isJson ? (
-          <pre className="inline whitespace-pre-wrap font-mono">{displayContent}</pre>
+          <pre className="inline whitespace-pre-wrap font-mono text-[var(--retro-text-primary)]">{displayContent}</pre>
         ) : (
-          displayContent
+          <span className="text-[var(--retro-text-primary)]">{displayContent}</span>
         )}
       </div>
     );
   }
-  
+
   return (
     <div className={`text-xs ${className}`}>
       <div className="flex items-start justify-between gap-2">
-        <strong className="shrink-0">{label}:</strong>
+        <strong className="shrink-0 text-[var(--retro-text-secondary)]">{label}:</strong>
         <button
           onClick={(e) => {
             e.stopPropagation();
             setExpanded(!expanded);
           }}
-          className="text-blue-400 hover:text-blue-300 text-xs shrink-0"
+          className="text-[var(--retro-accent-cyan)] hover:text-[var(--retro-text-primary)] text-xs shrink-0 uppercase font-bold"
         >
           {expanded ? 'Collapse' : 'Expand'}
         </button>
       </div>
       {expanded ? (
-        <pre className="mt-1 p-2 bg-gray-900 rounded max-h-64 overflow-y-auto whitespace-pre-wrap font-mono text-xs border border-gray-700">
+        <pre className="mt-1 p-2 bg-[var(--retro-bg-dark)] rounded max-h-64 overflow-y-auto whitespace-pre-wrap font-mono text-xs border border-[var(--retro-border)] text-[var(--retro-text-primary)]">
           {displayContent}
         </pre>
       ) : (
-        <span className="text-gray-400">
+        <span className="text-[var(--retro-text-muted)]">
           {displayContent.slice(0, maxLength)}...
         </span>
       )}
     </div>
   );
+}
+
+// Map agent run status to retro badge variant
+type BadgeVariant = 'status-open' | 'status-progress' | 'status-done' | 'status-blocked';
+
+function getAgentStatusVariant(status: string): BadgeVariant {
+  switch (status) {
+    case 'completed':
+      return 'status-done';
+    case 'running':
+      return 'status-progress';
+    case 'failed':
+      return 'status-blocked';
+    case 'cancelled':
+    case 'max_steps':
+      return 'status-open';
+    default:
+      return 'status-open';
+  }
+}
+
+function getStatusIcon(status: string): string {
+  switch (status) {
+    case 'completed':
+      return '✓';
+    case 'failed':
+      return '✗';
+    case 'running':
+      return '⟳';
+    case 'cancelled':
+      return '⊘';
+    case 'max_steps':
+      return '⚠';
+    default:
+      return '?';
+  }
 }
 
 export default function AgentRuns() {
@@ -68,6 +123,7 @@ export default function AgentRuns() {
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<AgentRunsStats | null>(null);
   const [loadingStats, setLoadingStats] = useState(true);
+  const isMobile = useIsMobile();
 
   const fetchRuns = async () => {
     try {
@@ -138,41 +194,6 @@ export default function AgentRuns() {
     return `${(durationMs / 60000).toFixed(1)}m`;
   };
 
-  const getStatusBadge = (status: string) => {
-    const baseClasses = 'px-2 py-1 rounded text-xs font-medium border';
-    switch (status) {
-      case 'completed':
-        return `${baseClasses} bg-green-500/20 text-green-400 border-green-500/30`;
-      case 'failed':
-        return `${baseClasses} bg-red-500/20 text-red-400 border-red-500/30`;
-      case 'running':
-        return `${baseClasses} bg-yellow-500/20 text-yellow-400 border-yellow-500/30`;
-      case 'cancelled':
-        return `${baseClasses} bg-gray-500/20 text-gray-400 border-gray-500/30`;
-      case 'max_steps':
-        return `${baseClasses} bg-orange-500/20 text-orange-400 border-orange-500/30`;
-      default:
-        return `${baseClasses} bg-gray-500/20 text-gray-400 border-gray-500/30`;
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return '✓';
-      case 'failed':
-        return '✗';
-      case 'running':
-        return '⟳';
-      case 'cancelled':
-        return '⊘';
-      case 'max_steps':
-        return '⚠';
-      default:
-        return '?';
-    }
-  };
-
   const truncateText = (text: string, maxLength: number = 80) => {
     return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
   };
@@ -180,264 +201,483 @@ export default function AgentRuns() {
   if (loading && runs.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-400">Loading agent runs...</div>
+        <div className="text-[var(--retro-text-muted)] retro-animate-pulse uppercase tracking-wider text-sm">
+          Loading agent runs...
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-900/20 border border-red-500 rounded-lg p-4">
-        <h3 className="text-red-400 font-semibold mb-2">Error Loading Agent Runs</h3>
-        <p className="text-red-300">{error}</p>
-        <button
-          onClick={fetchRuns}
-          className="mt-3 px-4 py-2 bg-red-500 hover:bg-red-600 rounded text-white text-sm"
-        >
+      <div className="p-4 bg-[rgba(255,68,68,0.1)] border-2 border-[var(--retro-accent-red)] rounded">
+        <h3 className="text-[var(--retro-accent-red)] font-bold mb-2 uppercase tracking-wider">
+          Error Loading Agent Runs
+        </h3>
+        <p className="text-[var(--retro-accent-red)] text-sm mb-3">{error}</p>
+        <RetroButton variant="danger" onClick={fetchRuns} size="sm">
           Retry
-        </button>
+        </RetroButton>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-4">
       {/* Header with refresh button */}
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-white">Agent Runs</h2>
-        <button
+        <h2 className="text-xl sm:text-2xl font-bold text-[var(--retro-accent-green)] uppercase tracking-wider">
+          Agent Runs
+        </h2>
+        <RetroButton
+          variant="primary"
+          size="sm"
           onClick={() => {
             fetchRuns();
             fetchStats();
           }}
-          className="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded text-white text-sm font-medium transition-colors"
         >
           Refresh
-        </button>
+        </RetroButton>
       </div>
 
       {/* Stats Cards */}
       {stats && !loadingStats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-            <div className="text-gray-400 text-sm">Total Runs</div>
-            <div className="text-2xl font-bold text-white mt-1">{stats.total_runs}</div>
-          </div>
-          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-            <div className="text-gray-400 text-sm">Completed</div>
-            <div className="text-2xl font-bold text-green-400 mt-1">{stats.completed_runs}</div>
-          </div>
-          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-            <div className="text-gray-400 text-sm">Failed</div>
-            <div className="text-2xl font-bold text-red-400 mt-1">{stats.failed_runs}</div>
-          </div>
-          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-            <div className="text-gray-400 text-sm">Avg Duration</div>
-            <div className="text-2xl font-bold text-blue-400 mt-1">{formatDuration(stats.avg_duration_ms)}</div>
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+          <RetroStatCard
+            label="Total Runs"
+            value={stats.total_runs}
+            color="default"
+          />
+          <RetroStatCard
+            label="Completed"
+            value={stats.completed_runs}
+            color="green"
+          />
+          <RetroStatCard
+            label="Failed"
+            value={stats.failed_runs}
+            color="red"
+          />
+          <RetroStatCard
+            label="Avg Duration"
+            value={formatDuration(stats.avg_duration_ms)}
+            color="blue"
+          />
         </div>
       )}
 
-      {/* Runs Table */}
-      <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-900 border-b border-gray-700">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Task</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Model / Backend</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Steps</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Duration</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Source</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Started</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-700">
-              {runs.map((run) => (
-                <React.Fragment key={run.id}>
-                  <tr
-                    className="hover:bg-gray-700/50 cursor-pointer transition-colors"
-                    onClick={() => handleRowClick(run.id)}
-                  >
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span className={getStatusBadge(run.status)}>
-                        {getStatusIcon(run.status)} {run.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="text-sm text-gray-300" title={run.task}>
-                        {truncateText(run.task)}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      {run.model_used || run.backend ? (
-                        <div>
-                          {run.model_used && (
-                            <div className="text-sm text-blue-400 font-mono">
-                              {run.model_used.replace('qwen2.5-', 'qwen/')}
-                            </div>
-                          )}
-                          {(run.backend_name || run.backend) && (
-                            <div className="text-xs text-gray-500 mt-0.5">
-                              {run.backend_name || run.backend}
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-gray-500 text-sm">auto</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-300">
-                      {run.total_steps}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-300">
-                      {formatDuration(run.duration_ms)}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-300">
-                      {run.source || 'N/A'}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-300">
-                      {formatTimestamp(run.started_at)}
-                    </td>
-                  </tr>
-                  {expandedRun === run.id && expandedRunData && (
-                    <tr className="bg-gray-900/50">
-                      <td colSpan={7} className="px-4 py-4">
-                        <div className="space-y-4">
-                          <div className="border-b border-gray-700 pb-2">
-                            <h4 className="text-sm font-semibold text-white mb-2">Run Details</h4>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                              <div>
-                                <span className="text-gray-400">ID:</span>
-                                <span className="text-gray-300 ml-2">{run.id}</span>
-                              </div>
-                              <div>
-                                <span className="text-gray-400">Triggered By:</span>
-                                <span className="text-gray-300 ml-2">{run.triggered_by || 'N/A'}</span>
-                              </div>
-                              <div>
-                                <span className="text-gray-400">Working Directory:</span>
-                                <span className="text-gray-300 ml-2">{run.working_directory || 'N/A'}</span>
-                              </div>
-                              <div>
-                                <span className="text-gray-400">Backend:</span>
-                                <span className="text-gray-300 ml-2">{run.backend_name || run.backend || 'N/A'}</span>
-                              </div>
-                              <div>
-                                <span className="text-gray-400">Model Used:</span>
-                                <span className="text-gray-300 ml-2">{run.model_used || 'auto'}</span>
-                              </div>
-                            </div>
-                            {expandedRunData.system_prompt && (
-                              <div className="mt-3">
-                                <ExpandableContent
-                                  content={expandedRunData.system_prompt}
-                                  label="System Prompt"
-                                  maxLength={200}
-                                  className="text-blue-300"
-                                />
-                              </div>
-                            )}
-                            {run.error && (
-                              <div className="mt-2 p-2 bg-red-900/20 border border-red-500/30 rounded text-sm text-red-400">
-                                <strong>Error:</strong> {run.error}
-                              </div>
-                            )}
-                            {run.final_answer && (
-                              <div className="mt-2">
-                                <ExpandableContent
-                                  content={run.final_answer}
-                                  label="Final Answer"
-                                  maxLength={200}
-                                  className="text-gray-300"
-                                />
-                              </div>
-                            )}
-                          </div>
+      {/* Mobile Card List */}
+      {isMobile ? (
+        <div className="space-y-3">
+          {runs.map((run) => (
+            <React.Fragment key={run.id}>
+              <RetroCard
+                onClick={() => handleRowClick(run.id)}
+                selected={expandedRun === run.id}
+                size="responsive"
+              >
+                <div className="space-y-2">
+                  {/* Status + Task */}
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-sm text-[var(--retro-text-primary)] flex-1 line-clamp-2">
+                      {truncateText(run.task, 60)}
+                    </span>
+                    <RetroBadge variant={getAgentStatusVariant(run.status)} size="sm">
+                      {getStatusIcon(run.status)} {run.status}
+                    </RetroBadge>
+                  </div>
 
-                          <div>
-                            <h4 className="text-sm font-semibold text-white mb-2">Execution Steps</h4>
-                            <div className="space-y-2">
-                              {expandedRunData.steps.map((step, index) => {
-                                const cumulativePrompt = expandedRunData.steps
-                                  .slice(0, index + 1)
-                                  .reduce((sum, s) => sum + (s.prompt_tokens || 0), 0);
-                                const cumulativeCompletion = expandedRunData.steps
-                                  .slice(0, index + 1)
-                                  .reduce((sum, s) => sum + (s.completion_tokens || 0), 0);
-                                const hasTokens = step.prompt_tokens || step.completion_tokens;
-                                
-                                return (
-                                  <div key={step.id} className="bg-gray-800 rounded p-3 text-sm">
-                                    <div className="flex items-start justify-between mb-2">
-                                      <span className="text-white font-medium">
-                                        Step {step.step_number}: {step.action_type}
-                                      </span>
-                                      <div className="flex items-center gap-3 text-xs">
-                                        {hasTokens && (
-                                          <span className="text-purple-400" title={`Step: ${step.prompt_tokens || 0}+${step.completion_tokens || 0} | Cumulative: ${cumulativePrompt}+${cumulativeCompletion}`}>
-                                            {cumulativePrompt + cumulativeCompletion} tok
-                                          </span>
-                                        )}
-                                        <span className="text-gray-500">
-                                          {formatDuration(step.duration_ms)}
-                                        </span>
-                                      </div>
-                                    </div>
-                                    {step.tool_name && (
-                                      <div className="text-xs text-blue-400 mb-1">
-                                        Tool: {step.tool_name}
-                                      </div>
-                                    )}
-                                    {step.thinking && (
-                                      <ExpandableContent
-                                        content={step.thinking}
-                                        label="Thinking"
-                                        maxLength={150}
-                                        className="text-gray-400 mb-1"
-                                      />
-                                    )}
-                                    {step.tool_args && (
-                                      <ExpandableContent
-                                        content={JSON.stringify(step.tool_args, null, 2)}
-                                        label="Args"
-                                        maxLength={150}
-                                        isJson={true}
-                                        className="text-gray-400 mb-1"
-                                      />
-                                    )}
-                                    {step.tool_result && (
-                                      <ExpandableContent
-                                        content={step.tool_result}
-                                        label="Result"
-                                        maxLength={150}
-                                        className="text-gray-300 mb-1"
-                                      />
-                                    )}
-                                    {step.error && (
-                                      <div className="text-xs text-red-400">
-                                        <strong>Error:</strong> {step.error}
-                                      </div>
-                                    )}
-                                  </div>
-                                );
-                              })}
+                  {/* Model / Duration / Steps */}
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--retro-text-muted)]">
+                    {run.model_used && (
+                      <span className="text-[var(--retro-accent-cyan)] font-mono">
+                        {run.model_used.replace('qwen2.5-', 'qwen/')}
+                      </span>
+                    )}
+                    <span>•</span>
+                    <span>{formatDuration(run.duration_ms)}</span>
+                    <span>•</span>
+                    <span>{run.total_steps} steps</span>
+                  </div>
+
+                  {/* Source + Time */}
+                  <div className="flex items-center justify-between text-[0.625rem] text-[var(--retro-text-muted)] uppercase tracking-wide">
+                    <span>{run.source || 'N/A'}</span>
+                    <span>{formatTimestamp(run.started_at)}</span>
+                  </div>
+                </div>
+              </RetroCard>
+
+              {/* Expanded Details - Mobile */}
+              {expandedRun === run.id && expandedRunData && (
+                <RetroPanel title="Run Details" className="mt-2">
+                  <div className="space-y-4">
+                    {/* Details Grid */}
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <span className="text-[var(--retro-text-muted)]">ID:</span>
+                        <span className="text-[var(--retro-text-primary)] ml-1 font-mono text-[0.625rem] break-all">
+                          {run.id}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[var(--retro-text-muted)]">Triggered:</span>
+                        <span className="text-[var(--retro-text-primary)] ml-1">
+                          {run.triggered_by || 'N/A'}
+                        </span>
+                      </div>
+                      <div className="col-span-2">
+                        <span className="text-[var(--retro-text-muted)]">Directory:</span>
+                        <span className="text-[var(--retro-text-primary)] ml-1 font-mono text-[0.625rem] break-all">
+                          {run.working_directory || 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* System Prompt */}
+                    {expandedRunData.system_prompt && (
+                      <ExpandableContent
+                        content={expandedRunData.system_prompt}
+                        label="System Prompt"
+                        maxLength={200}
+                      />
+                    )}
+
+                    {/* Error */}
+                    {run.error && (
+                      <div className="p-2 bg-[rgba(255,68,68,0.1)] border border-[var(--retro-accent-red)] rounded text-xs text-[var(--retro-accent-red)]">
+                        <strong>Error:</strong> {run.error}
+                      </div>
+                    )}
+
+                    {/* Final Answer */}
+                    {run.final_answer && (
+                      <ExpandableContent
+                        content={run.final_answer}
+                        label="Final Answer"
+                        maxLength={200}
+                      />
+                    )}
+
+                    {/* Execution Steps */}
+                    <div>
+                      <h4 className="text-xs font-bold text-[var(--retro-text-secondary)] mb-2 uppercase tracking-wider">
+                        Execution Steps
+                      </h4>
+                      <div className="space-y-2">
+                        {expandedRunData.steps.map((step, index) => {
+                          const cumulativePrompt = expandedRunData.steps
+                            .slice(0, index + 1)
+                            .reduce((sum, s) => sum + (s.prompt_tokens || 0), 0);
+                          const cumulativeCompletion = expandedRunData.steps
+                            .slice(0, index + 1)
+                            .reduce((sum, s) => sum + (s.completion_tokens || 0), 0);
+                          const hasTokens = step.prompt_tokens || step.completion_tokens;
+
+                          return (
+                            <div
+                              key={step.id}
+                              className="bg-[var(--retro-bg-light)] border border-[var(--retro-border)] rounded p-2 text-xs"
+                            >
+                              <div className="flex items-start justify-between mb-1 gap-2">
+                                <span className="text-[var(--retro-text-primary)] font-medium">
+                                  Step {step.step_number}: {step.action_type}
+                                </span>
+                                <div className="flex items-center gap-2 text-[0.625rem] shrink-0">
+                                  {hasTokens && (
+                                    <span className="text-[var(--retro-accent-purple)]">
+                                      {cumulativePrompt + cumulativeCompletion} tok
+                                    </span>
+                                  )}
+                                  <span className="text-[var(--retro-text-muted)]">
+                                    {formatDuration(step.duration_ms)}
+                                  </span>
+                                </div>
+                              </div>
+                              {step.tool_name && (
+                                <div className="text-[var(--retro-accent-cyan)] mb-1">
+                                  Tool: {step.tool_name}
+                                </div>
+                              )}
+                              {step.thinking && (
+                                <ExpandableContent
+                                  content={step.thinking}
+                                  label="Thinking"
+                                  maxLength={100}
+                                  className="mb-1"
+                                />
+                              )}
+                              {step.tool_args && (
+                                <ExpandableContent
+                                  content={JSON.stringify(step.tool_args, null, 2)}
+                                  label="Args"
+                                  maxLength={100}
+                                  isJson={true}
+                                  className="mb-1"
+                                />
+                              )}
+                              {step.tool_result && (
+                                <ExpandableContent
+                                  content={step.tool_result}
+                                  label="Result"
+                                  maxLength={100}
+                                  className="mb-1"
+                                />
+                              )}
+                              {step.error && (
+                                <div className="text-[var(--retro-accent-red)]">
+                                  <strong>Error:</strong> {step.error}
+                                </div>
+                              )}
                             </div>
-                          </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </RetroPanel>
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+      ) : (
+        /* Desktop Table */
+        <RetroPanel title="Run History">
+          <div className="overflow-x-auto -mx-4 sm:mx-0">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[var(--retro-border)]">
+                  <th className="px-3 py-2 text-left text-xs font-bold text-[var(--retro-text-secondary)] uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-bold text-[var(--retro-text-secondary)] uppercase tracking-wider">
+                    Task
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-bold text-[var(--retro-text-secondary)] uppercase tracking-wider">
+                    Model / Backend
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-bold text-[var(--retro-text-secondary)] uppercase tracking-wider">
+                    Steps
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-bold text-[var(--retro-text-secondary)] uppercase tracking-wider">
+                    Duration
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-bold text-[var(--retro-text-secondary)] uppercase tracking-wider">
+                    Source
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-bold text-[var(--retro-text-secondary)] uppercase tracking-wider">
+                    Started
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--retro-border)]">
+                {runs.map((run) => (
+                  <React.Fragment key={run.id}>
+                    <tr
+                      className="hover:bg-[var(--retro-bg-light)] cursor-pointer transition-colors"
+                      onClick={() => handleRowClick(run.id)}
+                    >
+                      <td className="px-3 py-3 whitespace-nowrap">
+                        <RetroBadge variant={getAgentStatusVariant(run.status)} size="sm">
+                          {getStatusIcon(run.status)} {run.status}
+                        </RetroBadge>
+                      </td>
+                      <td className="px-3 py-3">
+                        <div
+                          className="text-[var(--retro-text-primary)]"
+                          title={run.task}
+                        >
+                          {truncateText(run.task)}
                         </div>
                       </td>
+                      <td className="px-3 py-3 whitespace-nowrap">
+                        {run.model_used || run.backend ? (
+                          <div>
+                            {run.model_used && (
+                              <div className="text-[var(--retro-accent-cyan)] font-mono text-xs">
+                                {run.model_used.replace('qwen2.5-', 'qwen/')}
+                              </div>
+                            )}
+                            {(run.backend_name || run.backend) && (
+                              <div className="text-[var(--retro-text-muted)] text-xs mt-0.5">
+                                {run.backend_name || run.backend}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-[var(--retro-text-muted)]">auto</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-3 whitespace-nowrap text-[var(--retro-text-primary)] font-mono">
+                        {run.total_steps}
+                      </td>
+                      <td className="px-3 py-3 whitespace-nowrap text-[var(--retro-text-primary)] font-mono">
+                        {formatDuration(run.duration_ms)}
+                      </td>
+                      <td className="px-3 py-3 whitespace-nowrap text-[var(--retro-text-muted)]">
+                        {run.source || 'N/A'}
+                      </td>
+                      <td className="px-3 py-3 whitespace-nowrap text-[var(--retro-text-muted)]">
+                        {formatTimestamp(run.started_at)}
+                      </td>
                     </tr>
-                  )}
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                    {expandedRun === run.id && expandedRunData && (
+                      <tr className="bg-[var(--retro-bg-medium)]">
+                        <td colSpan={7} className="px-4 py-4">
+                          <div className="space-y-4">
+                            <div className="border-b border-[var(--retro-border)] pb-3">
+                              <h4 className="text-xs font-bold text-[var(--retro-text-secondary)] mb-3 uppercase tracking-wider">
+                                Run Details
+                              </h4>
+                              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                                <div>
+                                  <span className="text-[var(--retro-text-muted)]">ID:</span>
+                                  <span className="text-[var(--retro-text-primary)] ml-2 font-mono text-xs">
+                                    {run.id}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="text-[var(--retro-text-muted)]">Triggered By:</span>
+                                  <span className="text-[var(--retro-text-primary)] ml-2">
+                                    {run.triggered_by || 'N/A'}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="text-[var(--retro-text-muted)]">Working Directory:</span>
+                                  <span className="text-[var(--retro-text-primary)] ml-2 font-mono text-xs">
+                                    {run.working_directory || 'N/A'}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="text-[var(--retro-text-muted)]">Backend:</span>
+                                  <span className="text-[var(--retro-text-primary)] ml-2">
+                                    {run.backend_name || run.backend || 'N/A'}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="text-[var(--retro-text-muted)]">Model Used:</span>
+                                  <span className="text-[var(--retro-text-primary)] ml-2">
+                                    {run.model_used || 'auto'}
+                                  </span>
+                                </div>
+                              </div>
+                              {expandedRunData.system_prompt && (
+                                <div className="mt-3">
+                                  <ExpandableContent
+                                    content={expandedRunData.system_prompt}
+                                    label="System Prompt"
+                                    maxLength={200}
+                                  />
+                                </div>
+                              )}
+                              {run.error && (
+                                <div className="mt-2 p-2 bg-[rgba(255,68,68,0.1)] border border-[var(--retro-accent-red)] rounded text-sm text-[var(--retro-accent-red)]">
+                                  <strong>Error:</strong> {run.error}
+                                </div>
+                              )}
+                              {run.final_answer && (
+                                <div className="mt-2">
+                                  <ExpandableContent
+                                    content={run.final_answer}
+                                    label="Final Answer"
+                                    maxLength={200}
+                                  />
+                                </div>
+                              )}
+                            </div>
+
+                            <div>
+                              <h4 className="text-xs font-bold text-[var(--retro-text-secondary)] mb-3 uppercase tracking-wider">
+                                Execution Steps
+                              </h4>
+                              <div className="space-y-2">
+                                {expandedRunData.steps.map((step, index) => {
+                                  const cumulativePrompt = expandedRunData.steps
+                                    .slice(0, index + 1)
+                                    .reduce((sum, s) => sum + (s.prompt_tokens || 0), 0);
+                                  const cumulativeCompletion = expandedRunData.steps
+                                    .slice(0, index + 1)
+                                    .reduce((sum, s) => sum + (s.completion_tokens || 0), 0);
+                                  const hasTokens = step.prompt_tokens || step.completion_tokens;
+
+                                  return (
+                                    <div
+                                      key={step.id}
+                                      className="bg-[var(--retro-bg-card)] border border-[var(--retro-border)] rounded p-3 text-sm"
+                                    >
+                                      <div className="flex items-start justify-between mb-2">
+                                        <span className="text-[var(--retro-text-primary)] font-medium">
+                                          Step {step.step_number}: {step.action_type}
+                                        </span>
+                                        <div className="flex items-center gap-3 text-xs">
+                                          {hasTokens && (
+                                            <span
+                                              className="text-[var(--retro-accent-purple)]"
+                                              title={`Step: ${step.prompt_tokens || 0}+${step.completion_tokens || 0} | Cumulative: ${cumulativePrompt}+${cumulativeCompletion}`}
+                                            >
+                                              {cumulativePrompt + cumulativeCompletion} tok
+                                            </span>
+                                          )}
+                                          <span className="text-[var(--retro-text-muted)]">
+                                            {formatDuration(step.duration_ms)}
+                                          </span>
+                                        </div>
+                                      </div>
+                                      {step.tool_name && (
+                                        <div className="text-xs text-[var(--retro-accent-cyan)] mb-1">
+                                          Tool: {step.tool_name}
+                                        </div>
+                                      )}
+                                      {step.thinking && (
+                                        <ExpandableContent
+                                          content={step.thinking}
+                                          label="Thinking"
+                                          maxLength={150}
+                                          className="mb-1"
+                                        />
+                                      )}
+                                      {step.tool_args && (
+                                        <ExpandableContent
+                                          content={JSON.stringify(step.tool_args, null, 2)}
+                                          label="Args"
+                                          maxLength={150}
+                                          isJson={true}
+                                          className="mb-1"
+                                        />
+                                      )}
+                                      {step.tool_result && (
+                                        <ExpandableContent
+                                          content={step.tool_result}
+                                          label="Result"
+                                          maxLength={150}
+                                          className="mb-1"
+                                        />
+                                      )}
+                                      {step.error && (
+                                        <div className="text-xs text-[var(--retro-accent-red)]">
+                                          <strong>Error:</strong> {step.error}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </RetroPanel>
+      )}
 
       {runs.length === 0 && (
-        <div className="text-center py-8 text-gray-400">
+        <div className="text-center py-8 text-[var(--retro-text-muted)] uppercase tracking-wider">
           No agent runs found.
         </div>
       )}
