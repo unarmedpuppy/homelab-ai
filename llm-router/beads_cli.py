@@ -90,6 +90,7 @@ async def list_tasks(
     label: Optional[str] = None,
     priority: Optional[int] = None,
     task_type: Optional[str] = None,
+    limit: Optional[int] = None,
 ) -> list[dict]:
     """List all tasks with optional filters.
 
@@ -98,6 +99,7 @@ async def list_tasks(
         label: Filter by label
         priority: Filter by priority (0-3)
         task_type: Filter by type (task, bug, feature, epic, chore)
+        limit: Maximum number of tasks to return (default: bd default of 50)
 
     Returns:
         List of task dictionaries
@@ -112,6 +114,8 @@ async def list_tasks(
         args.extend(["--priority", str(priority)])
     if task_type:
         args.extend(["--type", task_type])
+    if limit is not None:
+        args.extend(["--limit", str(limit)])
 
     result = await bd_command(*args)
     return result if isinstance(result, list) else []
@@ -146,7 +150,12 @@ async def get_task(task_id: str) -> Optional[dict]:
     """
     try:
         result = await bd_command("show", task_id)
-        return result if isinstance(result, dict) else None
+        # bd show returns an array even for a single task
+        if isinstance(result, list) and len(result) > 0:
+            return result[0]
+        elif isinstance(result, dict):
+            return result
+        return None
     except BeadsError as e:
         if "not found" in str(e).lower():
             return None
