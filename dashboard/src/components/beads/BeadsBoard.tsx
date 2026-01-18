@@ -6,6 +6,7 @@ import { BeadsTaskDetail } from './BeadsTaskDetail';
 import { BeadsStatsHeader } from './BeadsStatsHeader';
 import { BeadsLabelFilter } from './BeadsLabelFilter';
 import { CreateTaskModal } from './CreateTaskModal';
+import { useIsMobile } from '../../hooks/useMediaQuery';
 
 const POLL_INTERVAL = 5000; // 5 seconds
 
@@ -43,6 +44,8 @@ export function BeadsBoard() {
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [activeColumn, setActiveColumn] = useState<'backlog' | 'in_progress' | 'done'>('backlog');
+  const [showFilterDrawer, setShowFilterDrawer] = useState(false);
+  const isMobile = useIsMobile();
 
   const fetchData = useCallback(async () => {
     try {
@@ -126,9 +129,35 @@ export function BeadsBoard() {
     return tasks.filter(column.filter);
   };
 
+  // Convert labels to format with counts for BeadsLabelFilter
+  const labelsWithCounts = labels.map(label => ({
+    name: label,
+    count: stats?.by_label[label] ?? 0,
+  }));
+
   // Mobile column selector
   const mobileColumnSelector = (
     <div className="sm:hidden flex gap-1 p-2 bg-[var(--retro-bg-medium)] border-b border-[var(--retro-border)]">
+      {/* Filter button */}
+      <button
+        onClick={() => setShowFilterDrawer(true)}
+        className={`
+          py-2 px-3 text-xs font-bold uppercase rounded transition-colors
+          ${selectedLabels.length > 0
+            ? 'bg-[var(--retro-accent-cyan)] text-[var(--retro-bg-dark)]'
+            : 'text-[var(--retro-text-muted)] hover:text-[var(--retro-text-primary)] border border-[var(--retro-border)]'
+          }
+        `}
+        aria-label="Open filters"
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="inline-block">
+          <path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        </svg>
+        {selectedLabels.length > 0 && (
+          <span className="ml-1">({selectedLabels.length})</span>
+        )}
+      </button>
+      {/* Column tabs */}
       {columns.map(col => (
         <button
           key={col.id}
@@ -174,17 +203,29 @@ export function BeadsBoard() {
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar - Label Filters (desktop only) */}
         <div className={`
-          w-56 flex-shrink-0 border-r border-[var(--retro-border)] bg-[var(--retro-bg-medium)]
-          overflow-y-auto p-4
+          w-64 flex-shrink-0 border-r border-[var(--retro-border)] bg-[var(--retro-bg-medium)]
+          overflow-hidden
           hidden lg:block
         `}>
           <BeadsLabelFilter
-            labels={labels}
-            selectedLabels={selectedLabels}
+            labels={labelsWithCounts}
+            activeLabels={selectedLabels}
             onToggleLabel={handleToggleLabel}
             onClearFilters={handleClearFilters}
           />
         </div>
+
+        {/* Mobile Filter Drawer */}
+        {isMobile && (
+          <BeadsLabelFilter
+            labels={labelsWithCounts}
+            activeLabels={selectedLabels}
+            onToggleLabel={handleToggleLabel}
+            onClearFilters={handleClearFilters}
+            isOpen={showFilterDrawer}
+            onClose={() => setShowFilterDrawer(false)}
+          />
+        )}
 
         {/* Kanban Columns */}
         <div className="flex-1 flex overflow-hidden">
