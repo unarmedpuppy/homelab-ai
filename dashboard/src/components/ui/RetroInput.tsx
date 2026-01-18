@@ -1,7 +1,7 @@
 import type { InputHTMLAttributes } from 'react';
 import { forwardRef } from 'react';
 
-interface RetroInputProps extends InputHTMLAttributes<HTMLInputElement> {
+export interface RetroInputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
 }

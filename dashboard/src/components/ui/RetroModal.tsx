@@ -2,14 +2,14 @@ import type { ReactNode } from 'react';
 import { useEffect } from 'react';
 import { RetroButton } from './RetroButton';
 
-interface RetroModalProps {
+export interface RetroModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   children: ReactNode;
   footer?: ReactNode;
   fullscreenOnMobile?: boolean;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'fullscreen';
 }
 
 export function RetroModal({
@@ -51,7 +51,10 @@ export function RetroModal({
     sm: 'max-w-sm',
     md: 'max-w-md',
     lg: 'max-w-2xl',
+    fullscreen: 'retro-modal-fullscreen',
   };
+
+  const isFullscreen = size === 'fullscreen';
 
   return (
     <>
@@ -60,7 +63,7 @@ export function RetroModal({
 
       {/* Modal */}
       <div
-        className={`retro-modal ${fullscreenOnMobile ? 'retro-modal-fullscreen sm:top-1/2 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[calc(100%-2rem)] sm:max-h-[calc(100vh-4rem)] sm:rounded' : ''} ${sizeClasses[size]}`}
+        className={`retro-modal ${!isFullscreen && fullscreenOnMobile ? 'retro-modal-fullscreen sm:top-1/2 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[calc(100%-2rem)] sm:max-h-[calc(100vh-4rem)] sm:rounded' : ''} ${sizeClasses[size]}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"

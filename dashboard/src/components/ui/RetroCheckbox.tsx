@@ -1,7 +1,7 @@
 import type { InputHTMLAttributes } from 'react';
 import { forwardRef } from 'react';
 
-interface RetroCheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
+export interface RetroCheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label: string;
 }
 

@@ -726,6 +726,18 @@
   box-shadow: var(--retro-glow-blue);
 }
 
+.retro-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Select size variants */
+.retro-select-sm {
+  padding: 0.25rem 1.75rem 0.25rem 0.5rem;
+  min-height: 32px;
+  font-size: 0.75rem;
+}
+
 /* Retro checkbox */
 .retro-checkbox {
   display: inline-flex;
@@ -884,6 +896,31 @@
     max-width: none;
     max-height: none;
     border-radius: 0;
+    animation: retro-modal-slide-up 0.25s ease-out;
+  }
+}
+
+/* Always fullscreen (regardless of viewport) */
+.retro-modal.retro-modal-fullscreen {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transform: none;
+  width: 100%;
+  max-width: none;
+  max-height: none;
+  border-radius: 0;
+}
+
+@keyframes retro-modal-slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 

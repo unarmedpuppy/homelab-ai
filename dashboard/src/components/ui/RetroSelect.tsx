@@ -1,22 +1,28 @@
 import type { SelectHTMLAttributes } from 'react';
 import { forwardRef } from 'react';
 
-interface RetroSelectOption {
+export interface RetroSelectOption {
   value: string;
   label: string;
   disabled?: boolean;
 }
 
-interface RetroSelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'children'> {
+export interface RetroSelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'children' | 'size'> {
   label?: string;
   error?: string;
   options: RetroSelectOption[];
   placeholder?: string;
+  size?: 'sm' | 'md';
 }
 
 export const RetroSelect = forwardRef<HTMLSelectElement, RetroSelectProps>(
-  ({ label, error, options, placeholder, className = '', id, ...props }, ref) => {
+  ({ label, error, options, placeholder, size = 'md', className = '', id, ...props }, ref) => {
     const selectId = id || label?.toLowerCase().replace(/\s+/g, '-');
+
+    const sizeClasses = {
+      sm: 'retro-select-sm',
+      md: '',
+    };
 
     return (
       <div className="space-y-1">
@@ -31,7 +37,7 @@ export const RetroSelect = forwardRef<HTMLSelectElement, RetroSelectProps>(
         <select
           ref={ref}
           id={selectId}
-          className={`retro-select ${error ? 'border-[var(--retro-accent-red)]' : ''} ${className}`.trim()}
+          className={`retro-select ${sizeClasses[size]} ${error ? 'border-[var(--retro-accent-red)]' : ''} ${className}`.trim()}
           {...props}
         >
           {placeholder && (
