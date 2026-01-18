@@ -80,8 +80,9 @@ export interface RalphStartParams {
 }
 
 export interface RalphStartResponse {
-  status: string;
   message: string;
+  status_url: string;
+  stop_url: string;
 }
 
 export interface RalphLogs {
