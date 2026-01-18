@@ -7,6 +7,7 @@ export { RetroBadge, getPriorityVariant, getPriorityLabel, getStatusVariant, get
 export { RetroButton } from './RetroButton';
 export type { RetroButtonProps } from './RetroButton';
 export { RetroPanel } from './RetroPanel';
+export type { RetroPanelProps } from './RetroPanel';
 export { RetroProgress } from './RetroProgress';
 export { RetroInput } from './RetroInput';
 export { RetroSelect } from './RetroSelect';

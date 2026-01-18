@@ -327,7 +327,7 @@ export function RalphDashboard() {
         {/* Logs */}
         <RetroPanel
           title="Execution Log"
-          headerAction={
+          actions={
             <RetroButton variant="ghost" size="sm" onClick={fetchLogs}>
               ↻
             </RetroButton>

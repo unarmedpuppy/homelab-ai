@@ -1,52 +1,100 @@
 import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
-interface RetroPanelProps {
+export interface RetroPanelProps {
   children: ReactNode;
-  title?: string;
+  title: string;
+  icon?: ReactNode;
   collapsible?: boolean;
   defaultCollapsed?: boolean;
   className?: string;
-  headerAction?: ReactNode;
+  actions?: ReactNode;
 }
 
 export function RetroPanel({
   children,
   title,
+  icon,
   collapsible = false,
   defaultCollapsed = false,
   className = '',
-  headerAction,
+  actions,
 }: RetroPanelProps) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
+  const [contentHeight, setContentHeight] = useState<number | undefined>(undefined);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // Measure content height for animation
+  useEffect(() => {
+    if (contentRef.current) {
+      const resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          setContentHeight(entry.contentRect.height);
+        }
+      });
+      resizeObserver.observe(contentRef.current);
+      return () => resizeObserver.disconnect();
+    }
+  }, []);
+
+  const handleToggle = () => {
+    if (collapsible) {
+      setIsCollapsed(!isCollapsed);
+    }
+  };
 
   return (
-    <div className={`retro-panel ${className}`.trim()}>
-      {title && (
-        <div className="retro-panel-header">
-          <div className="flex items-center gap-2">
-            {collapsible && (
-              <button
-                onClick={() => setIsCollapsed(!isCollapsed)}
-                className="text-[var(--retro-text-muted)] hover:text-[var(--retro-text-primary)] transition-colors"
-              >
-                {isCollapsed ? '▸' : '▾'}
-              </button>
-            )}
-            <span>{title}</span>
-          </div>
-          {headerAction && (
-            <div className="flex items-center gap-2">
-              {headerAction}
-            </div>
+    <div className={`retro-panel retro-panel--stepped ${className}`.trim()}>
+      <div
+        className={`retro-panel-header ${collapsible ? 'retro-panel-header--collapsible' : ''}`}
+        onClick={collapsible ? handleToggle : undefined}
+        role={collapsible ? 'button' : undefined}
+        tabIndex={collapsible ? 0 : undefined}
+        onKeyDown={collapsible ? (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleToggle();
+          }
+        } : undefined}
+        aria-expanded={collapsible ? !isCollapsed : undefined}
+      >
+        <div className="retro-panel-header__left">
+          {collapsible && (
+            <span
+              className={`retro-panel-chevron ${isCollapsed ? 'retro-panel-chevron--collapsed' : ''}`}
+              aria-hidden="true"
+            >
+              ▾
+            </span>
           )}
+          {icon && (
+            <span className="retro-panel-icon" aria-hidden="true">
+              {icon}
+            </span>
+          )}
+          <span className="retro-panel-title">{title}</span>
         </div>
-      )}
-      {(!collapsible || !isCollapsed) && (
-        <div className="retro-panel-content">
+        {actions && (
+          <div
+            className="retro-panel-actions"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {actions}
+          </div>
+        )}
+      </div>
+      <div
+        className={`retro-panel-body ${isCollapsed ? 'retro-panel-body--collapsed' : ''}`}
+        style={{
+          height: collapsible
+            ? (isCollapsed ? 0 : contentHeight !== undefined ? contentHeight : 'auto')
+            : 'auto'
+        }}
+      >
+        <div ref={contentRef} className="retro-panel-content">
           {children}
         </div>
-      )}
+      </div>
     </div>
   );
 }
