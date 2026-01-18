@@ -40,6 +40,10 @@ router/data/
 *.log
 logs/
 
+# Ralph Wiggum runtime files
+.ralph-wiggum-status.json
+.ralph-wiggum-control
+
 # OS
 .DS_Store
 Thumbs.db
