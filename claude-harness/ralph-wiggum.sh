@@ -51,6 +51,8 @@ fi
 # Parse arguments
 LABEL_FILTER=""
 PRIORITY_FILTER=""
+TYPE_FILTER="task"  # Default to task to skip epics
+SORT_ORDER="oldest"  # Default to oldest for logical ordering
 DRY_RUN=false
 MAX_TASKS=0  # 0 = unlimited
 VERBOSE=false
@@ -63,6 +65,14 @@ while [[ $# -gt 0 ]]; do
             ;;
         -p|--priority)
             PRIORITY_FILTER="$2"
+            shift 2
+            ;;
+        -t|--type)
+            TYPE_FILTER="$2"
+            shift 2
+            ;;
+        -s|--sort)
+            SORT_ORDER="$2"
             shift 2
             ;;
         -n|--dry-run)
@@ -85,6 +95,8 @@ while [[ $# -gt 0 ]]; do
             echo "Options:"
             echo "  -l, --label LABEL      Filter tasks by label (REQUIRED)"
             echo "  -p, --priority NUM     Filter by priority (0=critical, 1=high, 2=medium, 3=low)"
+            echo "  -t, --type TYPE        Filter by type: task, bug, feature, epic (default: task)"
+            echo "  -s, --sort ORDER       Sort order: oldest, priority, hybrid (default: oldest)"
             echo "  -m, --max NUM          Maximum number of tasks to process (0=unlimited)"
             echo "  -n, --dry-run          Show tasks without executing"
             echo "  -v, --verbose          Verbose output"
@@ -246,6 +258,14 @@ count_ready_tasks() {
         cmd="$cmd --priority $PRIORITY_FILTER"
     fi
 
+    if [ -n "$TYPE_FILTER" ]; then
+        cmd="$cmd --type $TYPE_FILTER"
+    fi
+
+    if [ -n "$SORT_ORDER" ]; then
+        cmd="$cmd --sort $SORT_ORDER"
+    fi
+
     count=$(cd "$BEADS_DIR" && eval "$cmd" 2>/dev/null | jq 'length' 2>/dev/null || echo "0")
     echo "$count"
 }
@@ -260,6 +280,14 @@ get_next_task() {
 
     if [ -n "$PRIORITY_FILTER" ]; then
         cmd="$cmd --priority $PRIORITY_FILTER"
+    fi
+
+    if [ -n "$TYPE_FILTER" ]; then
+        cmd="$cmd --type $TYPE_FILTER"
+    fi
+
+    if [ -n "$SORT_ORDER" ]; then
+        cmd="$cmd --sort $SORT_ORDER"
     fi
 
     if $VERBOSE; then
@@ -498,6 +526,8 @@ main() {
     log_info "=========================================="
     log_info "Label filter: $LABEL_FILTER"
     log_info "Priority filter: ${PRIORITY_FILTER:-<none>}"
+    log_info "Type filter: ${TYPE_FILTER:-<none>}"
+    log_info "Sort order: ${SORT_ORDER:-hybrid}"
     log_info "Max tasks: ${MAX_TASKS:-unlimited}"
     log_info "Dry run: $DRY_RUN"
     log_info "Beads directory: $BEADS_DIR"
