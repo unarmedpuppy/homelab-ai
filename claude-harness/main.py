@@ -621,6 +621,232 @@ async def delete_job(job_id: str):
     return {"message": f"Job {job_id} deleted"}
 
 
+# ============================================================================
+# Ralph Wiggum - Autonomous Task Loop
+# ============================================================================
+
+RALPH_STATUS_FILE = "/workspace/.ralph-wiggum-status.json"
+RALPH_CONTROL_FILE = "/workspace/.ralph-wiggum-control"
+BEADS_DIR = "/workspace/home-server"  # Where .beads/ lives
+
+# In-memory tracking of Ralph process
+ralph_process: Optional[asyncio.subprocess.Process] = None
+
+
+class RalphStartRequest(BaseModel):
+    """Request to start Ralph Wiggum."""
+    label: str = Field(..., description="Beads label to filter tasks (e.g., 'mercury', 'trading-bot')")
+    priority: Optional[int] = Field(default=None, description="Filter by priority (0=critical, 1=high, 2=medium, 3=low)")
+    max_tasks: Optional[int] = Field(default=0, description="Maximum tasks to process (0=unlimited)")
+    dry_run: Optional[bool] = Field(default=False, description="Preview without executing")
+
+
+class RalphStatusResponse(BaseModel):
+    """Ralph Wiggum status response."""
+    running: bool
+    status: str  # idle, running, stopping, completed
+    label: Optional[str] = None
+    total_tasks: int = 0
+    completed_tasks: int = 0
+    failed_tasks: int = 0
+    current_task: Optional[str] = None
+    current_task_title: Optional[str] = None
+    started_at: Optional[str] = None
+    last_update: Optional[str] = None
+    message: Optional[str] = None
+
+
+def read_ralph_status() -> dict:
+    """Read Ralph Wiggum status from file."""
+    try:
+        if os.path.exists(RALPH_STATUS_FILE):
+            with open(RALPH_STATUS_FILE, 'r') as f:
+                return json.load(f)
+    except Exception as e:
+        logger.warning(f"Could not read Ralph status: {e}")
+    return {
+        "running": False,
+        "status": "idle",
+        "total_tasks": 0,
+        "completed_tasks": 0,
+        "failed_tasks": 0,
+    }
+
+
+def write_ralph_control(command: str):
+    """Write a control command for Ralph Wiggum."""
+    try:
+        with open(RALPH_CONTROL_FILE, 'w') as f:
+            f.write(command)
+    except Exception as e:
+        logger.error(f"Could not write Ralph control: {e}")
+        raise
+
+
+async def start_ralph_wiggum(label: str, priority: Optional[int], max_tasks: int, dry_run: bool):
+    """Start Ralph Wiggum as a background process."""
+    global ralph_process
+
+    # Build command
+    cmd = ["/app/ralph-wiggum.sh", "--label", label]
+
+    if priority is not None:
+        cmd.extend(["--priority", str(priority)])
+
+    if max_tasks > 0:
+        cmd.extend(["--max", str(max_tasks)])
+
+    if dry_run:
+        cmd.append("--dry-run")
+
+    logger.info(f"Starting Ralph Wiggum: {' '.join(cmd)}")
+
+    # Clear any previous control file
+    if os.path.exists(RALPH_CONTROL_FILE):
+        os.remove(RALPH_CONTROL_FILE)
+
+    # Start the process
+    ralph_process = await asyncio.create_subprocess_exec(
+        *cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.STDOUT,
+        cwd="/workspace",
+        env={
+            **os.environ,
+            "BEADS_DIR": BEADS_DIR,
+            "STATUS_FILE": RALPH_STATUS_FILE,
+            "CONTROL_FILE": RALPH_CONTROL_FILE,
+        }
+    )
+
+    logger.info(f"Ralph Wiggum started with PID {ralph_process.pid}")
+
+
+@app.post("/v1/ralph/start")
+async def start_ralph(request: RalphStartRequest, background_tasks: BackgroundTasks):
+    """
+    Start Ralph Wiggum autonomous task loop.
+
+    Processes beads tasks matching the given label filter.
+    Only one Ralph instance can run at a time.
+
+    Example:
+        curl -X POST http://localhost:8013/v1/ralph/start \\
+          -H "Content-Type: application/json" \\
+          -d '{"label": "mercury"}'
+    """
+    global ralph_process
+
+    # Check if already running
+    status = read_ralph_status()
+    if status.get("running") or (ralph_process and ralph_process.returncode is None):
+        raise HTTPException(
+            status_code=409,
+            detail="Ralph Wiggum is already running. Use /v1/ralph/stop first."
+        )
+
+    # Validate beads directory exists
+    beads_path = os.path.join(BEADS_DIR, ".beads")
+    if not os.path.isdir(beads_path):
+        raise HTTPException(
+            status_code=500,
+            detail=f"Beads directory not found at {beads_path}"
+        )
+
+    # Start in background
+    background_tasks.add_task(
+        start_ralph_wiggum,
+        request.label,
+        request.priority,
+        request.max_tasks or 0,
+        request.dry_run or False
+    )
+
+    return {
+        "message": f"Ralph Wiggum starting with label '{request.label}'",
+        "status_url": "/v1/ralph/status",
+        "stop_url": "/v1/ralph/stop",
+    }
+
+
+@app.get("/v1/ralph/status", response_model=RalphStatusResponse)
+async def get_ralph_status():
+    """
+    Get Ralph Wiggum current status.
+
+    Returns progress information including completed/total tasks.
+
+    Example:
+        curl http://localhost:8013/v1/ralph/status
+    """
+    global ralph_process
+
+    status = read_ralph_status()
+
+    # Check if process is still running
+    if ralph_process:
+        if ralph_process.returncode is None:
+            status["running"] = True
+        else:
+            status["running"] = False
+            if status.get("status") == "running":
+                status["status"] = "completed"
+
+    return RalphStatusResponse(**status)
+
+
+@app.post("/v1/ralph/stop")
+async def stop_ralph():
+    """
+    Request Ralph Wiggum to stop gracefully.
+
+    Ralph will finish the current task then exit.
+
+    Example:
+        curl -X POST http://localhost:8013/v1/ralph/stop
+    """
+    global ralph_process
+
+    status = read_ralph_status()
+
+    if not status.get("running") and (not ralph_process or ralph_process.returncode is not None):
+        return {"message": "Ralph Wiggum is not running"}
+
+    # Write stop command
+    write_ralph_control("stop")
+
+    return {
+        "message": "Stop requested. Ralph will finish current task then exit.",
+        "status_url": "/v1/ralph/status",
+    }
+
+
+@app.get("/v1/ralph/logs")
+async def get_ralph_logs(lines: int = 100):
+    """
+    Get recent Ralph Wiggum logs.
+
+    Example:
+        curl http://localhost:8013/v1/ralph/logs?lines=50
+    """
+    log_file = "/workspace/.ralph-wiggum.log"
+
+    if not os.path.exists(log_file):
+        return {"logs": [], "message": "No logs found"}
+
+    try:
+        process = await asyncio.create_subprocess_exec(
+            "tail", "-n", str(lines), log_file,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, _ = await process.communicate()
+        log_lines = stdout.decode().strip().split('\n')
+        return {"logs": log_lines, "count": len(log_lines)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Could not read logs: {e}")
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=8013)

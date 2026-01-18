@@ -52,10 +52,11 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code and entrypoint
+# Copy application code, entrypoint, and scripts
 COPY main.py .
 COPY entrypoint.sh .
-RUN chmod +x entrypoint.sh
+COPY ralph-wiggum.sh .
+RUN chmod +x entrypoint.sh ralph-wiggum.sh
 
 # Copy Claude Code configuration (CLAUDE.md and skills)
 COPY CLAUDE.md .

@@ -399,6 +399,172 @@ docker exec -it local-ai-router curl http://host.docker.internal:8013/health
 # 3. Docker can reach host: check docker-compose.yml has extra_hosts
 ```
 
+## Ralph Wiggum - Autonomous Task Loop
+
+Ralph Wiggum is an autonomous task loop that works through beads tasks. It can be started via **curl API** or directly in the container.
+
+**Key features:**
+- Start/stop/monitor via HTTP API (curl)
+- Progress tracking (e.g., "3 of 60 tasks completed")
+- Beads database lives in `/workspace/home-server/.beads/`
+- Work happens in sibling repo directories (e.g., `/workspace/polyjuiced`)
+
+### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/v1/ralph/start` | POST | Start Ralph Wiggum with label filter |
+| `/v1/ralph/status` | GET | Get current progress and status |
+| `/v1/ralph/stop` | POST | Request graceful stop |
+| `/v1/ralph/logs` | GET | Get recent log lines |
+
+### Start via curl
+
+```bash
+# Start processing tasks with label "mercury"
+curl -X POST http://claude-harness.server.unarmedpuppy.com/v1/ralph/start \
+  -H "Content-Type: application/json" \
+  -d '{"label": "mercury"}'
+
+# With optional filters
+curl -X POST http://claude-harness.server.unarmedpuppy.com/v1/ralph/start \
+  -H "Content-Type: application/json" \
+  -d '{
+    "label": "trading-bot",
+    "priority": 1,
+    "max_tasks": 5,
+    "dry_run": false
+  }'
+```
+
+**Response:**
+```json
+{
+  "message": "Ralph Wiggum starting with label 'mercury'",
+  "status_url": "/v1/ralph/status",
+  "stop_url": "/v1/ralph/stop"
+}
+```
+
+### Check Progress
+
+```bash
+curl http://claude-harness.server.unarmedpuppy.com/v1/ralph/status
+```
+
+**Response:**
+```json
+{
+  "running": true,
+  "status": "running",
+  "label": "mercury",
+  "total_tasks": 60,
+  "completed_tasks": 3,
+  "failed_tasks": 0,
+  "current_task": "home-server-abc123",
+  "current_task_title": "Add retry logic to API client",
+  "started_at": "2025-01-17T20:30:00Z",
+  "last_update": "2025-01-17T20:35:00Z",
+  "message": "Working on task 4 of 60"
+}
+```
+
+### Stop Gracefully
+
+```bash
+curl -X POST http://claude-harness.server.unarmedpuppy.com/v1/ralph/stop
+```
+
+Ralph will finish the current task then exit.
+
+### View Logs
+
+```bash
+curl "http://claude-harness.server.unarmedpuppy.com/v1/ralph/logs?lines=50"
+```
+
+### Direct Shell Usage (Alternative)
+
+```bash
+# SSH or exec into the container
+docker exec -it claude-harness bash
+
+# Run directly (label is required)
+./ralph-wiggum.sh --label mercury
+./ralph-wiggum.sh --label trading-bot --priority 1 --max 3
+./ralph-wiggum.sh --label infra --dry-run
+```
+
+### API Parameters
+
+| Parameter | Required | Default | Description |
+|-----------|----------|---------|-------------|
+| `label` | **Yes** | - | Beads label to filter tasks |
+| `priority` | No | all | Filter by priority (0-3) |
+| `max_tasks` | No | 0 (unlimited) | Stop after N tasks |
+| `dry_run` | No | false | Preview without executing |
+
+### Beads Location
+
+- **Beads database**: `/workspace/home-server/.beads/`
+- **Work directories**: `/workspace/<repo>/` (sibling directories)
+
+The script runs `bd` commands from the home-server directory (where `.beads/` lives), but executes Claude in the appropriate repo directory based on task labels.
+
+### Label to Repo Mapping
+
+| Label | Working Directory |
+|-------|-------------------|
+| `trading-bot`, `polyjuiced` | `/workspace/polyjuiced` |
+| `home-server`, `infrastructure` | `/workspace/home-server` |
+| `homelab-ai`, `ai-services` | `/workspace/homelab-ai` |
+| `pokedex` | `/workspace/pokedex` |
+| `mercury` | `/workspace` (cross-repo) |
+| (others) | `/workspace` (root) |
+
+### Example Workflow
+
+```bash
+# 1. Create tasks in beads (locally, where bd is installed)
+cd ~/repos/home-server
+bd create "Add retry logic" -t feature -p 1 -l "mercury,trading-bot"
+bd create "Fix auth refresh" -t bug -p 0 -l "mercury,trading-bot"
+git add .beads/ && git commit -m "add mercury tasks" && git push
+
+# 2. Start Ralph Wiggum via API
+curl -X POST http://claude-harness.server.unarmedpuppy.com/v1/ralph/start \
+  -H "Content-Type: application/json" \
+  -d '{"label": "mercury"}'
+
+# 3. Monitor progress
+watch -n 10 'curl -s http://claude-harness.server.unarmedpuppy.com/v1/ralph/status | jq'
+
+# 4. Stop early if needed
+curl -X POST http://claude-harness.server.unarmedpuppy.com/v1/ralph/stop
+```
+
+### Status Values
+
+| Status | Description |
+|--------|-------------|
+| `idle` | Not running |
+| `running` | Processing tasks |
+| `stopping` | Stop requested, finishing current task |
+| `completed` | All tasks done or stopped |
+| `failed` | Error occurred |
+
+### Logs
+
+Logs are written to `/workspace/.ralph-wiggum.log` inside the container. Access via API or directly:
+
+```bash
+# Via API
+curl "http://claude-harness.server.unarmedpuppy.com/v1/ralph/logs?lines=100"
+
+# Via shell
+docker exec claude-harness tail -f /workspace/.ralph-wiggum.log
+```
+
 ## Limitations
 
 1. **No true streaming**: Claude CLI outputs complete response, then chunked to client
@@ -412,9 +578,12 @@ docker exec -it local-ai-router curl http://host.docker.internal:8013/health
 ```
 apps/claude-harness/
 ├── main.py                    # FastAPI service
-├── requirements.txt           # Python dependencies  
+├── ralph-wiggum.sh            # Autonomous task loop script
+├── requirements.txt           # Python dependencies
 ├── claude-harness.service     # Systemd unit file
 ├── manage.sh                  # Management script
+├── entrypoint.sh              # Container startup script
+├── Dockerfile                 # Container build definition
 └── README.md                  # This file
 ```
 
