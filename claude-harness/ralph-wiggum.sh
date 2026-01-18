@@ -670,8 +670,12 @@ check_and_close_parent_epic() {
 
     # Check if all children are marked with ✓ (closed)
     # If any line has ○ (open) or ◐ (in_progress), not all are closed
-    if echo "$children_lines" | grep -qE "↳ [○◐]"; then
+    # Note: Use fixed-string matching (-F) to avoid UTF-8 character class issues
+    if echo "$children_lines" | grep -qF "↳ ○"; then
         return 0  # Some children still open
+    fi
+    if echo "$children_lines" | grep -qF "↳ ◐"; then
+        return 0  # Some children in progress
     fi
 
     # All children show ✓ - verify they're all closed
