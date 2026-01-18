@@ -577,4 +577,106 @@ export const ttsAPI = {
   },
 };
 
+// Beads API - Task Management
+import type {
+  BeadTask,
+  BeadsTasksResponse,
+  BeadsStats,
+  BeadsLabelsResponse,
+  BeadsTaskCreate,
+  BeadsTaskUpdate,
+  RalphStatus,
+  RalphStartParams,
+  RalphStartResponse,
+  RalphLogs,
+} from '../types/beads';
+
+export const beadsAPI = {
+  listTasks: async (params?: {
+    status?: string;
+    label?: string;
+    priority?: number;
+    type?: string;
+    ready?: boolean;
+  }) => {
+    const response = await apiClient.get<BeadsTasksResponse>('/beads/tasks', { params });
+    return response.data;
+  },
+
+  getTask: async (id: string) => {
+    const response = await apiClient.get<BeadTask>(`/beads/tasks/${id}`);
+    return response.data;
+  },
+
+  createTask: async (task: BeadsTaskCreate) => {
+    const response = await apiClient.post<BeadTask>('/beads/tasks', task);
+    return response.data;
+  },
+
+  updateTask: async (id: string, update: BeadsTaskUpdate) => {
+    const response = await apiClient.patch<BeadTask>(`/beads/tasks/${id}`, update);
+    return response.data;
+  },
+
+  getStats: async () => {
+    const response = await apiClient.get<BeadsStats>('/beads/stats');
+    return response.data;
+  },
+
+  getLabels: async () => {
+    const response = await apiClient.get<BeadsLabelsResponse>('/beads/labels');
+    return response.data;
+  },
+
+  sync: async () => {
+    const response = await apiClient.post<{ status: string; message: string }>('/beads/sync');
+    return response.data;
+  },
+};
+
+// Ralph-Wiggum API - Autonomous Task Runner
+// Claude Harness base URL - can be overridden via environment
+const CLAUDE_HARNESS_URL = import.meta.env.VITE_CLAUDE_HARNESS_URL || 'https://claude-harness.server.unarmedpuppy.com';
+
+export const ralphAPI = {
+  getStatus: async (): Promise<RalphStatus> => {
+    const response = await fetch(`${CLAUDE_HARNESS_URL}/v1/ralph/status`);
+    if (!response.ok) {
+      throw new Error(`Failed to get Ralph status: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  start: async (params: RalphStartParams): Promise<RalphStartResponse> => {
+    const response = await fetch(`${CLAUDE_HARNESS_URL}/v1/ralph/start`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Failed to start Ralph: ${error}`);
+    }
+    return response.json();
+  },
+
+  stop: async (): Promise<{ message: string }> => {
+    const response = await fetch(`${CLAUDE_HARNESS_URL}/v1/ralph/stop`, {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to stop Ralph: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  getLogs: async (lines: number = 100): Promise<RalphLogs> => {
+    const response = await fetch(`${CLAUDE_HARNESS_URL}/v1/ralph/logs?lines=${lines}`);
+    if (!response.ok) {
+      throw new Error(`Failed to get Ralph logs: ${response.statusText}`);
+    }
+    return response.json();
+  },
+};
+
 export { apiClient };

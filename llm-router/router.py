@@ -1452,6 +1452,265 @@ async def api_rag_context(
     }
 
 
+# ============================================================================
+# Beads API Endpoints - Task Management for Dashboard
+# ============================================================================
+
+from beads_cli import (
+    list_tasks as beads_list_tasks,
+    get_ready_tasks as beads_get_ready_tasks,
+    get_task as beads_get_task,
+    claim_task as beads_claim_task,
+    close_task as beads_close_task,
+    create_task as beads_create_task,
+    update_task as beads_update_task,
+    get_labels as beads_get_labels,
+    get_stats as beads_get_stats,
+    sync_beads,
+    compute_age_days,
+    BeadsError,
+)
+
+
+class BeadsTaskCreate(BaseModel):
+    """Request body for creating a new beads task."""
+    title: str
+    priority: int = 2  # 0=critical, 1=high, 2=medium, 3=low
+    type: str = "task"  # task, bug, feature, epic, chore
+    labels: list[str] = []  # Should include at least one repo:* label
+    description: Optional[str] = None
+    blocked_by: list[str] = []
+
+
+class BeadsTaskUpdate(BaseModel):
+    """Request body for updating a beads task."""
+    status: Optional[str] = None  # open, in_progress, closed
+    priority: Optional[int] = None
+    labels_add: list[str] = []
+    labels_remove: list[str] = []
+
+
+@app.get("/beads/tasks")
+async def api_beads_list_tasks(
+    status: Optional[str] = None,
+    label: Optional[str] = None,
+    priority: Optional[int] = None,
+    type: Optional[str] = None,
+    ready: bool = False,
+):
+    """
+    List beads tasks with optional filters.
+
+    Query Parameters:
+        status: Filter by status (open, in_progress, closed)
+        label: Filter by label
+        priority: Filter by priority (0-3)
+        type: Filter by type (task, bug, feature, epic, chore)
+        ready: If true, only return unblocked open tasks
+
+    Returns:
+        List of tasks with computed age_days field
+    """
+    try:
+        if ready:
+            tasks = await beads_get_ready_tasks(label=label)
+        else:
+            tasks = await beads_list_tasks(
+                status=status,
+                label=label,
+                priority=priority,
+                task_type=type,
+            )
+
+        # Add computed age_days to each task
+        for task in tasks:
+            created_at = task.get("created_at", "")
+            if created_at:
+                task["age_days"] = compute_age_days(created_at)
+            else:
+                task["age_days"] = 0
+
+        return {
+            "tasks": tasks,
+            "total": len(tasks),
+        }
+
+    except BeadsError as e:
+        logger.error(f"Beads list error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/beads/tasks/{task_id}")
+async def api_beads_get_task(task_id: str):
+    """
+    Get a specific beads task by ID.
+
+    Path Parameters:
+        task_id: The task ID
+
+    Returns:
+        Task details including age_days
+    """
+    try:
+        task = await beads_get_task(task_id)
+        if not task:
+            raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+
+        # Add computed age_days
+        created_at = task.get("created_at", "")
+        if created_at:
+            task["age_days"] = compute_age_days(created_at)
+        else:
+            task["age_days"] = 0
+
+        return task
+
+    except BeadsError as e:
+        logger.error(f"Beads get error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/beads/tasks")
+async def api_beads_create_task(task: BeadsTaskCreate):
+    """
+    Create a new beads task.
+
+    Request Body:
+        title: Task title (required)
+        priority: Priority 0-3 (default: 2)
+        type: Task type (default: task)
+        labels: List of labels (should include repo:* label)
+        description: Optional markdown description
+        blocked_by: Optional list of blocking task IDs
+
+    Returns:
+        Created task
+    """
+    try:
+        # Validate that at least one repo label is present
+        repo_labels = [l for l in task.labels if l.startswith("repo:")]
+        if not repo_labels:
+            logger.warning(f"Creating task without repo label: {task.title}")
+
+        created = await beads_create_task(
+            title=task.title,
+            priority=task.priority,
+            task_type=task.type,
+            labels=task.labels,
+            description=task.description,
+            blocked_by=task.blocked_by if task.blocked_by else None,
+        )
+
+        # Sync after creation
+        await sync_beads()
+
+        return created
+
+    except BeadsError as e:
+        logger.error(f"Beads create error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.patch("/beads/tasks/{task_id}")
+async def api_beads_update_task(task_id: str, update: BeadsTaskUpdate):
+    """
+    Update an existing beads task.
+
+    Path Parameters:
+        task_id: The task ID
+
+    Request Body:
+        status: New status (open, in_progress, closed)
+        priority: New priority (0-3)
+        labels_add: Labels to add
+        labels_remove: Labels to remove
+
+    Returns:
+        Updated task
+    """
+    try:
+        updated = await beads_update_task(
+            task_id=task_id,
+            status=update.status,
+            priority=update.priority,
+            labels_add=update.labels_add if update.labels_add else None,
+            labels_remove=update.labels_remove if update.labels_remove else None,
+        )
+
+        # Sync after update
+        await sync_beads()
+
+        return updated
+
+    except BeadsError as e:
+        logger.error(f"Beads update error: {e}")
+        if "not found" in str(e).lower():
+            raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/beads/stats")
+async def api_beads_stats():
+    """
+    Get aggregated beads task statistics.
+
+    Returns:
+        Statistics including total, by status, by label, by priority, by type
+    """
+    try:
+        stats = await beads_get_stats()
+        return stats
+
+    except BeadsError as e:
+        logger.error(f"Beads stats error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/beads/labels")
+async def api_beads_labels():
+    """
+    Get all unique labels used in beads tasks.
+
+    Returns:
+        List of labels with repo labels grouped first
+    """
+    try:
+        labels = await beads_get_labels()
+
+        # Separate repo labels from other labels
+        repo_labels = sorted([l for l in labels if l.startswith("repo:")])
+        other_labels = sorted([l for l in labels if not l.startswith("repo:")])
+
+        return {
+            "labels": labels,
+            "repo_labels": repo_labels,
+            "other_labels": other_labels,
+        }
+
+    except BeadsError as e:
+        logger.error(f"Beads labels error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/beads/sync")
+async def api_beads_sync():
+    """
+    Sync beads database (pull and push changes).
+
+    Useful when multiple processes are modifying tasks.
+
+    Returns:
+        Sync status message
+    """
+    try:
+        result = await sync_beads()
+        return {"status": "ok", "message": result}
+
+    except BeadsError as e:
+        logger.error(f"Beads sync error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

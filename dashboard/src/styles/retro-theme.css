@@ -1,0 +1,701 @@
+/* Retro Theme - Command Center UI Design System */
+
+:root {
+  /* Background colors - dark terminal aesthetic */
+  --retro-bg-dark: #0a0a0f;
+  --retro-bg-medium: #12121a;
+  --retro-bg-light: #1a1a26;
+  --retro-bg-card: #16161f;
+
+  /* Border colors */
+  --retro-border: #2a2a3a;
+  --retro-border-highlight: #3d5a80;
+  --retro-border-active: #5bc0be;
+
+  /* Text colors */
+  --retro-text-primary: #e8e8e8;
+  --retro-text-secondary: #8b9dc3;
+  --retro-text-muted: #5c6b8a;
+
+  /* Accent colors - terminal/CRT inspired */
+  --retro-accent-green: #00ff41;
+  --retro-accent-yellow: #ffd700;
+  --retro-accent-red: #ff4444;
+  --retro-accent-blue: #00d4ff;
+  --retro-accent-orange: #ff8c00;
+  --retro-accent-purple: #b388ff;
+  --retro-accent-cyan: #5bc0be;
+
+  /* Priority colors */
+  --retro-priority-critical: #ff4444;
+  --retro-priority-high: #ff8c00;
+  --retro-priority-medium: #ffd700;
+  --retro-priority-low: #5bc0be;
+
+  /* Status colors */
+  --retro-status-open: #5bc0be;
+  --retro-status-progress: #ffd700;
+  --retro-status-done: #00ff41;
+  --retro-status-blocked: #ff4444;
+
+  /* Effects */
+  --retro-glow-green: 0 0 10px rgba(0, 255, 65, 0.3);
+  --retro-glow-blue: 0 0 10px rgba(91, 192, 190, 0.3);
+  --retro-glow-red: 0 0 10px rgba(255, 68, 68, 0.3);
+  --retro-glow-yellow: 0 0 10px rgba(255, 215, 0, 0.3);
+
+  /* Sizing */
+  --retro-border-width: 2px;
+  --retro-radius-sm: 2px;
+  --retro-radius: 4px;
+  --retro-radius-lg: 6px;
+
+  /* Spacing */
+  --retro-space-xs: 0.25rem;
+  --retro-space-sm: 0.5rem;
+  --retro-space-md: 1rem;
+  --retro-space-lg: 1.5rem;
+  --retro-space-xl: 2rem;
+
+  /* Breakpoints (for reference - use Tailwind classes) */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+
+  /* Touch target minimum */
+  --retro-touch-target: 44px;
+}
+
+/* CRT scanline effect (optional, subtle) */
+.retro-scanlines {
+  position: relative;
+}
+
+.retro-scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  pointer-events: none;
+}
+
+/* Stepped/pixelated border effect */
+.retro-border-stepped {
+  position: relative;
+  background: var(--retro-bg-card);
+}
+
+.retro-border-stepped::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: var(--retro-border);
+  clip-path: polygon(
+    0 4px, 4px 4px, 4px 0,
+    calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px,
+    100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%,
+    4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px)
+  );
+  z-index: -1;
+}
+
+/* Terminal-style text glow */
+.retro-text-glow {
+  text-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
+}
+
+/* Retro button base */
+.retro-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  min-height: var(--retro-touch-target);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: var(--retro-border-width) solid var(--retro-border);
+  background: var(--retro-bg-light);
+  color: var(--retro-text-primary);
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.retro-btn:hover:not(:disabled) {
+  border-color: var(--retro-border-active);
+  box-shadow: var(--retro-glow-blue);
+}
+
+.retro-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.retro-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.retro-btn-primary {
+  background: var(--retro-accent-cyan);
+  border-color: var(--retro-accent-cyan);
+  color: var(--retro-bg-dark);
+}
+
+.retro-btn-primary:hover:not(:disabled) {
+  background: #6ed0ce;
+  box-shadow: var(--retro-glow-blue);
+}
+
+.retro-btn-success {
+  background: var(--retro-accent-green);
+  border-color: var(--retro-accent-green);
+  color: var(--retro-bg-dark);
+}
+
+.retro-btn-success:hover:not(:disabled) {
+  box-shadow: var(--retro-glow-green);
+}
+
+.retro-btn-danger {
+  background: var(--retro-accent-red);
+  border-color: var(--retro-accent-red);
+  color: var(--retro-bg-dark);
+}
+
+.retro-btn-danger:hover:not(:disabled) {
+  box-shadow: var(--retro-glow-red);
+}
+
+.retro-btn-warning {
+  background: var(--retro-accent-yellow);
+  border-color: var(--retro-accent-yellow);
+  color: var(--retro-bg-dark);
+}
+
+.retro-btn-warning:hover:not(:disabled) {
+  box-shadow: var(--retro-glow-yellow);
+}
+
+.retro-btn-ghost {
+  background: transparent;
+  border-color: transparent;
+}
+
+.retro-btn-ghost:hover:not(:disabled) {
+  background: var(--retro-bg-light);
+  border-color: var(--retro-border);
+}
+
+/* Retro card */
+.retro-card {
+  background: var(--retro-bg-card);
+  border: var(--retro-border-width) solid var(--retro-border);
+  border-radius: var(--retro-radius);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.retro-card:hover {
+  border-color: var(--retro-border-highlight);
+}
+
+.retro-card-selected {
+  border-color: var(--retro-border-active);
+  box-shadow: var(--retro-glow-blue);
+}
+
+.retro-card-warning {
+  border-color: var(--retro-accent-orange);
+}
+
+.retro-card-success {
+  border-color: var(--retro-accent-green);
+}
+
+/* Retro panel with title bar */
+.retro-panel {
+  background: var(--retro-bg-card);
+  border: var(--retro-border-width) solid var(--retro-border);
+  border-radius: var(--retro-radius);
+}
+
+.retro-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  background: var(--retro-bg-light);
+  border-bottom: 1px solid var(--retro-border);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--retro-text-secondary);
+}
+
+.retro-panel-content {
+  padding: 1rem;
+}
+
+/* Retro badge */
+.retro-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: var(--retro-radius-sm);
+  white-space: nowrap;
+}
+
+.retro-badge-sm {
+  padding: 0.0625rem 0.375rem;
+  font-size: 0.5rem;
+}
+
+.retro-badge-md {
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+}
+
+/* Badge variants */
+.retro-badge-priority-critical {
+  background: rgba(255, 68, 68, 0.2);
+  color: var(--retro-priority-critical);
+  border: 1px solid var(--retro-priority-critical);
+}
+
+.retro-badge-priority-high {
+  background: rgba(255, 140, 0, 0.2);
+  color: var(--retro-priority-high);
+  border: 1px solid var(--retro-priority-high);
+}
+
+.retro-badge-priority-medium {
+  background: rgba(255, 215, 0, 0.2);
+  color: var(--retro-priority-medium);
+  border: 1px solid var(--retro-priority-medium);
+}
+
+.retro-badge-priority-low {
+  background: rgba(91, 192, 190, 0.2);
+  color: var(--retro-priority-low);
+  border: 1px solid var(--retro-priority-low);
+}
+
+.retro-badge-status-open {
+  background: rgba(91, 192, 190, 0.2);
+  color: var(--retro-status-open);
+  border: 1px solid var(--retro-status-open);
+}
+
+.retro-badge-status-progress {
+  background: rgba(255, 215, 0, 0.2);
+  color: var(--retro-status-progress);
+  border: 1px solid var(--retro-status-progress);
+}
+
+.retro-badge-status-done {
+  background: rgba(0, 255, 65, 0.2);
+  color: var(--retro-status-done);
+  border: 1px solid var(--retro-status-done);
+}
+
+.retro-badge-status-blocked {
+  background: rgba(255, 68, 68, 0.2);
+  color: var(--retro-status-blocked);
+  border: 1px solid var(--retro-status-blocked);
+}
+
+.retro-badge-label {
+  background: rgba(179, 136, 255, 0.2);
+  color: var(--retro-accent-purple);
+  border: 1px solid var(--retro-accent-purple);
+}
+
+.retro-badge-agent {
+  background: rgba(0, 212, 255, 0.2);
+  color: var(--retro-accent-blue);
+  border: 1px solid var(--retro-accent-blue);
+}
+
+/* Retro progress bar */
+.retro-progress {
+  height: 8px;
+  background: var(--retro-bg-dark);
+  border: 1px solid var(--retro-border);
+  border-radius: var(--retro-radius-sm);
+  overflow: hidden;
+}
+
+.retro-progress-bar {
+  height: 100%;
+  background: var(--retro-accent-cyan);
+  transition: width 0.3s ease;
+  /* Segmented effect */
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 4px,
+    rgba(0, 0, 0, 0.3) 4px,
+    rgba(0, 0, 0, 0.3) 5px
+  );
+}
+
+.retro-progress-bar-success {
+  background-color: var(--retro-accent-green);
+}
+
+.retro-progress-bar-warning {
+  background-color: var(--retro-accent-yellow);
+}
+
+.retro-progress-bar-danger {
+  background-color: var(--retro-accent-red);
+}
+
+/* Retro input */
+.retro-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  min-height: var(--retro-touch-target);
+  background: var(--retro-bg-dark);
+  border: var(--retro-border-width) solid var(--retro-border);
+  border-radius: var(--retro-radius);
+  color: var(--retro-text-primary);
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.retro-input::placeholder {
+  color: var(--retro-text-muted);
+}
+
+.retro-input:focus {
+  outline: none;
+  border-color: var(--retro-border-active);
+  box-shadow: var(--retro-glow-blue);
+}
+
+.retro-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Retro select */
+.retro-select {
+  appearance: none;
+  width: 100%;
+  padding: 0.5rem 2rem 0.5rem 0.75rem;
+  min-height: var(--retro-touch-target);
+  background: var(--retro-bg-dark);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b9dc3' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  border: var(--retro-border-width) solid var(--retro-border);
+  border-radius: var(--retro-radius);
+  color: var(--retro-text-primary);
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.retro-select:focus {
+  outline: none;
+  border-color: var(--retro-border-active);
+  box-shadow: var(--retro-glow-blue);
+}
+
+/* Retro checkbox */
+.retro-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  min-height: var(--retro-touch-target);
+}
+
+.retro-checkbox input {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--retro-bg-dark);
+  border: var(--retro-border-width) solid var(--retro-border);
+  border-radius: var(--retro-radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.retro-checkbox input:checked {
+  background: var(--retro-accent-cyan);
+  border-color: var(--retro-accent-cyan);
+}
+
+.retro-checkbox input:checked::after {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%230a0a0f' d='M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z'/%3E%3C/svg%3E");
+}
+
+.retro-checkbox input:focus {
+  outline: none;
+  border-color: var(--retro-border-active);
+  box-shadow: var(--retro-glow-blue);
+}
+
+/* Mobile navigation */
+.retro-mobile-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  background: var(--retro-bg-medium);
+  border-top: var(--retro-border-width) solid var(--retro-border);
+  padding: 0.5rem;
+  z-index: 50;
+}
+
+.retro-mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  min-width: var(--retro-touch-target);
+  min-height: var(--retro-touch-target);
+  color: var(--retro-text-muted);
+  text-decoration: none;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  transition: color 0.15s ease;
+}
+
+.retro-mobile-nav-item:hover,
+.retro-mobile-nav-item-active {
+  color: var(--retro-accent-cyan);
+}
+
+.retro-mobile-nav-item span {
+  font-size: 1.25rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Responsive utilities */
+@media (max-width: 640px) {
+  .retro-hide-mobile {
+    display: none !important;
+  }
+
+  /* Add padding at bottom for mobile nav */
+  .retro-with-mobile-nav {
+    padding-bottom: calc(var(--retro-touch-target) + 1rem + env(safe-area-inset-bottom));
+  }
+}
+
+@media (min-width: 641px) {
+  .retro-hide-desktop {
+    display: none !important;
+  }
+}
+
+/* Stats display */
+.retro-stats-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--retro-bg-medium);
+  border-bottom: var(--retro-border-width) solid var(--retro-border);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.retro-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+}
+
+.retro-stat-label {
+  color: var(--retro-text-muted);
+}
+
+.retro-stat-value {
+  font-weight: 700;
+  color: var(--retro-accent-cyan);
+}
+
+/* Modal/overlay */
+.retro-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(2px);
+  z-index: 40;
+}
+
+.retro-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 2rem);
+  max-width: 500px;
+  max-height: calc(100vh - 4rem);
+  background: var(--retro-bg-card);
+  border: var(--retro-border-width) solid var(--retro-border);
+  border-radius: var(--retro-radius);
+  overflow: hidden;
+  z-index: 50;
+}
+
+@media (max-width: 640px) {
+  .retro-modal-fullscreen {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transform: none;
+    width: 100%;
+    max-width: none;
+    max-height: none;
+    border-radius: 0;
+  }
+}
+
+.retro-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background: var(--retro-bg-light);
+  border-bottom: 1px solid var(--retro-border);
+}
+
+.retro-modal-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--retro-text-primary);
+}
+
+.retro-modal-body {
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.retro-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-top: 1px solid var(--retro-border);
+}
+
+/* Log viewer */
+.retro-log-viewer {
+  background: var(--retro-bg-dark);
+  border: 1px solid var(--retro-border);
+  border-radius: var(--retro-radius);
+  font-family: inherit;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 0.75rem;
+}
+
+.retro-log-line {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.retro-log-timestamp {
+  color: var(--retro-text-muted);
+}
+
+.retro-log-info {
+  color: var(--retro-accent-cyan);
+}
+
+.retro-log-warn {
+  color: var(--retro-accent-yellow);
+}
+
+.retro-log-error {
+  color: var(--retro-accent-red);
+}
+
+/* Kanban specific */
+.retro-kanban-column {
+  flex: 1;
+  min-width: 280px;
+  max-width: 400px;
+  background: var(--retro-bg-medium);
+  border: var(--retro-border-width) solid var(--retro-border);
+  border-radius: var(--retro-radius);
+  display: flex;
+  flex-direction: column;
+}
+
+.retro-kanban-column-header {
+  padding: 0.75rem 1rem;
+  background: var(--retro-bg-light);
+  border-bottom: 1px solid var(--retro-border);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.retro-kanban-column-count {
+  background: var(--retro-bg-dark);
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--retro-radius-sm);
+  font-size: 0.625rem;
+}
+
+.retro-kanban-column-body {
+  flex: 1;
+  padding: 0.75rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Animation utilities */
+@keyframes retro-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.retro-animate-pulse {
+  animation: retro-pulse 2s ease-in-out infinite;
+}
+
+@keyframes retro-glow-pulse {
+  0%, 100% { box-shadow: var(--retro-glow-green); }
+  50% { box-shadow: 0 0 20px rgba(0, 255, 65, 0.5); }
+}
+
+.retro-animate-glow {
+  animation: retro-glow-pulse 2s ease-in-out infinite;
+}
