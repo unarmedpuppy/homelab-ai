@@ -145,15 +145,59 @@ OpenAI-compatible API that routes to multiple backends:
 
 ### Dashboard (`dashboard/`)
 
-React dashboard for metrics and conversation explorer:
-- Activity heatmap
-- Model usage stats
-- Conversation browser
-- RAG search
+React dashboard with retro/pixel-art "command center" UI for AI infrastructure management:
+
+**Routes**:
+| Route | View | Description |
+|-------|------|-------------|
+| `/` | Chat | Streaming chat with provider selection, TTS toggle, image upload |
+| `/chat/:conversationId` | Chat | Resume existing conversation |
+| `/beads` | Beads Board | Kanban-style task management with label filtering |
+| `/ralph` | Ralph Loop | Control Ralph-Wiggum autonomous task loops |
+| `/providers` | Providers | Provider health monitoring and utilization |
+| `/stats` | Stats | Activity heatmap, model usage charts |
+| `/agents` | Agents | Agent run history and logs |
+
+**Beads Board (`/beads`)**:
+- Three-column Kanban: Backlog → In Progress → Done
+- Label filtering with sidebar
+- Task creation (follows WORKSPACE-AGENTS conventions with repo labels)
+- Real-time updates via 5s polling
+- Mobile-responsive with swipe navigation
+
+**Ralph Loop Management (`/ralph`)**:
+- View current loop status and progress
+- Start new loops with label filter
+- Stop running loops
+- View execution logs with auto-refresh
 
 **Key files**:
-- `src/App.tsx` - Main application
-- `src/components/` - UI components
+- `src/App.tsx` - Main application and routing
+- `src/components/ui/` - Retro design system components
+- `src/components/beads/` - Beads board components
+- `src/components/ralph/` - Ralph management components
+- `src/styles/retro-theme.css` - CSS custom properties for retro theme
+
+**Retro Design System** (`src/components/ui/`):
+
+Reusable UI component library with pixel-art styling:
+
+| Component | Description |
+|-----------|-------------|
+| `RetroCard` | Pixelated border card with variants (default, highlight, warning, success) |
+| `RetroButton` | Action buttons (primary, secondary, danger, ghost, success, warning) |
+| `RetroBadge` | Status/priority badges with semantic variants |
+| `RetroPanel` | Bordered panel with optional title |
+| `RetroProgress` | Segmented progress bar |
+| `RetroInput` | Text input field |
+| `RetroSelect` | Dropdown selector |
+| `RetroModal` | Dialog with mobile fullscreen support |
+| `RetroCheckbox` | Styled checkbox |
+| `RetroStats` | Stats display bar |
+| `MobileNav` | Bottom navigation for mobile devices |
+| `ResponsiveLayout` | Mobile-first layout wrapper with sidebar support |
+
+See `dashboard/src/components/ui/README.md` for component documentation.
 
 ### LLM Manager (`llm-manager/`)
 

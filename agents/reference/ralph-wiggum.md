@@ -100,7 +100,7 @@ Tasks are routed to working directories based on labels:
 | `homelab-ai`, `ai-services` | `/workspace/homelab-ai` |
 | `pokedex` | `/workspace/pokedex` |
 | `agent-gateway` | `/workspace/agent-gateway` |
-| `beads-viewer` | `/workspace/beads-viewer` |
+| `beads-viewer` | `/workspace/beads-viewer` (deprecated - beads UI now in homelab-ai dashboard) |
 | `mercury` | `/workspace` (cross-repo) |
 | (default) | `/workspace` |
 
