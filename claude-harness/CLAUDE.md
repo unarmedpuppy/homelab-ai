@@ -6,7 +6,7 @@ You are running inside the **claude-harness** container, the primary development
 
 - **Container**: `claude-harness` (Docker)
 - **Workspace**: `/workspace` (all repos cloned here)
-- **Task Database**: `/workspace/.beads/` (unified task tracking)
+- **Task Database**: `/workspace/home-server/.beads/` (beads lives in home-server repo)
 - **Server Access**: SSH to `claude-deploy@host.docker.internal:4242`
 
 ## Workspace Structure
@@ -14,8 +14,8 @@ You are running inside the **claude-harness** container, the primary development
 ```
 /workspace/
 ├── AGENTS.md              ← Cross-repo agent instructions (read this!)
-├── .beads/                ← Unified task database
 ├── home-server/           ← Server infrastructure
+│   └── .beads/            ← Task database (run bd from here!)
 ├── homelab-ai/            ← AI services
 ├── pokedex/               ← Pokemon app
 ├── polyjuiced/            ← Trading bot
@@ -27,12 +27,34 @@ You are running inside the **claude-harness** container, the primary development
 
 ## Task Management (Beads)
 
+**Important**: Run `bd` commands from `/workspace/home-server/` where `.beads/` lives:
+
 ```bash
+cd /workspace/home-server
 bd ready              # Find unblocked work
 bd list               # View all tasks
 bd create "title" -p 1  # Create task
 bd close <id>         # Complete task
 ```
+
+## Ralph Wiggum - Autonomous Task Loop
+
+Ralph Wiggum processes beads tasks automatically. Start via API:
+
+```bash
+# Start processing tasks with a label
+curl -X POST http://localhost:8013/v1/ralph/start \
+  -H "Content-Type: application/json" \
+  -d '{"label": "mercury"}'
+
+# Check progress
+curl http://localhost:8013/v1/ralph/status
+
+# Stop gracefully
+curl -X POST http://localhost:8013/v1/ralph/stop
+```
+
+See `agents/reference/ralph-wiggum.md` for full documentation.
 
 ## Critical Rules
 
