@@ -618,6 +618,89 @@ claim_task() {
     )
 }
 
+# Check if a task's parent epic has all children completed, and close it if so
+check_and_close_parent_epic() {
+    local task_id="$1"
+
+    if $DRY_RUN; then
+        return 0
+    fi
+
+    # Get task's parent (if any)
+    local task_json
+    task_json=$(run_bd show "$task_id" --json 2>/dev/null) || return 0
+
+    local parent_id
+    parent_id=$(echo "$task_json" | jq -r '.[0].parent // empty')
+
+    if [ -z "$parent_id" ]; then
+        return 0  # No parent
+    fi
+
+    # Check if parent is an epic
+    local parent_json
+    parent_json=$(run_bd show "$parent_id" --json 2>/dev/null) || return 0
+
+    local parent_type
+    parent_type=$(echo "$parent_json" | jq -r '.[0].issue_type // empty')
+
+    if [ "$parent_type" != "epic" ]; then
+        return 0  # Parent is not an epic
+    fi
+
+    local parent_status
+    parent_status=$(echo "$parent_json" | jq -r '.[0].status // empty')
+
+    if [ "$parent_status" != "open" ] && [ "$parent_status" != "in_progress" ]; then
+        return 0  # Parent already closed
+    fi
+
+    # Get all children of the parent epic
+    local children
+    children=$(echo "$parent_json" | jq -r '.[0].children // []')
+
+    if [ "$children" = "[]" ] || [ -z "$children" ]; then
+        return 0  # No children
+    fi
+
+    # Check if all children are closed
+    local all_closed=true
+    for child_id in $(echo "$children" | jq -r '.[]'); do
+        local child_json
+        child_json=$(run_bd show "$child_id" --json 2>/dev/null) || continue
+
+        local child_status
+        child_status=$(echo "$child_json" | jq -r '.[0].status // "open"')
+
+        if [ "$child_status" != "closed" ]; then
+            all_closed=false
+            break
+        fi
+    done
+
+    if $all_closed; then
+        local parent_title
+        parent_title=$(echo "$parent_json" | jq -r '.[0].title // "Unknown"')
+
+        log_info "All children of epic '$parent_id' are complete. Auto-closing epic."
+        run_bd close "$parent_id" --reason "All children completed by Ralph Wiggum"
+
+        # Commit the epic closure
+        (
+            cd "$BEADS_DIR"
+            if [ -d ".beads" ]; then
+                git add .beads/
+                git commit -m "close epic: $parent_id - All children completed" || true
+            fi
+        )
+
+        log_success "Auto-closed epic: $parent_id - $parent_title"
+
+        # Recursively check if this epic's parent should also be closed
+        check_and_close_parent_epic "$parent_id"
+    fi
+}
+
 # Complete a task
 complete_task() {
     local task_id="$1"
@@ -631,6 +714,9 @@ complete_task() {
     fi
 
     run_bd close "$task_id" --reason "$reason"
+
+    # Check if parent epic should be auto-closed
+    check_and_close_parent_epic "$task_id"
 
     # Commit the completion from beads directory
     (
