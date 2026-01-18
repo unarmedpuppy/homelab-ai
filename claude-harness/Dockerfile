@@ -25,10 +25,13 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /var/run/sshd
 
-# Install beads CLI (pre-built binary)
-# Note: If binary not available, beads features will be skipped
-RUN curl -fsSL https://github.com/steveyegge/beads/releases/latest/download/beads-linux-x86_64.tar.gz \
-    | tar -xz -C /usr/local/bin 2>/dev/null || echo "Beads binary not available, skipping"
+# Install beads CLI (bd) for task management
+# Download latest release binary directly
+RUN BEADS_VERSION=$(curl -sL https://api.github.com/repos/steveyegge/beads/releases/latest | grep '"tag_name"' | cut -d'"' -f4 | sed 's/^v//') \
+    && curl -fsSL "https://github.com/steveyegge/beads/releases/download/v${BEADS_VERSION}/beads_${BEADS_VERSION}_linux_amd64.tar.gz" \
+    | tar -xz -C /usr/local/bin \
+    && chmod +x /usr/local/bin/bd \
+    && bd --version
 
 # Install code-server for browser-based VS Code
 RUN curl -fsSL https://code-server.dev/install.sh | sh
@@ -41,11 +44,6 @@ RUN sed -i 's/#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config && \
 
 # Install Claude Code CLI globally
 RUN npm install -g @anthropic-ai/claude-code
-
-# Install Beads CLI (bd) for task management
-RUN curl -sSL https://raw.githubusercontent.com/steveyegge/beads/main/scripts/install.sh | bash \
-    && mv /root/.local/bin/bd /usr/local/bin/bd \
-    && chmod +x /usr/local/bin/bd
 
 # Create non-root user for security
 RUN useradd -m -s /bin/bash appuser
