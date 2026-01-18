@@ -395,6 +395,49 @@ fail_task() {
     log_warn "Task $task_id returned to open status. Manual review needed."
 }
 
+# Commit and push code changes from working directory
+commit_changes() {
+    local working_dir="$1"
+    local task_id="$2"
+    local task_title="$3"
+
+    log_info "Committing changes from: $working_dir"
+
+    if $DRY_RUN; then
+        log_info "[DRY RUN] Would commit and push changes from $working_dir"
+        return 0
+    fi
+
+    (
+        cd "$working_dir" || return 1
+
+        # Check if there are any changes to commit
+        if git diff --quiet && git diff --cached --quiet && [ -z "$(git ls-files --others --exclude-standard)" ]; then
+            log_info "No changes to commit in $working_dir"
+            return 0
+        fi
+
+        # Stage all changes
+        git add -A
+
+        # Commit with Ralph prefix
+        local commit_msg="Ralph - $task_id: $task_title"
+        if git commit -m "$commit_msg"; then
+            log_success "Committed changes: $commit_msg"
+        else
+            log_warn "Nothing to commit or commit failed"
+            return 0
+        fi
+
+        # Push to origin
+        if git push origin HEAD 2>&1; then
+            log_success "Pushed changes to origin"
+        else
+            log_warn "Could not push changes - may need manual push"
+        fi
+    )
+}
+
 # Run Claude on a task
 run_claude() {
     local prompt="$1"
@@ -563,6 +606,9 @@ main() {
 
         # Run Claude
         if run_claude "$prompt" "$working_dir" "$CURRENT_TASK_ID"; then
+            # Commit and push any code changes Claude made
+            commit_changes "$working_dir" "$CURRENT_TASK_ID" "$CURRENT_TASK_TITLE"
+
             complete_task "$CURRENT_TASK_ID" "Completed by Ralph Wiggum autonomous loop"
             ((TASKS_COMPLETED++))
             consecutive_failures=0
