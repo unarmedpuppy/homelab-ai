@@ -656,50 +656,44 @@ check_and_close_parent_epic() {
         return 0  # Parent already closed
     fi
 
-    # Get all children of the parent epic
-    local children
-    children=$(echo "$parent_json" | jq -r '.[0].children // []')
+    # Get children from text output (children field is null in JSON)
+    # Parse lines like "  ↳ ✓ home-server-1709: Title"
+    local parent_text
+    parent_text=$(run_bd show "$parent_id" 2>/dev/null)
 
-    if [ "$children" = "[]" ] || [ -z "$children" ]; then
+    local children_lines
+    children_lines=$(echo "$parent_text" | grep -E "^  ↳" || true)
+
+    if [ -z "$children_lines" ]; then
         return 0  # No children
     fi
 
-    # Check if all children are closed
-    local all_closed=true
-    for child_id in $(echo "$children" | jq -r '.[]'); do
-        local child_json
-        child_json=$(run_bd show "$child_id" --json 2>/dev/null) || continue
-
-        local child_status
-        child_status=$(echo "$child_json" | jq -r '.[0].status // "open"')
-
-        if [ "$child_status" != "closed" ]; then
-            all_closed=false
-            break
-        fi
-    done
-
-    if $all_closed; then
-        local parent_title
-        parent_title=$(echo "$parent_json" | jq -r '.[0].title // "Unknown"')
-
-        log_info "All children of epic '$parent_id' are complete. Auto-closing epic."
-        run_bd close "$parent_id" --reason "All children completed by Ralph Wiggum"
-
-        # Commit the epic closure
-        (
-            cd "$BEADS_DIR"
-            if [ -d ".beads" ]; then
-                git add .beads/
-                git commit -m "close epic: $parent_id - All children completed" || true
-            fi
-        )
-
-        log_success "Auto-closed epic: $parent_id - $parent_title"
-
-        # Recursively check if this epic's parent should also be closed
-        check_and_close_parent_epic "$parent_id"
+    # Check if all children are marked with ✓ (closed)
+    # If any line has ○ (open) or ◐ (in_progress), not all are closed
+    if echo "$children_lines" | grep -qE "↳ [○◐]"; then
+        return 0  # Some children still open
     fi
+
+    # All children show ✓ - verify they're all closed
+    local parent_title
+    parent_title=$(echo "$parent_json" | jq -r '.[0].title // "Unknown"')
+
+    log_info "All children of epic '$parent_id' are complete. Auto-closing epic."
+    run_bd close "$parent_id" --reason "All children completed by Ralph Wiggum"
+
+    # Commit the epic closure
+    (
+        cd "$BEADS_DIR"
+        if [ -d ".beads" ]; then
+            git add .beads/
+            git commit -m "close epic: $parent_id - All children completed" || true
+        fi
+    )
+
+    log_success "Auto-closed epic: $parent_id - $parent_title"
+
+    # Recursively check if this epic's parent should also be closed
+    check_and_close_parent_epic "$parent_id"
 }
 
 # Complete a task
