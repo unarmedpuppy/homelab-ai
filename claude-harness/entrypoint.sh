@@ -166,79 +166,33 @@ setup_workspace() {
             fi
         done
 
-        # Create workspace-level AGENTS.md if it doesn't exist
-        if [ ! -f "AGENTS.md" ]; then
-            echo "Creating workspace AGENTS.md..."
-            cat > AGENTS.md << 'AGENTS_EOF'
-# Homelab Workspace - Agent Instructions
+        # Create workspace-level CLAUDE.md that references home-server/WORKSPACE-AGENTS.md
+        # Claude Code reads CLAUDE.md automatically, which then loads the full context
+        if [ ! -e "CLAUDE.md" ]; then
+            if [ -f "home-server/WORKSPACE-AGENTS.md" ]; then
+                echo "Creating workspace CLAUDE.md -> @home-server/WORKSPACE-AGENTS.md..."
+                echo "@home-server/WORKSPACE-AGENTS.md" > CLAUDE.md
+                chown "$APPUSER:$APPUSER" CLAUDE.md
+            else
+                echo "Warning: home-server/WORKSPACE-AGENTS.md not found, creating minimal CLAUDE.md"
+                cat > CLAUDE.md << 'CLAUDE_EOF'
+# Homelab Workspace
 
-This is the unified development workspace for all homelab projects.
+See `home-server/WORKSPACE-AGENTS.md` for full cross-repo documentation.
 
-## Workspace Structure
+## Quick Reference
 
-- `/workspace/` - Root workspace (you are here)
-- `/workspace/.beads/` - Unified task database
-- `/workspace/<repo>/` - Individual project repos
-
-## Task Management
-
-All tasks tracked in /workspace/.beads/:
-```bash
-bd ready              # Find unblocked work
-bd list               # View all tasks
-bd create "title" -p 1  # Create task
-bd close <id>         # Complete task
-```
-
-## Deployment
-
-- **Code changes**: Push tag → CI builds → Harbor Deployer auto-deploys
-- **Config changes**: Push to home-server → Gitea Actions deploys
-
-## Per-Repo Context
-
-Each repo has its own AGENTS.md with specific instructions:
-- `home-server/AGENTS.md` - Server infrastructure, Docker apps
-- `homelab-ai/AGENTS.md` - AI services (router, dashboard, etc.)
-
-## Quick Commands
+- **Task database**: `./home-server/.beads/`
+- **Run bd commands from**: `./home-server/`
 
 ```bash
-# SSH to server (if needed for debugging)
-ssh -p 4242 claude-deploy@host.docker.internal 'sudo docker ps'
-
-# Check all repo status
-for d in */; do [ -d "$d/.git" ] && echo "=== $d ===" && git -C "$d" status -s; done
-
-# Pull all repos
-for d in */; do [ -d "$d/.git" ] && git -C "$d" pull; done
-
-# Push all repos with changes
-for d in */; do [ -d "$d/.git" ] && git -C "$d" diff --quiet || (cd "$d" && git push); done
+cd home-server
+bd ready    # Find work
+bd list     # View tasks
 ```
-
-## Access Methods
-
-| Device | Method | Command |
-|--------|--------|---------|
-| Laptop/PC | SSH | `ssh appuser@server:22` (container SSH port) |
-| Laptop/PC | VS Code | Remote-SSH extension |
-| Phone | Web terminal | ttyd at terminal.server.unarmedpuppy.com |
-| Any | code-server | (if installed) |
-
-## Boundaries
-
-### Always Do
-- Use `bd` commands for task tracking
-- Commit after logical units of work
-- Pull before starting work
-
-### Never Do
-- Work in multiple environments simultaneously (pick one)
-- Forget to push changes
-- Ignore failing tests
-AGENTS_EOF
-            chown "$APPUSER:$APPUSER" AGENTS.md
+CLAUDE_EOF
+                chown "$APPUSER:$APPUSER" CLAUDE.md
+            fi
         fi
     )
 }
