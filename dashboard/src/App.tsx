@@ -1,15 +1,20 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, lazy, Suspense } from 'react';
 import type { ReactNode } from 'react';
 import { Routes, Route, useNavigate, useParams, Link } from 'react-router-dom';
-import Dashboard from './components/Dashboard';
+import { MobileNav, PageLoading } from './components/ui';
+import { useIsMobile } from './hooks/useMediaQuery';
+
+// Lazy-loaded components for code splitting
+// Chat-related components are loaded immediately since Chat is the default view
 import ChatInterface from './components/ChatInterface';
 import ConversationSidebar from './components/ConversationSidebar';
-import ProviderMonitoring from './components/ProviderMonitoring';
-import AgentRuns from './components/AgentRuns';
-import { BeadsBoard } from './components/beads/BeadsBoard';
-import { RalphDashboard } from './components/ralph/RalphDashboard';
-import { MobileNav } from './components/ui';
-import { useIsMobile } from './hooks/useMediaQuery';
+
+// Heavy components are lazy-loaded to improve initial bundle size
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const ProviderMonitoring = lazy(() => import('./components/ProviderMonitoring'));
+const AgentRuns = lazy(() => import('./components/AgentRuns'));
+const BeadsBoard = lazy(() => import('./components/beads/BeadsBoard'));
+const RalphDashboard = lazy(() => import('./components/ralph/RalphDashboard'));
 
 type ViewName = 'chat' | 'beads' | 'ralph' | 'providers' | 'stats' | 'agents';
 
@@ -223,7 +228,9 @@ function ChatView() {
 function BeadsView() {
   return (
     <AppLayout currentView="beads">
-      <BeadsBoard />
+      <Suspense fallback={<PageLoading section="Beads" />}>
+        <BeadsBoard />
+      </Suspense>
     </AppLayout>
   );
 }
@@ -234,7 +241,9 @@ function BeadsView() {
 function RalphView() {
   return (
     <AppLayout currentView="ralph">
-      <RalphDashboard />
+      <Suspense fallback={<PageLoading section="Ralph" />}>
+        <RalphDashboard />
+      </Suspense>
     </AppLayout>
   );
 }
@@ -245,8 +254,10 @@ function RalphView() {
 function ProvidersView() {
   return (
     <AppLayout currentView="providers" scrollable withContainer>
-      <h2 className="text-3xl font-bold text-[var(--retro-text-primary)] mb-8">Provider Monitoring</h2>
-      <ProviderMonitoring />
+      <Suspense fallback={<PageLoading section="Providers" />}>
+        <h2 className="text-3xl font-bold text-[var(--retro-text-primary)] mb-8">Provider Monitoring</h2>
+        <ProviderMonitoring />
+      </Suspense>
     </AppLayout>
   );
 }
@@ -257,7 +268,9 @@ function ProvidersView() {
 function StatsView() {
   return (
     <AppLayout currentView="stats" scrollable withContainer>
-      <Dashboard />
+      <Suspense fallback={<PageLoading section="Stats" />}>
+        <Dashboard />
+      </Suspense>
     </AppLayout>
   );
 }
@@ -268,7 +281,9 @@ function StatsView() {
 function AgentsView() {
   return (
     <AppLayout currentView="agents" scrollable withContainer>
-      <AgentRuns />
+      <Suspense fallback={<PageLoading section="Agents" />}>
+        <AgentRuns />
+      </Suspense>
     </AppLayout>
   );
 }

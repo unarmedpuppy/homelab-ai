@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import type { BeadTask, BeadsStats } from '../../types/beads';
 import { beadsAPI } from '../../api/client';
 import { BeadsTaskCard } from './BeadsTaskCard';
@@ -7,6 +7,7 @@ import { BeadsStatsHeader } from './BeadsStatsHeader';
 import { BeadsLabelFilter } from './BeadsLabelFilter';
 import { CreateTaskModal } from './CreateTaskModal';
 import { useIsMobile } from '../../hooks/useMediaQuery';
+import { useVisibilityPolling } from '../../hooks/useDocumentVisibility';
 import { Toast } from '../Toast';
 
 const POLL_INTERVAL = 5000; // 5 seconds
@@ -80,12 +81,12 @@ export function BeadsBoard() {
     }
   }, [selectedLabels]);
 
-  // Initial fetch and polling
-  useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, POLL_INTERVAL);
-    return () => clearInterval(interval);
-  }, [fetchData]);
+  // Visibility-aware polling - pauses when tab is hidden
+  useVisibilityPolling({
+    callback: fetchData,
+    interval: POLL_INTERVAL,
+    immediate: true, // Fetch immediately on mount and when tab becomes visible
+  });
 
   const handleToggleLabel = (label: string) => {
     setSelectedLabels(prev =>

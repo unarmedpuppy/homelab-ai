@@ -7,3 +7,10 @@ export {
   useBreakpoint,
   usePrefersReducedMotion,
 } from './useMediaQuery';
+
+export {
+  useDocumentVisibility,
+  useIsDocumentVisible,
+  useVisibilityPolling,
+  useConditionalPolling,
+} from './useDocumentVisibility';

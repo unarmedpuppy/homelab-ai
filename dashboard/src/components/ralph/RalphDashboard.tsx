@@ -11,6 +11,7 @@ import {
   RetroProgress,
   RetroBadge,
 } from '../ui';
+import { useConditionalPolling, useVisibilityPolling } from '../../hooks/useDocumentVisibility';
 
 const STATUS_POLL_INTERVAL = 5000; // 5s when running
 const IDLE_POLL_INTERVAL = 30000; // 30s when idle
@@ -68,28 +69,28 @@ export function RalphDashboard() {
     }
   }, []);
 
-  // Initial fetch
+  // Initial fetch for labels (one-time)
   useEffect(() => {
-    fetchStatus();
-    fetchLogs();
     fetchLabels();
-  }, [fetchStatus, fetchLogs, fetchLabels]);
+  }, [fetchLabels]);
 
-  // Status polling
-  useEffect(() => {
-    const interval = setInterval(
-      fetchStatus,
-      status?.running ? STATUS_POLL_INTERVAL : IDLE_POLL_INTERVAL
-    );
-    return () => clearInterval(interval);
-  }, [fetchStatus, status?.running]);
+  // Visibility-aware status polling with conditional intervals
+  // Polls faster when running, slower when idle, pauses when tab hidden
+  useConditionalPolling({
+    callback: fetchStatus,
+    activeInterval: STATUS_POLL_INTERVAL,
+    idleInterval: IDLE_POLL_INTERVAL,
+    isActive: status?.running ?? false,
+    immediate: true,
+  });
 
-  // Log polling (only when running)
-  useEffect(() => {
-    if (!status?.running) return;
-    const interval = setInterval(fetchLogs, LOG_POLL_INTERVAL);
-    return () => clearInterval(interval);
-  }, [fetchLogs, status?.running]);
+  // Visibility-aware log polling (only when running)
+  useVisibilityPolling({
+    callback: fetchLogs,
+    interval: LOG_POLL_INTERVAL,
+    enabled: status?.running ?? false,
+    immediate: true,
+  });
 
   const handleStart = async () => {
     if (!formLabel) {
