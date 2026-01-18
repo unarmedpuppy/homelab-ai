@@ -125,29 +125,33 @@ setup_workspace() {
     (
         cd "$WORKSPACE_DIR"
 
-        # All homelab repos to clone
-        # Using Gitea (local) as primary, GitHub as fallback
-        HOMELAB_REPOS=(
-            "home-server"
-            "homelab-ai"
-            "pokedex"
-            "polyjuiced"
-            "agent-gateway"
-            "beads-viewer"
-            "maptapdat"
-            "trading-bot"
-            "trading-journal"
-            "workflows"
-            "shua-ledger"
-            "bird"
+        # All repos to clone - format: "org/repo"
+        # Most are under homelab/, but some are under unarmedpuppy/
+        REPOS=(
+            "homelab/home-server"
+            "homelab/homelab-ai"
+            "homelab/pokedex"
+            "homelab/polyjuiced"
+            "homelab/agent-gateway"
+            "homelab/beads-viewer"
+            "homelab/maptapdat"
+            "homelab/trading-bot"
+            "homelab/trading-journal"
+            "homelab/shua-ledger"
+            "homelab/bird"
+            "unarmedpuppy/workflows"
         )
 
-        for repo in "${HOMELAB_REPOS[@]}"; do
+        for org_repo in "${REPOS[@]}"; do
+            local org="${org_repo%/*}"
+            local repo="${org_repo#*/}"
+            local gitea_url="http://gitea:3000/${org}/${repo}.git"
+
             if [ ! -d "$repo" ]; then
-                echo "Cloning $repo from Gitea..."
+                echo "Cloning $repo from Gitea ($org)..."
                 # Use internal Docker network address (gitea:3000) to avoid Traefik auth issues
                 if [ -n "${GITEA_TOKEN:-}" ]; then
-                    gosu "$APPUSER" git clone "http://gitea:3000/homelab/${repo}.git" || {
+                    gosu "$APPUSER" git clone "$gitea_url" || {
                         echo "Warning: Failed to clone $repo from Gitea"
                     }
                 else
@@ -157,8 +161,8 @@ setup_workspace() {
                 # Repo exists - ensure remote is internal Gitea, not GitHub or external Gitea
                 local current_remote=$(git -C "$repo" remote get-url origin 2>/dev/null || true)
                 if [[ "$current_remote" == *"github.com"* ]] || [[ "$current_remote" == *"gitea.server.unarmedpuppy.com"* ]]; then
-                    echo "Fixing $repo remote -> internal Gitea"
-                    gosu "$APPUSER" git -C "$repo" remote set-url origin "http://gitea:3000/homelab/${repo}.git"
+                    echo "Fixing $repo remote -> internal Gitea ($org)"
+                    gosu "$APPUSER" git -C "$repo" remote set-url origin "$gitea_url"
                 fi
                 # Pull latest on startup (fast-forward only to avoid conflicts)
                 echo "Pulling latest for $repo..."
