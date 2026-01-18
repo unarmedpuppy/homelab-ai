@@ -162,7 +162,7 @@ export default function ConversationSidebar({
           onClick={onNewChat}
           icon={<span>+</span>}
         >
-          New Chat
+          NEW CONVERSATION
         </RetroButton>
       </div>
 
@@ -196,10 +196,10 @@ export default function ConversationSidebar({
                   onClick={() => !isEditing && onSelectConversation(conv.id)}
                   className={`w-full p-3 sm:p-4 text-left transition-colors min-h-[var(--retro-touch-target)] ${
                     isSelected
-                      ? 'bg-[var(--retro-bg-light)] border-l-2 border-[var(--retro-accent-cyan)]'
+                      ? 'bg-[var(--retro-bg-light)] border-l-2 border-[var(--retro-accent-green)]'
                       : 'hover:bg-[var(--retro-bg-light)] border-l-2 border-transparent'
                   }`}
-                  style={isSelected ? { boxShadow: 'inset 0 0 10px rgba(91, 192, 190, 0.1)' } : {}}
+                  style={isSelected ? { boxShadow: 'inset 0 0 10px rgba(0, 255, 65, 0.1)' } : {}}
                 >
                   <div className="flex items-center gap-2 mb-1">
                     <span className={`px-1.5 py-0.5 text-[10px] rounded border font-semibold uppercase tracking-wider ${badge.colorClass}`}>
