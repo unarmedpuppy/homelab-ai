@@ -18,18 +18,32 @@
 #   ./ralph-wiggum.sh --max 5                 # Max 5 tasks then stop
 #
 # Environment variables:
-#   BEADS_DIR     - Directory containing .beads/ (default: /workspace/home-server)
-#   STATUS_FILE   - JSON status file path (default: /workspace/.ralph-wiggum-status.json)
-#   CONTROL_FILE  - Control commands file (default: /workspace/.ralph-wiggum-control)
+#   WORKSPACE_DIR - Base workspace directory (auto-detected: /workspace in container, or parent of script)
+#   BEADS_DIR     - Directory containing .beads/ (default: $WORKSPACE_DIR/home-server)
+#   STATUS_FILE   - JSON status file path (default: script directory)
+#   CONTROL_FILE  - Control commands file (default: script directory)
 
 set -uo pipefail
 
+# Determine script directory for relative path resolution
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Auto-detect workspace: use /workspace if it exists (container), otherwise derive from script location
+# Script is at: <workspace>/homelab-ai/claude-harness/ralph-wiggum.sh
+if [ -d "/workspace" ]; then
+    DEFAULT_WORKSPACE="/workspace"
+else
+    # Go up two levels: claude-harness -> homelab-ai -> workspace
+    DEFAULT_WORKSPACE="$(cd "$SCRIPT_DIR/../.." && pwd)"
+fi
+
 # Configuration from environment or defaults
-WORKSPACE_DIR="${WORKSPACE_DIR:-/workspace}"
-BEADS_DIR="${BEADS_DIR:-/workspace/home-server}"
-STATUS_FILE="${STATUS_FILE:-/workspace/.ralph-wiggum-status.json}"
-CONTROL_FILE="${CONTROL_FILE:-/workspace/.ralph-wiggum-control}"
-LOG_FILE="${LOG_FILE:-/workspace/.ralph-wiggum.log}"
+WORKSPACE_DIR="${WORKSPACE_DIR:-$DEFAULT_WORKSPACE}"
+BEADS_DIR="${BEADS_DIR:-$WORKSPACE_DIR/home-server}"
+# Store runtime files in script directory (works both in container and locally)
+STATUS_FILE="${STATUS_FILE:-$SCRIPT_DIR/.ralph-wiggum-status.json}"
+CONTROL_FILE="${CONTROL_FILE:-$SCRIPT_DIR/.ralph-wiggum-control}"
+LOG_FILE="${LOG_FILE:-$SCRIPT_DIR/.ralph-wiggum.log}"
 MAX_RETRIES=3
 RETRY_DELAY=10
 
@@ -103,9 +117,10 @@ while [[ $# -gt 0 ]]; do
             echo "  -h, --help             Show this help"
             echo ""
             echo "Environment:"
-            echo "  BEADS_DIR     Directory with .beads/ (default: /workspace/home-server)"
-            echo "  STATUS_FILE   JSON status file (default: /workspace/.ralph-wiggum-status.json)"
-            echo "  CONTROL_FILE  Control file for stop commands"
+            echo "  WORKSPACE_DIR Base workspace directory (auto-detected)"
+            echo "  BEADS_DIR     Directory with .beads/ (default: \$WORKSPACE_DIR/home-server)"
+            echo "  STATUS_FILE   JSON status file (default: script directory)"
+            echo "  CONTROL_FILE  Control file for stop commands (default: script directory)"
             echo ""
             echo "Examples:"
             echo "  ./ralph-wiggum.sh --label mercury"
@@ -129,7 +144,7 @@ fi
 # State tracking
 TASKS_COMPLETED=0
 TASKS_FAILED=0
-TOTAL_TASKS=0
+REMAINING_TASKS=0
 CURRENT_TASK_ID=""
 CURRENT_TASK_TITLE=""
 STARTED_AT=""
@@ -167,7 +182,7 @@ write_status() {
   "running": $([ "$status" = "running" ] && echo "true" || echo "false"),
   "status": "$status",
   "label": "$LABEL_FILTER",
-  "total_tasks": $TOTAL_TASKS,
+  "remaining_tasks": $REMAINING_TASKS,
   "completed_tasks": $TASKS_COMPLETED,
   "failed_tasks": $TASKS_FAILED,
   "current_task": $([ -n "$CURRENT_TASK_ID" ] && echo "\"$CURRENT_TASK_ID\"" || echo "null"),
@@ -192,52 +207,95 @@ check_stop_requested() {
     return 1
 }
 
-# Map labels to working directories
-get_working_dir() {
+# Extract repo from labels (looks for repo:* pattern)
+# Returns the repo directory path or empty string if not found
+get_repo_from_labels() {
     local labels="$1"
 
-    # Check for specific repo labels
-    case "$labels" in
-        *trading-bot*|*polyjuiced*)
-            echo "$WORKSPACE_DIR/polyjuiced"
-            ;;
-        *home-server*|*infrastructure*)
-            echo "$WORKSPACE_DIR/home-server"
-            ;;
-        *homelab-ai*|*ai-services*|*claude-harness*)
-            echo "$WORKSPACE_DIR/homelab-ai"
-            ;;
-        *pokedex*)
-            echo "$WORKSPACE_DIR/pokedex"
-            ;;
-        *agent-gateway*)
-            echo "$WORKSPACE_DIR/agent-gateway"
-            ;;
-        *beads-viewer*)
-            echo "$WORKSPACE_DIR/beads-viewer"
-            ;;
-        *maptapdat*)
-            echo "$WORKSPACE_DIR/maptapdat"
-            ;;
-        *trading-journal*)
-            echo "$WORKSPACE_DIR/trading-journal"
-            ;;
-        *shua-ledger*)
-            echo "$WORKSPACE_DIR/shua-ledger"
-            ;;
-        *bird*)
-            echo "$WORKSPACE_DIR/bird"
-            ;;
-        *mercury*)
-            # Mercury is a project - need to determine which repo
-            # Default to workspace root for cross-repo work
-            echo "$WORKSPACE_DIR"
-            ;;
-        *)
-            # Default to workspace root
-            echo "$WORKSPACE_DIR"
-            ;;
-    esac
+    # Look for repo:* pattern in labels
+    local repo
+    repo=$(echo "$labels" | tr ',' '\n' | grep -E '^repo:' | head -1 | sed 's/^repo://')
+
+    if [ -n "$repo" ]; then
+        echo "$WORKSPACE_DIR/$repo"
+    else
+        echo ""
+    fi
+}
+
+# Use Claude to intelligently determine working directory
+# Returns repo path or empty string if unable to determine
+determine_working_dir_with_llm() {
+    local task_json="$1"
+
+    local title
+    local description
+    local labels
+    title=$(echo "$task_json" | jq -r '.title // ""')
+    description=$(echo "$task_json" | jq -r '.description // ""')
+    labels=$(echo "$task_json" | jq -r '.labels // [] | join(", ")')
+
+    # List available repos
+    local available_repos
+    available_repos=$(ls -d "$WORKSPACE_DIR"/*/ 2>/dev/null | xargs -I{} basename {} | tr '\n' ', ' | sed 's/,$//')
+
+    local prompt
+    prompt=$(cat << EOF
+You need to determine which repository this task should be worked on in.
+
+Task Title: $title
+Task Description: $description
+Task Labels: $labels
+
+Available repositories in the workspace:
+$available_repos
+
+Based on the task information, respond with ONLY the repository name (e.g., "polyjuiced" or "home-server").
+If you cannot determine the correct repository, respond with "UNKNOWN".
+Do not include any other text or explanation.
+EOF
+)
+
+    local result
+    result=$(claude -p "$prompt" 2>/dev/null | tr -d '[:space:]' | head -1)
+
+    # Validate the result is an actual repo
+    if [ -n "$result" ] && [ "$result" != "UNKNOWN" ] && [ -d "$WORKSPACE_DIR/$result" ]; then
+        echo "$WORKSPACE_DIR/$result"
+    else
+        echo ""
+    fi
+}
+
+# Get working directory for a task
+# Priority: 1) repo:* label, 2) LLM determination, 3) fail
+get_working_dir() {
+    local task_json="$1"
+    local labels
+    labels=$(echo "$task_json" | jq -r '.labels // [] | join(",")')
+
+    # First try to get repo from labels
+    local repo_dir
+    repo_dir=$(get_repo_from_labels "$labels")
+
+    if [ -n "$repo_dir" ]; then
+        echo "$repo_dir"
+        return 0
+    fi
+
+    # No repo label found, try LLM determination
+    log_warn "No repo:* label found, using LLM to determine working directory..."
+    repo_dir=$(determine_working_dir_with_llm "$task_json")
+
+    if [ -n "$repo_dir" ]; then
+        log_info "LLM determined working directory: $repo_dir"
+        echo "$repo_dir"
+        return 0
+    fi
+
+    # Could not determine, return empty to signal failure
+    echo ""
+    return 1
 }
 
 # Run bd command from beads directory
@@ -258,15 +316,20 @@ count_ready_tasks() {
         cmd="$cmd --priority $PRIORITY_FILTER"
     fi
 
-    if [ -n "$TYPE_FILTER" ]; then
-        cmd="$cmd --type $TYPE_FILTER"
-    fi
-
+    # Note: --type is not supported by bd ready, filter client-side
     if [ -n "$SORT_ORDER" ]; then
         cmd="$cmd --sort $SORT_ORDER"
     fi
 
-    count=$(cd "$BEADS_DIR" && eval "$cmd" 2>/dev/null | jq 'length' 2>/dev/null || echo "0")
+    # Use high limit to get accurate count (bd ready defaults to 10)
+    cmd="$cmd --limit 1000"
+
+    local jq_filter='length'
+    if [ -n "$TYPE_FILTER" ]; then
+        jq_filter="[.[] | select(.issue_type == \"$TYPE_FILTER\")] | length"
+    fi
+
+    count=$(cd "$BEADS_DIR" && eval "$cmd" 2>/dev/null | jq "$jq_filter" 2>/dev/null || echo "0")
     echo "$count"
 }
 
@@ -282,10 +345,7 @@ get_next_task() {
         cmd="$cmd --priority $PRIORITY_FILTER"
     fi
 
-    if [ -n "$TYPE_FILTER" ]; then
-        cmd="$cmd --type $TYPE_FILTER"
-    fi
-
+    # Note: --type is not supported by bd ready, filter client-side
     if [ -n "$SORT_ORDER" ]; then
         cmd="$cmd --sort $SORT_ORDER"
     fi
@@ -298,8 +358,12 @@ get_next_task() {
     local result
     result=$(cd "$BEADS_DIR" && eval "$cmd" 2>/dev/null || echo "[]")
 
-    # Return first task as JSON
-    echo "$result" | jq -r '.[0] // empty'
+    # Apply type filter client-side and return first task as JSON
+    local jq_filter='.[0] // empty'
+    if [ -n "$TYPE_FILTER" ]; then
+        jq_filter="[.[] | select(.issue_type == \"$TYPE_FILTER\")] | .[0] // empty"
+    fi
+    echo "$result" | jq -r "$jq_filter"
 }
 
 # Build prompt from task
@@ -315,7 +379,7 @@ build_prompt() {
 
     title=$(echo "$task_json" | jq -r '.title // "Unknown task"')
     description=$(echo "$task_json" | jq -r '.description // ""')
-    task_type=$(echo "$task_json" | jq -r '.type // "task"')
+    task_type=$(echo "$task_json" | jq -r '.issue_type // "task"')
     priority=$(echo "$task_json" | jq -r '.priority // 2')
     labels=$(echo "$task_json" | jq -r '.labels // [] | join(", ")')
 
@@ -353,6 +417,147 @@ Work autonomously to complete this task. If you encounter blockers that cannot b
 
 Begin working on this task now.
 EOF
+}
+
+# Build review prompt for fresh-eyes verification of completed work
+build_review_prompt() {
+    local task_json="$1"
+    local working_dir="$2"
+
+    local title
+    local description
+    local task_type
+    local labels
+
+    title=$(echo "$task_json" | jq -r '.title // "Unknown task"')
+    description=$(echo "$task_json" | jq -r '.description // ""')
+    task_type=$(echo "$task_json" | jq -r '.issue_type // "task"')
+    labels=$(echo "$task_json" | jq -r '.labels // [] | join(", ")')
+
+    cat << EOF
+You are reviewing a recently completed task with fresh eyes.
+
+## Task That Was Completed
+- **Title**: $title
+- **Type**: $task_type
+- **Labels**: $labels
+- **Working Directory**: $working_dir
+
+## Task Description
+$description
+
+## Your Review Mission
+
+You are performing a final review of this completed work. Your job is to:
+
+1. **Read Context Documents First**:
+   - Read AGENTS.md in the working directory for project context
+   - Look for any plan documents in agents/plans/ related to this task or feature
+   - Check agents/reference/ for relevant architectural documents
+   - If this task references a parent epic or plan, find and read it
+
+2. **Review Recent Changes**:
+   - Run \`git log --oneline -10\` to see recent commits
+   - Run \`git diff HEAD~3..HEAD\` to examine what was changed (adjust range as needed)
+   - Examine the actual code changes made
+
+3. **Verify Architectural Fit**:
+   - Does the implementation align with the project's architecture documented in AGENTS.md?
+   - Does it follow the patterns and conventions of the codebase?
+   - Are there any plans in agents/plans/ that this task relates to? Does the implementation fit the plan?
+   - If part of a larger feature, does it integrate properly with existing or planned components?
+
+4. **Check Completeness**:
+   - Does the implementation fully address the task requirements?
+   - Are there any edge cases or scenarios not handled?
+   - Were tests added or updated if applicable?
+   - Is the code properly committed and pushed?
+
+5. **Identify Issues**:
+   - If you find problems, list them clearly
+   - If minor issues exist that don't block completion, note them but don't block
+   - If major issues exist that mean the task isn't actually done, clearly state "REVIEW_FAILED"
+
+## Output Format
+
+End your review with EXACTLY one of these lines:
+- \`REVIEW_PASSED\` - The implementation is solid and fits the architecture
+- \`REVIEW_PASSED_WITH_NOTES: <brief notes>\` - Minor issues noted but acceptable
+- \`REVIEW_FAILED: <reason>\` - Major issues found, task should not be marked complete
+
+Be thorough but practical. Minor style issues don't warrant failing a review.
+Focus on whether the work actually accomplishes the task and fits the project's direction.
+EOF
+}
+
+# Run fresh-eyes review on completed task
+run_review() {
+    local task_json="$1"
+    local working_dir="$2"
+    local task_id="$3"
+
+    log_info "Running fresh-eyes review for task: $task_id"
+
+    if $DRY_RUN; then
+        log_info "[DRY RUN] Would run review for task"
+        return 0
+    fi
+
+    # Build review prompt
+    local review_prompt
+    review_prompt=$(build_review_prompt "$task_json" "$working_dir")
+
+    # Create temp file for prompt
+    local prompt_file
+    prompt_file=$(mktemp)
+    echo "$review_prompt" > "$prompt_file"
+
+    # Change to working directory
+    cd "$working_dir"
+
+    # Run claude for review and capture output
+    local review_output
+    local exit_code=0
+    review_output=$(claude -p "$(cat "$prompt_file")" 2>&1) || exit_code=$?
+
+    # Clean up
+    rm -f "$prompt_file"
+
+    if [ $exit_code -ne 0 ]; then
+        log_warn "Review claude invocation failed with exit code $exit_code"
+        log_warn "Treating as passed to avoid blocking (review is advisory)"
+        return 0
+    fi
+
+    # Log review output for debugging
+    if $VERBOSE; then
+        log_info "Review output: $review_output"
+    fi
+
+    # Check for REVIEW_FAILED in output
+    if echo "$review_output" | grep -q "REVIEW_FAILED"; then
+        local failure_reason
+        failure_reason=$(echo "$review_output" | grep -o "REVIEW_FAILED:.*" | head -1)
+        log_error "Review failed: $failure_reason"
+        return 1
+    fi
+
+    # Check for passes
+    if echo "$review_output" | grep -q "REVIEW_PASSED_WITH_NOTES"; then
+        local notes
+        notes=$(echo "$review_output" | grep -o "REVIEW_PASSED_WITH_NOTES:.*" | head -1)
+        log_success "Review passed with notes: $notes"
+        return 0
+    fi
+
+    if echo "$review_output" | grep -q "REVIEW_PASSED"; then
+        log_success "Review passed"
+        return 0
+    fi
+
+    # Default to passed if no explicit result (be lenient)
+    log_warn "Review completed without explicit result, treating as passed"
+    return 0
 }
 
 # Claim a task
@@ -552,16 +757,16 @@ main() {
     (cd "$BEADS_DIR" && bd sync 2>/dev/null) || log_warn "Beads sync failed, continuing anyway"
 
     # Count initial tasks
-    TOTAL_TASKS=$(count_ready_tasks)
-    log_info "Found $TOTAL_TASKS ready tasks with label '$LABEL_FILTER'"
+    REMAINING_TASKS=$(count_ready_tasks)
+    log_info "Found $REMAINING_TASKS ready tasks with label '$LABEL_FILTER'"
 
-    if [ "$TOTAL_TASKS" -eq 0 ]; then
+    if [ "$REMAINING_TASKS" -eq 0 ]; then
         log_info "No tasks to process. Exiting."
         write_status "completed" "No tasks found with label '$LABEL_FILTER'"
         exit 0
     fi
 
-    write_status "running" "Processing $TOTAL_TASKS tasks"
+    write_status "running" "Processing tasks"
 
     local consecutive_failures=0
 
@@ -596,18 +801,29 @@ main() {
 
         local task_num=$((TASKS_COMPLETED + TASKS_FAILED + 1))
         log_info "=========================================="
-        log_info "Task $task_num of $TOTAL_TASKS: $CURRENT_TASK_ID"
+        log_info "Task $task_num ($REMAINING_TASKS remaining): $CURRENT_TASK_ID"
         log_info "Title: $CURRENT_TASK_TITLE"
         log_info "Labels: $task_labels"
         log_info "=========================================="
 
-        # Determine working directory
+        # Determine working directory from repo:* label or LLM
         local working_dir
-        working_dir=$(get_working_dir "$task_labels")
+        working_dir=$(get_working_dir "$task_json")
+
+        # If no working directory could be determined, fail loudly and exit
+        if [ -z "$working_dir" ]; then
+            log_error "FATAL: Could not determine working directory for task $CURRENT_TASK_ID"
+            log_error "Task has no repo:* label and LLM could not determine the correct repository."
+            log_error "Please add a repo:* label to this task (e.g., repo:polyjuiced, repo:home-server)"
+            fail_task "$CURRENT_TASK_ID" "Could not determine working directory - missing repo:* label"
+            write_status "failed" "Could not determine working directory for $CURRENT_TASK_ID"
+            exit 1
+        fi
+
         log_info "Working directory: $working_dir"
 
         # Update status
-        write_status "running" "Working on task $task_num of $TOTAL_TASKS"
+        write_status "running" "Working on task $task_num ($REMAINING_TASKS remaining)"
 
         # Verify working directory exists
         if [ ! -d "$working_dir" ]; then
@@ -639,9 +855,18 @@ main() {
             # Commit and push any code changes Claude made
             commit_changes "$working_dir" "$CURRENT_TASK_ID" "$CURRENT_TASK_TITLE"
 
-            complete_task "$CURRENT_TASK_ID" "Completed by Ralph Wiggum autonomous loop"
-            ((TASKS_COMPLETED++))
-            consecutive_failures=0
+            # Run fresh-eyes review before marking complete
+            write_status "running" "Reviewing task $task_num with fresh eyes"
+            if run_review "$task_json" "$working_dir" "$CURRENT_TASK_ID"; then
+                complete_task "$CURRENT_TASK_ID" "Completed by Ralph Wiggum autonomous loop"
+                ((TASKS_COMPLETED++))
+                consecutive_failures=0
+            else
+                log_error "Fresh-eyes review failed for task $CURRENT_TASK_ID"
+                fail_task "$CURRENT_TASK_ID" "Review failed - implementation may not fit architecture/plan"
+                ((TASKS_FAILED++))
+                ((consecutive_failures++))
+            fi
         else
             fail_task "$CURRENT_TASK_ID" "Claude execution failed"
             ((TASKS_FAILED++))
@@ -657,8 +882,11 @@ main() {
             sleep "$RETRY_DELAY"
         fi
 
+        # Re-count remaining tasks (completing tasks may unblock new ones)
+        REMAINING_TASKS=$(count_ready_tasks)
+
         # Update status
-        write_status "running" "Completed $TASKS_COMPLETED of $TOTAL_TASKS tasks"
+        write_status "running" "Completed $TASKS_COMPLETED tasks, $REMAINING_TASKS remaining"
 
         # Clear current task
         CURRENT_TASK_ID=""
