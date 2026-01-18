@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { memoryAPI } from '../api/client';
 import type { Conversation } from '../types/api';
+import { RetroButton, RetroInput } from './ui';
 
 interface ConversationSidebarProps {
   selectedConversationId: string | null;
@@ -11,12 +12,13 @@ interface ConversationSidebarProps {
 
 const getSourceBadge = (conv: { source?: string; project?: string }) => {
   const source = conv.source || conv.project || 'unknown';
+  // Retro-styled badge colors
   const colors: Record<string, string> = {
-    discord: 'bg-indigo-900/50 text-indigo-300 border-indigo-700',
-    'tayne-discord-bot': 'bg-indigo-900/50 text-indigo-300 border-indigo-700',
-    dashboard: 'bg-emerald-900/50 text-emerald-300 border-emerald-700',
-    testing: 'bg-amber-900/50 text-amber-300 border-amber-700',
-    unknown: 'bg-gray-800 text-gray-400 border-gray-600',
+    discord: 'bg-[rgba(179,136,255,0.2)] text-[var(--retro-accent-purple)] border-[var(--retro-accent-purple)]',
+    'tayne-discord-bot': 'bg-[rgba(179,136,255,0.2)] text-[var(--retro-accent-purple)] border-[var(--retro-accent-purple)]',
+    dashboard: 'bg-[rgba(0,255,65,0.2)] text-[var(--retro-accent-green)] border-[var(--retro-accent-green)]',
+    testing: 'bg-[rgba(255,215,0,0.2)] text-[var(--retro-accent-yellow)] border-[var(--retro-accent-yellow)]',
+    unknown: 'bg-[var(--retro-bg-light)] text-[var(--retro-text-muted)] border-[var(--retro-border)]',
   };
   const label = source.replace('tayne-discord-bot', 'discord').replace('-', ' ');
   const colorClass = colors[source] || colors.unknown;
@@ -140,70 +142,74 @@ export default function ConversationSidebar({
     : [];
 
   return (
-    <div className="flex flex-col flex-1 min-h-0">
+    <div className="flex flex-col flex-1 min-h-0 bg-[var(--retro-bg-medium)]">
       {/* Search */}
-      <div className="p-4 border-b border-gray-800">
-        <input
+      <div className="p-3 sm:p-4 border-b-2 border-[var(--retro-border)]">
+        <RetroInput
           type="text"
           placeholder="🔍 Search conversations..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white text-sm placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+          className="text-sm"
         />
       </div>
 
       {/* New Chat Button */}
-      <div className="p-4 border-b border-gray-800">
-        <button
+      <div className="p-3 sm:p-4 border-b-2 border-[var(--retro-border)]">
+        <RetroButton
+          variant="primary"
+          fullWidth
           onClick={onNewChat}
-          className="w-full px-4 py-3 bg-blue-600 text-white font-medium rounded hover:bg-blue-700 transition-colors uppercase tracking-wider text-sm"
+          icon={<span>+</span>}
         >
-          + New Chat
-        </button>
+          New Chat
+        </RetroButton>
       </div>
 
       {/* Conversation List */}
       <div className="flex-1 overflow-y-auto">
-        <div className="p-4 border-b border-gray-800">
-          <div className="text-xs uppercase tracking-wider text-gray-500">
+        <div className="p-3 sm:p-4 border-b border-[var(--retro-border)]">
+          <div className="text-xs uppercase tracking-wider text-[var(--retro-text-secondary)] font-semibold">
             Conversations ({sortedConversations.length})
           </div>
         </div>
 
         {isLoading ? (
-          <div className="p-6 text-center text-gray-500 text-sm">
+          <div className="p-6 text-center text-[var(--retro-text-muted)] text-sm retro-animate-pulse uppercase tracking-wider">
             Loading...
           </div>
         ) : sortedConversations.length === 0 ? (
-          <div className="p-6 text-center text-gray-500 text-sm">
+          <div className="p-6 text-center text-[var(--retro-text-muted)] text-sm">
             {searchQuery.length > 2 ? 'No results found' : 'No conversations yet'}
           </div>
         ) : (
-          <div className="divide-y divide-gray-800">
+          <div className="divide-y divide-[var(--retro-border)]">
             {sortedConversations.map((item) => {
               const conv = item as Conversation;
               const badge = getSourceBadge(conv);
               const isEditing = editingId === conv.id;
-              
+              const isSelected = selectedConversationId === conv.id;
+
               return (
                 <button
                   key={conv.id}
                   onClick={() => !isEditing && onSelectConversation(conv.id)}
-                  className={`w-full p-4 text-left hover:bg-gray-800 transition-colors ${
-                    selectedConversationId === conv.id
-                      ? 'bg-gray-800 border-l-2 border-blue-500'
-                      : 'border-l-2 border-transparent'
+                  className={`w-full p-3 sm:p-4 text-left transition-colors min-h-[var(--retro-touch-target)] ${
+                    isSelected
+                      ? 'bg-[var(--retro-bg-light)] border-l-2 border-[var(--retro-accent-cyan)]'
+                      : 'hover:bg-[var(--retro-bg-light)] border-l-2 border-transparent'
                   }`}
+                  style={isSelected ? { boxShadow: 'inset 0 0 10px rgba(91, 192, 190, 0.1)' } : {}}
                 >
                   <div className="flex items-center gap-2 mb-1">
-                    <span className={`px-1.5 py-0.5 text-[10px] rounded border ${badge.colorClass}`}>
+                    <span className={`px-1.5 py-0.5 text-[10px] rounded border font-semibold uppercase tracking-wider ${badge.colorClass}`}>
                       {badge.label}
                     </span>
                     {conv.username && (
-                      <span className="text-[10px] text-gray-500 truncate">@{conv.username}</span>
+                      <span className="text-[10px] text-[var(--retro-text-muted)] truncate font-mono">@{conv.username}</span>
                     )}
                   </div>
-                  
+
                   {isEditing ? (
                     <div className="relative">
                       <input
@@ -212,14 +218,14 @@ export default function ConversationSidebar({
                         onChange={(e) => setEditValue(e.target.value)}
                         onKeyDown={handleKeyDown}
                         onBlur={handleSaveEdit}
-                        className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white text-sm font-mono focus:border-blue-500 focus:outline-none"
+                        className="retro-input text-sm font-mono"
                         autoFocus
                         onClick={(e) => e.stopPropagation()}
                       />
                     </div>
                   ) : (
                     <div className="group flex items-center justify-between">
-                      <div className="font-mono text-sm text-white truncate flex-1">
+                      <div className="font-mono text-sm text-[var(--retro-text-primary)] truncate flex-1">
                         {conv.title || 'Untitled conversation'}
                       </div>
                       <button
@@ -227,7 +233,7 @@ export default function ConversationSidebar({
                           e.stopPropagation();
                           handleStartEdit(conv.id, conv.title || '');
                         }}
-                        className="ml-2 p-1 text-gray-500 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="ml-2 p-1 text-[var(--retro-text-muted)] hover:text-[var(--retro-accent-cyan)] opacity-0 group-hover:opacity-100 transition-all"
                         title="Rename conversation"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -236,9 +242,10 @@ export default function ConversationSidebar({
                       </button>
                     </div>
                   )}
-                  
-                  <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
-                    <span>▸ {conv.message_count || 0} msgs</span>
+
+                  <div className="flex items-center gap-3 mt-2 text-xs text-[var(--retro-text-muted)] font-mono">
+                    <span className="text-[var(--retro-accent-cyan)]">▸ {conv.message_count || 0}</span>
+                    <span>msgs</span>
                     <span>•</span>
                     <span>{formatDate(conv.updated_at || conv.created_at)}</span>
                   </div>

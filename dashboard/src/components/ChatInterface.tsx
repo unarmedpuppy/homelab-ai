@@ -3,21 +3,22 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { chatAPI, memoryAPI, providersAPI, imageAPI, ttsAPI, TTSError } from '../api/client';
 import type { ChatMessage, ImageRef } from '../types/api';
 import { Toast } from './Toast';
+import { RetroButton } from './ui';
 
 function extractTitleFromFirstLine(text: string, maxLength: number = 50): string {
   const firstLine = text.split(/\r?\n/)[0].trim();
-  
+
   if (firstLine.length <= maxLength) {
     return firstLine;
   }
-  
+
   const truncated = firstLine.slice(0, maxLength);
   const lastSpaceIndex = truncated.lastIndexOf(' ');
-  
+
   if (lastSpaceIndex > maxLength * 0.6) {
     return truncated.slice(0, lastSpaceIndex) + '...';
   }
-  
+
   return truncated + '...';
 }
 import ImageUpload from './ImageUpload';
@@ -373,9 +374,10 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   const isTtsBusy = ttsGeneratingIdx !== null || ttsPlayingIdx !== null;
 
   return (
-    <div className="flex flex-col h-screen bg-black">
-      <div className="border-b border-gray-800 p-4 bg-gray-900">
-        <div className="flex items-center justify-between">
+    <div className="flex flex-col h-screen bg-[var(--retro-bg-dark)]">
+      {/* Header Panel */}
+      <div className="border-b-2 border-[var(--retro-border)] p-3 sm:p-4 bg-[var(--retro-bg-medium)]">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <ProviderModelSelector
             providers={providersData?.providers || []}
             isLoading={isLoadingProviders}
@@ -388,44 +390,39 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
 
           <div className="flex items-center gap-2">
             {ttsAvailable && (
-              <button
+              <RetroButton
+                variant={ttsEnabled ? 'primary' : 'ghost'}
+                size="sm"
                 onClick={() => setTtsEnabled(!ttsEnabled)}
                 disabled={isTtsBusy}
-                className={`px-3 py-2 rounded text-sm font-medium transition-colors flex items-center gap-2 ${
-                  ttsEnabled
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700'
-                } ${isTtsBusy ? 'opacity-50 cursor-not-allowed' : ''}`}
-                title={ttsEnabled ? 'Auto-TTS enabled - new responses will be spoken' : 'Enable auto-TTS'}
+                icon={<span>🔊</span>}
               >
-                🔊 Auto
-              </button>
+                Auto
+              </RetroButton>
             )}
-            <button
+            <RetroButton
+              variant={showAdvanced ? 'secondary' : 'ghost'}
+              size="sm"
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className={`px-3 py-2 rounded text-sm font-medium transition-colors ${
-                showAdvanced
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700'
-              }`}
+              icon={<span>⚙️</span>}
             >
-              ⚙️ Advanced
-            </button>
+              Advanced
+            </RetroButton>
           </div>
         </div>
 
         {/* Advanced Settings Panel */}
         {showAdvanced && (
-          <div className="mt-4 p-4 bg-gray-800 border border-gray-700 rounded space-y-4">
-            <div className="text-xs uppercase tracking-wider text-gray-400 mb-3">
+          <div className="mt-4 p-4 bg-[var(--retro-bg-card)] border-2 border-[var(--retro-border)] rounded space-y-4">
+            <div className="text-xs uppercase tracking-wider text-[var(--retro-text-secondary)] mb-3 font-semibold">
               Advanced Settings
             </div>
 
             {/* Temperature */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs text-gray-500">Temperature</label>
-                <span className="text-sm text-white">{temperature.toFixed(2)}</span>
+                <label className="text-xs text-[var(--retro-text-muted)]">Temperature</label>
+                <span className="text-sm text-[var(--retro-accent-cyan)] font-mono">{temperature.toFixed(2)}</span>
               </div>
               <input
                 type="range"
@@ -434,27 +431,27 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                 step="0.1"
                 value={temperature}
                 onChange={(e) => setTemperature(Number(e.target.value))}
-                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                className="w-full h-2 bg-[var(--retro-bg-dark)] rounded appearance-none cursor-pointer accent-[var(--retro-accent-cyan)]"
               />
             </div>
 
             {/* Max Tokens */}
             <div>
-              <label className="text-xs text-gray-500 block mb-2">Max Tokens (optional)</label>
+              <label className="text-xs text-[var(--retro-text-muted)] block mb-2">Max Tokens (optional)</label>
               <input
                 type="number"
                 value={maxTokens || ''}
                 onChange={(e) => setMaxTokens(e.target.value ? Number(e.target.value) : undefined)}
                 placeholder="Unlimited"
-                className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-white text-sm focus:border-blue-500 focus:outline-none"
+                className="retro-input text-sm"
               />
             </div>
 
             {/* Top P */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs text-gray-500">Top P</label>
-                <span className="text-sm text-white">{topP.toFixed(2)}</span>
+                <label className="text-xs text-[var(--retro-text-muted)]">Top P</label>
+                <span className="text-sm text-[var(--retro-accent-cyan)] font-mono">{topP.toFixed(2)}</span>
               </div>
               <input
                 type="range"
@@ -463,15 +460,15 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                 step="0.05"
                 value={topP}
                 onChange={(e) => setTopP(Number(e.target.value))}
-                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                className="w-full h-2 bg-[var(--retro-bg-dark)] rounded appearance-none cursor-pointer accent-[var(--retro-accent-cyan)]"
               />
             </div>
 
             {/* Frequency Penalty */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs text-gray-500">Frequency Penalty</label>
-                <span className="text-sm text-white">{frequencyPenalty.toFixed(2)}</span>
+                <label className="text-xs text-[var(--retro-text-muted)]">Frequency Penalty</label>
+                <span className="text-sm text-[var(--retro-accent-cyan)] font-mono">{frequencyPenalty.toFixed(2)}</span>
               </div>
               <input
                 type="range"
@@ -480,15 +477,15 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                 step="0.1"
                 value={frequencyPenalty}
                 onChange={(e) => setFrequencyPenalty(Number(e.target.value))}
-                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                className="w-full h-2 bg-[var(--retro-bg-dark)] rounded appearance-none cursor-pointer accent-[var(--retro-accent-cyan)]"
               />
             </div>
 
             {/* Presence Penalty */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs text-gray-500">Presence Penalty</label>
-                <span className="text-sm text-white">{presencePenalty.toFixed(2)}</span>
+                <label className="text-xs text-[var(--retro-text-muted)]">Presence Penalty</label>
+                <span className="text-sm text-[var(--retro-accent-cyan)] font-mono">{presencePenalty.toFixed(2)}</span>
               </div>
               <input
                 type="range"
@@ -497,7 +494,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                 step="0.1"
                 value={presencePenalty}
                 onChange={(e) => setPresencePenalty(Number(e.target.value))}
-                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                className="w-full h-2 bg-[var(--retro-bg-dark)] rounded appearance-none cursor-pointer accent-[var(--retro-accent-cyan)]"
               />
             </div>
           </div>
@@ -505,14 +502,16 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4">
         {isLoadingConversation ? (
           <div className="flex items-center justify-center h-full">
-            <div className="text-gray-500 text-sm">Loading conversation...</div>
+            <div className="text-[var(--retro-text-muted)] text-sm retro-animate-pulse uppercase tracking-wider">
+              Loading conversation...
+            </div>
           </div>
         ) : messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            <div className="text-gray-500 text-sm">
+            <div className="text-[var(--retro-text-muted)] text-sm uppercase tracking-wider">
               ▸ Start a new conversation
             </div>
           </div>
@@ -521,19 +520,20 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
             <div key={idx} className="group">
               {/* Message Header */}
               <div className="flex items-center gap-3 mb-2">
-                <div className={`text-xs font-mono uppercase ${
-                  message.role === 'user' ? 'text-blue-400' : 'text-green-400'
+                <div className={`text-xs font-mono uppercase font-semibold tracking-wider ${
+                  message.role === 'user' ? 'text-[var(--retro-accent-blue)]' : 'text-[var(--retro-accent-green)]'
                 }`}>
                   {message.role === 'user' ? '▸ USER' : '◂ ASSISTANT'}
                 </div>
               </div>
 
-              {/* Message Content */}
-              <div className={`p-4 rounded border ${
+              {/* Message Content - Retro styled bubble */}
+              <div className={`p-3 sm:p-4 rounded border-2 ${
                 message.role === 'user'
-                  ? 'bg-gray-900 border-blue-900/30 ml-6'
-                  : 'bg-gray-900 border-green-900/30 mr-6'
-              }`}>
+                  ? 'bg-[var(--retro-bg-light)] border-[var(--retro-border)] ml-0 sm:ml-6'
+                  : 'bg-[var(--retro-bg-medium)] border-[var(--retro-accent-green)] mr-0 sm:mr-6'
+              }`}
+              style={message.role === 'assistant' ? { boxShadow: '0 0 10px rgba(0, 255, 65, 0.1)' } : {}}>
                 {message.image_refs && message.image_refs.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-3">
                     {message.image_refs.map((img, imgIdx) => (
@@ -547,7 +547,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                         <img
                           src={imageAPI.getUrl(img)}
                           alt={img.filename}
-                          className="max-w-xs max-h-48 rounded border border-gray-700 hover:border-blue-500 transition-colors"
+                          className="max-w-xs max-h-48 rounded border-2 border-[var(--retro-border)] hover:border-[var(--retro-accent-cyan)] transition-colors"
                         />
                       </a>
                     ))}
@@ -556,67 +556,58 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                 <MarkdownContent content={message.content} />
 
                 {/* Metadata for all messages */}
-                <div className="mt-3 pt-3 border-t border-gray-800 flex flex-wrap items-center gap-4 text-xs text-gray-500">
+                <div className="mt-3 pt-3 border-t border-[var(--retro-border)] flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-[var(--retro-text-muted)]">
                   {message.role === 'user' ? (
                     <>
                       {message.tokens_prompt && (
-                        <div>
-                          <span className="text-gray-600">tokens:</span> {message.tokens_prompt.toLocaleString()}
+                        <div className="font-mono">
+                          <span className="text-[var(--retro-text-muted)]">tokens:</span>{' '}
+                          <span className="text-[var(--retro-accent-cyan)]">{message.tokens_prompt.toLocaleString()}</span>
                         </div>
                       )}
                       {message.model_requested && (
-                        <div>
-                          <span className="text-gray-600">routing:</span> {message.model_requested}
+                        <div className="font-mono">
+                          <span className="text-[var(--retro-text-muted)]">routing:</span>{' '}
+                          <span className="text-[var(--retro-accent-cyan)]">{message.model_requested}</span>
                         </div>
                       )}
                     </>
                   ) : (
                     <>
                       {ttsAvailable && (
-                        <button
+                        <RetroButton
+                          variant={ttsPlayingIdx === idx ? 'primary' : 'ghost'}
+                          size="sm"
                           onClick={() => handlePlayMessageTts(idx)}
-                          disabled={isTtsBusy}
-                          className={`flex items-center gap-1 px-2 py-1 rounded transition-colors ${
-                            ttsPlayingIdx === idx
-                              ? 'bg-purple-600 text-white'
-                              : ttsGeneratingIdx === idx
-                              ? 'bg-purple-900 text-purple-300'
-                              : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700'
-                          } ${isTtsBusy && ttsPlayingIdx !== idx && ttsGeneratingIdx !== idx ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          title="Play TTS"
+                          disabled={isTtsBusy && ttsPlayingIdx !== idx && ttsGeneratingIdx !== idx}
+                          loading={ttsGeneratingIdx === idx}
+                          icon={<span>🔊</span>}
                         >
-                          {ttsGeneratingIdx === idx ? (
-                            <>
-                              <div className="flex items-center gap-1">
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-300"></div>
-                                <span>Generating...</span>
-                              </div>
-                            </>
-                          ) : ttsPlayingIdx === idx ? (
-                            <>🔊 Playing...</>
-                          ) : (
-                            <>🔊 Play</>
-                          )}
-                        </button>
+                          {ttsPlayingIdx === idx ? 'Playing...' : 'Play'}
+                        </RetroButton>
                       )}
                       {message.provider && (
-                        <div>
-                          <span className="text-gray-600">provider:</span> {message.provider}
+                        <div className="font-mono">
+                          <span className="text-[var(--retro-text-muted)]">provider:</span>{' '}
+                          <span className="text-[var(--retro-accent-cyan)]">{message.provider}</span>
                         </div>
                       )}
                       {message.model && (
-                        <div>
-                          <span className="text-gray-600">model:</span> {message.model}
+                        <div className="font-mono">
+                          <span className="text-[var(--retro-text-muted)]">model:</span>{' '}
+                          <span className="text-[var(--retro-accent-cyan)]">{message.model}</span>
                         </div>
                       )}
                       {message.backend && (
-                        <div>
-                          <span className="text-gray-600">backend:</span> {message.backend}
+                        <div className="font-mono">
+                          <span className="text-[var(--retro-text-muted)]">backend:</span>{' '}
+                          <span className="text-[var(--retro-accent-cyan)]">{message.backend}</span>
                         </div>
                       )}
                       {message.tokens && (
-                        <div>
-                          <span className="text-gray-600">tokens:</span> {message.tokens.toLocaleString()}
+                        <div className="font-mono">
+                          <span className="text-[var(--retro-text-muted)]">tokens:</span>{' '}
+                          <span className="text-[var(--retro-accent-cyan)]">{message.tokens.toLocaleString()}</span>
                         </div>
                       )}
                     </>
@@ -632,40 +623,43 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
           <div className="group">
             {/* Message Header */}
             <div className="flex items-center gap-3 mb-2">
-              <div className="text-xs font-mono uppercase text-green-400">
+              <div className="text-xs font-mono uppercase font-semibold tracking-wider text-[var(--retro-accent-green)]">
                 ◂ ASSISTANT
               </div>
-              <div className="text-xs text-gray-500">
-                streaming... {streamingTokenCount} tokens
+              <div className="text-xs text-[var(--retro-text-muted)] font-mono">
+                streaming... <span className="text-[var(--retro-accent-cyan)]">{streamingTokenCount}</span> tokens
               </div>
             </div>
 
-            {/* Message Content */}
-            <div className="p-4 rounded border bg-gray-900 border-green-900/30 mr-6">
+            {/* Message Content - Retro styled streaming bubble */}
+            <div
+              className="p-3 sm:p-4 rounded border-2 bg-[var(--retro-bg-medium)] border-[var(--retro-accent-green)] mr-0 sm:mr-6"
+              style={{ boxShadow: '0 0 15px rgba(0, 255, 65, 0.2)' }}
+            >
               <MarkdownContent content={streamingContent} />
-              <span className="inline-block w-2 h-4 bg-green-400 ml-1 animate-pulse"></span>
+              <span className="inline-block w-2 h-4 bg-[var(--retro-accent-green)] ml-1 retro-animate-pulse"></span>
             </div>
           </div>
         )}
 
         {isStreaming && !streamingContent && streamStatus.status && (
           <div className="flex items-center gap-3 mb-2">
-            <div className="text-xs font-mono uppercase text-green-400">
+            <div className="text-xs font-mono uppercase font-semibold tracking-wider text-[var(--retro-accent-green)]">
               ◂ ASSISTANT
             </div>
             <div className="flex items-center gap-2">
               {streamStatus.status !== 'error' && (
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-[var(--retro-accent-green)] rounded-full retro-animate-pulse"></div>
               )}
-              <div className={`text-xs ${
-                streamStatus.status === 'error' ? 'text-red-400' : 'text-gray-500'
+              <div className={`text-xs font-mono ${
+                streamStatus.status === 'error' ? 'text-[var(--retro-accent-red)]' : 'text-[var(--retro-text-muted)]'
               }`}>
                 {streamStatus.status === 'routing' && 'Selecting backend...'}
                 {streamStatus.status === 'loading' && (
                   <span>
                     Warming up model...
                     {streamStatus.estimated_time && (
-                      <span className="text-gray-600"> (~{Math.round(streamStatus.estimated_time)}s)</span>
+                      <span className="text-[var(--retro-text-muted)]"> (~{Math.round(streamStatus.estimated_time)}s)</span>
                     )}
                   </span>
                 )}
@@ -680,7 +674,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-gray-800 p-4 bg-gray-900">
+      <div className="border-t-2 border-[var(--retro-border)] p-3 sm:p-4 bg-[var(--retro-bg-medium)]">
         <div className="mb-3">
           <ImageUpload
             onImagesSelected={(files) => setPendingImages(prev => [...prev, ...files])}
@@ -697,15 +691,17 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
             onKeyPress={handleKeyPress}
             placeholder="Type your message... (Shift+Enter for new line)"
             rows={3}
-            className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded text-white placeholder-gray-600 focus:border-blue-500 focus:outline-none text-sm resize-none"
+            className="retro-input flex-1 text-sm resize-none min-h-[var(--retro-touch-target)]"
           />
-          <button
+          <RetroButton
+            variant="primary"
             onClick={handleSendMessage}
             disabled={!input.trim() || isStreaming}
-            className="px-6 py-3 bg-blue-600 text-white font-medium rounded hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors uppercase tracking-wider text-sm"
+            loading={isStreaming}
+            className="self-end"
           >
             {isStreaming ? '...' : '▸ Send'}
-          </button>
+          </RetroButton>
         </div>
       </div>
       
