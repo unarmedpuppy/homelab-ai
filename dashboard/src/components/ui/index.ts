@@ -2,6 +2,7 @@
 // Command Center design system for homelab-ai dashboard
 
 export { RetroCard } from './RetroCard';
+export type { RetroCardProps } from './RetroCard';
 export { RetroBadge, getPriorityVariant, getPriorityLabel, getStatusVariant, getStatusLabel } from './RetroBadge';
 export { RetroButton } from './RetroButton';
 export { RetroPanel } from './RetroPanel';

@@ -1,13 +1,14 @@
 import type { ReactNode } from 'react';
 
-interface RetroCardProps {
+export interface RetroCardProps {
   children: ReactNode;
   title?: string;
-  variant?: 'default' | 'highlight' | 'warning' | 'success' | 'danger';
+  variant?: 'default' | 'highlight' | 'warning' | 'success';
   className?: string;
   onClick?: () => void;
   selected?: boolean;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'responsive';
+  stackOnMobile?: boolean;
 }
 
 export function RetroCard({
@@ -18,37 +19,50 @@ export function RetroCard({
   onClick,
   selected = false,
   size = 'md',
+  stackOnMobile = false,
 }: RetroCardProps) {
   const variantClasses = {
     default: '',
-    highlight: 'border-[var(--retro-border-highlight)]',
-    warning: 'border-[var(--retro-accent-orange)]',
-    success: 'border-[var(--retro-accent-green)]',
-    danger: 'border-[var(--retro-accent-red)]',
+    highlight: 'retro-card--highlight',
+    warning: 'retro-card--warning',
+    success: 'retro-card--success',
   };
 
   const sizeClasses = {
     sm: 'p-2',
     md: 'p-4',
     lg: 'p-6',
+    responsive: 'p-3 sm:p-4 lg:p-6',
   };
 
-  const baseClasses = `
-    retro-card
-    ${selected ? 'retro-card-selected' : ''}
-    ${variantClasses[variant]}
-    ${onClick ? 'cursor-pointer' : ''}
-    ${className}
-  `.trim();
+  const baseClasses = [
+    'retro-card',
+    selected ? 'retro-card--selected' : '',
+    variantClasses[variant],
+    onClick ? 'cursor-pointer' : '',
+    stackOnMobile ? 'retro-card--stack-mobile' : '',
+    className,
+  ].filter(Boolean).join(' ');
 
   return (
-    <div className={baseClasses} onClick={onClick}>
+    <div
+      className={baseClasses}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      } : undefined}
+    >
       {title && (
-        <div className="retro-panel-header -m-[2px] mb-3 rounded-t">
-          <span>{title}</span>
+        <div className="retro-card__header">
+          <span className="retro-card__title">{title}</span>
         </div>
       )}
-      <div className={title ? '' : sizeClasses[size]}>
+      <div className={`retro-card__content ${title ? '' : sizeClasses[size]}`}>
         {children}
       </div>
     </div>

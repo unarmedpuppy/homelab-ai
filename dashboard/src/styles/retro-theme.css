@@ -200,12 +200,107 @@
   border: var(--retro-border-width) solid var(--retro-border);
   border-radius: var(--retro-radius);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  /* Stepped/pixelated border effect */
+  box-shadow:
+    4px 4px 0 0 var(--retro-bg-dark),
+    6px 6px 0 0 var(--retro-border);
 }
 
 .retro-card:hover {
   border-color: var(--retro-border-highlight);
+  box-shadow: var(--retro-glow-blue);
 }
 
+.retro-card:focus-visible {
+  outline: none;
+  border-color: var(--retro-border-active);
+  box-shadow: var(--retro-glow-blue);
+}
+
+/* Selected state */
+.retro-card--selected {
+  border-color: var(--retro-border-active);
+  box-shadow: var(--retro-glow-blue);
+}
+
+/* Variant: highlight */
+.retro-card--highlight {
+  border-color: var(--retro-border-highlight);
+}
+
+.retro-card--highlight:hover {
+  box-shadow: var(--retro-glow-blue);
+}
+
+/* Variant: warning */
+.retro-card--warning {
+  border-color: var(--retro-accent-orange);
+}
+
+.retro-card--warning:hover {
+  box-shadow: 0 0 10px rgba(255, 140, 0, 0.3);
+}
+
+/* Variant: success */
+.retro-card--success {
+  border-color: var(--retro-accent-green);
+}
+
+.retro-card--success:hover {
+  box-shadow: var(--retro-glow-green);
+}
+
+/* Card header (title bar) */
+.retro-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  margin: -2px -2px 0.75rem -2px;
+  background: var(--retro-bg-light);
+  border-bottom: 1px solid var(--retro-border);
+  border-radius: var(--retro-radius) var(--retro-radius) 0 0;
+}
+
+.retro-card__title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--retro-text-secondary);
+}
+
+.retro-card__content {
+  /* Content area - padding applied via size classes */
+}
+
+/* Mobile stacking */
+.retro-card--stack-mobile {
+  /* Default: normal layout */
+}
+
+@media (max-width: 640px) {
+  .retro-card {
+    /* Full width on mobile */
+    width: 100%;
+    /* Reduced shadow for mobile performance */
+    box-shadow: 2px 2px 0 0 var(--retro-border);
+  }
+
+  .retro-card--stack-mobile {
+    /* Stack content vertically on mobile */
+    display: flex;
+    flex-direction: column;
+  }
+
+  .retro-card--stack-mobile .retro-card__content {
+    /* Touch-friendly padding on mobile */
+    padding: 0.75rem;
+    min-height: 44px;
+  }
+}
+
+/* Legacy class names for backwards compatibility */
 .retro-card-selected {
   border-color: var(--retro-border-active);
   box-shadow: var(--retro-glow-blue);
