@@ -1047,3 +1047,231 @@
 .retro-animate-glow {
   animation: retro-glow-pulse 2s ease-in-out infinite;
 }
+
+/* ================================================
+   Responsive Layout System
+   ================================================ */
+
+.retro-responsive-layout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--retro-bg-dark);
+  position: relative;
+}
+
+/* Sidebar base styles */
+.retro-sidebar {
+  display: flex;
+  flex-direction: column;
+  background: var(--retro-bg-medium);
+  border-right: var(--retro-border-width) solid var(--retro-border);
+  height: 100vh;
+  overflow-y: auto;
+  position: relative;
+  z-index: 30;
+  transition: transform 0.3s ease;
+}
+
+.retro-sidebar-header {
+  flex-shrink: 0;
+}
+
+.retro-sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Desktop sidebar - always visible */
+.retro-sidebar-desktop {
+  position: sticky;
+  top: 0;
+  flex-shrink: 0;
+}
+
+/* Tablet sidebar - slide out from left */
+.retro-sidebar-tablet {
+  position: fixed;
+  top: 0;
+  left: 0;
+  transform: translateX(0);
+}
+
+.retro-sidebar-tablet.retro-sidebar-collapsed {
+  transform: translateX(-100%);
+}
+
+/* Mobile sidebar - slide out from left, full height */
+.retro-sidebar-mobile {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 85% !important;
+  max-width: 320px;
+  transform: translateX(0);
+}
+
+.retro-sidebar-mobile.retro-sidebar-collapsed {
+  transform: translateX(-100%);
+}
+
+/* Sidebar overlay */
+.retro-sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+  z-index: 25;
+  animation: retro-fade-in 0.2s ease;
+}
+
+@keyframes retro-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Close button inside sidebar */
+.retro-sidebar-close-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--retro-border);
+  border-radius: var(--retro-radius-sm);
+  color: var(--retro-text-muted);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  z-index: 10;
+}
+
+.retro-sidebar-close-btn:hover {
+  color: var(--retro-text-primary);
+  border-color: var(--retro-border-active);
+}
+
+/* Hamburger button */
+.retro-hamburger-btn {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  width: var(--retro-touch-target);
+  height: var(--retro-touch-target);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--retro-bg-medium);
+  border: var(--retro-border-width) solid var(--retro-border);
+  border-radius: var(--retro-radius);
+  color: var(--retro-text-primary);
+  font-size: 1.25rem;
+  cursor: pointer;
+  z-index: 40;
+  transition: all 0.15s ease;
+  box-shadow: 2px 2px 0 0 var(--retro-bg-dark);
+}
+
+.retro-hamburger-btn:hover {
+  border-color: var(--retro-border-active);
+  box-shadow: var(--retro-glow-blue);
+}
+
+.retro-hamburger-btn:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+.retro-hamburger-icon {
+  line-height: 1;
+}
+
+/* Main content area */
+.retro-main-content {
+  flex: 1;
+  overflow: auto;
+  min-width: 0; /* Prevent flex item from overflowing */
+}
+
+/* Main content with sidebar on desktop */
+@media (min-width: 1024px) {
+  .retro-main-content-with-sidebar {
+    margin-left: 0; /* Sidebar is in flex flow on desktop */
+  }
+}
+
+/* Mobile-only and desktop-only utility classes (enhanced) */
+.retro-mobile-only {
+  display: none;
+}
+
+.retro-desktop-only {
+  display: block;
+}
+
+.retro-tablet-only {
+  display: none;
+}
+
+/* Mobile breakpoint (< 640px) */
+@media (max-width: 639px) {
+  .retro-mobile-only {
+    display: block;
+  }
+
+  .retro-desktop-only {
+    display: none !important;
+  }
+
+  .retro-tablet-only {
+    display: none;
+  }
+
+  /* Adjust main content for hamburger button space on mobile */
+  .retro-responsive-layout .retro-main-content {
+    padding-top: calc(var(--retro-touch-target) + 1rem);
+  }
+}
+
+/* Tablet breakpoint (640px - 1023px) */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .retro-mobile-only {
+    display: none;
+  }
+
+  .retro-desktop-only {
+    display: none !important;
+  }
+
+  .retro-tablet-only {
+    display: block;
+  }
+
+  /* Adjust main content for hamburger button space on tablet */
+  .retro-responsive-layout .retro-main-content {
+    padding-top: calc(var(--retro-touch-target) + 1rem);
+  }
+}
+
+/* Desktop breakpoint (>= 1024px) */
+@media (min-width: 1024px) {
+  .retro-mobile-only {
+    display: none !important;
+  }
+
+  .retro-desktop-only {
+    display: block;
+  }
+
+  .retro-tablet-only {
+    display: none;
+  }
+
+  /* Hide hamburger on desktop */
+  .retro-hamburger-btn {
+    display: none !important;
+  }
+}
