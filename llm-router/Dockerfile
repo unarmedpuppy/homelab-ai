@@ -9,6 +9,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application
 COPY *.py .
+COPY routers/ ./routers/
 COPY providers/ ./providers/
 COPY tools/ ./tools/
 COPY config/ ./config/
