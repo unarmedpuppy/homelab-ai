@@ -1,13 +1,18 @@
 """Beads CLI wrapper for the dashboard API.
 
-Provides async functions to interact with the beads task management system
-through the `bd` CLI tool.
+Provides async functions to interact with the beads task management system.
+Supports two modes:
+1. CLI mode: Uses `bd` CLI tool when available (local development)
+2. JSONL mode: Reads directly from issues.jsonl (server deployment)
+
+The mode is auto-detected based on whether `bd` is available.
 """
 
 import asyncio
 import json
 import os
 import logging
+import shutil
 from pathlib import Path
 from typing import Optional
 from datetime import datetime
@@ -15,13 +20,102 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 # Beads directory location - can be overridden via environment variable
-BEADS_DIR = Path(os.getenv("BEADS_DIR", "/workspace/home-server/.beads"))
+BEADS_DIR = Path(os.getenv("BEADS_DIR", "/data/beads"))
+JSONL_PATH = BEADS_DIR / "issues.jsonl"
+
+# Check if bd CLI is available
+BD_CLI_AVAILABLE = shutil.which("bd") is not None
 
 
 class BeadsError(Exception):
-    """Error from beads CLI execution."""
+    """Error from beads operations."""
     pass
 
+
+# =============================================================================
+# JSONL-based operations (for server deployment without bd CLI)
+# =============================================================================
+
+def _load_issues_from_jsonl() -> list[dict]:
+    """Load all issues from the JSONL file.
+
+    Returns:
+        List of issue dictionaries
+    """
+    issues = []
+    if not JSONL_PATH.exists():
+        logger.warning(f"JSONL file not found: {JSONL_PATH}")
+        return issues
+
+    try:
+        with open(JSONL_PATH, 'r') as f:
+            for line_num, line in enumerate(f, 1):
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    issue = json.loads(line)
+                    issues.append(issue)
+                except json.JSONDecodeError as e:
+                    logger.warning(f"Invalid JSON on line {line_num}: {e}")
+    except Exception as e:
+        logger.error(f"Failed to read JSONL file: {e}")
+        raise BeadsError(f"Failed to read beads data: {e}")
+
+    return issues
+
+
+def _filter_issues(
+    issues: list[dict],
+    status: Optional[str] = None,
+    label: Optional[str] = None,
+    priority: Optional[int] = None,
+    task_type: Optional[str] = None,
+    limit: Optional[int] = None,
+) -> list[dict]:
+    """Filter issues based on criteria.
+
+    Args:
+        issues: List of all issues
+        status: Filter by status (open, in_progress, closed)
+        label: Filter by label
+        priority: Filter by priority (0-3)
+        task_type: Filter by type (task, bug, feature, epic, chore)
+        limit: Maximum number of results
+
+    Returns:
+        Filtered list of issues
+    """
+    filtered = issues
+
+    if status:
+        filtered = [i for i in filtered if i.get("status") == status]
+
+    if label:
+        filtered = [i for i in filtered if label in i.get("labels", [])]
+
+    if priority is not None:
+        filtered = [i for i in filtered if i.get("priority") == priority]
+
+    if task_type:
+        filtered = [i for i in filtered if i.get("issue_type") == task_type]
+
+    # Sort by priority (ascending) then by created_at (descending)
+    filtered.sort(key=lambda x: (
+        x.get("priority", 2),
+        -(datetime.fromisoformat(x.get("created_at", "2000-01-01").replace("Z", "+00:00")).timestamp()
+          if x.get("created_at") else 0)
+    ))
+
+    if limit:
+        filtered = filtered[:limit]
+
+    return filtered
+
+
+# =============================================================================
+# CLI-based operations (for local development with bd CLI)
+# =============================================================================
 
 async def bd_command(*args, json_output: bool = True, cwd: Optional[Path] = None) -> dict | list | str:
     """Execute bd command and return parsed output.
@@ -37,6 +131,9 @@ async def bd_command(*args, json_output: bool = True, cwd: Optional[Path] = None
     Raises:
         BeadsError: If the command fails
     """
+    if not BD_CLI_AVAILABLE:
+        raise BeadsError("bd command not available - server is in read-only JSONL mode")
+
     cmd = ["bd"] + list(args)
     if json_output:
         cmd.append("--json")
@@ -85,6 +182,10 @@ async def bd_command(*args, json_output: bool = True, cwd: Optional[Path] = None
         raise BeadsError(f"Failed to execute bd command: {e}")
 
 
+# =============================================================================
+# Public API - auto-detects CLI vs JSONL mode
+# =============================================================================
+
 async def list_tasks(
     status: Optional[str] = None,
     label: Optional[str] = None,
@@ -99,26 +200,29 @@ async def list_tasks(
         label: Filter by label
         priority: Filter by priority (0-3)
         task_type: Filter by type (task, bug, feature, epic, chore)
-        limit: Maximum number of tasks to return (default: bd default of 50)
+        limit: Maximum number of tasks to return (default: 100)
 
     Returns:
         List of task dictionaries
     """
-    args = ["list"]
-
-    if status:
-        args.extend(["--status", status])
-    if label:
-        args.extend(["--label", label])
-    if priority is not None:
-        args.extend(["--priority", str(priority)])
-    if task_type:
-        args.extend(["--type", task_type])
-    if limit is not None:
-        args.extend(["--limit", str(limit)])
-
-    result = await bd_command(*args)
-    return result if isinstance(result, list) else []
+    if BD_CLI_AVAILABLE:
+        args = ["list"]
+        if status:
+            args.extend(["--status", status])
+        if label:
+            args.extend(["--label", label])
+        if priority is not None:
+            args.extend(["--priority", str(priority)])
+        if task_type:
+            args.extend(["--type", task_type])
+        if limit is not None:
+            args.extend(["--limit", str(limit)])
+        result = await bd_command(*args)
+        return result if isinstance(result, list) else []
+    else:
+        # JSONL mode
+        issues = _load_issues_from_jsonl()
+        return _filter_issues(issues, status, label, priority, task_type, limit or 100)
 
 
 async def get_ready_tasks(label: Optional[str] = None) -> list[dict]:
@@ -130,13 +234,30 @@ async def get_ready_tasks(label: Optional[str] = None) -> list[dict]:
     Returns:
         List of ready task dictionaries
     """
-    args = ["ready"]
+    if BD_CLI_AVAILABLE:
+        args = ["ready"]
+        if label:
+            args.extend(["--label", label])
+        result = await bd_command(*args)
+        return result if isinstance(result, list) else []
+    else:
+        # JSONL mode - get open tasks that aren't blocked
+        issues = _load_issues_from_jsonl()
+        ready = []
+        for issue in issues:
+            if issue.get("status") != "open":
+                continue
+            if label and label not in issue.get("labels", []):
+                continue
+            # Check if blocked
+            blocked_by = issue.get("blocked_by", [])
+            dependency_count = issue.get("dependency_count", 0)
+            if not blocked_by and dependency_count == 0:
+                ready.append(issue)
 
-    if label:
-        args.extend(["--label", label])
-
-    result = await bd_command(*args)
-    return result if isinstance(result, list) else []
+        # Sort by priority
+        ready.sort(key=lambda x: x.get("priority", 2))
+        return ready
 
 
 async def get_task(task_id: str) -> Optional[dict]:
@@ -148,18 +269,26 @@ async def get_task(task_id: str) -> Optional[dict]:
     Returns:
         Task dictionary or None if not found
     """
-    try:
-        result = await bd_command("show", task_id)
-        # bd show returns an array even for a single task
-        if isinstance(result, list) and len(result) > 0:
-            return result[0]
-        elif isinstance(result, dict):
-            return result
-        return None
-    except BeadsError as e:
-        if "not found" in str(e).lower():
+    if BD_CLI_AVAILABLE:
+        try:
+            result = await bd_command("show", task_id)
+            # bd show returns an array even for a single task
+            if isinstance(result, list) and len(result) > 0:
+                return result[0]
+            elif isinstance(result, dict):
+                return result
             return None
-        raise
+        except BeadsError as e:
+            if "not found" in str(e).lower():
+                return None
+            raise
+    else:
+        # JSONL mode
+        issues = _load_issues_from_jsonl()
+        for issue in issues:
+            if issue.get("id") == task_id:
+                return issue
+        return None
 
 
 async def claim_task(task_id: str) -> str:
@@ -171,6 +300,9 @@ async def claim_task(task_id: str) -> str:
     Returns:
         Success message
     """
+    if not BD_CLI_AVAILABLE:
+        raise BeadsError("Write operations not supported in JSONL-only mode. Use bd CLI locally.")
+
     result = await bd_command("claim", task_id, json_output=False)
     return result or f"Task {task_id} claimed"
 
@@ -184,6 +316,9 @@ async def close_task(task_id: str) -> str:
     Returns:
         Success message
     """
+    if not BD_CLI_AVAILABLE:
+        raise BeadsError("Write operations not supported in JSONL-only mode. Use bd CLI locally.")
+
     result = await bd_command("close", task_id, json_output=False)
     return result or f"Task {task_id} closed"
 
@@ -209,6 +344,9 @@ async def create_task(
     Returns:
         Created task dictionary
     """
+    if not BD_CLI_AVAILABLE:
+        raise BeadsError("Write operations not supported in JSONL-only mode. Use bd CLI locally.")
+
     args = ["create", title]
 
     args.extend(["-p", str(priority)])
@@ -275,6 +413,9 @@ async def update_task(
     Returns:
         Updated task dictionary
     """
+    if not BD_CLI_AVAILABLE:
+        raise BeadsError("Write operations not supported in JSONL-only mode. Use bd CLI locally.")
+
     if status:
         if status == "in_progress":
             await claim_task(task_id)
@@ -308,7 +449,7 @@ async def get_labels() -> list[str]:
     Returns:
         List of unique labels
     """
-    tasks = await list_tasks()
+    tasks = await list_tasks(limit=1000)
     labels = set()
     for task in tasks:
         task_labels = task.get("labels", [])
@@ -323,7 +464,7 @@ async def get_stats() -> dict:
     Returns:
         Dictionary with task statistics
     """
-    all_tasks = await list_tasks()
+    all_tasks = await list_tasks(limit=1000)
 
     stats = {
         "total_tasks": len(all_tasks),
@@ -377,6 +518,9 @@ async def sync_beads() -> str:
     Returns:
         Sync result message
     """
+    if not BD_CLI_AVAILABLE:
+        return "Sync not available in JSONL-only mode. Beads data is synced via git."
+
     try:
         result = await bd_command("sync", json_output=False)
         return result or "Sync completed"
