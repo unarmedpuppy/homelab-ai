@@ -1390,6 +1390,193 @@ async def api_get_dashboard():
 
 
 # ============================================================================
+# Harness Metrics API Endpoints (Claude Code CLI observability)
+# ============================================================================
+
+class HarnessMetric(BaseModel):
+    """Metric from Claude Code CLI / Ralph Wiggum."""
+    source: str  # 'ralph', 'api', 'interactive'
+    event: str  # 'session_started', 'task_started', 'task_completed', 'task_failed', 'session_completed'
+    label: Optional[str] = None
+    task_id: Optional[str] = None
+    task_title: Optional[str] = None
+    duration_ms: int = 0
+    success: bool = True
+    error: Optional[str] = None
+    completed_tasks: int = 0
+    failed_tasks: int = 0
+    timestamp: Optional[str] = None
+
+
+@app.post("/metrics/harness")
+async def log_harness_metric(metric: HarnessMetric):
+    """
+    Log a metric from Claude Code CLI / Ralph Wiggum.
+
+    This endpoint receives metrics emitted by:
+    - Ralph Wiggum autonomous task loop
+    - Claude Harness API wrapper
+    - Future: Claude Code hooks
+    """
+    from database import get_db_connection
+    from datetime import datetime
+
+    try:
+        timestamp = metric.timestamp or datetime.utcnow().isoformat()
+
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO harness_sessions
+                (timestamp, source, event, label, task_id, task_title,
+                 duration_ms, success, error, completed_tasks, failed_tasks)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                timestamp,
+                metric.source,
+                metric.event,
+                metric.label,
+                metric.task_id,
+                metric.task_title,
+                metric.duration_ms,
+                metric.success,
+                metric.error,
+                metric.completed_tasks,
+                metric.failed_tasks,
+            ))
+            conn.commit()
+
+        logger.info(f"Harness metric logged: {metric.source}/{metric.event} task={metric.task_id}")
+        return {"status": "ok", "event": metric.event}
+
+    except Exception as e:
+        logger.error(f"Failed to log harness metric: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/metrics/harness")
+async def get_harness_metrics(
+    source: Optional[str] = None,
+    label: Optional[str] = None,
+    event: Optional[str] = None,
+    limit: int = 100,
+    days: int = 7,
+):
+    """
+    Get harness session metrics.
+
+    Returns recent harness activity for dashboard display.
+    """
+    from database import get_db_connection
+    from datetime import datetime, timedelta
+
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+
+            # Build query with filters
+            query = """
+                SELECT * FROM harness_sessions
+                WHERE timestamp >= ?
+            """
+            params = [(datetime.utcnow() - timedelta(days=days)).isoformat()]
+
+            if source:
+                query += " AND source = ?"
+                params.append(source)
+            if label:
+                query += " AND label = ?"
+                params.append(label)
+            if event:
+                query += " AND event = ?"
+                params.append(event)
+
+            query += " ORDER BY timestamp DESC LIMIT ?"
+            params.append(limit)
+
+            cursor.execute(query, params)
+            rows = cursor.fetchall()
+
+            metrics = [dict(row) for row in rows]
+
+            return {"metrics": metrics, "count": len(metrics)}
+
+    except Exception as e:
+        logger.error(f"Failed to get harness metrics: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/metrics/harness/stats")
+async def get_harness_stats(days: int = 7):
+    """
+    Get aggregated harness statistics.
+
+    Returns summary stats for Ralph Wiggum and other harness activity.
+    """
+    from database import get_db_connection
+    from datetime import datetime, timedelta
+
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cutoff = (datetime.utcnow() - timedelta(days=days)).isoformat()
+
+            # Get task completion stats
+            cursor.execute("""
+                SELECT
+                    COUNT(*) as total_events,
+                    SUM(CASE WHEN event = 'task_completed' THEN 1 ELSE 0 END) as tasks_completed,
+                    SUM(CASE WHEN event = 'task_failed' THEN 1 ELSE 0 END) as tasks_failed,
+                    SUM(CASE WHEN event = 'session_started' THEN 1 ELSE 0 END) as sessions_started,
+                    SUM(CASE WHEN event = 'session_completed' THEN 1 ELSE 0 END) as sessions_completed,
+                    AVG(CASE WHEN event IN ('task_completed', 'task_failed') THEN duration_ms END) as avg_task_duration_ms,
+                    SUM(CASE WHEN event IN ('task_completed', 'task_failed') THEN duration_ms ELSE 0 END) as total_duration_ms
+                FROM harness_sessions
+                WHERE timestamp >= ?
+            """, (cutoff,))
+
+            row = cursor.fetchone()
+
+            # Get per-label breakdown
+            cursor.execute("""
+                SELECT
+                    label,
+                    COUNT(*) as events,
+                    SUM(CASE WHEN event = 'task_completed' THEN 1 ELSE 0 END) as completed,
+                    SUM(CASE WHEN event = 'task_failed' THEN 1 ELSE 0 END) as failed
+                FROM harness_sessions
+                WHERE timestamp >= ? AND label IS NOT NULL
+                GROUP BY label
+                ORDER BY events DESC
+            """, (cutoff,))
+
+            labels = [dict(r) for r in cursor.fetchall()]
+
+            # Calculate success rate
+            tasks_completed = row["tasks_completed"] or 0
+            tasks_failed = row["tasks_failed"] or 0
+            total_tasks = tasks_completed + tasks_failed
+            success_rate = (tasks_completed / total_tasks * 100) if total_tasks > 0 else 0
+
+            return {
+                "days": days,
+                "total_events": row["total_events"] or 0,
+                "tasks_completed": tasks_completed,
+                "tasks_failed": tasks_failed,
+                "success_rate": round(success_rate, 1),
+                "sessions_started": row["sessions_started"] or 0,
+                "sessions_completed": row["sessions_completed"] or 0,
+                "avg_task_duration_ms": round(row["avg_task_duration_ms"] or 0),
+                "total_duration_ms": row["total_duration_ms"] or 0,
+                "by_label": labels,
+            }
+
+    except Exception as e:
+        logger.error(f"Failed to get harness stats: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================================
 # RAG API Endpoints
 # ============================================================================
 

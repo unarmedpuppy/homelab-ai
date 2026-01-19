@@ -47,6 +47,9 @@ LOG_FILE="${LOG_FILE:-$SCRIPT_DIR/.ralph-wiggum.log}"
 MAX_RETRIES=3
 RETRY_DELAY=10
 
+# Metrics endpoint for observability
+METRICS_ENDPOINT="${METRICS_ENDPOINT:-http://llm-router:8013/metrics/harness}"
+
 # Colors for output (disabled in non-terminal)
 if [ -t 1 ]; then
     RED='\033[0;31m'
@@ -170,6 +173,47 @@ log_warn() {
 
 log_error() {
     log "${RED}ERROR${NC}: $1"
+}
+
+# Emit metrics to LLM router for observability
+# Usage: emit_metric <event_type> <task_id> [duration_ms] [success] [error]
+emit_metric() {
+    local event_type="$1"
+    local task_id="${2:-}"
+    local duration_ms="${3:-0}"
+    local success="${4:-true}"
+    local error_msg="${5:-}"
+
+    # Don't emit metrics in dry run mode
+    if $DRY_RUN; then
+        return 0
+    fi
+
+    # Build JSON payload
+    local payload
+    payload=$(cat << EOF
+{
+    "source": "ralph",
+    "event": "$event_type",
+    "label": "$LABEL_FILTER",
+    "task_id": "$task_id",
+    "task_title": "$CURRENT_TASK_TITLE",
+    "duration_ms": $duration_ms,
+    "success": $success,
+    "error": $([ -n "$error_msg" ] && echo "\"$error_msg\"" || echo "null"),
+    "completed_tasks": $TASKS_COMPLETED,
+    "failed_tasks": $TASKS_FAILED,
+    "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+}
+EOF
+)
+
+    # Post to metrics endpoint (fire and forget, don't fail on errors)
+    curl -sf -X POST "$METRICS_ENDPOINT" \
+        -H "Content-Type: application/json" \
+        -d "$payload" \
+        --max-time 5 \
+        2>/dev/null || true
 }
 
 # Write status to JSON file for API consumption
@@ -881,6 +925,9 @@ main() {
     REMAINING_TASKS=$(count_ready_tasks)
     log_info "Found $REMAINING_TASKS ready tasks with label '$LABEL_FILTER'"
 
+    # Emit session started metric
+    emit_metric "session_started" "" 0 true
+
     if [ "$REMAINING_TASKS" -eq 0 ]; then
         log_info "No tasks to process. Exiting."
         write_status "completed" "No tasks found with label '$LABEL_FILTER'"
@@ -963,6 +1010,13 @@ main() {
         # Claim the task
         claim_task "$CURRENT_TASK_ID" "$CURRENT_TASK_TITLE"
 
+        # Track task start time for duration metrics
+        local task_start_time
+        task_start_time=$(date +%s%3N)  # Milliseconds since epoch
+
+        # Emit task started metric
+        emit_metric "task_started" "$CURRENT_TASK_ID" 0 true
+
         # Build prompt
         local prompt
         prompt=$(build_prompt "$task_json" "$working_dir")
@@ -982,16 +1036,34 @@ main() {
                 complete_task "$CURRENT_TASK_ID" "Completed by Ralph Wiggum autonomous loop"
                 ((TASKS_COMPLETED++))
                 consecutive_failures=0
+
+                # Emit task completed metric with duration
+                local task_end_time task_duration_ms
+                task_end_time=$(date +%s%3N)
+                task_duration_ms=$((task_end_time - task_start_time))
+                emit_metric "task_completed" "$CURRENT_TASK_ID" "$task_duration_ms" true
             else
                 log_error "Fresh-eyes review failed for task $CURRENT_TASK_ID"
                 fail_task "$CURRENT_TASK_ID" "Review failed - implementation may not fit architecture/plan"
                 ((TASKS_FAILED++))
                 ((consecutive_failures++))
+
+                # Emit task failed metric with duration
+                local task_end_time task_duration_ms
+                task_end_time=$(date +%s%3N)
+                task_duration_ms=$((task_end_time - task_start_time))
+                emit_metric "task_failed" "$CURRENT_TASK_ID" "$task_duration_ms" false "Review failed"
             fi
         else
             fail_task "$CURRENT_TASK_ID" "Claude execution failed"
             ((TASKS_FAILED++))
             ((consecutive_failures++))
+
+            # Emit task failed metric with duration
+            local task_end_time task_duration_ms
+            task_end_time=$(date +%s%3N)
+            task_duration_ms=$((task_end_time - task_start_time))
+            emit_metric "task_failed" "$CURRENT_TASK_ID" "$task_duration_ms" false "Claude execution failed"
 
             if [ "$consecutive_failures" -ge "$MAX_RETRIES" ]; then
                 log_error "Too many consecutive failures ($consecutive_failures). Stopping."
@@ -1024,6 +1096,9 @@ main() {
     log_info "Tasks completed: $TASKS_COMPLETED"
     log_info "Tasks failed: $TASKS_FAILED"
     log_info "=========================================="
+
+    # Emit session completed metric
+    emit_metric "session_completed" "" 0 true
 
     # Final sync
     if ! $DRY_RUN; then

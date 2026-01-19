@@ -263,6 +263,45 @@ def init_database():
             ON agent_steps(agent_run_id)
         """)
 
+        # Create harness_sessions table for tracking Claude Code CLI usage
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS harness_sessions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp DATETIME NOT NULL,
+                source TEXT NOT NULL,
+                event TEXT NOT NULL,
+                label TEXT,
+                task_id TEXT,
+                task_title TEXT,
+                duration_ms INTEGER DEFAULT 0,
+                success BOOLEAN DEFAULT 1,
+                error TEXT,
+                completed_tasks INTEGER DEFAULT 0,
+                failed_tasks INTEGER DEFAULT 0,
+                metadata TEXT
+            )
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_harness_sessions_timestamp
+            ON harness_sessions(timestamp)
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_harness_sessions_source
+            ON harness_sessions(source)
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_harness_sessions_label
+            ON harness_sessions(label)
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_harness_sessions_event
+            ON harness_sessions(event)
+        """)
+
         # Migration: Add token columns to agent_steps table
         try:
             cursor.execute("SELECT prompt_tokens FROM agent_steps LIMIT 1")
