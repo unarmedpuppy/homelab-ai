@@ -24,6 +24,7 @@ from enum import Enum
 from typing import AsyncGenerator, Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException, Request, BackgroundTasks
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
@@ -35,6 +36,20 @@ app = FastAPI(
     title="Claude Code Harness",
     description="OpenAI-compatible API wrapper for Claude Code CLI with async job support",
     version="2.0.0",
+)
+
+# Enable CORS for dashboard access
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://homelab-ai.server.unarmedpuppy.com",
+        "https://local-ai-dashboard.server.unarmedpuppy.com",  # Legacy alias
+        "http://localhost:5173",  # Vite dev server
+        "http://localhost:3000",   # Common dev port
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Configuration
