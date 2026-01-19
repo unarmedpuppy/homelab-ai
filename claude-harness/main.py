@@ -19,9 +19,12 @@ import os
 import subprocess
 import time
 import uuid
+from dataclasses import dataclass, asdict
 from datetime import datetime
 from enum import Enum
+from pathlib import Path
 from typing import AsyncGenerator, Dict, List, Optional
+import re
 
 from fastapi import FastAPI, HTTPException, Request, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
@@ -640,12 +643,115 @@ async def delete_job(job_id: str):
 # Ralph Wiggum - Autonomous Task Loop
 # ============================================================================
 
-RALPH_STATUS_FILE = "/workspace/.ralph-wiggum-status.json"
-RALPH_CONTROL_FILE = "/workspace/.ralph-wiggum-control"
+# Ralph Wiggum multi-instance configuration
 BEADS_DIR = "/workspace/home-server"  # Where .beads/ lives
+RALPH_REGISTRY_FILE = Path("/workspace/.ralph-processes.json")
 
-# In-memory tracking of Ralph process
-ralph_process: Optional[asyncio.subprocess.Process] = None
+
+@dataclass
+class RalphInstance:
+    """Tracks a running Ralph Wiggum instance."""
+    label: str
+    pid: int
+    started_at: str
+    status_file: str
+    control_file: str
+    log_file: str
+    process: Optional[asyncio.subprocess.Process] = None  # Not serialized
+
+    def to_dict(self) -> dict:
+        """Convert to dict for JSON serialization (excludes process)."""
+        return {
+            "label": self.label,
+            "pid": self.pid,
+            "started_at": self.started_at,
+            "status_file": self.status_file,
+            "control_file": self.control_file,
+            "log_file": self.log_file,
+        }
+
+
+# In-memory tracking of Ralph processes (keyed by label)
+ralph_processes: Dict[str, RalphInstance] = {}
+
+
+def sanitize_label(label: str) -> str:
+    """Sanitize label for use in filenames."""
+    # Replace colons with dashes, remove other unsafe chars
+    safe = re.sub(r'[^a-zA-Z0-9_-]', '-', label)
+    # Collapse multiple dashes
+    safe = re.sub(r'-+', '-', safe)
+    # Remove leading/trailing dashes
+    return safe.strip('-').lower()
+
+
+def get_instance_paths(label: str) -> tuple:
+    """Generate file paths for a Ralph instance."""
+    label_safe = sanitize_label(label)
+    status_file = f"/workspace/.ralph-{label_safe}-status.json"
+    control_file = f"/workspace/.ralph-{label_safe}-control"
+    log_file = f"/workspace/.ralph-{label_safe}.log"
+    return status_file, control_file, log_file
+
+
+def save_ralph_registry():
+    """Persist Ralph process registry to disk."""
+    try:
+        data = {label: inst.to_dict() for label, inst in ralph_processes.items()}
+        with open(RALPH_REGISTRY_FILE, 'w') as f:
+            json.dump(data, f, indent=2)
+        logger.debug(f"Saved Ralph registry with {len(data)} instances")
+    except Exception as e:
+        logger.error(f"Could not save Ralph registry: {e}")
+
+
+def load_ralph_registry():
+    """Load and recover Ralph instances from registry file."""
+    global ralph_processes
+
+    if not RALPH_REGISTRY_FILE.exists():
+        logger.info("No Ralph registry file found, starting fresh")
+        return
+
+    try:
+        with open(RALPH_REGISTRY_FILE, 'r') as f:
+            data = json.load(f)
+
+        recovered = 0
+        for label, info in data.items():
+            pid = info.get("pid")
+            if pid:
+                # Check if process is still running
+                try:
+                    os.kill(pid, 0)  # Signal 0 just checks if process exists
+                    # Process still running, restore it
+                    ralph_processes[label] = RalphInstance(
+                        label=info["label"],
+                        pid=pid,
+                        started_at=info["started_at"],
+                        status_file=info["status_file"],
+                        control_file=info["control_file"],
+                        log_file=info["log_file"],
+                        process=None,  # Can't restore asyncio process, but we have the PID
+                    )
+                    recovered += 1
+                    logger.info(f"Recovered Ralph instance '{label}' (PID {pid})")
+                except OSError:
+                    # Process not running, clean up files
+                    logger.info(f"Ralph instance '{label}' (PID {pid}) no longer running, cleaning up")
+                    for fpath in [info.get("status_file"), info.get("control_file")]:
+                        if fpath and os.path.exists(fpath):
+                            try:
+                                os.remove(fpath)
+                            except Exception:
+                                pass
+
+        if recovered > 0:
+            logger.info(f"Recovered {recovered} Ralph instance(s) from registry")
+        # Save cleaned registry
+        save_ralph_registry()
+    except Exception as e:
+        logger.error(f"Could not load Ralph registry: {e}")
 
 
 class RalphStartRequest(BaseModel):
@@ -671,14 +777,34 @@ class RalphStatusResponse(BaseModel):
     message: Optional[str] = None
 
 
-def read_ralph_status() -> dict:
+class RalphInstanceInfo(BaseModel):
+    """Information about a Ralph instance."""
+    label: str
+    pid: int
+    running: bool
+    started_at: str
+    status: str
+    total_tasks: int = 0
+    completed_tasks: int = 0
+    failed_tasks: int = 0
+    current_task: Optional[str] = None
+    current_task_title: Optional[str] = None
+
+
+class RalphInstancesResponse(BaseModel):
+    """Response for listing all Ralph instances."""
+    instances: List[RalphInstanceInfo]
+    count: int
+
+
+def read_ralph_status(status_file: str) -> dict:
     """Read Ralph Wiggum status from file."""
     try:
-        if os.path.exists(RALPH_STATUS_FILE):
-            with open(RALPH_STATUS_FILE, 'r') as f:
+        if os.path.exists(status_file):
+            with open(status_file, 'r') as f:
                 return json.load(f)
     except Exception as e:
-        logger.warning(f"Could not read Ralph status: {e}")
+        logger.warning(f"Could not read Ralph status from {status_file}: {e}")
     return {
         "running": False,
         "status": "idle",
@@ -688,19 +814,40 @@ def read_ralph_status() -> dict:
     }
 
 
-def write_ralph_control(command: str):
+def write_ralph_control(control_file: str, command: str):
     """Write a control command for Ralph Wiggum."""
     try:
-        with open(RALPH_CONTROL_FILE, 'w') as f:
+        with open(control_file, 'w') as f:
             f.write(command)
     except Exception as e:
-        logger.error(f"Could not write Ralph control: {e}")
+        logger.error(f"Could not write Ralph control to {control_file}: {e}")
         raise
+
+
+def is_instance_running(instance: RalphInstance) -> bool:
+    """Check if a Ralph instance is still running."""
+    # First check if we have an asyncio process reference
+    if instance.process is not None:
+        if instance.process.returncode is None:
+            return True
+        else:
+            return False
+    # Fall back to checking PID
+    if instance.pid:
+        try:
+            os.kill(instance.pid, 0)
+            return True
+        except OSError:
+            return False
+    return False
 
 
 async def start_ralph_wiggum(label: str, priority: Optional[int], max_tasks: int, dry_run: bool):
     """Start Ralph Wiggum as a background process."""
-    global ralph_process
+    global ralph_processes
+
+    # Get instance-specific file paths
+    status_file, control_file, log_file = get_instance_paths(label)
 
     # Build command
     cmd = ["/app/ralph-wiggum.sh", "--label", label]
@@ -714,14 +861,14 @@ async def start_ralph_wiggum(label: str, priority: Optional[int], max_tasks: int
     if dry_run:
         cmd.append("--dry-run")
 
-    logger.info(f"Starting Ralph Wiggum: {' '.join(cmd)}")
+    logger.info(f"Starting Ralph Wiggum for label '{label}': {' '.join(cmd)}")
 
-    # Clear any previous control file
-    if os.path.exists(RALPH_CONTROL_FILE):
-        os.remove(RALPH_CONTROL_FILE)
+    # Clear any previous control file for this instance
+    if os.path.exists(control_file):
+        os.remove(control_file)
 
     # Start the process
-    ralph_process = await asyncio.create_subprocess_exec(
+    process = await asyncio.create_subprocess_exec(
         *cmd,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.STDOUT,
@@ -729,12 +876,28 @@ async def start_ralph_wiggum(label: str, priority: Optional[int], max_tasks: int
         env={
             **os.environ,
             "BEADS_DIR": BEADS_DIR,
-            "STATUS_FILE": RALPH_STATUS_FILE,
-            "CONTROL_FILE": RALPH_CONTROL_FILE,
+            "STATUS_FILE": status_file,
+            "CONTROL_FILE": control_file,
+            "LOG_FILE": log_file,
         }
     )
 
-    logger.info(f"Ralph Wiggum started with PID {ralph_process.pid}")
+    # Create instance tracking object
+    instance = RalphInstance(
+        label=label,
+        pid=process.pid,
+        started_at=datetime.utcnow().isoformat() + "Z",
+        status_file=status_file,
+        control_file=control_file,
+        log_file=log_file,
+        process=process,
+    )
+
+    # Store in registry
+    ralph_processes[label] = instance
+    save_ralph_registry()
+
+    logger.info(f"Ralph Wiggum '{label}' started with PID {process.pid}")
 
 
 @app.post("/v1/ralph/start")
@@ -743,22 +906,29 @@ async def start_ralph(request: RalphStartRequest, background_tasks: BackgroundTa
     Start Ralph Wiggum autonomous task loop.
 
     Processes beads tasks matching the given label filter.
-    Only one Ralph instance can run at a time.
+    Multiple instances can run concurrently with different labels.
 
     Example:
         curl -X POST http://localhost:8013/v1/ralph/start \\
           -H "Content-Type: application/json" \\
           -d '{"label": "mercury"}'
     """
-    global ralph_process
+    global ralph_processes
 
-    # Check if already running
-    status = read_ralph_status()
-    if status.get("running") or (ralph_process and ralph_process.returncode is None):
-        raise HTTPException(
-            status_code=409,
-            detail="Ralph Wiggum is already running. Use /v1/ralph/stop first."
-        )
+    label = request.label
+
+    # Check if an instance with this label is already running
+    if label in ralph_processes:
+        instance = ralph_processes[label]
+        if is_instance_running(instance):
+            raise HTTPException(
+                status_code=409,
+                detail=f"Ralph Wiggum instance for label '{label}' is already running. Use /v1/ralph/stop?label={label} first."
+            )
+        else:
+            # Instance exists but not running, clean up
+            del ralph_processes[label]
+            save_ralph_registry()
 
     # Validate beads directory exists
     beads_path = os.path.join(BEADS_DIR, ".beads")
@@ -771,83 +941,180 @@ async def start_ralph(request: RalphStartRequest, background_tasks: BackgroundTa
     # Start in background
     background_tasks.add_task(
         start_ralph_wiggum,
-        request.label,
+        label,
         request.priority,
         request.max_tasks or 0,
         request.dry_run or False
     )
 
     return {
-        "message": f"Ralph Wiggum starting with label '{request.label}'",
-        "status_url": "/v1/ralph/status",
-        "stop_url": "/v1/ralph/stop",
+        "message": f"Ralph Wiggum starting with label '{label}'",
+        "label": label,
+        "status_url": f"/v1/ralph/status?label={label}",
+        "stop_url": f"/v1/ralph/stop?label={label}",
+        "instances_url": "/v1/ralph/instances",
     }
 
 
-@app.get("/v1/ralph/status", response_model=RalphStatusResponse)
-async def get_ralph_status():
+@app.get("/v1/ralph/status")
+async def get_ralph_status(label: Optional[str] = None):
     """
     Get Ralph Wiggum current status.
 
-    Returns progress information including completed/total tasks.
+    If label is provided, returns status for that specific instance.
+    If no label is provided and only one instance is running, returns that instance's status.
+    If no label is provided and multiple instances are running, returns an error.
 
-    Example:
-        curl http://localhost:8013/v1/ralph/status
+    Examples:
+        curl http://localhost:8013/v1/ralph/status?label=mercury
+        curl http://localhost:8013/v1/ralph/status  # Works if only one instance running
     """
-    global ralph_process
+    global ralph_processes
 
-    status = read_ralph_status()
+    # If label specified, get that specific instance
+    if label:
+        if label not in ralph_processes:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No Ralph instance found for label '{label}'"
+            )
+        instance = ralph_processes[label]
+        status = read_ralph_status(instance.status_file)
+        running = is_instance_running(instance)
+        status["running"] = running
+        status["label"] = label
+        if not running and status.get("status") == "running":
+            status["status"] = "completed"
+        return RalphStatusResponse(**status)
 
-    # Check if process is still running
-    if ralph_process:
-        if ralph_process.returncode is None:
-            status["running"] = True
-        else:
-            status["running"] = False
-            if status.get("status") == "running":
-                status["status"] = "completed"
+    # No label specified - check number of instances
+    running_instances = [
+        (lbl, inst) for lbl, inst in ralph_processes.items()
+        if is_instance_running(inst)
+    ]
 
-    return RalphStatusResponse(**status)
+    if len(running_instances) == 0:
+        # No instances running, return idle status
+        return RalphStatusResponse(
+            running=False,
+            status="idle",
+            message="No Ralph instances running. Use /v1/ralph/instances to list all."
+        )
+    elif len(running_instances) == 1:
+        # Exactly one instance, return its status (backward compatible)
+        lbl, instance = running_instances[0]
+        status = read_ralph_status(instance.status_file)
+        status["running"] = True
+        status["label"] = lbl
+        return RalphStatusResponse(**status)
+    else:
+        # Multiple instances running, require label parameter
+        labels = [lbl for lbl, _ in running_instances]
+        raise HTTPException(
+            status_code=400,
+            detail=f"Multiple Ralph instances running ({', '.join(labels)}). Specify ?label=X to get status for a specific instance, or use /v1/ralph/instances to list all."
+        )
 
 
 @app.post("/v1/ralph/stop")
-async def stop_ralph():
+async def stop_ralph(label: Optional[str] = None):
     """
     Request Ralph Wiggum to stop gracefully.
 
     Ralph will finish the current task then exit.
+    Requires label parameter when multiple instances are running.
 
-    Example:
-        curl -X POST http://localhost:8013/v1/ralph/stop
+    Examples:
+        curl -X POST http://localhost:8013/v1/ralph/stop?label=mercury
+        curl -X POST http://localhost:8013/v1/ralph/stop  # Works if only one instance running
     """
-    global ralph_process
+    global ralph_processes
 
-    status = read_ralph_status()
+    # If label specified, stop that specific instance
+    if label:
+        if label not in ralph_processes:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No Ralph instance found for label '{label}'"
+            )
+        instance = ralph_processes[label]
+        if not is_instance_running(instance):
+            # Clean up non-running instance
+            del ralph_processes[label]
+            save_ralph_registry()
+            return {"message": f"Ralph instance '{label}' is not running", "label": label}
 
-    if not status.get("running") and (not ralph_process or ralph_process.returncode is not None):
-        return {"message": "Ralph Wiggum is not running"}
+        # Write stop command
+        write_ralph_control(instance.control_file, "stop")
+        return {
+            "message": f"Stop requested for Ralph instance '{label}'. It will finish current task then exit.",
+            "label": label,
+            "status_url": f"/v1/ralph/status?label={label}",
+        }
 
-    # Write stop command
-    write_ralph_control("stop")
+    # No label specified - check number of running instances
+    running_instances = [
+        (lbl, inst) for lbl, inst in ralph_processes.items()
+        if is_instance_running(inst)
+    ]
 
-    return {
-        "message": "Stop requested. Ralph will finish current task then exit.",
-        "status_url": "/v1/ralph/status",
-    }
+    if len(running_instances) == 0:
+        return {"message": "No Ralph instances are running"}
+    elif len(running_instances) == 1:
+        # Exactly one instance, stop it (backward compatible)
+        lbl, instance = running_instances[0]
+        write_ralph_control(instance.control_file, "stop")
+        return {
+            "message": f"Stop requested for Ralph instance '{lbl}'. It will finish current task then exit.",
+            "label": lbl,
+            "status_url": f"/v1/ralph/status?label={lbl}",
+        }
+    else:
+        # Multiple instances running, require label parameter
+        labels = [lbl for lbl, _ in running_instances]
+        raise HTTPException(
+            status_code=400,
+            detail=f"Multiple Ralph instances running ({', '.join(labels)}). Specify ?label=X to stop a specific instance."
+        )
 
 
 @app.get("/v1/ralph/logs")
-async def get_ralph_logs(lines: int = 100):
+async def get_ralph_logs(label: Optional[str] = None, lines: int = 100):
     """
     Get recent Ralph Wiggum logs.
 
-    Example:
-        curl http://localhost:8013/v1/ralph/logs?lines=50
+    Requires label parameter when multiple instances exist.
+
+    Examples:
+        curl http://localhost:8013/v1/ralph/logs?label=mercury&lines=50
+        curl http://localhost:8013/v1/ralph/logs?lines=50  # Works if only one instance
     """
-    log_file = "/workspace/.ralph-wiggum.log"
+    global ralph_processes
+
+    # Determine which log file to read
+    if label:
+        if label not in ralph_processes:
+            # Instance not in registry, try to find log file anyway
+            _, _, log_file = get_instance_paths(label)
+        else:
+            log_file = ralph_processes[label].log_file
+    else:
+        # No label specified
+        if len(ralph_processes) == 0:
+            return {"logs": [], "message": "No Ralph instances found. Specify ?label=X if you know the label."}
+        elif len(ralph_processes) == 1:
+            # Exactly one instance, use its log file
+            log_file = list(ralph_processes.values())[0].log_file
+        else:
+            # Multiple instances, require label parameter
+            labels = list(ralph_processes.keys())
+            raise HTTPException(
+                status_code=400,
+                detail=f"Multiple Ralph instances ({', '.join(labels)}). Specify ?label=X to get logs for a specific instance."
+            )
 
     if not os.path.exists(log_file):
-        return {"logs": [], "message": "No logs found"}
+        return {"logs": [], "message": f"No logs found at {log_file}", "label": label}
 
     try:
         process = await asyncio.create_subprocess_exec(
@@ -857,9 +1124,57 @@ async def get_ralph_logs(lines: int = 100):
         )
         stdout, _ = await process.communicate()
         log_lines = stdout.decode().strip().split('\n')
-        return {"logs": log_lines, "count": len(log_lines)}
+        return {"logs": log_lines, "count": len(log_lines), "label": label, "log_file": log_file}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Could not read logs: {e}")
+
+
+@app.get("/v1/ralph/instances", response_model=RalphInstancesResponse)
+async def list_ralph_instances():
+    """
+    List all Ralph Wiggum instances (running and recently stopped).
+
+    Example:
+        curl http://localhost:8013/v1/ralph/instances
+    """
+    global ralph_processes
+
+    instances = []
+    to_remove = []
+
+    for label, instance in ralph_processes.items():
+        running = is_instance_running(instance)
+        status_data = read_ralph_status(instance.status_file)
+
+        # If not running, check if we should clean it up
+        if not running:
+            # Keep recently stopped instances for a bit
+            # but mark them as completed
+            if status_data.get("status") == "running":
+                status_data["status"] = "completed"
+
+        instances.append(RalphInstanceInfo(
+            label=label,
+            pid=instance.pid,
+            running=running,
+            started_at=instance.started_at,
+            status=status_data.get("status", "unknown"),
+            total_tasks=status_data.get("total_tasks", 0),
+            completed_tasks=status_data.get("completed_tasks", 0),
+            failed_tasks=status_data.get("failed_tasks", 0),
+            current_task=status_data.get("current_task"),
+            current_task_title=status_data.get("current_task_title"),
+        ))
+
+    return RalphInstancesResponse(instances=instances, count=len(instances))
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Recover Ralph instances on API startup."""
+    logger.info("Claude Harness starting up...")
+    load_ralph_registry()
+    logger.info(f"Recovered {len(ralph_processes)} Ralph instance(s)")
 
 
 if __name__ == "__main__":
