@@ -73,12 +73,20 @@ jobs:
           printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
+          # Debug: Check key file
+          echo "Key file size: $(wc -c < ~/.ssh/deploy_key) bytes"
+          echo "Key file lines: $(wc -l < ~/.ssh/deploy_key) lines"
+          echo "Key starts with: $(head -c 30 ~/.ssh/deploy_key)"
+          echo "Host: ${{ secrets.DEPLOY_HOST }}"
+          echo "Port: ${{ secrets.DEPLOY_PORT }}"
+          echo "User: ${{ secrets.DEPLOY_USER }}"
+
           # Add server to known hosts
           ssh-keyscan -p ${{ secrets.DEPLOY_PORT }} ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
-          # Test SSH connection
+          # Test SSH connection with verbose output
           echo "Testing SSH connection..."
-          ssh -i ~/.ssh/deploy_key -p ${{ secrets.DEPLOY_PORT }} -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "echo 'SSH connection successful'" || {
+          ssh -v -i ~/.ssh/deploy_key -p ${{ secrets.DEPLOY_PORT }} -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "echo 'SSH connection successful'" 2>&1 || {
             echo "SSH connection failed. Check secrets: DEPLOY_SSH_KEY, DEPLOY_HOST, DEPLOY_PORT, DEPLOY_USER"
             exit 1
           }
