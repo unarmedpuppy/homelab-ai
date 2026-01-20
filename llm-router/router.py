@@ -20,7 +20,6 @@ from providers import ProviderManager, HealthChecker, ProviderSelection, build_c
 from stream import stream_chat_completion, stream_chat_completion_passthrough, StreamAccumulator
 import prometheus_metrics as prom
 # from middleware import MemoryMetricsMiddleware  # Replaced with dependency injection
-from routers.beads import router as beads_router
 
 # Configure logging
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
@@ -87,8 +86,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
-app.include_router(beads_router)
 
 # Configuration from environment
 GAMING_PC_URL = os.getenv("GAMING_PC_URL", "http://gaming-pc.local:8000")
@@ -324,7 +321,6 @@ async def root():
             "memory": "/memory/*",
             "metrics": "/metrics/*",
             "rag": "/rag/*",
-            "beads": "/v1/beads/*",
             "docs": "/docs"
         }
     }

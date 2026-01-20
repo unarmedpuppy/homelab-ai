@@ -152,30 +152,13 @@ React dashboard with retro/pixel-art "command center" UI for AI infrastructure m
 |-------|------|-------------|
 | `/` | Chat | Streaming chat with provider selection, TTS toggle, image upload |
 | `/chat/:conversationId` | Chat | Resume existing conversation |
-| `/beads` | Beads Board | Kanban-style task management with label filtering |
-| `/ralph` | Ralph Loop | Control Ralph-Wiggum autonomous task loops |
 | `/providers` | Providers | Provider health monitoring and utilization |
 | `/stats` | Stats | Activity heatmap, model usage charts |
 | `/agents` | Agents | Agent run history and logs |
 
-**Beads Board (`/beads`)**:
-- Three-column Kanban: Backlog → In Progress → Done
-- Label filtering with sidebar
-- Task creation (follows WORKSPACE-AGENTS conventions with repo labels)
-- Real-time updates via 5s polling
-- Mobile-responsive with swipe navigation
-
-**Ralph Loop Management (`/ralph`)**:
-- View current loop status and progress
-- Start new loops with label filter
-- Stop running loops
-- View execution logs with auto-refresh
-
 **Key files**:
 - `src/App.tsx` - Main application and routing
 - `src/components/ui/` - Retro design system components
-- `src/components/beads/` - Beads board components
-- `src/components/ralph/` - Ralph management components
 - `src/styles/retro-theme.css` - CSS custom properties for retro theme
 
 **Retro Design System** (`src/components/ui/`):

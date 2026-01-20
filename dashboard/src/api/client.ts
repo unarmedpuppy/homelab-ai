@@ -577,75 +577,13 @@ export const ttsAPI = {
   },
 };
 
-// Beads API - Task Management
+// Ralph-Wiggum API - Autonomous Task Runner
 import type {
-  BeadTask,
-  BeadsTasksResponse,
-  BeadsStats,
-  BeadsLabelsResponse,
-  BeadsTaskCreate,
-  BeadsTaskUpdate,
   RalphStatus,
   RalphStartParams,
   RalphStartResponse,
   RalphLogs,
-} from '../types/beads';
-
-export const beadsAPI = {
-  listTasks: async (params?: {
-    status?: string;
-    label?: string;
-    priority?: number;
-    type?: string;
-    ready?: boolean;
-    limit?: number;
-  }) => {
-    const response = await apiClient.get<BeadsTasksResponse>('/v1/beads/tasks', { params });
-    return response.data;
-  },
-
-  getTask: async (id: string) => {
-    const response = await apiClient.get<BeadTask>(`/v1/beads/tasks/${id}`);
-    return response.data;
-  },
-
-  createTask: async (task: BeadsTaskCreate) => {
-    const response = await apiClient.post<BeadTask>('/v1/beads/tasks', task);
-    return response.data;
-  },
-
-  updateTask: async (id: string, update: BeadsTaskUpdate) => {
-    const response = await apiClient.patch<BeadTask>(`/v1/beads/tasks/${id}`, update);
-    return response.data;
-  },
-
-  claimTask: async (id: string) => {
-    const response = await apiClient.post<{ status: string; message: string; task_id: string }>(`/v1/beads/tasks/${id}/claim`);
-    return response.data;
-  },
-
-  completeTask: async (id: string) => {
-    const response = await apiClient.post<{ status: string; message: string; task_id: string }>(`/v1/beads/tasks/${id}/close`);
-    return response.data;
-  },
-
-  getStats: async () => {
-    const response = await apiClient.get<BeadsStats>('/v1/beads/stats');
-    return response.data;
-  },
-
-  getLabels: async () => {
-    const response = await apiClient.get<BeadsLabelsResponse>('/v1/beads/labels');
-    return response.data;
-  },
-
-  sync: async () => {
-    const response = await apiClient.post<{ status: string; message: string }>('/v1/beads/sync');
-    return response.data;
-  },
-};
-
-// Ralph-Wiggum API - Autonomous Task Runner
+} from '../types/ralph';
 // Claude Harness base URL - can be overridden via environment
 const CLAUDE_HARNESS_URL = import.meta.env.VITE_CLAUDE_HARNESS_URL || 'https://claude-harness.server.unarmedpuppy.com';
 

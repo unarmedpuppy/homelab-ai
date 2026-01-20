@@ -401,13 +401,14 @@ docker exec -it local-ai-router curl http://host.docker.internal:8013/health
 
 ## Ralph Wiggum - Autonomous Task Loop
 
-Ralph Wiggum is an autonomous task loop that works through beads tasks. It can be started via **curl API** or directly in the container.
+Ralph Wiggum is an autonomous task loop that works through tasks from `tasks.md`. It can be started via **curl API** or directly in the container.
 
 **Key features:**
 - Start/stop/monitor via HTTP API (curl)
 - Progress tracking (e.g., "3 of 60 tasks completed")
-- Beads database lives in `/workspace/home-server/.beads/`
+- Tasks tracked in `/workspace/home-server/tasks.md`
 - Work happens in sibling repo directories (e.g., `/workspace/polyjuiced`)
+- Parses tasks.md directly - no external API required
 
 ### API Endpoints
 
@@ -499,17 +500,17 @@ docker exec -it claude-harness bash
 
 | Parameter | Required | Default | Description |
 |-----------|----------|---------|-------------|
-| `label` | **Yes** | - | Beads label to filter tasks |
+| `label` | **Yes** | - | Label to filter tasks |
 | `priority` | No | all | Filter by priority (0-3) |
 | `max_tasks` | No | 0 (unlimited) | Stop after N tasks |
 | `dry_run` | No | false | Preview without executing |
 
-### Beads Location
+### Task Location
 
-- **Beads database**: `/workspace/home-server/.beads/`
+- **Tasks file**: `/workspace/home-server/tasks.md`
 - **Work directories**: `/workspace/<repo>/` (sibling directories)
 
-The script runs `bd` commands from the home-server directory (where `.beads/` lives), but executes Claude in the appropriate repo directory based on task labels.
+Tasks are parsed from tasks.md and Claude is executed in the appropriate repo directory based on task labels.
 
 ### Label to Repo Mapping
 
@@ -525,13 +526,13 @@ The script runs `bd` commands from the home-server directory (where `.beads/` li
 ### Example Workflow
 
 ```bash
-# 1. Create tasks in beads (locally, where bd is installed)
-cd ~/repos/home-server
-bd create "Add retry logic" -t feature -p 1 -l "mercury,trading-bot"
-bd create "Fix auth refresh" -t bug -p 0 -l "mercury,trading-bot"
-git add .beads/ && git commit -m "add mercury tasks" && git push
+# 1. Create tasks in tasks.md (edit the markdown file directly)
+# Add task to home-server/tasks.md following the task format
 
-# 2. Start Ralph Wiggum via API
+# 2. Commit and push
+git add tasks.md && git commit -m "add mercury tasks" && git push
+
+# 3. Start Ralph Wiggum via API
 curl -X POST http://claude-harness.server.unarmedpuppy.com/v1/ralph/start \
   -H "Content-Type: application/json" \
   -d '{"label": "mercury"}'
@@ -603,22 +604,25 @@ your-repo/
         └── SKILL.md
 ```
 
-### Beads Task Management
+### Task Management
 
-The `bd` CLI is pre-installed for task management. Tasks are stored in `home-server/.beads/` (source of truth) with a symlink at `/workspace/.beads`:
+Tasks are tracked in `/workspace/home-server/tasks.md`. Edit the file directly to create or update tasks:
 
 ```bash
-cd /workspace
-bd ready              # Find unblocked work
-bd list               # View all tasks
-bd create "title"     # Create task (writes to home-server/.beads/)
-bd close <id>         # Complete task
+# View tasks
+cat /workspace/home-server/tasks.md | grep -E '^\### \[' | head -20
+
+# Find open tasks
+grep -E '^\### \[OPEN\]' /workspace/home-server/tasks.md
+
+# Find tasks by label
+grep -B2 'polyjuiced' /workspace/home-server/tasks.md | grep '^\###'
 ```
 
 **Committing task changes:**
 ```bash
 cd /workspace/home-server
-git add .beads && git commit -m "task: description"
+git add tasks.md && git commit -m "task: description"
 git push
 ```
 
@@ -629,7 +633,7 @@ claude-harness/                      # Docker version (homelab-ai)
 ├── Dockerfile                 # Container definition
 ├── main.py                    # FastAPI service
 ├── ralph-wiggum.sh            # Autonomous task loop script
-├── entrypoint.sh              # Startup script (skills, beads, repos)
+├── entrypoint.sh              # Startup script (skills, repos)
 ├── requirements.txt           # Python dependencies
 ├── claude-harness.service     # Systemd unit file
 ├── manage.sh                  # Management script

@@ -27,23 +27,7 @@ You are running inside the **claude-harness** container, the primary development
 
 ## Task Management (tasks.md)
 
-Tasks are tracked in `/workspace/home-server/tasks.md`. Access via API:
-
-```bash
-# List open tasks
-curl "http://llm-router:8013/v1/beads/list?status=open"
-
-# List tasks by label
-curl "http://llm-router:8013/v1/beads/list?label=multi-ralph"
-
-# Claim a task
-curl -X POST "http://llm-router:8013/v1/beads/tasks/task-001/claim"
-
-# Close a task
-curl -X POST "http://llm-router:8013/v1/beads/tasks/task-001/close"
-```
-
-Or edit `tasks.md` directly and commit.
+Tasks are tracked in `/workspace/home-server/tasks.md`. Edit the file directly and commit changes.
 
 ## Ralph Wiggum - Autonomous Task Loop
 

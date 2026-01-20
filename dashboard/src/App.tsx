@@ -13,10 +13,9 @@ import ConversationSidebar from './components/ConversationSidebar';
 const Dashboard = lazy(() => import('./components/Dashboard'));
 const ProviderMonitoring = lazy(() => import('./components/ProviderMonitoring'));
 const AgentRuns = lazy(() => import('./components/AgentRuns'));
-const BeadsBoard = lazy(() => import('./components/beads/BeadsBoard'));
 const RalphDashboard = lazy(() => import('./components/ralph/RalphDashboard'));
 
-type ViewName = 'chat' | 'beads' | 'ralph' | 'providers' | 'stats' | 'agents';
+type ViewName = 'chat' | 'ralph' | 'providers' | 'stats' | 'agents';
 
 /**
  * Shared application header with retro styling.
@@ -37,7 +36,6 @@ function AppHeader() {
 function AppNavigation({ currentView }: { currentView: ViewName }) {
   const navItems: { to: string; view: ViewName; icon: string; label: string }[] = [
     { to: '/', view: 'chat', icon: '💬', label: 'Chat' },
-    { to: '/beads', view: 'beads', icon: '📋', label: 'Beads' },
     { to: '/ralph', view: 'ralph', icon: '🔄', label: 'Ralph' },
     { to: '/providers', view: 'providers', icon: '🔌', label: 'Providers' },
     { to: '/stats', view: 'stats', icon: '📊', label: 'Stats' },
@@ -223,19 +221,6 @@ function ChatView() {
 }
 
 /**
- * Beads kanban board view.
- */
-function BeadsView() {
-  return (
-    <AppLayout currentView="beads">
-      <Suspense fallback={<PageLoading section="Beads" />}>
-        <BeadsBoard />
-      </Suspense>
-    </AppLayout>
-  );
-}
-
-/**
  * Ralph Wiggum autonomous agent loops dashboard.
  */
 function RalphView() {
@@ -293,7 +278,6 @@ function App() {
     <Routes>
       <Route path="/" element={<ChatView />} />
       <Route path="/chat/:conversationId" element={<ChatView />} />
-      <Route path="/beads" element={<BeadsView />} />
       <Route path="/ralph" element={<RalphView />} />
       <Route path="/providers" element={<ProvidersView />} />
       <Route path="/stats" element={<StatsView />} />

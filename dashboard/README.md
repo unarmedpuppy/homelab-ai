@@ -10,13 +10,6 @@ A retro/pixel-art "command center" React dashboard for AI infrastructure managem
 - Image upload for multimodal conversations
 - Conversation history sidebar
 
-### Beads Board (`/beads`)
-- Kanban-style task management with three columns: Backlog → In Progress → Done
-- Label filtering sidebar
-- Task creation following WORKSPACE-AGENTS conventions
-- Real-time updates via 5s polling
-- Mobile-responsive with column selector on small screens
-
 ### Ralph Loop Management (`/ralph`)
 - View current Ralph-Wiggum loop status and progress
 - Start new loops with label filter and priority options
@@ -122,7 +115,6 @@ The dashboard consumes the following API endpoints:
 - `/memory/*` - Conversation history and search
 - `/metrics/*` - Usage statistics and analytics
 - `/rag/*` - Semantic search and RAG context retrieval
-- `/beads/*` - Task management (Beads board)
 
 ### From Claude Harness
 - `/v1/ralph/status` - Ralph loop status
@@ -144,7 +136,6 @@ See [Component Documentation](./src/components/ui/README.md) for usage details.
 src/
 ├── components/
 │   ├── ui/              # Retro design system components
-│   ├── beads/           # Beads board components
 │   ├── ralph/           # Ralph management components
 │   └── ...              # Feature components
 ├── hooks/               # Custom React hooks

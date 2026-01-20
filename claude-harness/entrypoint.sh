@@ -157,7 +157,6 @@ setup_workspace() {
             "homelab/pokedex"
             "homelab/polyjuiced"
             "homelab/agent-gateway"
-            "homelab/beads-viewer"
             "homelab/maptapdat"
             "homelab/trading-bot"
             "homelab/trading-journal"
@@ -213,14 +212,8 @@ See `home-server/WORKSPACE-AGENTS.md` for full cross-repo documentation.
 
 ## Quick Reference
 
-- **Task database**: `./home-server/.beads/`
-- **Run bd commands from**: `./home-server/`
-
-```bash
-cd home-server
-bd ready    # Find work
-bd list     # View tasks
-```
+- **Tasks**: `./home-server/tasks.md`
+- **Server config**: `./home-server/`
 CLAUDE_EOF
                 chown "$APPUSER:$APPUSER" CLAUDE.md
             fi
@@ -228,24 +221,6 @@ CLAUDE_EOF
     )
 }
 
-setup_beads() {
-    (
-        cd "$WORKSPACE_DIR"
-
-        # Symlink workspace .beads to home-server's beads (source of truth)
-        # This keeps beads data git-tracked in home-server
-        if [ -d "home-server/.beads" ] && [ ! -e ".beads" ]; then
-            gosu "$APPUSER" ln -sf "$WORKSPACE_DIR/home-server/.beads" ".beads"
-            echo "Linked workspace .beads → home-server/.beads (source of truth)"
-        fi
-
-        # Start beads daemon if bd command exists
-        if command -v bd &> /dev/null; then
-            echo "Starting beads daemon..."
-            gosu "$APPUSER" bd daemon start &> /dev/null &
-        fi
-    )
-}
 
 setup_shared_skills() {
     # Aggregate skills from ALL repos into /workspace/.claude/skills/
@@ -367,7 +342,6 @@ setup_claude_yolo
 setup_ssh_host_keys
 start_sshd
 setup_workspace
-setup_beads
 setup_shared_skills
 start_code_server
 

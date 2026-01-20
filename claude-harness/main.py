@@ -644,7 +644,7 @@ async def delete_job(job_id: str):
 # ============================================================================
 
 # Ralph Wiggum multi-instance configuration
-BEADS_DIR = "/workspace/home-server"  # Where .beads/ lives
+TASKS_DIR = "/workspace/home-server"  # Where tasks.md lives
 RALPH_REGISTRY_FILE = Path("/workspace/.ralph-processes.json")
 
 
@@ -756,7 +756,7 @@ def load_ralph_registry():
 
 class RalphStartRequest(BaseModel):
     """Request to start Ralph Wiggum."""
-    label: str = Field(..., description="Beads label to filter tasks (e.g., 'mercury', 'trading-bot')")
+    label: str = Field(..., description="Label to filter tasks (e.g., 'mercury', 'trading-bot')")
     priority: Optional[int] = Field(default=None, description="Filter by priority (0=critical, 1=high, 2=medium, 3=low)")
     max_tasks: Optional[int] = Field(default=0, description="Maximum tasks to process (0=unlimited)")
     dry_run: Optional[bool] = Field(default=False, description="Preview without executing")
@@ -875,7 +875,7 @@ async def start_ralph_wiggum(label: str, priority: Optional[int], max_tasks: int
         cwd="/workspace",
         env={
             **os.environ,
-            "BEADS_DIR": BEADS_DIR,
+            "TASKS_DIR": TASKS_DIR,
             "STATUS_FILE": status_file,
             "CONTROL_FILE": control_file,
             "LOG_FILE": log_file,
@@ -905,7 +905,7 @@ async def start_ralph(request: RalphStartRequest, background_tasks: BackgroundTa
     """
     Start Ralph Wiggum autonomous task loop.
 
-    Processes beads tasks matching the given label filter.
+    Processes tasks matching the given label filter.
     Multiple instances can run concurrently with different labels.
 
     Example:
@@ -930,12 +930,12 @@ async def start_ralph(request: RalphStartRequest, background_tasks: BackgroundTa
             del ralph_processes[label]
             save_ralph_registry()
 
-    # Validate beads directory exists
-    beads_path = os.path.join(BEADS_DIR, ".beads")
-    if not os.path.isdir(beads_path):
+    # Validate tasks.md exists
+    tasks_path = os.path.join(TASKS_DIR, "tasks.md")
+    if not os.path.isfile(tasks_path):
         raise HTTPException(
             status_code=500,
-            detail=f"Beads directory not found at {beads_path}"
+            detail=f"Tasks file not found at {tasks_path}"
         )
 
     # Start in background

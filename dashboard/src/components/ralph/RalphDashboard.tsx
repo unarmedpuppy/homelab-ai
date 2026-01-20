@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import type { RalphStatus, RalphStartParams } from '../../types/beads';
-import { ralphAPI, beadsAPI } from '../../api/client';
+import React, { useState, useRef, useCallback } from 'react';
+import type { RalphStatus, RalphStartParams } from '../../types/ralph';
+import { ralphAPI } from '../../api/client';
 import {
   RetroPanel,
   RetroButton,
@@ -20,7 +19,6 @@ const LOG_POLL_INTERVAL = 10000; // 10s
 export function RalphDashboard() {
   const [status, setStatus] = useState<RalphStatus | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
-  const [labels, setLabels] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,20 +57,6 @@ export function RalphDashboard() {
       console.warn('Failed to fetch Ralph logs:', e);
     }
   }, []);
-
-  const fetchLabels = useCallback(async () => {
-    try {
-      const { labels: allLabels } = await beadsAPI.getLabels();
-      setLabels(allLabels);
-    } catch (e) {
-      console.warn('Failed to fetch labels:', e);
-    }
-  }, []);
-
-  // Initial fetch for labels (one-time)
-  useEffect(() => {
-    fetchLabels();
-  }, [fetchLabels]);
 
   // Visibility-aware status polling with conditional intervals
   // Polls faster when running, slower when idle, pauses when tab hidden
@@ -216,17 +200,14 @@ export function RalphDashboard() {
               {status.current_task && (
                 <div className="space-y-1">
                   <div className="text-xs text-[var(--retro-text-muted)]">Current Task:</div>
-                  <Link
-                    to={`/beads?task=${status.current_task}`}
-                    className="text-sm text-[var(--retro-accent-cyan)] hover:text-[var(--retro-text-primary)] hover:underline transition-colors block"
-                  >
+                  <div className="text-sm text-[var(--retro-accent-cyan)]">
                     <span className="text-[var(--retro-text-muted)] mr-2">{status.current_task}</span>
                     {status.current_task_title && (
                       <span className="text-[var(--retro-text-primary)]">
                         - "{status.current_task_title}"
                       </span>
                     )}
-                  </Link>
+                  </div>
                 </div>
               )}
 
@@ -276,12 +257,11 @@ export function RalphDashboard() {
           <RetroPanel title="Start New Loop">
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <RetroSelect
+                <RetroInput
                   label="Label (required)"
                   value={formLabel}
                   onChange={(e) => setFormLabel(e.target.value)}
-                  placeholder="Select label..."
-                  options={labels.map(l => ({ value: l, label: l }))}
+                  placeholder="Enter task label..."
                 />
                 <RetroSelect
                   label="Priority Filter"

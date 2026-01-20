@@ -83,11 +83,11 @@ curl "http://claude-harness.server.unarmedpuppy.com/v1/ralph/logs?lines=100"
 
 ## How It Works
 
-1. **Query**: Calls Tasks API `/v1/beads/list?status=open&label=<label>`
-2. **Claim**: Calls `/v1/beads/tasks/{id}/claim` (sets status to in_progress)
+1. **Query**: Parses `tasks.md` for open tasks matching the label
+2. **Claim**: Updates task status to IN_PROGRESS in tasks.md
 3. **Execute**: Runs Claude CLI in the target repo directory
 4. **Review**: Runs fresh-eyes review to verify completion
-5. **Complete**: Calls `/v1/beads/tasks/{id}/close` (sets status to closed)
+5. **Complete**: Updates task status to CLOSED in tasks.md
 6. **Repeat**: Continues until no more ready tasks or stop requested
 
 ## Task Format

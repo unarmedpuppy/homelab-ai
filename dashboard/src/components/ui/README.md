@@ -296,7 +296,7 @@ Bottom navigation bar for mobile devices. Hidden on desktop (>= 640px).
 import { MobileNav } from './ui/MobileNav';
 
 <MobileNav
-  currentView="beads"  // 'chat' | 'beads' | 'ralph' | 'providers' | 'stats' | 'agents'
+  currentView="chat"  // 'chat' | 'ralph' | 'providers' | 'stats' | 'agents'
 />
 ```
 
@@ -317,7 +317,7 @@ import { ResponsiveLayout } from './ui/ResponsiveLayout';
 <ResponsiveLayout
   sidebar={<FilterSidebar />}
   sidebarHeader={<SidebarHeader />}
-  currentView="beads"
+  currentView="chat"
   showMobileNav={true}
 >
   Main content

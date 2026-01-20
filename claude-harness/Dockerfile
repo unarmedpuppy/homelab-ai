@@ -25,14 +25,6 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /var/run/sshd
 
-# Install beads CLI (bd) for task management
-# Download latest release binary directly
-RUN BEADS_VERSION=$(curl -sL https://api.github.com/repos/steveyegge/beads/releases/latest | grep '"tag_name"' | cut -d'"' -f4 | sed 's/^v//') \
-    && curl -fsSL "https://github.com/steveyegge/beads/releases/download/v${BEADS_VERSION}/beads_${BEADS_VERSION}_linux_amd64.tar.gz" \
-    | tar -xz -C /usr/local/bin \
-    && chmod +x /usr/local/bin/bd \
-    && bd --version
-
 # Install code-server for browser-based VS Code
 RUN curl -fsSL https://code-server.dev/install.sh | sh
 
