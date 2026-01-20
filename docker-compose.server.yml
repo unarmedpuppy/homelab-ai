@@ -60,6 +60,7 @@ services:
       - "homepage.icon=mdi-chart-line"
       - "homepage.href=https://local-ai-dashboard.${DOMAIN:-localhost}"
       - "homepage.description=Metrics and conversation explorer"
+      - "com.centurylinklabs.watchtower.enable=true"
 
   llm-manager:
     image: ${HARBOR_REGISTRY:-harbor.local}/library/llm-manager:latest
