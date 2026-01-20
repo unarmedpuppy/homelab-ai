@@ -6,7 +6,7 @@ You are running inside the **claude-harness** container, the primary development
 
 - **Container**: `claude-harness` (Docker)
 - **Workspace**: `/workspace` (all repos cloned here)
-- **Task Database**: `/workspace/home-server/.beads/` (beads lives in home-server repo)
+- **Task Tracking**: `/workspace/home-server/tasks.md` (markdown-based task file)
 - **Server Access**: SSH to `claude-deploy@host.docker.internal:4242`
 
 ## Workspace Structure
@@ -15,7 +15,7 @@ You are running inside the **claude-harness** container, the primary development
 /workspace/
 ├── AGENTS.md              ← Cross-repo agent instructions (read this!)
 ├── home-server/           ← Server infrastructure
-│   └── .beads/            ← Task database (run bd from here!)
+│   └── tasks.md           ← Task tracking (edit directly or use API)
 ├── homelab-ai/            ← AI services
 ├── pokedex/               ← Pokemon app
 ├── polyjuiced/            ← Trading bot
@@ -25,27 +25,35 @@ You are running inside the **claude-harness** container, the primary development
 
 **Always read `/workspace/AGENTS.md` first** for cross-repo context.
 
-## Task Management (Beads)
+## Task Management (tasks.md)
 
-**Important**: Run `bd` commands from `/workspace/home-server/` where `.beads/` lives:
+Tasks are tracked in `/workspace/home-server/tasks.md`. Access via API:
 
 ```bash
-cd /workspace/home-server
-bd ready              # Find unblocked work
-bd list               # View all tasks
-bd create "title" -p 1  # Create task
-bd close <id>         # Complete task
+# List open tasks
+curl "http://llm-router:8013/v1/beads/list?status=open"
+
+# List tasks by label
+curl "http://llm-router:8013/v1/beads/list?label=multi-ralph"
+
+# Claim a task
+curl -X POST "http://llm-router:8013/v1/beads/tasks/task-001/claim"
+
+# Close a task
+curl -X POST "http://llm-router:8013/v1/beads/tasks/task-001/close"
 ```
+
+Or edit `tasks.md` directly and commit.
 
 ## Ralph Wiggum - Autonomous Task Loop
 
-Ralph Wiggum processes beads tasks automatically. Start via API:
+Ralph Wiggum processes tasks automatically. Start via API:
 
 ```bash
 # Start processing tasks with a label
 curl -X POST http://localhost:8013/v1/ralph/start \
   -H "Content-Type: application/json" \
-  -d '{"label": "mercury"}'
+  -d '{"label": "multi-ralph"}'
 
 # Check progress
 curl http://localhost:8013/v1/ralph/status
@@ -111,7 +119,7 @@ This container supports multiple access methods:
 
 ### Always Do
 - Read `/workspace/AGENTS.md` for cross-repo context
-- Use `bd` commands for task tracking
+- Track tasks in `/workspace/home-server/tasks.md` or via Tasks API
 - Use `sudo` for docker commands via SSH
 - Commit and push changes before ending sessions
 

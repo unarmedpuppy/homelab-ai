@@ -4,11 +4,13 @@
 # "Me fail English? That's unpossible!"
 #
 # This script runs inside the claude-harness container and:
-# 1. Queries beads for ready tasks (filtered by label/priority)
+# 1. Queries tasks API for ready tasks (filtered by label/priority)
 # 2. Claims each task
 # 3. Runs Claude with the task as a prompt
 # 4. Marks tasks complete or failed
 # 5. Loops until no more ready tasks or stop requested
+#
+# Uses the tasks API (backed by tasks.md) instead of beads CLI.
 #
 # Usage:
 #   ./ralph-wiggum.sh --label mercury         # Process mercury-labeled tasks
@@ -19,7 +21,7 @@
 #
 # Environment variables:
 #   WORKSPACE_DIR - Base workspace directory (auto-detected: /workspace in container, or parent of script)
-#   BEADS_DIR     - Directory containing .beads/ (default: $WORKSPACE_DIR/home-server)
+#   TASKS_API_URL - Base URL for tasks API (default: http://llm-router:8013)
 #   STATUS_FILE   - JSON status file path (default: script directory)
 #   CONTROL_FILE  - Control commands file (default: script directory)
 
@@ -39,7 +41,8 @@ fi
 
 # Configuration from environment or defaults
 WORKSPACE_DIR="${WORKSPACE_DIR:-$DEFAULT_WORKSPACE}"
-BEADS_DIR="${BEADS_DIR:-$WORKSPACE_DIR/home-server}"
+# Tasks API endpoint (replaces beads CLI)
+TASKS_API_URL="${TASKS_API_URL:-http://llm-router:8013}"
 # Store runtime files in script directory (works both in container and locally)
 STATUS_FILE="${STATUS_FILE:-$SCRIPT_DIR/.ralph-wiggum-status.json}"
 CONTROL_FILE="${CONTROL_FILE:-$SCRIPT_DIR/.ralph-wiggum-control}"
@@ -112,22 +115,22 @@ while [[ $# -gt 0 ]]; do
             echo "Options:"
             echo "  -l, --label LABEL      Filter tasks by label (REQUIRED)"
             echo "  -p, --priority NUM     Filter by priority (0=critical, 1=high, 2=medium, 3=low)"
-            echo "  -t, --type TYPE        Filter by type: task, bug, feature, epic (default: task)"
-            echo "  -s, --sort ORDER       Sort order: oldest, priority, hybrid (default: oldest)"
+            echo "  -t, --type TYPE        Filter by type (ignored - all are tasks now)"
+            echo "  -s, --sort ORDER       Sort order: oldest, priority (default: oldest)"
             echo "  -m, --max NUM          Maximum number of tasks to process (0=unlimited)"
             echo "  -n, --dry-run          Show tasks without executing"
             echo "  -v, --verbose          Verbose output"
             echo "  -h, --help             Show this help"
             echo ""
             echo "Environment:"
-            echo "  WORKSPACE_DIR Base workspace directory (auto-detected)"
-            echo "  BEADS_DIR     Directory with .beads/ (default: \$WORKSPACE_DIR/home-server)"
-            echo "  STATUS_FILE   JSON status file (default: script directory)"
-            echo "  CONTROL_FILE  Control file for stop commands (default: script directory)"
+            echo "  WORKSPACE_DIR   Base workspace directory (auto-detected)"
+            echo "  TASKS_API_URL   Tasks API URL (default: http://llm-router:8013)"
+            echo "  STATUS_FILE     JSON status file (default: script directory)"
+            echo "  CONTROL_FILE    Control file for stop commands (default: script directory)"
             echo ""
             echo "Examples:"
             echo "  ./ralph-wiggum.sh --label mercury"
-            echo "  ./ralph-wiggum.sh --label trading-bot --priority 1 --max 3"
+            echo "  ./ralph-wiggum.sh --label multi-ralph --priority 1 --max 3"
             exit 0
             ;;
         *)
@@ -376,72 +379,73 @@ pull_all_repos() {
     fi
 }
 
-# Run bd command from beads directory
-run_bd() {
-    (cd "$BEADS_DIR" && bd "$@")
+# Call Tasks API endpoint
+# Usage: tasks_api GET|POST /path [data]
+tasks_api() {
+    local method="$1"
+    local path="$2"
+    local data="${3:-}"
+
+    local url="${TASKS_API_URL}${path}"
+
+    if [ "$method" = "GET" ]; then
+        curl -sf "$url" 2>/dev/null
+    else
+        curl -sf -X "$method" "$url" \
+            -H "Content-Type: application/json" \
+            ${data:+-d "$data"} 2>/dev/null
+    fi
 }
 
 # Count ready tasks
 count_ready_tasks() {
-    local count
-    local cmd="bd ready --json"
+    local url="/v1/beads/list?status=open"
 
     if [ -n "$LABEL_FILTER" ]; then
-        cmd="$cmd --label $LABEL_FILTER"
+        url="$url&label=$LABEL_FILTER"
     fi
 
     if [ -n "$PRIORITY_FILTER" ]; then
-        cmd="$cmd --priority $PRIORITY_FILTER"
+        url="$url&priority=$PRIORITY_FILTER"
     fi
 
-    # Note: --type is not supported by bd ready, filter client-side
-    if [ -n "$SORT_ORDER" ]; then
-        cmd="$cmd --sort $SORT_ORDER"
+    local result
+    result=$(tasks_api GET "$url" 2>/dev/null)
+
+    if [ -z "$result" ]; then
+        echo "0"
+        return
     fi
 
-    # Use high limit to get accurate count (bd ready defaults to 10)
-    cmd="$cmd --limit 1000"
-
-    local jq_filter='length'
-    if [ -n "$TYPE_FILTER" ]; then
-        jq_filter="[.[] | select(.issue_type == \"$TYPE_FILTER\")] | length"
-    fi
-
-    count=$(cd "$BEADS_DIR" && eval "$cmd" 2>/dev/null | jq "$jq_filter" 2>/dev/null || echo "0")
-    echo "$count"
+    echo "$result" | jq '.total // 0' 2>/dev/null || echo "0"
 }
 
 # Get the next ready task
 get_next_task() {
-    local cmd="bd ready --json"
+    local url="/v1/beads/list?status=open&limit=1"
 
     if [ -n "$LABEL_FILTER" ]; then
-        cmd="$cmd --label $LABEL_FILTER"
+        url="$url&label=$LABEL_FILTER"
     fi
 
     if [ -n "$PRIORITY_FILTER" ]; then
-        cmd="$cmd --priority $PRIORITY_FILTER"
-    fi
-
-    # Note: --type is not supported by bd ready, filter client-side
-    if [ -n "$SORT_ORDER" ]; then
-        cmd="$cmd --sort $SORT_ORDER"
+        url="$url&priority=$PRIORITY_FILTER"
     fi
 
     if $VERBOSE; then
-        log_info "Running: $cmd (in $BEADS_DIR)"
+        log_info "Querying: ${TASKS_API_URL}${url}"
     fi
 
-    # Run query from beads directory and get first task
     local result
-    result=$(cd "$BEADS_DIR" && eval "$cmd" 2>/dev/null || echo "[]")
+    result=$(tasks_api GET "$url" 2>/dev/null)
 
-    # Apply type filter client-side and return first task as JSON
-    local jq_filter='.[0] // empty'
-    if [ -n "$TYPE_FILTER" ]; then
-        jq_filter="[.[] | select(.issue_type == \"$TYPE_FILTER\")] | .[0] // empty"
+    if [ -z "$result" ]; then
+        echo ""
+        return
     fi
-    echo "$result" | jq -r "$jq_filter"
+
+    # Return first task from the tasks array
+    echo "$result" | jq -r '.tasks[0] // empty' 2>/dev/null
 }
 
 # Build prompt from task
@@ -463,7 +467,7 @@ build_prompt() {
 
     # Build comprehensive prompt
     cat << EOF
-You are working on the following task from the beads issue tracker.
+You are working on the following task from the task tracker.
 
 ## Task Details
 - **Title**: $title
@@ -488,7 +492,6 @@ $description
 
 **Important**:
 - Work in the directory: $working_dir
-- The beads database is in /workspace/home-server/.beads/ (do not modify it directly)
 - Commit and push all changes before completing
 
 Work autonomously to complete this task. If you encounter blockers that cannot be resolved, note them in your summary.
@@ -646,102 +649,17 @@ claim_task() {
     log_info "Claiming task: $task_id - $task_title"
 
     if $DRY_RUN; then
-        log_info "[DRY RUN] Would run: bd update $task_id --status in_progress"
+        log_info "[DRY RUN] Would call: POST /v1/beads/tasks/$task_id/claim"
         return 0
     fi
 
-    run_bd update "$task_id" --status in_progress
+    # Use the API to claim the task (sets status to in_progress)
+    local result
+    result=$(tasks_api POST "/v1/beads/tasks/$task_id/claim")
 
-    # Commit the claim from beads directory
-    (
-        cd "$BEADS_DIR"
-        if [ -d ".beads" ]; then
-            git add .beads/
-            git commit -m "claim: $task_id - $task_title" || true
-            git push origin main || log_warn "Could not push claim commit"
-        fi
-    )
-}
-
-# Check if a task's parent epic has all children completed, and close it if so
-check_and_close_parent_epic() {
-    local task_id="$1"
-
-    if $DRY_RUN; then
-        return 0
+    if [ $? -ne 0 ]; then
+        log_warn "Could not claim task via API"
     fi
-
-    # Get task's parent (if any)
-    local task_json
-    task_json=$(run_bd show "$task_id" --json 2>/dev/null) || return 0
-
-    local parent_id
-    parent_id=$(echo "$task_json" | jq -r '.[0].parent // empty')
-
-    if [ -z "$parent_id" ]; then
-        return 0  # No parent
-    fi
-
-    # Check if parent is an epic
-    local parent_json
-    parent_json=$(run_bd show "$parent_id" --json 2>/dev/null) || return 0
-
-    local parent_type
-    parent_type=$(echo "$parent_json" | jq -r '.[0].issue_type // empty')
-
-    if [ "$parent_type" != "epic" ]; then
-        return 0  # Parent is not an epic
-    fi
-
-    local parent_status
-    parent_status=$(echo "$parent_json" | jq -r '.[0].status // empty')
-
-    if [ "$parent_status" != "open" ] && [ "$parent_status" != "in_progress" ]; then
-        return 0  # Parent already closed
-    fi
-
-    # Get children from text output (children field is null in JSON)
-    # Parse lines like "  ↳ ✓ home-server-1709: Title"
-    local parent_text
-    parent_text=$(run_bd show "$parent_id" 2>/dev/null)
-
-    local children_lines
-    children_lines=$(echo "$parent_text" | grep -E "^  ↳" || true)
-
-    if [ -z "$children_lines" ]; then
-        return 0  # No children
-    fi
-
-    # Check if all children are marked with ✓ (closed)
-    # If any line has ○ (open) or ◐ (in_progress), not all are closed
-    # Note: Use fixed-string matching (-F) to avoid UTF-8 character class issues
-    if echo "$children_lines" | grep -qF "↳ ○"; then
-        return 0  # Some children still open
-    fi
-    if echo "$children_lines" | grep -qF "↳ ◐"; then
-        return 0  # Some children in progress
-    fi
-
-    # All children show ✓ - verify they're all closed
-    local parent_title
-    parent_title=$(echo "$parent_json" | jq -r '.[0].title // "Unknown"')
-
-    log_info "All children of epic '$parent_id' are complete. Auto-closing epic."
-    run_bd close "$parent_id" --reason "All children completed by Ralph Wiggum"
-
-    # Commit the epic closure
-    (
-        cd "$BEADS_DIR"
-        if [ -d ".beads" ]; then
-            git add .beads/
-            git commit -m "close epic: $parent_id - All children completed" || true
-        fi
-    )
-
-    log_success "Auto-closed epic: $parent_id - $parent_title"
-
-    # Recursively check if this epic's parent should also be closed
-    check_and_close_parent_epic "$parent_id"
 }
 
 # Complete a task
@@ -752,24 +670,17 @@ complete_task() {
     log_success "Completing task: $task_id"
 
     if $DRY_RUN; then
-        log_info "[DRY RUN] Would run: bd close $task_id --reason '$reason'"
+        log_info "[DRY RUN] Would call: POST /v1/beads/tasks/$task_id/close"
         return 0
     fi
 
-    run_bd close "$task_id" --reason "$reason"
+    # Use the API to close the task
+    local result
+    result=$(tasks_api POST "/v1/beads/tasks/$task_id/close")
 
-    # Check if parent epic should be auto-closed
-    check_and_close_parent_epic "$task_id"
-
-    # Commit the completion from beads directory
-    (
-        cd "$BEADS_DIR"
-        if [ -d ".beads" ]; then
-            git add .beads/
-            git commit -m "close: $task_id - Completed by Ralph Wiggum" || true
-            git push origin main || log_warn "Could not push completion commit"
-        fi
-    )
+    if [ $? -ne 0 ]; then
+        log_warn "Could not close task via API"
+    fi
 }
 
 # Mark task as blocked/failed
@@ -784,8 +695,8 @@ fail_task() {
         return 0
     fi
 
-    # Return task to open status
-    run_bd update "$task_id" --status open || true
+    # Return task to open status via API
+    tasks_api PATCH "/v1/beads/tasks/$task_id" '{"status": "open"}' || true
 
     log_warn "Task $task_id returned to open status. Manual review needed."
 }
@@ -893,30 +804,18 @@ main() {
     log_info "=========================================="
     log_info "Label filter: $LABEL_FILTER"
     log_info "Priority filter: ${PRIORITY_FILTER:-<none>}"
-    log_info "Type filter: ${TYPE_FILTER:-<none>}"
-    log_info "Sort order: ${SORT_ORDER:-hybrid}"
     log_info "Max tasks: ${MAX_TASKS:-unlimited}"
     log_info "Dry run: $DRY_RUN"
-    log_info "Beads directory: $BEADS_DIR"
+    log_info "Tasks API: $TASKS_API_URL"
     log_info ""
 
-    # Verify beads is available
-    if ! command -v bd &> /dev/null; then
-        log_error "Beads CLI (bd) not found. Cannot continue."
-        write_status "failed" "Beads CLI not found"
+    # Verify tasks API is available
+    if ! tasks_api GET "/v1/beads/stats" > /dev/null 2>&1; then
+        log_error "Tasks API not reachable at $TASKS_API_URL"
+        write_status "failed" "Tasks API not reachable"
         exit 1
     fi
-
-    # Verify beads directory exists
-    if [ ! -d "$BEADS_DIR/.beads" ]; then
-        log_error "Beads database not found at $BEADS_DIR/.beads"
-        write_status "failed" "Beads database not found"
-        exit 1
-    fi
-
-    # Sync beads at start
-    log_info "Syncing beads..."
-    (cd "$BEADS_DIR" && bd sync 2>/dev/null) || log_warn "Beads sync failed, continuing anyway"
+    log_info "Tasks API is reachable"
 
     # Pull all repos to ensure we're working with latest code
     pull_all_repos
@@ -1100,11 +999,10 @@ main() {
     # Emit session completed metric
     emit_metric "session_completed" "" 0 true
 
-    # Final sync
+    # Sync tasks via API (triggers git commit/push in tasks_cli)
     if ! $DRY_RUN; then
-        log_info "Final beads sync..."
-        (cd "$BEADS_DIR" && bd sync 2>/dev/null) || true
-        (cd "$BEADS_DIR" && git push origin main 2>/dev/null) || true
+        log_info "Final tasks sync..."
+        tasks_api POST "/v1/beads/sync" || true
     fi
 }
 

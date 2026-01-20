@@ -1,12 +1,12 @@
 # Ralph Wiggum - Autonomous Task Loop
 
-Ralph Wiggum is an autonomous task loop that processes beads tasks through the Claude Harness. Named after the Simpsons character, it cheerfully works through tasks one by one.
+Ralph Wiggum is an autonomous task loop that processes tasks through the Claude Harness. Named after the Simpsons character, it cheerfully works through tasks one by one.
 
 ## Overview
 
 - **Location**: Runs inside the `claude-harness` container
 - **Control**: HTTP API (curl) or direct shell
-- **Task Source**: Beads database at `/workspace/home-server/.beads/`
+- **Task Source**: Tasks API backed by `/workspace/home-server/tasks.md`
 - **Work Location**: Sibling repo directories (e.g., `/workspace/polyjuiced`)
 
 ## API Endpoints
@@ -26,13 +26,13 @@ Ralph Wiggum is an autonomous task loop that processes beads tasks through the C
 # Start with a label filter (required)
 curl -X POST http://claude-harness.server.unarmedpuppy.com/v1/ralph/start \
   -H "Content-Type: application/json" \
-  -d '{"label": "mercury"}'
+  -d '{"label": "multi-ralph"}'
 
 # With all options
 curl -X POST http://claude-harness.server.unarmedpuppy.com/v1/ralph/start \
   -H "Content-Type: application/json" \
   -d '{
-    "label": "trading-bot",
+    "label": "multi-ralph",
     "priority": 1,
     "max_tasks": 5,
     "dry_run": false
@@ -50,13 +50,13 @@ Response:
 {
   "running": true,
   "status": "running",
-  "label": "mercury",
-  "total_tasks": 60,
+  "label": "multi-ralph",
+  "remaining_tasks": 5,
   "completed_tasks": 3,
   "failed_tasks": 0,
-  "current_task": "home-server-abc123",
-  "current_task_title": "Add retry logic to API client",
-  "message": "Working on task 4 of 60"
+  "current_task": "multi-ralph-001",
+  "current_task_title": "Add RalphInstance dataclass",
+  "message": "Working on task 4"
 }
 ```
 
@@ -76,52 +76,67 @@ curl "http://claude-harness.server.unarmedpuppy.com/v1/ralph/logs?lines=100"
 
 | Parameter | Required | Default | Description |
 |-----------|----------|---------|-------------|
-| `label` | **Yes** | - | Beads label to filter tasks |
+| `label` | **Yes** | - | Label to filter tasks |
 | `priority` | No | all | Filter by priority (0=critical, 1=high, 2=medium, 3=low) |
 | `max_tasks` | No | 0 | Maximum tasks (0=unlimited) |
 | `dry_run` | No | false | Preview without executing |
 
 ## How It Works
 
-1. **Query**: Runs `bd ready --json --label <label>` from `/workspace/home-server/`
-2. **Claim**: Marks task as `in_progress` in beads
+1. **Query**: Calls Tasks API `/v1/beads/list?status=open&label=<label>`
+2. **Claim**: Calls `/v1/beads/tasks/{id}/claim` (sets status to in_progress)
 3. **Execute**: Runs Claude CLI in the target repo directory
-4. **Complete**: Marks task as closed in beads
-5. **Repeat**: Continues until no more ready tasks or stop requested
+4. **Review**: Runs fresh-eyes review to verify completion
+5. **Complete**: Calls `/v1/beads/tasks/{id}/close` (sets status to closed)
+6. **Repeat**: Continues until no more ready tasks or stop requested
 
-## Label to Repo Mapping
+## Task Format
 
-Tasks are routed to working directories based on labels:
+Tasks are defined in `/workspace/home-server/tasks.md`:
 
-| Label | Working Directory |
-|-------|-------------------|
-| `trading-bot`, `polyjuiced` | `/workspace/polyjuiced` |
-| `home-server`, `infrastructure` | `/workspace/home-server` |
-| `homelab-ai`, `ai-services` | `/workspace/homelab-ai` |
+```markdown
+### [OPEN] Task Title {#task-id}
+| priority | repo | labels |
+|----------|------|--------|
+| P1 | polyjuiced | feature, api |
+
+Task description here.
+
+#### Verification
+```bash
+# Commands to verify completion
+test -f src/api.py && echo 'PASS'
+```
+```
+
+The `repo` field determines which directory Ralph works in:
+
+| Repo Value | Working Directory |
+|------------|-------------------|
+| `polyjuiced` | `/workspace/polyjuiced` |
+| `home-server` | `/workspace/home-server` |
+| `homelab-ai` | `/workspace/homelab-ai` |
 | `pokedex` | `/workspace/pokedex` |
-| `agent-gateway` | `/workspace/agent-gateway` |
-| `beads-viewer` | `/workspace/beads-viewer` (deprecated - beads UI now in homelab-ai dashboard) |
-| `mercury` | `/workspace` (cross-repo) |
-| (default) | `/workspace` |
 
 ## Workflow Example
 
 ```bash
-# 1. Create tasks locally (where bd is installed)
-cd ~/repos/home-server
-bd create "Add retry logic" -t feature -p 1 -l "mercury,trading-bot"
-bd create "Fix auth refresh" -t bug -p 0 -l "mercury,trading-bot"
-git add .beads/ && git commit -m "add mercury tasks" && git push
+# 1. Edit tasks.md to add tasks
+vim /workspace/home-server/tasks.md
 
-# 2. Start Ralph Wiggum
+# 2. Commit and push
+cd /workspace/home-server
+git add tasks.md && git commit -m "add multi-ralph tasks" && git push
+
+# 3. Start Ralph Wiggum
 curl -X POST http://claude-harness.server.unarmedpuppy.com/v1/ralph/start \
   -H "Content-Type: application/json" \
-  -d '{"label": "mercury"}'
+  -d '{"label": "multi-ralph"}'
 
-# 3. Monitor with watch
+# 4. Monitor with watch
 watch -n 10 'curl -s http://claude-harness.server.unarmedpuppy.com/v1/ralph/status | jq'
 
-# 4. Stop early if needed
+# 5. Stop early if needed
 curl -X POST http://claude-harness.server.unarmedpuppy.com/v1/ralph/stop
 ```
 
@@ -141,8 +156,8 @@ Alternative to API - run directly in the container:
 
 ```bash
 docker exec -it claude-harness bash
-./ralph-wiggum.sh --label mercury
-./ralph-wiggum.sh --label trading-bot --priority 1 --max 3
+./ralph-wiggum.sh --label multi-ralph
+./ralph-wiggum.sh --label dashboard --priority 1 --max 3
 ./ralph-wiggum.sh --label infra --dry-run
 ```
 
@@ -151,18 +166,26 @@ docker exec -it claude-harness bash
 | File | Purpose |
 |------|---------|
 | `/app/ralph-wiggum.sh` | Main script |
-| `/workspace/.ralph-wiggum-status.json` | Status for API |
-| `/workspace/.ralph-wiggum-control` | Control commands |
-| `/workspace/.ralph-wiggum.log` | Log file |
+| `/workspace/.ralph-{label}-status.json` | Status for API (per-instance) |
+| `/workspace/.ralph-{label}-control` | Control commands (per-instance) |
+| `/workspace/.ralph-{label}.log` | Log file (per-instance) |
+
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `WORKSPACE_DIR` | `/workspace` | Base workspace directory |
+| `TASKS_API_URL` | `http://llm-router:8013` | Tasks API endpoint |
+| `STATUS_FILE` | `/workspace/.ralph-{label}-status.json` | Status file path |
+| `CONTROL_FILE` | `/workspace/.ralph-{label}-control` | Control file path |
 
 ## Limitations
 
-- Only one Ralph instance can run at a time
 - Sequential task execution (Claude CLI limitation)
 - Tasks must have a label to be processed
-- Beads must be in `/workspace/home-server/.beads/`
+- Tasks must have a `repo` field in the metadata table
 
 ## See Also
 
 - [Claude Harness README](../../claude-harness/README.md)
-- [Beads Task Management](../../../home-server/agents/skills/beads-task-management/SKILL.md)
+- [Tasks.md](../../../home-server/tasks.md)

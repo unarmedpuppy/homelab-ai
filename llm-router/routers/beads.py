@@ -1,13 +1,13 @@
-"""Beads API Router - Task management endpoints for dashboard integration.
+"""Tasks API Router - Task management endpoints for dashboard integration.
 
-Provides REST API endpoints for beads task operations:
+Provides REST API endpoints for task operations:
 - List/filter tasks
 - Get task details
 - Create/update tasks
 - Get statistics and labels
 
-All endpoints use the beads_cli module to interact with the beads database
-via the `bd` CLI tool.
+All endpoints use the tasks_cli module to interact with the markdown-based
+task management system (tasks.md).
 """
 
 import logging
@@ -15,7 +15,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from beads_cli import (
+from tasks_cli import (
     list_tasks as beads_list_tasks,
     get_ready_tasks as beads_get_ready_tasks,
     get_task as beads_get_task,
@@ -25,9 +25,9 @@ from beads_cli import (
     update_task as beads_update_task,
     get_labels as beads_get_labels,
     get_stats as beads_get_stats,
-    sync_beads,
+    sync_tasks as sync_beads,
     compute_age_days,
-    BeadsError,
+    TasksError as BeadsError,
 )
 
 logger = logging.getLogger(__name__)
