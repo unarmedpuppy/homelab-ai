@@ -14,8 +14,9 @@ const Dashboard = lazy(() => import('./components/Dashboard'));
 const ProviderMonitoring = lazy(() => import('./components/ProviderMonitoring'));
 const AgentRuns = lazy(() => import('./components/AgentRuns'));
 const RalphDashboard = lazy(() => import('./components/ralph/RalphDashboard'));
+const TasksDashboard = lazy(() => import('./components/tasks/TasksDashboard'));
 
-type ViewName = 'chat' | 'ralph' | 'providers' | 'stats' | 'agents';
+type ViewName = 'chat' | 'ralph' | 'tasks' | 'providers' | 'stats' | 'agents';
 
 /**
  * Shared application header with retro styling.
@@ -36,6 +37,7 @@ function AppHeader() {
 function AppNavigation({ currentView }: { currentView: ViewName }) {
   const navItems: { to: string; view: ViewName; icon: string; label: string }[] = [
     { to: '/', view: 'chat', icon: '💬', label: 'Chat' },
+    { to: '/tasks', view: 'tasks', icon: '📋', label: 'Tasks' },
     { to: '/ralph', view: 'ralph', icon: '🔄', label: 'Ralph' },
     { to: '/providers', view: 'providers', icon: '🔌', label: 'Providers' },
     { to: '/stats', view: 'stats', icon: '📊', label: 'Stats' },
@@ -221,6 +223,19 @@ function ChatView() {
 }
 
 /**
+ * Tasks management dashboard.
+ */
+function TasksView() {
+  return (
+    <AppLayout currentView="tasks">
+      <Suspense fallback={<PageLoading section="Tasks" />}>
+        <TasksDashboard />
+      </Suspense>
+    </AppLayout>
+  );
+}
+
+/**
  * Ralph Wiggum autonomous agent loops dashboard.
  */
 function RalphView() {
@@ -278,6 +293,7 @@ function App() {
     <Routes>
       <Route path="/" element={<ChatView />} />
       <Route path="/chat/:conversationId" element={<ChatView />} />
+      <Route path="/tasks" element={<TasksView />} />
       <Route path="/ralph" element={<RalphView />} />
       <Route path="/providers" element={<ProvidersView />} />
       <Route path="/stats" element={<StatsView />} />

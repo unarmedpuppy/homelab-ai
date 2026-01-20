@@ -628,4 +628,122 @@ export const ralphAPI = {
   },
 };
 
+// Tasks API
+import type {
+  Task,
+  TaskCreate,
+  TaskUpdate,
+  TaskListResponse,
+  TaskStats,
+  TaskFilters,
+  TaskListParams,
+} from '../types/tasks';
+
+const TASKS_API_URL = import.meta.env.VITE_TASKS_API_URL || 'https://tasks-api.server.unarmedpuppy.com';
+
+export const tasksAPI = {
+  list: async (params?: TaskListParams): Promise<TaskListResponse> => {
+    const searchParams = new URLSearchParams();
+    if (params?.status) searchParams.set('status', params.status);
+    if (params?.priority) searchParams.set('priority', params.priority);
+    if (params?.repo) searchParams.set('repo', params.repo);
+    if (params?.label) searchParams.set('label', params.label);
+    if (params?.epic) searchParams.set('epic', params.epic);
+
+    const url = `${TASKS_API_URL}/v1/tasks${searchParams.toString() ? `?${searchParams}` : ''}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to list tasks: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  get: async (taskId: string): Promise<Task> => {
+    const response = await fetch(`${TASKS_API_URL}/v1/tasks/${taskId}`);
+    if (!response.ok) {
+      throw new Error(`Failed to get task: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  create: async (task: TaskCreate): Promise<Task> => {
+    const response = await fetch(`${TASKS_API_URL}/v1/tasks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(task),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to create task: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  update: async (taskId: string, update: TaskUpdate): Promise<Task> => {
+    const response = await fetch(`${TASKS_API_URL}/v1/tasks/${taskId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(update),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to update task: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  delete: async (taskId: string): Promise<void> => {
+    const response = await fetch(`${TASKS_API_URL}/v1/tasks/${taskId}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to delete task: ${response.statusText}`);
+    }
+  },
+
+  claim: async (taskId: string): Promise<Task> => {
+    const response = await fetch(`${TASKS_API_URL}/v1/tasks/${taskId}/claim`, {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to claim task: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  close: async (taskId: string): Promise<Task> => {
+    const response = await fetch(`${TASKS_API_URL}/v1/tasks/${taskId}/close`, {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to close task: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  reopen: async (taskId: string): Promise<Task> => {
+    const response = await fetch(`${TASKS_API_URL}/v1/tasks/${taskId}/reopen`, {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to reopen task: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  getStats: async (): Promise<TaskStats> => {
+    const response = await fetch(`${TASKS_API_URL}/v1/tasks/stats`);
+    if (!response.ok) {
+      throw new Error(`Failed to get task stats: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  getFilters: async (): Promise<TaskFilters> => {
+    const response = await fetch(`${TASKS_API_URL}/v1/tasks/filters`);
+    if (!response.ok) {
+      throw new Error(`Failed to get task filters: ${response.statusText}`);
+    }
+    return response.json();
+  },
+};
+
 export { apiClient };

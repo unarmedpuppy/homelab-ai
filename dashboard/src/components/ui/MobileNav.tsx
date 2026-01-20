@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 
-export type MobileNavView = 'chat' | 'ralph' | 'providers' | 'stats' | 'agents';
+export type MobileNavView = 'chat' | 'tasks' | 'ralph' | 'providers' | 'stats' | 'agents';
 
 interface NavItem {
   to: string;
@@ -11,8 +11,8 @@ interface NavItem {
 
 const defaultNavItems: NavItem[] = [
   { to: '/', icon: '💬', label: 'Chat', view: 'chat' },
+  { to: '/tasks', icon: '📋', label: 'Tasks', view: 'tasks' },
   { to: '/ralph', icon: '🔄', label: 'Ralph', view: 'ralph' },
-  { to: '/providers', icon: '🔌', label: 'Prov', view: 'providers' },
   { to: '/agents', icon: '🤖', label: 'Agents', view: 'agents' },
 ];
 
@@ -52,6 +52,7 @@ export function MobileNav({
 
     const path = location.pathname;
     if (path === '/' || path.startsWith('/chat')) return 'chat';
+    if (path.startsWith('/tasks')) return 'tasks';
     if (path.startsWith('/ralph')) return 'ralph';
     if (path.startsWith('/providers')) return 'providers';
     if (path.startsWith('/stats')) return 'stats';
