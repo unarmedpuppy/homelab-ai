@@ -116,6 +116,30 @@ EOF
     fi
 }
 
+setup_ssh_host_keys() {
+    # Persist SSH host keys across container recreations
+    local host_keys_volume="/etc/ssh/host_keys"
+
+    if [ -d "$host_keys_volume" ]; then
+        # Check if volume has existing keys
+        if ls "$host_keys_volume"/ssh_host_*_key 1>/dev/null 2>&1; then
+            echo "Restoring SSH host keys from volume..."
+            cp "$host_keys_volume"/ssh_host_* /etc/ssh/
+            chmod 600 /etc/ssh/ssh_host_*_key
+            chmod 644 /etc/ssh/ssh_host_*_key.pub
+        else
+            # Generate new keys and save to volume
+            echo "Generating SSH host keys..."
+            ssh-keygen -A
+            echo "Persisting SSH host keys to volume..."
+            cp /etc/ssh/ssh_host_* "$host_keys_volume/"
+        fi
+    else
+        # No volume mounted, just generate keys normally
+        ssh-keygen -A
+    fi
+}
+
 start_sshd() {
     echo "Starting SSH server..."
     /usr/sbin/sshd
@@ -340,6 +364,7 @@ setup_claude_symlink
 setup_git_config
 setup_gpg_signing
 setup_claude_yolo
+setup_ssh_host_keys
 start_sshd
 setup_workspace
 setup_beads
