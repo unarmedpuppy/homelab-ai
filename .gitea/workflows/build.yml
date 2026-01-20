@@ -59,3 +59,34 @@ jobs:
       dockerfile: claude-harness/Dockerfile
       context: claude-harness
     secrets: inherit
+
+  deploy:
+    needs: [build-llm-router, build-dashboard, build-llm-manager, build-image-server, build-tts-server, build-claude-harness]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p ${{ secrets.DEPLOY_PORT }} ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Deploy homelab-ai
+        env:
+          SSH_KEY: ~/.ssh/deploy_key
+          SSH_USER: ${{ secrets.DEPLOY_USER }}
+          SSH_HOST: ${{ secrets.DEPLOY_HOST }}
+          SSH_PORT: ${{ secrets.DEPLOY_PORT }}
+        run: |
+          APP_PATH="/home/unarmedpuppy/server/apps/homelab-ai"
+
+          # Pull latest
+          ssh -i $SSH_KEY -p $SSH_PORT $SSH_USER@$SSH_HOST \
+            "sudo -u unarmedpuppy git -C $APP_PATH pull"
+
+          # Restart with new images
+          ssh -i $SSH_KEY -p $SSH_PORT $SSH_USER@$SSH_HOST \
+            "cd $APP_PATH && sudo docker compose -f docker-compose.server.yml up -d"
+
+          echo 'Deployment complete!'
