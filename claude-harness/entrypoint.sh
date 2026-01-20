@@ -154,6 +154,7 @@ setup_workspace() {
         REPOS=(
             "homelab/home-server"
             "homelab/homelab-ai"
+            "homelab/tasks"
             "homelab/pokedex"
             "homelab/polyjuiced"
             "homelab/agent-gateway"
