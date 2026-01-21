@@ -92,12 +92,8 @@ jobs:
         run: |
           APP_PATH="/home/unarmedpuppy/server/apps/homelab-ai"
 
-          # Pull latest
+          # Pull latest images and restart
           ssh -i $SSH_KEY -p $SSH_PORT -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST \
-            "sudo -u unarmedpuppy git -C $APP_PATH pull"
-
-          # Restart with new images
-          ssh -i $SSH_KEY -p $SSH_PORT -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST \
-            "cd $APP_PATH && sudo docker compose -f docker-compose.server.yml up -d"
+            "cd $APP_PATH && sudo docker compose pull && sudo docker compose up -d"
 
           echo 'Deployment complete!'
