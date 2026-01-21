@@ -61,7 +61,7 @@ jobs:
     secrets: inherit
 
   deploy:
-    # needs: [build-llm-router, build-dashboard, build-llm-manager, build-image-server, build-tts-server, build-claude-harness]
+    needs: [build-llm-router, build-dashboard, build-llm-manager, build-image-server, build-tts-server, build-claude-harness]
     runs-on: ubuntu-latest
     steps:
       - name: Setup SSH
