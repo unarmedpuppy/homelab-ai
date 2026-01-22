@@ -163,6 +163,7 @@ setup_workspace() {
             "homelab/trading-journal"
             "homelab/shua-ledger"
             "homelab/bird"
+            "homelab/n8n-automations"
             "unarmedpuppy/workflows"
         )
 
