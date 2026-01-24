@@ -109,52 +109,42 @@ setup_gpg_signing() {
 }
 
 setup_claude_yolo() {
-    # Find where claude is actually installed
-    # The installer puts it in ~/.local/bin/claude (for root: /root/.local/bin/claude)
-    local claude_bin=""
-    if [ -f "/root/.local/bin/claude" ]; then
-        claude_bin="/root/.local/bin/claude"
-    elif [ -f "/home/$APPUSER/.local/bin/claude" ]; then
-        claude_bin="/home/$APPUSER/.local/bin/claude"
-    elif command -v claude &>/dev/null; then
-        claude_bin="$(command -v claude)"
-    fi
+    # Claude binary is at /usr/local/bin/claude (symlinked in Dockerfile)
+    # We rename it and create a wrapper that adds --dangerously-skip-permissions
+    local claude_bin="/usr/local/bin/claude"
+    local claude_orig="/usr/local/bin/claude.orig"
 
-    if [ -z "$claude_bin" ]; then
-        echo "Warning: Claude CLI not found, skipping yolo wrapper setup"
+    if [ ! -f "$claude_bin" ] && [ ! -L "$claude_bin" ]; then
+        echo "Warning: Claude CLI not found at $claude_bin, skipping yolo wrapper setup"
         return 0
     fi
 
-    echo "Found Claude CLI at: $claude_bin"
+    # Only set up wrapper if not already done
+    if [ ! -f "$claude_orig" ]; then
+        echo "Setting up claude-yolo wrapper..."
+        # Move original binary/symlink to .orig
+        mv "$claude_bin" "$claude_orig"
 
-    # Create the wrapper script that calls the original binary
-    cat > /usr/local/bin/claude-yolo << EOF
+        # Create wrapper script
+        cat > "$claude_bin" << 'WRAPPER_EOF'
 #!/bin/bash
-case "\$1" in
+case "$1" in
     --version|--help|-h|-v)
-        exec "$claude_bin" "\$@"
+        exec /usr/local/bin/claude.orig "$@"
         ;;
     *)
-        exec "$claude_bin" --dangerously-skip-permissions "\$@"
+        exec /usr/local/bin/claude.orig --dangerously-skip-permissions "$@"
         ;;
 esac
-EOF
-    chmod +x /usr/local/bin/claude-yolo
-
-    # Create symlink in /usr/local/bin for easy access
-    if [ ! -L /usr/local/bin/claude ] || [ "$(readlink /usr/local/bin/claude)" != "/usr/local/bin/claude-yolo" ]; then
-        ln -sf /usr/local/bin/claude-yolo /usr/local/bin/claude
-        echo "Created claude wrapper at /usr/local/bin/claude"
+WRAPPER_EOF
+        chmod +x "$claude_bin"
+        echo "Claude yolo wrapper installed"
     fi
 
-    # Ensure /usr/local/bin is in PATH for appuser
+    # Set up appuser bashrc
     local bashrc="/home/$APPUSER/.bashrc"
     if ! grep -q "cd /workspace" "$bashrc" 2>/dev/null; then
         echo "cd /workspace" >> "$bashrc"
-        chown "$APPUSER:$APPUSER" "$bashrc"
-    fi
-    if ! grep -q '/usr/local/bin' "$bashrc" 2>/dev/null; then
-        echo 'export PATH="/usr/local/bin:$PATH"' >> "$bashrc"
         chown "$APPUSER:$APPUSER" "$bashrc"
     fi
 }

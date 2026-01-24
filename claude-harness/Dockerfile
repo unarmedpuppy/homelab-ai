@@ -36,7 +36,9 @@ RUN sed -i 's/#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config && \
     echo "AllowUsers appuser" >> /etc/ssh/sshd_config
 
 # Install Claude Code CLI using native installer
-RUN curl -fsSL https://claude.ai/install.sh | bash
+# Installer puts binary at ~/.local/bin/claude, symlink to /usr/local/bin for system-wide access
+RUN curl -fsSL https://claude.ai/install.sh | bash \
+    && ln -sf /root/.local/bin/claude /usr/local/bin/claude
 
 # Create non-root user for security
 RUN useradd -m -s /bin/bash appuser
