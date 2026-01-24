@@ -350,18 +350,18 @@ For now, Option A should work - the agent will search for skills and follow them
 
 ## Implementation Order
 
-| Step | Component | Effort | Dependencies |
-|------|-----------|--------|--------------|
-| 1a | Mount shua-ledger volume in llm-router | Low | None |
-| 1b | Block `/agent/run` externally (Traefik) | Low | None |
-| 2 | Deploy llm-router changes, verify security | Low | Step 1a, 1b |
-| 3 | Test agent can access shua-ledger files (internal) | Low | Step 2 |
-| 4 | Create Mattermost outgoing webhook | Low | None |
-| 5 | Create n8n interactive workflow | Medium | Steps 3, 4 |
-| 6 | Test full interactive flow | Low | Step 5 |
-| 7 | Create morning briefing workflow | Low | Step 5 |
-| 8 | Create weekly summary workflow | Low | Step 5 |
-| 9 | End-to-end testing | Medium | Steps 6-8 |
+| Step | Component | Effort | Dependencies | Status |
+|------|-----------|--------|--------------|--------|
+| 1a | Mount shua-ledger volume in llm-router | Low | None | ✅ Done |
+| 1b | Block `/agent/run` externally (Traefik) | Low | None | ✅ Done |
+| 2 | Deploy llm-router changes, verify security | Low | Step 1a, 1b | |
+| 3 | Test agent can access shua-ledger files (internal) | Low | Step 2 | |
+| 4 | Create Mattermost outgoing webhook | Low | None | |
+| 5 | Create n8n interactive workflow | Medium | Steps 3, 4 | |
+| 6 | Test full interactive flow | Low | Step 5 | |
+| 7 | Create morning briefing workflow | Low | Step 5 | |
+| 8 | Create weekly summary workflow | Low | Step 5 | |
+| 9 | End-to-end testing | Medium | Steps 6-8 | |
 
 **Estimated Total Effort**: 2-3 hours
 
