@@ -109,27 +109,52 @@ setup_gpg_signing() {
 }
 
 setup_claude_yolo() {
-    cat > /usr/local/bin/claude-yolo << 'EOF'
+    # Find where claude is actually installed
+    # The installer puts it in ~/.local/bin/claude (for root: /root/.local/bin/claude)
+    local claude_bin=""
+    if [ -f "/root/.local/bin/claude" ]; then
+        claude_bin="/root/.local/bin/claude"
+    elif [ -f "/home/$APPUSER/.local/bin/claude" ]; then
+        claude_bin="/home/$APPUSER/.local/bin/claude"
+    elif command -v claude &>/dev/null; then
+        claude_bin="$(command -v claude)"
+    fi
+
+    if [ -z "$claude_bin" ]; then
+        echo "Warning: Claude CLI not found, skipping yolo wrapper setup"
+        return 0
+    fi
+
+    echo "Found Claude CLI at: $claude_bin"
+
+    # Create the wrapper script that calls the original binary
+    cat > /usr/local/bin/claude-yolo << EOF
 #!/bin/bash
-case "$1" in
+case "\$1" in
     --version|--help|-h|-v)
-        exec /usr/bin/claude.orig "$@"
+        exec "$claude_bin" "\$@"
         ;;
     *)
-        exec /usr/bin/claude.orig --dangerously-skip-permissions "$@"
+        exec "$claude_bin" --dangerously-skip-permissions "\$@"
         ;;
 esac
 EOF
     chmod +x /usr/local/bin/claude-yolo
 
-    if [ ! -f /usr/bin/claude.orig ]; then
-        mv /usr/bin/claude /usr/bin/claude.orig
-        ln -s /usr/local/bin/claude-yolo /usr/bin/claude
+    # Create symlink in /usr/local/bin for easy access
+    if [ ! -L /usr/local/bin/claude ] || [ "$(readlink /usr/local/bin/claude)" != "/usr/local/bin/claude-yolo" ]; then
+        ln -sf /usr/local/bin/claude-yolo /usr/local/bin/claude
+        echo "Created claude wrapper at /usr/local/bin/claude"
     fi
 
+    # Ensure /usr/local/bin is in PATH for appuser
     local bashrc="/home/$APPUSER/.bashrc"
     if ! grep -q "cd /workspace" "$bashrc" 2>/dev/null; then
         echo "cd /workspace" >> "$bashrc"
+        chown "$APPUSER:$APPUSER" "$bashrc"
+    fi
+    if ! grep -q '/usr/local/bin' "$bashrc" 2>/dev/null; then
+        echo 'export PATH="/usr/local/bin:$PATH"' >> "$bashrc"
         chown "$APPUSER:$APPUSER" "$bashrc"
     fi
 }

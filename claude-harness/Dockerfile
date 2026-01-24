@@ -12,6 +12,7 @@ FROM python:3.11-slim
 
 # Install Node.js, Git, SSH (client + server), tmux, and gosu for privilege dropping
 RUN apt-get update && apt-get install -y \
+    bash \
     curl \
     git \
     openssh-client \
