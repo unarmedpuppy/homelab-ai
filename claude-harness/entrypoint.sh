@@ -13,8 +13,8 @@ update_claude_cli() {
     local current_version=$(claude --version 2>/dev/null | head -1 || echo "unknown")
     echo "Current Claude CLI version: $current_version"
 
-    # Update Claude CLI to latest version
-    if npm update -g @anthropic-ai/claude-code 2>&1; then
+    # Update Claude CLI using native installer
+    if curl -fsSL https://claude.ai/install.sh | sh 2>&1; then
         local new_version=$(claude --version 2>/dev/null | head -1 || echo "unknown")
         if [ "$current_version" != "$new_version" ]; then
             echo "Claude CLI updated: $current_version -> $new_version"
