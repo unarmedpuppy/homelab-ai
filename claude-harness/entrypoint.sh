@@ -8,6 +8,24 @@ CLAUDE_CONFIG_IN_VOLUME="$CLAUDE_VOLUME_DIR/.claude.json"
 SSH_DIR="/home/$APPUSER/.ssh"
 WORKSPACE_DIR="/workspace"
 
+update_claude_cli() {
+    echo "Checking for Claude CLI updates..."
+    local current_version=$(claude --version 2>/dev/null | head -1 || echo "unknown")
+    echo "Current Claude CLI version: $current_version"
+
+    # Update Claude CLI to latest version
+    if npm update -g @anthropic-ai/claude-code 2>&1; then
+        local new_version=$(claude --version 2>/dev/null | head -1 || echo "unknown")
+        if [ "$current_version" != "$new_version" ]; then
+            echo "Claude CLI updated: $current_version -> $new_version"
+        else
+            echo "Claude CLI already at latest version: $new_version"
+        fi
+    else
+        echo "Warning: Failed to update Claude CLI, continuing with current version"
+    fi
+}
+
 fix_volume_permissions() {
     chown -R "$APPUSER:$APPUSER" "$CLAUDE_VOLUME_DIR" 2>/dev/null || true
     chown -R "$APPUSER:$APPUSER" "$SSH_DIR" 2>/dev/null || true
@@ -335,6 +353,7 @@ wait_for_auth() {
     tail -f /dev/null
 }
 
+update_claude_cli
 fix_volume_permissions
 setup_ssh_key
 setup_claude_symlink
