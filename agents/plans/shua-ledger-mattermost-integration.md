@@ -354,16 +354,56 @@ For now, Option A should work - the agent will search for skills and follow them
 |------|-----------|--------|--------------|--------|
 | 1a | Mount shua-ledger volume in llm-router | Low | None | ✅ Done |
 | 1b | Block `/agent/run` externally (Traefik) | Low | None | ✅ Done |
-| 2 | Deploy llm-router changes, verify security | Low | Step 1a, 1b | |
-| 3 | Test agent can access shua-ledger files (internal) | Low | Step 2 | |
-| 4 | Create Mattermost outgoing webhook | Low | None | |
-| 5 | Create n8n interactive workflow | Medium | Steps 3, 4 | |
-| 6 | Test full interactive flow | Low | Step 5 | |
+| 2 | Deploy llm-router changes, verify security | Low | Step 1a, 1b | ✅ Done |
+| 3 | Test agent can access shua-ledger files (internal) | Low | Step 2 | ✅ Done |
+| 4 | Create Mattermost outgoing webhook | Low | None | ✅ Done |
+| 5 | Create n8n interactive workflow | Medium | Steps 3, 4 | ✅ Done |
+| 6 | Test full interactive flow | Low | Step 5 | 🔄 In Progress |
 | 7 | Create morning briefing workflow | Low | Step 5 | |
 | 8 | Create weekly summary workflow | Low | Step 5 | |
 | 9 | End-to-end testing | Medium | Steps 6-8 | |
 
 **Estimated Total Effort**: 2-3 hours
+
+---
+
+## Current Status / Blockers
+
+**Last Updated**: 2026-01-23
+
+### What's Working
+- ✅ Volume mount: llm-router can access `/workspace/shua-ledger`
+- ✅ Security: `/agent/run` blocked externally, works internally
+- ✅ Mattermost webhook fires to n8n
+- ✅ n8n workflow triggers and calls llm-router `/agent/run`
+- ✅ Agent executes and explores shua-ledger files
+
+### Blocking Issues
+
+**1. Gaming PC still running 14B model (needs 32B)**
+The config was updated in `docker-compose.gaming.yml` but Gaming PC needs restart:
+```bash
+# On Gaming PC
+cd ~/homelab-ai  # or wherever the repo is
+git pull
+docker compose -f docker-compose.yml -f docker-compose.gaming.yml up -d llm-manager
+```
+
+The 14B model isn't capable enough to complete the agent loop properly - it keeps "thinking" instead of calling `task_complete()`.
+
+**2. Post to Mattermost may be failing**
+Need to verify the "Post to Mattermost" node in n8n is working. Check:
+- Does agent-gateway `/send` endpoint work?
+- Is the channel ID correct?
+- Check agent-gateway logs: `docker logs agent-gateway`
+
+### Next Steps When Resuming
+
+1. Upgrade Gaming PC to Qwen 32B (restart llm-manager)
+2. Test agent completes properly with `task_complete()`
+3. Verify Mattermost response posts correctly
+4. Complete Step 6 testing
+5. Add scheduled workflows (Steps 7-8)
 
 ---
 
