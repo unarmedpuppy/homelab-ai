@@ -185,6 +185,7 @@ setup_workspace() {
             "homelab/shua-ledger"
             "homelab/bird"
             "homelab/n8n-automations"
+            "homelab/smart-home-3d"
             "unarmedpuppy/workflows"
         )
 
