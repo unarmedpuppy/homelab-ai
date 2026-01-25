@@ -35,6 +35,10 @@ RUN sed -i 's/#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config && \
     echo "AllowUsers appuser" >> /etc/ssh/sshd_config
 
 # Install Claude Code CLI globally via npm
+# IMPORTANT: Do NOT use the native installer (curl https://claude.ai/install.sh | bash)
+# - npm installs to /usr/bin/claude (works with yolo wrapper)
+# - Native installer installs to ~/.local/bin/claude (breaks yolo wrapper paths)
+# - npm update runs on container start via entrypoint.sh for auto-updates
 RUN npm install -g @anthropic-ai/claude-code
 
 # Create non-root user for security

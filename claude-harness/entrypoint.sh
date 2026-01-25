@@ -9,11 +9,14 @@ SSH_DIR="/home/$APPUSER/.ssh"
 WORKSPACE_DIR="/workspace"
 
 update_claude_cli() {
+    # IMPORTANT: Must use npm update, NOT the native installer (curl | bash)
+    # Native installer puts binary at ~/.local/bin/claude which breaks yolo wrapper
+    # npm keeps it at /usr/bin/claude where yolo wrapper expects it
     echo "Checking for Claude CLI updates..."
     local current_version=$(claude --version 2>/dev/null | head -1 || echo "unknown")
     echo "Current Claude CLI version: $current_version"
 
-    # Update Claude CLI to latest version
+    # Update Claude CLI to latest version via npm
     if npm update -g @anthropic-ai/claude-code 2>&1; then
         local new_version=$(claude --version 2>/dev/null | head -1 || echo "unknown")
         if [ "$current_version" != "$new_version" ]; then
