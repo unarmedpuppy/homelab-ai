@@ -12,7 +12,6 @@ FROM python:3.11-slim
 
 # Install Node.js, Git, SSH (client + server), tmux, and gosu for privilege dropping
 RUN apt-get update && apt-get install -y \
-    bash \
     curl \
     git \
     openssh-client \
@@ -35,10 +34,8 @@ RUN sed -i 's/#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config && \
     sed -i 's/#PubkeyAuthentication.*/PubkeyAuthentication yes/' /etc/ssh/sshd_config && \
     echo "AllowUsers appuser" >> /etc/ssh/sshd_config
 
-# Install Claude Code CLI using native installer
-# Installer puts binary at ~/.local/bin/claude, symlink to /usr/local/bin for system-wide access
-RUN curl -fsSL https://claude.ai/install.sh | bash \
-    && ln -sf /root/.local/bin/claude /usr/local/bin/claude
+# Install Claude Code CLI globally via npm
+RUN npm install -g @anthropic-ai/claude-code
 
 # Create non-root user for security
 RUN useradd -m -s /bin/bash appuser

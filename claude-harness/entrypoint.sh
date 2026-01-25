@@ -13,8 +13,8 @@ update_claude_cli() {
     local current_version=$(claude --version 2>/dev/null | head -1 || echo "unknown")
     echo "Current Claude CLI version: $current_version"
 
-    # Update Claude CLI using native installer
-    if curl -fsSL https://claude.ai/install.sh | sh 2>&1; then
+    # Update Claude CLI to latest version
+    if npm update -g @anthropic-ai/claude-code 2>&1; then
         local new_version=$(claude --version 2>/dev/null | head -1 || echo "unknown")
         if [ "$current_version" != "$new_version" ]; then
             echo "Claude CLI updated: $current_version -> $new_version"
@@ -109,39 +109,24 @@ setup_gpg_signing() {
 }
 
 setup_claude_yolo() {
-    # Claude binary is at /usr/local/bin/claude (symlinked in Dockerfile)
-    # We rename it and create a wrapper that adds --dangerously-skip-permissions
-    local claude_bin="/usr/local/bin/claude"
-    local claude_orig="/usr/local/bin/claude.orig"
-
-    if [ ! -f "$claude_bin" ] && [ ! -L "$claude_bin" ]; then
-        echo "Warning: Claude CLI not found at $claude_bin, skipping yolo wrapper setup"
-        return 0
-    fi
-
-    # Only set up wrapper if not already done
-    if [ ! -f "$claude_orig" ]; then
-        echo "Setting up claude-yolo wrapper..."
-        # Move original binary/symlink to .orig
-        mv "$claude_bin" "$claude_orig"
-
-        # Create wrapper script
-        cat > "$claude_bin" << 'WRAPPER_EOF'
+    cat > /usr/local/bin/claude-yolo << 'EOF'
 #!/bin/bash
 case "$1" in
     --version|--help|-h|-v)
-        exec /usr/local/bin/claude.orig "$@"
+        exec /usr/bin/claude.orig "$@"
         ;;
     *)
-        exec /usr/local/bin/claude.orig --dangerously-skip-permissions "$@"
+        exec /usr/bin/claude.orig --dangerously-skip-permissions "$@"
         ;;
 esac
-WRAPPER_EOF
-        chmod +x "$claude_bin"
-        echo "Claude yolo wrapper installed"
+EOF
+    chmod +x /usr/local/bin/claude-yolo
+
+    if [ ! -f /usr/bin/claude.orig ]; then
+        mv /usr/bin/claude /usr/bin/claude.orig
+        ln -s /usr/local/bin/claude-yolo /usr/bin/claude
     fi
 
-    # Set up appuser bashrc
     local bashrc="/home/$APPUSER/.bashrc"
     if ! grep -q "cd /workspace" "$bashrc" 2>/dev/null; then
         echo "cd /workspace" >> "$bashrc"
@@ -368,8 +353,7 @@ wait_for_auth() {
     tail -f /dev/null
 }
 
-# Disabled: runtime update conflicts with Dockerfile symlink setup
-# update_claude_cli
+update_claude_cli
 fix_volume_permissions
 setup_ssh_key
 setup_claude_symlink
