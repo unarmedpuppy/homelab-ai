@@ -368,7 +368,8 @@ wait_for_auth() {
     tail -f /dev/null
 }
 
-update_claude_cli
+# Disabled: runtime update conflicts with Dockerfile symlink setup
+# update_claude_cli
 fix_volume_permissions
 setup_ssh_key
 setup_claude_symlink
