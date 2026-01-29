@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM harbor.server.unarmedpuppy.com/docker-hub/library/python:3.11-slim
 
 WORKDIR /app
 

@@ -8,7 +8,7 @@
 #   docker exec -it claude-harness claude
 #   (Follow OAuth flow in browser, tokens persist in volume)
 
-FROM python:3.11-slim
+FROM harbor.server.unarmedpuppy.com/docker-hub/library/python:3.11-slim
 
 # Install Node.js, Git, SSH (client + server), tmux, and gosu for privilege dropping
 RUN apt-get update && apt-get install -y \
