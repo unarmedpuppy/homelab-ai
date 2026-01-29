@@ -99,6 +99,41 @@ This container supports multiple access methods:
 | 22 | SSH | Terminal access |
 | 8443 | code-server | VS Code in browser |
 
+## Puppeteer MCP (Browser Automation)
+
+Puppeteer MCP provides browser automation tools (screenshots, clicking, navigation). It's installed but **disabled by default** to save resources.
+
+### Enable/Disable
+
+```bash
+# Check status
+mcp-puppeteer status
+
+# Enable (then restart Claude session)
+mcp-puppeteer enable
+
+# Disable
+mcp-puppeteer disable
+```
+
+### Available Tools (when enabled)
+
+| Tool | Description |
+|------|-------------|
+| `puppeteer_navigate` | Navigate to a URL |
+| `puppeteer_screenshot` | Take a screenshot |
+| `puppeteer_click` | Click an element |
+| `puppeteer_fill` | Fill a form field |
+| `puppeteer_evaluate` | Run JavaScript in page |
+
+### Use Case
+
+Enable this when you need to:
+- Visually inspect a deployed web app
+- Take screenshots of UI issues
+- Test user interactions
+- Debug frontend rendering
+
 ## Boundaries
 
 ### Always Do

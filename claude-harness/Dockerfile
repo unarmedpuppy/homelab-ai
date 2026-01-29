@@ -25,6 +25,34 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /var/run/sshd
 
+# Install Chromium dependencies for Puppeteer MCP (optional, on-demand)
+# Using chromium instead of chrome for smaller image size
+RUN apt-get update && apt-get install -y \
+    chromium \
+    fonts-liberation \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libcups2 \
+    libdbus-1-3 \
+    libdrm2 \
+    libgbm1 \
+    libgtk-3-0 \
+    libnspr4 \
+    libnss3 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxkbcommon0 \
+    libxrandr2 \
+    xdg-utils \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set Puppeteer to use system Chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+
 # Install code-server for browser-based VS Code
 RUN curl -fsSL https://code-server.dev/install.sh | sh
 
@@ -41,6 +69,11 @@ RUN sed -i 's/#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config && \
 # - npm update runs on container start via entrypoint.sh for auto-updates
 RUN npm install -g @anthropic-ai/claude-code
 
+# Install Puppeteer MCP server (on-demand browser automation)
+# Enable with: mcp-puppeteer enable
+# Disable with: mcp-puppeteer disable
+RUN npm install -g @anthropic-ai/mcp-server-puppeteer
+
 # Create non-root user for security
 RUN useradd -m -s /bin/bash appuser
 
@@ -55,7 +88,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY main.py .
 COPY entrypoint.sh .
 COPY ralph-wiggum.sh .
-RUN chmod +x entrypoint.sh ralph-wiggum.sh
+COPY mcp-puppeteer.sh /usr/local/bin/mcp-puppeteer
+RUN chmod +x entrypoint.sh ralph-wiggum.sh /usr/local/bin/mcp-puppeteer
 
 # Copy Claude Code configuration (CLAUDE.md and skills)
 COPY CLAUDE.md .
