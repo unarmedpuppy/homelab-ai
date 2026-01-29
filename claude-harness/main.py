@@ -249,7 +249,14 @@ async def call_claude_cli(
 
     # Build command
     # --dangerously-skip-permissions: Container is sandboxed, allow all tools including SSH
-    cmd = ["claude", "-p", "--dangerously-skip-permissions", prompt]
+    cmd = ["claude", "-p", "--dangerously-skip-permissions"]
+
+    # Load MCP servers if config exists (e.g., Puppeteer for browser automation)
+    mcp_config = Path.home() / ".claude" / "mcp.json"
+    if mcp_config.exists():
+        cmd.extend(["--mcp-config", str(mcp_config)])
+
+    cmd.append(prompt)
 
     logger.info(f"Calling Claude CLI with model hint: {actual_model}")
     logger.info(f"Working directory: {working_directory}")
