@@ -33,6 +33,7 @@ fix_volume_permissions() {
     chown -R "$APPUSER:$APPUSER" "$CLAUDE_VOLUME_DIR" 2>/dev/null || true
     chown -R "$APPUSER:$APPUSER" "$SSH_DIR" 2>/dev/null || true
     chown -R "$APPUSER:$APPUSER" "$WORKSPACE_DIR" 2>/dev/null || true
+    chown -R "$APPUSER:$APPUSER" "/home/$APPUSER/.npm" 2>/dev/null || true
     chmod 700 "$SSH_DIR" 2>/dev/null || true
 }
 
