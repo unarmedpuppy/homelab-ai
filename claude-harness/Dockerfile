@@ -72,7 +72,7 @@ RUN npm install -g @anthropic-ai/claude-code
 # Install Puppeteer MCP server (on-demand browser automation)
 # Enable with: mcp-puppeteer enable
 # Disable with: mcp-puppeteer disable
-RUN npm install -g @anthropic-ai/mcp-server-puppeteer
+RUN npm install -g @modelcontextprotocol/server-puppeteer
 
 # Create non-root user for security
 RUN useradd -m -s /bin/bash appuser

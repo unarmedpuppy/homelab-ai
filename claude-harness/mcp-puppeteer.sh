@@ -17,7 +17,7 @@ PUPPETEER_CONFIG='{
   "mcpServers": {
     "puppeteer": {
       "command": "npx",
-      "args": ["-y", "@anthropic-ai/mcp-server-puppeteer"],
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer"],
       "env": {
         "PUPPETEER_EXECUTABLE_PATH": "/usr/bin/chromium"
       }
