@@ -57,7 +57,7 @@ app.add_middleware(
 
 # Configuration
 SYNC_TIMEOUT = int(os.environ.get("CLAUDE_SYNC_TIMEOUT", 1800))  # 30 min default
-ASYNC_TIMEOUT = int(os.environ.get("CLAUDE_ASYNC_TIMEOUT", 7200))  # 2 hour default for async jobs
+ASYNC_TIMEOUT = int(os.environ.get("CLAUDE_ASYNC_TIMEOUT", 600))  # 10 min default for async jobs
 
 # Available models through Claude Code
 AVAILABLE_MODELS = {
@@ -116,9 +116,14 @@ class Job(BaseModel):
     error: Optional[str] = None
     working_directory: Optional[str] = None
 
+    class Config:
+        arbitrary_types_allowed = True
+
 
 # In-memory job store (for single instance; use Redis for multi-instance)
 jobs: Dict[str, Job] = {}
+# Track running processes separately (not serializable in Pydantic)
+job_processes: Dict[str, asyncio.subprocess.Process] = {}
 
 
 # ============================================================================
@@ -310,7 +315,9 @@ async def git_fetch_origin(working_directory: str):
 
 
 async def execute_job(job_id: str):
-    """Execute a job in the background."""
+    """Execute a job in the background with process tracking for cancellation."""
+    global job_processes
+
     job = jobs.get(job_id)
     if not job:
         logger.error(f"Job {job_id} not found")
@@ -327,29 +334,67 @@ async def execute_job(job_id: str):
     await git_fetch_origin(working_dir)
 
     try:
-        result = await call_claude_cli(
-            prompt=job.prompt,
-            model=job.model,
-            timeout=ASYNC_TIMEOUT,
-            working_directory=job.working_directory or "/workspace"
+        # Build command (duplicated from call_claude_cli for process tracking)
+        cmd = ["claude", "-p", "--dangerously-skip-permissions"]
+        mcp_config = Path.home() / ".claude" / "mcp.json"
+        if mcp_config.exists():
+            cmd.extend(["--mcp-config", str(mcp_config)])
+        cmd.append(job.prompt)
+
+        # Create subprocess and track it
+        process = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            cwd=working_dir,
         )
+        job_processes[job_id] = process
 
-        job.status = JobStatus.COMPLETED
-        job.result = result
-        job.completed_at = datetime.utcnow().isoformat()
-        logger.info(f"Job {job_id} completed successfully")
+        logger.info(f"Job {job_id} started with PID {process.pid}")
 
-    except asyncio.TimeoutError:
-        job.status = JobStatus.TIMEOUT
-        job.error = f"Job timed out after {ASYNC_TIMEOUT} seconds"
-        job.completed_at = datetime.utcnow().isoformat()
-        logger.error(f"Job {job_id} timed out")
+        try:
+            stdout, stderr = await asyncio.wait_for(
+                process.communicate(),
+                timeout=ASYNC_TIMEOUT
+            )
+
+            if process.returncode != 0:
+                error_msg = stderr.decode() if stderr else "Unknown error"
+                raise Exception(f"Claude CLI error: {error_msg}")
+
+            result = stdout.decode().strip()
+            job.status = JobStatus.COMPLETED
+            job.result = result
+            job.completed_at = datetime.utcnow().isoformat()
+            logger.info(f"Job {job_id} completed successfully")
+
+        except asyncio.TimeoutError:
+            # Kill the process on timeout
+            process.kill()
+            await process.wait()
+            job.status = JobStatus.TIMEOUT
+            job.error = f"Job timed out after {ASYNC_TIMEOUT} seconds"
+            job.completed_at = datetime.utcnow().isoformat()
+            logger.error(f"Job {job_id} timed out")
+
+        except asyncio.CancelledError:
+            # Job was stopped via API
+            process.kill()
+            await process.wait()
+            job.status = JobStatus.FAILED
+            job.error = "Job was stopped by user"
+            job.completed_at = datetime.utcnow().isoformat()
+            logger.info(f"Job {job_id} was stopped by user")
 
     except Exception as e:
         job.status = JobStatus.FAILED
         job.error = str(e)
         job.completed_at = datetime.utcnow().isoformat()
         logger.error(f"Job {job_id} failed: {e}")
+
+    finally:
+        # Clean up process tracking
+        job_processes.pop(job_id, None)
 
 
 async def stream_claude_cli(prompt: str, model: str = DEFAULT_MODEL) -> AsyncGenerator[str, None]:
@@ -632,18 +677,60 @@ async def delete_job(job_id: str):
     """
     Delete a completed or failed job from memory.
 
-    Cannot delete running jobs.
+    Cannot delete running jobs. Use POST /v1/jobs/{job_id}/stop first.
     """
     job = jobs.get(job_id)
     if not job:
         raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
 
     if job.status == JobStatus.RUNNING:
-        raise HTTPException(status_code=400, detail="Cannot delete a running job")
+        raise HTTPException(status_code=400, detail="Cannot delete a running job. Use POST /v1/jobs/{job_id}/stop first.")
 
     del jobs[job_id]
 
     return {"message": f"Job {job_id} deleted"}
+
+
+@app.post("/v1/jobs/{job_id}/stop")
+async def stop_job(job_id: str):
+    """
+    Stop a running job by killing its subprocess.
+
+    Returns immediately. The job status will be set to FAILED with error "Job was stopped by user".
+    """
+    global job_processes
+
+    job = jobs.get(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
+
+    if job.status != JobStatus.RUNNING:
+        return {"message": f"Job {job_id} is not running (status: {job.status})", "job_id": job_id}
+
+    process = job_processes.get(job_id)
+    if not process:
+        # Job is marked running but no process tracked - shouldn't happen
+        job.status = JobStatus.FAILED
+        job.error = "Job process not found"
+        job.completed_at = datetime.utcnow().isoformat()
+        return {"message": f"Job {job_id} marked as failed (process not found)", "job_id": job_id}
+
+    # Kill the process
+    try:
+        process.kill()
+        logger.info(f"Killed process for job {job_id}")
+    except ProcessLookupError:
+        logger.warning(f"Process for job {job_id} already terminated")
+
+    # Update job status
+    job.status = JobStatus.FAILED
+    job.error = "Job was stopped by user"
+    job.completed_at = datetime.utcnow().isoformat()
+
+    # Clean up
+    job_processes.pop(job_id, None)
+
+    return {"message": f"Job {job_id} stopped", "job_id": job_id, "status": "failed"}
 
 
 # ============================================================================
