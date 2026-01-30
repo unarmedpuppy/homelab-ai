@@ -51,17 +51,17 @@ jobs:
       context: tts-server
     secrets: inherit
 
-  build-claude-harness:
+  build-agent-harness:
     uses: unarmedpuppy/workflows/.gitea/workflows/docker-build.yml@main
     with:
-      image_name: library/claude-harness
+      image_name: library/agent-harness
       app_path: apps/homelab-ai
       dockerfile: claude-harness/Dockerfile
       context: claude-harness
     secrets: inherit
 
   deploy:
-    needs: [build-llm-router, build-dashboard, build-llm-manager, build-image-server, build-tts-server, build-claude-harness]
+    needs: [build-llm-router, build-dashboard, build-llm-manager, build-image-server, build-tts-server, build-agent-harness]
     runs-on: ubuntu-latest
     steps:
       - name: Setup SSH
