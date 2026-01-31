@@ -115,6 +115,7 @@ class Job(BaseModel):
     result: Optional[str] = None
     error: Optional[str] = None
     working_directory: Optional[str] = None
+    timeout: Optional[int] = None  # Per-job timeout override
 
     class Config:
         arbitrary_types_allowed = True
@@ -167,7 +168,7 @@ class ChatCompletionResponse(BaseModel):
 class JobCreateRequest(BaseModel):
     """Request to create an async job."""
     prompt: str = Field(..., description="The task/prompt for Claude to execute")
-    model: str = Field(default=DEFAULT_MODEL, description="Model to use")
+    model: str = Field(default=DEFAULT_MODEL, description="Model to use (e.g. 'opus', 'sonnet', 'claude-opus-4-5-20250514')")
     working_directory: Optional[str] = Field(
         default="/workspace",
         description="Working directory for Claude (must be under /workspace)"
@@ -175,6 +176,10 @@ class JobCreateRequest(BaseModel):
     system_prompt: Optional[str] = Field(
         default=None,
         description="Optional system prompt to prepend"
+    )
+    timeout: Optional[int] = Field(
+        default=None,
+        description="Timeout in seconds (default: CLAUDE_ASYNC_TIMEOUT env var, typically 600)"
     )
 
 
@@ -333,9 +338,17 @@ async def execute_job(job_id: str):
     working_dir = job.working_directory or "/workspace"
     await git_fetch_origin(working_dir)
 
+    # Determine timeout (per-job override or global default)
+    job_timeout = job.timeout if job.timeout else ASYNC_TIMEOUT
+
     try:
         # Build command (duplicated from call_claude_cli for process tracking)
         cmd = ["claude", "-p", "--dangerously-skip-permissions"]
+
+        # Add model flag
+        if job.model:
+            cmd.extend(["--model", job.model])
+
         mcp_config = Path.home() / ".claude" / "mcp.json"
         if mcp_config.exists():
             cmd.extend(["--mcp-config", str(mcp_config)])
@@ -355,7 +368,7 @@ async def execute_job(job_id: str):
         try:
             stdout, stderr = await asyncio.wait_for(
                 process.communicate(),
-                timeout=ASYNC_TIMEOUT
+                timeout=job_timeout
             )
 
             if process.returncode != 0:
@@ -373,9 +386,9 @@ async def execute_job(job_id: str):
             process.kill()
             await process.wait()
             job.status = JobStatus.TIMEOUT
-            job.error = f"Job timed out after {ASYNC_TIMEOUT} seconds"
+            job.error = f"Job timed out after {job_timeout} seconds"
             job.completed_at = datetime.utcnow().isoformat()
-            logger.error(f"Job {job_id} timed out")
+            logger.error(f"Job {job_id} timed out after {job_timeout}s")
 
         except asyncio.CancelledError:
             # Job was stopped via API
@@ -588,13 +601,14 @@ async def create_job(request: JobCreateRequest, background_tasks: BackgroundTask
         model=request.model,
         created_at=datetime.utcnow().isoformat(),
         working_directory=working_dir,
+        timeout=request.timeout,
     )
     jobs[job_id] = job
 
     # Schedule background execution
     background_tasks.add_task(execute_job, job_id)
 
-    logger.info(f"Created job {job_id}")
+    logger.info(f"Created job {job_id} (model={request.model}, timeout={request.timeout or ASYNC_TIMEOUT}s)")
 
     return JobCreateResponse(
         job_id=job_id,
