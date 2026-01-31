@@ -196,7 +196,7 @@ mkdir -p claude-harness-new/profiles/dev
 # Create profile.yaml, SOUL.md, IDENTITY.md
 
 # Skills (copy from home-server or create new)
-cp -r /workspace/home-server/agents/skills/task-management claude-harness-new/skills/
+cp -r /workspace/home-server/.agents/skills/task-management claude-harness-new/skills/
 # ... other relevant skills
 ```
 

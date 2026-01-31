@@ -598,9 +598,9 @@ Skills are automatically discovered and symlinked from all repos in `/workspace`
 
 ```
 /workspace/.claude/skills/           # Aggregated skills
-├── deploy-new-service.md → ../home-server/agents/skills/.../SKILL.md
-├── create-daily-digest.md → ../bird/agents/skills/.../SKILL.md
-├── check-positions.md → ../trading-bot/agents/skills/.../SKILL.md
+├── deploy-new-service.md → ../home-server/.agents/skills/.../SKILL.md
+├── create-daily-digest.md → ../bird/.agents/skills/.../SKILL.md
+├── check-positions.md → ../trading-bot/.agents/skills/.../SKILL.md
 └── ...
 ```
 
@@ -658,6 +658,6 @@ claude-harness/                      # Docker version (homelab-ai)
 
 ## See Also
 
-- [Claude Code Harness Plan](../../agents/plans/claude-code-harness.md)
+- [Claude Code Harness Plan](../../.agents/plans/claude-code-harness.md)
 - [Local AI Router](../local-ai-router/README.md)
 - [Claude Code Documentation](https://docs.anthropic.com/en/docs/claude-code/overview)

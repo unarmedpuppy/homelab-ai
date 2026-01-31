@@ -143,5 +143,5 @@ RTF (Real-Time Factor) < 1.0 means faster than real-time.
 ## Related
 
 - [Local AI README](../README.md)
-- [TTS Architecture](../../agents/reference/tts-architecture.md)
+- [TTS Architecture](../../.agents/reference/tts-architecture.md)
 - [Chatterbox Turbo](https://huggingface.co/ResembleAI/chatterbox-turbo)

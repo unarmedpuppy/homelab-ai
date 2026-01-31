@@ -189,7 +189,7 @@ curl https://local-ai-api.server.unarmedpuppy.com/agent/tools
 #   4. task_complete("Found 15 running containers...") -> done
 ```
 
-See [agent-endpoint-usage skill](../../agents/skills/agent-endpoint-usage/SKILL.md) for complete documentation.
+See [agent-endpoint-usage skill](../../.agents/skills/agent-endpoint-usage/SKILL.md) for complete documentation.
 
 ### Claude Agent Endpoint (Passthrough)
 
@@ -396,7 +396,7 @@ AGENT_MAX_STEPS=50          # Max steps per agent run
 AGENT_MAX_RETRIES=3         # Retries for malformed responses
 AGENT_ALLOWED_PATHS=/tmp    # Comma-separated allowed paths
 AGENT_SHELL_TIMEOUT=30      # Shell command timeout (seconds)
-AGENT_SKILLS_DIR=/app/agents/skills  # Skills directory (mounted from host)
+AGENT_SKILLS_DIR=/app/.agents/skills  # Skills directory (mounted from host)
 ```
 
 ## Force-Big Signals
@@ -409,6 +409,6 @@ Override gaming mode restrictions:
 
 ## Related
 
-- [Local AI Unified Architecture](../../agents/plans/local-ai-unified-architecture.md) - Full architecture plan
+- [Local AI Unified Architecture](../../.agents/plans/local-ai-unified-architecture.md) - Full architecture plan
 - [Gaming PC Local AI](../../local-ai/README.md) - 3090 backend
 - [Local AI Dashboard](../local-ai-dashboard/README.md) - Web dashboard UI

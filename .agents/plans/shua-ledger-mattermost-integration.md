@@ -50,7 +50,7 @@ services:
   llm-router:
     volumes:
       - ./data:/data
-      - ../../agents/skills:/app/agents/skills:ro
+      - ../../.agents/skills:/app/.agents/skills:ro
       - claude-workspace:/workspace:rw  # ADD THIS
 ```
 
@@ -272,7 +272,7 @@ curl -X POST https://n8n.server.unarmedpuppy.com/webhook/shua-ledger \
 
 #### Agent Task:
 ```
-Generate my morning briefing for today. Follow the morning-briefing skill in /workspace/shua-ledger/agents/skills/morning-briefing/
+Generate my morning briefing for today. Follow the morning-briefing skill in /workspace/shua-ledger/.agents/skills/morning-briefing/
 ```
 
 #### Post to Channel:
@@ -289,7 +289,7 @@ Generate my morning briefing for today. Follow the morning-briefing skill in /wo
 
 #### Agent Task:
 ```
-Generate my weekly summary. Follow the weekly-summary skill in /workspace/shua-ledger/agents/skills/weekly-summary/
+Generate my weekly summary. Follow the weekly-summary skill in /workspace/shua-ledger/.agents/skills/weekly-summary/
 ```
 
 ---

@@ -978,7 +978,7 @@ Skills from current claude-harness:
 
 Skills to evaluate for inclusion:
 ```
-home-server/agents/skills/
+home-server/.agents/skills/
 └── task-management/
     └── SKILL.md
 ```
@@ -1277,7 +1277,7 @@ curl http://localhost:8013/health
 ### Skills Consolidation
 
 After migration, evaluate:
-- [ ] Which skills from home-server/agents/skills/ should move to claude-harness?
+- [ ] Which skills from home-server/.agents/skills/ should move to claude-harness?
 - [ ] Should skills be a separate shared package?
 - [ ] Create skill installation/linking mechanism
 

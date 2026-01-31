@@ -143,7 +143,7 @@ curl https://local-ai-api.server.unarmedpuppy.com/agent/tools \
 |----------|---------|-------------|
 | `AGENT_MAX_STEPS` | 50 | Maximum steps per run |
 | `AGENT_MAX_RETRIES` | 3 | Retries for malformed responses |
-| `AGENT_SKILLS_DIR` | `/app/agents/skills` | Skills directory path |
+| `AGENT_SKILLS_DIR` | `/app/.agents/skills` | Skills directory path |
 | `AGENT_ALLOWED_PATHS` | `/tmp,/home` | Paths agent can access |
 | `AGENT_SHELL_TIMEOUT` | 30 | Shell command timeout |
 
@@ -153,7 +153,7 @@ Skills are mounted into the container:
 
 ```yaml
 volumes:
-  - ./agents/skills:/app/agents/skills:ro
+  - ./.agents/skills:/app/.agents/skills:ro
 ```
 
 ## Adding New Skills
