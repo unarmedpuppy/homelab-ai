@@ -1,5 +1,19 @@
 # Claude Code Harness
 
+> **⚠️ DEPRECATED**: This component has been superseded by **agent-harness** (`/workspace/agent-harness/`).
+>
+> Agent-harness provides:
+> - Profile-based configuration (ralph, avery, gilfoyle, jobin)
+> - Enhanced memory system with hooks
+> - Multi-platform support (Docker, macOS, Linux native)
+>
+> **Migration**: Use `home-server/apps/agent-harness/docker-compose.yml` for deployment.
+> See `/workspace/agent-harness/AGENTS.md` for documentation.
+
+---
+
+*The documentation below is kept for historical reference.*
+
 OpenAI-compatible API wrapper for Claude Code CLI, enabling the Local AI Router to use Claude models via your Claude Max subscription.
 
 ## Quick Start Checklist

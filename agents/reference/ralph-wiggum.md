@@ -1,10 +1,14 @@
 # Ralph Wiggum - Autonomous Task Loop
 
-Ralph Wiggum is an autonomous task loop that processes tasks through the Claude Harness. Named after the Simpsons character, it cheerfully works through tasks one by one.
+> **⚠️ NOTE**: This documentation refers to the old `claude-harness` container.
+> Ralph now runs inside **agent-harness** (`/workspace/agent-harness/`).
+> See `./agent-harness/AGENTS.md` for current documentation.
+
+Ralph Wiggum is an autonomous task loop that processes tasks through the Agent Harness. Named after the Simpsons character, it cheerfully works through tasks one by one.
 
 ## Overview
 
-- **Location**: Runs inside the `claude-harness` container
+- **Location**: Runs inside the `agent-harness` container
 - **Control**: HTTP API (curl) or direct shell
 - **Task Source**: Tasks API backed by `/workspace/home-server/tasks.md`
 - **Work Location**: Sibling repo directories (e.g., `/workspace/polyjuiced`)
@@ -24,12 +28,12 @@ Ralph Wiggum is an autonomous task loop that processes tasks through the Claude 
 
 ```bash
 # Start with a label filter (required)
-curl -X POST http://claude-harness.server.unarmedpuppy.com/v1/ralph/start \
+curl -X POST http://agent-harness.server.unarmedpuppy.com/v1/ralph/start \
   -H "Content-Type: application/json" \
   -d '{"label": "multi-ralph"}'
 
 # With all options
-curl -X POST http://claude-harness.server.unarmedpuppy.com/v1/ralph/start \
+curl -X POST http://agent-harness.server.unarmedpuppy.com/v1/ralph/start \
   -H "Content-Type: application/json" \
   -d '{
     "label": "multi-ralph",
@@ -42,7 +46,7 @@ curl -X POST http://claude-harness.server.unarmedpuppy.com/v1/ralph/start \
 ### Monitor Progress
 
 ```bash
-curl http://claude-harness.server.unarmedpuppy.com/v1/ralph/status
+curl http://agent-harness.server.unarmedpuppy.com/v1/ralph/status
 ```
 
 Response:
@@ -63,13 +67,13 @@ Response:
 ### Stop Gracefully
 
 ```bash
-curl -X POST http://claude-harness.server.unarmedpuppy.com/v1/ralph/stop
+curl -X POST http://agent-harness.server.unarmedpuppy.com/v1/ralph/stop
 ```
 
 ### View Logs
 
 ```bash
-curl "http://claude-harness.server.unarmedpuppy.com/v1/ralph/logs?lines=100"
+curl "http://agent-harness.server.unarmedpuppy.com/v1/ralph/logs?lines=100"
 ```
 
 ## Parameters
@@ -129,15 +133,15 @@ cd /workspace/home-server
 git add tasks.md && git commit -m "add multi-ralph tasks" && git push
 
 # 3. Start Ralph Wiggum
-curl -X POST http://claude-harness.server.unarmedpuppy.com/v1/ralph/start \
+curl -X POST http://agent-harness.server.unarmedpuppy.com/v1/ralph/start \
   -H "Content-Type: application/json" \
   -d '{"label": "multi-ralph"}'
 
 # 4. Monitor with watch
-watch -n 10 'curl -s http://claude-harness.server.unarmedpuppy.com/v1/ralph/status | jq'
+watch -n 10 'curl -s http://agent-harness.server.unarmedpuppy.com/v1/ralph/status | jq'
 
 # 5. Stop early if needed
-curl -X POST http://claude-harness.server.unarmedpuppy.com/v1/ralph/stop
+curl -X POST http://agent-harness.server.unarmedpuppy.com/v1/ralph/stop
 ```
 
 ## Status Values
@@ -155,7 +159,7 @@ curl -X POST http://claude-harness.server.unarmedpuppy.com/v1/ralph/stop
 Alternative to API - run directly in the container:
 
 ```bash
-docker exec -it claude-harness bash
+docker exec -it agent-harness bash
 ./ralph-wiggum.sh --label multi-ralph
 ./ralph-wiggum.sh --label dashboard --priority 1 --max 3
 ./ralph-wiggum.sh --label infra --dry-run
@@ -187,5 +191,5 @@ docker exec -it claude-harness bash
 
 ## See Also
 
-- [Claude Harness README](../../claude-harness/README.md)
+- [Agent Harness](../../../agent-harness/AGENTS.md) (current)
 - [Tasks.md](../../../home-server/tasks.md)
