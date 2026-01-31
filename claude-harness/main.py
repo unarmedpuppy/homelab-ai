@@ -261,28 +261,32 @@ async def call_claude_cli(
     # --dangerously-skip-permissions: Container is sandboxed, allow all tools including SSH
     cmd = ["claude", "-p", "--dangerously-skip-permissions"]
 
+    # Add model flag
+    cmd.extend(["--model", actual_model])
+
     # Load MCP servers if config exists (e.g., Puppeteer for browser automation)
     mcp_config = Path.home() / ".claude" / "mcp.json"
     if mcp_config.exists():
         cmd.extend(["--mcp-config", str(mcp_config)])
 
-    cmd.append(prompt)
+    # Don't append prompt to cmd - pass via stdin for large prompts
 
-    logger.info(f"Calling Claude CLI with model hint: {actual_model}")
+    logger.info(f"Calling Claude CLI with model: {actual_model}")
     logger.info(f"Working directory: {working_directory}")
-    logger.debug(f"Prompt length: {len(prompt)} chars")
+    logger.info(f"Prompt length: {len(prompt)} chars")
 
     try:
-        # Run Claude CLI
+        # Run Claude CLI with prompt via stdin
         process = await asyncio.create_subprocess_exec(
             *cmd,
+            stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             cwd=working_directory,
         )
 
         stdout, stderr = await asyncio.wait_for(
-            process.communicate(),
+            process.communicate(input=prompt.encode()),
             timeout=timeout
         )
 
@@ -352,22 +356,27 @@ async def execute_job(job_id: str):
         mcp_config = Path.home() / ".claude" / "mcp.json"
         if mcp_config.exists():
             cmd.extend(["--mcp-config", str(mcp_config)])
-        cmd.append(job.prompt)
+        # Don't append prompt to cmd - pass via stdin for large prompts
+
+        logger.info(f"Job {job_id} command: {' '.join(cmd)}")
 
         # Create subprocess and track it
+        # Pass prompt via stdin to handle large prompts (JSON data, etc.)
         process = await asyncio.create_subprocess_exec(
             *cmd,
+            stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             cwd=working_dir,
         )
         job_processes[job_id] = process
 
-        logger.info(f"Job {job_id} started with PID {process.pid}")
+        logger.info(f"Job {job_id} started with PID {process.pid}, prompt size: {len(job.prompt)} bytes")
 
         try:
+            # Pass prompt via stdin
             stdout, stderr = await asyncio.wait_for(
-                process.communicate(),
+                process.communicate(input=job.prompt.encode()),
                 timeout=job_timeout
             )
 
