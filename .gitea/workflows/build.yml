@@ -60,8 +60,17 @@ jobs:
       context: claude-harness
     secrets: inherit
 
+  build-agent-gateway:
+    uses: unarmedpuppy/workflows/.gitea/workflows/docker-build.yml@main
+    with:
+      image_name: library/agent-gateway
+      app_path: apps/homelab-ai
+      dockerfile: agent-gateway/Dockerfile
+      context: agent-gateway
+    secrets: inherit
+
   deploy:
-    needs: [build-llm-router, build-dashboard, build-llm-manager, build-image-server, build-tts-server, build-agent-harness]
+    needs: [build-llm-router, build-dashboard, build-llm-manager, build-image-server, build-tts-server, build-agent-harness, build-agent-gateway]
     runs-on: ubuntu-latest
     steps:
       - name: Setup SSH

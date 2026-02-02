@@ -94,6 +94,30 @@ services:
       - "homepage.href=http://${SERVER_IP:-localhost}:8015/status"
       - "homepage.description=Always-on LLM on RTX 3070"
 
+  agent-gateway:
+    image: ${HARBOR_REGISTRY:-harbor.local}/library/agent-gateway:latest
+    container_name: agent-gateway
+    restart: unless-stopped
+    ports:
+      - "8016:8016"
+    environment:
+      - LOG_LEVEL=INFO
+      - CONFIG_PATH=/app/config.yaml
+    networks:
+      - my-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.agent-gateway.rule=Host(`agent-gateway.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.agent-gateway.entrypoints=websecure"
+      - "traefik.http.routers.agent-gateway.tls.certresolver=myresolver"
+      - "traefik.http.services.agent-gateway.loadbalancer.server.port=8016"
+      - "homepage.group=AI"
+      - "homepage.name=Agent Gateway"
+      - "homepage.icon=mdi-robot"
+      - "homepage.href=https://agent-gateway.${DOMAIN:-localhost}/health"
+      - "homepage.description=Fleet status aggregator for agents"
+      - "com.centurylinklabs.watchtower.enable=true"
+
 networks:
   my-network:
     external: true

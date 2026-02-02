@@ -25,6 +25,11 @@ homelab-ai/
 │   ├── Dockerfile
 │   ├── manager.py          # Main application
 │   └── models.json         # Model cards with VRAM requirements
+├── agent-gateway/          # Agent fleet status aggregator
+│   ├── Dockerfile
+│   ├── gateway.py          # Main FastAPI application
+│   ├── config.yaml         # Agent registry configuration
+│   └── health.py           # Background health monitor
 ├── image-server/           # Diffusers image inference
 ├── tts-server/             # Chatterbox TTS inference
 ├── claude-harness/         # DEPRECATED - see agent-harness repo
@@ -46,7 +51,7 @@ homelab-ai/
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.server.yml up -d
 ```
-Deploys: llm-router, dashboard, llm-manager (always-on mode)
+Deploys: llm-router, dashboard, llm-manager (always-on mode), agent-gateway
 
 ### Gaming PC
 ```bash
@@ -206,15 +211,37 @@ Diffusers-based image generation (FLUX).
 
 Chatterbox Turbo text-to-speech.
 
+### Agent Gateway (`agent-gateway/`)
+
+Fleet status aggregator for Claude Code agents. Monitors health of all registered agents (Ralph, Avery, Jobin, Gilfoyle) and provides a unified API.
+
+**Key files**:
+- `gateway.py` - Main FastAPI application
+- `config.yaml` - Agent registry with endpoints
+- `health.py` - Background health monitor
+
+**API Endpoints**:
+- `GET /api/agents` - List all agents with current status
+- `GET /api/agents/{id}` - Get single agent details
+- `GET /api/agents/stats` - Fleet-wide statistics
+- `POST /api/agents/{id}/check` - Force immediate health check
+
+**Configuration via environment**:
+- `CONFIG_PATH` - Path to config.yaml (default: `./config.yaml`)
+- `LOG_LEVEL` - Logging level (default: `INFO`)
+
+**Port**: 8016
+
 ## Harbor Images
 
-All 5 images are built via CI/CD:
+All 6 images are built via CI/CD:
 
 | Image | Component |
 |-------|-----------|
 | `llm-router:latest` | LLM Router |
 | `local-ai-dashboard:latest` | Dashboard |
 | `llm-manager:latest` | LLM Manager |
+| `agent-gateway:latest` | Agent Gateway |
 | `image-server:latest` | Image Server |
 | `tts-server:latest` | TTS Server |
 
