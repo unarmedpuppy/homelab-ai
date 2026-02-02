@@ -5,6 +5,7 @@ interface AgentCardProps {
   agent: Agent;
   onForceCheck?: (agentId: string) => void;
   isChecking?: boolean;
+  onClick?: () => void;
 }
 
 function getStatusColor(status: AgentStatus): string {
@@ -56,13 +57,16 @@ function formatResponseTime(ms: number | null): string {
   return `${(ms / 1000).toFixed(1)}s`;
 }
 
-export function AgentCard({ agent, onForceCheck, isChecking }: AgentCardProps) {
+export function AgentCard({ agent, onForceCheck, isChecking, onClick }: AgentCardProps) {
   const { health } = agent;
   const statusColor = getStatusColor(health.status);
   const isOnline = health.status === 'online';
 
   return (
-    <RetroCard className="relative overflow-hidden">
+    <RetroCard
+      className={`relative overflow-hidden ${onClick ? 'hover:border-[var(--retro-accent-cyan)] transition-colors' : ''}`}
+      onClick={onClick}
+    >
       {/* Status indicator bar at top */}
       <div
         className="absolute top-0 left-0 right-0 h-1"
@@ -151,16 +155,18 @@ export function AgentCard({ agent, onForceCheck, isChecking }: AgentCardProps) {
 
         {/* Force check button */}
         {onForceCheck && (
-          <RetroButton
-            variant="ghost"
-            size="sm"
-            onClick={() => onForceCheck(agent.id)}
-            disabled={isChecking}
-            loading={isChecking}
-            className="w-full"
-          >
-            Force Health Check
-          </RetroButton>
+          <div onClick={(e) => e.stopPropagation()}>
+            <RetroButton
+              variant="ghost"
+              size="sm"
+              onClick={() => onForceCheck(agent.id)}
+              disabled={isChecking}
+              loading={isChecking}
+              className="w-full"
+            >
+              Force Health Check
+            </RetroButton>
+          </div>
         )}
       </div>
     </RetroCard>

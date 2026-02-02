@@ -794,6 +794,53 @@ export const agentsAPI = {
     }
     return response.json();
   },
+
+  getContext: async (agentId: string): Promise<{ content: string; last_modified: string | null; size_bytes: number }> => {
+    const response = await fetch(`${AGENT_GATEWAY_URL}/api/agents/${agentId}/context`);
+    if (!response.ok) {
+      throw new Error(`Failed to get agent context: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  updateContext: async (agentId: string, content: string): Promise<{ content: string; last_modified: string | null; size_bytes: number }> => {
+    const response = await fetch(`${AGENT_GATEWAY_URL}/api/agents/${agentId}/context`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content }),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to update agent context: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  getSessions: async (agentId: string, params?: { limit?: number; offset?: number }): Promise<{
+    sessions: Array<{
+      id: string;
+      started_at: string;
+      ended_at: string | null;
+      duration_seconds: number | null;
+      status: 'running' | 'completed' | 'failed' | 'cancelled';
+      task_id: string | null;
+      task_title: string | null;
+      turns: number;
+      tokens_used: number | null;
+    }>;
+    total: number;
+    has_more: boolean;
+  }> => {
+    const searchParams = new URLSearchParams();
+    if (params?.limit) searchParams.set('limit', String(params.limit));
+    if (params?.offset) searchParams.set('offset', String(params.offset));
+
+    const url = `${AGENT_GATEWAY_URL}/api/agents/${agentId}/sessions${searchParams.toString() ? `?${searchParams}` : ''}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to get agent sessions: ${response.statusText}`);
+    }
+    return response.json();
+  },
 };
 
 export { apiClient };

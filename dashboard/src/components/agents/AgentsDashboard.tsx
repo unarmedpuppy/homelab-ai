@@ -5,6 +5,7 @@ import { RetroButton, RetroPanel } from '../ui';
 import { useVisibilityPolling } from '../../hooks/useDocumentVisibility';
 import { FleetOverview } from './FleetOverview';
 import { AgentCard } from './AgentCard';
+import { AgentDetailPanel } from './AgentDetailPanel';
 
 const POLL_INTERVAL = 30000; // 30 seconds
 
@@ -14,6 +15,7 @@ export function AgentsDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [checkingAgent, setCheckingAgent] = useState<string | null>(null);
+  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -24,13 +26,21 @@ export function AgentsDashboard() {
       setAgents(agentsData);
       setStats(statsData);
       setError(null);
+
+      // Update selected agent if it's still in the list
+      if (selectedAgent) {
+        const updated = agentsData.find((a) => a.id === selectedAgent.id);
+        if (updated) {
+          setSelectedAgent(updated);
+        }
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to fetch agent data');
       console.error('Failed to fetch agent data:', e);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [selectedAgent]);
 
   // Visibility-aware polling - pauses when tab is hidden
   useVisibilityPolling({
@@ -57,6 +67,24 @@ export function AgentsDashboard() {
     setLoading(true);
     fetchData();
   };
+
+  const handleAgentClick = (agent: Agent) => {
+    setSelectedAgent(agent);
+  };
+
+  const handleCloseDetail = () => {
+    setSelectedAgent(null);
+  };
+
+  // Show detail panel if an agent is selected
+  if (selectedAgent) {
+    return (
+      <AgentDetailPanel
+        agent={selectedAgent}
+        onClose={handleCloseDetail}
+      />
+    );
+  }
 
   if (loading && agents.length === 0) {
     return (
@@ -146,6 +174,7 @@ export function AgentsDashboard() {
                   agent={agent}
                   onForceCheck={handleForceCheck}
                   isChecking={checkingAgent === agent.id}
+                  onClick={() => handleAgentClick(agent)}
                 />
               ))}
             </div>
