@@ -12,9 +12,9 @@ import ConversationSidebar from './components/ConversationSidebar';
 // Heavy components are lazy-loaded to improve initial bundle size
 const Dashboard = lazy(() => import('./components/Dashboard'));
 const ProviderMonitoring = lazy(() => import('./components/ProviderMonitoring'));
-const AgentRuns = lazy(() => import('./components/AgentRuns'));
 const RalphDashboard = lazy(() => import('./components/ralph/RalphDashboard'));
 const TasksDashboard = lazy(() => import('./components/tasks/TasksDashboard'));
+const AgentsDashboard = lazy(() => import('./components/agents/AgentsDashboard'));
 
 type ViewName = 'chat' | 'ralph' | 'tasks' | 'providers' | 'stats' | 'agents';
 
@@ -276,13 +276,13 @@ function StatsView() {
 }
 
 /**
- * Agent runs history view.
+ * Agent fleet dashboard view.
  */
 function AgentsView() {
   return (
-    <AppLayout currentView="agents" scrollable withContainer>
+    <AppLayout currentView="agents">
       <Suspense fallback={<PageLoading section="Agents" />}>
-        <AgentRuns />
+        <AgentsDashboard />
       </Suspense>
     </AppLayout>
   );

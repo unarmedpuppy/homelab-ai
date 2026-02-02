@@ -746,4 +746,54 @@ export const tasksAPI = {
   },
 };
 
+// Agent Gateway API - Fleet monitoring
+import type {
+  Agent,
+  AgentDetails,
+  FleetStats,
+} from '../types/agents';
+
+const AGENT_GATEWAY_URL = import.meta.env.VITE_AGENT_GATEWAY_URL || 'https://agent-gateway.server.unarmedpuppy.com';
+
+export const agentsAPI = {
+  list: async (params?: { status?: string; tag?: string }): Promise<Agent[]> => {
+    const searchParams = new URLSearchParams();
+    if (params?.status) searchParams.set('status', params.status);
+    if (params?.tag) searchParams.set('tag', params.tag);
+
+    const url = `${AGENT_GATEWAY_URL}/api/agents${searchParams.toString() ? `?${searchParams}` : ''}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to list agents: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  get: async (agentId: string): Promise<AgentDetails> => {
+    const response = await fetch(`${AGENT_GATEWAY_URL}/api/agents/${agentId}`);
+    if (!response.ok) {
+      throw new Error(`Failed to get agent: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  getStats: async (): Promise<FleetStats> => {
+    const response = await fetch(`${AGENT_GATEWAY_URL}/api/agents/stats`);
+    if (!response.ok) {
+      throw new Error(`Failed to get fleet stats: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  forceCheck: async (agentId: string): Promise<{ agent_id: string; status: string; last_check: string | null; error: string | null }> => {
+    const response = await fetch(`${AGENT_GATEWAY_URL}/api/agents/${agentId}/check`, {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to force health check: ${response.statusText}`);
+    }
+    return response.json();
+  },
+};
+
 export { apiClient };
