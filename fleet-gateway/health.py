@@ -1,7 +1,7 @@
 """Health monitoring for Agent Gateway."""
 import asyncio
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 import httpx
@@ -102,7 +102,7 @@ class HealthMonitor:
         if not agent:
             return
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         timeout = self.config.health_check.timeout_seconds
 
         try:
@@ -217,7 +217,7 @@ class HealthMonitor:
             expected_online_count=len(expected_online),
             unexpected_offline_count=len(unexpected_offline),
             avg_response_time_ms=avg_response_time,
-            last_updated=datetime.utcnow(),
+            last_updated=datetime.now(timezone.utc),
         )
 
     async def check_now(self, agent_id: Optional[str] = None):

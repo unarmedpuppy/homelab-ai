@@ -2,7 +2,7 @@
 import logging
 import os
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 import httpx
@@ -463,7 +463,7 @@ async def create_job(request: JobCreateRequest):
                     prompt=request.prompt,
                     model=request.model,
                     status=JobStatus(data.get("status", "pending")),
-                    created_at=data.get("created_at", datetime.utcnow().isoformat()),
+                    created_at=data.get("created_at", datetime.now(timezone.utc).isoformat()),
                     started_at=data.get("started_at"),
                     completed_at=data.get("completed_at"),
                     result=data.get("result"),
@@ -538,7 +538,7 @@ async def list_jobs(
                             prompt=job_data.get("prompt", ""),
                             model=job_data.get("model", ""),
                             status=JobStatus(job_data.get("status", "pending")),
-                            created_at=job_data.get("created_at", datetime.utcnow().isoformat()),
+                            created_at=job_data.get("created_at", datetime.now(timezone.utc).isoformat()),
                             started_at=job_data.get("started_at"),
                             completed_at=job_data.get("completed_at"),
                             result=job_data.get("result"),
@@ -600,7 +600,7 @@ async def get_job(job_id: str, agent_id: Optional[str] = None):
                         prompt=data.get("prompt", ""),
                         model=data.get("model", ""),
                         status=JobStatus(data.get("status", "pending")),
-                        created_at=data.get("created_at", datetime.utcnow().isoformat()),
+                        created_at=data.get("created_at", datetime.now(timezone.utc).isoformat()),
                         started_at=data.get("started_at"),
                         completed_at=data.get("completed_at"),
                         result=data.get("result"),
