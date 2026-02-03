@@ -3,6 +3,7 @@ import type { Agent } from '../../types/agents';
 import { RetroButton } from '../ui';
 import { AgentContextViewer } from './AgentContextViewer';
 import { AgentSessionHistory } from './AgentSessionHistory';
+import { QuickInteract } from '../jobs';
 
 type TabId = 'context' | 'sessions' | 'interact';
 
@@ -110,16 +111,7 @@ export function AgentDetailPanel({ agent, onClose }: AgentDetailPanelProps) {
           <AgentSessionHistory agent={agent} />
         )}
         {activeTab === 'interact' && (
-          <div className="h-full flex items-center justify-center">
-            <div className="text-center p-8">
-              <div className="text-[var(--retro-text-muted)] uppercase tracking-wider mb-2">
-                Interact
-              </div>
-              <p className="text-sm text-[var(--retro-text-muted)]">
-                Coming soon - direct agent interaction
-              </p>
-            </div>
-          </div>
+          <QuickInteract agent={agent} />
         )}
       </div>
     </div>

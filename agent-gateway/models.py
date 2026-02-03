@@ -78,3 +78,44 @@ class GatewayConfig(BaseModel):
     """Full gateway configuration."""
     health_check: HealthCheckConfig = Field(default_factory=HealthCheckConfig)
     agents: dict[str, AgentConfig] = Field(default_factory=dict)
+
+
+class JobStatus(str, Enum):
+    """Job execution status."""
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+
+class JobCreateRequest(BaseModel):
+    """Request to create a new job."""
+    agent_id: str
+    prompt: str
+    model: str = "sonnet"
+    working_directory: Optional[str] = None
+    allowed_tools: Optional[list[str]] = None
+    max_turns: Optional[int] = None
+
+
+class Job(BaseModel):
+    """Job with current status."""
+    job_id: str
+    agent_id: str
+    prompt: str
+    model: str
+    status: JobStatus
+    created_at: datetime
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    result: Optional[str] = None
+    error: Optional[str] = None
+    turns: int = 0
+    tokens_used: Optional[int] = None
+
+
+class JobListResponse(BaseModel):
+    """Response for job listing."""
+    jobs: list[Job]
+    total: int = 0

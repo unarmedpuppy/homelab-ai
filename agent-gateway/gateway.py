@@ -2,6 +2,7 @@
 import logging
 import os
 from contextlib import asynccontextmanager
+from datetime import datetime
 from typing import Optional
 
 import httpx
@@ -11,7 +12,7 @@ from pydantic import BaseModel
 
 from config import load_config
 from health import HealthMonitor
-from models import Agent, AgentDetails, AgentStatus, FleetStats
+from models import Agent, AgentDetails, AgentStatus, FleetStats, Job, JobCreateRequest, JobListResponse, JobStatus
 
 
 class ContextResponse(BaseModel):
@@ -118,6 +119,8 @@ async def root():
             "agent_context": "/api/agents/{id}/context",
             "agent_check": "/api/agents/{id}/check",
             "stats": "/api/agents/stats",
+            "jobs": "/api/jobs",
+            "job_detail": "/api/jobs/{id}",
             "docs": "/docs",
         },
     }
@@ -408,6 +411,256 @@ async def get_agent_sessions(
     except Exception as e:
         logger.exception(f"Error fetching sessions from agent {agent_id}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# =============================================================================
+# Job Proxy Endpoints
+# =============================================================================
+
+
+@app.post("/api/jobs", response_model=Job)
+async def create_job(request: JobCreateRequest):
+    """
+    Create a new job on an agent.
+
+    Proxies the request to the agent's /v1/jobs endpoint.
+    Requires agent to be online.
+    """
+    if not health_monitor:
+        raise HTTPException(status_code=503, detail="Health monitor not initialized")
+
+    agent = health_monitor.get_agent(request.agent_id)
+    if not agent:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Agent '{request.agent_id}' not found in registry"
+        )
+
+    if agent.health.status != AgentStatus.ONLINE:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Agent '{request.agent_id}' is offline. Cannot create job.",
+        )
+
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            response = await client.post(
+                f"{agent.endpoint}/v1/jobs",
+                json={
+                    "prompt": request.prompt,
+                    "model": request.model,
+                    "working_directory": request.working_directory,
+                    "allowed_tools": request.allowed_tools,
+                    "max_turns": request.max_turns,
+                },
+            )
+
+            if response.status_code == 200 or response.status_code == 201:
+                data = response.json()
+                return Job(
+                    job_id=data.get("job_id", ""),
+                    agent_id=request.agent_id,
+                    prompt=request.prompt,
+                    model=request.model,
+                    status=JobStatus(data.get("status", "pending")),
+                    created_at=data.get("created_at", datetime.utcnow().isoformat()),
+                    started_at=data.get("started_at"),
+                    completed_at=data.get("completed_at"),
+                    result=data.get("result"),
+                    error=data.get("error"),
+                    turns=data.get("turns", 0),
+                    tokens_used=data.get("tokens_used"),
+                )
+            else:
+                raise HTTPException(
+                    status_code=response.status_code,
+                    detail=f"Agent returned error: {response.text}",
+                )
+
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=504, detail="Request to agent timed out")
+    except httpx.ConnectError:
+        raise HTTPException(status_code=503, detail="Failed to connect to agent")
+    except Exception as e:
+        logger.exception(f"Error creating job on agent {request.agent_id}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/jobs", response_model=JobListResponse)
+async def list_jobs(
+    agent_id: Optional[str] = None,
+    status: Optional[str] = None,
+    limit: int = 50,
+):
+    """
+    List jobs across all agents or filter by agent.
+
+    Queries each online agent's /v1/jobs endpoint and aggregates results.
+    """
+    if not health_monitor:
+        raise HTTPException(status_code=503, detail="Health monitor not initialized")
+
+    all_jobs: list[Job] = []
+    agents = health_monitor.get_all_agents()
+
+    # Filter by agent_id if provided
+    if agent_id:
+        agents = [a for a in agents if a.id == agent_id]
+        if not agents:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Agent '{agent_id}' not found in registry"
+            )
+
+    # Query each online agent
+    async with httpx.AsyncClient(timeout=10) as client:
+        for agent in agents:
+            if agent.health.status != AgentStatus.ONLINE:
+                continue
+
+            try:
+                params = {"limit": limit}
+                if status:
+                    params["status"] = status
+
+                response = await client.get(
+                    f"{agent.endpoint}/v1/jobs",
+                    params=params,
+                )
+
+                if response.status_code == 200:
+                    data = response.json()
+                    jobs_data = data.get("jobs", [])
+                    for job_data in jobs_data:
+                        all_jobs.append(Job(
+                            job_id=job_data.get("job_id", ""),
+                            agent_id=agent.id,
+                            prompt=job_data.get("prompt", ""),
+                            model=job_data.get("model", ""),
+                            status=JobStatus(job_data.get("status", "pending")),
+                            created_at=job_data.get("created_at", datetime.utcnow().isoformat()),
+                            started_at=job_data.get("started_at"),
+                            completed_at=job_data.get("completed_at"),
+                            result=job_data.get("result"),
+                            error=job_data.get("error"),
+                            turns=job_data.get("turns", 0),
+                            tokens_used=job_data.get("tokens_used"),
+                        ))
+
+            except Exception as e:
+                logger.warning(f"Failed to fetch jobs from agent {agent.id}: {e}")
+                continue
+
+    # Sort by created_at descending
+    all_jobs.sort(key=lambda j: j.created_at, reverse=True)
+
+    # Apply limit
+    all_jobs = all_jobs[:limit]
+
+    return JobListResponse(jobs=all_jobs, total=len(all_jobs))
+
+
+@app.get("/api/jobs/{job_id}", response_model=Job)
+async def get_job(job_id: str, agent_id: Optional[str] = None):
+    """
+    Get job status by ID.
+
+    If agent_id is provided, queries that agent directly.
+    Otherwise, searches all online agents.
+    """
+    if not health_monitor:
+        raise HTTPException(status_code=503, detail="Health monitor not initialized")
+
+    agents = health_monitor.get_all_agents()
+
+    # If agent_id provided, only check that agent
+    if agent_id:
+        agents = [a for a in agents if a.id == agent_id]
+        if not agents:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Agent '{agent_id}' not found in registry"
+            )
+
+    async with httpx.AsyncClient(timeout=10) as client:
+        for agent in agents:
+            if agent.health.status != AgentStatus.ONLINE:
+                continue
+
+            try:
+                response = await client.get(
+                    f"{agent.endpoint}/v1/jobs/{job_id}",
+                )
+
+                if response.status_code == 200:
+                    data = response.json()
+                    return Job(
+                        job_id=data.get("job_id", job_id),
+                        agent_id=agent.id,
+                        prompt=data.get("prompt", ""),
+                        model=data.get("model", ""),
+                        status=JobStatus(data.get("status", "pending")),
+                        created_at=data.get("created_at", datetime.utcnow().isoformat()),
+                        started_at=data.get("started_at"),
+                        completed_at=data.get("completed_at"),
+                        result=data.get("result"),
+                        error=data.get("error"),
+                        turns=data.get("turns", 0),
+                        tokens_used=data.get("tokens_used"),
+                    )
+
+            except Exception as e:
+                logger.debug(f"Job {job_id} not found on agent {agent.id}: {e}")
+                continue
+
+    raise HTTPException(status_code=404, detail=f"Job '{job_id}' not found")
+
+
+@app.delete("/api/jobs/{job_id}")
+async def cancel_job(job_id: str, agent_id: Optional[str] = None):
+    """
+    Cancel a job by ID.
+
+    If agent_id is provided, sends cancel to that agent directly.
+    Otherwise, searches all online agents for the job.
+    """
+    if not health_monitor:
+        raise HTTPException(status_code=503, detail="Health monitor not initialized")
+
+    agents = health_monitor.get_all_agents()
+
+    # If agent_id provided, only check that agent
+    if agent_id:
+        agents = [a for a in agents if a.id == agent_id]
+        if not agents:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Agent '{agent_id}' not found in registry"
+            )
+
+    async with httpx.AsyncClient(timeout=10) as client:
+        for agent in agents:
+            if agent.health.status != AgentStatus.ONLINE:
+                continue
+
+            try:
+                response = await client.delete(
+                    f"{agent.endpoint}/v1/jobs/{job_id}",
+                )
+
+                if response.status_code == 200:
+                    return {
+                        "job_id": job_id,
+                        "agent_id": agent.id,
+                        "status": "cancelled",
+                        "message": "Job cancelled successfully",
+                    }
+
+            except Exception as e:
+                logger.debug(f"Failed to cancel job {job_id} on agent {agent.id}: {e}")
+                continue
+
+    raise HTTPException(status_code=404, detail=f"Job '{job_id}' not found")
 
 
 if __name__ == "__main__":

@@ -753,6 +753,13 @@ import type {
   FleetStats,
 } from '../types/agents';
 
+import type {
+  Job,
+  JobCreateRequest,
+  JobListResponse,
+  JobListParams,
+} from '../types/jobs';
+
 const AGENT_GATEWAY_URL = import.meta.env.VITE_AGENT_GATEWAY_URL || 'https://agent-gateway.server.unarmedpuppy.com';
 
 export const agentsAPI = {
@@ -838,6 +845,62 @@ export const agentsAPI = {
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to get agent sessions: ${response.statusText}`);
+    }
+    return response.json();
+  },
+};
+
+// Jobs API - Agent job management
+export const jobsAPI = {
+  create: async (request: JobCreateRequest): Promise<Job> => {
+    const response = await fetch(`${AGENT_GATEWAY_URL}/api/jobs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request),
+    });
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Failed to create job: ${error}`);
+    }
+    return response.json();
+  },
+
+  list: async (params?: JobListParams): Promise<JobListResponse> => {
+    const searchParams = new URLSearchParams();
+    if (params?.agent_id) searchParams.set('agent_id', params.agent_id);
+    if (params?.status) searchParams.set('status', params.status);
+    if (params?.limit) searchParams.set('limit', String(params.limit));
+
+    const url = `${AGENT_GATEWAY_URL}/api/jobs${searchParams.toString() ? `?${searchParams}` : ''}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to list jobs: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  get: async (jobId: string, agentId?: string): Promise<Job> => {
+    const searchParams = new URLSearchParams();
+    if (agentId) searchParams.set('agent_id', agentId);
+
+    const url = `${AGENT_GATEWAY_URL}/api/jobs/${jobId}${searchParams.toString() ? `?${searchParams}` : ''}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to get job: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  cancel: async (jobId: string, agentId?: string): Promise<{ job_id: string; agent_id: string; status: string; message: string }> => {
+    const searchParams = new URLSearchParams();
+    if (agentId) searchParams.set('agent_id', agentId);
+
+    const url = `${AGENT_GATEWAY_URL}/api/jobs/${jobId}${searchParams.toString() ? `?${searchParams}` : ''}`;
+    const response = await fetch(url, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to cancel job: ${response.statusText}`);
     }
     return response.json();
   },

@@ -1,5 +1,5 @@
 export interface RetroProgressProps {
-  value: number; // 0-100
+  value: number; // 0-100, or -1 for indeterminate
   showLabel?: boolean;
   variant?: 'default' | 'success' | 'warning' | 'danger';
   size?: 'sm' | 'md';
@@ -15,7 +15,8 @@ export function RetroProgress({
   segments = 10,
   className = '',
 }: RetroProgressProps) {
-  const clampedValue = Math.min(100, Math.max(0, value));
+  const isIndeterminate = value < 0;
+  const clampedValue = isIndeterminate ? 0 : Math.min(100, Math.max(0, value));
 
   // Calculate how many segments should be filled
   const filledSegments = Math.round((clampedValue / 100) * segments);
@@ -47,26 +48,40 @@ export function RetroProgress({
           padding: '2px',
           flex: 1,
           borderRadius: 'var(--retro-radius-sm)',
+          overflow: 'hidden',
         }}
       >
-        {Array.from({ length: segments }, (_, index) => {
-          const isFilled = index < filledSegments;
-          return (
-            <div
-              key={index}
-              className="retro-progress__segment"
-              style={{
-                flex: 1,
-                height: segmentHeight,
-                background: isFilled ? fillColor : 'var(--retro-bg-medium)',
-                transition: 'background 0.2s ease',
-                borderRadius: '1px',
-              }}
-            />
-          );
-        })}
+        {isIndeterminate ? (
+          <div
+            className="retro-progress__indeterminate"
+            style={{
+              width: '30%',
+              height: segmentHeight,
+              background: fillColor,
+              borderRadius: '1px',
+              animation: 'retro-progress-indeterminate 1.5s ease-in-out infinite',
+            }}
+          />
+        ) : (
+          Array.from({ length: segments }, (_, index) => {
+            const isFilled = index < filledSegments;
+            return (
+              <div
+                key={index}
+                className="retro-progress__segment"
+                style={{
+                  flex: 1,
+                  height: segmentHeight,
+                  background: isFilled ? fillColor : 'var(--retro-bg-medium)',
+                  transition: 'background 0.2s ease',
+                  borderRadius: '1px',
+                }}
+              />
+            );
+          })
+        )}
       </div>
-      {showLabel && (
+      {showLabel && !isIndeterminate && (
         <span className="text-xs font-bold text-[var(--retro-text-secondary)] min-w-[3ch] text-right">
           {Math.round(clampedValue)}%
         </span>

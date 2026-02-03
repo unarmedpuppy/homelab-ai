@@ -1048,6 +1048,15 @@
   animation: retro-glow-pulse 2s ease-in-out infinite;
 }
 
+@keyframes retro-progress-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
 /* Task Detail Panel - Slide-in animation */
 @keyframes retro-slide-in-right {
   from {

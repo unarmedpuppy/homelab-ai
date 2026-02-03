@@ -6,6 +6,7 @@ import { useVisibilityPolling } from '../../hooks/useDocumentVisibility';
 import { FleetOverview } from './FleetOverview';
 import { AgentCard } from './AgentCard';
 import { AgentDetailPanel } from './AgentDetailPanel';
+import { JobQueuePanel, CreateJobModal } from '../jobs';
 
 const POLL_INTERVAL = 30000; // 30 seconds
 
@@ -16,6 +17,7 @@ export function AgentsDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [checkingAgent, setCheckingAgent] = useState<string | null>(null);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+  const [showCreateJob, setShowCreateJob] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -180,6 +182,16 @@ export function AgentsDashboard() {
             </div>
           )}
         </RetroPanel>
+
+        {/* Job Queue */}
+        <JobQueuePanel onCreateJob={() => setShowCreateJob(true)} />
+
+        {/* Create Job Modal */}
+        <CreateJobModal
+          isOpen={showCreateJob}
+          onClose={() => setShowCreateJob(false)}
+          agents={agents}
+        />
 
         {/* Last updated indicator */}
         {stats?.last_updated && (
