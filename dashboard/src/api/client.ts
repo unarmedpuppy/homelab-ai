@@ -584,12 +584,12 @@ import type {
   RalphStartResponse,
   RalphLogs,
 } from '../types/ralph';
-// Claude Harness base URL - can be overridden via environment
-const CLAUDE_HARNESS_URL = import.meta.env.VITE_CLAUDE_HARNESS_URL || 'https://claude-harness.server.unarmedpuppy.com';
+// Agent Harness base URL - can be overridden via environment
+const AGENT_HARNESS_URL = import.meta.env.VITE_AGENT_HARNESS_URL || 'https://agent-harness.server.unarmedpuppy.com';
 
 export const ralphAPI = {
   getStatus: async (): Promise<RalphStatus> => {
-    const response = await fetch(`${CLAUDE_HARNESS_URL}/v1/ralph/status`);
+    const response = await fetch(`${AGENT_HARNESS_URL}/v1/ralph/status`);
     if (!response.ok) {
       throw new Error(`Failed to get Ralph status: ${response.statusText}`);
     }
@@ -597,7 +597,7 @@ export const ralphAPI = {
   },
 
   start: async (params: RalphStartParams): Promise<RalphStartResponse> => {
-    const response = await fetch(`${CLAUDE_HARNESS_URL}/v1/ralph/start`, {
+    const response = await fetch(`${AGENT_HARNESS_URL}/v1/ralph/start`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(params),
@@ -610,7 +610,7 @@ export const ralphAPI = {
   },
 
   stop: async (): Promise<{ message: string }> => {
-    const response = await fetch(`${CLAUDE_HARNESS_URL}/v1/ralph/stop`, {
+    const response = await fetch(`${AGENT_HARNESS_URL}/v1/ralph/stop`, {
       method: 'POST',
     });
     if (!response.ok) {
@@ -620,7 +620,7 @@ export const ralphAPI = {
   },
 
   getLogs: async (lines: number = 100): Promise<RalphLogs> => {
-    const response = await fetch(`${CLAUDE_HARNESS_URL}/v1/ralph/logs?lines=${lines}`);
+    const response = await fetch(`${AGENT_HARNESS_URL}/v1/ralph/logs?lines=${lines}`);
     if (!response.ok) {
       throw new Error(`Failed to get Ralph logs: ${response.statusText}`);
     }
