@@ -94,9 +94,9 @@ services:
       - "homepage.href=http://${SERVER_IP:-localhost}:8015/status"
       - "homepage.description=Always-on LLM on RTX 3070"
 
-  agent-gateway:
-    image: ${HARBOR_REGISTRY:-harbor.local}/library/agent-gateway:latest
-    container_name: agent-gateway
+  fleet-gateway:
+    image: ${HARBOR_REGISTRY:-harbor.local}/library/fleet-gateway:latest
+    container_name: fleet-gateway
     restart: unless-stopped
     ports:
       - "8016:8016"
@@ -107,14 +107,14 @@ services:
       - my-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.agent-gateway.rule=Host(`agent-gateway.${DOMAIN:-localhost}`)"
-      - "traefik.http.routers.agent-gateway.entrypoints=websecure"
-      - "traefik.http.routers.agent-gateway.tls.certresolver=myresolver"
-      - "traefik.http.services.agent-gateway.loadbalancer.server.port=8016"
+      - "traefik.http.routers.fleet-gateway.rule=Host(`fleet-gateway.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.fleet-gateway.entrypoints=websecure"
+      - "traefik.http.routers.fleet-gateway.tls.certresolver=myresolver"
+      - "traefik.http.services.fleet-gateway.loadbalancer.server.port=8016"
       - "homepage.group=AI"
-      - "homepage.name=Agent Gateway"
+      - "homepage.name=Fleet Gateway"
       - "homepage.icon=mdi-robot"
-      - "homepage.href=https://agent-gateway.${DOMAIN:-localhost}/health"
+      - "homepage.href=https://fleet-gateway.${DOMAIN:-localhost}/health"
       - "homepage.description=Fleet status aggregator for agents"
       - "com.centurylinklabs.watchtower.enable=true"
 

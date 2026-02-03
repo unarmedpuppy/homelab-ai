@@ -760,7 +760,7 @@ import type {
   JobListParams,
 } from '../types/jobs';
 
-const AGENT_GATEWAY_URL = import.meta.env.VITE_AGENT_GATEWAY_URL || 'https://agent-gateway.server.unarmedpuppy.com';
+const FLEET_GATEWAY_URL = import.meta.env.VITE_FLEET_GATEWAY_URL || 'https://fleet-gateway.server.unarmedpuppy.com';
 
 export const agentsAPI = {
   list: async (params?: { status?: string; tag?: string }): Promise<Agent[]> => {
@@ -768,7 +768,7 @@ export const agentsAPI = {
     if (params?.status) searchParams.set('status', params.status);
     if (params?.tag) searchParams.set('tag', params.tag);
 
-    const url = `${AGENT_GATEWAY_URL}/api/agents${searchParams.toString() ? `?${searchParams}` : ''}`;
+    const url = `${FLEET_GATEWAY_URL}/api/agents${searchParams.toString() ? `?${searchParams}` : ''}`;
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to list agents: ${response.statusText}`);
@@ -777,7 +777,7 @@ export const agentsAPI = {
   },
 
   get: async (agentId: string): Promise<AgentDetails> => {
-    const response = await fetch(`${AGENT_GATEWAY_URL}/api/agents/${agentId}`);
+    const response = await fetch(`${FLEET_GATEWAY_URL}/api/agents/${agentId}`);
     if (!response.ok) {
       throw new Error(`Failed to get agent: ${response.statusText}`);
     }
@@ -785,7 +785,7 @@ export const agentsAPI = {
   },
 
   getStats: async (): Promise<FleetStats> => {
-    const response = await fetch(`${AGENT_GATEWAY_URL}/api/agents/stats`);
+    const response = await fetch(`${FLEET_GATEWAY_URL}/api/agents/stats`);
     if (!response.ok) {
       throw new Error(`Failed to get fleet stats: ${response.statusText}`);
     }
@@ -793,7 +793,7 @@ export const agentsAPI = {
   },
 
   forceCheck: async (agentId: string): Promise<{ agent_id: string; status: string; last_check: string | null; error: string | null }> => {
-    const response = await fetch(`${AGENT_GATEWAY_URL}/api/agents/${agentId}/check`, {
+    const response = await fetch(`${FLEET_GATEWAY_URL}/api/agents/${agentId}/check`, {
       method: 'POST',
     });
     if (!response.ok) {
@@ -803,7 +803,7 @@ export const agentsAPI = {
   },
 
   getContext: async (agentId: string): Promise<{ content: string; last_modified: string | null; size_bytes: number }> => {
-    const response = await fetch(`${AGENT_GATEWAY_URL}/api/agents/${agentId}/context`);
+    const response = await fetch(`${FLEET_GATEWAY_URL}/api/agents/${agentId}/context`);
     if (!response.ok) {
       throw new Error(`Failed to get agent context: ${response.statusText}`);
     }
@@ -811,7 +811,7 @@ export const agentsAPI = {
   },
 
   updateContext: async (agentId: string, content: string): Promise<{ content: string; last_modified: string | null; size_bytes: number }> => {
-    const response = await fetch(`${AGENT_GATEWAY_URL}/api/agents/${agentId}/context`, {
+    const response = await fetch(`${FLEET_GATEWAY_URL}/api/agents/${agentId}/context`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content }),
@@ -841,7 +841,7 @@ export const agentsAPI = {
     if (params?.limit) searchParams.set('limit', String(params.limit));
     if (params?.offset) searchParams.set('offset', String(params.offset));
 
-    const url = `${AGENT_GATEWAY_URL}/api/agents/${agentId}/sessions${searchParams.toString() ? `?${searchParams}` : ''}`;
+    const url = `${FLEET_GATEWAY_URL}/api/agents/${agentId}/sessions${searchParams.toString() ? `?${searchParams}` : ''}`;
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to get agent sessions: ${response.statusText}`);
@@ -853,7 +853,7 @@ export const agentsAPI = {
 // Jobs API - Agent job management
 export const jobsAPI = {
   create: async (request: JobCreateRequest): Promise<Job> => {
-    const response = await fetch(`${AGENT_GATEWAY_URL}/api/jobs`, {
+    const response = await fetch(`${FLEET_GATEWAY_URL}/api/jobs`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(request),
@@ -871,7 +871,7 @@ export const jobsAPI = {
     if (params?.status) searchParams.set('status', params.status);
     if (params?.limit) searchParams.set('limit', String(params.limit));
 
-    const url = `${AGENT_GATEWAY_URL}/api/jobs${searchParams.toString() ? `?${searchParams}` : ''}`;
+    const url = `${FLEET_GATEWAY_URL}/api/jobs${searchParams.toString() ? `?${searchParams}` : ''}`;
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to list jobs: ${response.statusText}`);
@@ -883,7 +883,7 @@ export const jobsAPI = {
     const searchParams = new URLSearchParams();
     if (agentId) searchParams.set('agent_id', agentId);
 
-    const url = `${AGENT_GATEWAY_URL}/api/jobs/${jobId}${searchParams.toString() ? `?${searchParams}` : ''}`;
+    const url = `${FLEET_GATEWAY_URL}/api/jobs/${jobId}${searchParams.toString() ? `?${searchParams}` : ''}`;
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to get job: ${response.statusText}`);
@@ -895,7 +895,7 @@ export const jobsAPI = {
     const searchParams = new URLSearchParams();
     if (agentId) searchParams.set('agent_id', agentId);
 
-    const url = `${AGENT_GATEWAY_URL}/api/jobs/${jobId}${searchParams.toString() ? `?${searchParams}` : ''}`;
+    const url = `${FLEET_GATEWAY_URL}/api/jobs/${jobId}${searchParams.toString() ? `?${searchParams}` : ''}`;
     const response = await fetch(url, {
       method: 'DELETE',
     });
