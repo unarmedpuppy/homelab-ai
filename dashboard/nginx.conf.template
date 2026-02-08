@@ -18,7 +18,7 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header Authorization "Bearer ${LOCAL_AI_API_KEY}";
         proxy_set_header X-Enhanced-Streaming "true";
-        
+
         # SSE streaming support
         proxy_buffering off;
         proxy_cache off;
@@ -26,7 +26,14 @@ server {
         chunked_transfer_encoding on;
     }
 
+    # No-cache for PWA files
+    location = /manifest.json {
+        add_header Cache-Control "no-cache";
+    }
 
+    location = /sw.js {
+        add_header Cache-Control "no-cache";
+    }
 
     # SPA routing - serve index.html for all routes
     location / {

@@ -10,34 +10,19 @@ interface NavItem {
 }
 
 const defaultNavItems: NavItem[] = [
-  { to: '/', icon: '💬', label: 'Chat', view: 'chat' },
+  { to: '/chat', icon: '💬', label: 'Chat', view: 'chat' },
   { to: '/tasks', icon: '📋', label: 'Tasks', view: 'tasks' },
   { to: '/ralph', icon: '🔄', label: 'Ralph', view: 'ralph' },
   { to: '/agents', icon: '🤖', label: 'Agents', view: 'agents' },
 ];
 
 export interface MobileNavProps {
-  /** Currently active view - auto-detected from URL if not provided */
   currentView?: MobileNavView;
-  /** Custom navigation items - uses default if not provided */
   items?: NavItem[];
-  /** Additional CSS classes */
   className?: string;
-  /** Whether to show the navigation (defaults to true) */
   visible?: boolean;
 }
 
-/**
- * Mobile-only bottom navigation bar.
- * Displays a sticky bottom bar with navigation icons.
- * Hidden on desktop (>= 640px) via CSS class.
- *
- * Layout:
- * ┌─────────────────────────────────────┐
- * │  💬   🔄   🔌   🤖                 │
- * │ Chat Ralph Prov Agents             │
- * └─────────────────────────────────────┘
- */
 export function MobileNav({
   currentView,
   items = defaultNavItems,
@@ -46,12 +31,11 @@ export function MobileNav({
 }: MobileNavProps) {
   const location = useLocation();
 
-  // Auto-detect current view from URL if not provided
   const getCurrentView = (): MobileNavView => {
     if (currentView) return currentView;
 
     const path = location.pathname;
-    if (path === '/' || path.startsWith('/chat')) return 'chat';
+    if (path.startsWith('/chat')) return 'chat';
     if (path.startsWith('/tasks')) return 'tasks';
     if (path.startsWith('/ralph')) return 'ralph';
     if (path.startsWith('/providers')) return 'providers';

@@ -3,9 +3,10 @@ import type { ReactNode } from 'react';
 import { Routes, Route, useNavigate, useParams, Link } from 'react-router-dom';
 import { MobileNav, PageLoading } from './components/ui';
 import { useIsMobile } from './hooks/useMediaQuery';
+import { CleanLayout } from './components/clean/CleanLayout';
 
 // Lazy-loaded components for code splitting
-// Chat-related components are loaded immediately since Chat is the default view
+// Chat-related components are loaded immediately since Chat is a primary view
 import ChatInterface from './components/ChatInterface';
 import ConversationSidebar from './components/ConversationSidebar';
 
@@ -16,11 +17,14 @@ const RalphDashboard = lazy(() => import('./components/ralph/RalphDashboard'));
 const TasksDashboard = lazy(() => import('./components/tasks/TasksDashboard'));
 const AgentsDashboard = lazy(() => import('./components/agents/AgentsDashboard'));
 
+// Clean pages (lazy)
+const HomePage = lazy(() => import('./pages/HomePage'));
+const EmailsPage = lazy(() => import('./pages/reference/EmailsPage'));
+const GettingStartedPage = lazy(() => import('./pages/reference/GettingStartedPage'));
+const TroubleshootingPage = lazy(() => import('./pages/reference/TroubleshootingPage'));
+
 type ViewName = 'chat' | 'ralph' | 'tasks' | 'providers' | 'stats' | 'agents';
 
-/**
- * Shared application header with retro styling.
- */
 function AppHeader() {
   return (
     <div className="p-6 border-b border-[var(--retro-border)]">
@@ -31,12 +35,9 @@ function AppHeader() {
   );
 }
 
-/**
- * Desktop sidebar navigation with retro styling.
- */
 function AppNavigation({ currentView }: { currentView: ViewName }) {
   const navItems: { to: string; view: ViewName; icon: string; label: string }[] = [
-    { to: '/', view: 'chat', icon: '💬', label: 'Chat' },
+    { to: '/chat', view: 'chat', icon: '💬', label: 'Chat' },
     { to: '/tasks', view: 'tasks', icon: '📋', label: 'Tasks' },
     { to: '/ralph', view: 'ralph', icon: '🔄', label: 'Ralph' },
     { to: '/providers', view: 'providers', icon: '🔌', label: 'Providers' },
@@ -46,6 +47,12 @@ function AppNavigation({ currentView }: { currentView: ViewName }) {
 
   return (
     <nav className="p-4 border-b border-[var(--retro-border)] space-y-2">
+      <Link
+        to="/"
+        className="block w-full px-4 py-2 rounded text-sm font-medium transition-colors text-left text-[var(--retro-text-secondary)] hover:text-[var(--retro-text-primary)] hover:bg-[var(--retro-bg-light)]"
+      >
+        🏠 Home
+      </Link>
       {navItems.map((item) => (
         <Link
           key={item.view}
@@ -68,20 +75,11 @@ function AppNavigation({ currentView }: { currentView: ViewName }) {
 interface AppLayoutProps {
   children: ReactNode;
   currentView: ViewName;
-  /** Additional sidebar content (e.g., ConversationSidebar for chat view) */
   sidebarContent?: ReactNode;
-  /** Whether to use overflow-auto (scrollable) or overflow-hidden for main content */
   scrollable?: boolean;
-  /** Whether to wrap content in a max-width container with padding */
   withContainer?: boolean;
 }
 
-/**
- * Shared layout component with responsive sidebar and mobile navigation.
- *
- * Desktop (>= 640px): Shows sidebar with header, navigation, and optional content
- * Mobile (< 640px): Shows mobile header with hamburger menu + bottom MobileNav
- */
 function AppLayout({
   children,
   currentView,
@@ -101,7 +99,7 @@ function AppLayout({
   }, []);
 
   return (
-    <div className="flex flex-col h-screen bg-[var(--retro-bg-dark)]">
+    <div className="theme-retro flex flex-col h-screen bg-[var(--retro-bg-dark)]">
       <div className="flex flex-1 overflow-hidden">
         {/* Desktop Sidebar */}
         {!isMobile && (
@@ -191,15 +189,12 @@ function AppLayout({
   );
 }
 
-/**
- * Chat view with conversation sidebar.
- */
 function ChatView() {
   const { conversationId } = useParams<{ conversationId?: string }>();
   const navigate = useNavigate();
 
   const handleNewChat = () => {
-    navigate('/');
+    navigate('/chat');
   };
 
   const handleSelectConversation = (id: string) => {
@@ -222,9 +217,6 @@ function ChatView() {
   );
 }
 
-/**
- * Tasks management dashboard.
- */
 function TasksView() {
   return (
     <AppLayout currentView="tasks">
@@ -235,9 +227,6 @@ function TasksView() {
   );
 }
 
-/**
- * Ralph Wiggum autonomous agent loops dashboard.
- */
 function RalphView() {
   return (
     <AppLayout currentView="ralph">
@@ -248,9 +237,6 @@ function RalphView() {
   );
 }
 
-/**
- * Provider monitoring view.
- */
 function ProvidersView() {
   return (
     <AppLayout currentView="providers" scrollable withContainer>
@@ -262,9 +248,6 @@ function ProvidersView() {
   );
 }
 
-/**
- * Stats/metrics dashboard view.
- */
 function StatsView() {
   return (
     <AppLayout currentView="stats" scrollable withContainer>
@@ -275,9 +258,6 @@ function StatsView() {
   );
 }
 
-/**
- * Agent fleet dashboard view.
- */
 function AgentsView() {
   return (
     <AppLayout currentView="agents">
@@ -288,10 +268,27 @@ function AgentsView() {
   );
 }
 
+function CleanPage({ children }: { children: ReactNode }) {
+  return (
+    <CleanLayout>
+      <Suspense fallback={<div style={{ padding: '2rem', color: 'var(--clean-text-muted)' }}>Loading...</div>}>
+        {children}
+      </Suspense>
+    </CleanLayout>
+  );
+}
+
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<ChatView />} />
+      {/* Clean theme routes */}
+      <Route path="/" element={<CleanPage><HomePage /></CleanPage>} />
+      <Route path="/reference/emails" element={<CleanPage><EmailsPage /></CleanPage>} />
+      <Route path="/reference/getting-started" element={<CleanPage><GettingStartedPage /></CleanPage>} />
+      <Route path="/reference/troubleshooting" element={<CleanPage><TroubleshootingPage /></CleanPage>} />
+
+      {/* Retro theme routes */}
+      <Route path="/chat" element={<ChatView />} />
       <Route path="/chat/:conversationId" element={<ChatView />} />
       <Route path="/tasks" element={<TasksView />} />
       <Route path="/ralph" element={<RalphView />} />

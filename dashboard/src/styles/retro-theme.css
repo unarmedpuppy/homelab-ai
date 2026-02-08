@@ -1,6 +1,6 @@
 /* Retro Theme - Command Center UI Design System */
 
-:root {
+.theme-retro {
   /* Background colors - dark terminal aesthetic */
   --retro-bg-dark: #0a0a0f;
   --retro-bg-medium: #12121a;

@@ -326,6 +326,32 @@ async def root():
     }
 
 
+@app.get("/services")
+async def get_services():
+    """Return homelab service definitions for dashboard and iOS app."""
+    return {
+        "services": [
+            {"id": "plex", "name": "Movies & TV", "appName": "Plex", "url": "https://plex.server.unarmedpuppy.com", "category": "media", "icon": "film", "description": "Watch movies and TV shows"},
+            {"id": "overseerr", "name": "Request Media", "appName": "Overseerr", "url": "https://overseerr.server.unarmedpuppy.com", "category": "media", "icon": "plus.circle", "description": "Request new movies and shows"},
+            {"id": "mealie", "name": "Recipes", "appName": "Mealie", "url": "https://recipes.server.unarmedpuppy.com", "category": "home", "icon": "fork.knife", "description": "Meal planning and recipes"},
+            {"id": "homeassistant", "name": "Smart Home", "appName": "Home Assistant", "url": "https://homeassistant.server.unarmedpuppy.com", "category": "home", "icon": "house", "description": "Lights, automations, and more"},
+            {"id": "frigate", "name": "Security Cameras", "appName": "Frigate", "url": "https://frigate.server.unarmedpuppy.com", "category": "home", "icon": "video", "description": "Live feeds and motion detection"},
+            {"id": "immich", "name": "Photos", "appName": "Immich", "url": "https://photos.server.unarmedpuppy.com", "category": "docs", "icon": "photo", "description": "Photo backup and browsing"},
+            {"id": "paperless", "name": "Documents", "appName": "Paperless", "url": "https://paperless.server.unarmedpuppy.com", "category": "docs", "icon": "doc.text", "description": "Scanned document management"},
+            {"id": "planka", "name": "Project Board", "appName": "Planka", "url": "https://planka.server.unarmedpuppy.com", "category": "productivity", "icon": "checklist", "description": "Kanban-style project management"},
+            {"id": "vaultwarden", "name": "Passwords", "appName": "Vaultwarden", "url": "https://vaultwarden.server.unarmedpuppy.com", "category": "productivity", "icon": "lock.shield", "description": "Password manager"},
+            {"id": "ai-chat", "name": "AI Chat", "appName": "homelab-ai", "url": "/chat", "category": "ai", "icon": "brain", "description": "Chat with AI models"},
+        ],
+        "categories": [
+            {"id": "media", "name": "Media & Entertainment", "order": 1},
+            {"id": "home", "name": "Home & Kitchen", "order": 2},
+            {"id": "docs", "name": "Documents & Photos", "order": 3},
+            {"id": "productivity", "name": "Productivity & Security", "order": 4},
+            {"id": "ai", "name": "AI & Tools", "order": 5},
+        ],
+    }
+
+
 @app.get("/health")
 async def health_check() -> HealthResponse:
     """Health check with provider status."""
