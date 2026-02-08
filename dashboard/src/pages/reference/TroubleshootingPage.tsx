@@ -28,7 +28,7 @@ const faqs: FAQItem[] = [
   },
   {
     question: 'How to get help',
-    answer: "Text Joshua. For non-urgent things, you can also create a card on the Planka project board.",
+    answer: "Text Joshua or text Avery. For non-urgent things, you can also create a card on the Planka project board.",
   },
 ];
 

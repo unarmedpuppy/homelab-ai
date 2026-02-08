@@ -9,6 +9,8 @@ const personalEmails: EmailRow[] = [
   { email: 'email@jenquist.com', purpose: 'Joshua + Abigail' },
   { email: 'joshua@jenquist.com', purpose: 'Joshua' },
   { email: 'abigail@jenquist.com', purpose: 'Abigail' },
+  { email: 'ai@jenquist.com', purpose: 'Avery (AI assistant)' },
+  { email: 'aijenquist@gmail.com', purpose: 'Avery (AI assistant)' },
 ];
 
 const sharedEmails: EmailRow[] = [

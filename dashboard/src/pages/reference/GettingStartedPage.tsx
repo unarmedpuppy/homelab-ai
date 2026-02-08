@@ -74,7 +74,7 @@ const cards: RefCard[] = [
     title: 'Need Help?',
     body: (
       <>
-        Check the <Link to="/reference/troubleshooting">troubleshooting page</Link> for common issues, or text Joshua.
+        Check the <Link to="/reference/troubleshooting">troubleshooting page</Link> for common issues, text Joshua, or text Avery with questions.
       </>
     ),
   },
