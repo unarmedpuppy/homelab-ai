@@ -352,6 +352,67 @@ async def get_services():
     }
 
 
+# --- Push notification token storage ---
+PUSH_TOKENS_FILE = Path(os.getenv("DATA_PATH", "/data")) / "push_tokens.json"
+
+
+def _load_push_tokens() -> list[dict]:
+    if PUSH_TOKENS_FILE.exists():
+        try:
+            return json.loads(PUSH_TOKENS_FILE.read_text())
+        except (json.JSONDecodeError, OSError):
+            return []
+    return []
+
+
+def _save_push_tokens(tokens: list[dict]):
+    PUSH_TOKENS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    PUSH_TOKENS_FILE.write_text(json.dumps(tokens, indent=2))
+
+
+class PushTokenRequest(BaseModel):
+    token: str
+    platform: str = "ios"
+    device_name: Optional[str] = None
+    bundle_id: Optional[str] = None
+
+
+@app.post("/api/push/register")
+async def register_push_token(req: PushTokenRequest):
+    """Register or update a device push token."""
+    tokens = _load_push_tokens()
+    # Update existing token for this device or add new
+    existing = next((t for t in tokens if t["token"] == req.token), None)
+    if existing:
+        existing["device_name"] = req.device_name
+        existing["bundle_id"] = req.bundle_id
+        existing["platform"] = req.platform
+    else:
+        tokens.append({
+            "token": req.token,
+            "platform": req.platform,
+            "device_name": req.device_name,
+            "bundle_id": req.bundle_id,
+        })
+    _save_push_tokens(tokens)
+    return {"status": "ok", "total_tokens": len(tokens)}
+
+
+@app.get("/api/push/tokens")
+async def get_push_tokens():
+    """List all registered push tokens."""
+    return {"tokens": _load_push_tokens()}
+
+
+@app.delete("/api/push/tokens/{token}")
+async def delete_push_token(token: str):
+    """Remove a push token."""
+    tokens = _load_push_tokens()
+    tokens = [t for t in tokens if t["token"] != token]
+    _save_push_tokens(tokens)
+    return {"status": "ok", "total_tokens": len(tokens)}
+
+
 @app.get("/health")
 async def health_check() -> HealthResponse:
     """Health check with provider status."""
