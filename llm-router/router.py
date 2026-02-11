@@ -413,6 +413,87 @@ async def delete_push_token(token: str):
     return {"status": "ok", "total_tokens": len(tokens)}
 
 
+@app.get("/api/activity-feed")
+async def get_activity_feed(limit: int = 20, before: Optional[str] = None):
+    """Unified activity feed from homelab services."""
+    from database import get_db_connection
+    from datetime import datetime, timedelta
+
+    items = []
+
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cutoff = before or datetime.utcnow().isoformat()
+            feed_limit = min(limit, 50)
+
+            # Agent runs
+            cursor.execute("""
+                SELECT id, task, status, started_at, completed_at, duration_ms, source, total_steps
+                FROM agent_runs
+                WHERE started_at < ?
+                ORDER BY started_at DESC LIMIT ?
+            """, [cutoff, feed_limit])
+            for row in cursor.fetchall():
+                r = dict(row)
+                status_emoji = {"completed": "done", "failed": "error", "running": "active"}.get(r["status"], r["status"])
+                task_preview = (r["task"] or "")[:80]
+                items.append({
+                    "id": f"agent-{r['id']}",
+                    "service": "agent",
+                    "icon": "brain",
+                    "title": f"Agent: {task_preview}" if task_preview else "Agent Run",
+                    "description": f"{status_emoji} — {r['total_steps']} steps" + (f" in {r['duration_ms'] // 1000}s" if r.get('duration_ms') else ""),
+                    "timestamp": r["started_at"],
+                    "deepLink": "jenquisthome://tab/ai",
+                    "status": r["status"],
+                })
+
+            # Harness sessions (Ralph loops, task completions)
+            cursor.execute("""
+                SELECT id, source, event, label, task_title, timestamp, duration_ms, success
+                FROM harness_sessions
+                WHERE timestamp < ? AND event IN ('task_completed', 'task_failed', 'session_completed')
+                ORDER BY timestamp DESC LIMIT ?
+            """, [cutoff, feed_limit])
+            for row in cursor.fetchall():
+                r = dict(row)
+                title = r.get("task_title") or r.get("label") or r["event"].replace("_", " ").title()
+                source_label = r.get("source", "harness").title()
+                if r["event"] == "task_completed":
+                    desc = f"{source_label} completed task"
+                elif r["event"] == "task_failed":
+                    desc = f"{source_label} task failed"
+                else:
+                    dur = f" in {r['duration_ms'] // 1000}s" if r.get("duration_ms") else ""
+                    desc = f"{source_label} session finished{dur}"
+                items.append({
+                    "id": f"harness-{r['id']}",
+                    "service": "agent",
+                    "icon": "terminal",
+                    "title": title,
+                    "description": desc,
+                    "timestamp": r["timestamp"],
+                    "deepLink": "jenquisthome://tab/ai",
+                    "status": "completed" if r.get("success", True) else "failed",
+                })
+
+    except Exception as e:
+        logger.warning(f"Activity feed DB error: {e}")
+
+    # Sort all items by timestamp descending, take top N
+    items.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+    items = items[:feed_limit]
+
+    next_cursor = items[-1]["timestamp"] if items else None
+
+    return {
+        "items": items,
+        "next_cursor": next_cursor,
+        "has_more": len(items) == feed_limit,
+    }
+
+
 @app.get("/health")
 async def health_check() -> HealthResponse:
     """Health check with provider status."""
