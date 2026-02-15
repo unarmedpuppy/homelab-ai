@@ -445,7 +445,7 @@ async def get_activity_feed(limit: int = 20, before: Optional[str] = None):
                     "title": f"Agent: {task_preview}" if task_preview else "Agent Run",
                     "description": f"{status_emoji} — {r['total_steps']} steps" + (f" in {r['duration_ms'] // 1000}s" if r.get('duration_ms') else ""),
                     "timestamp": r["started_at"],
-                    "deepLink": "jenquisthome://tab/ai",
+                    "deepLink": "jenquisthome://service/ai-chat",
                     "status": r["status"],
                 })
 
@@ -474,7 +474,7 @@ async def get_activity_feed(limit: int = 20, before: Optional[str] = None):
                     "title": title,
                     "description": desc,
                     "timestamp": r["timestamp"],
-                    "deepLink": "jenquisthome://tab/ai",
+                    "deepLink": "jenquisthome://service/ai-chat",
                     "status": "completed" if r.get("success", True) else "failed",
                 })
 
@@ -491,6 +491,58 @@ async def get_activity_feed(limit: int = 20, before: Optional[str] = None):
         "items": items,
         "next_cursor": next_cursor,
         "has_more": len(items) == feed_limit,
+    }
+
+
+@app.get("/api/dashboard")
+async def get_dashboard(feed_limit: int = 20, feed_before: Optional[str] = None):
+    """Aggregated dashboard: server health + meal plan + activity feed."""
+    from service_feeds import fetch_frigate_events, fetch_immich_recent, fetch_mealie_today
+
+    # Parallel fetch everything
+    health_coro = health_check()
+    feed_coro = get_activity_feed(limit=feed_limit, before=feed_before)
+    frigate_coro = fetch_frigate_events(limit=10)
+    immich_coro = fetch_immich_recent(limit=10)
+    mealie_coro = fetch_mealie_today()
+
+    results = await asyncio.gather(
+        health_coro, feed_coro, frigate_coro, immich_coro, mealie_coro,
+        return_exceptions=True,
+    )
+
+    # Unpack results, using safe defaults on failure
+    health_result = results[0] if not isinstance(results[0], Exception) else None
+    feed_result = results[1] if not isinstance(results[1], Exception) else None
+    frigate_items = results[2] if not isinstance(results[2], Exception) else []
+    immich_items = results[3] if not isinstance(results[3], Exception) else []
+    mealie_meals = results[4] if not isinstance(results[4], Exception) else []
+
+    # Build server status
+    if health_result:
+        server = {
+            "status": health_result.status,
+            "backends": health_result.backends,
+        }
+    else:
+        server = {"status": "unknown", "backends": {}}
+
+    # Merge feed items from all sources
+    agent_items = feed_result.get("items", []) if isinstance(feed_result, dict) else []
+    all_items = agent_items + list(frigate_items) + list(immich_items)
+    all_items.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+    all_items = all_items[:feed_limit]
+
+    next_cursor = all_items[-1]["timestamp"] if all_items else None
+
+    return {
+        "server": server,
+        "meal_plan": {"meals": list(mealie_meals)},
+        "feed": {
+            "items": all_items,
+            "next_cursor": next_cursor,
+            "has_more": len(all_items) == feed_limit,
+        },
     }
 
 
