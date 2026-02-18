@@ -127,7 +127,11 @@ def create_vllm_container(model_id: str):
     
     existing = get_container(container_name)
     if existing:
-        return existing
+        if existing.status == "running":
+            return existing
+        # Remove dead/exited container so we can recreate it
+        print(f"[{model_id}] Removing dead container ({existing.status})")
+        existing.remove(force=True)
     
     cmd = [
         "--model", card["hf_model"],
@@ -156,7 +160,15 @@ def create_vllm_container(model_id: str):
     print(f"[{model_id}] Image: {VLLM_IMAGE}")
     print(f"[{model_id}] Network: {DOCKER_NETWORK}")
     print(f"[{model_id}] Command: {' '.join(cmd)}")
-    
+
+    # Pull image if not present
+    try:
+        docker_client.images.get(VLLM_IMAGE)
+    except docker.errors.ImageNotFound:
+        print(f"[{model_id}] Pulling image {VLLM_IMAGE}...")
+        docker_client.images.pull(VLLM_IMAGE)
+        print(f"[{model_id}] Image pulled successfully")
+
     try:
         container = docker_client.containers.create(
             image=VLLM_IMAGE,
@@ -238,11 +250,17 @@ async def start_model(model_id: str) -> bool:
     
     async with state["lock"]:
         container = get_container(state["container_name"])
-        
+
+        # Remove dead containers and recreate fresh (new image, clean state)
+        if container and container.status != "running":
+            print(f"[{model_id}] Removing stale container ({container.status})")
+            container.remove(force=True)
+            container = None
+
         # Create container if it doesn't exist
         if not container:
             container = create_vllm_container(model_id)
-        
+
         # Start if not running
         if container.status != "running":
             print(f"[{model_id}] Starting container...")
