@@ -259,11 +259,12 @@ async def route_request(request: Request, body: dict, priority: int = 1) -> Prov
         elif alias_target == "opencode-claude":
             requested_model = "claude-3-5-haiku"
 
-    # Token-based escalation for "auto" requests
-    if requested_model == "auto" and not requested_provider:
+    # Token-based escalation for "auto" requests - build fallback chain
+    is_auto = requested_model == "auto" and not requested_provider
+    if is_auto:
         token_estimate = estimate_tokens(body.get("messages", []))
         force_big = has_force_big_signal(request, body)
-        
+
         if force_big or token_estimate > SMALL_TOKEN_THRESHOLD:
             requested_model = "qwen2.5-14b-awq"
             logger.info(f"Escalating to 3090: force_big={force_big}, tokens={token_estimate}")
@@ -280,10 +281,7 @@ async def route_request(request: Request, body: dict, priority: int = 1) -> Prov
         )
 
         if not selection:
-            raise HTTPException(
-                status_code=503,
-                detail=f"No healthy provider available for model '{requested_model}'"
-            )
+            raise ValueError(f"No healthy provider available for model '{requested_model}'")
 
         logger.info(
             f"Routed to provider '{selection.provider.name}' "
@@ -293,12 +291,26 @@ async def route_request(request: Request, body: dict, priority: int = 1) -> Prov
 
         return selection
 
-    except Exception as e:
-        logger.error(f"Routing error: {e}")
-        raise HTTPException(
-            status_code=503,
-            detail=f"Failed to route request: {str(e)}"
-        )
+    except (ValueError, Exception) as e:
+        if not is_auto:
+            logger.error(f"Routing error: {e}")
+            raise HTTPException(status_code=503, detail=f"Failed to route request: {str(e)}")
+
+        # Auto mode: try all providers by priority
+        logger.warning(f"Primary auto route failed ({e}), trying fallback providers...")
+        all_providers = sorted(provider_manager.providers.values(), key=lambda p: p.priority)
+        for provider in all_providers:
+            if not provider.enabled or not provider.is_healthy:
+                continue
+            # Find default model for this provider
+            provider_models = [m for m in provider_manager.models.values() if m.provider_id == provider.id]
+            default_model = next((m for m in provider_models if m.is_default), None) or (provider_models[0] if provider_models else None)
+            if default_model:
+                logger.info(f"Auto fallback: routing to {provider.name} with {default_model.name}")
+                return ProviderSelection(provider=provider, model=default_model, reason=f"auto fallback (primary unavailable)")
+
+        logger.error("Auto routing: no providers available after fallback")
+        raise HTTPException(status_code=503, detail="No healthy providers available")
 
 
 @app.get("/")
