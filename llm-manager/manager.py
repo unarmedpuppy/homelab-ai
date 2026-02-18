@@ -358,7 +358,16 @@ app = FastAPI(
 
 @app.get("/health")
 async def health():
-    """Health check endpoint."""
+    """Health check endpoint - reports degraded if expected models aren't running."""
+    if MODE == "always-on" and DEFAULT_MODEL:
+        state = model_states.get(DEFAULT_MODEL)
+        if state:
+            container = get_container(state["container_name"])
+            if not (container and container.status == "running"):
+                return JSONResponse(
+                    status_code=503,
+                    content={"status": "degraded", "mode": MODE, "reason": f"Default model '{DEFAULT_MODEL}' is not running"}
+                )
     return {"status": "healthy", "mode": MODE}
 
 

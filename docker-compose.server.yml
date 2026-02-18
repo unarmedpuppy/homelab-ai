@@ -73,6 +73,7 @@ services:
       - DEFAULT_MODEL=qwen2.5-7b-awq
       - GAMING_MODE_ENABLED=false
       - IDLE_TIMEOUT=0
+      - GPU_MEMORY_UTILIZATION=0.85
       - VLLM_IMAGE=${HARBOR_REGISTRY:-harbor.local}/docker-hub/vllm/vllm-openai:latest
       - DOCKER_NETWORK=my-network
     volumes:

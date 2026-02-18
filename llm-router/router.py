@@ -901,7 +901,26 @@ async def chat_completions(
                         json=body,
                         headers=request_headers,
                     )
-                    response_data = response.json()
+
+                    if response.status_code != 200:
+                        error_detail = response.text[:500] if response.text else "Empty response"
+                        logger.error(
+                            f"Backend error from {selection.provider.name}: "
+                            f"HTTP {response.status_code} - {error_detail}"
+                        )
+                        raise HTTPException(
+                            status_code=502,
+                            detail=f"Backend {selection.provider.name} returned HTTP {response.status_code}: {error_detail}"
+                        )
+
+                    try:
+                        response_data = response.json()
+                    except Exception:
+                        logger.error(f"Backend {selection.provider.name} returned non-JSON response: {response.text[:200]}")
+                        raise HTTPException(
+                            status_code=502,
+                            detail=f"Backend {selection.provider.name} returned invalid response"
+                        )
 
                     response_data["provider"] = selection.provider.id
                     response_data["provider_name"] = selection.provider.name

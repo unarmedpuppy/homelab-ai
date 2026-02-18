@@ -294,10 +294,10 @@ models:
   # Claude Models (via Claude Harness - Claude Max subscription)
   # -------------------------------------------------------------------------
 
-  - id: claude-sonnet
-    name: "Claude Sonnet (via Claude Max)"
+  - id: claude-sonnet-4-5-20250929
+    name: "Claude Sonnet 4.5 (via Claude Max)"
     providerId: claude-harness
-    description: "Claude Sonnet via Claude Code CLI - uses Claude Max subscription"
+    description: "Claude Sonnet 4.5 via Claude Code CLI - uses Claude Max subscription"
     contextWindow: 200000
     maxTokens: 8192
     isDefault: true
@@ -319,10 +319,10 @@ models:
       - large-context
       - premium
 
-  - id: claude-opus-4
-    name: "Claude Opus 4 (via Claude Max)"
+  - id: claude-opus-4-6
+    name: "Claude Opus 4.6 (via Claude Max)"
     providerId: claude-harness
-    description: "Claude Opus 4 via Claude Code CLI - most capable model"
+    description: "Claude Opus 4.6 via Claude Code CLI - most capable model"
     contextWindow: 200000
     maxTokens: 32000
     isDefault: false
