@@ -4,7 +4,7 @@
       "id": "qwen2.5-7b-awq",
       "name": "Qwen 2.5 7B AWQ",
       "hf_model": "Qwen/Qwen2.5-7B-Instruct-AWQ",
-      "quantization": "awq",
+      "quantization": "awq_marlin",
       "type": "text",
       "vram_gb": 5,
       "max_context": 8192,

@@ -152,9 +152,13 @@ def create_vllm_container(model_id: str):
     cmd.extend(["--max-model-len", str(context_len)])
     cmd.extend(["--gpu-memory-utilization", str(GPU_MEMORY_UTILIZATION)])
     
-    # AWQ quantized models benefit from enforce-eager (better memory efficiency)
+    # enforce-eager for AWQ (not awq_marlin which handles this natively)
     if card.get("quantization") == "awq":
         cmd.extend(["--enforce-eager"])
+
+    # On 8GB GPUs, disable custom all-reduce to save memory
+    if gpu_vram_gb <= 8:
+        cmd.extend(["--disable-log-stats"])
     
     print(f"[{model_id}] Creating container: {container_name}")
     print(f"[{model_id}] Image: {VLLM_IMAGE}")
