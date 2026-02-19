@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { docsAPI } from '../api/client';
 import { LoadingSpinner } from '../components/ui';
+import { useIsDesktop } from '../hooks/useMediaQuery';
 import MarkdownContent from '../components/MarkdownContent';
 
 type RepoADRs = Awaited<ReturnType<typeof docsAPI.getRepos>>[number];
@@ -101,10 +102,12 @@ function RepoSection({
 export default function DocsPage() {
   const { repo: urlRepo, slug: urlSlug } = useParams<{ repo?: string; slug?: string }>();
   const navigate = useNavigate();
+  const isDesktop = useIsDesktop();
 
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const activeRepo = urlRepo;
   const activeSlug = urlSlug;
+  const hasSelectedDoc = !!activeRepo && !!activeSlug;
 
   const {
     data: repos,
@@ -139,71 +142,99 @@ export default function DocsPage() {
     navigate(`/docs/${repo}/${slug}`);
   };
 
+  const handleBack = () => {
+    setSelectedPath(null);
+    navigate('/docs');
+  };
+
   const totalADRs = repos?.reduce((sum, r) => sum + r.adrs.length, 0) ?? 0;
 
-  return (
-    <div className="flex h-full">
-      {/* Left panel - repo/ADR list */}
-      <div className="w-72 flex-shrink-0 border-r border-[var(--retro-border)] bg-[var(--retro-bg-medium)] flex flex-col overflow-hidden">
-        <div className="px-3 py-3 border-b border-[var(--retro-border)]">
-          <h2 className="text-sm font-bold text-[var(--retro-text-primary)]">
-            Architecture Decision Records
-          </h2>
-          <div className="text-[10px] text-[var(--retro-text-muted)] mt-1 font-mono">
-            {reposLoading ? '...' : `${repos?.length ?? 0} repos / ${totalADRs} ADRs`}
+  const listPanel = (
+    <div className={`${isDesktop ? 'w-72' : 'w-full'} flex-shrink-0 ${isDesktop ? 'border-r border-[var(--retro-border)]' : ''} bg-[var(--retro-bg-medium)] flex flex-col overflow-hidden`}>
+      <div className="px-3 py-3 border-b border-[var(--retro-border)]">
+        <h2 className="text-sm font-bold text-[var(--retro-text-primary)]">
+          Architecture Decision Records
+        </h2>
+        <div className="text-[10px] text-[var(--retro-text-muted)] mt-1 font-mono">
+          {reposLoading ? '...' : `${repos?.length ?? 0} repos / ${totalADRs} ADRs`}
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+        {reposLoading && <LoadingSpinner size="sm" message="Loading repos..." />}
+        {reposError && (
+          <div className="p-3 text-xs text-[var(--retro-accent-red)]">
+            Failed to load repos: {(reposError as Error).message}
+          </div>
+        )}
+        {repos?.map((repo) => (
+          <RepoSection
+            key={repo.repo}
+            repo={repo}
+            selectedRepo={activeRepo}
+            selectedSlug={activeSlug}
+            onSelect={handleSelect}
+          />
+        ))}
+      </div>
+    </div>
+  );
+
+  const contentPanel = (
+    <div className="flex-1 overflow-y-auto bg-[var(--retro-bg-dark)]">
+      {!hasSelectedDoc ? (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center space-y-3">
+            <div className="text-4xl">{"</>"}</div>
+            <p className="text-sm text-[var(--retro-text-muted)]">
+              Select an ADR to view
+            </p>
+            <p className="text-xs text-[var(--retro-text-muted)] max-w-xs">
+              Browse architecture decision records across all homelab repos.
+            </p>
           </div>
         </div>
-
-        <div className="flex-1 overflow-y-auto">
-          {reposLoading && <LoadingSpinner size="sm" message="Loading repos..." />}
-          {reposError && (
-            <div className="p-3 text-xs text-[var(--retro-accent-red)]">
-              Failed to load repos: {(reposError as Error).message}
-            </div>
+      ) : contentLoading ? (
+        <LoadingSpinner size="md" message="Loading document..." />
+      ) : contentError ? (
+        <div className="p-6 text-sm text-[var(--retro-accent-red)]">
+          Failed to load: {(contentError as Error).message}
+        </div>
+      ) : contentData ? (
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          {!isDesktop && (
+            <button
+              onClick={handleBack}
+              className="mb-4 text-sm text-[var(--retro-accent-cyan)] hover:text-[var(--retro-text-primary)] transition-colors"
+            >
+              ← Back to list
+            </button>
           )}
-          {repos?.map((repo) => (
-            <RepoSection
-              key={repo.repo}
-              repo={repo}
-              selectedRepo={activeRepo}
-              selectedSlug={activeSlug}
-              onSelect={handleSelect}
-            />
-          ))}
+          <div className="flex items-center gap-2 mb-4 text-xs text-[var(--retro-text-muted)] font-mono">
+            <span>{contentData.repo}</span>
+            <span>/</span>
+            <span>{contentData.path}</span>
+          </div>
+          <MarkdownContent content={contentData.content} />
         </div>
-      </div>
+      ) : null}
+    </div>
+  );
 
-      {/* Right panel - ADR content */}
-      <div className="flex-1 overflow-y-auto bg-[var(--retro-bg-dark)]">
-        {!activeRepo || !activeSlug ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center space-y-3">
-              <div className="text-4xl">{"</>"}</div>
-              <p className="text-sm text-[var(--retro-text-muted)]">
-                Select an ADR to view
-              </p>
-              <p className="text-xs text-[var(--retro-text-muted)] max-w-xs">
-                Browse architecture decision records across all homelab repos.
-              </p>
-            </div>
-          </div>
-        ) : contentLoading ? (
-          <LoadingSpinner size="md" message="Loading document..." />
-        ) : contentError ? (
-          <div className="p-6 text-sm text-[var(--retro-accent-red)]">
-            Failed to load: {(contentError as Error).message}
-          </div>
-        ) : contentData ? (
-          <div className="max-w-3xl mx-auto px-6 py-8">
-            <div className="flex items-center gap-2 mb-4 text-xs text-[var(--retro-text-muted)] font-mono">
-              <span>{contentData.repo}</span>
-              <span>/</span>
-              <span>{contentData.path}</span>
-            </div>
-            <MarkdownContent content={contentData.content} />
-          </div>
-        ) : null}
+  // Desktop: side-by-side. Mobile/tablet: list or detail.
+  if (isDesktop) {
+    return (
+      <div className="flex h-full">
+        {listPanel}
+        {contentPanel}
       </div>
+    );
+  }
+
+  // Mobile/tablet: show content if doc selected, otherwise show list
+  return (
+    <div className="flex flex-col h-full">
+      {hasSelectedDoc ? contentPanel : listPanel}
     </div>
   );
 }

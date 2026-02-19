@@ -1,8 +1,8 @@
-import { useState, useCallback, lazy, Suspense } from 'react';
+import { useState, useCallback, useEffect, lazy, Suspense } from 'react';
 import type { ReactNode } from 'react';
-import { Routes, Route, useNavigate, useParams, Link } from 'react-router-dom';
+import { Routes, Route, useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 import { MobileNav, PageLoading } from './components/ui';
-import { useIsMobile } from './hooks/useMediaQuery';
+import { useIsDesktop } from './hooks/useMediaQuery';
 import { CleanLayout } from './components/clean/CleanLayout';
 
 // Lazy-loaded components for code splitting
@@ -90,7 +90,9 @@ function AppLayout({
   scrollable = false,
   withContainer = false,
 }: AppLayoutProps) {
-  const isMobile = useIsMobile();
+  const isDesktop = useIsDesktop();
+  const useMobileLayout = !isDesktop;
+  const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const toggleMenu = useCallback(() => {
@@ -101,11 +103,16 @@ function AppLayout({
     setMenuOpen(false);
   }, []);
 
+  // Close menu on any navigation
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
+
   return (
     <div className="theme-retro flex flex-col h-screen bg-[var(--retro-bg-dark)]">
       <div className="flex flex-1 overflow-hidden">
         {/* Desktop Sidebar */}
-        {!isMobile && (
+        {!useMobileLayout && (
           <div className="w-80 bg-[var(--retro-bg-medium)] border-r border-[var(--retro-border)] flex flex-col flex-shrink-0">
             <AppHeader />
             <AppNavigation currentView={currentView} />
@@ -117,9 +124,12 @@ function AppLayout({
           </div>
         )}
 
-        {/* Mobile Header */}
-        {isMobile && (
-          <div className="fixed top-0 left-0 right-0 z-20 bg-[var(--retro-bg-medium)] border-b border-[var(--retro-border)]">
+        {/* Mobile/Tablet Header */}
+        {useMobileLayout && (
+          <div
+            className="fixed top-0 left-0 right-0 z-20 bg-[var(--retro-bg-medium)] border-b border-[var(--retro-border)]"
+            style={{ paddingTop: 'var(--safe-area-top)' }}
+          >
             <div className="flex items-center justify-between p-4">
               <button
                 onClick={toggleMenu}
@@ -137,8 +147,8 @@ function AppLayout({
           </div>
         )}
 
-        {/* Mobile Slide-out Menu Overlay */}
-        {isMobile && menuOpen && (
+        {/* Mobile/Tablet Slide-out Menu Overlay */}
+        {useMobileLayout && menuOpen && (
           <div
             className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm"
             onClick={closeMenu}
@@ -146,8 +156,8 @@ function AppLayout({
           />
         )}
 
-        {/* Mobile Slide-out Menu */}
-        {isMobile && (
+        {/* Mobile/Tablet Slide-out Menu */}
+        {useMobileLayout && (
           <div
             className={`
               fixed top-0 left-0 h-full w-[85%] max-w-[320px] z-40
@@ -155,6 +165,7 @@ function AppLayout({
               transform transition-transform duration-300 ease-out
               ${menuOpen ? 'translate-x-0' : '-translate-x-full'}
             `}
+            style={{ paddingTop: 'var(--safe-area-top)' }}
           >
             <div className="flex flex-col h-full">
               <AppHeader />
@@ -173,8 +184,9 @@ function AppLayout({
           className={`
             flex-1
             ${scrollable ? 'overflow-auto' : 'overflow-hidden'}
-            ${isMobile ? 'pt-[72px] retro-with-mobile-nav' : ''}
+            ${useMobileLayout ? 'retro-with-mobile-nav' : ''}
           `}
+          style={useMobileLayout ? { paddingTop: 'var(--mobile-header-height)' } : undefined}
         >
           {withContainer ? (
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -186,8 +198,8 @@ function AppLayout({
         </div>
       </div>
 
-      {/* Mobile Navigation */}
-      {isMobile && <MobileNav currentView={currentView} />}
+      {/* Mobile/Tablet Navigation */}
+      {useMobileLayout && <MobileNav currentView={currentView} />}
     </div>
   );
 }

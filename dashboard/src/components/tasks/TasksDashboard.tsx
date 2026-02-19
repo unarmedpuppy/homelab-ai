@@ -104,8 +104,8 @@ interface TaskColumnProps {
 
 function TaskColumn({ status, tasks, onStatusChange }: TaskColumnProps) {
   return (
-    <div className="flex-1 min-w-[280px] max-w-[350px]">
-      <div className={`border-t-4 ${STATUS_COLORS[status]} bg-[var(--retro-bg-medium)] rounded-t p-3`}>
+    <div className="flex-1 min-w-[280px] max-w-[350px] flex flex-col">
+      <div className={`border-t-4 ${STATUS_COLORS[status]} bg-[var(--retro-bg-medium)] rounded-t p-3 flex-shrink-0`}>
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold text-[var(--retro-text-primary)]">
             {status.replace('_', ' ')}
@@ -115,7 +115,7 @@ function TaskColumn({ status, tasks, onStatusChange }: TaskColumnProps) {
           </span>
         </div>
       </div>
-      <div className="bg-[var(--retro-bg-dark)] rounded-b p-2 min-h-[200px] max-h-[calc(100vh-300px)] overflow-y-auto">
+      <div className="bg-[var(--retro-bg-dark)] rounded-b p-2 min-h-[200px] flex-1 overflow-y-auto">
         {tasks.map((task) => (
           <TaskCard key={task.id} task={task} onStatusChange={onStatusChange} />
         ))}

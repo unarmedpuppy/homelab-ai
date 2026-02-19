@@ -374,7 +374,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   const isTtsBusy = ttsGeneratingIdx !== null || ttsPlayingIdx !== null;
 
   return (
-    <div className="flex flex-col h-screen bg-[var(--retro-bg-dark)]">
+    <div className="flex flex-col h-full bg-[var(--retro-bg-dark)]">
       {/* Header Panel */}
       <div className="border-b-2 border-[var(--retro-border)] p-3 sm:p-4 bg-[var(--retro-bg-medium)]">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

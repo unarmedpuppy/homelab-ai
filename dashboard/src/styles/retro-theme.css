@@ -65,6 +65,12 @@
 
   /* Touch target minimum */
   --retro-touch-target: 44px;
+
+  /* Safe area insets (iOS WebView) */
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --mobile-header-height: calc(var(--retro-touch-target) + 2rem + var(--safe-area-top));
+  --mobile-nav-height: calc(var(--retro-touch-target) + 1rem + var(--safe-area-bottom));
 }
 
 /* Scanlines - disabled */
@@ -735,7 +741,7 @@
   justify-content: space-around;
   background: var(--retro-bg-medium);
   border-top: var(--retro-border-width) solid var(--retro-border);
-  padding: 0.5rem;
+  padding: 0.5rem 0.5rem calc(0.5rem + var(--safe-area-bottom));
   z-index: 50;
 }
 
@@ -770,7 +776,7 @@
   }
 
   .retro-with-mobile-nav {
-    padding-bottom: calc(var(--retro-touch-target) + 1rem + env(safe-area-inset-bottom));
+    padding-bottom: var(--mobile-nav-height);
   }
 }
 
