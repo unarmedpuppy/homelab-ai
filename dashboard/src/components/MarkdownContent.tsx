@@ -11,7 +11,7 @@ interface MarkdownContentProps {
 const components: Components = {
   // Code blocks
   pre: ({ children }) => (
-    <pre className="bg-[var(--retro-bg-dark)] border-2 border-[var(--retro-border)] rounded p-3 my-2 overflow-x-auto text-sm font-mono">
+    <pre className="bg-[var(--retro-bg-dark)] border border-[var(--retro-border)] rounded p-3 my-2 overflow-x-auto text-sm font-mono">
       {children}
     </pre>
   ),
@@ -32,7 +32,7 @@ const components: Components = {
   },
   // Headers
   h1: ({ children }) => (
-    <h1 className="text-xl font-bold text-[var(--retro-accent-green)] mt-4 mb-2 uppercase tracking-wider">
+    <h1 className="text-xl font-bold text-[var(--retro-text-primary)] mt-4 mb-2">
       {children}
     </h1>
   ),
@@ -71,7 +71,7 @@ const components: Components = {
   // Tables
   table: ({ children }) => (
     <div className="overflow-x-auto my-2">
-      <table className="min-w-full border-2 border-[var(--retro-border)] text-sm">{children}</table>
+      <table className="min-w-full border border-[var(--retro-border)] text-sm">{children}</table>
     </div>
   ),
   thead: ({ children }) => <thead className="bg-[var(--retro-bg-light)]">{children}</thead>,

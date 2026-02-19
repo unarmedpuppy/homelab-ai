@@ -49,14 +49,14 @@ export default function RAGPlayground() {
     <div className="space-y-6">
       {/* Search Input */}
       <div className="bg-gray-800 rounded-lg border border-gray-700 p-8">
-        <div className="text-xs uppercase tracking-wider text-gray-400 mb-6">
+        <div className="text-xs text-gray-400 mb-6">
           Text Search
         </div>
 
         <div className="space-y-6">
           {/* Query Input */}
           <div>
-            <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">
+            <div className="text-xs text-gray-500 mb-2">
               Query
             </div>
             <textarea
@@ -72,7 +72,7 @@ export default function RAGPlayground() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs uppercase tracking-wider text-gray-500">Results</span>
+                <span className="text-xs text-gray-500">Results</span>
                 <span className="text-xl font-bold text-white">{limit}</span>
               </div>
               <input
@@ -86,7 +86,7 @@ export default function RAGPlayground() {
             </div>
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs uppercase tracking-wider text-gray-500">Threshold</span>
+                <span className="text-xs text-gray-500">Threshold</span>
                 <span className="text-xl font-bold text-white">{threshold.toFixed(2)}</span>
               </div>
               <input
@@ -105,7 +105,7 @@ export default function RAGPlayground() {
           <button
             onClick={handleSearch}
             disabled={!query.trim() || searchMutation.isPending}
-            className="w-full px-6 py-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors uppercase tracking-wider text-sm"
+            className="w-full px-6 py-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors text-sm"
           >
             {searchMutation.isPending ? '▸ Searching...' : '▸ Search'}
           </button>
@@ -116,7 +116,7 @@ export default function RAGPlayground() {
       {searchMutation.data && (
         <div className="bg-gray-800 rounded-lg border border-gray-700">
           <div className="p-6 border-b border-gray-700">
-            <div className="text-xs uppercase tracking-wider text-gray-400">
+            <div className="text-xs text-gray-400">
               Results ({searchMutation.data.length})
             </div>
           </div>
@@ -178,7 +178,7 @@ export default function RAGPlayground() {
       {/* Error */}
       {searchMutation.isError && (
         <div className="bg-gray-800 border border-red-800 rounded-lg p-6">
-          <div className="text-xs uppercase tracking-wider text-red-400 mb-2">Error</div>
+          <div className="text-xs text-red-400 mb-2">Error</div>
           <div className="text-red-300 text-sm">
             {String(searchMutation.error)}
           </div>

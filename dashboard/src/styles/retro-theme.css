@@ -1,54 +1,54 @@
-/* Retro Theme - Command Center UI Design System */
+/* Clean Dark Theme - Modern UI Design System */
 
 .theme-retro {
-  /* Background colors - dark terminal aesthetic */
-  --retro-bg-dark: #0a0a0f;
-  --retro-bg-medium: #12121a;
-  --retro-bg-light: #1a1a26;
-  --retro-bg-card: #16161f;
+  /* Background colors - dark slate */
+  --retro-bg-dark: #0f172a;
+  --retro-bg-medium: #1e293b;
+  --retro-bg-light: #334155;
+  --retro-bg-card: #1e293b;
 
   /* Border colors */
-  --retro-border: #2a2a3a;
-  --retro-border-highlight: #3d5a80;
-  --retro-border-active: #5bc0be;
+  --retro-border: #334155;
+  --retro-border-highlight: #475569;
+  --retro-border-active: #60a5fa;
 
   /* Text colors */
-  --retro-text-primary: #e8e8e8;
-  --retro-text-secondary: #8b9dc3;
-  --retro-text-muted: #5c6b8a;
+  --retro-text-primary: #f1f5f9;
+  --retro-text-secondary: #94a3b8;
+  --retro-text-muted: #64748b;
 
-  /* Accent colors - terminal/CRT inspired */
-  --retro-accent-green: #00ff41;
-  --retro-accent-yellow: #ffd700;
-  --retro-accent-red: #ff4444;
-  --retro-accent-blue: #00d4ff;
-  --retro-accent-orange: #ff8c00;
-  --retro-accent-purple: #b388ff;
-  --retro-accent-cyan: #5bc0be;
+  /* Accent colors - muted modern */
+  --retro-accent-green: #4ade80;
+  --retro-accent-yellow: #fbbf24;
+  --retro-accent-red: #f87171;
+  --retro-accent-blue: #60a5fa;
+  --retro-accent-orange: #fb923c;
+  --retro-accent-purple: #a78bfa;
+  --retro-accent-cyan: #60a5fa;
 
   /* Priority colors */
-  --retro-priority-critical: #ff4444;
-  --retro-priority-high: #ff8c00;
-  --retro-priority-medium: #ffd700;
-  --retro-priority-low: #5bc0be;
+  --retro-priority-critical: #f87171;
+  --retro-priority-high: #fb923c;
+  --retro-priority-medium: #fbbf24;
+  --retro-priority-low: #60a5fa;
 
   /* Status colors */
-  --retro-status-open: #5bc0be;
-  --retro-status-progress: #ffd700;
-  --retro-status-done: #00ff41;
-  --retro-status-blocked: #ff4444;
+  --retro-status-open: #60a5fa;
+  --retro-status-progress: #fbbf24;
+  --retro-status-done: #4ade80;
+  --retro-status-blocked: #f87171;
 
-  /* Effects */
-  --retro-glow-green: 0 0 10px rgba(0, 255, 65, 0.3);
-  --retro-glow-blue: 0 0 10px rgba(91, 192, 190, 0.3);
-  --retro-glow-red: 0 0 10px rgba(255, 68, 68, 0.3);
-  --retro-glow-yellow: 0 0 10px rgba(255, 215, 0, 0.3);
+  /* Effects - no glow */
+  --retro-glow-green: none;
+  --retro-glow-blue: none;
+  --retro-glow-red: none;
+  --retro-glow-yellow: none;
 
   /* Sizing */
-  --retro-border-width: 2px;
-  --retro-radius-sm: 2px;
-  --retro-radius: 4px;
-  --retro-radius-lg: 6px;
+  --retro-border-width: 1px;
+  --retro-radius-sm: 8px;
+  --retro-radius: 12px;
+  --retro-radius-lg: 16px;
 
   /* Spacing */
   --retro-space-xs: 0.25rem;
@@ -67,51 +67,31 @@
   --retro-touch-target: 44px;
 }
 
-/* CRT scanline effect (optional, subtle) */
+/* Scanlines - disabled */
 .retro-scanlines {
   position: relative;
 }
 
 .retro-scanlines::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 0, 0, 0.03) 2px,
-    rgba(0, 0, 0, 0.03) 4px
-  );
-  pointer-events: none;
+  display: none;
 }
 
-/* Stepped/pixelated border effect */
+/* Stepped border - disabled */
 .retro-border-stepped {
   position: relative;
   background: var(--retro-bg-card);
 }
 
 .retro-border-stepped::before {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  background: var(--retro-border);
-  clip-path: polygon(
-    0 4px, 4px 4px, 4px 0,
-    calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px,
-    100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%,
-    4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px)
-  );
-  z-index: -1;
+  display: none;
 }
 
-/* Terminal-style text glow */
+/* Text glow - disabled */
 .retro-text-glow {
-  text-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
+  text-shadow: none;
 }
 
-/* Retro button base */
+/* Button base */
 .retro-btn {
   position: relative;
   display: inline-flex;
@@ -121,22 +101,18 @@
   padding: 0.5rem 1rem;
   min-height: var(--retro-touch-target);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   border: var(--retro-border-width) solid var(--retro-border);
+  border-radius: var(--retro-radius);
   background: var(--retro-bg-light);
   color: var(--retro-text-primary);
   cursor: pointer;
   transition: all 0.15s ease;
-  /* Stepped border effect like cards */
-  box-shadow:
-    2px 2px 0 0 var(--retro-bg-dark),
-    3px 3px 0 0 var(--retro-border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .retro-btn:hover:not(:disabled) {
   border-color: var(--retro-border-active);
-  box-shadow: var(--retro-glow-blue);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
   transform: translateY(-1px);
 }
 
@@ -175,28 +151,26 @@
   width: 100%;
 }
 
-/* Primary variant - accent green */
+/* Primary variant */
 .retro-btn-primary {
-  background: var(--retro-accent-green);
-  border-color: var(--retro-accent-green);
+  background: var(--retro-accent-blue);
+  border-color: var(--retro-accent-blue);
   color: var(--retro-bg-dark);
-  box-shadow:
-    2px 2px 0 0 var(--retro-bg-dark),
-    3px 3px 0 0 #00cc34;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .retro-btn-primary:hover:not(:disabled) {
-  background: #33ff64;
-  box-shadow: var(--retro-glow-green);
+  background: #93bbfd;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
   transform: translateY(-1px);
 }
 
 .retro-btn-primary:active:not(:disabled) {
-  background: #00cc34;
+  background: #3b82f6;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Secondary variant - bg-light (default) */
+/* Secondary variant */
 .retro-btn-secondary {
   background: var(--retro-bg-light);
   border-color: var(--retro-border);
@@ -205,7 +179,7 @@
 
 .retro-btn-secondary:hover:not(:disabled) {
   border-color: var(--retro-border-active);
-  box-shadow: var(--retro-glow-blue);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
   transform: translateY(-1px);
 }
 
@@ -214,28 +188,26 @@
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Danger variant - accent red */
+/* Danger variant */
 .retro-btn-danger {
   background: var(--retro-accent-red);
   border-color: var(--retro-accent-red);
   color: var(--retro-bg-dark);
-  box-shadow:
-    2px 2px 0 0 var(--retro-bg-dark),
-    3px 3px 0 0 #cc3636;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .retro-btn-danger:hover:not(:disabled) {
-  background: #ff6666;
-  box-shadow: var(--retro-glow-red);
+  background: #fca5a5;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
   transform: translateY(-1px);
 }
 
 .retro-btn-danger:active:not(:disabled) {
-  background: #cc3636;
+  background: #ef4444;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Ghost variant - transparent, border only */
+/* Ghost variant */
 .retro-btn-ghost {
   background: transparent;
   border-color: var(--retro-border);
@@ -246,7 +218,7 @@
 .retro-btn-ghost:hover:not(:disabled) {
   background: var(--retro-bg-light);
   border-color: var(--retro-border-active);
-  box-shadow: var(--retro-glow-blue);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
   transform: translateY(-1px);
 }
 
@@ -287,7 +259,7 @@
   flex-shrink: 0;
 }
 
-/* Legacy variants for backwards compatibility */
+/* Legacy variants */
 .retro-btn-success {
   background: var(--retro-accent-green);
   border-color: var(--retro-accent-green);
@@ -295,7 +267,7 @@
 }
 
 .retro-btn-success:hover:not(:disabled) {
-  box-shadow: var(--retro-glow-green);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
 .retro-btn-warning {
@@ -305,36 +277,34 @@
 }
 
 .retro-btn-warning:hover:not(:disabled) {
-  box-shadow: var(--retro-glow-yellow);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
-/* Retro card */
+/* Card */
 .retro-card {
-  background: var(--retro-bg-card);
+  background: rgba(30, 41, 59, 0.8);
   border: var(--retro-border-width) solid var(--retro-border);
   border-radius: var(--retro-radius);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
-  /* Stepped/pixelated border effect */
-  box-shadow:
-    4px 4px 0 0 var(--retro-bg-dark),
-    6px 6px 0 0 var(--retro-border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
 }
 
 .retro-card:hover {
   border-color: var(--retro-border-highlight);
-  box-shadow: var(--retro-glow-blue);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.25);
 }
 
 .retro-card:focus-visible {
   outline: none;
   border-color: var(--retro-border-active);
-  box-shadow: var(--retro-glow-blue);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
 }
 
 /* Selected state */
 .retro-card--selected {
   border-color: var(--retro-border-active);
-  box-shadow: var(--retro-glow-blue);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
 }
 
 /* Variant: highlight */
@@ -343,7 +313,7 @@
 }
 
 .retro-card--highlight:hover {
-  box-shadow: var(--retro-glow-blue);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.25);
 }
 
 /* Variant: warning */
@@ -352,7 +322,7 @@
 }
 
 .retro-card--warning:hover {
-  box-shadow: 0 0 10px rgba(255, 140, 0, 0.3);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.25);
 }
 
 /* Variant: success */
@@ -361,7 +331,7 @@
 }
 
 .retro-card--success:hover {
-  box-shadow: var(--retro-glow-green);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.25);
 }
 
 /* Card header (title bar) */
@@ -370,7 +340,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.5rem 1rem;
-  margin: -2px -2px 0.75rem -2px;
+  margin: -1px -1px 0.75rem -1px;
   background: var(--retro-bg-light);
   border-bottom: 1px solid var(--retro-border);
   border-radius: var(--retro-radius) var(--retro-radius) 0 0;
@@ -379,8 +349,6 @@
 .retro-card__title {
   font-size: 0.75rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   color: var(--retro-text-secondary);
 }
 
@@ -395,29 +363,25 @@
 
 @media (max-width: 640px) {
   .retro-card {
-    /* Full width on mobile */
     width: 100%;
-    /* Reduced shadow for mobile performance */
-    box-shadow: 2px 2px 0 0 var(--retro-border);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   }
 
   .retro-card--stack-mobile {
-    /* Stack content vertically on mobile */
     display: flex;
     flex-direction: column;
   }
 
   .retro-card--stack-mobile .retro-card__content {
-    /* Touch-friendly padding on mobile */
     padding: 0.75rem;
     min-height: 44px;
   }
 }
 
-/* Legacy class names for backwards compatibility */
+/* Legacy class names */
 .retro-card-selected {
   border-color: var(--retro-border-active);
-  box-shadow: var(--retro-glow-blue);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
 }
 
 .retro-card-warning {
@@ -428,7 +392,7 @@
   border-color: var(--retro-accent-green);
 }
 
-/* Retro panel with title bar */
+/* Panel with title bar */
 .retro-panel {
   background: var(--retro-bg-card);
   border: var(--retro-border-width) solid var(--retro-border);
@@ -436,11 +400,9 @@
   overflow: hidden;
 }
 
-/* Stepped border variant - matches RetroCard styling */
+/* Stepped border variant - now subtle shadow */
 .retro-panel--stepped {
-  box-shadow:
-    4px 4px 0 0 var(--retro-bg-dark),
-    6px 6px 0 0 var(--retro-border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .retro-panel--stepped:hover {
@@ -457,8 +419,6 @@
   border-bottom: 1px solid var(--retro-border);
   font-size: 0.75rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   color: var(--retro-text-secondary);
   gap: 0.5rem;
 }
@@ -537,8 +497,7 @@
 /* Mobile behavior for panels */
 @media (max-width: 640px) {
   .retro-panel--stepped {
-    /* Reduced shadow for mobile performance */
-    box-shadow: 2px 2px 0 0 var(--retro-border);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   }
 
   .retro-panel-header {
@@ -549,22 +508,19 @@
     padding: 0.75rem;
   }
 
-  /* Full width when expanded on mobile */
   .retro-panel {
     width: 100%;
   }
 }
 
-/* Retro badge */
+/* Badge */
 .retro-badge {
   display: inline-flex;
   align-items: center;
   padding: 0.125rem 0.5rem;
   font-size: 0.625rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-radius: var(--retro-radius-sm);
+  font-weight: 600;
+  border-radius: 9999px;
   white-space: nowrap;
 }
 
@@ -580,66 +536,66 @@
 
 /* Badge variants */
 .retro-badge-priority-critical {
-  background: rgba(255, 68, 68, 0.2);
+  background: rgba(248, 113, 113, 0.15);
   color: var(--retro-priority-critical);
   border: 1px solid var(--retro-priority-critical);
 }
 
 .retro-badge-priority-high {
-  background: rgba(255, 140, 0, 0.2);
+  background: rgba(251, 146, 60, 0.15);
   color: var(--retro-priority-high);
   border: 1px solid var(--retro-priority-high);
 }
 
 .retro-badge-priority-medium {
-  background: rgba(255, 215, 0, 0.2);
+  background: rgba(251, 191, 36, 0.15);
   color: var(--retro-priority-medium);
   border: 1px solid var(--retro-priority-medium);
 }
 
 .retro-badge-priority-low {
-  background: rgba(91, 192, 190, 0.2);
+  background: rgba(96, 165, 250, 0.15);
   color: var(--retro-priority-low);
   border: 1px solid var(--retro-priority-low);
 }
 
 .retro-badge-status-open {
-  background: rgba(91, 192, 190, 0.2);
+  background: rgba(96, 165, 250, 0.15);
   color: var(--retro-status-open);
   border: 1px solid var(--retro-status-open);
 }
 
 .retro-badge-status-progress {
-  background: rgba(255, 215, 0, 0.2);
+  background: rgba(251, 191, 36, 0.15);
   color: var(--retro-status-progress);
   border: 1px solid var(--retro-status-progress);
 }
 
 .retro-badge-status-done {
-  background: rgba(0, 255, 65, 0.2);
+  background: rgba(74, 222, 128, 0.15);
   color: var(--retro-status-done);
   border: 1px solid var(--retro-status-done);
 }
 
 .retro-badge-status-blocked {
-  background: rgba(255, 68, 68, 0.2);
+  background: rgba(248, 113, 113, 0.15);
   color: var(--retro-status-blocked);
   border: 1px solid var(--retro-status-blocked);
 }
 
 .retro-badge-label {
-  background: rgba(179, 136, 255, 0.2);
+  background: rgba(167, 139, 250, 0.15);
   color: var(--retro-accent-purple);
   border: 1px solid var(--retro-accent-purple);
 }
 
 .retro-badge-agent {
-  background: rgba(0, 212, 255, 0.2);
+  background: rgba(96, 165, 250, 0.15);
   color: var(--retro-accent-blue);
   border: 1px solid var(--retro-accent-blue);
 }
 
-/* Retro progress bar */
+/* Progress bar */
 .retro-progress {
   height: 8px;
   background: var(--retro-bg-dark);
@@ -652,14 +608,6 @@
   height: 100%;
   background: var(--retro-accent-cyan);
   transition: width 0.3s ease;
-  /* Segmented effect */
-  background-image: repeating-linear-gradient(
-    90deg,
-    transparent,
-    transparent 4px,
-    rgba(0, 0, 0, 0.3) 4px,
-    rgba(0, 0, 0, 0.3) 5px
-  );
 }
 
 .retro-progress-bar-success {
@@ -674,7 +622,7 @@
   background-color: var(--retro-accent-red);
 }
 
-/* Retro input */
+/* Input */
 .retro-input {
   width: 100%;
   padding: 0.5rem 0.75rem;
@@ -694,7 +642,7 @@
 .retro-input:focus {
   outline: none;
   border-color: var(--retro-border-active);
-  box-shadow: var(--retro-glow-blue);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
 }
 
 .retro-input:disabled {
@@ -702,14 +650,14 @@
   cursor: not-allowed;
 }
 
-/* Retro select */
+/* Select */
 .retro-select {
   appearance: none;
   width: 100%;
   padding: 0.5rem 2rem 0.5rem 0.75rem;
   min-height: var(--retro-touch-target);
   background: var(--retro-bg-dark);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b9dc3' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
   border: var(--retro-border-width) solid var(--retro-border);
@@ -723,7 +671,7 @@
 .retro-select:focus {
   outline: none;
   border-color: var(--retro-border-active);
-  box-shadow: var(--retro-glow-blue);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
 }
 
 .retro-select:disabled {
@@ -738,7 +686,7 @@
   font-size: 0.75rem;
 }
 
-/* Retro checkbox */
+/* Checkbox */
 .retro-checkbox {
   display: inline-flex;
   align-items: center;
@@ -768,13 +716,13 @@
   display: block;
   width: 100%;
   height: 100%;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%230a0a0f' d='M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%230f172a' d='M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z'/%3E%3C/svg%3E");
 }
 
 .retro-checkbox input:focus {
   outline: none;
   border-color: var(--retro-border-active);
-  box-shadow: var(--retro-glow-blue);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
 }
 
 /* Mobile navigation */
@@ -802,7 +750,6 @@
   color: var(--retro-text-muted);
   text-decoration: none;
   font-size: 0.625rem;
-  text-transform: uppercase;
   transition: color 0.15s ease;
 }
 
@@ -822,7 +769,6 @@
     display: none !important;
   }
 
-  /* Add padding at bottom for mobile nav */
   .retro-with-mobile-nav {
     padding-bottom: calc(var(--retro-touch-target) + 1rem + env(safe-area-inset-bottom));
   }
@@ -843,7 +789,6 @@
   background: var(--retro-bg-medium);
   border-bottom: var(--retro-border-width) solid var(--retro-border);
   font-size: 0.75rem;
-  text-transform: uppercase;
 }
 
 .retro-stat {
@@ -866,7 +811,7 @@
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(4px);
   z-index: 40;
 }
 
@@ -936,8 +881,6 @@
 .retro-modal-title {
   font-size: 0.875rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   color: var(--retro-text-primary);
 }
 
@@ -959,7 +902,7 @@
   background: var(--retro-bg-dark);
   border: 1px solid var(--retro-border);
   border-radius: var(--retro-radius);
-  font-family: inherit;
+  font-family: ui-monospace, 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', monospace;
   font-size: 0.75rem;
   line-height: 1.5;
   max-height: 300px;
@@ -1006,8 +949,6 @@
   border-bottom: 1px solid var(--retro-border);
   font-size: 0.75rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1040,8 +981,8 @@
 }
 
 @keyframes retro-glow-pulse {
-  0%, 100% { box-shadow: var(--retro-glow-green); }
-  50% { box-shadow: 0 0 20px rgba(0, 255, 65, 0.5); }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }
 
 .retro-animate-glow {
@@ -1177,7 +1118,7 @@
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(4px);
   z-index: 25;
   animation: retro-fade-in 0.2s ease;
 }
@@ -1230,12 +1171,12 @@
   cursor: pointer;
   z-index: 40;
   transition: all 0.15s ease;
-  box-shadow: 2px 2px 0 0 var(--retro-bg-dark);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .retro-hamburger-btn:hover {
   border-color: var(--retro-border-active);
-  box-shadow: var(--retro-glow-blue);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
 .retro-hamburger-btn:active {
@@ -1251,13 +1192,13 @@
 .retro-main-content {
   flex: 1;
   overflow: auto;
-  min-width: 0; /* Prevent flex item from overflowing */
+  min-width: 0;
 }
 
 /* Main content with sidebar on desktop */
 @media (min-width: 1024px) {
   .retro-main-content-with-sidebar {
-    margin-left: 0; /* Sidebar is in flex flow on desktop */
+    margin-left: 0;
   }
 }
 
@@ -1288,7 +1229,6 @@
     display: none;
   }
 
-  /* Adjust main content for hamburger button space on mobile */
   .retro-responsive-layout .retro-main-content {
     padding-top: calc(var(--retro-touch-target) + 1rem);
   }
@@ -1308,7 +1248,6 @@
     display: block;
   }
 
-  /* Adjust main content for hamburger button space on tablet */
   .retro-responsive-layout .retro-main-content {
     padding-top: calc(var(--retro-touch-target) + 1rem);
   }
@@ -1328,7 +1267,6 @@
     display: none;
   }
 
-  /* Hide hamburger on desktop */
   .retro-hamburger-btn {
     display: none !important;
   }

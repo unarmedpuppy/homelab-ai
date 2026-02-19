@@ -54,14 +54,14 @@ export function getPriorityVariant(priority: number): BadgeVariant {
 export function getPriorityLabel(priority: number): string {
   switch (priority) {
     case 0:
-      return 'CRITICAL';
+      return 'Critical';
     case 1:
-      return 'HIGH';
+      return 'High';
     case 2:
-      return 'MEDIUM';
+      return 'Medium';
     case 3:
     default:
-      return 'LOW';
+      return 'Low';
   }
 }
 
@@ -84,14 +84,14 @@ export function getStatusVariant(status: string): BadgeVariant {
 export function getStatusLabel(status: string): string {
   switch (status) {
     case 'in_progress':
-      return 'IN PROGRESS';
+      return 'In Progress';
     case 'closed':
-      return 'DONE';
+      return 'Done';
     case 'blocked':
-      return 'BLOCKED';
+      return 'Blocked';
     case 'open':
     default:
-      return 'OPEN';
+      return 'Open';
   }
 }
 

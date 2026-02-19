@@ -93,7 +93,7 @@ export function AgentContextViewer({ agent }: AgentContextViewerProps) {
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center">
-        <div className="text-[var(--retro-text-muted)] retro-animate-pulse uppercase tracking-wider text-sm">
+        <div className="text-[var(--retro-text-muted)] retro-animate-pulse text-sm">
           Loading context...
         </div>
       </div>
@@ -103,7 +103,7 @@ export function AgentContextViewer({ agent }: AgentContextViewerProps) {
   if (!isOnline) {
     return (
       <div className="h-full flex flex-col items-center justify-center p-8">
-        <div className="text-[var(--retro-text-muted)] uppercase tracking-wider mb-2">
+        <div className="text-[var(--retro-text-muted)] mb-2">
           Agent Offline
         </div>
         <p className="text-sm text-[var(--retro-text-muted)] text-center max-w-md">
@@ -117,7 +117,7 @@ export function AgentContextViewer({ agent }: AgentContextViewerProps) {
   if (error && !context) {
     return (
       <div className="h-full flex flex-col items-center justify-center p-8">
-        <div className="text-[var(--retro-accent-red)] uppercase tracking-wider mb-2">
+        <div className="text-[var(--retro-accent-red)] mb-2">
           Error Loading Context
         </div>
         <p className="text-sm text-[var(--retro-text-muted)] text-center max-w-md mb-4">
@@ -136,7 +136,7 @@ export function AgentContextViewer({ agent }: AgentContextViewerProps) {
       <div className="p-3 bg-[var(--retro-bg-medium)] border-b border-[var(--retro-border)] flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div>
-            <span className="text-xs text-[var(--retro-text-muted)] uppercase tracking-wider">
+            <span className="text-xs text-[var(--retro-text-muted)]">
               CONTEXT.md
             </span>
             {context && (

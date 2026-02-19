@@ -53,7 +53,7 @@ export function AgentDetailPanel({ agent, onClose }: AgentDetailPanelProps) {
                 backgroundColor: isOnline
                   ? 'var(--retro-accent-green)'
                   : 'var(--retro-text-muted)',
-                boxShadow: isOnline ? '0 0 8px var(--retro-accent-green)' : 'none',
+                boxShadow: 'none',
               }}
             />
             <span
@@ -71,7 +71,7 @@ export function AgentDetailPanel({ agent, onClose }: AgentDetailPanelProps) {
           <div className="mb-3 p-2 bg-[rgba(255,200,100,0.1)] border border-[var(--retro-accent-yellow)] rounded text-xs text-[var(--retro-accent-yellow)]">
             Agent is offline. Some features are disabled.
             {agent.health.error && (
-              <span className="block mt-1 text-[var(--retro-text-muted)] font-mono">
+              <span className="block mt-1 text-[var(--retro-text-muted)]">
                 {agent.health.error}
               </span>
             )}
@@ -86,7 +86,7 @@ export function AgentDetailPanel({ agent, onClose }: AgentDetailPanelProps) {
               onClick={() => !tab.disabled && setActiveTab(tab.id)}
               disabled={tab.disabled}
               className={`
-                px-4 py-2 text-sm font-bold uppercase tracking-wider
+                px-4 py-2 text-sm font-bold
                 border-b-2 transition-colors
                 ${tab.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                 ${

@@ -107,7 +107,7 @@ function TaskColumn({ status, tasks, onStatusChange }: TaskColumnProps) {
     <div className="flex-1 min-w-[280px] max-w-[350px]">
       <div className={`border-t-4 ${STATUS_COLORS[status]} bg-[var(--retro-bg-medium)] rounded-t p-3`}>
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-[var(--retro-text-primary)] uppercase tracking-wider">
+          <h3 className="text-sm font-bold text-[var(--retro-text-primary)]">
             {status.replace('_', ' ')}
           </h3>
           <span className="text-xs px-2 py-0.5 bg-[var(--retro-bg-dark)] rounded-full text-[var(--retro-text-secondary)]">
@@ -300,7 +300,7 @@ export default function TasksDashboard() {
     <div className="h-full flex flex-col p-4 overflow-hidden">
       <div className="flex-shrink-0">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-[var(--retro-accent-green)] uppercase tracking-wider">
+          <h2 className="text-xl font-bold text-[var(--retro-text-primary)]">
             Tasks
           </h2>
           <button

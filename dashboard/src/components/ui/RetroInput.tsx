@@ -15,7 +15,7 @@ export const RetroInput = forwardRef<HTMLInputElement, RetroInputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-xs font-semibold uppercase tracking-wider text-[var(--retro-text-secondary)]"
+            className="block text-xs font-semibold text-[var(--retro-text-secondary)]"
           >
             {label}
           </label>

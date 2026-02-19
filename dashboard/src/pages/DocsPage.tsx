@@ -25,7 +25,7 @@ function StatusChip({ status }: { status: string }) {
           : 'bg-[var(--retro-bg-light)] text-[var(--retro-text-muted)] border-[var(--retro-border)]';
 
   return (
-    <span className={`inline-block px-1.5 py-0.5 text-[10px] uppercase tracking-wider font-mono border rounded ${colors}`}>
+    <span className={`inline-block px-1.5 py-0.5 text-[10px] border rounded ${colors}`}>
       {status}
     </span>
   );
@@ -146,7 +146,7 @@ export default function DocsPage() {
       {/* Left panel - repo/ADR list */}
       <div className="w-72 flex-shrink-0 border-r border-[var(--retro-border)] bg-[var(--retro-bg-medium)] flex flex-col overflow-hidden">
         <div className="px-3 py-3 border-b border-[var(--retro-border)]">
-          <h2 className="text-sm font-bold text-[var(--retro-accent-green)] uppercase tracking-wider">
+          <h2 className="text-sm font-bold text-[var(--retro-text-primary)]">
             Architecture Decision Records
           </h2>
           <div className="text-[10px] text-[var(--retro-text-muted)] mt-1 font-mono">
@@ -179,7 +179,7 @@ export default function DocsPage() {
           <div className="flex items-center justify-center h-full">
             <div className="text-center space-y-3">
               <div className="text-4xl">{"</>"}</div>
-              <p className="text-sm text-[var(--retro-text-muted)] uppercase tracking-wider">
+              <p className="text-sm text-[var(--retro-text-muted)]">
                 Select an ADR to view
               </p>
               <p className="text-xs text-[var(--retro-text-muted)] max-w-xs">

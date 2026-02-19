@@ -12,7 +12,7 @@ export default function Dashboard() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-[var(--retro-text-muted)] retro-animate-pulse uppercase tracking-wider text-sm">
+        <div className="text-[var(--retro-text-muted)] retro-animate-pulse text-sm">
           Loading dashboard...
         </div>
       </div>
@@ -21,7 +21,7 @@ export default function Dashboard() {
 
   if (error) {
     return (
-      <div className="p-4 bg-[rgba(255,68,68,0.1)] border-2 border-[var(--retro-accent-red)] rounded">
+      <div className="p-4 bg-[rgba(255,68,68,0.1)] border border-[var(--retro-accent-red)] rounded">
         <p className="text-[var(--retro-accent-red)]">Error loading dashboard: {String(error)}</p>
       </div>
     );
@@ -36,7 +36,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-4 sm:space-y-6 p-4">
       {/* Header */}
-      <h1 className="text-xl sm:text-2xl font-bold text-[var(--retro-accent-green)] uppercase tracking-wider">
+      <h1 className="text-xl sm:text-2xl font-bold text-[var(--retro-text-primary)]">
         Usage Statistics
       </h1>
 

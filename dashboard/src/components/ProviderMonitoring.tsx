@@ -57,7 +57,7 @@ export default function ProviderMonitoring() {
   if (loading && providers.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-[var(--retro-text-muted)] retro-animate-pulse uppercase tracking-wider text-sm">
+        <div className="text-[var(--retro-text-muted)] retro-animate-pulse text-sm">
           Loading providers...
         </div>
       </div>
@@ -66,8 +66,8 @@ export default function ProviderMonitoring() {
 
   if (error) {
     return (
-      <div className="p-4 bg-[rgba(255,68,68,0.1)] border-2 border-[var(--retro-accent-red)] rounded">
-        <h3 className="text-[var(--retro-accent-red)] font-bold mb-2 uppercase tracking-wider">
+      <div className="p-4 bg-[rgba(255,68,68,0.1)] border border-[var(--retro-accent-red)] rounded">
+        <h3 className="text-[var(--retro-accent-red)] font-bold mb-2">
           Error Loading Providers
         </h3>
         <p className="text-[var(--retro-accent-red)] text-sm mb-3">{error}</p>
@@ -82,7 +82,7 @@ export default function ProviderMonitoring() {
     <div className="space-y-4 sm:space-y-6 p-4">
       {/* Header with refresh button */}
       <div className="flex justify-between items-center">
-        <h2 className="text-xl sm:text-2xl font-bold text-[var(--retro-accent-green)] uppercase tracking-wider">
+        <h2 className="text-xl sm:text-2xl font-bold text-[var(--retro-text-primary)]">
           Provider Monitoring
         </h2>
         <RetroButton variant="primary" size="sm" onClick={fetchProviders}>
@@ -143,7 +143,7 @@ export default function ProviderMonitoring() {
                 </p>
               </div>
               <div className="text-right shrink-0">
-                <div className="text-[0.625rem] sm:text-xs text-[var(--retro-text-muted)] uppercase tracking-wider">
+                <div className="text-[0.625rem] sm:text-xs text-[var(--retro-text-muted)]">
                   Priority
                 </div>
                 <div className="text-lg sm:text-xl font-bold text-[var(--retro-accent-cyan)]">
@@ -155,7 +155,7 @@ export default function ProviderMonitoring() {
             {/* Health Status */}
             <div className="mb-4 p-2 sm:p-3 bg-[var(--retro-bg-dark)] rounded border border-[var(--retro-border)]">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-xs sm:text-sm font-medium text-[var(--retro-text-secondary)] uppercase tracking-wider">
+                <span className="text-xs sm:text-sm font-medium text-[var(--retro-text-secondary)]">
                   Health Status
                 </span>
                 <span className="text-[0.625rem] sm:text-xs text-[var(--retro-text-muted)]">
@@ -186,7 +186,7 @@ export default function ProviderMonitoring() {
             {/* Load/Utilization */}
             <div className="mb-4">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-xs sm:text-sm font-medium text-[var(--retro-text-secondary)] uppercase tracking-wider">
+                <span className="text-xs sm:text-sm font-medium text-[var(--retro-text-secondary)]">
                   Load
                 </span>
                 <span className="text-[0.625rem] sm:text-xs text-[var(--retro-text-muted)]">
@@ -208,7 +208,7 @@ export default function ProviderMonitoring() {
 
             {/* Models */}
             <div>
-              <div className="text-xs sm:text-sm font-medium text-[var(--retro-text-secondary)] mb-2 uppercase tracking-wider">
+              <div className="text-xs sm:text-sm font-medium text-[var(--retro-text-secondary)] mb-2">
                 Models ({provider.models.length})
               </div>
               <div className="flex flex-wrap gap-1.5 sm:gap-2">
@@ -236,13 +236,13 @@ export default function ProviderMonitoring() {
       </div>
 
       {providers.length === 0 && (
-        <div className="text-center py-8 text-[var(--retro-text-muted)] uppercase tracking-wider">
+        <div className="text-center py-8 text-[var(--retro-text-muted)]">
           No providers found.
         </div>
       )}
 
       {/* Auto-refresh indicator */}
-      <div className="text-center text-[0.625rem] sm:text-xs text-[var(--retro-text-muted)] uppercase tracking-wider">
+      <div className="text-center text-[0.625rem] sm:text-xs text-[var(--retro-text-muted)]">
         Auto-refreshing every 10 seconds
       </div>
     </div>

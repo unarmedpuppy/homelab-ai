@@ -67,7 +67,7 @@ export function JobCard({ job, onCancel, onClick, showAgent = true }: JobCardPro
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <span
-                className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded"
+                className="text-xs font-bold px-2 py-0.5 rounded"
                 style={{
                   color: statusConfig[job.status].color,
                   backgroundColor: statusConfig[job.status].bg,

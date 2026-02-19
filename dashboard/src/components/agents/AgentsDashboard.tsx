@@ -92,12 +92,12 @@ export function AgentsDashboard() {
     return (
       <div className="h-full flex flex-col bg-[var(--retro-bg-dark)]">
         <div className="p-4 bg-[var(--retro-bg-medium)] border-b border-[var(--retro-border)]">
-          <h1 className="text-lg font-bold uppercase tracking-wider text-[var(--retro-accent-green)]">
+          <h1 className="text-lg font-bold text-[var(--retro-text-primary)]">
             Agent Fleet
           </h1>
         </div>
         <div className="flex-1 flex items-center justify-center">
-          <div className="text-[var(--retro-text-muted)] retro-animate-pulse uppercase tracking-wider text-sm">
+          <div className="text-[var(--retro-text-muted)] retro-animate-pulse text-sm">
             Loading fleet status...
           </div>
         </div>
@@ -109,13 +109,13 @@ export function AgentsDashboard() {
     return (
       <div className="h-full flex flex-col bg-[var(--retro-bg-dark)]">
         <div className="p-4 bg-[var(--retro-bg-medium)] border-b border-[var(--retro-border)]">
-          <h1 className="text-lg font-bold uppercase tracking-wider text-[var(--retro-accent-green)]">
+          <h1 className="text-lg font-bold text-[var(--retro-text-primary)]">
             Agent Fleet
           </h1>
         </div>
         <div className="flex-1 p-4">
-          <div className="p-4 bg-[rgba(255,68,68,0.1)] border-2 border-[var(--retro-accent-red)] rounded">
-            <h3 className="text-[var(--retro-accent-red)] font-bold mb-2 uppercase tracking-wider">
+          <div className="p-4 bg-[rgba(255,68,68,0.1)] border border-[var(--retro-accent-red)] rounded">
+            <h3 className="text-[var(--retro-accent-red)] font-bold mb-2">
               Connection Error
             </h3>
             <p className="text-[var(--retro-text-muted)] text-sm mb-3">{error}</p>
@@ -143,7 +143,7 @@ export function AgentsDashboard() {
       <div className="p-4 bg-[var(--retro-bg-medium)] border-b border-[var(--retro-border)]">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold uppercase tracking-wider text-[var(--retro-accent-green)]">
+            <h1 className="text-lg font-bold text-[var(--retro-text-primary)]">
               Agent Fleet
             </h1>
             <p className="text-xs text-[var(--retro-text-muted)] mt-1">
@@ -165,7 +165,7 @@ export function AgentsDashboard() {
         {/* Agent Cards Grid */}
         <RetroPanel title="Agents">
           {agents.length === 0 ? (
-            <div className="text-center py-8 text-[var(--retro-text-muted)] uppercase tracking-wider">
+            <div className="text-center py-8 text-[var(--retro-text-muted)]">
               No agents configured
             </div>
           ) : (

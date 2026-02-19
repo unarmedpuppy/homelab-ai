@@ -60,7 +60,6 @@ function formatResponseTime(ms: number | null): string {
 export function AgentCard({ agent, onForceCheck, isChecking, onClick }: AgentCardProps) {
   const { health } = agent;
   const statusColor = getStatusColor(health.status);
-  const isOnline = health.status === 'online';
 
   return (
     <RetroCard
@@ -87,10 +86,7 @@ export function AgentCard({ agent, onForceCheck, isChecking, onClick }: AgentCar
           <div className="flex items-center gap-2">
             <span
               className="w-2.5 h-2.5 rounded-full"
-              style={{
-                backgroundColor: statusColor,
-                boxShadow: isOnline ? `0 0 8px ${statusColor}` : 'none',
-              }}
+              style={{ backgroundColor: statusColor }}
             />
             <RetroBadge variant={getStatusVariant(health.status)} size="sm">
               {health.status.toUpperCase()}
@@ -115,18 +111,18 @@ export function AgentCard({ agent, onForceCheck, isChecking, onClick }: AgentCar
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-3 mb-3">
           <div className="bg-[var(--retro-bg-light)] rounded p-2 border border-[var(--retro-border)]">
-            <div className="text-[0.625rem] text-[var(--retro-text-muted)] uppercase tracking-wider mb-0.5">
+            <div className="text-[0.625rem] text-[var(--retro-text-muted)] mb-0.5">
               Last Seen
             </div>
-            <div className="text-sm font-mono text-[var(--retro-text-primary)]">
+            <div className="text-sm text-[var(--retro-text-primary)]">
               {formatLastSeen(health.last_check, health.last_success)}
             </div>
           </div>
           <div className="bg-[var(--retro-bg-light)] rounded p-2 border border-[var(--retro-border)]">
-            <div className="text-[0.625rem] text-[var(--retro-text-muted)] uppercase tracking-wider mb-0.5">
+            <div className="text-[0.625rem] text-[var(--retro-text-muted)] mb-0.5">
               Response Time
             </div>
-            <div className="text-sm font-mono text-[var(--retro-text-primary)]">
+            <div className="text-sm text-[var(--retro-text-primary)]">
               {formatResponseTime(health.response_time_ms)}
             </div>
           </div>

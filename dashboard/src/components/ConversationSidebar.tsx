@@ -16,7 +16,7 @@ const getSourceBadge = (conv: { source?: string; project?: string }) => {
   const colors: Record<string, string> = {
     discord: 'bg-[rgba(179,136,255,0.2)] text-[var(--retro-accent-purple)] border-[var(--retro-accent-purple)]',
     'tayne-discord-bot': 'bg-[rgba(179,136,255,0.2)] text-[var(--retro-accent-purple)] border-[var(--retro-accent-purple)]',
-    dashboard: 'bg-[rgba(0,255,65,0.2)] text-[var(--retro-accent-green)] border-[var(--retro-accent-green)]',
+    dashboard: 'bg-[rgba(96,165,250,0.15)] text-[var(--retro-accent-blue)] border-[var(--retro-accent-blue)]',
     testing: 'bg-[rgba(255,215,0,0.2)] text-[var(--retro-accent-yellow)] border-[var(--retro-accent-yellow)]',
     unknown: 'bg-[var(--retro-bg-light)] text-[var(--retro-text-muted)] border-[var(--retro-border)]',
   };
@@ -162,20 +162,20 @@ export default function ConversationSidebar({
           onClick={onNewChat}
           icon={<span>+</span>}
         >
-          NEW CONVERSATION
+          New Conversation
         </RetroButton>
       </div>
 
       {/* Conversation List */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-3 sm:p-4 border-b border-[var(--retro-border)]">
-          <div className="text-xs uppercase tracking-wider text-[var(--retro-text-secondary)] font-semibold">
+          <div className="text-xs text-[var(--retro-text-secondary)] font-semibold">
             Conversations ({sortedConversations.length})
           </div>
         </div>
 
         {isLoading ? (
-          <div className="p-6 text-center text-[var(--retro-text-muted)] text-sm retro-animate-pulse uppercase tracking-wider">
+          <div className="p-6 text-center text-[var(--retro-text-muted)] text-sm retro-animate-pulse">
             Loading...
           </div>
         ) : sortedConversations.length === 0 ? (
@@ -199,14 +199,14 @@ export default function ConversationSidebar({
                       ? 'bg-[var(--retro-bg-light)] border-l-2 border-[var(--retro-accent-green)]'
                       : 'hover:bg-[var(--retro-bg-light)] border-l-2 border-transparent'
                   }`}
-                  style={isSelected ? { boxShadow: 'inset 0 0 10px rgba(0, 255, 65, 0.1)' } : {}}
+                  style={{}}
                 >
                   <div className="flex items-center gap-2 mb-1">
-                    <span className={`px-1.5 py-0.5 text-[10px] rounded border font-semibold uppercase tracking-wider ${badge.colorClass}`}>
+                    <span className={`px-1.5 py-0.5 text-[10px] rounded border font-semibold ${badge.colorClass}`}>
                       {badge.label}
                     </span>
                     {conv.username && (
-                      <span className="text-[10px] text-[var(--retro-text-muted)] truncate font-mono">@{conv.username}</span>
+                      <span className="text-[10px] text-[var(--retro-text-muted)] truncate">@{conv.username}</span>
                     )}
                   </div>
 
@@ -225,7 +225,7 @@ export default function ConversationSidebar({
                     </div>
                   ) : (
                     <div className="group flex items-center justify-between">
-                      <div className="font-mono text-sm text-[var(--retro-text-primary)] truncate flex-1">
+                      <div className="text-sm text-[var(--retro-text-primary)] truncate flex-1">
                         {conv.title || 'Untitled conversation'}
                       </div>
                       <button
@@ -243,7 +243,7 @@ export default function ConversationSidebar({
                     </div>
                   )}
 
-                  <div className="flex items-center gap-3 mt-2 text-xs text-[var(--retro-text-muted)] font-mono">
+                  <div className="flex items-center gap-3 mt-2 text-xs text-[var(--retro-text-muted)]">
                     <span className="text-[var(--retro-accent-cyan)]">▸ {conv.message_count || 0}</span>
                     <span>msgs</span>
                     <span>•</span>

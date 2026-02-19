@@ -92,7 +92,7 @@ export default function ConversationExplorer() {
       <div className="lg:col-span-1 space-y-4">
         {/* Search Box */}
         <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-          <div className="text-xs uppercase tracking-wider text-gray-400 mb-2">Search</div>
+          <div className="text-xs text-gray-400 mb-2">Search</div>
           <input
             type="text"
             placeholder="Filter conversations..."
@@ -105,7 +105,7 @@ export default function ConversationExplorer() {
         {/* Conversation List */}
         <div className="bg-gray-800 rounded-lg border border-gray-700 max-h-[600px] overflow-y-auto">
           <div className="p-4 border-b border-gray-700">
-            <div className="text-xs uppercase tracking-wider text-gray-400">
+            <div className="text-xs text-gray-400">
               Conversations ({displayedConversations?.length || 0})
             </div>
           </div>
@@ -169,7 +169,7 @@ export default function ConversationExplorer() {
             {/* Header */}
             <div className="p-6 border-b border-gray-700">
               <div className="flex items-center gap-3 mb-2">
-                <div className="text-xs uppercase tracking-wider text-gray-400">
+                <div className="text-xs text-gray-400">
                   Conversation
                 </div>
                 {(() => {

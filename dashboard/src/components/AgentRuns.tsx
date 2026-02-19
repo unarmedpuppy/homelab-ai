@@ -201,7 +201,7 @@ export default function AgentRuns() {
   if (loading && runs.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-[var(--retro-text-muted)] retro-animate-pulse uppercase tracking-wider text-sm">
+        <div className="text-[var(--retro-text-muted)] retro-animate-pulse text-sm">
           Loading agent runs...
         </div>
       </div>
@@ -210,8 +210,8 @@ export default function AgentRuns() {
 
   if (error) {
     return (
-      <div className="p-4 bg-[rgba(255,68,68,0.1)] border-2 border-[var(--retro-accent-red)] rounded">
-        <h3 className="text-[var(--retro-accent-red)] font-bold mb-2 uppercase tracking-wider">
+      <div className="p-4 bg-[rgba(255,68,68,0.1)] border border-[var(--retro-accent-red)] rounded">
+        <h3 className="text-[var(--retro-accent-red)] font-bold mb-2">
           Error Loading Agent Runs
         </h3>
         <p className="text-[var(--retro-accent-red)] text-sm mb-3">{error}</p>
@@ -226,7 +226,7 @@ export default function AgentRuns() {
     <div className="space-y-4 sm:space-y-6 p-4">
       {/* Header with refresh button */}
       <div className="flex justify-between items-center">
-        <h2 className="text-xl sm:text-2xl font-bold text-[var(--retro-accent-green)] uppercase tracking-wider">
+        <h2 className="text-xl sm:text-2xl font-bold text-[var(--retro-text-primary)]">
           Agent Runs
         </h2>
         <RetroButton
@@ -362,7 +362,7 @@ export default function AgentRuns() {
 
                     {/* Execution Steps */}
                     <div>
-                      <h4 className="text-xs font-bold text-[var(--retro-text-secondary)] mb-2 uppercase tracking-wider">
+                      <h4 className="text-xs font-bold text-[var(--retro-text-secondary)] mb-2">
                         Execution Steps
                       </h4>
                       <div className="space-y-2">
@@ -448,25 +448,25 @@ export default function AgentRuns() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--retro-border)]">
-                  <th className="px-3 py-2 text-left text-xs font-bold text-[var(--retro-text-secondary)] uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-xs font-bold text-[var(--retro-text-secondary)]">
                     Status
                   </th>
-                  <th className="px-3 py-2 text-left text-xs font-bold text-[var(--retro-text-secondary)] uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-xs font-bold text-[var(--retro-text-secondary)]">
                     Task
                   </th>
-                  <th className="px-3 py-2 text-left text-xs font-bold text-[var(--retro-text-secondary)] uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-xs font-bold text-[var(--retro-text-secondary)]">
                     Model / Backend
                   </th>
-                  <th className="px-3 py-2 text-left text-xs font-bold text-[var(--retro-text-secondary)] uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-xs font-bold text-[var(--retro-text-secondary)]">
                     Steps
                   </th>
-                  <th className="px-3 py-2 text-left text-xs font-bold text-[var(--retro-text-secondary)] uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-xs font-bold text-[var(--retro-text-secondary)]">
                     Duration
                   </th>
-                  <th className="px-3 py-2 text-left text-xs font-bold text-[var(--retro-text-secondary)] uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-xs font-bold text-[var(--retro-text-secondary)]">
                     Source
                   </th>
-                  <th className="px-3 py-2 text-left text-xs font-bold text-[var(--retro-text-secondary)] uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-xs font-bold text-[var(--retro-text-secondary)]">
                     Started
                   </th>
                 </tr>
@@ -527,7 +527,7 @@ export default function AgentRuns() {
                         <td colSpan={7} className="px-4 py-4">
                           <div className="space-y-4">
                             <div className="border-b border-[var(--retro-border)] pb-3">
-                              <h4 className="text-xs font-bold text-[var(--retro-text-secondary)] mb-3 uppercase tracking-wider">
+                              <h4 className="text-xs font-bold text-[var(--retro-text-secondary)] mb-3">
                                 Run Details
                               </h4>
                               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
@@ -588,7 +588,7 @@ export default function AgentRuns() {
                             </div>
 
                             <div>
-                              <h4 className="text-xs font-bold text-[var(--retro-text-secondary)] mb-3 uppercase tracking-wider">
+                              <h4 className="text-xs font-bold text-[var(--retro-text-secondary)] mb-3">
                                 Execution Steps
                               </h4>
                               <div className="space-y-2">
@@ -677,7 +677,7 @@ export default function AgentRuns() {
       )}
 
       {runs.length === 0 && (
-        <div className="text-center py-8 text-[var(--retro-text-muted)] uppercase tracking-wider">
+        <div className="text-center py-8 text-[var(--retro-text-muted)]">
           No agent runs found.
         </div>
       )}

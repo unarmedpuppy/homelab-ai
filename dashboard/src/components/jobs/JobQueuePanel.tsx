@@ -133,7 +133,7 @@ export function JobQueuePanel({ agentId, onCreateJob, compact = false }: JobQueu
 
         {/* Job list */}
         {filteredJobs.length === 0 ? (
-          <div className="text-center py-8 text-[var(--retro-text-muted)] text-sm uppercase tracking-wider">
+          <div className="text-center py-8 text-[var(--retro-text-muted)] text-sm">
             {statusFilter === 'all' ? 'No jobs yet' : `No ${statusFilter} jobs`}
           </div>
         ) : (

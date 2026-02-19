@@ -30,8 +30,8 @@ type ViewName = 'chat' | 'ralph' | 'tasks' | 'providers' | 'stats' | 'agents' | 
 function AppHeader() {
   return (
     <div className="p-6 border-b border-[var(--retro-border)]">
-      <h1 className="text-xl font-bold text-[var(--retro-accent-green)] uppercase tracking-wider">
-        LOCAL AI DASHBOARD
+      <h1 className="text-xl font-bold text-[var(--retro-text-primary)]">
+        Local AI Dashboard
       </h1>
     </div>
   );
@@ -129,7 +129,7 @@ function AppLayout({
               >
                 {menuOpen ? '✕' : '☰'}
               </button>
-              <h1 className="text-lg font-bold text-[var(--retro-accent-green)] uppercase tracking-wider">
+              <h1 className="text-lg font-bold text-[var(--retro-text-primary)]">
                 Local AI Dashboard
               </h1>
               <div className="w-10" aria-hidden="true" />

@@ -59,7 +59,7 @@ export default function GamingModePanel() {
     <RetroCard variant={offline ? 'warning' : 'default'} size="responsive">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <h3 className="text-base sm:text-lg font-semibold text-[var(--retro-text-primary)] uppercase tracking-wider">
+          <h3 className="text-base sm:text-lg font-semibold text-[var(--retro-text-primary)]">
             Gaming PC
           </h3>
           {offline ? (

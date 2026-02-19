@@ -413,8 +413,8 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
 
         {/* Advanced Settings Panel */}
         {showAdvanced && (
-          <div className="mt-4 p-4 bg-[var(--retro-bg-card)] border-2 border-[var(--retro-border)] rounded space-y-4">
-            <div className="text-xs uppercase tracking-wider text-[var(--retro-text-secondary)] mb-3 font-semibold">
+          <div className="mt-4 p-4 bg-[var(--retro-bg-card)] border border-[var(--retro-border)] rounded space-y-4">
+            <div className="text-xs text-[var(--retro-text-secondary)] mb-3 font-semibold">
               Advanced Settings
             </div>
 
@@ -505,13 +505,13 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
       <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4">
         {isLoadingConversation ? (
           <div className="flex items-center justify-center h-full">
-            <div className="text-[var(--retro-text-muted)] text-sm retro-animate-pulse uppercase tracking-wider">
+            <div className="text-[var(--retro-text-muted)] text-sm retro-animate-pulse">
               Loading conversation...
             </div>
           </div>
         ) : messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            <div className="text-[var(--retro-text-muted)] text-sm uppercase tracking-wider">
+            <div className="text-[var(--retro-text-muted)] text-sm">
               ▸ Start a new conversation
             </div>
           </div>
@@ -520,20 +520,19 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
             <div key={idx} className="group">
               {/* Message Header */}
               <div className="flex items-center gap-3 mb-2">
-                <div className={`text-xs font-mono uppercase font-semibold tracking-wider ${
+                <div className={`text-xs font-semibold ${
                   message.role === 'user' ? 'text-[var(--retro-accent-blue)]' : 'text-[var(--retro-accent-green)]'
                 }`}>
-                  {message.role === 'user' ? '▸ USER' : '◂ ASSISTANT'}
+                  {message.role === 'user' ? 'You' : 'Assistant'}
                 </div>
               </div>
 
               {/* Message Content - Retro styled bubble */}
-              <div className={`p-3 sm:p-4 rounded border-2 ${
+              <div className={`p-3 sm:p-4 rounded border ${
                 message.role === 'user'
                   ? 'bg-[var(--retro-bg-light)] border-[var(--retro-border)] ml-0 sm:ml-6'
                   : 'bg-[var(--retro-bg-medium)] border-[var(--retro-accent-green)] mr-0 sm:mr-6'
-              }`}
-              style={message.role === 'assistant' ? { boxShadow: '0 0 10px rgba(0, 255, 65, 0.1)' } : {}}>
+              }`}>
                 {message.image_refs && message.image_refs.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-3">
                     {message.image_refs.map((img, imgIdx) => (
@@ -547,7 +546,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                         <img
                           src={imageAPI.getUrl(img)}
                           alt={img.filename}
-                          className="max-w-xs max-h-48 rounded border-2 border-[var(--retro-border)] hover:border-[var(--retro-accent-cyan)] transition-colors"
+                          className="max-w-xs max-h-48 rounded border border-[var(--retro-border)] hover:border-[var(--retro-accent-cyan)] transition-colors"
                         />
                       </a>
                     ))}
@@ -623,18 +622,17 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
           <div className="group">
             {/* Message Header */}
             <div className="flex items-center gap-3 mb-2">
-              <div className="text-xs font-mono uppercase font-semibold tracking-wider text-[var(--retro-accent-green)]">
-                ◂ ASSISTANT
+              <div className="text-xs font-semibold text-[var(--retro-text-secondary)]">
+                Assistant
               </div>
-              <div className="text-xs text-[var(--retro-text-muted)] font-mono">
+              <div className="text-xs text-[var(--retro-text-muted)]">
                 streaming... <span className="text-[var(--retro-accent-cyan)]">{streamingTokenCount}</span> tokens
               </div>
             </div>
 
             {/* Message Content - Retro styled streaming bubble */}
             <div
-              className="p-3 sm:p-4 rounded border-2 bg-[var(--retro-bg-medium)] border-[var(--retro-accent-green)] mr-0 sm:mr-6"
-              style={{ boxShadow: '0 0 15px rgba(0, 255, 65, 0.2)' }}
+              className="p-3 sm:p-4 rounded border bg-[var(--retro-bg-medium)] border-[var(--retro-border-active)] mr-0 sm:mr-6"
             >
               <MarkdownContent content={streamingContent} />
               <span className="inline-block w-2 h-4 bg-[var(--retro-accent-green)] ml-1 retro-animate-pulse"></span>
@@ -644,14 +642,14 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
 
         {isStreaming && !streamingContent && streamStatus.status && (
           <div className="flex items-center gap-3 mb-2">
-            <div className="text-xs font-mono uppercase font-semibold tracking-wider text-[var(--retro-accent-green)]">
-              ◂ ASSISTANT
+            <div className="text-xs font-semibold text-[var(--retro-text-secondary)]">
+              Assistant
             </div>
             <div className="flex items-center gap-2">
               {streamStatus.status !== 'error' && (
                 <div className="w-2 h-2 bg-[var(--retro-accent-green)] rounded-full retro-animate-pulse"></div>
               )}
-              <div className={`text-xs font-mono ${
+              <div className={`text-xs ${
                 streamStatus.status === 'error' ? 'text-[var(--retro-accent-red)]' : 'text-[var(--retro-text-muted)]'
               }`}>
                 {streamStatus.status === 'routing' && 'Selecting backend...'}

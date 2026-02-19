@@ -126,7 +126,7 @@ export function CreateJobModal({
 
         {preselectedAgentId && selectedAgent && (
           <div className="text-sm">
-            <span className="text-[var(--retro-text-muted)] uppercase tracking-wider">Agent: </span>
+            <span className="text-[var(--retro-text-muted)]">Agent: </span>
             <span className="text-[var(--retro-text-primary)] font-bold">{selectedAgent.name}</span>
           </div>
         )}
@@ -141,7 +141,7 @@ export function CreateJobModal({
         <div className="space-y-1">
           <label
             htmlFor="prompt"
-            className="block text-xs font-semibold uppercase tracking-wider text-[var(--retro-text-secondary)]"
+            className="block text-xs font-semibold text-[var(--retro-text-secondary)]"
           >
             Prompt
           </label>
@@ -165,7 +165,7 @@ export function CreateJobModal({
 
         {/* Advanced Options */}
         <details className="group">
-          <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wider text-[var(--retro-text-muted)] hover:text-[var(--retro-text-secondary)]">
+          <summary className="cursor-pointer text-xs font-semibold text-[var(--retro-text-muted)] hover:text-[var(--retro-text-secondary)]">
             Advanced Options
           </summary>
           <div className="mt-3 space-y-3 pl-2 border-l-2 border-[var(--retro-border)]">

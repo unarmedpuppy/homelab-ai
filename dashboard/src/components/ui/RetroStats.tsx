@@ -66,7 +66,7 @@ export function RetroStatCard({
         <div className={`text-3xl font-bold ${colorClasses[color]} mb-1`}>
           {value}
         </div>
-        <div className="text-xs uppercase tracking-wider text-[var(--retro-text-muted)]">
+        <div className="text-xs text-[var(--retro-text-muted)]">
           {label}
         </div>
       </div>

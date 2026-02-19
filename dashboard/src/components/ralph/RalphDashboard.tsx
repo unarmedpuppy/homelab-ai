@@ -145,7 +145,7 @@ export function RalphDashboard() {
     <div className="h-full flex flex-col bg-[var(--retro-bg-dark)] overflow-y-auto">
       {/* Header */}
       <div className="p-4 bg-[var(--retro-bg-medium)] border-b border-[var(--retro-border)]">
-        <h1 className="text-lg font-bold uppercase tracking-wider text-[var(--retro-accent-green)]">
+        <h1 className="text-lg font-bold text-[var(--retro-text-primary)]">
           Ralph-Wiggum Task Runner
         </h1>
         <p className="text-xs text-[var(--retro-text-muted)] mt-1">
@@ -168,7 +168,7 @@ export function RalphDashboard() {
                   className="w-3 h-3 rounded-full"
                   style={{
                     backgroundColor: getStatusColor(),
-                    boxShadow: status.running ? `0 0 10px ${getStatusColor()}` : 'none',
+                    boxShadow: 'none',
                   }}
                 />
                 <span className="text-sm font-bold uppercase" style={{ color: getStatusColor() }}>

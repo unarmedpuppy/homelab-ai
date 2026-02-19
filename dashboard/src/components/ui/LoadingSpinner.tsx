@@ -50,7 +50,6 @@ export function LoadingSpinner({
           className={`
             ${textSizeClasses[size]}
             text-[var(--retro-text-muted)]
-            uppercase tracking-wider
             retro-animate-pulse
           `}
         >
@@ -155,7 +154,7 @@ export function ErrorFallback({ error, resetErrorBoundary }: ErrorFallbackProps)
   return (
     <div className="h-full w-full flex flex-col items-center justify-center bg-[var(--retro-bg-dark)] p-4">
       <div className="max-w-md text-center space-y-4">
-        <h2 className="text-lg font-bold text-[var(--retro-accent-red)] uppercase tracking-wider">
+        <h2 className="text-lg font-bold text-[var(--retro-accent-red)]">
           Failed to Load
         </h2>
         <p className="text-sm text-[var(--retro-text-muted)]">
@@ -169,7 +168,7 @@ export function ErrorFallback({ error, resetErrorBoundary }: ErrorFallbackProps)
               bg-[var(--retro-bg-medium)]
               border border-[var(--retro-border)]
               text-[var(--retro-text-primary)]
-              text-sm uppercase tracking-wider
+              text-sm
               rounded
               hover:border-[var(--retro-accent-cyan)]
               transition-colors

@@ -6,17 +6,17 @@ interface Props {
 
 // Retro color palette for activity heatmap
 const HEATMAP_COLORS = {
-  empty: 'var(--retro-bg-dark)',
-  level1: 'rgba(0, 255, 65, 0.2)',  // --retro-accent-green at 20%
-  level2: 'rgba(0, 255, 65, 0.4)',  // --retro-accent-green at 40%
-  level3: 'rgba(0, 255, 65, 0.6)',  // --retro-accent-green at 60%
-  level4: 'var(--retro-accent-green)',  // Full green
+  empty: '#1e293b',
+  level1: '#1e3a5f',
+  level2: '#2563eb',
+  level3: '#3b82f6',
+  level4: '#60a5fa',
 };
 
 export default function ActivityHeatmap({ data }: Props) {
   if (!data || data.length === 0) {
     return (
-      <div className="text-[var(--retro-text-muted)] text-sm uppercase tracking-wider">
+      <div className="text-[var(--retro-text-muted)] text-sm">
         No activity data available
       </div>
     );
@@ -58,7 +58,7 @@ export default function ActivityHeatmap({ data }: Props) {
       </div>
       {/* Legend */}
       <div className="flex items-center gap-2 text-xs text-[var(--retro-text-muted)]">
-        <span className="uppercase tracking-wider">Less</span>
+        <span>Less</span>
         <div className="flex gap-1">
           <div
             className="w-3 h-3 rounded-sm border border-[var(--retro-border)]"
@@ -81,7 +81,7 @@ export default function ActivityHeatmap({ data }: Props) {
             style={{ backgroundColor: HEATMAP_COLORS.level4 }}
           />
         </div>
-        <span className="uppercase tracking-wider">More</span>
+        <span>More</span>
       </div>
     </div>
   );

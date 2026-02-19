@@ -310,7 +310,7 @@ const modelOptions = useMemo(() => {
   return (
     <div className="flex items-center gap-3">
       <div className="flex items-center gap-2 min-w-0">
-        <label className="text-xs uppercase tracking-wider text-gray-500 whitespace-nowrap">
+        <label className="text-xs text-gray-500 whitespace-nowrap">
           Provider:
         </label>
         <CustomDropdown
@@ -325,7 +325,7 @@ const modelOptions = useMemo(() => {
 
       {selectedProvider && currentProvider && (
         <div className="flex items-center gap-2 min-w-0">
-          <label className="text-xs uppercase tracking-wider text-gray-500 whitespace-nowrap">
+          <label className="text-xs text-gray-500 whitespace-nowrap">
             Model:
           </label>
           <CustomDropdown

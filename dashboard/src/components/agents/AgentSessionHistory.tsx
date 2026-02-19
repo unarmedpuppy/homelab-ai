@@ -102,7 +102,7 @@ export function AgentSessionHistory({ agent }: AgentSessionHistoryProps) {
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center">
-        <div className="text-[var(--retro-text-muted)] retro-animate-pulse uppercase tracking-wider text-sm">
+        <div className="text-[var(--retro-text-muted)] retro-animate-pulse text-sm">
           Loading session history...
         </div>
       </div>
@@ -112,7 +112,7 @@ export function AgentSessionHistory({ agent }: AgentSessionHistoryProps) {
   if (!isOnline) {
     return (
       <div className="h-full flex flex-col items-center justify-center p-8">
-        <div className="text-[var(--retro-text-muted)] uppercase tracking-wider mb-2">
+        <div className="text-[var(--retro-text-muted)] mb-2">
           Agent Offline
         </div>
         <p className="text-sm text-[var(--retro-text-muted)] text-center max-w-md">
@@ -126,7 +126,7 @@ export function AgentSessionHistory({ agent }: AgentSessionHistoryProps) {
   if (error && sessions.length === 0) {
     return (
       <div className="h-full flex flex-col items-center justify-center p-8">
-        <div className="text-[var(--retro-accent-red)] uppercase tracking-wider mb-2">
+        <div className="text-[var(--retro-accent-red)] mb-2">
           Error Loading Sessions
         </div>
         <p className="text-sm text-[var(--retro-text-muted)] text-center max-w-md mb-4">
@@ -142,7 +142,7 @@ export function AgentSessionHistory({ agent }: AgentSessionHistoryProps) {
   if (sessions.length === 0) {
     return (
       <div className="h-full flex flex-col items-center justify-center p-8">
-        <div className="text-[var(--retro-text-muted)] uppercase tracking-wider mb-2">
+        <div className="text-[var(--retro-text-muted)] mb-2">
           No Sessions Found
         </div>
         <p className="text-sm text-[var(--retro-text-muted)] text-center max-w-md">
@@ -156,7 +156,7 @@ export function AgentSessionHistory({ agent }: AgentSessionHistoryProps) {
     <div className="h-full flex flex-col overflow-hidden">
       {/* Sessions Header */}
       <div className="p-3 bg-[var(--retro-bg-medium)] border-b border-[var(--retro-border)] flex items-center justify-between">
-        <span className="text-xs text-[var(--retro-text-muted)] uppercase tracking-wider">
+        <span className="text-xs text-[var(--retro-text-muted)]">
           {sessions.length} Sessions {hasMore && '(showing recent)'}
         </span>
         <RetroButton variant="ghost" size="sm" onClick={fetchSessions}>
@@ -208,20 +208,20 @@ export function AgentSessionHistory({ agent }: AgentSessionHistoryProps) {
 
               <div className="flex items-center gap-4 text-xs text-[var(--retro-text-muted)]">
                 <div>
-                  <span className="uppercase tracking-wider">Duration:</span>{' '}
+                  <span>Duration:</span>{' '}
                   <span className="font-mono text-[var(--retro-text-primary)]">
                     {formatDuration(session.duration_seconds)}
                   </span>
                 </div>
                 <div>
-                  <span className="uppercase tracking-wider">Turns:</span>{' '}
+                  <span>Turns:</span>{' '}
                   <span className="font-mono text-[var(--retro-text-primary)]">
                     {session.turns}
                   </span>
                 </div>
                 {session.tokens_used !== null && (
                   <div>
-                    <span className="uppercase tracking-wider">Tokens:</span>{' '}
+                    <span>Tokens:</span>{' '}
                     <span className="font-mono text-[var(--retro-text-primary)]">
                       {session.tokens_used.toLocaleString()}
                     </span>
