@@ -431,8 +431,8 @@ export const gamingModeAPI = {
     const response = await apiClient.get<{
       gaming_mode: boolean;
       safe_to_game: boolean;
-      running_models: string[];
-      stopped_models: string[];
+      running_models: Array<{ name: string; type: string; container: string; status: string }>;
+      stopped_models: Array<{ name: string; type: string; container: string; status: string }>;
     }>('/gaming-pc/status');
     return response.data;
   },

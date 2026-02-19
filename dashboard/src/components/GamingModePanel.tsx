@@ -2,11 +2,18 @@ import { useEffect, useState, useCallback } from 'react';
 import { gamingModeAPI } from '../api/client';
 import { RetroCard, RetroBadge, RetroButton } from './ui';
 
+interface ModelInfo {
+  name: string;
+  type: string;
+  container: string;
+  status: string;
+}
+
 interface GamingPCStatus {
   gaming_mode: boolean;
   safe_to_game: boolean;
-  running_models: string[];
-  stopped_models: string[];
+  running_models: ModelInfo[];
+  stopped_models: ModelInfo[];
 }
 
 export default function GamingModePanel() {
@@ -100,8 +107,8 @@ export default function GamingModePanel() {
           {status.running_models.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {status.running_models.map((model) => (
-                <RetroBadge key={model} variant="label" size="sm">
-                  {model}
+                <RetroBadge key={model.name} variant="label" size="sm">
+                  {model.name}
                 </RetroBadge>
               ))}
             </div>
