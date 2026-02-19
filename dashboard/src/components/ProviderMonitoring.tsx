@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { providersAPI } from '../api/client';
 import type { AdminProvider } from '../types/api';
 import { RetroCard, RetroStatCard, RetroBadge, RetroProgress, RetroButton, useIsMobile } from './ui';
+import GamingModePanel from './GamingModePanel';
 
 export default function ProviderMonitoring() {
   const [providers, setProviders] = useState<AdminProvider[]>([]);
@@ -88,6 +89,9 @@ export default function ProviderMonitoring() {
           Refresh
         </RetroButton>
       </div>
+
+      {/* Gaming Mode */}
+      <GamingModePanel />
 
       {/* Summary Stats */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">

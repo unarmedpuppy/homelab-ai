@@ -425,6 +425,26 @@ export const chatAPI = {
   },
 };
 
+// Gaming Mode API
+export const gamingModeAPI = {
+  getStatus: async () => {
+    const response = await apiClient.get<{
+      gaming_mode: boolean;
+      safe_to_game: boolean;
+      running_models: string[];
+      stopped_models: string[];
+    }>('/gaming-pc/status');
+    return response.data;
+  },
+
+  toggle: async (enable: boolean) => {
+    const response = await apiClient.post('/gaming-mode', null, {
+      params: { enable },
+    });
+    return response.data;
+  },
+};
+
 // Providers API
 export const providersAPI = {
   list: async () => {

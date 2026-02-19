@@ -977,6 +977,15 @@ async def chat_completions(
                     raise
 
 
+@app.get("/gaming-pc/status")
+async def get_gaming_pc_status_endpoint():
+    """Get gaming PC status including gaming mode, running models, etc."""
+    status = await get_gaming_pc_status()
+    if status is None:
+        raise HTTPException(status_code=503, detail="Gaming PC is unreachable")
+    return status
+
+
 @app.post("/gaming-mode")
 async def toggle_gaming_mode(enable: bool = True):
     """Proxy gaming mode toggle to Windows PC."""
