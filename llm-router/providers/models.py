@@ -79,3 +79,5 @@ class ProviderSelection(BaseModel):
     provider: Provider
     model: Model
     reason: str  # Why this provider/model was selected
+    complexity_tier: Optional[str] = None   # "routine", "moderate", "complex"
+    complexity_score: Optional[float] = None  # 0.0-1.0

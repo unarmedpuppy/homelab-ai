@@ -18,6 +18,7 @@ from dependencies import get_request_tracker, log_chat_completion, RequestTracke
 from memory import generate_conversation_id
 from providers import ProviderManager, HealthChecker, ProviderSelection, build_chat_completions_url, build_request_headers
 from stream import stream_chat_completion, stream_chat_completion_passthrough, StreamAccumulator
+from complexity import classify_request, ComplexityTier, TIER_MODEL_MAP
 import prometheus_metrics as prom
 from routers.docs import router as docs_router
 # from middleware import MemoryMetricsMiddleware  # Replaced with dependency injection
@@ -229,15 +230,14 @@ def has_force_big_signal(request: Request, body: dict) -> bool:
     return False
 
 
-async def route_request(request: Request, body: dict, priority: int = 1) -> ProviderSelection:
+async def route_request(request: Request, body: dict, priority: int = 1, api_key=None) -> ProviderSelection:
     """
     Determine which provider and model to route to using ProviderManager.
 
     Routing priority:
     1. Explicit model/provider requests are honored directly
-    2. Force-big signals escalate to 3090
-    3. Token count > 2000 escalates to 3090 (3070 has 2K context limit)
-    4. Default: route to 3070 (always-on, lower power)
+    2. Smart complexity classification (heuristics + caller signals)
+    3. Default: route based on classified tier
     """
     if not provider_manager:
         raise HTTPException(status_code=503, detail="Provider manager not initialized")
@@ -263,18 +263,18 @@ async def route_request(request: Request, body: dict, priority: int = 1) -> Prov
         elif alias_target == "opencode-claude":
             requested_model = "claude-3-5-haiku"
 
-    # Token-based escalation for "auto" requests - build fallback chain
+    # Complexity-based routing for "auto" requests
     is_auto = requested_model == "auto" and not requested_provider
+    classification = None
     if is_auto:
-        token_estimate = estimate_tokens(body.get("messages", []))
-        force_big = has_force_big_signal(request, body)
-
-        if force_big or token_estimate > SMALL_TOKEN_THRESHOLD:
-            requested_model = "qwen2.5-14b-awq"
-            logger.info(f"Escalating to 3090: force_big={force_big}, tokens={token_estimate}")
-        else:
-            requested_model = "qwen2.5-7b-awq"
-            logger.info(f"Using 3070 (default): tokens={token_estimate}")
+        classification = classify_request(request, body, api_key)
+        requested_model = TIER_MODEL_MAP[classification.tier]
+        primary_signal = classification.signals[0] if classification.signals else "default"
+        logger.info(
+            f"Classified: tier={classification.tier.name}, score={classification.score:.2f}, "
+            f"signals={classification.signals}"
+        )
+        prom.record_complexity_classification(classification.tier.name, primary_signal)
 
     try:
         # Select provider using ProviderManager (it's async)
@@ -286,6 +286,10 @@ async def route_request(request: Request, body: dict, priority: int = 1) -> Prov
 
         if not selection:
             raise ValueError(f"No healthy provider available for model '{requested_model}'")
+
+        if classification:
+            selection.complexity_tier = classification.tier.name.lower()
+            selection.complexity_score = round(classification.score, 3)
 
         logger.info(
             f"Routed to provider '{selection.provider.name}' "
@@ -803,7 +807,7 @@ async def chat_completions(
     logger.info(f"Request from '{api_key.name}' (priority={priority})")
 
     # Route using ProviderManager
-    selection = await route_request(request, body, priority=priority)
+    selection = await route_request(request, body, priority=priority, api_key=api_key)
 
     # Update body with selected model ID
     body["model"] = selection.model.id
@@ -899,6 +903,8 @@ async def chat_completions(
             response_headers = {}
             if tracker.conversation_id:
                 response_headers["X-Conversation-ID"] = tracker.conversation_id
+            if selection.complexity_tier:
+                response_headers["X-Complexity-Tier"] = selection.complexity_tier
 
             return StreamingResponse(
                 stream_generator(),
@@ -962,6 +968,8 @@ async def chat_completions(
                     response_headers = {}
                     if tracker.conversation_id:
                         response_headers["X-Conversation-ID"] = tracker.conversation_id
+                    if selection.complexity_tier:
+                        response_headers["X-Complexity-Tier"] = selection.complexity_tier
 
                     return JSONResponse(content=response_data, headers=response_headers)
 
@@ -1271,22 +1279,18 @@ async def call_llm_for_agent(
     tool_choice: str = "auto"
 ) -> dict:
     """Call the LLM through the router for agent use.
-    
-    Uses context-aware routing based on token count:
-    - < 2K tokens: 3070 with qwen2.5-7b-awq (fast, always-on)
-    - 2K-8K tokens: 3090 with qwen2.5-14b-awq (larger context)
-    - > 8K tokens: 3090 with warning (may overflow)
-    
+
+    Uses complexity classification for routing. Agent calls with tools
+    floor at MODERATE (tools always present), so they route to 3090 —
+    but now it's data-driven instead of hardcoded.
+
     Returns the response with additional _routing_info for tracking.
     """
-    # Estimate tokens for context-aware routing
     token_estimate = estimate_tokens(messages)
-    
-    # Calculate max_tokens: ensure at least 512 tokens for response
-    # Context windows: 3070 (qwen2.5-7b) = 8192, 3090 (qwen2.5-14b) = 8192
+
     context_window = 8192
-    max_tokens = max(512, min(2048, context_window - token_estimate - 500))  # Reserve 500 for safety
-    
+    max_tokens = max(512, min(2048, context_window - token_estimate - 500))
+
     body = {
         "model": model,
         "messages": messages,
@@ -1294,18 +1298,17 @@ async def call_llm_for_agent(
         "tool_choice": tool_choice,
         "max_tokens": max_tokens,
     }
-    
-    # Agent calls ALWAYS use 3090 - tool definitions add ~2500-4000 tokens overhead
-    # that isn't counted in the token estimate. The 3070's 2048 context is too small.
-    # 
-    # Token breakdown for agent calls:
-    # - System prompt + user message: ~600-1500 tokens (estimated)
-    # - 24 tool definitions: ~2500-4000 tokens (NOT in estimate!)
-    # - Response: ~500-2000 tokens
-    # Total: easily 4000-7000+ tokens - requires 3090's larger context
-    backend_id = "3090"
-    actual_model = "qwen2.5-14b-awq"
-    
+
+    # Use complexity classification — agent calls with tools will score MODERATE+
+    # because tools present adds +0.1 per tool (max 0.4), clearing the 0.25 threshold
+    class _FakeRequest:
+        headers = {}
+    classification = classify_request(_FakeRequest(), body)
+    actual_model = TIER_MODEL_MAP[classification.tier]
+    backend_id = "3090" if classification.tier >= ComplexityTier.MODERATE else "3070"
+
+    logger.info(f"Agent classification: tier={classification.tier.name}, score={classification.score:.2f}")
+
     if token_estimate > 6000:
         logger.warning(f"Agent context very large (~{token_estimate} tokens in messages + ~3000 tool tokens), may approach limit")
 

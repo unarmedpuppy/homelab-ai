@@ -85,6 +85,12 @@ FAILOVER_COUNT = Counter(
     ['from_provider', 'to_provider', 'reason']
 )
 
+COMPLEXITY_CLASSIFICATIONS = Counter(
+    'local_ai_complexity_classifications_total',
+    'Request complexity classifications',
+    ['tier', 'primary_signal']
+)
+
 # ============================================================================
 # Error Metrics
 # ============================================================================
@@ -189,6 +195,14 @@ def record_failover(from_provider: str, to_provider: str, reason: str):
         from_provider=from_provider,
         to_provider=to_provider,
         reason=reason
+    ).inc()
+
+
+def record_complexity_classification(tier: str, primary_signal: str):
+    """Record a complexity classification decision."""
+    COMPLEXITY_CLASSIFICATIONS.labels(
+        tier=tier,
+        primary_signal=primary_signal,
     ).inc()
 
 
