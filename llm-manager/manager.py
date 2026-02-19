@@ -28,6 +28,7 @@ VLLM_IMAGE = os.getenv("VLLM_IMAGE", "vllm/vllm-openai:latest")
 HF_CACHE_PATH = os.getenv("HF_CACHE_PATH", "/root/.cache/huggingface")
 DOCKER_NETWORK = os.getenv("DOCKER_NETWORK", "ai-network")  # Network for spawned containers
 GPU_MEMORY_UTILIZATION = float(os.getenv("GPU_MEMORY_UTILIZATION", "0.95"))  # vLLM gpu-memory-utilization
+CPU_OFFLOAD_GB = float(os.getenv("CPU_OFFLOAD_GB", "0"))  # vLLM cpu-offload-gb (0 = disabled)
 
 # --- Global State ---
 docker_client = docker.from_env()
@@ -152,6 +153,9 @@ def create_vllm_container(model_id: str):
     cmd.extend(["--max-model-len", str(context_len)])
     cmd.extend(["--gpu-memory-utilization", str(GPU_MEMORY_UTILIZATION)])
     
+    if CPU_OFFLOAD_GB > 0:
+        cmd.extend(["--cpu-offload-gb", str(int(CPU_OFFLOAD_GB))])
+
     # enforce-eager for AWQ (not awq_marlin which handles this natively)
     if card.get("quantization") == "awq":
         cmd.extend(["--enforce-eager"])
