@@ -150,7 +150,7 @@ export default function DocsPage() {
   const totalADRs = repos?.reduce((sum, r) => sum + r.adrs.length, 0) ?? 0;
 
   const listPanel = (
-    <div className={`${isDesktop ? 'w-72' : 'w-full'} flex-shrink-0 ${isDesktop ? 'border-r border-[var(--retro-border)]' : ''} bg-[var(--retro-bg-medium)] flex flex-col overflow-hidden`}>
+    <div className={`${isDesktop ? 'w-72 flex-shrink-0 border-r border-[var(--retro-border)]' : 'w-full flex-1'} bg-[var(--retro-bg-medium)] flex flex-col overflow-hidden`}>
       <div className="px-3 py-3 border-b border-[var(--retro-border)]">
         <h2 className="text-sm font-bold text-[var(--retro-text-primary)]">
           Architecture Decision Records
