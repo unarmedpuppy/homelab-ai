@@ -70,7 +70,6 @@
   --safe-area-top: env(safe-area-inset-top, 0px);
   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
   --mobile-header-height: calc(var(--retro-touch-target) + 2rem + var(--safe-area-top));
-  --mobile-nav-height: calc(var(--retro-touch-target) + 1rem + var(--safe-area-bottom));
 }
 
 /* Scanlines - disabled */
@@ -731,43 +730,7 @@
   box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
 }
 
-/* Mobile navigation */
-.retro-mobile-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: space-around;
-  background: var(--retro-bg-medium);
-  border-top: var(--retro-border-width) solid var(--retro-border);
-  padding: 0.5rem 0.5rem calc(0.5rem + var(--safe-area-bottom));
-  z-index: 50;
-}
-
-.retro-mobile-nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem;
-  min-width: var(--retro-touch-target);
-  min-height: var(--retro-touch-target);
-  color: var(--retro-text-muted);
-  text-decoration: none;
-  font-size: 0.625rem;
-  transition: color 0.15s ease;
-}
-
-.retro-mobile-nav-item:hover,
-.retro-mobile-nav-item-active {
-  color: var(--retro-accent-cyan);
-}
-
-.retro-mobile-nav-item span {
-  font-size: 1.25rem;
-  margin-bottom: 0.25rem;
-}
+/* Mobile navigation - removed, using hamburger menu only */
 
 /* Responsive utilities */
 @media (max-width: 640px) {
@@ -775,9 +738,6 @@
     display: none !important;
   }
 
-  .retro-with-mobile-nav {
-    padding-bottom: var(--mobile-nav-height);
-  }
 }
 
 @media (min-width: 641px) {

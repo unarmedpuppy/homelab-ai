@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, lazy, Suspense } from 'react';
 import type { ReactNode } from 'react';
 import { Routes, Route, useNavigate, useParams, useLocation, Link } from 'react-router-dom';
-import { MobileNav, PageLoading } from './components/ui';
+import { PageLoading } from './components/ui';
 import { useIsDesktop } from './hooks/useMediaQuery';
 import { CleanLayout } from './components/clean/CleanLayout';
 
@@ -184,7 +184,6 @@ function AppLayout({
           className={`
             flex-1
             ${scrollable ? 'overflow-auto' : 'overflow-hidden'}
-            ${useMobileLayout ? 'retro-with-mobile-nav' : ''}
           `}
           style={useMobileLayout ? { paddingTop: 'var(--mobile-header-height)' } : undefined}
         >
@@ -197,9 +196,6 @@ function AppLayout({
           )}
         </div>
       </div>
-
-      {/* Mobile/Tablet Navigation */}
-      {useMobileLayout && <MobileNav currentView={currentView} />}
     </div>
   );
 }
