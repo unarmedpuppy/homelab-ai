@@ -22,6 +22,8 @@ services:
       - ENABLE_METRICS=1
       - ENABLE_MEMORY=1
       - LOG_LEVEL=INFO
+      - GITEA_URL=https://gitea.server.unarmedpuppy.com
+      - GITEA_TOKEN=${GITEA_TOKEN:-}
     volumes:
       - router-data:/app/data
     networks:

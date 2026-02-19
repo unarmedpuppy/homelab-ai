@@ -17,13 +17,15 @@ const RalphDashboard = lazy(() => import('./components/ralph/RalphDashboard'));
 const TasksDashboard = lazy(() => import('./components/tasks/TasksDashboard'));
 const AgentsDashboard = lazy(() => import('./components/agents/AgentsDashboard'));
 
+const DocsPage = lazy(() => import('./pages/DocsPage'));
+
 // Clean pages (lazy)
 const HomePage = lazy(() => import('./pages/HomePage'));
 const EmailsPage = lazy(() => import('./pages/reference/EmailsPage'));
 const GettingStartedPage = lazy(() => import('./pages/reference/GettingStartedPage'));
 const TroubleshootingPage = lazy(() => import('./pages/reference/TroubleshootingPage'));
 
-type ViewName = 'chat' | 'ralph' | 'tasks' | 'providers' | 'stats' | 'agents';
+type ViewName = 'chat' | 'ralph' | 'tasks' | 'providers' | 'stats' | 'agents' | 'docs';
 
 function AppHeader() {
   return (
@@ -43,6 +45,7 @@ function AppNavigation({ currentView }: { currentView: ViewName }) {
     { to: '/providers', view: 'providers', icon: '🔌', label: 'Providers' },
     { to: '/stats', view: 'stats', icon: '📊', label: 'Stats' },
     { to: '/agents', view: 'agents', icon: '🤖', label: 'Agents' },
+    { to: '/docs', view: 'docs', icon: '📄', label: 'Docs' },
   ];
 
   return (
@@ -268,6 +271,16 @@ function AgentsView() {
   );
 }
 
+function DocsView() {
+  return (
+    <AppLayout currentView="docs">
+      <Suspense fallback={<PageLoading section="Docs" />}>
+        <DocsPage />
+      </Suspense>
+    </AppLayout>
+  );
+}
+
 function CleanPage({ children }: { children: ReactNode }) {
   return (
     <CleanLayout>
@@ -295,6 +308,8 @@ function App() {
       <Route path="/providers" element={<ProvidersView />} />
       <Route path="/stats" element={<StatsView />} />
       <Route path="/agents" element={<AgentsView />} />
+      <Route path="/docs" element={<DocsView />} />
+      <Route path="/docs/:repo/:slug" element={<DocsView />} />
     </Routes>
   );
 }

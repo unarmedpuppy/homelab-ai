@@ -511,6 +511,34 @@ export const agentRunsAPI = {
   },
 };
 
+// Docs API (ADR aggregation from Gitea)
+export const docsAPI = {
+  getRepos: async (): Promise<
+    Array<{
+      repo: string;
+      description: string;
+      adrs: Array<{
+        name: string;
+        path: string;
+        title: string;
+        date: string;
+        status: string;
+      }>;
+    }>
+  > => {
+    const response = await apiClient.get('/docs/repos');
+    return response.data;
+  },
+
+  getContent: async (
+    repo: string,
+    path: string
+  ): Promise<{ content: string; repo: string; path: string }> => {
+    const response = await apiClient.get(`/docs/content/${repo}/${path}`);
+    return response.data;
+  },
+};
+
 let ttsAvailableCache: boolean | null = null;
 
 export class TTSError extends Error {

@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 
-export type MobileNavView = 'chat' | 'tasks' | 'ralph' | 'providers' | 'stats' | 'agents';
+export type MobileNavView = 'chat' | 'tasks' | 'ralph' | 'providers' | 'stats' | 'agents' | 'docs';
 
 interface NavItem {
   to: string;
@@ -41,6 +41,7 @@ export function MobileNav({
     if (path.startsWith('/providers')) return 'providers';
     if (path.startsWith('/stats')) return 'stats';
     if (path.startsWith('/agents')) return 'agents';
+    if (path.startsWith('/docs')) return 'docs';
     return 'chat';
   };
 

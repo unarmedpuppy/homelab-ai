@@ -19,6 +19,7 @@ from memory import generate_conversation_id
 from providers import ProviderManager, HealthChecker, ProviderSelection, build_chat_completions_url, build_request_headers
 from stream import stream_chat_completion, stream_chat_completion_passthrough, StreamAccumulator
 import prometheus_metrics as prom
+from routers.docs import router as docs_router
 # from middleware import MemoryMetricsMiddleware  # Replaced with dependency injection
 
 # Configure logging
@@ -85,6 +86,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include sub-routers
+app.include_router(docs_router, prefix="/docs", tags=["docs"])
 
 
 # Configuration from environment
