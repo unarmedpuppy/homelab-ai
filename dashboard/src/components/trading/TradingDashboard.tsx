@@ -5,6 +5,7 @@ import type {
   Position,
   Trade,
   RiskStatus,
+  RiskLimitUpdate,
 } from '../../types/trading';
 import { mercuryAPI } from '../../api/client';
 import { RetroPanel, RetroStatCard, RetroBadge, RetroProgress, RetroButton } from '../ui';
@@ -282,6 +283,148 @@ function RiskPanel({ risk }: { risk: RiskStatus }) {
   );
 }
 
+function ControlsPanel({
+  status,
+  risk,
+  onRefresh,
+}: {
+  status: MercuryStatus;
+  risk: RiskStatus;
+  onRefresh: () => void;
+}) {
+  const [acting, setActing] = useState(false);
+  const [confirmHalt, setConfirmHalt] = useState(false);
+  const [riskForm, setRiskForm] = useState<RiskLimitUpdate>({
+    max_daily_loss: risk.limits.max_daily_loss,
+    max_position_size: risk.limits.max_position_size,
+    max_unhedged_exposure: risk.limits.max_unhedged_exposure,
+  });
+
+  const isHalted = risk.circuit_breaker.state === 'HALT';
+
+  const doAction = async (action: () => Promise<unknown>) => {
+    setActing(true);
+    try {
+      await action();
+      onRefresh();
+    } catch {
+      // Error handling via parent refresh
+    } finally {
+      setActing(false);
+      setConfirmHalt(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Master toggle */}
+      <div className="flex items-center gap-3">
+        {isHalted ? (
+          <RetroButton
+            variant="primary"
+            onClick={() => doAction(() => mercuryAPI.resume())}
+            disabled={acting}
+          >
+            RESUME TRADING
+          </RetroButton>
+        ) : confirmHalt ? (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-[var(--retro-accent-red)]">Confirm halt?</span>
+            <RetroButton
+              variant="danger"
+              onClick={() => doAction(() => mercuryAPI.halt())}
+              disabled={acting}
+            >
+              YES, HALT
+            </RetroButton>
+            <RetroButton
+              variant="secondary"
+              onClick={() => setConfirmHalt(false)}
+              disabled={acting}
+            >
+              Cancel
+            </RetroButton>
+          </div>
+        ) : (
+          <RetroButton
+            variant="danger"
+            onClick={() => setConfirmHalt(true)}
+            disabled={acting}
+          >
+            HALT TRADING
+          </RetroButton>
+        )}
+        <RetroBadge variant={isHalted ? 'status-blocked' : 'status-done'}>
+          {isHalted ? 'HALTED' : 'ACTIVE'}
+        </RetroBadge>
+      </div>
+
+      {/* Strategy toggles */}
+      <div>
+        <div className="text-xs text-[var(--retro-text-secondary)] mb-2">Strategies</div>
+        <div className="flex flex-wrap gap-2">
+          {status.active_strategies.map((name) => (
+            <RetroButton
+              key={name}
+              variant="primary"
+              onClick={() => doAction(() => mercuryAPI.disableStrategy(name))}
+              disabled={acting}
+            >
+              {name}: ON
+            </RetroButton>
+          ))}
+          {status.active_strategies.length === 0 && (
+            <span className="text-xs text-[var(--retro-text-secondary)]">No active strategies</span>
+          )}
+        </div>
+      </div>
+
+      {/* Risk limit editor */}
+      <div>
+        <div className="text-xs text-[var(--retro-text-secondary)] mb-2">Risk Limits</div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <label className="text-xs">
+            <span className="text-[var(--retro-text-secondary)]">Max Daily Loss ($)</span>
+            <input
+              type="number"
+              className="w-full mt-1 px-2 py-1 bg-[var(--retro-bg-dark)] border border-[var(--retro-border)] rounded text-[var(--retro-text-primary)] font-mono text-sm"
+              value={riskForm.max_daily_loss ?? ''}
+              onChange={(e) => setRiskForm({ ...riskForm, max_daily_loss: Number(e.target.value) })}
+            />
+          </label>
+          <label className="text-xs">
+            <span className="text-[var(--retro-text-secondary)]">Max Position Size ($)</span>
+            <input
+              type="number"
+              className="w-full mt-1 px-2 py-1 bg-[var(--retro-bg-dark)] border border-[var(--retro-border)] rounded text-[var(--retro-text-primary)] font-mono text-sm"
+              value={riskForm.max_position_size ?? ''}
+              onChange={(e) => setRiskForm({ ...riskForm, max_position_size: Number(e.target.value) })}
+            />
+          </label>
+          <label className="text-xs">
+            <span className="text-[var(--retro-text-secondary)]">Max Unhedged Exp ($)</span>
+            <input
+              type="number"
+              className="w-full mt-1 px-2 py-1 bg-[var(--retro-bg-dark)] border border-[var(--retro-border)] rounded text-[var(--retro-text-primary)] font-mono text-sm"
+              value={riskForm.max_unhedged_exposure ?? ''}
+              onChange={(e) => setRiskForm({ ...riskForm, max_unhedged_exposure: Number(e.target.value) })}
+            />
+          </label>
+        </div>
+        <div className="mt-2">
+          <RetroButton
+            variant="secondary"
+            onClick={() => doAction(() => mercuryAPI.updateRiskLimits(riskForm))}
+            disabled={acting}
+          >
+            Save Limits
+          </RetroButton>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function TradingDashboard() {
   const [status, setStatus] = useState<MercuryStatus | null>(null);
   const [portfolio, setPortfolio] = useState<PortfolioSummary | null>(null);
@@ -357,6 +500,12 @@ export default function TradingDashboard() {
       {status && <StatusBar status={status} />}
 
       {portfolio && <PortfolioCards portfolio={portfolio} />}
+
+      {status && risk && (
+        <RetroPanel title="Controls" collapsible defaultCollapsed={true}>
+          <ControlsPanel status={status} risk={risk} onRefresh={fetchData} />
+        </RetroPanel>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <RetroPanel title="Open Positions" collapsible defaultCollapsed={false}>

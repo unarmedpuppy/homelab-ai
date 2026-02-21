@@ -962,6 +962,8 @@ import type {
   TradesResponse,
   RiskStatus,
   DailyPnLResponse,
+  RiskLimitUpdate,
+  ControlResponse,
 } from '../types/trading';
 
 const MERCURY_API_URL = import.meta.env.VITE_MERCURY_API_URL || '/mercury-api';
@@ -1017,6 +1019,50 @@ export const mercuryAPI = {
     const response = await fetch(`${MERCURY_API_URL}/api/v1/pnl/daily?days=${days}`);
     if (!response.ok) {
       throw new Error(`Failed to get daily P&L: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  halt: async (): Promise<ControlResponse> => {
+    const response = await fetch(`${MERCURY_API_URL}/api/v1/control/halt`, { method: 'POST' });
+    if (!response.ok) {
+      throw new Error(`Failed to halt trading: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  resume: async (): Promise<ControlResponse> => {
+    const response = await fetch(`${MERCURY_API_URL}/api/v1/control/resume`, { method: 'POST' });
+    if (!response.ok) {
+      throw new Error(`Failed to resume trading: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  enableStrategy: async (name: string): Promise<ControlResponse> => {
+    const response = await fetch(`${MERCURY_API_URL}/api/v1/control/strategy/${encodeURIComponent(name)}/enable`, { method: 'POST' });
+    if (!response.ok) {
+      throw new Error(`Failed to enable strategy: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  disableStrategy: async (name: string): Promise<ControlResponse> => {
+    const response = await fetch(`${MERCURY_API_URL}/api/v1/control/strategy/${encodeURIComponent(name)}/disable`, { method: 'POST' });
+    if (!response.ok) {
+      throw new Error(`Failed to disable strategy: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  updateRiskLimits: async (limits: RiskLimitUpdate): Promise<ControlResponse> => {
+    const response = await fetch(`${MERCURY_API_URL}/api/v1/control/risk`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(limits),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to update risk limits: ${response.statusText}`);
     }
     return response.json();
   },

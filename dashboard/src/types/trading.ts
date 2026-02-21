@@ -115,3 +115,21 @@ export interface DailyPnLResponse {
   daily: DailyPnL[];
   days: number;
 }
+
+export interface RiskLimitUpdate {
+  max_daily_loss?: number;
+  max_position_size?: number;
+  max_unhedged_exposure?: number;
+  max_per_market_exposure?: number;
+}
+
+export interface ControlResponse {
+  status?: string;
+  strategy?: string;
+  enabled?: boolean;
+  enabled_strategies?: string[];
+  disabled_strategies?: string[];
+  circuit_breaker?: string;
+  updated?: Record<string, number>;
+  error?: string;
+}
