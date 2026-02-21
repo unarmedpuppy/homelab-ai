@@ -964,7 +964,7 @@ import type {
   DailyPnLResponse,
 } from '../types/trading';
 
-const MERCURY_API_URL = import.meta.env.VITE_MERCURY_API_URL || 'https://mercury.server.unarmedpuppy.com';
+const MERCURY_API_URL = import.meta.env.VITE_MERCURY_API_URL || '/mercury-api';
 
 export const mercuryAPI = {
   getStatus: async (): Promise<MercuryStatus> => {
