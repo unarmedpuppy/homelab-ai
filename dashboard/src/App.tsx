@@ -17,6 +17,7 @@ const RalphDashboard = lazy(() => import('./components/ralph/RalphDashboard'));
 const TasksDashboard = lazy(() => import('./components/tasks/TasksDashboard'));
 const AgentsDashboard = lazy(() => import('./components/agents/AgentsDashboard'));
 
+const TradingDashboard = lazy(() => import('./components/trading/TradingDashboard'));
 const DocsPage = lazy(() => import('./pages/DocsPage'));
 
 // Clean pages (lazy)
@@ -25,7 +26,7 @@ const EmailsPage = lazy(() => import('./pages/reference/EmailsPage'));
 const GettingStartedPage = lazy(() => import('./pages/reference/GettingStartedPage'));
 const TroubleshootingPage = lazy(() => import('./pages/reference/TroubleshootingPage'));
 
-type ViewName = 'chat' | 'ralph' | 'tasks' | 'providers' | 'stats' | 'agents' | 'docs';
+type ViewName = 'chat' | 'ralph' | 'tasks' | 'providers' | 'stats' | 'agents' | 'trading' | 'docs';
 
 function AppHeader() {
   return (
@@ -45,6 +46,7 @@ function AppNavigation({ currentView }: { currentView: ViewName }) {
     { to: '/providers', view: 'providers', icon: '🔌', label: 'Providers' },
     { to: '/stats', view: 'stats', icon: '📊', label: 'Stats' },
     { to: '/agents', view: 'agents', icon: '🤖', label: 'Agents' },
+    { to: '/trading', view: 'trading', icon: '📈', label: 'Trading' },
     { to: '/docs', view: 'docs', icon: '📄', label: 'Docs' },
   ];
 
@@ -279,6 +281,16 @@ function AgentsView() {
   );
 }
 
+function TradingView() {
+  return (
+    <AppLayout currentView="trading">
+      <Suspense fallback={<PageLoading section="Trading" />}>
+        <TradingDashboard />
+      </Suspense>
+    </AppLayout>
+  );
+}
+
 function DocsView() {
   return (
     <AppLayout currentView="docs">
@@ -316,6 +328,7 @@ function App() {
       <Route path="/providers" element={<ProvidersView />} />
       <Route path="/stats" element={<StatsView />} />
       <Route path="/agents" element={<AgentsView />} />
+      <Route path="/trading" element={<TradingView />} />
       <Route path="/docs" element={<DocsView />} />
       <Route path="/docs/:repo/:slug" element={<DocsView />} />
     </Routes>

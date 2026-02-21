@@ -954,4 +954,72 @@ export const jobsAPI = {
   },
 };
 
+// Mercury Trading API
+import type {
+  MercuryStatus,
+  PortfolioSummary,
+  PositionsResponse,
+  TradesResponse,
+  RiskStatus,
+  DailyPnLResponse,
+} from '../types/trading';
+
+const MERCURY_API_URL = import.meta.env.VITE_MERCURY_API_URL || 'https://mercury.server.unarmedpuppy.com';
+
+export const mercuryAPI = {
+  getStatus: async (): Promise<MercuryStatus> => {
+    const response = await fetch(`${MERCURY_API_URL}/api/v1/status`);
+    if (!response.ok) {
+      throw new Error(`Failed to get Mercury status: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  getPortfolio: async (): Promise<PortfolioSummary> => {
+    const response = await fetch(`${MERCURY_API_URL}/api/v1/portfolio`);
+    if (!response.ok) {
+      throw new Error(`Failed to get portfolio: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  getPositions: async (status: string = 'open'): Promise<PositionsResponse> => {
+    const response = await fetch(`${MERCURY_API_URL}/api/v1/positions?status=${status}`);
+    if (!response.ok) {
+      throw new Error(`Failed to get positions: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  getTrades: async (params?: { limit?: number; strategy?: string; from_date?: string }): Promise<TradesResponse> => {
+    const searchParams = new URLSearchParams();
+    if (params?.limit) searchParams.set('limit', String(params.limit));
+    if (params?.strategy) searchParams.set('strategy', params.strategy);
+    if (params?.from_date) searchParams.set('from_date', params.from_date);
+
+    const url = `${MERCURY_API_URL}/api/v1/trades${searchParams.toString() ? `?${searchParams}` : ''}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to get trades: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  getRisk: async (): Promise<RiskStatus> => {
+    const response = await fetch(`${MERCURY_API_URL}/api/v1/risk`);
+    if (!response.ok) {
+      throw new Error(`Failed to get risk status: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  getDailyPnL: async (days: number = 30): Promise<DailyPnLResponse> => {
+    const response = await fetch(`${MERCURY_API_URL}/api/v1/pnl/daily?days=${days}`);
+    if (!response.ok) {
+      throw new Error(`Failed to get daily P&L: ${response.statusText}`);
+    }
+    return response.json();
+  },
+};
+
 export { apiClient };
