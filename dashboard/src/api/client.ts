@@ -964,6 +964,8 @@ import type {
   DailyPnLResponse,
   RiskLimitUpdate,
   ControlResponse,
+  WalletBalance,
+  MarketsResponse,
 } from '../types/trading';
 
 const MERCURY_API_URL = import.meta.env.VITE_MERCURY_API_URL || '/mercury-api';
@@ -1051,6 +1053,22 @@ export const mercuryAPI = {
     const response = await fetch(`${MERCURY_API_URL}/api/v1/control/strategy/${encodeURIComponent(name)}/disable`, { method: 'POST' });
     if (!response.ok) {
       throw new Error(`Failed to disable strategy: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  getWallet: async (): Promise<WalletBalance> => {
+    const response = await fetch(`${MERCURY_API_URL}/api/v1/wallet`);
+    if (!response.ok) {
+      throw new Error(`Failed to get wallet: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  getMarkets: async (): Promise<MarketsResponse> => {
+    const response = await fetch(`${MERCURY_API_URL}/api/v1/markets`);
+    if (!response.ok) {
+      throw new Error(`Failed to get markets: ${response.statusText}`);
     }
     return response.json();
   },

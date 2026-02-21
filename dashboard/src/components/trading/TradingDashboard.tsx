@@ -6,9 +6,11 @@ import type {
   Trade,
   RiskStatus,
   RiskLimitUpdate,
+  WalletBalance,
+  ActiveMarket,
 } from '../../types/trading';
 import { mercuryAPI } from '../../api/client';
-import { RetroPanel, RetroStatCard, RetroBadge, RetroProgress, RetroButton } from '../ui';
+import { RetroPanel, RetroStatCard, RetroBadge, RetroProgress, RetroButton, RetroToggle } from '../ui';
 import { useVisibilityPolling } from '../../hooks/useDocumentVisibility';
 
 const POLL_INTERVAL = 30000;
@@ -66,9 +68,9 @@ function StatusBar({ status }: { status: MercuryStatus }) {
   );
 }
 
-function PortfolioCards({ portfolio }: { portfolio: PortfolioSummary }) {
+function PortfolioCards({ portfolio, wallet }: { portfolio: PortfolioSummary; wallet: WalletBalance | null }) {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
       <RetroStatCard
         label="Total P&L"
         value={formatUSD(portfolio.total_realized_pnl)}
@@ -88,6 +90,11 @@ function PortfolioCards({ portfolio }: { portfolio: PortfolioSummary }) {
         label="Exposure"
         value={`$${portfolio.total_exposure.toFixed(2)}`}
         color="default"
+      />
+      <RetroStatCard
+        label="Wallet Balance"
+        value={wallet ? `$${wallet.balance.toFixed(2)}` : '--'}
+        color="blue"
       />
     </div>
   );
@@ -203,6 +210,87 @@ function TradesTable({ trades }: { trades: Trade[] }) {
   );
 }
 
+function formatRelativeTime(isoString: string): string {
+  const end = new Date(isoString).getTime();
+  const now = Date.now();
+  const diffMs = end - now;
+  if (diffMs <= 0) return 'ended';
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 60) return `in ${mins}m`;
+  const hrs = Math.floor(mins / 60);
+  return `in ${hrs}h ${mins % 60}m`;
+}
+
+function priceColor(price: number): string {
+  if (price > 0.5) return 'text-[var(--retro-accent-green)]';
+  if (price < 0.5) return 'text-[var(--retro-accent-red)]';
+  return 'text-[var(--retro-text-primary)]';
+}
+
+function ActiveMarketsTable({ markets }: { markets: ActiveMarket[] }) {
+  if (markets.length === 0) {
+    return (
+      <p className="text-sm text-[var(--retro-text-secondary)] py-4 text-center">
+        No active markets being tracked
+      </p>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="text-left text-[var(--retro-text-secondary)] border-b border-[var(--retro-border)]">
+            <th className="py-2 pr-4">Asset</th>
+            <th className="py-2 pr-4">YES</th>
+            <th className="py-2 pr-4">NO</th>
+            <th className="py-2 pr-4">Spread</th>
+            <th className="py-2 pr-4">Ends</th>
+            <th className="py-2 pr-4">Strategy</th>
+            <th className="py-2 pr-4">Link</th>
+          </tr>
+        </thead>
+        <tbody>
+          {markets.map((m) => (
+            <tr key={m.condition_id} className="border-b border-[var(--retro-border)] border-opacity-30">
+              <td className="py-2 pr-4">
+                <RetroBadge variant="status-progress">{m.asset}</RetroBadge>
+              </td>
+              <td className={`py-2 pr-4 font-mono ${priceColor(m.yes_price)}`}>
+                {m.yes_price.toFixed(2)}
+              </td>
+              <td className={`py-2 pr-4 font-mono ${priceColor(m.no_price)}`}>
+                {m.no_price.toFixed(2)}
+              </td>
+              <td className="py-2 pr-4 font-mono">
+                {m.spread_cents.toFixed(1)}c
+              </td>
+              <td className="py-2 pr-4 text-xs text-[var(--retro-text-secondary)]">
+                {formatRelativeTime(m.end_time)}
+              </td>
+              <td className="py-2 pr-4">
+                {m.strategies.map((s) => (
+                  <RetroBadge key={s} variant="status-open">{s}</RetroBadge>
+                ))}
+              </td>
+              <td className="py-2 pr-4">
+                <a
+                  href={m.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[var(--retro-accent-blue)] hover:underline text-xs"
+                >
+                  Polymarket
+                </a>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function RiskPanel({ risk }: { risk: RiskStatus }) {
   const dailyLossUsed = risk.limits.max_daily_loss > 0
     ? Math.min(100, Math.abs(risk.daily.pnl < 0 ? risk.daily.pnl : 0) / risk.limits.max_daily_loss * 100)
@@ -301,6 +389,7 @@ function ControlsPanel({
   });
 
   const isHalted = risk.circuit_breaker.state === 'HALT';
+  const allStrategies = status.all_strategies ?? status.active_strategies;
 
   const doAction = async (action: () => Promise<unknown>) => {
     setActing(true);
@@ -362,19 +451,23 @@ function ControlsPanel({
       {/* Strategy toggles */}
       <div>
         <div className="text-xs text-[var(--retro-text-secondary)] mb-2">Strategies</div>
-        <div className="flex flex-wrap gap-2">
-          {status.active_strategies.map((name) => (
-            <RetroButton
-              key={name}
-              variant="primary"
-              onClick={() => doAction(() => mercuryAPI.disableStrategy(name))}
-              disabled={acting}
-            >
-              {name}: ON
-            </RetroButton>
-          ))}
-          {status.active_strategies.length === 0 && (
-            <span className="text-xs text-[var(--retro-text-secondary)]">No active strategies</span>
+        <div className="flex flex-wrap gap-4">
+          {allStrategies.map((name) => {
+            const isOn = status.active_strategies.includes(name);
+            return (
+              <RetroToggle
+                key={name}
+                label={name}
+                checked={isOn}
+                disabled={acting}
+                onChange={() => doAction(() =>
+                  isOn ? mercuryAPI.disableStrategy(name) : mercuryAPI.enableStrategy(name)
+                )}
+              />
+            );
+          })}
+          {allStrategies.length === 0 && (
+            <span className="text-xs text-[var(--retro-text-secondary)]">No strategies configured</span>
           )}
         </div>
       </div>
@@ -431,23 +524,29 @@ export default function TradingDashboard() {
   const [positions, setPositions] = useState<Position[]>([]);
   const [trades, setTrades] = useState<Trade[]>([]);
   const [risk, setRisk] = useState<RiskStatus | null>(null);
+  const [wallet, setWallet] = useState<WalletBalance | null>(null);
+  const [markets, setMarkets] = useState<ActiveMarket[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
-      const [statusData, portfolioData, positionsData, tradesData, riskData] = await Promise.all([
+      const [statusData, portfolioData, positionsData, tradesData, riskData, walletData, marketsData] = await Promise.all([
         mercuryAPI.getStatus(),
         mercuryAPI.getPortfolio(),
         mercuryAPI.getPositions(),
         mercuryAPI.getTrades({ limit: 20 }),
         mercuryAPI.getRisk(),
+        mercuryAPI.getWallet().catch(() => null),
+        mercuryAPI.getMarkets().catch(() => ({ markets: [], total: 0 })),
       ]);
       setStatus(statusData);
       setPortfolio(portfolioData);
       setPositions(positionsData.positions);
       setTrades(tradesData.trades);
       setRisk(riskData);
+      setWallet(walletData);
+      setMarkets(marketsData.markets);
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to connect to Mercury');
@@ -499,7 +598,11 @@ export default function TradingDashboard() {
 
       {status && <StatusBar status={status} />}
 
-      {portfolio && <PortfolioCards portfolio={portfolio} />}
+      {portfolio && <PortfolioCards portfolio={portfolio} wallet={wallet} />}
+
+      <RetroPanel title="Active Markets" collapsible defaultCollapsed={false}>
+        <ActiveMarketsTable markets={markets} />
+      </RetroPanel>
 
       {status && risk && (
         <RetroPanel title="Controls" collapsible defaultCollapsed={true}>

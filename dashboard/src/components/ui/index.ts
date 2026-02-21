@@ -15,6 +15,7 @@ export { RetroButton } from './RetroButton';
 export { RetroInput } from './RetroInput';
 export { RetroSelect } from './RetroSelect';
 export { RetroCheckbox } from './RetroCheckbox';
+export { RetroToggle } from './RetroToggle';
 
 // Layout
 export { MobileNav } from './MobileNav';
@@ -35,6 +36,7 @@ export type { RetroButtonProps } from './RetroButton';
 export type { RetroInputProps } from './RetroInput';
 export type { RetroSelectProps, RetroSelectOption } from './RetroSelect';
 export type { RetroCheckboxProps } from './RetroCheckbox';
+export type { RetroToggleProps } from './RetroToggle';
 export type { MobileNavProps, MobileNavView, MobileNavItem } from './MobileNav';
 export type { ResponsiveLayoutProps } from './ResponsiveLayout';
 export type { LoadingSpinnerProps, PageLoadingProps, SkeletonProps, ErrorFallbackProps } from './LoadingSpinner';

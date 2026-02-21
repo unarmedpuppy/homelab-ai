@@ -9,6 +9,7 @@ export interface MercuryStatus {
     circuit_breaker: string;
   };
   active_strategies: string[];
+  all_strategies: string[];
   open_positions_count: number;
 }
 
@@ -114,6 +115,29 @@ export interface DailyPnL {
 export interface DailyPnLResponse {
   daily: DailyPnL[];
   days: number;
+}
+
+export interface WalletBalance {
+  balance: number;
+  allowance: number;
+}
+
+export interface ActiveMarket {
+  condition_id: string;
+  asset: string;
+  question: string;
+  yes_price: number;
+  no_price: number;
+  spread_cents: number;
+  end_time: string;
+  slug: string;
+  url: string;
+  strategies: string[];
+}
+
+export interface MarketsResponse {
+  markets: ActiveMarket[];
+  total: number;
 }
 
 export interface RiskLimitUpdate {
