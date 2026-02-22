@@ -24,12 +24,12 @@ export function RetroPanel({
   const [contentHeight, setContentHeight] = useState<number | undefined>(undefined);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  // Measure content height for animation
+  // Measure content height for animation (offsetHeight includes padding)
   useEffect(() => {
     if (contentRef.current) {
-      const resizeObserver = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-          setContentHeight(entry.contentRect.height);
+      const resizeObserver = new ResizeObserver(() => {
+        if (contentRef.current) {
+          setContentHeight(contentRef.current.offsetHeight);
         }
       });
       resizeObserver.observe(contentRef.current);
