@@ -2,6 +2,7 @@
 import os
 import json
 import logging
+import time
 import httpx
 import tiktoken
 from pathlib import Path
@@ -32,6 +33,14 @@ logger = logging.getLogger(__name__)
 provider_manager: Optional[ProviderManager] = None
 health_checker: Optional[HealthChecker] = None
 
+# Gaming PC status cache (updated by background poller, not per-request)
+_gaming_cache: dict = {
+    "status": None,
+    "updated_at": 0.0,
+    "consecutive_failures": 0,
+}
+_gaming_poller_task: Optional[asyncio.Task] = None
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -60,9 +69,20 @@ async def lifespan(app: FastAPI):
         logger.error(f"Failed to initialize providers: {e}")
         raise
 
+    # Start gaming PC status poller (outside try block — non-fatal if gaming PC is down)
+    global _gaming_poller_task
+    _gaming_poller_task = asyncio.create_task(_gaming_status_poller())
+
     yield
 
-    # Shutdown: Stop health checker
+    # Shutdown: stop background tasks
+    if _gaming_poller_task:
+        _gaming_poller_task.cancel()
+        try:
+            await _gaming_poller_task
+        except asyncio.CancelledError:
+            pass
+
     if health_checker:
         await health_checker.stop()
         logger.info("Health checker stopped")
@@ -95,6 +115,7 @@ app.include_router(docs_router, prefix="/docs", tags=["docs"])
 
 # Configuration from environment
 GAMING_PC_URL = os.getenv("GAMING_PC_URL", "http://gaming-pc.local:8000")
+GAMING_PC_POLL_INTERVAL = int(os.getenv("GAMING_PC_POLL_INTERVAL", "30"))  # seconds
 LOCAL_3070_URL = os.getenv("LOCAL_3070_URL", "http://llm-manager:8000")
 OPENCODE_URL = os.getenv("OPENCODE_URL", "http://opencode-service:8002")
 TTS_ENDPOINT = os.getenv("TTS_ENDPOINT", GAMING_PC_URL)  # TTS runs on Gaming PC
@@ -185,16 +206,40 @@ class ClaudeAgentResponse(BaseModel):
 
 
 async def get_gaming_pc_status() -> Optional[GamingModeStatus]:
-    """Check gaming PC status and gaming mode."""
+    """Return cached gaming PC status. Updated by background poller, not per-request."""
+    return _gaming_cache["status"]
+
+
+async def _poll_gaming_pc_status() -> None:
+    """Fetch gaming PC status and update the cache. Called by background poller."""
+    global _gaming_cache
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
             response = await client.get(f"{GAMING_PC_URL}/status")
             if response.status_code == 200:
-                data = response.json()
-                return GamingModeStatus(**data)
+                _gaming_cache = {
+                    "status": GamingModeStatus(**response.json()),
+                    "updated_at": time.time(),
+                    "consecutive_failures": 0,
+                }
+                return
     except Exception as e:
-        logger.warning(f"Failed to get gaming PC status: {e}")
-    return None
+        failures = _gaming_cache["consecutive_failures"] + 1
+        _gaming_cache["consecutive_failures"] = failures
+        # Log warning on first failure, error every 10 after that to reduce noise
+        if failures == 1:
+            logger.warning(f"Gaming PC unreachable ({GAMING_PC_URL}): {e}")
+        elif failures % 10 == 0:
+            logger.error(f"Gaming PC still unreachable after {failures} poll attempts")
+
+
+async def _gaming_status_poller() -> None:
+    """Background task: keep gaming PC status cache fresh."""
+    logger.info(f"Gaming PC status poller started (interval={GAMING_PC_POLL_INTERVAL}s, url={GAMING_PC_URL})")
+    await _poll_gaming_pc_status()  # warm cache immediately on startup
+    while True:
+        await asyncio.sleep(GAMING_PC_POLL_INTERVAL)
+        await _poll_gaming_pc_status()
 
 
 async def check_backend_health(backend_id: str) -> bool:
@@ -1057,23 +1102,30 @@ async def chat_completions(
 
 @app.get("/gaming-pc/status")
 async def get_gaming_pc_status_endpoint():
-    """Get gaming PC status including gaming mode, running models, etc."""
+    """Get cached gaming PC status including gaming mode, running models, etc."""
     status = await get_gaming_pc_status()
     if status is None:
         raise HTTPException(status_code=503, detail="Gaming PC is unreachable")
-    return status
+    age = time.time() - _gaming_cache["updated_at"]
+    return {**status.model_dump(), "cache_age_seconds": round(age, 1)}
 
 
 @app.post("/gaming-mode")
 async def toggle_gaming_mode(enable: bool = True):
-    """Proxy gaming mode toggle to Windows PC."""
+    """Proxy gaming mode toggle to Windows PC and update local cache immediately."""
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
             response = await client.post(
                 f"{GAMING_PC_URL}/gaming-mode",
                 json={"enable": enable},
             )
-            return response.json()
+            result = response.json()
+            # Update cache immediately so routing reflects the change before next poll
+            if _gaming_cache["status"] is not None:
+                updated = _gaming_cache["status"].model_copy(update={"gaming_mode": enable})
+                _gaming_cache["status"] = updated
+                _gaming_cache["updated_at"] = time.time()
+            return result
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Failed to toggle gaming mode: {e}")
 

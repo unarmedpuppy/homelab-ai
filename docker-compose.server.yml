@@ -19,6 +19,8 @@ services:
       - "8012:8000"
     environment:
       - LOCAL_3070_URL=http://llm-manager:8000
+      - GAMING_PC_URL=${GAMING_PC_URL:-http://gaming-pc.local:8000}
+      - GAMING_PC_POLL_INTERVAL=${GAMING_PC_POLL_INTERVAL:-30}
       - ENABLE_METRICS=1
       - ENABLE_MEMORY=1
       - LOG_LEVEL=INFO
