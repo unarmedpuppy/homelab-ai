@@ -251,28 +251,28 @@ class ProviderManager:
             enable_cloud_fallback = self.settings.get("enableCloudFallback", True)
 
             if enable_cloud_fallback:
-                # Try cloud providers regardless of queue
-                cloud_providers = [
-                    p for p in self.providers.values()
-                    if p.type == ProviderType.CLOUD
-                    and p.enabled
-                    and p.is_healthy
-                ]
-                cloud_providers.sort(key=lambda p: p.priority)
+                # Try fallback chain: GLM-5 (zai) → Claude Sonnet (claude-harness)
+                # This respects the new priority order from the 2026-02-22 routing redesign
+                fallback_models = ["glm-5", "claude-sonnet"]
 
-                for provider in cloud_providers:
-                    # Find a suitable model on this cloud provider
-                    cloud_models = [
-                        m for m in self.models.values()
-                        if m.provider_id == provider.id
-                    ]
-                    if cloud_models:
-                        # Use first available cloud model
-                        cloud_model = cloud_models[0]
-                        reason = f"Cloud fallback (local busy), priority {provider.priority}"
-                        return ProviderSelection(
-                            provider=provider, model=cloud_model, reason=reason
-                        )
+                for fallback_model_id in fallback_models:
+                    fallback_model = self.models.get(fallback_model_id)
+                    if not fallback_model:
+                        continue
+
+                    fallback_provider = self.providers.get(fallback_model.provider_id)
+                    if not fallback_provider:
+                        continue
+
+                    if fallback_provider.enabled and fallback_provider.is_healthy:
+                        if fallback_provider.current_requests < fallback_provider.max_concurrent:
+                            reason = f"Cloud fallback to {fallback_model_id} (local busy)"
+                            logger.info(f"Fallback chain: selected {fallback_model_id}")
+                            return ProviderSelection(
+                                provider=fallback_provider,
+                                model=fallback_model,
+                                reason=reason
+                            )
 
             # No providers available
             raise ValueError(

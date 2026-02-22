@@ -12,13 +12,13 @@
 # ============================================================================
 
 providers:
-  # Gaming PC with RTX 3090 - Escalation target for large context
+  # Gaming PC with RTX 3090 - PRIMARY for auto-routing (when gaming mode OFF)
   - id: gaming-pc-3090
     name: "Gaming PC (RTX 3090)"
     type: local
-    description: "Gaming PC with RTX 3090 via LM Studio - large context or explicit requests"
+    description: "Gaming PC with RTX 3090 via LM Studio - primary for auto-routing when gaming mode OFF"
     endpoint: "${GAMING_PC_URL:-http://gaming-pc.local:8000}"
-    priority: 2  # Secondary - escalate from 3070 when needed
+    priority: 1  # PRIMARY - default for auto-routing when gaming mode OFF
     enabled: true
 
     # Concurrency Control
@@ -39,13 +39,13 @@ providers:
     location: "gaming-pc"
     powerWatts: 250  # Typical inference power draw (used for cost calculation)
 
-  # Home Server with RTX 3070 - Default always-on backend
+  # Home Server with RTX 3070 - MANUAL ONLY (removed from auto-routing)
   - id: server-3070
     name: "Server (RTX 3070)"
     type: local
-    description: "Home server with RTX 3070 via llm-manager - always-on default"
+    description: "Home server with RTX 3070 via llm-manager - manual access only via explicit model=3070"
     endpoint: "${LOCAL_3070_URL:-http://llm-manager:8000}"
-    priority: 1  # Primary - default for all requests
+    priority: 99  # MANUAL ONLY - not used in auto-routing
     enabled: true
 
     # Concurrency Control
@@ -66,13 +66,13 @@ providers:
     location: "home-server"
     powerWatts: 180
 
-  # Cloud Provider - Z.ai (Coding Plan)
+  # Cloud Provider - Z.ai (Coding Plan) - ESCALATION for large context
   - id: zai
     name: "Z.ai Coding Plan"
     type: cloud
-    description: "Z.ai cloud API (GLM models) - Coding Plan subscription, unlimited usage"
+    description: "Z.ai cloud API (GLM models) - escalation for 16K-100K context"
     endpoint: "https://api.z.ai/api/coding/paas/v4"
-    priority: 3  # Cloud fallback
+    priority: 2  # ESCALATION - for large context (16K-100K tokens)
     enabled: true
 
     # Concurrency Control
@@ -91,14 +91,14 @@ providers:
     location: "cloud"
     notes: "OpenAI-compatible API. No rate limits or cost concerns."
 
-  # Claude Harness - Claude Max subscription via Claude Code CLI
+  # Claude Harness - Claude Max subscription via Claude Code CLI - FALLBACK for very large context
   # type: local -> uses /v1/chat/completions path (OpenAI-compatible, like vLLM)
   - id: claude-harness
     name: "Claude Harness (Claude Max)"
     type: local
-    description: "Claude Max subscription via Claude Code CLI wrapper - uses OAuth, no API key needed"
+    description: "Claude Max subscription via Claude Code CLI wrapper - fallback for >100K context"
     endpoint: "http://host.docker.internal:8013"  # FastAPI service on host (via Docker's host-gateway)
-    priority: 4  # Final fallback (same as old anthropic)
+    priority: 3  # FALLBACK - for very large context (>100K tokens)
     enabled: true
 
     # Concurrency Control
@@ -130,10 +130,10 @@ models:
   - id: qwen2.5-14b-awq
     name: "Qwen 2.5 14B Instruct AWQ"
     providerId: gaming-pc-3090
-    description: "Qwen 2.5 14B - use for large context or explicit 'big' requests"
+    description: "Primary model for auto-routing - 32K context window"
     contextWindow: 32768
     maxTokens: 8192
-    isDefault: false
+    isDefault: true
 
     # Capabilities
     capabilities:
@@ -178,10 +178,10 @@ models:
   - id: qwen2.5-7b-awq
     name: "Qwen 2.5 7B Instruct AWQ"
     providerId: server-3070
-    description: "Default always-on model - escalates to 3090 if context > 2K tokens"
+    description: "Manual-only model - use explicit model=3070 to access"
     contextWindow: 2048
     maxTokens: 1024
-    isDefault: true
+    isDefault: false
 
     # Capabilities
     capabilities:
@@ -223,13 +223,35 @@ models:
   # Z.ai Cloud Models
   # -------------------------------------------------------------------------
 
+  - id: glm-5
+    name: "GLM-5"
+    providerId: zai
+    description: "GLM-5 - 744B params, 205K context, low hallucination"
+    contextWindow: 205000
+    maxTokens: 8192
+    isDefault: true
+    costPer1kTokens: 0.001
+
+    capabilities:
+      streaming: true
+      functionCalling: true
+      vision: false
+      jsonMode: true
+
+    tags:
+      - chat
+      - reasoning
+      - coding
+      - cloud
+      - large-context
+
   - id: glm-4.7
     name: "GLM-4.7"
     providerId: zai
-    description: "GLM-4.7 - latest flagship model with thinking support"
+    description: "GLM-4.7 - flagship model with thinking support"
     contextWindow: 128000
     maxTokens: 4096
-    isDefault: true
+    isDefault: false
 
     costPer1kTokens: 0.002
 

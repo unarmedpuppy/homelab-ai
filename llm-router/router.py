@@ -3,6 +3,7 @@ import os
 import json
 import logging
 import httpx
+import tiktoken
 from pathlib import Path
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException, Depends, BackgroundTasks, UploadFile, File
@@ -98,18 +99,35 @@ LOCAL_3070_URL = os.getenv("LOCAL_3070_URL", "http://llm-manager:8000")
 OPENCODE_URL = os.getenv("OPENCODE_URL", "http://opencode-service:8002")
 TTS_ENDPOINT = os.getenv("TTS_ENDPOINT", GAMING_PC_URL)  # TTS runs on Gaming PC
 
+# Token thresholds for context-aware routing
 SMALL_TOKEN_THRESHOLD = int(os.getenv("SMALL_TOKEN_THRESHOLD", "2000"))
-MEDIUM_TOKEN_THRESHOLD = int(os.getenv("MEDIUM_TOKEN_THRESHOLD", "16000"))
+MEDIUM_TOKEN_THRESHOLD = int(os.getenv("MEDIUM_TOKEN_THRESHOLD", "16000"))  # 3090 limit (32K context / 2)
+LARGE_TOKEN_THRESHOLD = int(os.getenv("LARGE_TOKEN_THRESHOLD", "100000"))   # GLM-5 limit (205K context / 2)
+
+# Tiktoken tokenizer (lazy loaded)
+_tokenizer = None
+
+def get_tokenizer():
+    """Get or initialize tiktoken tokenizer (cl100k_base for GPT-4/Claude compatibility)."""
+    global _tokenizer
+    if _tokenizer is None:
+        _tokenizer = tiktoken.get_encoding("cl100k_base")
+    return _tokenizer
 
 # Model aliases for routing
+# NOTE: 3070 removed from auto-routing aliases - now manual only
 MODEL_ALIASES = {
-    "small": "3070",
-    "fast": "3070",
+    "small": "3090",      # was 3070 - now routes to 3090
+    "fast": "3090",       # was 3070 - now routes to 3090
     "medium": "3090",
-    "big": "3090",
+    "big": "glm-5",       # was 3090 - now routes to GLM-5 for large context
+    "large": "glm-5",
     "gaming-pc": "3090",
-    "glm": "opencode-glm",
-    "claude": "opencode-claude",
+    "glm": "glm-5",       # updated to GLM-5
+    "claude": "claude-sonnet",
+    # Manual 3070 access (explicit only)
+    "3070": "qwen2.5-7b-awq",
+    "server": "qwen2.5-7b-awq",
 }
 
 # Backend configurations
@@ -199,13 +217,20 @@ async def check_backend_health(backend_id: str) -> bool:
 
 
 def estimate_tokens(messages: list) -> int:
-    """Rough token estimation (4 chars per token)."""
-    total_chars = sum(
-        len(m.get("content", "") or "")
-        for m in messages
-        if isinstance(m, dict)
-    )
-    return total_chars // 4
+    """Accurate token estimation using tiktoken (cl100k_base encoding)."""
+    enc = get_tokenizer()
+    total = 0
+    for msg in messages:
+        if isinstance(msg, dict):
+            content = msg.get("content", "") or ""
+            if isinstance(content, str):
+                total += len(enc.encode(content))
+            # Handle vision/multimodal content lists
+            elif isinstance(content, list):
+                for part in content:
+                    if isinstance(part, dict) and part.get("type") == "text":
+                        total += len(enc.encode(part.get("text", "")))
+    return total
 
 
 def has_force_big_signal(request: Request, body: dict) -> bool:
@@ -234,10 +259,13 @@ async def route_request(request: Request, body: dict, priority: int = 1, api_key
     """
     Determine which provider and model to route to using ProviderManager.
 
-    Routing priority:
-    1. Explicit model/provider requests are honored directly
-    2. Smart complexity classification (heuristics + caller signals)
-    3. Default: route based on classified tier
+    Routing logic (2026-02-22 redesign with gaming mode + complexity classification):
+
+    1. Explicit model/provider requests are ALWAYS honored (even in gaming mode)
+    2. Gaming mode check determines local GPU availability
+    3. When gaming mode OFF: use complexity classification for smart routing
+    4. When gaming mode ON: skip local GPUs, use cloud only
+    5. Fallback chain: 3090 → GLM-5 → Claude Sonnet
     """
     if not provider_manager:
         raise HTTPException(status_code=503, detail="Provider manager not initialized")
@@ -246,35 +274,63 @@ async def route_request(request: Request, body: dict, priority: int = 1, api_key
     requested_provider = body.get("provider")
     requested_model_id = body.get("modelId")
 
+    # Handle provider/model format: "provider/model"
     if "/" in requested_model:
         parts = requested_model.split("/", 1)
         requested_provider = parts[0]
         requested_model_id = parts[1]
         requested_model = "auto"
 
+    # Resolve model aliases
     if requested_model in MODEL_ALIASES:
         alias_target = MODEL_ALIASES[requested_model]
         if alias_target == "3090":
             requested_model = "qwen2.5-14b-awq"
-        elif alias_target == "3070":
+        elif alias_target == "qwen2.5-7b-awq":
             requested_model = "qwen2.5-7b-awq"
-        elif alias_target == "opencode-glm":
-            requested_model = "glm-4-flash"
-        elif alias_target == "opencode-claude":
-            requested_model = "claude-3-5-haiku"
+        elif alias_target == "glm-5":
+            requested_model = "glm-5"
+        elif alias_target == "claude-sonnet":
+            requested_model = "claude-sonnet"
 
-    # Complexity-based routing for "auto" requests
+    # Auto routing logic
     is_auto = requested_model == "auto" and not requested_provider
     classification = None
+
     if is_auto:
-        classification = classify_request(request, body, api_key)
-        requested_model = TIER_MODEL_MAP[classification.tier]
-        primary_signal = classification.signals[0] if classification.signals else "default"
-        logger.info(
-            f"Classified: tier={classification.tier.name}, score={classification.score:.2f}, "
-            f"signals={classification.signals}"
-        )
-        prom.record_complexity_classification(classification.tier.name, primary_signal)
+        # Check gaming mode status first
+        gaming_status = await get_gaming_pc_status()
+        gaming_mode_on = gaming_status and gaming_status.gaming_mode
+
+        # Token estimation for context-aware routing
+        token_estimate = estimate_tokens(body.get("messages", []))
+
+        if gaming_mode_on:
+            # Gaming mode ON → skip local GPUs, use cloud only
+            if token_estimate < LARGE_TOKEN_THRESHOLD:  # < 100K
+                requested_model = "glm-5"
+                logger.info(f"Gaming mode ON: routing to GLM-5 (cloud), tokens={token_estimate}")
+            else:
+                requested_model = "claude-sonnet"
+                logger.info(f"Gaming mode ON: routing to Claude (very large context), tokens={token_estimate}")
+        else:
+            # Gaming mode OFF → use complexity classification
+            classification = classify_request(request, body, api_key)
+            requested_model = TIER_MODEL_MAP[classification.tier]
+            primary_signal = classification.signals[0] if classification.signals else "default"
+            logger.info(
+                f"Classified: tier={classification.tier.name}, score={classification.score:.2f}, "
+                f"signals={classification.signals}"
+            )
+            prom.record_complexity_classification(classification.tier.name, primary_signal)
+
+            # Override for very large context (>16K → GLM-5, >100K → Claude)
+            if token_estimate >= LARGE_TOKEN_THRESHOLD:
+                requested_model = "claude-sonnet"
+                logger.info(f"Context override: routing to Claude (tokens={token_estimate} > 100K)")
+            elif token_estimate >= MEDIUM_TOKEN_THRESHOLD:
+                requested_model = "glm-5"
+                logger.info(f"Context override: routing to GLM-5 (tokens={token_estimate} > 16K)")
 
     try:
         # Select provider using ProviderManager (it's async)
@@ -304,20 +360,30 @@ async def route_request(request: Request, body: dict, priority: int = 1, api_key
             logger.error(f"Routing error: {e}")
             raise HTTPException(status_code=503, detail=f"Failed to route request: {str(e)}")
 
-        # Auto mode: try all providers by priority
-        logger.warning(f"Primary auto route failed ({e}), trying fallback providers...")
+        # Auto mode: try fallback chain (GLM-5 → Claude)
+        logger.warning(f"Primary auto route failed ({e}), trying fallback chain...")
+        fallback_chain = ["glm-5", "claude-sonnet"]
+        for fallback_model in fallback_chain:
+            try:
+                selection = await provider_manager.select_provider_and_model(fallback_model)
+                if selection:
+                    logger.info(f"Fallback to {fallback_model} succeeded")
+                    return selection
+            except Exception:
+                continue
+
+        # All fallbacks failed - try any available provider
         all_providers = sorted(provider_manager.providers.values(), key=lambda p: p.priority)
         for provider in all_providers:
             if not provider.enabled or not provider.is_healthy:
                 continue
-            # Find default model for this provider
             provider_models = [m for m in provider_manager.models.values() if m.provider_id == provider.id]
             default_model = next((m for m in provider_models if m.is_default), None) or (provider_models[0] if provider_models else None)
             if default_model:
-                logger.info(f"Auto fallback: routing to {provider.name} with {default_model.name}")
-                return ProviderSelection(provider=provider, model=default_model, reason=f"auto fallback (primary unavailable)")
+                logger.info(f"Last resort fallback: routing to {provider.name} with {default_model.name}")
+                return ProviderSelection(provider=provider, model=default_model, reason="last resort fallback")
 
-        logger.error("Auto routing: no providers available after fallback")
+        logger.error("Auto routing: no providers available after all fallbacks")
         raise HTTPException(status_code=503, detail="No healthy providers available")
 
 
