@@ -20,9 +20,9 @@ class ComplexityTier(IntEnum):
 
 
 TIER_MODEL_MAP = {
-    ComplexityTier.ROUTINE: "qwen2.5-7b-awq",
-    ComplexityTier.MODERATE: "qwen2.5-14b-awq",
-    ComplexityTier.COMPLEX: "qwen2.5-14b-awq",
+    ComplexityTier.ROUTINE: "qwen2.5-7b-awq",    # server 3070 — fast, cheap
+    ComplexityTier.MODERATE: "qwen3-32b-awq",    # gaming PC 3090 — Qwen3 thinking mode
+    ComplexityTier.COMPLEX: "qwen3-32b-awq",     # gaming PC 3090 — Qwen3 thinking mode
 }
 
 

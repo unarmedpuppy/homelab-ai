@@ -21,6 +21,16 @@
       "default_context": 8192
     },
     {
+      "id": "qwen3-32b-awq",
+      "name": "Qwen3 32B AWQ",
+      "hf_model": "Qwen/Qwen3-32B-AWQ",
+      "quantization": "awq",
+      "type": "text",
+      "vram_gb": 20,
+      "max_context": 32768,
+      "default_context": 16384
+    },
+    {
       "id": "qwen2.5-32b-awq",
       "name": "Qwen 2.5 32B AWQ",
       "hf_model": "Qwen/Qwen2.5-32B-Instruct-AWQ",
