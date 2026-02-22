@@ -12,8 +12,10 @@ import type {
 import { mercuryAPI } from '../../api/client';
 import { RetroPanel, RetroStatCard, RetroBadge, RetroProgress, RetroButton, RetroToggle } from '../ui';
 import { useVisibilityPolling } from '../../hooks/useDocumentVisibility';
+import { useMercurySSE } from '../../hooks/useMercurySSE';
 
 const POLL_INTERVAL = 30000;
+const WALLET_POLL_INTERVAL = 60000;
 
 function formatUSD(value: number | null | undefined): string {
   if (value == null) return '--';
@@ -521,35 +523,52 @@ function ControlsPanel({
   );
 }
 
+function formatLastUpdated(ts: number | null): string {
+  if (!ts) return '';
+  const ago = Math.round((Date.now() - ts) / 1000);
+  if (ago < 2) return 'just now';
+  if (ago < 60) return `${ago}s ago`;
+  return `${Math.floor(ago / 60)}m ago`;
+}
+
 export default function TradingDashboard() {
-  const [status, setStatus] = useState<MercuryStatus | null>(null);
-  const [portfolio, setPortfolio] = useState<PortfolioSummary | null>(null);
-  const [positions, setPositions] = useState<Position[]>([]);
-  const [trades, setTrades] = useState<Trade[]>([]);
-  const [risk, setRisk] = useState<RiskStatus | null>(null);
+  const live = useMercurySSE(true);
+
+  // Fallback state for when SSE is disconnected
+  const [fallbackStatus, setFallbackStatus] = useState<MercuryStatus | null>(null);
+  const [fallbackPortfolio, setFallbackPortfolio] = useState<PortfolioSummary | null>(null);
+  const [fallbackPositions, setFallbackPositions] = useState<Position[]>([]);
+  const [fallbackTrades, setFallbackTrades] = useState<Trade[]>([]);
+  const [fallbackRisk, setFallbackRisk] = useState<RiskStatus | null>(null);
+  const [fallbackMarkets, setFallbackMarkets] = useState<ActiveMarket[]>([]);
   const [wallet, setWallet] = useState<WalletBalance | null>(null);
-  const [markets, setMarkets] = useState<ActiveMarket[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Use SSE data when connected, fallback state when not
+  const status = live.connected ? live.status : fallbackStatus;
+  const portfolio = live.connected ? live.portfolio : fallbackPortfolio;
+  const positions = live.connected ? live.positions : fallbackPositions;
+  const trades = live.connected ? live.trades : fallbackTrades;
+  const risk = live.connected ? live.risk : fallbackRisk;
+  const markets = live.connected ? live.markets : fallbackMarkets;
+
   const fetchData = useCallback(async () => {
     try {
-      const [statusData, portfolioData, positionsData, tradesData, riskData, walletData, marketsData] = await Promise.all([
+      const [statusData, portfolioData, positionsData, tradesData, riskData, marketsData] = await Promise.all([
         mercuryAPI.getStatus(),
         mercuryAPI.getPortfolio(),
         mercuryAPI.getPositions(),
         mercuryAPI.getTrades({ limit: 20 }),
         mercuryAPI.getRisk(),
-        mercuryAPI.getWallet().catch(() => null),
         mercuryAPI.getMarkets().catch(() => ({ markets: [], total: 0 })),
       ]);
-      setStatus(statusData);
-      setPortfolio(portfolioData);
-      setPositions(positionsData?.positions ?? []);
-      setTrades(tradesData?.trades ?? []);
-      setRisk(riskData);
-      setWallet(walletData);
-      setMarkets(marketsData?.markets ?? []);
+      setFallbackStatus(statusData);
+      setFallbackPortfolio(portfolioData);
+      setFallbackPositions(positionsData?.positions ?? []);
+      setFallbackTrades(tradesData?.trades ?? []);
+      setFallbackRisk(riskData);
+      setFallbackMarkets(marketsData?.markets ?? []);
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to connect to Mercury');
@@ -558,12 +577,26 @@ export default function TradingDashboard() {
     }
   }, []);
 
+  // Wallet: always poll (expensive CLOB call, rarely changes)
   useVisibilityPolling({
-    callback: fetchData,
-    interval: POLL_INTERVAL,
+    callback: () => mercuryAPI.getWallet().catch(() => null).then(setWallet),
+    interval: WALLET_POLL_INTERVAL,
     enabled: true,
     immediate: true,
   });
+
+  // Fallback: poll everything only when SSE is disconnected
+  useVisibilityPolling({
+    callback: fetchData,
+    interval: POLL_INTERVAL,
+    enabled: !live.connected,
+    immediate: true,
+  });
+
+  // Mark loading complete once SSE delivers first snapshot or fallback loads
+  if (loading && (live.status || fallbackStatus)) {
+    setLoading(false);
+  }
 
   if (loading && !status) {
     return (
@@ -575,7 +608,7 @@ export default function TradingDashboard() {
     );
   }
 
-  if (error && !status) {
+  if (error && !status && !live.connected) {
     return (
       <div className="p-6">
         <div className="text-center py-12">
@@ -591,12 +624,26 @@ export default function TradingDashboard() {
   return (
     <div className="p-4 sm:p-6 space-y-4 overflow-auto h-full">
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-xl font-bold text-[var(--retro-text-primary)]">Trading</h2>
-        {error && (
-          <span className="text-xs text-[var(--retro-accent-yellow)]">
-            Update failed - showing stale data
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          <h2 className="text-xl font-bold text-[var(--retro-text-primary)]">Trading</h2>
+          {live.connected ? (
+            <RetroBadge variant="status-done">LIVE</RetroBadge>
+          ) : (
+            <RetroBadge variant="status-progress">POLLING</RetroBadge>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          {live.lastUpdated && (
+            <span className="text-xs text-[var(--retro-text-secondary)]">
+              Updated {formatLastUpdated(live.lastUpdated)}
+            </span>
+          )}
+          {error && !live.connected && (
+            <span className="text-xs text-[var(--retro-accent-yellow)]">
+              Update failed - showing stale data
+            </span>
+          )}
+        </div>
       </div>
 
       {status && <StatusBar status={status} />}

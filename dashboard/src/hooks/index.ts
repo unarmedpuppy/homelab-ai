@@ -14,3 +14,5 @@ export {
   useVisibilityPolling,
   useConditionalPolling,
 } from './useDocumentVisibility';
+
+export { useMercurySSE } from './useMercurySSE';

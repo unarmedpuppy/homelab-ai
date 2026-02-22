@@ -157,3 +157,14 @@ export interface ControlResponse {
   updated?: Record<string, number>;
   error?: string;
 }
+
+export interface MercurySSEState {
+  connected: boolean;
+  status: MercuryStatus | null;
+  portfolio: PortfolioSummary | null;
+  positions: Position[];
+  trades: Trade[];
+  risk: RiskStatus | null;
+  markets: ActiveMarket[];
+  lastUpdated: number | null;
+}
