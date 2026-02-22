@@ -115,7 +115,8 @@ app.include_router(docs_router, prefix="/docs", tags=["docs"])
 
 # Configuration from environment
 GAMING_PC_URL = os.getenv("GAMING_PC_URL", "http://gaming-pc.local:8000")
-GAMING_PC_POLL_INTERVAL = int(os.getenv("GAMING_PC_POLL_INTERVAL", "30"))  # seconds
+GAMING_PC_POLL_INTERVAL = int(os.getenv("GAMING_PC_POLL_INTERVAL", "30"))   # seconds
+GAMING_PC_STALE_THRESHOLD = int(os.getenv("GAMING_PC_STALE_THRESHOLD", "180"))  # seconds (6 missed polls)
 LOCAL_3070_URL = os.getenv("LOCAL_3070_URL", "http://llm-manager:8000")
 OPENCODE_URL = os.getenv("OPENCODE_URL", "http://opencode-service:8002")
 TTS_ENDPOINT = os.getenv("TTS_ENDPOINT", GAMING_PC_URL)  # TTS runs on Gaming PC
@@ -189,6 +190,8 @@ class HealthResponse(BaseModel):
     status: str
     backends: dict
     gaming_mode: Optional[bool] = None
+    gaming_pc_reachable: Optional[bool] = None
+    gaming_cache_age: Optional[float] = None
 
 
 class ClaudeAgentRequest(BaseModel):
@@ -206,7 +209,12 @@ class ClaudeAgentResponse(BaseModel):
 
 
 async def get_gaming_pc_status() -> Optional[GamingModeStatus]:
-    """Return cached gaming PC status. Updated by background poller, not per-request."""
+    """Return cached gaming PC status. Returns None if cache is stale or PC unreachable."""
+    if _gaming_cache["updated_at"] == 0.0:
+        return None  # never successfully polled
+    age = time.time() - _gaming_cache["updated_at"]
+    if age > GAMING_PC_STALE_THRESHOLD:
+        return None  # cache too old — treat as unreachable, fall through to local GPUs
     return _gaming_cache["status"]
 
 
@@ -699,8 +707,10 @@ async def health_check() -> HealthResponse:
             "max_concurrent": status["max_concurrent"],
         }
 
-    # Check gaming mode (legacy compatibility)
+    # Gaming PC status — derive from cache directly so health check is always fast
     gaming_status = await get_gaming_pc_status()
+    cache_age = round(time.time() - _gaming_cache["updated_at"], 1) if _gaming_cache["updated_at"] else None
+    gaming_pc_reachable = _gaming_cache["consecutive_failures"] == 0 and _gaming_cache["updated_at"] > 0
 
     # Update Prometheus metrics for providers
     for provider_id, status in provider_statuses.items():
@@ -716,6 +726,8 @@ async def health_check() -> HealthResponse:
         status="healthy" if any(s["healthy"] for s in backend_status.values()) else "degraded",
         backends=backend_status,
         gaming_mode=gaming_status.gaming_mode if gaming_status else None,
+        gaming_pc_reachable=gaming_pc_reachable,
+        gaming_cache_age=cache_age,
     )
 
 

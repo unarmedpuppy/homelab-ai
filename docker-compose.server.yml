@@ -21,6 +21,7 @@ services:
       - LOCAL_3070_URL=http://llm-manager:8000
       - GAMING_PC_URL=${GAMING_PC_URL:-http://gaming-pc.local:8000}
       - GAMING_PC_POLL_INTERVAL=${GAMING_PC_POLL_INTERVAL:-30}
+      - GAMING_PC_STALE_THRESHOLD=${GAMING_PC_STALE_THRESHOLD:-180}
       - ENABLE_METRICS=1
       - ENABLE_MEMORY=1
       - LOG_LEVEL=INFO
