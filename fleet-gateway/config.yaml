@@ -22,12 +22,13 @@ agents:
 
   avery:
     name: "Avery"
-    description: "Development workstation agent"
-    endpoint: "http://avery.tailnet:8013"
-    expected_online: false
+    description: "Family coordinator on Mac Mini (OpenClaw + agent-harness)"
+    endpoint: "http://averys-mac-mini:8013"
+    expected_online: true
     tags:
       - interactive
       - workstation
+      - openclaw
 
   jobin:
     name: "Jobin"
