@@ -158,6 +158,24 @@ export interface ControlResponse {
   error?: string;
 }
 
+export interface BinanceTicker {
+  symbol: string;
+  price: number | null;
+  momentum_pct: number | null;
+  window_size: number;
+}
+
+export interface BinancePricePoint {
+  t: number;
+  p: number;
+}
+
+export interface BinanceData {
+  connected: boolean;
+  tickers: Record<string, BinanceTicker>;
+  history?: Record<string, BinancePricePoint[]>;
+}
+
 export interface MercurySSEState {
   connected: boolean;
   status: MercuryStatus | null;
@@ -166,5 +184,6 @@ export interface MercurySSEState {
   trades: Trade[];
   risk: RiskStatus | null;
   markets: ActiveMarket[];
+  binance: BinanceData | null;
   lastUpdated: number | null;
 }

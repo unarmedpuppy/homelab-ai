@@ -13,6 +13,7 @@ import { mercuryAPI } from '../../api/client';
 import { RetroPanel, RetroStatCard, RetroBadge, RetroProgress, RetroButton, RetroToggle } from '../ui';
 import { useVisibilityPolling } from '../../hooks/useDocumentVisibility';
 import { useMercurySSE } from '../../hooks/useMercurySSE';
+import BinancePriceWidget from './BinancePriceWidget';
 
 const POLL_INTERVAL = 30000;
 const WALLET_POLL_INTERVAL = 60000;
@@ -649,6 +650,8 @@ export default function TradingDashboard() {
       {status && <StatusBar status={status} />}
 
       {portfolio && <PortfolioCards portfolio={portfolio} wallet={wallet} />}
+
+      <BinancePriceWidget data={live.binance} />
 
       <RetroPanel title="Active Markets" collapsible defaultCollapsed={false}>
         <ActiveMarketsTable markets={markets} />
