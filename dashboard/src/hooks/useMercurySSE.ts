@@ -31,6 +31,11 @@ export function useMercurySSE(enabled: boolean): MercurySSEState {
   const isVisible = useIsDocumentVisible();
 
   const connect = useCallback(() => {
+    // Don't recreate if already open or reconnecting
+    if (esRef.current && esRef.current.readyState !== EventSource.CLOSED) {
+      return;
+    }
+
     if (esRef.current) {
       esRef.current.close();
       esRef.current = null;
@@ -44,7 +49,11 @@ export function useMercurySSE(enabled: boolean): MercurySSEState {
     };
 
     es.onerror = () => {
-      setConnected(false);
+      // EventSource auto-reconnects on transient errors (readyState = CONNECTING).
+      // Only mark disconnected when permanently closed.
+      if (es.readyState === EventSource.CLOSED) {
+        setConnected(false);
+      }
     };
 
     es.addEventListener('status', (e: MessageEvent) => {

@@ -58,7 +58,7 @@ function PriceChart({ history, color }: { history: BinancePricePoint[]; color: s
             fontSize: '11px',
             color: 'var(--retro-text-primary)',
           }}
-          formatter={(value: number) => [formatPrice(value), 'Price']}
+          formatter={(value: number | undefined) => [formatPrice(value ?? null), 'Price']}
           labelFormatter={(label: number) => new Date(label * 1000).toLocaleTimeString()}
         />
         <Area

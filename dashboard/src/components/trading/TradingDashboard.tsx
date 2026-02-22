@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type {
   MercuryStatus,
   PortfolioSummary,
@@ -595,9 +595,11 @@ export default function TradingDashboard() {
   });
 
   // Mark loading complete once SSE delivers first snapshot or fallback loads
-  if (loading && (live.status || fallbackStatus)) {
-    setLoading(false);
-  }
+  useEffect(() => {
+    if (loading && (live.status || fallbackStatus)) {
+      setLoading(false);
+    }
+  }, [loading, live.status, fallbackStatus]);
 
   if (loading && !status) {
     return (
