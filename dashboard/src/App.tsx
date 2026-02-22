@@ -1,9 +1,36 @@
-import { useState, useCallback, useEffect, lazy, Suspense } from 'react';
-import type { ReactNode } from 'react';
+import { useState, useCallback, useEffect, lazy, Suspense, Component } from 'react';
+import type { ReactNode, ErrorInfo } from 'react';
 import { Routes, Route, useNavigate, useParams, useLocation, Link } from 'react-router-dom';
-import { PageLoading } from './components/ui';
+import { PageLoading, ErrorFallback } from './components/ui';
 import { useIsDesktop } from './hooks/useMediaQuery';
 import { CleanLayout } from './components/clean/CleanLayout';
+
+class ErrorBoundary extends Component<
+  { children: ReactNode; fallback?: ReactNode },
+  { error: Error | null }
+> {
+  state: { error: Error | null } = { error: null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('ErrorBoundary caught:', error, info.componentStack);
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <ErrorFallback
+          error={this.state.error}
+          resetErrorBoundary={() => this.setState({ error: null })}
+        />
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // Lazy-loaded components for code splitting
 // Chat-related components are loaded immediately since Chat is a primary view
@@ -233,9 +260,11 @@ function ChatView() {
 function TasksView() {
   return (
     <AppLayout currentView="tasks">
-      <Suspense fallback={<PageLoading section="Tasks" />}>
-        <TasksDashboard />
-      </Suspense>
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoading section="Tasks" />}>
+          <TasksDashboard />
+        </Suspense>
+      </ErrorBoundary>
     </AppLayout>
   );
 }
@@ -243,9 +272,11 @@ function TasksView() {
 function RalphView() {
   return (
     <AppLayout currentView="ralph">
-      <Suspense fallback={<PageLoading section="Ralph" />}>
-        <RalphDashboard />
-      </Suspense>
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoading section="Ralph" />}>
+          <RalphDashboard />
+        </Suspense>
+      </ErrorBoundary>
     </AppLayout>
   );
 }
@@ -253,10 +284,12 @@ function RalphView() {
 function ProvidersView() {
   return (
     <AppLayout currentView="providers" scrollable withContainer>
-      <Suspense fallback={<PageLoading section="Providers" />}>
-        <h2 className="text-3xl font-bold text-[var(--retro-text-primary)] mb-8">Provider Monitoring</h2>
-        <ProviderMonitoring />
-      </Suspense>
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoading section="Providers" />}>
+          <h2 className="text-3xl font-bold text-[var(--retro-text-primary)] mb-8">Provider Monitoring</h2>
+          <ProviderMonitoring />
+        </Suspense>
+      </ErrorBoundary>
     </AppLayout>
   );
 }
@@ -264,9 +297,11 @@ function ProvidersView() {
 function StatsView() {
   return (
     <AppLayout currentView="stats" scrollable withContainer>
-      <Suspense fallback={<PageLoading section="Stats" />}>
-        <Dashboard />
-      </Suspense>
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoading section="Stats" />}>
+          <Dashboard />
+        </Suspense>
+      </ErrorBoundary>
     </AppLayout>
   );
 }
@@ -274,9 +309,11 @@ function StatsView() {
 function AgentsView() {
   return (
     <AppLayout currentView="agents">
-      <Suspense fallback={<PageLoading section="Agents" />}>
-        <AgentsDashboard />
-      </Suspense>
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoading section="Agents" />}>
+          <AgentsDashboard />
+        </Suspense>
+      </ErrorBoundary>
     </AppLayout>
   );
 }
@@ -284,9 +321,11 @@ function AgentsView() {
 function TradingView() {
   return (
     <AppLayout currentView="trading">
-      <Suspense fallback={<PageLoading section="Trading" />}>
-        <TradingDashboard />
-      </Suspense>
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoading section="Trading" />}>
+          <TradingDashboard />
+        </Suspense>
+      </ErrorBoundary>
     </AppLayout>
   );
 }
@@ -294,9 +333,11 @@ function TradingView() {
 function DocsView() {
   return (
     <AppLayout currentView="docs">
-      <Suspense fallback={<PageLoading section="Docs" />}>
-        <DocsPage />
-      </Suspense>
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoading section="Docs" />}>
+          <DocsPage />
+        </Suspense>
+      </ErrorBoundary>
     </AppLayout>
   );
 }

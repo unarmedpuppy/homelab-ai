@@ -44,25 +44,28 @@ function cbBadgeVariant(state: string): 'status-done' | 'status-progress' | 'sta
 }
 
 function StatusBar({ status }: { status: MercuryStatus }) {
+  const cbState = status.components?.circuit_breaker ?? 'UNKNOWN';
+  const strategies = status.active_strategies ?? [];
+
   return (
     <div className="flex flex-wrap items-center gap-3 p-3 bg-[var(--retro-bg-medium)] border border-[var(--retro-border)] rounded">
       <RetroBadge variant={status.status === 'healthy' ? 'status-done' : status.status === 'degraded' ? 'status-progress' : 'status-blocked'}>
-        {status.status.toUpperCase()}
+        {(status.status ?? 'unknown').toUpperCase()}
       </RetroBadge>
       {status.dry_run && (
         <RetroBadge variant="status-progress">DRY RUN</RetroBadge>
       )}
-      <RetroBadge variant={cbBadgeVariant(status.components.circuit_breaker)}>
-        CB: {status.components.circuit_breaker}
+      <RetroBadge variant={cbBadgeVariant(cbState)}>
+        CB: {cbState}
       </RetroBadge>
       <span className="text-xs text-[var(--retro-text-secondary)]">
-        v{status.version}
+        v{status.version ?? '?'}
       </span>
       <span className="text-xs text-[var(--retro-text-secondary)]">
-        Up {formatTime(status.uptime_seconds)}
+        Up {formatTime(status.uptime_seconds ?? 0)}
       </span>
       <span className="text-xs text-[var(--retro-text-secondary)]">
-        Strategies: {status.active_strategies.join(', ') || 'none'}
+        Strategies: {strategies.join(', ') || 'none'}
       </span>
     </div>
   );
@@ -389,7 +392,7 @@ function ControlsPanel({
   });
 
   const isHalted = risk.circuit_breaker.state === 'HALT';
-  const allStrategies = status.all_strategies ?? status.active_strategies;
+  const allStrategies = status.all_strategies ?? status.active_strategies ?? [];
 
   const doAction = async (action: () => Promise<unknown>) => {
     setActing(true);
@@ -542,11 +545,11 @@ export default function TradingDashboard() {
       ]);
       setStatus(statusData);
       setPortfolio(portfolioData);
-      setPositions(positionsData.positions);
-      setTrades(tradesData.trades);
+      setPositions(positionsData?.positions ?? []);
+      setTrades(tradesData?.trades ?? []);
       setRisk(riskData);
       setWallet(walletData);
-      setMarkets(marketsData.markets);
+      setMarkets(marketsData?.markets ?? []);
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to connect to Mercury');
