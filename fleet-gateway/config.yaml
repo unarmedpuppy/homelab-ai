@@ -25,7 +25,7 @@ agents:
     description: "Server operations and diagnostics (native systemd)"
     endpoint: "http://host.docker.internal:8018"
     agent_type: server
-    expected_online: false
+    expected_online: true
     tags:
       - ops
       - server
