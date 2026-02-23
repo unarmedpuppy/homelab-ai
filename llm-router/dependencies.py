@@ -91,6 +91,22 @@ async def get_request_tracker(
     return tracker
 
 
+def _extract_text_content(content) -> Optional[str]:
+    """Normalize OpenAI message content to a plain string.
+
+    Handles both plain strings and structured content arrays
+    (e.g. [{type: "text", text: "..."}, {type: "image_url", ...}]).
+    """
+    if content is None:
+        return None
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts = [item.get("text", "") for item in content if isinstance(item, dict) and item.get("type") == "text"]
+        return "".join(parts) or None
+    return str(content)
+
+
 def log_chat_completion(
     tracker: RequestTracker,
     body: dict,
@@ -137,12 +153,75 @@ def log_chat_completion(
                 assistant_message = choices[0].get("message", {})
                 assistant_content = assistant_message.get("content")
 
-        # Log metrics
+        # Resolve the conversation ID that will be used for both memory and metrics.
+        # Memory block may auto-generate one, so we need to know it up-front so that
+        # the FK reference in metrics is valid when the row is inserted.
+        resolved_conversation_id = tracker.conversation_id
+
+        # Store conversation memory first (so the row exists before metrics FK insert)
+        if ENABLE_MEMORY and (tracker.conversation_id or tracker.enable_memory) and not error:
+            try:
+                conversation_id = tracker.conversation_id
+                if not conversation_id:
+                    conversation_id = generate_conversation_id()
+                    logger.info(f"Generated conversation ID: {conversation_id}")
+
+                resolved_conversation_id = conversation_id
+
+                # Create conversation if it doesn't exist
+                if not get_conversation(conversation_id):
+                    create_conversation(
+                        ConversationCreate(
+                            id=conversation_id,
+                            session_id=tracker.session_id,
+                            user_id=tracker.user_id,
+                            project=tracker.project,
+                            username=tracker.username,
+                            source=tracker.source,
+                            display_name=tracker.display_name,
+                        )
+                    )
+                    logger.info(f"Created conversation: {conversation_id}")
+
+                # Store only the LAST user message (the new one).
+                # Normalize content: OpenAI structured content arrays → plain string.
+                user_messages = [m for m in messages if m.get("role") == "user"]
+                if user_messages:
+                    last_user_msg = user_messages[-1]
+                    add_message(
+                        MessageCreate(
+                            conversation_id=conversation_id,
+                            role=MessageRole.USER,
+                            content=_extract_text_content(last_user_msg.get("content")),
+                            tokens_prompt=prompt_tokens,
+                            metadata={"model_requested": model_requested},
+                        )
+                    )
+
+                # Store assistant response
+                if assistant_content:
+                    add_message(
+                        MessageCreate(
+                            conversation_id=conversation_id,
+                            role=MessageRole.ASSISTANT,
+                            content=assistant_content,
+                            model_used=model_used,
+                            backend=backend,
+                            tokens_completion=completion_tokens,
+                            metadata={"provider_name": provider_name} if provider_name else None,
+                        )
+                    )
+
+                logger.debug(f"Stored conversation: {conversation_id}")
+            except Exception as e:
+                logger.error(f"Failed to store conversation: {e}")
+
+        # Log metrics — after memory block so conversation FK row exists
         if ENABLE_METRICS:
             try:
                 log_metric(
                     MetricCreate(
-                        conversation_id=tracker.conversation_id,
+                        conversation_id=resolved_conversation_id,
                         session_id=tracker.session_id,
                         endpoint="/v1/chat/completions",
                         model_requested=model_requested,
@@ -170,7 +249,7 @@ def log_chat_completion(
             duration_seconds = tracker.get_duration_ms() / 1000.0
             status = "200" if error is None else "500"
             provider = backend or "unknown"
-            
+
             prom.record_request(
                 endpoint="/v1/chat/completions",
                 model=model_used or model_requested,
@@ -180,69 +259,11 @@ def log_chat_completion(
                 prompt_tokens=prompt_tokens or 0,
                 completion_tokens=completion_tokens or 0
             )
-            
+
             if error:
                 prom.record_error("/v1/chat/completions", "request_failed")
         except Exception as e:
             logger.debug(f"Failed to record Prometheus metrics: {e}")
-
-        # Store conversation memory
-        if ENABLE_MEMORY and (tracker.conversation_id or tracker.enable_memory) and not error:
-            try:
-                # Auto-generate conversation ID if memory enabled but no ID provided
-                conversation_id = tracker.conversation_id
-                if not conversation_id:
-                    conversation_id = generate_conversation_id()
-                    logger.info(f"Generated conversation ID: {conversation_id}")
-
-                # Create conversation if it doesn't exist
-                if not get_conversation(conversation_id):
-                    create_conversation(
-                        ConversationCreate(
-                            id=conversation_id,
-                            session_id=tracker.session_id,
-                            user_id=tracker.user_id,
-                            project=tracker.project,
-                            username=tracker.username,
-                            source=tracker.source,
-                            display_name=tracker.display_name,
-                        )
-                    )
-                    logger.info(f"Created conversation: {conversation_id}")
-
-                # Store only the LAST user message (the new one)
-                # The messages array contains full conversation history, but we only
-                # want to store the new message to avoid duplicates
-                user_messages = [m for m in messages if m.get("role") == "user"]
-                if user_messages:
-                    last_user_msg = user_messages[-1]
-                    add_message(
-                        MessageCreate(
-                            conversation_id=conversation_id,
-                            role=MessageRole.USER,
-                            content=last_user_msg.get("content"),
-                            tokens_prompt=prompt_tokens,
-                            metadata={"model_requested": model_requested},
-                        )
-                    )
-
-                # Store assistant response
-                if assistant_content:
-                    add_message(
-                        MessageCreate(
-                            conversation_id=conversation_id,
-                            role=MessageRole.ASSISTANT,
-                            content=assistant_content,
-                            model_used=model_used,
-                            backend=backend,
-                            tokens_completion=completion_tokens,
-                            metadata={"provider_name": provider_name} if provider_name else None,
-                        )
-                    )
-
-                logger.debug(f"Stored conversation: {conversation_id}")
-            except Exception as e:
-                logger.error(f"Failed to store conversation: {e}")
 
     except Exception as e:
         logger.error(f"Failed to log chat completion: {e}")
