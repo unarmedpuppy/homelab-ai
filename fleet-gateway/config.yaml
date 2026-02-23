@@ -22,8 +22,8 @@ agents:
 
   gilfoyle:
     name: "Gilfoyle"
-    description: "Server operations and diagnostics"
-    endpoint: "http://gilfoyle-harness:8013"
+    description: "Server operations and diagnostics (native systemd)"
+    endpoint: "http://host.docker.internal:8018"
     agent_type: server
     expected_online: false
     tags:
