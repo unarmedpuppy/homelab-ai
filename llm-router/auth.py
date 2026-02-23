@@ -344,6 +344,37 @@ def get_api_key_by_id(key_id: int) -> Optional[dict]:
         }
 
 
+def update_api_key_metadata(key_id: int, metadata: dict) -> bool:
+    """
+    Merge metadata into an existing API key's metadata JSON.
+
+    Existing keys are preserved; only provided keys are updated.
+
+    Returns:
+        True if updated, False if key not found
+    """
+    existing = get_api_key_by_id(key_id)
+    if existing is None:
+        return False
+
+    merged = {**(existing.get("metadata") or {}), **metadata}
+
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE client_api_keys
+            SET metadata = ?
+            WHERE id = ?
+        """, (json.dumps(merged), key_id))
+
+        if cursor.rowcount == 0:
+            return False
+
+        conn.commit()
+        logger.info(f"Updated metadata for API key id={key_id}")
+        return True
+
+
 # =============================================================================
 # FastAPI Authentication Dependency
 # =============================================================================

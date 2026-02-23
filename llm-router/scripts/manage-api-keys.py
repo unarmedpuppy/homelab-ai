@@ -8,27 +8,22 @@ Usage:
     python manage-api-keys.py show <id>
     python manage-api-keys.py disable <id>
     python manage-api-keys.py enable <id>
+    python manage-api-keys.py set-metadata <id> <json>
     python manage-api-keys.py delete <id>
 
 Examples:
     # Create a new API key for an agent
     python manage-api-keys.py create "agent-1"
-    
-    # Create a key that expires in 90 days
-    python manage-api-keys.py create "temp-key" --expires-in-days 90
-    
-    # Create a key with specific scopes
-    python manage-api-keys.py create "chat-only" --scopes chat,models
-    
+
     # List all active keys
     python manage-api-keys.py list
-    
-    # List all keys including disabled
-    python manage-api-keys.py list --all
-    
+
+    # Set memory defaults so requests from this key are always persisted
+    python manage-api-keys.py set-metadata 3 '{"memory_defaults": {"enable_memory": true, "user_id": "avery", "source": "openclaw", "project": "openclaw", "display_name": "Avery"}}'
+
     # Disable a key
     python manage-api-keys.py disable 1
-    
+
     # Delete a key permanently
     python manage-api-keys.py delete 1
 """
@@ -47,7 +42,8 @@ from auth import (
     get_api_key_by_id,
     disable_api_key,
     enable_api_key,
-    delete_api_key
+    delete_api_key,
+    update_api_key_metadata,
 )
 from database import init_database
 
@@ -163,6 +159,24 @@ def cmd_enable(args):
         sys.exit(1)
 
 
+def cmd_set_metadata(args):
+    """Merge metadata into an API key."""
+    import json as _json
+    try:
+        metadata = _json.loads(args.metadata_json)
+    except _json.JSONDecodeError as e:
+        print(f"Error: invalid JSON: {e}")
+        sys.exit(1)
+
+    if update_api_key_metadata(args.id, metadata):
+        key = get_api_key_by_id(args.id)
+        print(f"Metadata updated for API key id={args.id}.")
+        print(f"Current metadata: {key['metadata']}")
+    else:
+        print(f"Error: API key with id={args.id} not found.")
+        sys.exit(1)
+
+
 def cmd_delete(args):
     """Delete an API key permanently."""
     if not args.force:
@@ -214,6 +228,12 @@ def main():
     enable_parser.add_argument('id', type=int, help='API key ID')
     enable_parser.set_defaults(func=cmd_enable)
     
+    # Set-metadata command
+    set_meta_parser = subparsers.add_parser('set-metadata', help='Merge metadata into an API key')
+    set_meta_parser.add_argument('id', type=int, help='API key ID')
+    set_meta_parser.add_argument('metadata_json', help='JSON object to merge into key metadata')
+    set_meta_parser.set_defaults(func=cmd_set_metadata)
+
     # Delete command
     delete_parser = subparsers.add_parser('delete', help='Permanently delete an API key')
     delete_parser.add_argument('id', type=int, help='API key ID')

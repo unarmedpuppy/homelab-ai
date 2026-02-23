@@ -5,7 +5,7 @@ import os
 import time
 import logging
 from typing import Optional
-from fastapi import Request, BackgroundTasks, HTTPException
+from fastapi import Request, BackgroundTasks, HTTPException, Depends
 from datetime import datetime, timezone
 
 from database import init_database
@@ -13,6 +13,8 @@ from memory import create_conversation, add_message, get_conversation, generate_
 from metrics import log_metric
 from models import ConversationCreate, MessageCreate, MetricCreate, MessageRole
 import prometheus_metrics as prom
+# auth is imported here (not vice-versa) so no circular dependency
+from auth import validate_api_key_header, ApiKey
 
 logger = logging.getLogger(__name__)
 
@@ -49,13 +51,35 @@ class RequestTracker:
         return int((time.time() - self.start_time) * 1000)
 
 
-async def get_request_tracker(request: Request) -> RequestTracker:
+async def get_request_tracker(
+    request: Request,
+    api_key: ApiKey = Depends(validate_api_key_header),
+) -> RequestTracker:
     """Dependency to create a request tracker.
-    
-    Validates that X-User-ID is provided when memory is enabled.
+
+    Applies memory defaults from API key metadata when X-* headers are absent,
+    then validates that X-User-ID is present if memory is enabled.
+
+    FastAPI deduplicates validate_api_key_header — it won't be called twice
+    even if the route handler also depends on it.
     """
     tracker = RequestTracker(request)
-    
+
+    # Apply memory defaults from API key metadata (fills in missing X-* headers)
+    if api_key and api_key.metadata:
+        defaults = api_key.metadata.get("memory_defaults", {})
+        if defaults:
+            if not tracker.enable_memory and defaults.get("enable_memory"):
+                tracker.enable_memory = True
+            if not tracker.user_id:
+                tracker.user_id = defaults.get("user_id")
+            if not tracker.source:
+                tracker.source = defaults.get("source")
+            if not tracker.project:
+                tracker.project = defaults.get("project")
+            if not tracker.display_name:
+                tracker.display_name = defaults.get("display_name")
+
     # Require X-User-ID when memory is enabled
     if tracker.enable_memory and not tracker.user_id:
         raise HTTPException(
@@ -63,7 +87,7 @@ async def get_request_tracker(request: Request) -> RequestTracker:
             detail="X-User-ID header is required when X-Enable-Memory is true. "
                    "This ensures all stored conversations have proper user attribution."
         )
-    
+
     return tracker
 
 
