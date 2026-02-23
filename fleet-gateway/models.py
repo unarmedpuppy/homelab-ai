@@ -5,6 +5,12 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 
+class AgentType(str, Enum):
+    """Agent deployment type."""
+    SERVER = "server"  # Always-on, health-checked (runs on server)
+    CLI = "cli"        # Interactive, no health checks (runs locally via Claude Code)
+
+
 class AgentStatus(str, Enum):
     """Agent health status."""
     ONLINE = "online"
@@ -24,7 +30,8 @@ class AgentConfig(BaseModel):
     """Agent configuration from config.yaml."""
     name: str
     description: str = ""
-    endpoint: str
+    endpoint: str = ""
+    agent_type: AgentType = AgentType.CLI
     expected_online: bool = False
     tags: list[str] = Field(default_factory=list)
 
@@ -45,7 +52,8 @@ class Agent(BaseModel):
     id: str
     name: str
     description: str = ""
-    endpoint: str
+    endpoint: str = ""
+    agent_type: AgentType = AgentType.CLI
     expected_online: bool = False
     tags: list[str] = Field(default_factory=list)
     health: AgentHealth = Field(default_factory=AgentHealth)

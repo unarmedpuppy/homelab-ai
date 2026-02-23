@@ -30,28 +30,39 @@ export function FleetOverview({ stats, loading }: FleetOverviewProps) {
     return null;
   }
 
+  const serverCount = stats.online_count + stats.offline_count + stats.degraded_count + stats.unknown_count;
+  const cliCount = stats.total_agents - serverCount;
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
       <RetroStatCard
-        label="Total Agents"
-        value={stats.total_agents}
-        color="default"
-      />
-      <RetroStatCard
-        label="Online"
-        value={stats.online_count}
+        label="Server Agents"
+        value={`${stats.online_count}/${serverCount}`}
         color="green"
       />
       <RetroStatCard
-        label="Offline"
-        value={stats.offline_count}
-        color="default"
+        label="CLI Agents"
+        value={cliCount}
+        color="blue"
       />
       <RetroStatCard
         label="Avg Response"
         value={formatResponseTime(stats.avg_response_time_ms)}
-        color="blue"
+        color="default"
       />
+      {stats.unexpected_offline_count > 0 ? (
+        <RetroStatCard
+          label="Unexpected Down"
+          value={stats.unexpected_offline_count}
+          color="red"
+        />
+      ) : (
+        <RetroStatCard
+          label="Fleet Status"
+          value="OK"
+          color="green"
+        />
+      )}
     </div>
   );
 }

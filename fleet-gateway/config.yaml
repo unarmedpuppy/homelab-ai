@@ -1,7 +1,7 @@
 # Agent Gateway Configuration
 # Defines the fleet of agents to monitor
 
-# Health check settings
+# Health check settings (applies to server agents only)
 health_check:
   interval_seconds: 30
   timeout_seconds: 10
@@ -14,16 +14,27 @@ agents:
     name: "Ralph Wiggum"
     description: "Autonomous task processor on server"
     endpoint: "http://agent-harness:8013"
-    # Expected to always be online
+    agent_type: server
     expected_online: true
     tags:
       - autonomous
+      - server
+
+  gilfoyle:
+    name: "Gilfoyle"
+    description: "Server operations and diagnostics"
+    endpoint: "http://gilfoyle-harness:8013"
+    agent_type: server
+    expected_online: false
+    tags:
+      - ops
       - server
 
   avery:
     name: "Avery"
     description: "Family coordinator on Mac Mini (OpenClaw + agent-harness)"
     endpoint: "http://averys-mac-mini:8013"
+    agent_type: server
     expected_online: true
     tags:
       - interactive
@@ -32,18 +43,8 @@ agents:
 
   jobin:
     name: "Jobin"
-    description: "Secondary workstation agent (often offline)"
-    endpoint: "http://jobin.tailnet:8013"
-    expected_online: false
+    description: "Dev buddy, runs locally via Claude Code"
+    agent_type: cli
     tags:
       - interactive
-      - workstation
-
-  gilfoyle:
-    name: "Gilfoyle"
-    description: "High-performance compute agent"
-    endpoint: "http://gilfoyle.tailnet:8013"
-    expected_online: false
-    tags:
-      - compute
       - workstation

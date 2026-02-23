@@ -2,6 +2,7 @@
  * Agent Fleet types - for agent-gateway integration
  */
 
+export type AgentType = 'server' | 'cli';
 export type AgentStatus = 'online' | 'offline' | 'degraded' | 'unknown';
 
 export interface AgentHealth {
@@ -19,12 +20,12 @@ export interface Agent {
   name: string;
   description: string;
   endpoint: string;
+  agent_type: AgentType;
   expected_online: boolean;
   tags: string[];
   health: AgentHealth;
 }
 
-// AgentDetails is the same as Agent for now, but allows for extension
 export type AgentDetails = Agent;
 
 export interface FleetStats {

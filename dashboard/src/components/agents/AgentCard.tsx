@@ -27,7 +27,7 @@ function getStatusVariant(status: AgentStatus): 'status-done' | 'status-blocked'
     case 'online':
       return 'status-done';
     case 'offline':
-      return 'label'; // Gray for offline (not an error)
+      return 'label';
     case 'degraded':
       return 'status-open';
     case 'unknown':
@@ -57,7 +57,50 @@ function formatResponseTime(ms: number | null): string {
   return `${(ms / 1000).toFixed(1)}s`;
 }
 
-export function AgentCard({ agent, onForceCheck, isChecking, onClick }: AgentCardProps) {
+function CLIAgentCard({ agent, onClick }: Pick<AgentCardProps, 'agent' | 'onClick'>) {
+  return (
+    <RetroCard
+      className={`relative overflow-hidden ${onClick ? 'hover:border-[var(--retro-accent-cyan)] transition-colors' : ''}`}
+      onClick={onClick}
+    >
+      <div
+        className="absolute top-0 left-0 right-0 h-1"
+        style={{ backgroundColor: 'var(--retro-accent-cyan)', opacity: 0.5 }}
+      />
+
+      <div className="pt-2">
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            <h3 className="text-lg font-bold text-[var(--retro-text-primary)]">
+              {agent.name}
+            </h3>
+            <p className="text-xs text-[var(--retro-text-muted)] mt-0.5">
+              {agent.description}
+            </p>
+          </div>
+          <RetroBadge variant="label" size="sm">
+            CLI
+          </RetroBadge>
+        </div>
+
+        {agent.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {agent.tags.map((tag) => (
+              <span
+                key={tag}
+                className="text-[0.625rem] px-1.5 py-0.5 bg-[var(--retro-bg-light)] border border-[var(--retro-border)] rounded text-[var(--retro-text-muted)] uppercase tracking-wide"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    </RetroCard>
+  );
+}
+
+function ServerAgentCard({ agent, onForceCheck, isChecking, onClick }: AgentCardProps) {
   const { health } = agent;
   const statusColor = getStatusColor(health.status);
 
@@ -66,14 +109,12 @@ export function AgentCard({ agent, onForceCheck, isChecking, onClick }: AgentCar
       className={`relative overflow-hidden ${onClick ? 'hover:border-[var(--retro-accent-cyan)] transition-colors' : ''}`}
       onClick={onClick}
     >
-      {/* Status indicator bar at top */}
       <div
         className="absolute top-0 left-0 right-0 h-1"
         style={{ backgroundColor: statusColor }}
       />
 
       <div className="pt-2">
-        {/* Header: Name and Status */}
         <div className="flex items-start justify-between mb-3">
           <div>
             <h3 className="text-lg font-bold text-[var(--retro-text-primary)]">
@@ -94,7 +135,6 @@ export function AgentCard({ agent, onForceCheck, isChecking, onClick }: AgentCar
           </div>
         </div>
 
-        {/* Tags */}
         {agent.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-3">
             {agent.tags.map((tag) => (
@@ -108,7 +148,6 @@ export function AgentCard({ agent, onForceCheck, isChecking, onClick }: AgentCar
           </div>
         )}
 
-        {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-3 mb-3">
           <div className="bg-[var(--retro-bg-light)] rounded p-2 border border-[var(--retro-border)]">
             <div className="text-[0.625rem] text-[var(--retro-text-muted)] mb-0.5">
@@ -128,28 +167,24 @@ export function AgentCard({ agent, onForceCheck, isChecking, onClick }: AgentCar
           </div>
         </div>
 
-        {/* Version */}
         {health.version && (
           <div className="text-xs text-[var(--retro-text-muted)] mb-3">
             Version: <span className="font-mono text-[var(--retro-accent-cyan)]">{health.version}</span>
           </div>
         )}
 
-        {/* Error message */}
         {health.error && health.status !== 'online' && (
           <div className="text-xs text-[var(--retro-text-muted)] bg-[var(--retro-bg-dark)] p-2 rounded border border-[var(--retro-border)] mb-3 font-mono">
             {health.error}
           </div>
         )}
 
-        {/* Expected online indicator */}
         {agent.expected_online && health.status === 'offline' && (
           <div className="text-xs text-[var(--retro-accent-yellow)] mb-3">
             This agent is expected to be online
           </div>
         )}
 
-        {/* Force check button */}
         {onForceCheck && (
           <div onClick={(e) => e.stopPropagation()}>
             <RetroButton
@@ -167,6 +202,13 @@ export function AgentCard({ agent, onForceCheck, isChecking, onClick }: AgentCar
       </div>
     </RetroCard>
   );
+}
+
+export function AgentCard({ agent, onForceCheck, isChecking, onClick }: AgentCardProps) {
+  if (agent.agent_type === 'cli') {
+    return <CLIAgentCard agent={agent} onClick={onClick} />;
+  }
+  return <ServerAgentCard agent={agent} onForceCheck={onForceCheck} isChecking={isChecking} onClick={onClick} />;
 }
 
 export default AgentCard;

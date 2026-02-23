@@ -20,12 +20,14 @@ interface AgentDetailPanelProps {
 
 export function AgentDetailPanel({ agent, onClose }: AgentDetailPanelProps) {
   const [activeTab, setActiveTab] = useState<TabId>('context');
+  const isCLI = agent.agent_type === 'cli';
   const isOnline = agent.health.status === 'online';
+  const canInteract = isOnline && !isCLI;
 
   const tabs: Tab[] = [
     { id: 'context', label: 'Context' },
     { id: 'sessions', label: 'Sessions' },
-    { id: 'interact', label: 'Interact', disabled: !isOnline },
+    { id: 'interact', label: 'Interact', disabled: !canInteract },
   ];
 
   return (
@@ -50,24 +52,31 @@ export function AgentDetailPanel({ agent, onClose }: AgentDetailPanelProps) {
             <span
               className="w-2.5 h-2.5 rounded-full"
               style={{
-                backgroundColor: isOnline
-                  ? 'var(--retro-accent-green)'
-                  : 'var(--retro-text-muted)',
+                backgroundColor: isCLI
+                  ? 'var(--retro-accent-cyan)'
+                  : isOnline
+                    ? 'var(--retro-accent-green)'
+                    : 'var(--retro-text-muted)',
                 boxShadow: 'none',
+                opacity: isCLI ? 0.6 : 1,
               }}
             />
             <span
               className={`text-xs uppercase font-bold ${
-                isOnline ? 'text-[var(--retro-accent-green)]' : 'text-[var(--retro-text-muted)]'
+                isCLI
+                  ? 'text-[var(--retro-text-muted)]'
+                  : isOnline
+                    ? 'text-[var(--retro-accent-green)]'
+                    : 'text-[var(--retro-text-muted)]'
               }`}
             >
-              {agent.health.status}
+              {isCLI ? 'CLI' : agent.health.status}
             </span>
           </div>
         </div>
 
-        {/* Offline Banner */}
-        {!isOnline && (
+        {/* Offline Banner - only for server agents */}
+        {!isCLI && !isOnline && (
           <div className="mb-3 p-2 bg-[rgba(255,200,100,0.1)] border border-[var(--retro-accent-yellow)] rounded text-xs text-[var(--retro-accent-yellow)]">
             Agent is offline. Some features are disabled.
             {agent.health.error && (
@@ -75,6 +84,13 @@ export function AgentDetailPanel({ agent, onClose }: AgentDetailPanelProps) {
                 {agent.health.error}
               </span>
             )}
+          </div>
+        )}
+
+        {/* CLI Agent Info */}
+        {isCLI && (
+          <div className="mb-3 p-2 bg-[rgba(100,200,255,0.05)] border border-[var(--retro-border)] rounded text-xs text-[var(--retro-text-muted)]">
+            Interactive agent — runs locally via Claude Code
           </div>
         )}
 

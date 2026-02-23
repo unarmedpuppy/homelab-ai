@@ -128,14 +128,17 @@ export function AgentsDashboard() {
     );
   }
 
-  // Sort agents: online first, then by name
-  const sortedAgents = [...agents].sort((a, b) => {
-    // Online agents first
-    if (a.health.status === 'online' && b.health.status !== 'online') return -1;
-    if (a.health.status !== 'online' && b.health.status === 'online') return 1;
-    // Then by name
-    return a.name.localeCompare(b.name);
-  });
+  const serverAgents = agents
+    .filter((a) => a.agent_type === 'server')
+    .sort((a, b) => {
+      if (a.health.status === 'online' && b.health.status !== 'online') return -1;
+      if (a.health.status !== 'online' && b.health.status === 'online') return 1;
+      return a.name.localeCompare(b.name);
+    });
+
+  const cliAgents = agents
+    .filter((a) => a.agent_type === 'cli')
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <div className="h-full flex flex-col bg-[var(--retro-bg-dark)] overflow-y-auto">
@@ -147,7 +150,9 @@ export function AgentsDashboard() {
               Agent Fleet
             </h1>
             <p className="text-xs text-[var(--retro-text-muted)] mt-1">
-              {stats ? `${stats.online_count}/${stats.total_agents} agents online` : 'Monitoring Claude Code agents'}
+              {stats
+                ? `${stats.online_count} server agent${stats.online_count !== 1 ? 's' : ''} online`
+                : 'Monitoring Claude Code agents'}
             </p>
           </div>
           <RetroButton variant="ghost" size="sm" onClick={handleRefresh}>
@@ -162,15 +167,15 @@ export function AgentsDashboard() {
           <FleetOverview stats={stats} loading={loading} />
         </RetroPanel>
 
-        {/* Agent Cards Grid */}
-        <RetroPanel title="Agents">
-          {agents.length === 0 ? (
+        {/* Server Agents */}
+        <RetroPanel title="Server Agents">
+          {serverAgents.length === 0 ? (
             <div className="text-center py-8 text-[var(--retro-text-muted)]">
-              No agents configured
+              No server agents configured
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {sortedAgents.map((agent) => (
+              {serverAgents.map((agent) => (
                 <AgentCard
                   key={agent.id}
                   agent={agent}
@@ -182,6 +187,21 @@ export function AgentsDashboard() {
             </div>
           )}
         </RetroPanel>
+
+        {/* CLI Agents */}
+        {cliAgents.length > 0 && (
+          <RetroPanel title="CLI Agents">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {cliAgents.map((agent) => (
+                <AgentCard
+                  key={agent.id}
+                  agent={agent}
+                  onClick={() => handleAgentClick(agent)}
+                />
+              ))}
+            </div>
+          </RetroPanel>
+        )}
 
         {/* Job Queue */}
         <JobQueuePanel onCreateJob={() => setShowCreateJob(true)} />

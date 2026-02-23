@@ -200,12 +200,12 @@ async def get_agent(agent_id: str):
     if not agent:
         raise HTTPException(status_code=404, detail=f"Agent '{agent_id}' not found in registry")
 
-    # Convert to AgentDetails (currently same as Agent, but allows for extension)
     return AgentDetails(
         id=agent.id,
         name=agent.name,
         description=agent.description,
         endpoint=agent.endpoint,
+        agent_type=agent.agent_type,
         expected_online=agent.expected_online,
         tags=agent.tags,
         health=agent.health,

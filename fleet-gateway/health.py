@@ -11,6 +11,7 @@ from models import (
     AgentConfig,
     AgentHealth,
     AgentStatus,
+    AgentType,
     FleetStats,
     GatewayConfig,
 )
@@ -41,6 +42,7 @@ class HealthMonitor:
                 name=agent_config.name,
                 description=agent_config.description,
                 endpoint=agent_config.endpoint,
+                agent_type=agent_config.agent_type,
                 expected_online=agent_config.expected_online,
                 tags=agent_config.tags,
                 health=AgentHealth(),
@@ -83,9 +85,11 @@ class HealthMonitor:
                 await self._check_all_agents()
 
     async def _check_all_agents(self):
-        """Check health of all agents concurrently."""
+        """Check health of all agents concurrently. Skips CLI agents."""
         tasks = [
-            self._check_agent(agent_id) for agent_id in self.agents.keys()
+            self._check_agent(agent_id)
+            for agent_id, agent in self.agents.items()
+            if agent.agent_type == AgentType.SERVER
         ]
         await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -181,22 +185,21 @@ class HealthMonitor:
         return list(self.agents.values())
 
     def get_stats(self) -> FleetStats:
-        """Calculate fleet-wide statistics."""
+        """Calculate fleet-wide statistics. Only server agents count for health stats."""
         agents = self.get_all_agents()
+        server_agents = [a for a in agents if a.agent_type == AgentType.SERVER]
 
-        online = [a for a in agents if a.health.status == AgentStatus.ONLINE]
-        offline = [a for a in agents if a.health.status == AgentStatus.OFFLINE]
-        degraded = [a for a in agents if a.health.status == AgentStatus.DEGRADED]
-        unknown = [a for a in agents if a.health.status == AgentStatus.UNKNOWN]
+        online = [a for a in server_agents if a.health.status == AgentStatus.ONLINE]
+        offline = [a for a in server_agents if a.health.status == AgentStatus.OFFLINE]
+        degraded = [a for a in server_agents if a.health.status == AgentStatus.DEGRADED]
+        unknown = [a for a in server_agents if a.health.status == AgentStatus.UNKNOWN]
 
-        # Count agents expected to be online but aren't
-        expected_online = [a for a in agents if a.expected_online]
+        expected_online = [a for a in server_agents if a.expected_online]
         unexpected_offline = [
             a for a in expected_online
             if a.health.status in (AgentStatus.OFFLINE, AgentStatus.UNKNOWN)
         ]
 
-        # Calculate average response time for online agents
         response_times = [
             a.health.response_time_ms
             for a in online
