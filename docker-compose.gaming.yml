@@ -14,10 +14,10 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - MODE=on-demand
+      - MODE=always-on
       - DEFAULT_MODEL=qwen3-32b-awq
       - GAMING_MODE_ENABLED=true
-      - IDLE_TIMEOUT=600
+      - IDLE_TIMEOUT=0
       - VLLM_IMAGE=${HARBOR_REGISTRY:-harbor.local}/docker-hub/vllm/vllm-openai:v0.8.5
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
