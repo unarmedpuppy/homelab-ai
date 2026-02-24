@@ -78,7 +78,8 @@ services:
     ports:
       - "8080:80"
     environment:
-      - VITE_API_URL=http://llm-manager:8000
+      - LLM_API_UPSTREAM=http://llm-manager:8000
+      - LOCAL_AI_API_KEY=${LLM_ROUTER_API_KEY:-}
     networks:
       - ai-network
 
