@@ -7,8 +7,8 @@
 
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
-diffusers>=0.30.0,<0.31.0
-transformers>=4.51.3
+diffusers>=0.27.0,<0.30.0
+transformers>=4.51.3,<5.0.0
 accelerate>=0.30.0
 pillow>=10.1.0
 numpy>=1.24.3
