@@ -33,14 +33,14 @@ services:
       - my-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.llm-router.rule=Host(`local-ai-api.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.llm-router.rule=Host(`homelab-ai-api.${DOMAIN:-localhost}`)"
       - "traefik.http.routers.llm-router.entrypoints=websecure"
       - "traefik.http.routers.llm-router.tls.certresolver=myresolver"
       - "traefik.http.services.llm-router.loadbalancer.server.port=8000"
       - "homepage.group=AI"
       - "homepage.name=LLM Router"
       - "homepage.icon=mdi-api"
-      - "homepage.href=https://local-ai-api.${DOMAIN:-localhost}/health"
+      - "homepage.href=https://homelab-ai-api.${DOMAIN:-localhost}/health"
       - "homepage.description=OpenAI-compatible API router"
 
   dashboard:
@@ -56,14 +56,14 @@ services:
       - my-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.ai-dashboard.rule=Host(`local-ai-dashboard.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.ai-dashboard.rule=Host(`homelab-ai.${DOMAIN:-localhost}`)"
       - "traefik.http.routers.ai-dashboard.entrypoints=websecure"
       - "traefik.http.routers.ai-dashboard.tls.certresolver=myresolver"
       - "traefik.http.services.ai-dashboard.loadbalancer.server.port=80"
       - "homepage.group=AI"
       - "homepage.name=AI Dashboard"
       - "homepage.icon=mdi-chart-line"
-      - "homepage.href=https://local-ai-dashboard.${DOMAIN:-localhost}"
+      - "homepage.href=https://homelab-ai.${DOMAIN:-localhost}"
       - "homepage.description=Metrics and conversation explorer"
       - "com.centurylinklabs.watchtower.enable=true"
 
