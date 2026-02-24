@@ -14,13 +14,13 @@ logger = logging.getLogger(__name__)
 
 
 class ComplexityTier(IntEnum):
-    ROUTINE = 1   # Simple Q&A, short chat, lookups → 3070
+    ROUTINE = 1   # Simple Q&A, short chat, lookups → 3090
     MODERATE = 2  # Coding, multi-turn, tools, analysis → 3090
     COMPLEX = 3   # Heavy reasoning, long context, architecture → 3090 (cloud fallback preferred)
 
 
 TIER_MODEL_MAP = {
-    ComplexityTier.ROUTINE: "qwen2.5-7b-awq",    # server 3070 — fast, cheap
+    ComplexityTier.ROUTINE: "qwen3-32b-awq",     # gaming PC 3090 — primary for all local requests
     ComplexityTier.MODERATE: "qwen3-32b-awq",    # gaming PC 3090 — Qwen3 thinking mode
     ComplexityTier.COMPLEX: "qwen3-32b-awq",     # gaming PC 3090 — Qwen3 thinking mode
 }
