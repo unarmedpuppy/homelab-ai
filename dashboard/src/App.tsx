@@ -54,7 +54,7 @@ const GettingStartedPage = lazy(() => import('./pages/reference/GettingStartedPa
 const TroubleshootingPage = lazy(() => import('./pages/reference/TroubleshootingPage'));
 const SummaryPage = lazy(() => import('./pages/SummaryPage'));
 
-type ViewName = 'chat' | 'ralph' | 'tasks' | 'providers' | 'stats' | 'agents' | 'trading' | 'docs';
+type ViewName = 'chat' | 'ralph' | 'tasks' | 'providers' | 'stats' | 'agents' | 'trading' | 'docs' | 'command';
 
 function AppHeader() {
   return (
@@ -76,6 +76,7 @@ function AppNavigation({ currentView }: { currentView: ViewName }) {
     { to: '/agents', view: 'agents', icon: '🤖', label: 'Agents' },
     { to: '/trading', view: 'trading', icon: '📈', label: 'Trading' },
     { to: '/docs', view: 'docs', icon: '📄', label: 'Docs' },
+    { to: '/command', view: 'command', icon: '⚔️', label: 'Command' },
   ];
 
   return (
@@ -343,6 +344,19 @@ function DocsView() {
   );
 }
 
+function CommandView() {
+  return (
+    <AppLayout currentView="command">
+      <iframe
+        src="https://aoe-canvas.server.unarmedpuppy.com"
+        className="w-full h-full border-0"
+        title="Agent Command Center"
+        allow="clipboard-read; clipboard-write"
+      />
+    </AppLayout>
+  );
+}
+
 function CleanPage({ children }: { children: ReactNode }) {
   return (
     <CleanLayout>
@@ -383,6 +397,7 @@ function App() {
       <Route path="/trading" element={<TradingView />} />
       <Route path="/docs" element={<DocsView />} />
       <Route path="/docs/:repo/:slug" element={<DocsView />} />
+      <Route path="/command" element={<CommandView />} />
     </Routes>
   );
 }
