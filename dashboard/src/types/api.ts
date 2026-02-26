@@ -303,3 +303,11 @@ export interface AgentRunsStats {
   runs_by_status: Record<string, number>;
   runs_by_source: Record<string, number>;
 }
+
+export interface DailySummary {
+  id: number;
+  date: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}

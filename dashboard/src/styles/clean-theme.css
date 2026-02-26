@@ -1,45 +1,45 @@
-/* Clean Theme - Modern sans-serif design for home pages */
+/* Clean Theme - Cyberpunk/synthwave palette */
 
 .theme-clean {
-  /* Light mode defaults */
-  --clean-bg: #ffffff;
-  --clean-bg-secondary: #f8f9fa;
+  /* Light mode */
+  --clean-bg: #f7f6ff;
+  --clean-bg-secondary: #efeeff;
   --clean-bg-card: #ffffff;
-  --clean-bg-hover: #f1f3f5;
-  --clean-border: #e2e8f0;
-  --clean-border-hover: #cbd5e1;
-  --clean-text-primary: #1a202c;
-  --clean-text-secondary: #4a5568;
-  --clean-text-muted: #a0aec0;
-  --clean-accent: #3b82f6;
-  --clean-accent-hover: #2563eb;
-  --clean-accent-subtle: rgba(59, 130, 246, 0.08);
-  --clean-success: #22c55e;
-  --clean-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --clean-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-  --clean-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --clean-bg-hover: #e8e6ff;
+  --clean-border: #cfc9f0;
+  --clean-border-hover: #b5addf;
+  --clean-text-primary: #160f30;
+  --clean-text-secondary: #4a3d78;
+  --clean-text-muted: #9080b8;
+  --clean-accent: #7c3aed;
+  --clean-accent-hover: #6d28d9;
+  --clean-accent-subtle: rgba(124, 58, 237, 0.08);
+  --clean-success: #059669;
+  --clean-shadow-sm: 0 1px 2px rgba(100, 60, 200, 0.06);
+  --clean-shadow: 0 1px 3px rgba(100, 60, 200, 0.1), 0 1px 2px rgba(100, 60, 200, 0.07);
+  --clean-shadow-md: 0 4px 12px rgba(100, 60, 200, 0.12), 0 2px 4px rgba(100, 60, 200, 0.08);
   --clean-radius: 12px;
   --clean-radius-sm: 8px;
 }
 
 @media (prefers-color-scheme: dark) {
   .theme-clean {
-    --clean-bg: #0f172a;
-    --clean-bg-secondary: #1e293b;
-    --clean-bg-card: #1e293b;
-    --clean-bg-hover: #334155;
-    --clean-border: #334155;
-    --clean-border-hover: #475569;
-    --clean-text-primary: #f1f5f9;
-    --clean-text-secondary: #94a3b8;
-    --clean-text-muted: #64748b;
-    --clean-accent: #60a5fa;
-    --clean-accent-hover: #3b82f6;
-    --clean-accent-subtle: rgba(96, 165, 250, 0.1);
-    --clean-success: #4ade80;
-    --clean-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
-    --clean-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
-    --clean-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.2);
+    --clean-bg: #08081a;
+    --clean-bg-secondary: #0e0e24;
+    --clean-bg-card: #12122e;
+    --clean-bg-hover: #1a1a3a;
+    --clean-border: rgba(139, 92, 246, 0.22);
+    --clean-border-hover: rgba(139, 92, 246, 0.5);
+    --clean-text-primary: #eeeeff;
+    --clean-text-secondary: #9090c4;
+    --clean-text-muted: #52527a;
+    --clean-accent: #22d3ee;
+    --clean-accent-hover: #06b6d4;
+    --clean-accent-subtle: rgba(34, 211, 238, 0.1);
+    --clean-success: #34d399;
+    --clean-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+    --clean-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(139, 92, 246, 0.08);
+    --clean-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(139, 92, 246, 0.12);
   }
 }
 
@@ -375,6 +375,67 @@
 
 .clean-ref-card-body a:hover {
   text-decoration: underline;
+}
+
+/* Summary page markdown body */
+.clean-summary-body {
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: var(--clean-text-primary);
+}
+
+.clean-summary-body h1,
+.clean-summary-body h2,
+.clean-summary-body h3 {
+  color: var(--clean-text-primary);
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.clean-summary-body h1 { font-size: 1.25rem; }
+.clean-summary-body h2 { font-size: 1.0625rem; }
+.clean-summary-body h3 { font-size: 0.9375rem; }
+
+.clean-summary-body h1:first-child,
+.clean-summary-body h2:first-child {
+  margin-top: 0;
+}
+
+.clean-summary-body p {
+  margin-bottom: 0.75rem;
+  color: var(--clean-text-secondary);
+}
+
+.clean-summary-body ul,
+.clean-summary-body ol {
+  margin-bottom: 0.75rem;
+  padding-left: 1.25rem;
+}
+
+.clean-summary-body li {
+  color: var(--clean-text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.clean-summary-body strong {
+  color: var(--clean-text-primary);
+  font-weight: 600;
+}
+
+.clean-summary-body a {
+  color: var(--clean-accent);
+  text-decoration: none;
+}
+
+.clean-summary-body a:hover {
+  text-decoration: underline;
+}
+
+.clean-summary-body hr {
+  border: none;
+  border-top: 1px solid var(--clean-border);
+  margin: 1.25rem 0;
 }
 
 /* Mobile nav for clean pages */

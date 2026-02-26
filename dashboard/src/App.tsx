@@ -52,6 +52,7 @@ const HomePage = lazy(() => import('./pages/HomePage'));
 const EmailsPage = lazy(() => import('./pages/reference/EmailsPage'));
 const GettingStartedPage = lazy(() => import('./pages/reference/GettingStartedPage'));
 const TroubleshootingPage = lazy(() => import('./pages/reference/TroubleshootingPage'));
+const SummaryPage = lazy(() => import('./pages/SummaryPage'));
 
 type ViewName = 'chat' | 'ralph' | 'tasks' | 'providers' | 'stats' | 'agents' | 'trading' | 'docs';
 
@@ -360,6 +361,16 @@ function App() {
       <Route path="/reference/emails" element={<CleanPage><EmailsPage /></CleanPage>} />
       <Route path="/reference/getting-started" element={<CleanPage><GettingStartedPage /></CleanPage>} />
       <Route path="/reference/troubleshooting" element={<CleanPage><TroubleshootingPage /></CleanPage>} />
+      <Route
+        path="/summary"
+        element={
+          <CleanLayout noNav>
+            <Suspense fallback={<div style={{ padding: '2rem', color: 'var(--clean-text-muted)' }}>Loading...</div>}>
+              <SummaryPage />
+            </Suspense>
+          </CleanLayout>
+        }
+      />
 
       {/* Retro theme routes */}
       <Route path="/chat" element={<ChatView />} />

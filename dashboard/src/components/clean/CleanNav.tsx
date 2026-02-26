@@ -14,22 +14,24 @@ export function CleanNav() {
 
   return (
     <>
-      <nav className="clean-nav">
-        <Link to="/" className="clean-nav-title">
-          Jenquist Home
-        </Link>
-        <div className="clean-nav-links">
-          <Link
-            to="/reference/getting-started"
-            className={`clean-nav-link ${isReference ? 'clean-nav-link--active' : ''}`}
-          >
-            Reference
+      {!isReference && (
+        <nav className="clean-nav">
+          <Link to="/" className="clean-nav-title">
+            Jenquist Home
           </Link>
-          <Link to="/chat" className="clean-nav-link clean-nav-link--accent">
-            AI Dashboard &rarr;
-          </Link>
-        </div>
-      </nav>
+          <div className="clean-nav-links">
+            <Link
+              to="/reference/getting-started"
+              className="clean-nav-link"
+            >
+              Reference
+            </Link>
+            <Link to="/chat" className="clean-nav-link clean-nav-link--accent">
+              AI Dashboard &rarr;
+            </Link>
+          </div>
+        </nav>
+      )}
       {isReference && (
         <div className="clean-subnav">
           {referenceLinks.map((link) => (

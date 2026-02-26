@@ -17,6 +17,7 @@ import type {
   AgentRunRecord,
   AgentRunWithSteps,
   AgentRunsStats,
+  DailySummary,
 } from '../types/api';
 
 // API base URL - defaults to public router endpoint
@@ -1083,6 +1084,17 @@ export const mercuryAPI = {
       throw new Error(`Failed to update risk limits: ${response.statusText}`);
     }
     return response.json();
+  },
+};
+
+export const summaryAPI = {
+  getLatest: async (): Promise<DailySummary> => {
+    const response = await apiClient.get<DailySummary>('/summary/latest');
+    return response.data;
+  },
+  getByDate: async (date: string): Promise<DailySummary> => {
+    const response = await apiClient.get<DailySummary>(`/summary/${date}`);
+    return response.data;
   },
 };
 
