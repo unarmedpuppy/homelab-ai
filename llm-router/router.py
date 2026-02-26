@@ -480,6 +480,8 @@ async def get_services():
             {"id": "planka", "name": "Project Board", "appName": "Planka", "url": "https://planka.server.unarmedpuppy.com", "category": "productivity", "icon": "checklist", "description": "Kanban-style project management"},
             {"id": "vaultwarden", "name": "Passwords", "appName": "Vaultwarden", "url": "https://vaultwarden.server.unarmedpuppy.com", "category": "productivity", "icon": "lock.shield", "description": "Password manager"},
             {"id": "ai-chat", "name": "AI Chat", "appName": "homelab-ai", "url": "/chat", "category": "ai", "icon": "brain", "description": "Chat with AI models"},
+            {"id": "gitea", "name": "Gitea", "appName": "Gitea", "url": "https://gitea.server.unarmedpuppy.com", "category": "productivity", "icon": "chevron.left.forwardslash.chevron.right", "description": "Self-hosted git repos"},
+            {"id": "pokedex", "name": "Pokédex", "appName": "Pokedex", "url": "https://pokedex.server.unarmedpuppy.com", "category": "productivity", "icon": "sparkles", "description": "Pokémon reference database"},
         ],
         "categories": [
             {"id": "media", "name": "Media & Entertainment", "order": 1},
