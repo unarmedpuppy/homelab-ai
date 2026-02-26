@@ -23,6 +23,7 @@ from stream import stream_chat_completion, stream_chat_completion_passthrough, S
 from complexity import classify_request, ComplexityTier, TIER_MODEL_MAP
 import prometheus_metrics as prom
 from routers.docs import router as docs_router
+from summary import router as summary_router
 # from middleware import MemoryMetricsMiddleware  # Replaced with dependency injection
 
 # Configure logging
@@ -111,6 +112,7 @@ app.add_middleware(
 
 # Include sub-routers
 app.include_router(docs_router, prefix="/docs", tags=["docs"])
+app.include_router(summary_router, prefix="/summary", tags=["summary"])
 
 
 # Configuration from environment
@@ -477,7 +479,9 @@ async def get_services():
             {"id": "frigate", "name": "Security Cameras", "appName": "Frigate", "url": "https://frigate.server.unarmedpuppy.com", "category": "home", "icon": "video", "description": "Live feeds and motion detection"},
             {"id": "immich", "name": "Photos", "appName": "Immich", "url": "https://photos.server.unarmedpuppy.com", "category": "docs", "icon": "photo", "description": "Photo backup and browsing"},
             {"id": "paperless", "name": "Documents", "appName": "Paperless", "url": "https://paperless.server.unarmedpuppy.com", "category": "docs", "icon": "doc.text", "description": "Scanned document management"},
-            {"id": "planka", "name": "Project Board", "appName": "Planka", "url": "https://planka.server.unarmedpuppy.com", "category": "productivity", "icon": "checklist", "description": "Kanban-style project management"},
+            {"id": "sonarr", "name": "Sonarr", "appName": "Sonarr", "url": "https://sonarr.server.unarmedpuppy.com", "category": "media", "icon": "tv", "description": "TV show collection manager"},
+            {"id": "radarr", "name": "Radarr", "appName": "Radarr", "url": "https://radarr.server.unarmedpuppy.com", "category": "media", "icon": "film", "description": "Movie collection manager"},
+            {"id": "metube", "name": "MeTube", "appName": "MeTube", "url": "https://metube.server.unarmedpuppy.com", "category": "media", "icon": "arrow.down.circle", "description": "YouTube downloader"},
             {"id": "vaultwarden", "name": "Passwords", "appName": "Vaultwarden", "url": "https://vaultwarden.server.unarmedpuppy.com", "category": "productivity", "icon": "lock.shield", "description": "Password manager"},
             {"id": "ai-chat", "name": "AI Chat", "appName": "homelab-ai", "url": "/chat", "category": "ai", "icon": "brain", "description": "Chat with AI models"},
             {"id": "gitea", "name": "Gitea", "appName": "Gitea", "url": "https://gitea.server.unarmedpuppy.com", "category": "productivity", "icon": "chevron.left.forwardslash.chevron.right", "description": "Self-hosted git repos"},
