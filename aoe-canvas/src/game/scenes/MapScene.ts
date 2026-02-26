@@ -73,6 +73,7 @@ export class MapScene extends Phaser.Scene {
     this.spawnNamedUnit('gilfoyle-1', 'gilfoyle', 15, 13);
     this.spawnNamedUnit('ralph-1', 'ralph', 17, 13);
     this.spawnNamedUnit('jobin-1', 'jobin', 19, 14);
+    this.spawnNamedUnit('colin-1', 'colin', 21, 14);
 
     // Place default Town Center building
     this.placeBuilding({

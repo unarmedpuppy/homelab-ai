@@ -41,6 +41,17 @@ agents:
       - workstation
       - openclaw
 
+  colin:
+    name: "Colin"
+    description: "Finance agent on Mac Mini — shua-ledger, spending, FIRE tracking"
+    endpoint: "http://averys-mac-mini:8014"
+    agent_type: server
+    expected_online: true
+    tags:
+      - interactive
+      - workstation
+      - finance
+
   jobin:
     name: "Jobin"
     description: "Dev buddy, runs locally via Claude Code"

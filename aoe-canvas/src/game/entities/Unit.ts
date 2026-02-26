@@ -5,7 +5,7 @@ import { findPath } from '../utils/pathfinding';
 import { EventBus } from '../EventBus';
 
 const INITIALS: Record<UnitProfile, string> = {
-  avery: 'A', gilfoyle: 'G', ralph: 'R', jobin: 'J', villager: 'V',
+  avery: 'A', gilfoyle: 'G', ralph: 'R', jobin: 'J', colin: 'C', villager: 'V',
 };
 
 export class Unit extends Phaser.GameObjects.Container {

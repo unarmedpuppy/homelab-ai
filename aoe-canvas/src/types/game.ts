@@ -1,11 +1,12 @@
 // Agent profiles
-export type UnitProfile = 'avery' | 'gilfoyle' | 'ralph' | 'jobin' | 'villager';
+export type UnitProfile = 'avery' | 'gilfoyle' | 'ralph' | 'jobin' | 'colin' | 'villager';
 
 export const UNIT_COLORS: Record<UnitProfile, number> = {
   avery: 0x4a90e2,      // blue
   gilfoyle: 0xe24a4a,   // crimson
   ralph: 0xe2844a,      // orange
   jobin: 0x9b4ae2,      // purple
+  colin: 0x2eb87a,      // green (finance/money)
   villager: 0xc8a84b,   // tan/gold
 };
 
@@ -14,6 +15,7 @@ export const UNIT_LABELS: Record<UnitProfile, string> = {
   gilfoyle: 'G',
   ralph: 'R',
   jobin: 'J',
+  colin: 'C',
   villager: 'V',
 };
 
