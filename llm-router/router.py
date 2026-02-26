@@ -23,6 +23,7 @@ from stream import stream_chat_completion, stream_chat_completion_passthrough, S
 from complexity import classify_request, ComplexityTier, TIER_MODEL_MAP
 import prometheus_metrics as prom
 from routers.docs import router as docs_router
+from routers.anthropic import router as anthropic_router
 from summary import router as summary_router
 # from middleware import MemoryMetricsMiddleware  # Replaced with dependency injection
 
@@ -113,6 +114,7 @@ app.add_middleware(
 # Include sub-routers
 app.include_router(docs_router, prefix="/docs", tags=["docs"])
 app.include_router(summary_router, prefix="/summary", tags=["summary"])
+app.include_router(anthropic_router, prefix="/v1", tags=["anthropic-compat"])
 
 
 # Configuration from environment
@@ -152,6 +154,11 @@ MODEL_ALIASES = {
     # Manual 3070 access (explicit only)
     "3070": "qwen2.5-7b-awq",
     "server": "qwen2.5-7b-awq",
+    # Claude model name aliases (for direct OpenAI endpoint access with Claude model names)
+    "claude-sonnet-4-6": "qwen3-32b-awq",
+    "claude-opus-4-6": "qwen3-32b-awq",
+    "claude-haiku-4-5": "qwen2.5-14b-awq",
+    "claude-3-5-sonnet": "qwen3-32b-awq",
 }
 
 # Backend configurations
@@ -347,6 +354,9 @@ async def route_request(request: Request, body: dict, priority: int = 1, api_key
             requested_model = "glm-5"
         elif alias_target == "claude-sonnet":
             requested_model = "claude-sonnet"
+        else:
+            # Pass-through: alias_target is already a direct model ID
+            requested_model = alias_target
 
     # Auto routing logic
     is_auto = requested_model == "auto" and not requested_provider

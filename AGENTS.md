@@ -144,7 +144,35 @@ OpenAI-compatible API that routes to multiple backends:
 **Key files**:
 - `router.py` - Main FastAPI application
 - `providers/` - Backend implementations
+- `routers/anthropic.py` - Anthropic Messages API compatibility layer
 - `tools/` - Agent endpoint tools
+
+**Anthropic Compatibility (`/v1/messages`)**:
+
+The router speaks both OpenAI format (`/v1/chat/completions`) and Anthropic format (`/v1/messages`). Point Claude Code here to route to local models by default.
+
+Endpoints:
+- `POST /v1/messages` — Anthropic Messages API (translates to OpenAI, routes via ProviderManager)
+- `POST /v1/messages/count_tokens` — Token counting pre-flight
+
+Auth: Accepts `x-api-key: <llm-router-key>` (Anthropic SDK default) or `Authorization: Bearer`.
+
+Routing chain (priority order):
+1. gaming-pc-3090 (`qwen3-32b-awq`) — default
+2. zai (`glm-5`) — escalation / gaming mode
+3. claude-harness (`claude-sonnet-4-5`) — last resort
+
+Claude Code config:
+```bash
+export ANTHROPIC_BASE_URL=https://homelab-ai.server.unarmedpuppy.com
+export ANTHROPIC_API_KEY=<your-llm-router-api-key>
+```
+
+Claude model names accepted by the OpenAI endpoint (via `MODEL_ALIASES`):
+- `claude-sonnet-4-6` → `qwen3-32b-awq`
+- `claude-opus-4-6` → `qwen3-32b-awq`
+- `claude-haiku-4-5` → `qwen2.5-14b-awq`
+- `claude-3-5-sonnet` → `qwen3-32b-awq`
 
 ### Dashboard (`dashboard/`)
 
