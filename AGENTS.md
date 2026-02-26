@@ -186,6 +186,15 @@ React dashboard with retro/pixel-art "command center" UI for AI infrastructure m
 | `/providers` | Providers | Provider health monitoring and utilization |
 | `/stats` | Stats | Activity heatmap, model usage charts |
 | `/agents` | Agents | Agent run history and logs |
+| `/command` | Command | AoE2-style agent command interface (Phaser 3 isometric map) |
+
+**Command page** (`src/command/`) — lazy-loaded Phaser 3 game embedded in the dashboard:
+- Isometric map with named agent units (Avery, Gilfoyle, Ralph, Jobin) + villagers
+- Buildings represent projects; right-click to assign agents and dispatch jobs
+- Live job polling from agent-harness; unit animations reflect job state
+- React HUD overlay (top bar: tokens/credits/jobs, bottom panel: selected unit/job details, prompt bar)
+- Assets in `public/assets/`: `units/`, `buildings/`, `tiles/`
+- API calls proxied through nginx: `/api/harness/` → agent-harness, `/api/router/` → llm-router, `/api/tasks/` → tasks-api
 
 **Key files**:
 - `src/App.tsx` - Main application and routing
