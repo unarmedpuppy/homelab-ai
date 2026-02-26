@@ -92,17 +92,102 @@ Prompt:
 
 ---
 
-## BUILDING SPRITES (Optional — Procedural graphics are functional)
+## BUILDING SPRITES
 
-> These are lower priority since procedural Phaser graphics are already rendering.
-> Only generate if the unit/terrain sprites are done first.
+### Shared Layout for All 5 Buildings
 
-### Building Sheet Specs (if generated)
-- **Frame size**: 128 × 96 pixels per building
-- **Sheet layout**: 5 columns × 1 row
-- **Total**: 640 × 96 pixels
-- Isometric SE-facing view showing left wall (NW face, shadowed), right wall (NE face, lit), and roof diamond
-- Buildings from left to right: town-center, castle, barracks, market, university
+- **Frame size**: 96 × 96 pixels each
+- **Sheet layout**: 5 columns × 1 row = 5 frames total
+- **Total sheet dimensions**: 480 × 96 pixels
+- **Filename**: `buildings-sheet.png`
+- Isometric SE-facing view: left wall = NW face (deep shadow), right wall = SE face (mid shadow), roof = top diamond (lit)
+- Transparent PNG background (no fill — pure alpha outside the building shape)
+- 1px dark (#1a1a1a) outline on all visible edges
+- Each building is horizontally centered in its 96px frame; base sits near y=72, top of tallest element near y=4
+- Light source is top-left (NW) — NW-facing left wall is darkest, roof is brightest
+- Style: Age of Empires 2 / Warcraft 2 pixel art, ~20 colors per building, clean crisp edges
+
+**Building order left-to-right:** town-center (col 0), castle (col 1), barracks (col 2), market (col 3), university (col 4)
+
+---
+
+### 1. Town Center (`buildings-sheet.png` col 0, offset x=0)
+
+Base color: #d4a017 (warm gold/amber)
+Height: tallest building — central tower extends ~22px above roof; flag pole adds 14px more
+
+Prompt:
+> Pixel art isometric building sprite, 96x96 pixels, transparent background. Single frame. Isometric SE-facing view (standard AoE2 perspective). Style: Age of Empires 2 pixel art, ~20 colors, 1px dark outline.
+>
+> Town Center building. Base color #d4a017 (warm gold/amber). Isometric diamond footprint ~64px wide, 32px tall at base. Two visible walls: left wall (NW face, color #7a5a0a — dark amber shadow) and right wall (SE face, color #a87c10 — medium amber shadow). Flat roof diamond (lightened to #e8b820). Bright NW and NE roof edge highlights (#f5d060).
+>
+> Details: Small arched windows on both walls with dark frames and warm amber (#ffcc44) interior glow. Rising from the center of the roof: a small square tower (about 40% tile width, same wall coloring, darker shade). Tower has its own diamond mini-roof. On the right side of the tower roof: a thin brown flagpole rising ~14px, with a small red triangular pennant banner.
+>
+> Building centered in frame, base at y≈72, top of flag at y≈4. 1px dark outline throughout.
+
+---
+
+### 2. Castle (`buildings-sheet.png` col 1, offset x=96)
+
+Base color: #708090 (slate grey)
+Height: mid-height with battlements — merlons line both wall tops; dark banner on left
+
+Prompt:
+> Pixel art isometric building sprite, 96x96 pixels, transparent background. Single frame. Isometric SE-facing view. Style: Age of Empires 2 pixel art, ~20 colors, 1px dark outline.
+>
+> Castle building. Base color #708090 (slate grey). Two visible walls: left wall (NW face, #3a414a — deep cool shadow) and right wall (SE face, #545e68 — mid grey shadow). Flat roof diamond (#8a96a4, slightly lighter grey). Bright NW and NE ridge highlights (#b0bcc8).
+>
+> Details: On the right (SE) wall: a narrow vertical cross-shaped arrow slit (3px wide × 8px tall with a 2px horizontal bar), dark void inside. Along the top edge of both walls: 3 rectangular merlons/battlements per wall (blocky square crenellations, same wall color as their respective face). On the left wall, near the left battlement: a thin dark grey flagpole (~14px tall) with a small dark red (#880000) triangular pennant.
+>
+> Building centered in frame, base at y≈72, top of battlements/banner at y≈16. 1px dark outline throughout.
+
+---
+
+### 3. Barracks (`buildings-sheet.png` col 2, offset x=192)
+
+Base color: #8b4513 (saddle brown / rust)
+Height: shorter than castle — flag pole is the tallest element
+
+Prompt:
+> Pixel art isometric building sprite, 96x96 pixels, transparent background. Single frame. Isometric SE-facing view. Style: Age of Empires 2 pixel art, ~20 colors, 1px dark outline.
+>
+> Barracks building. Base color #8b4513 (saddle brown/rust). Two visible walls: left wall (NW face, #3e1e08 — deep brown shadow) and right wall (SE face, #6a3510 — medium rust shadow). Flat roof diamond (#a85520, slightly lighter brown). Bright NW and NE ridge highlights (#cc7040).
+>
+> Details: Centered on the right (SE) wall: a crossed swords emblem — two silver (#ddddcc) sword blades crossing at 45°, each ~12px long, with small grey (#aaaaaa) crossguards and dark grey pommel circles at each tip. On the left wall, upper area: a thin dark brown flagpole (~17px tall) with a small dark red (#991a00) triangular pennant pointing right.
+>
+> Building centered in frame, base at y≈72, top of flagpole at y≈10. 1px dark outline throughout.
+
+---
+
+### 4. Market (`buildings-sheet.png` col 3, offset x=288)
+
+Base color: #2e8b57 (sea green)
+Height: shortest building — low walls, canopy extends from the SE wall base
+
+Prompt:
+> Pixel art isometric building sprite, 96x96 pixels, transparent background. Single frame. Isometric SE-facing view. Style: Age of Empires 2 pixel art, ~20 colors, 1px dark outline.
+>
+> Market building. Base color #2e8b57 (sea green). Low walls (about half height of town-center). Two visible walls: left wall (NW face, #124a2e — deep green shadow) and right wall (SE face, #226b44 — medium green shadow). Flat roof diamond (#3aaa6a, lighter green). Bright NW and NE ridge highlights (#5ecc88).
+>
+> Details: On the right (SE) wall: a small arched window with dark frame and warm amber (#ffcc44) interior glow. Extending from the bottom edge of the right (SE) wall outward: a small canopy/awning — a parallelogram flap in slightly darkened sea green (#267550) with 3 thin vertical yellow (#ffdd55) stripe lines across it, overhang of ~8px. The awning bottom edge has a 1px dark outline.
+>
+> Building centered in frame, base at y≈72 (lower than others — short building), top of roof at y≈42. Canopy extends slightly beyond the right wall footprint. 1px dark outline throughout.
+
+---
+
+### 5. University (`buildings-sheet.png` col 4, offset x=384)
+
+Base color: #4169e1 (royal blue)
+Height: tall spire — blue shaft rising ~20px from roof + triangular head + gold orb at tip
+
+Prompt:
+> Pixel art isometric building sprite, 96x96 pixels, transparent background. Single frame. Isometric SE-facing view. Style: Age of Empires 2 pixel art, ~20 colors, 1px dark outline.
+>
+> University building. Base color #4169e1 (royal blue). Two visible walls: left wall (NW face, #1a2d80 — deep blue shadow) and right wall (SE face, #2d50b8 — medium blue shadow). Flat roof diamond (#5580f0, lighter blue). Bright NW and NE ridge highlights (#88aaff).
+>
+> Details: On the right (SE) wall: a large arched window (taller than wide, gothic arch shape) with dark frame and warm amber (#ffcc44) glow inside — the largest window of any building. On the left (NW) wall: a small square window, same amber glow. Rising from the center of the roof diamond: a thin dark blue (#1a1a8e) spire shaft, ~20px tall. At the tip: a small upward-pointing colored triangle (lightened blue, ~5px wide × 4px tall). Sitting atop the triangle: a tiny gold (#ffdd44) circle/orb, 2–3px diameter, 1px dark outline.
+>
+> Building centered in frame, base at y≈72, gold orb at y≈4. 1px dark outline throughout.
 
 ---
 
@@ -119,6 +204,8 @@ public/assets/
     villager-sheet.png   # 128×192
   tiles/
     terrain-tiles.png    # 256×128
+  buildings/
+    buildings-sheet.png  # 480×96
 ```
 
 Phaser frame mapping in `PreloadScene.ts`:
@@ -128,4 +215,7 @@ this.load.spritesheet('unit-avery', 'assets/units/avery-sheet.png', { frameWidth
 
 this.load.spritesheet('terrain', 'assets/tiles/terrain-tiles.png', { frameWidth: 64, frameHeight: 32 });
 // frame 0-1: grass | 4-5: stone | 8-9: dirt | 12: water
+
+this.load.spritesheet('buildings', 'assets/buildings/buildings-sheet.png', { frameWidth: 96, frameHeight: 96 });
+// frame 0: town-center | 1: castle | 2: barracks | 3: market | 4: university
 ```
