@@ -63,3 +63,4 @@ tts-server/voices/
 # Build artifacts
 *.whl
 build/
+aoe-canvas/sprites/

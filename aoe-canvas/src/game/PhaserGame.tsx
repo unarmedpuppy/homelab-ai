@@ -18,7 +18,7 @@ export function PhaserGame({ onReady }: PhaserGameProps) {
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
       parent: containerRef.current,
-      backgroundColor: '#2a1f0a',
+      backgroundColor: '#3a6020',
       width: '100%',
       height: '100%',
       scene: [PreloadScene, MapScene],
@@ -28,8 +28,8 @@ export function PhaserGame({ onReady }: PhaserGameProps) {
         },
       },
       render: {
-        antialias: true,
-        pixelArt: false,
+        antialias: false,
+        pixelArt: true,
       },
     };
 

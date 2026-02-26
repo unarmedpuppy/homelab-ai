@@ -1,12 +1,13 @@
 import Phaser from 'phaser';
-import { UnitProfile, UnitStatus, UNIT_COLORS } from '../../types/game';
+import { UnitProfile, UnitStatus } from '../../types/game';
 import { tileToWorld, TILE_HALF_H } from '../utils/isometric';
 import { findPath } from '../utils/pathfinding';
 import { EventBus } from '../EventBus';
 
-const INITIALS: Record<UnitProfile, string> = {
-  avery: 'A', gilfoyle: 'G', ralph: 'R', jobin: 'J', colin: 'C', villager: 'V',
-};
+// Sprite origin Y: positions feet near ground shadow
+const ORIGIN_Y = 0.85;
+const SPRITE_W = 32;
+const SPRITE_H = 48;
 
 export class Unit extends Phaser.GameObjects.Container {
   public unitId: string;
@@ -19,8 +20,7 @@ export class Unit extends Phaser.GameObjects.Container {
   public homeRow: number;
   public selected: boolean = false;
 
-  private bodyGfx: Phaser.GameObjects.Graphics;
-  private head: Phaser.GameObjects.Arc;
+  private sprite: Phaser.GameObjects.Sprite;
   private selectionRing: Phaser.GameObjects.Ellipse;
   private statusDot: Phaser.GameObjects.Arc;
   private workingTween?: Phaser.Tweens.Tween;
@@ -42,72 +42,37 @@ export class Unit extends Phaser.GameObjects.Container {
     this.homeCol = col;
     this.homeRow = row;
 
-    const color = UNIT_COLORS[profile];
-    const lightColor = Phaser.Display.Color.IntegerToColor(color);
-    lightColor.lighten(28);
-    const darkColor = Phaser.Display.Color.IntegerToColor(color);
-    darkColor.darken(28);
-
     // Ground shadow
     const shadow = scene.add.ellipse(0, 7, 28, 10, 0x000000, 0.2);
 
-    // Selection ring (ellipse at base level, gold outline)
+    // Selection ring at ground level
     this.selectionRing = scene.add.ellipse(0, 4, 34, 13, 0x000000, 0);
     this.selectionRing.setStrokeStyle(2.5, 0xffee44, 1);
     this.selectionRing.setVisible(false);
 
-    // Body: pawn-like pentagon shape (wider at base, tapers to neck)
-    this.bodyGfx = scene.add.graphics();
+    // Character sprite
+    this.sprite = scene.add.sprite(0, 0, `unit-${profile === 'colin' ? 'villager' : profile}`, 0);
+    this.sprite.setOrigin(0.5, ORIGIN_Y);
+    this.sprite.setDisplaySize(SPRITE_W, SPRITE_H);
+    this.sprite.play(`${profile}-idle`);
 
-    // Outer shell (darkened)
-    this.bodyGfx.fillStyle(darkColor.color, 1);
-    this.bodyGfx.fillPoints([
-      { x: -10, y: 5 }, { x: 10, y: 5 },
-      { x: 8, y: -3 }, { x: 0, y: -9 }, { x: -8, y: -3 },
-    ], true);
+    // Switch back to idle after non-looping animations complete
+    this.sprite.on('animationcomplete', (anim: Phaser.Animations.Animation) => {
+      if (anim.key === `${this.profile}-celebrate` || anim.key === `${this.profile}-error`) {
+        this.sprite.play(`${this.profile}-idle`);
+      }
+    });
 
-    // Inner fill (main faction color)
-    this.bodyGfx.fillStyle(color, 1);
-    this.bodyGfx.fillPoints([
-      { x: -8, y: 4 }, { x: 8, y: 4 },
-      { x: 6, y: -2 }, { x: 0, y: -7 }, { x: -6, y: -2 },
-    ], true);
-
-    // Highlight streak on body (top-left)
-    const hiColor = Phaser.Display.Color.IntegerToColor(color);
-    hiColor.lighten(45);
-    this.bodyGfx.lineStyle(1.5, hiColor.color, 0.6);
-    this.bodyGfx.lineBetween(-7, 3, -5, -5);
-
-    // Body outline
-    this.bodyGfx.lineStyle(1.5, 0x000000, 0.55);
-    this.bodyGfx.strokePoints([
-      { x: -10, y: 5 }, { x: 10, y: 5 },
-      { x: 8, y: -3 }, { x: 0, y: -9 }, { x: -8, y: -3 },
-    ], true);
-
-    // Head circle (lighter shade of faction color)
-    this.head = scene.add.arc(0, -14, 7, 0, 360, false, lightColor.color);
-    this.head.setStrokeStyle(1.5, 0x000000, 0.5);
-
-    // Letter initial on head
-    const label = scene.add.text(0, -14, INITIALS[profile], {
-      fontSize: '8px',
-      color: '#ffffff',
-      fontFamily: 'Courier New',
-      fontStyle: 'bold',
-    }).setOrigin(0.5);
-
-    // Status dot (tiny, floats just above head)
-    this.statusDot = scene.add.arc(0, -24, 3, 0, 360, false, 0x00cc00);
+    // Status dot floats above sprite
+    const dotY = -(ORIGIN_Y * SPRITE_H + 6);
+    this.statusDot = scene.add.arc(0, dotY, 3, 0, 360, false, 0x00cc00);
     this.statusDot.setStrokeStyle(0.5, 0x000000, 0.4);
 
-    this.add([shadow, this.selectionRing, this.bodyGfx, this.head, label, this.statusDot]);
+    this.add([shadow, this.selectionRing, this.sprite, this.statusDot]);
     scene.add.existing(this as unknown as Phaser.GameObjects.GameObject);
 
-    this.setSize(28, 34);
+    this.setSize(SPRITE_W, SPRITE_H - 4);
     this.setInteractive();
-    // Depth: units always render in front of buildings/tiles at same position
     this.setDepth(10 + col + row);
 
     this.on('pointerdown', (ptr: Phaser.Input.Pointer) => {
@@ -125,24 +90,39 @@ export class Unit extends Phaser.GameObjects.Container {
     this.workingTween?.destroy();
 
     const dotColors: Record<UnitStatus, number> = {
-      idle: 0x00cc00,
-      moving: 0xffaa00,
+      idle:    0x00cc00,
+      moving:  0xffaa00,
       working: 0xffff00,
-      done: 0x00ff88,
-      error: 0xff2222,
+      done:    0x00ff88,
+      error:   0xff2222,
     };
     this.statusDot.setFillStyle(dotColors[status]);
 
-    if (status === 'working') {
-      this.workingTween = this.scene.tweens.add({
-        targets: this.bodyGfx,
-        alpha: 0.45,
-        duration: 600,
-        yoyo: true,
-        repeat: -1,
-      });
-    } else {
-      this.bodyGfx.setAlpha(1);
+    // Drive animation from status
+    switch (status) {
+      case 'idle':
+        this.sprite.play(`${this.profile}-idle`);
+        this.sprite.setAlpha(1);
+        break;
+      case 'moving':
+        this.sprite.play(`${this.profile}-walk`);
+        break;
+      case 'working':
+        this.sprite.play(`${this.profile}-work`);
+        this.workingTween = this.scene.tweens.add({
+          targets: this.sprite,
+          alpha: 0.6,
+          duration: 600,
+          yoyo: true,
+          repeat: -1,
+        });
+        break;
+      case 'done':
+        this.sprite.play(`${this.profile}-celebrate`);
+        break;
+      case 'error':
+        this.sprite.play(`${this.profile}-error`);
+        break;
     }
   }
 

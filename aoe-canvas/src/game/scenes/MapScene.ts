@@ -10,7 +10,6 @@ import {
   GRID_ROWS,
   TILE_HALF_W,
   TILE_HALF_H,
-  TILE_W,
   TILE_H,
 } from '../utils/isometric';
 import {
@@ -21,7 +20,7 @@ import {
 } from '../../types/game';
 
 export class MapScene extends Phaser.Scene {
-  private tileGraphics!: Phaser.GameObjects.Graphics;
+  private tileImages: Phaser.GameObjects.Image[] = [];
   private units: Map<string, Unit> = new Map();
   private buildings: Map<string, Building> = new Map();
   private selectionBox!: SelectionBox;
@@ -59,7 +58,6 @@ export class MapScene extends Phaser.Scene {
     this.input.setDefaultCursor('default');
 
     // Draw tile grid then environment decorations
-    this.tileGraphics = this.add.graphics();
     this.tileOverlay = this.add.graphics();
     this.tileOverlay.setDepth(1);
     this.drawTiles();
@@ -137,49 +135,38 @@ export class MapScene extends Phaser.Scene {
     EventBus.emit('scene-ready', this);
   }
 
-  private getTileColor(col: number, row: number): number {
+  private getTileFrame(col: number, row: number): number {
     const dx = col - 16, dy = row - 16;
     const tcDist = Math.max(Math.abs(dx), Math.abs(dy));
 
-    // Stone plaza surrounding the town center
-    if (tcDist <= 1) return 0x8a8070;
-    if (tcDist === 2) return (col + row) % 2 === 0 ? 0x7e7666 : 0x75705e;
+    // Stone plaza surrounding the town center (frames 4–5)
+    if (tcDist <= 1) return 4;
+    if (tcDist === 2) return (col + row) % 2 === 0 ? 5 : 4;
 
-    // Dirt path going SW from plaza (south road)
-    if (col === 16 && row >= 19 && row <= 26) return 0x7a6040;
-    if (col === 17 && row >= 20 && row <= 25) return 0x726038;
+    // Dirt paths (frames 8–9)
+    if (col === 16 && row >= 19 && row <= 26) return 8;
+    if (col === 17 && row >= 20 && row <= 25) return 9;
+    if (row === 16 && col >= 19 && col <= 26) return 8;
+    if (row === 15 && col >= 20 && col <= 25) return 9;
 
-    // Dirt path going SE from plaza (east road)
-    if (row === 16 && col >= 19 && col <= 26) return 0x7a6040;
-    if (row === 15 && col >= 20 && col <= 25) return 0x726038;
-
-    // Normal grass (alternating shades)
-    return (col + row) % 2 === 0 ? 0x4a7c34 : 0x527a3c;
+    // Grass with variety (frames 0–3)
+    if ((col + row) % 4 === 0) return 2; // rocky grass
+    if ((col + row) % 4 === 3) return 3; // flower grass
+    return (col + row) % 2 === 0 ? 0 : 1;
   }
 
   private drawTiles() {
-    this.tileGraphics.clear();
+    this.tileImages.forEach(img => img.destroy());
+    this.tileImages = [];
 
     for (let row = 0; row < GRID_ROWS; row++) {
       for (let col = 0; col < GRID_COLS; col++) {
         const { x, y } = tileToWorld(col, row);
-        const color = this.getTileColor(col, row);
-
-        this.tileGraphics.fillStyle(color, 1);
-        this.tileGraphics.fillPoints([
-          { x, y },
-          { x: x + TILE_HALF_W, y: y + TILE_HALF_H },
-          { x, y: y + TILE_H },
-          { x: x - TILE_HALF_W, y: y + TILE_HALF_H },
-        ], true);
-
-        this.tileGraphics.lineStyle(0.5, 0x000000, 0.12);
-        this.tileGraphics.strokePoints([
-          { x, y },
-          { x: x + TILE_HALF_W, y: y + TILE_HALF_H },
-          { x, y: y + TILE_H },
-          { x: x - TILE_HALF_W, y: y + TILE_HALF_H },
-        ], true);
+        const frame = this.getTileFrame(col, row);
+        const img = this.add.image(x, y, 'terrain', frame);
+        img.setOrigin(0.5, 0);
+        img.setDepth(0);
+        this.tileImages.push(img);
       }
     }
   }
@@ -598,6 +585,3 @@ export class MapScene extends Phaser.Scene {
   }
 }
 
-// Suppress unused warnings for tile dimension constants referenced from isometric.ts
-void TILE_W;
-void TILE_H;
