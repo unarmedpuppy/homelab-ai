@@ -15,12 +15,20 @@ export function PhaserGame({ onReady }: PhaserGameProps) {
   useEffect(() => {
     if (!containerRef.current || gameRef.current) return;
 
+    const container = containerRef.current;
+    const w = container.clientWidth || window.innerWidth;
+    const h = container.clientHeight || window.innerHeight;
+
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
-      parent: containerRef.current,
+      parent: container,
       backgroundColor: '#3a6020',
-      width: '100%',
-      height: '100%',
+      width: w,
+      height: h,
+      scale: {
+        mode: Phaser.Scale.RESIZE,
+        autoCenter: Phaser.Scale.NO_CENTER,
+      },
       scene: [PreloadScene, MapScene],
       input: {
         mouse: {
@@ -53,6 +61,7 @@ export function PhaserGame({ onReady }: PhaserGameProps) {
       ref={containerRef}
       className="absolute inset-0"
       style={{ cursor: 'default' }}
+      onContextMenu={(e) => e.preventDefault()}
     />
   );
 }

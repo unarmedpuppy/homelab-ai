@@ -18,14 +18,14 @@ export class PreloadScene extends Phaser.Scene {
 
   preload() {
     for (const profile of SHEET_PROFILES) {
-      this.load.spritesheet(`unit-${profile}`, `assets/units/${profile}-sheet.png`, {
+      this.load.spritesheet(`unit-${profile}`, `/assets/units/${profile}-sheet.png`, {
         frameWidth: 64, frameHeight: 96,
       });
     }
-    this.load.spritesheet('buildings', 'assets/buildings/buildings-sheet.png', {
+    this.load.spritesheet('buildings', `/assets/buildings/buildings-sheet.png`, {
       frameWidth: 128, frameHeight: 128,
     });
-    this.load.spritesheet('terrain', 'assets/tiles/terrain-tiles.png', {
+    this.load.spritesheet('terrain', `/assets/tiles/terrain-tiles.png`, {
       frameWidth: 64, frameHeight: 32,
     });
   }
