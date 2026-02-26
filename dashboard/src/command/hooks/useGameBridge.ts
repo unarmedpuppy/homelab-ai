@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { EventBus } from '../game/EventBus';
-import { UnitProfile, UnitStatus, BuildingData } from '../types/game';
+import type { UnitProfile, UnitStatus, BuildingData } from '../types/game';
 
 export interface SelectedUnit {
   unitId: string;

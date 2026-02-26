@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchJobs } from '../api/agentHarness';
-import { Job } from '../types/game';
+import type { Job } from '../types/game';
 
 export function useAgentJobs() {
   return useQuery<Job[]>({

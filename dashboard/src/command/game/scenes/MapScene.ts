@@ -12,7 +12,7 @@ import {
   TILE_HALF_H,
   TILE_H,
 } from '../utils/isometric';
-import {
+import type {
   UnitProfile,
   BuildingData,
   UnitData,
@@ -25,13 +25,11 @@ export class MapScene extends Phaser.Scene {
   private buildings: Map<string, Building> = new Map();
   private selectionBox!: SelectionBox;
   private selectedUnits: Set<string> = new Set();
-  private selectedBuilding: string | null = null;
   // Pan state — activated by Space+leftdrag or middle drag
   private isPanning = false;
   private panStart?: { x: number; y: number };
   private spaceKey?: Phaser.Input.Keyboard.Key;
   // Box select state — left drag without space
-  private isBoxSelecting = false;
   private boxSelectStart?: { x: number; y: number };
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private hoveredTile: { col: number; row: number } | null = null;
@@ -251,7 +249,7 @@ export class MapScene extends Phaser.Scene {
         } else {
           // Plain left drag = box select
           this.boxSelectStart = { x: ptr.worldX, y: ptr.worldY };
-          this.isBoxSelecting = false;
+
           this.selectionBox.start(ptr.x, ptr.y);
         }
       }
@@ -271,7 +269,7 @@ export class MapScene extends Phaser.Scene {
       if (ptr.leftButtonDown() && !this.isPanning && this.boxSelectStart) {
         const dist = Phaser.Math.Distance.Between(ptr.worldX, ptr.worldY, this.boxSelectStart.x, this.boxSelectStart.y);
         if (dist > 10) {
-          this.isBoxSelecting = true;
+
           this.selectionBox.update(ptr.x, ptr.y);
         }
       }
@@ -295,7 +293,6 @@ export class MapScene extends Phaser.Scene {
         this.isPanning = false;
         this.panStart = undefined;
         this.selectionBox.end();
-        this.isBoxSelecting = false;
         this.boxSelectStart = undefined;
       }
     });
@@ -423,7 +420,6 @@ export class MapScene extends Phaser.Scene {
       this.units.get(id)?.setSelected(false);
     }
     this.selectedUnits.clear();
-    this.selectedBuilding = null;
     EventBus.emit('selection-cleared', { type: 'selection-cleared' });
   }
 
@@ -433,7 +429,6 @@ export class MapScene extends Phaser.Scene {
 
     building.on('pointerdown', () => {
       this.clearSelection();
-      this.selectedBuilding = data.id;
       EventBus.emit('building-selected', {
         type: 'building-selected',
         buildingId: data.id,

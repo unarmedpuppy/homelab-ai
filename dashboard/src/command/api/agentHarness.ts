@@ -1,4 +1,4 @@
-import { Job, Project, MapState } from '../types/game';
+import type { Job, Project, MapState } from '../types/game';
 
 const BASE = '/api/harness';
 

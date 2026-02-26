@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { SelectedUnit, SelectedBuilding } from '../hooks/useGameBridge';
+import type { SelectedUnit, SelectedBuilding } from '../hooks/useGameBridge';
 import { useAgentJobs } from '../hooks/useAgentJobs';
 import { cancelJob } from '../api/agentHarness';
-import { UNIT_COLORS, UNIT_LABELS, BUILDING_COLORS, BUILDING_LABELS, BuildingType, Task } from '../types/game';
+import { UNIT_COLORS, UNIT_LABELS, BUILDING_COLORS, BUILDING_LABELS } from '../types/game';
+import type { BuildingType, Task } from '../types/game';
 
 const PROFILE_NAMES: Record<string, string> = {
   avery: 'Avery',

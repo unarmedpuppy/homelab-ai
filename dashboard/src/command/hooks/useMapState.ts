@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchMapState, saveMapState } from '../api/agentHarness';
-import { MapState } from '../types/game';
+import type { MapState } from '../types/game';
 
 export function useMapState() {
   return useQuery<MapState | null>({

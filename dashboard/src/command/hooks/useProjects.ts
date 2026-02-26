@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchProjects, createProject, deleteProject } from '../api/agentHarness';
-import { Project } from '../types/game';
+import type { Project } from '../types/game';
 
 export function useProjects() {
   return useQuery<Project[]>({

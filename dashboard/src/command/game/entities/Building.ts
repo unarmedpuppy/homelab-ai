@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { BuildingData, BuildingStatus, BuildingType } from '../../types/game';
+import type { BuildingData, BuildingStatus, BuildingType } from '../../types/game';
 import { tileToWorld, TILE_HALF_H, TILE_W, TILE_H } from '../utils/isometric';
 import { EventBus } from '../EventBus';
 
@@ -14,7 +14,6 @@ const BUILDING_FRAME: Record<BuildingType, number> = {
 // Origin Y: floor at y≈110/128 in sprite → local y=16 (tile S-vertex)
 // origin_y = (110 - 16) / 128 = 0.734
 const ORIGIN_Y = 0.73;
-const SPRITE_W = 128;
 const SPRITE_H = 128;
 
 export class Building extends Phaser.GameObjects.Container {

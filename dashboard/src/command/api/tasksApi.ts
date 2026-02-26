@@ -1,4 +1,4 @@
-import { Task } from '../types/game';
+import type { Task } from '../types/game';
 
 const BASE = '/api/tasks';
 

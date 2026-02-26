@@ -1,14 +1,12 @@
 import Phaser from 'phaser';
 
 export class SelectionBox {
-  private scene: Phaser.Scene;
   private graphics: Phaser.GameObjects.Graphics;
   private startX = 0;
   private startY = 0;
   private active = false;
 
   constructor(scene: Phaser.Scene) {
-    this.scene = scene;
     this.graphics = scene.add.graphics();
     this.graphics.setDepth(100);
   }

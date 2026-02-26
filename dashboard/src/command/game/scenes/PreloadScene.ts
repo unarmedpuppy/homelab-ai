@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { UnitProfile } from '../../types/game';
+import type { UnitProfile } from '../../types/game';
 
 const SHEET_PROFILES: Exclude<UnitProfile, 'colin'>[] = ['avery', 'gilfoyle', 'ralph', 'jobin', 'villager'];
 

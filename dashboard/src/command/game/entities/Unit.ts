@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { UnitProfile, UnitStatus } from '../../types/game';
+import type { UnitProfile, UnitStatus } from '../../types/game';
 import { tileToWorld, TILE_HALF_H } from '../utils/isometric';
 import { findPath } from '../utils/pathfinding';
 import { EventBus } from '../EventBus';

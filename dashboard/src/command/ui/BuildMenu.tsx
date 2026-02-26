@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { BuildingType, BUILDING_LABELS } from '../types/game';
+import { BUILDING_LABELS } from '../types/game';
+import type { BuildingType } from '../types/game';
 
 interface BuildMenuProps {
   col: number;

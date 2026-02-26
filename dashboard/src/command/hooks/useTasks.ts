@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchTasks } from '../api/tasksApi';
-import { Task, BuildingType } from '../types/game';
+import type { Task, BuildingType } from '../types/game';
 
 // Fallback building_type from task.type when building_type is null
 const TYPE_TO_BUILDING: Record<string, BuildingType> = {

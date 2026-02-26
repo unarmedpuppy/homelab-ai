@@ -9,7 +9,7 @@ import { useGameBridge } from './hooks/useGameBridge';
 import { useAgentJobs } from './hooks/useAgentJobs';
 import { useTasksByBuilding } from './hooks/useTasks';
 import { createJob } from './api/agentHarness';
-import { BuildingType, BuildingData, UnitProfile } from './types/game';
+import type { BuildingType, UnitProfile } from './types/game';
 import type { MapScene } from './game/scenes/MapScene';
 
 let buildingIdCounter = 100;
