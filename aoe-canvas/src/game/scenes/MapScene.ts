@@ -49,29 +49,30 @@ export class MapScene extends Phaser.Scene {
     const worldH = (GRID_COLS + GRID_ROWS) * TILE_HALF_H + 200;
 
     this.cameras.main.setBounds(-worldW / 2, -100, worldW, worldH + 200);
-    this.cameras.main.setZoom(1.8);
+    this.cameras.main.setZoom(1.6);
 
-    // Center camera on map center (units cluster)
+    // Center camera to frame full base: trees above, buildings below
     const center = tileToWorld(16, 15);
-    this.cameras.main.centerOn(center.x, center.y + 40);
+    this.cameras.main.centerOn(center.x, center.y + 28);
 
     // Prevent Phaser from oscillating cursor style at interactive object boundaries
     this.input.setDefaultCursor('default');
 
-    // Draw tile grid
+    // Draw tile grid then environment decorations
     this.tileGraphics = this.add.graphics();
     this.tileOverlay = this.add.graphics();
     this.tileOverlay.setDepth(1);
     this.drawTiles();
+    this.drawEnvironment();
 
     // Selection box
     this.selectionBox = new SelectionBox(this);
 
-    // Place initial units
-    this.spawnNamedUnit('avery-1', 'avery', 14, 14);
-    this.spawnNamedUnit('gilfoyle-1', 'gilfoyle', 15, 14);
-    this.spawnNamedUnit('ralph-1', 'ralph', 16, 14);
-    this.spawnNamedUnit('jobin-1', 'jobin', 17, 14);
+    // Place initial units — clustered north of the town center
+    this.spawnNamedUnit('avery-1', 'avery', 13, 14);
+    this.spawnNamedUnit('gilfoyle-1', 'gilfoyle', 15, 13);
+    this.spawnNamedUnit('ralph-1', 'ralph', 17, 13);
+    this.spawnNamedUnit('jobin-1', 'jobin', 19, 14);
 
     // Place default Town Center building
     this.placeBuilding({
@@ -81,6 +82,44 @@ export class MapScene extends Phaser.Scene {
       col: 16,
       row: 16,
       name: 'Town Center',
+    });
+
+    // Demo buildings — populate the map until API data loads
+    // Castle NW of TC: guards the forest flank
+    this.placeBuilding({
+      id: 'building-castle-1',
+      type: 'castle',
+      status: 'idle',
+      col: 12,
+      row: 16,
+      name: 'Castle',
+    });
+    // Barracks SW of TC: col-row=-4 → x=-128, well inside viewport
+    this.placeBuilding({
+      id: 'building-barracks-1',
+      type: 'barracks',
+      status: 'idle',
+      col: 15,
+      row: 19,
+      name: 'Barracks',
+    });
+    // Market SE of TC: x=64, slightly below and right
+    this.placeBuilding({
+      id: 'building-market-1',
+      type: 'market',
+      status: 'idle',
+      col: 19,
+      row: 17,
+      name: 'Market',
+    });
+    // University NE of TC: x=192, along the east road direction
+    this.placeBuilding({
+      id: 'building-university-1',
+      type: 'university',
+      status: 'idle',
+      col: 21,
+      row: 15,
+      name: 'University',
     });
 
     // Setup input
@@ -97,14 +136,33 @@ export class MapScene extends Phaser.Scene {
     EventBus.emit('scene-ready', this);
   }
 
+  private getTileColor(col: number, row: number): number {
+    const dx = col - 16, dy = row - 16;
+    const tcDist = Math.max(Math.abs(dx), Math.abs(dy));
+
+    // Stone plaza surrounding the town center
+    if (tcDist <= 1) return 0x8a8070;
+    if (tcDist === 2) return (col + row) % 2 === 0 ? 0x7e7666 : 0x75705e;
+
+    // Dirt path going SW from plaza (south road)
+    if (col === 16 && row >= 19 && row <= 26) return 0x7a6040;
+    if (col === 17 && row >= 20 && row <= 25) return 0x726038;
+
+    // Dirt path going SE from plaza (east road)
+    if (row === 16 && col >= 19 && col <= 26) return 0x7a6040;
+    if (row === 15 && col >= 20 && col <= 25) return 0x726038;
+
+    // Normal grass (alternating shades)
+    return (col + row) % 2 === 0 ? 0x4a7c34 : 0x527a3c;
+  }
+
   private drawTiles() {
     this.tileGraphics.clear();
 
     for (let row = 0; row < GRID_ROWS; row++) {
       for (let col = 0; col < GRID_COLS; col++) {
         const { x, y } = tileToWorld(col, row);
-        const isEven = (col + row) % 2 === 0;
-        const color = isEven ? 0x4a7c34 : 0x527a3c;
+        const color = this.getTileColor(col, row);
 
         this.tileGraphics.fillStyle(color, 1);
         this.tileGraphics.fillPoints([
@@ -123,6 +181,101 @@ export class MapScene extends Phaser.Scene {
         ], true);
       }
     }
+  }
+
+  private drawEnvironment() {
+    // Single graphics layer for all trees — depth between tiles and buildings
+    const g = this.add.graphics();
+    g.setDepth(3);
+
+    // Key: x = (col-row)*32, y = (col+row)*16+16
+    // Viewport at 1.6x centered at ~(32, 524): x range [-202, 266], y range [399, 649]
+    const trees: [number, number][] = [
+      // ── TOP FOREST LINE (visible above units, col+row≈25, y≈416) ──────
+      [10, 15], [11, 14], [12, 13], [13, 12], [14, 11], [15, 10], [16, 9],
+
+      // ── SECOND ROW (forest depth, col+row≈27) ───────────────────────────
+      [11, 16], [12, 15],          // left, x=-160/-96
+      [16, 11], [17, 10],          // right-center, x=160/224
+
+      // ── NE CLUSTER (right side balance, x=128-192) ───────────────────────
+      [19, 12], [20, 12],          // NE of units, x=224/256 — right edge area
+      [20, 14], [20, 15],          // east side, x=192/160
+
+      // ── LEFT CORRIDOR (south-west side trees) ────────────────────────────
+      [12, 17], [12, 18],          // x=-160/-192
+
+      // ── SOUTH VISIBLE (near bottom of viewport, col+row≈37-38) ───────────
+      [17, 21], [18, 20], [19, 19], // x=-128/-64/0, y=624
+
+      // ── MID-RANGE EXPLORATION (panning reveals these) ────────────────────
+      [7, 8], [8, 7], [9, 7],       // NW mid
+      [22, 8], [23, 9],             // NE mid  (x=448/448 — off screen by default, for exploration)
+      [8, 22], [9, 23],             // SW mid
+      [22, 23], [23, 22],           // SE mid
+
+      // ── WORLD EDGE TREES (exploration / sense of world) ──────────────────
+      [3, 5], [5, 3], [4, 6],
+      [27, 4], [26, 5],
+      [4, 26], [5, 27],
+      [26, 27], [27, 26],
+    ];
+
+    // Draw furthest trees first (lowest col+row = furthest back in isometric)
+    const sorted = [...trees].sort(([c1, r1], [c2, r2]) => (c1 + r1) - (c2 + r2));
+    for (const [col, row] of sorted) {
+      const { x, y } = tileToWorld(col, row);
+      this.renderTree(g, x, y + TILE_HALF_H);
+    }
+  }
+
+  private renderTree(g: Phaser.GameObjects.Graphics, cx: number, cy: number) {
+    // Shadow
+    g.fillStyle(0x000000, 0.18);
+    g.fillEllipse(cx, cy + 2, 22, 8);
+
+    // Trunk
+    g.fillStyle(0x5a3010, 1);
+    g.fillRect(cx - 2.5, cy - 10, 5, 12);
+    g.lineStyle(0.75, 0x3a1e08, 0.7);
+    g.strokeRect(cx - 2.5, cy - 10, 5, 12);
+
+    // Foliage — 3 stacked diamond layers (darkest at bottom, lightest at top)
+    // Bottom (widest)
+    g.fillStyle(0x2a6818, 1);
+    g.fillPoints([
+      { x: cx, y: cy - 8 }, { x: cx + 14, y: cy - 2 },
+      { x: cx, y: cy + 4 }, { x: cx - 14, y: cy - 2 },
+    ], true);
+    g.lineStyle(1, 0x1e4e12, 0.45);
+    g.strokePoints([
+      { x: cx, y: cy - 8 }, { x: cx + 14, y: cy - 2 },
+      { x: cx, y: cy + 4 }, { x: cx - 14, y: cy - 2 },
+    ], true);
+
+    // Middle
+    g.fillStyle(0x358c22, 1);
+    g.fillPoints([
+      { x: cx, y: cy - 18 }, { x: cx + 10, y: cy - 13 },
+      { x: cx, y: cy - 8 }, { x: cx - 10, y: cy - 13 },
+    ], true);
+    g.lineStyle(1, 0x266018, 0.4);
+    g.strokePoints([
+      { x: cx, y: cy - 18 }, { x: cx + 10, y: cy - 13 },
+      { x: cx, y: cy - 8 }, { x: cx - 10, y: cy - 13 },
+    ], true);
+
+    // Top (narrowest, brightest)
+    g.fillStyle(0x44aa2c, 1);
+    g.fillPoints([
+      { x: cx, y: cy - 27 }, { x: cx + 6, y: cy - 22 },
+      { x: cx, y: cy - 17 }, { x: cx - 6, y: cy - 22 },
+    ], true);
+
+    // Top highlight
+    g.lineStyle(1, 0x66cc44, 0.5);
+    g.lineBetween(cx, cy - 27, cx - 4, cy - 24);
+    g.lineBetween(cx, cy - 27, cx + 4, cy - 24);
   }
 
   private setupInput() {

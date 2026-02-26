@@ -1,7 +1,7 @@
 import { SelectedUnit, SelectedBuilding } from '../hooks/useGameBridge';
 import { useAgentJobs } from '../hooks/useAgentJobs';
 import { cancelJob } from '../api/agentHarness';
-import { UNIT_COLORS, UNIT_LABELS } from '../types/game';
+import { UNIT_COLORS, UNIT_LABELS, BUILDING_COLORS, BUILDING_LABELS, BuildingType } from '../types/game';
 
 const PROFILE_NAMES: Record<string, string> = {
   avery: 'Avery',
@@ -9,6 +9,22 @@ const PROFILE_NAMES: Record<string, string> = {
   ralph: 'Ralph',
   jobin: 'Jobin',
   villager: 'Villager',
+};
+
+const BUILDING_NAMES: Record<BuildingType, string> = {
+  'town-center': 'Town Center',
+  'barracks': 'Barracks',
+  'market': 'Market',
+  'university': 'University',
+  'castle': 'Castle',
+};
+
+const BUILDING_DESC: Record<BuildingType, string> = {
+  'town-center': 'Command hub — dispatch named agents and coordinate operations',
+  'barracks': 'Training ground — run code tasks and engineering jobs',
+  'market': 'Data exchange — process data, trading, and analysis pipelines',
+  'university': 'Research lab — AI experiments, model evaluations, knowledge work',
+  'castle': 'Secure vault — critical infrastructure and systems operations',
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -137,40 +153,57 @@ export function BottomPanel({ selectedUnit, selectedBuilding }: BottomPanelProps
       (j.status === 'running' || j.status === 'pending') &&
       (j.working_directory?.includes(buildingData.name) ?? false)
     );
+    const colorHex = '#' + BUILDING_COLORS[buildingData.type].toString(16).padStart(6, '0');
 
     return (
       <div
-        className="absolute bottom-10 left-0 right-0 px-3 py-2"
+        className="absolute bottom-10 left-0 right-0 px-3 py-2 flex gap-4"
         style={{
           background: 'linear-gradient(to top, rgba(26,18,8,0.97), rgba(26,18,8,0.85))',
           borderTop: '2px solid #6b5320',
           fontFamily: 'Courier New',
         }}
       >
-        <div className="flex items-center gap-3 mb-1">
-          <span style={{ color: '#c8a84b', fontSize: '13px', fontWeight: 'bold' }}>
-            {buildingData.name}
-          </span>
-          <span style={{ color: '#888', fontSize: '10px' }}>
-            {buildingData.type} | [{buildingData.col}, {buildingData.row}]
-          </span>
-          <span style={{
-            color: buildingData.status === 'active' ? '#ffff44' : '#888',
-            fontSize: '10px',
-          }}>
-            {'\u25cf'} {buildingData.status.toUpperCase()}
+        {/* Building portrait */}
+        <div
+          className="flex-none w-14 h-14 flex items-center justify-center rounded"
+          style={{ background: colorHex + '22', border: `2px solid ${colorHex}` }}
+        >
+          <span style={{ fontSize: '18px', color: colorHex, fontWeight: 'bold' }}>
+            {BUILDING_LABELS[buildingData.type]}
           </span>
         </div>
-        {buildingData.projectId && (
-          <div style={{ color: '#d4c06a', fontSize: '10px' }}>
-            Project: {buildingData.projectId}
+
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span style={{ color: '#c8a84b', fontSize: '13px', fontWeight: 'bold' }}>
+              {BUILDING_NAMES[buildingData.type] ?? buildingData.name}
+            </span>
+            <span style={{ color: '#666', fontSize: '10px' }}>
+              [{buildingData.col}, {buildingData.row}]
+            </span>
+            <span style={{
+              color: buildingData.status === 'active' ? '#ffff44' : '#888',
+              fontSize: '10px',
+            }}>
+              {'\u25cf'} {buildingData.status.toUpperCase()}
+            </span>
+            {buildingJobs.length > 0 && (
+              <span style={{ color: '#ffaa00', fontSize: '10px' }}>
+                {buildingJobs.length} job(s) running
+              </span>
+            )}
           </div>
-        )}
-        {buildingJobs.length > 0 && (
-          <div style={{ color: '#888', fontSize: '10px' }}>
-            {buildingJobs.length} active job(s)
+          <div style={{ color: '#665a30', fontSize: '10px', fontStyle: 'italic' }}>
+            {BUILDING_DESC[buildingData.type]}
           </div>
-        )}
+          {buildingData.projectId && (
+            <div style={{ color: '#d4c06a', fontSize: '10px', marginTop: '2px' }}>
+              Project: {buildingData.projectId}
+            </div>
+          )}
+        </div>
       </div>
     );
   }
