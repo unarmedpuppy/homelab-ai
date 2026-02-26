@@ -5,6 +5,7 @@ Avery POSTs a new summary each morning; the dashboard GETs the latest.
 import os
 import logging
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Header
@@ -78,7 +79,7 @@ def upsert_summary(
         raise HTTPException(status_code=401, detail="Invalid or missing X-Summary-Key")
 
     now = datetime.now(timezone.utc).isoformat()
-    today = datetime.now(timezone.utc).date().isoformat()
+    today = datetime.now(ZoneInfo("America/Chicago")).date().isoformat()
 
     with get_db_connection() as conn:
         conn.execute(
