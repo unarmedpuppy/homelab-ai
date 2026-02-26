@@ -83,43 +83,8 @@ export class MapScene extends Phaser.Scene {
       name: 'Town Center',
     });
 
-    // Demo buildings — populate the map until API data loads
-    // Castle NW of TC: guards the forest flank
-    this.placeBuilding({
-      id: 'building-castle-1',
-      type: 'castle',
-      status: 'idle',
-      col: 12,
-      row: 16,
-      name: 'Castle',
-    });
-    // Barracks SW of TC: col-row=-4 → x=-128, well inside viewport
-    this.placeBuilding({
-      id: 'building-barracks-1',
-      type: 'barracks',
-      status: 'idle',
-      col: 15,
-      row: 19,
-      name: 'Barracks',
-    });
-    // Market SE of TC: x=64, slightly below and right
-    this.placeBuilding({
-      id: 'building-market-1',
-      type: 'market',
-      status: 'idle',
-      col: 19,
-      row: 17,
-      name: 'Market',
-    });
-    // University NE of TC: x=192, along the east road direction
-    this.placeBuilding({
-      id: 'building-university-1',
-      type: 'university',
-      status: 'idle',
-      col: 21,
-      row: 15,
-      name: 'University',
-    });
+    // Other buildings are placed by App.tsx once the Tasks API loads.
+    // Each building_type group of tasks becomes one building on the map.
 
     // Setup input
     this.setupInput();

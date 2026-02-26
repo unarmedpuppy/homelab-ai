@@ -83,6 +83,21 @@ export interface TerrainOverride {
   type: 'water' | 'dirt' | 'grass';
 }
 
+// From Tasks API
+export interface Task {
+  id: string;
+  title: string;
+  priority: 'P0' | 'P1' | 'P2' | 'P3';
+  repo?: string;
+  type: 'engineering' | 'personal' | 'home' | 'family' | 'research';
+  building_type: BuildingType;
+  assignee?: string;
+  status: 'OPEN' | 'CLAIMED' | 'IN_PROGRESS' | 'DONE' | 'CLOSED';
+  source?: string;
+  description?: string;
+  created_at?: string;
+}
+
 // From agent-harness API
 export interface Job {
   id: string;

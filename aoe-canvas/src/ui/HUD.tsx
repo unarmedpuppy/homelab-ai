@@ -25,7 +25,7 @@ export function HUD() {
           style={{ background: (harnessHealth as { status?: string } | null)?.status === 'healthy' ? '#00cc44' : '#cc4400' }}
         />
         <span style={{ color: '#d4c06a', fontSize: '11px' }}>
-          {(harnessHealth as { profile?: { display_name?: string } } | null)?.profile?.display_name ?? 'Harness'}
+          {(harnessHealth as { status?: string } | null)?.status === 'healthy' ? 'Harness' : 'Offline'}
         </span>
       </div>
 

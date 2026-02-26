@@ -3,9 +3,10 @@ import { useState, useRef } from 'react';
 interface PromptBarProps {
   onSubmit: (prompt: string, count: number) => void;
   disabled?: boolean;
+  placeholder?: string;
 }
 
-export function PromptBar({ onSubmit, disabled }: PromptBarProps) {
+export function PromptBar({ onSubmit, disabled, placeholder = 'Type a goal and press Enter to dispatch...' }: PromptBarProps) {
   const [value, setValue] = useState('');
   const [villagerCount, setVillagerCount] = useState(1);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -34,7 +35,7 @@ export function PromptBar({ onSubmit, disabled }: PromptBarProps) {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         disabled={disabled}
-        placeholder="Type a goal and press Enter to dispatch..."
+        placeholder={placeholder}
         className="flex-1 bg-transparent outline-none"
         style={{
           color: '#d4c06a',

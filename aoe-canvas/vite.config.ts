@@ -7,14 +7,22 @@ export default defineConfig({
     port: 5174,
     proxy: {
       '/api/harness': {
-        target: 'http://localhost:8013',
+        target: 'https://agent-harness.server.unarmedpuppy.com',
         rewrite: (path) => path.replace(/^\/api\/harness/, ''),
         changeOrigin: true,
+        secure: false,
       },
       '/api/router': {
-        target: 'http://localhost:8012',
+        target: 'https://llm-router.server.unarmedpuppy.com',
         rewrite: (path) => path.replace(/^\/api\/router/, ''),
         changeOrigin: true,
+        secure: false,
+      },
+      '/api/tasks': {
+        target: 'https://tasks-api.server.unarmedpuppy.com',
+        rewrite: (path) => path.replace(/^\/api\/tasks/, ''),
+        changeOrigin: true,
+        secure: false,
       },
     },
   },
