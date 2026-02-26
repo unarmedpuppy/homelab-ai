@@ -69,8 +69,17 @@ jobs:
       context: fleet-gateway
     secrets: inherit
 
+  build-aoe-canvas:
+    uses: unarmedpuppy/workflows/.gitea/workflows/docker-build.yml@main
+    with:
+      image_name: library/aoe-canvas
+      app_path: apps/homelab-ai
+      dockerfile: aoe-canvas/Dockerfile
+      context: aoe-canvas
+    secrets: inherit
+
   deploy:
-    needs: [build-llm-router, build-dashboard, build-llm-manager, build-image-server, build-tts-server, build-agent-harness, build-fleet-gateway]
+    needs: [build-llm-router, build-dashboard, build-llm-manager, build-image-server, build-tts-server, build-agent-harness, build-fleet-gateway, build-aoe-canvas]
     runs-on: ubuntu-latest
     steps:
       - name: Setup SSH
