@@ -46,6 +46,7 @@ const AgentsDashboard = lazy(() => import('./components/agents/AgentsDashboard')
 
 const TradingDashboard = lazy(() => import('./components/trading/TradingDashboard'));
 const DocsPage = lazy(() => import('./pages/DocsPage'));
+const CommandPage = lazy(() => import('./command/CommandPage'));
 
 // Clean pages (lazy)
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -347,12 +348,11 @@ function DocsView() {
 function CommandView() {
   return (
     <AppLayout currentView="command">
-      <iframe
-        src="https://aoe-canvas.server.unarmedpuppy.com"
-        className="w-full h-full border-0"
-        title="Agent Command Center"
-        allow="clipboard-read; clipboard-write"
-      />
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoading section="Command" />}>
+          <CommandPage />
+        </Suspense>
+      </ErrorBoundary>
     </AppLayout>
   );
 }
