@@ -4,10 +4,11 @@ import { tileToWorld, TILE_HALF_H } from '../utils/isometric';
 import { findPath } from '../utils/pathfinding';
 import { EventBus } from '../EventBus';
 
-// Sprite origin Y: positions feet near ground shadow
-const ORIGIN_Y = 0.85;
-const SPRITE_W = 32;
-const SPRITE_H = 48;
+// Origin Y: feet at y≈87/96 in sprite → local y=7 (shadow level)
+// origin_y = (87 - 7) / 96 = 0.833
+const ORIGIN_Y = 0.83;
+const SPRITE_W = 64;
+const SPRITE_H = 96;
 
 export class Unit extends Phaser.GameObjects.Container {
   public unitId: string;
@@ -46,7 +47,7 @@ export class Unit extends Phaser.GameObjects.Container {
     const shadow = scene.add.ellipse(0, 7, 28, 10, 0x000000, 0.2);
 
     // Selection ring at ground level
-    this.selectionRing = scene.add.ellipse(0, 4, 34, 13, 0x000000, 0);
+    this.selectionRing = scene.add.ellipse(0, 4, 54, 20, 0x000000, 0);
     this.selectionRing.setStrokeStyle(2.5, 0xffee44, 1);
     this.selectionRing.setVisible(false);
 
@@ -63,15 +64,16 @@ export class Unit extends Phaser.GameObjects.Container {
       }
     });
 
-    // Status dot floats above sprite
-    const dotY = -(ORIGIN_Y * SPRITE_H + 6);
-    this.statusDot = scene.add.arc(0, dotY, 3, 0, 360, false, 0x00cc00);
-    this.statusDot.setStrokeStyle(0.5, 0x000000, 0.4);
+    // Status dot floats above sprite head
+    const dotY = -(ORIGIN_Y * SPRITE_H + 8);
+    this.statusDot = scene.add.arc(0, dotY, 4, 0, 360, false, 0x00cc00);
+    this.statusDot.setStrokeStyle(0.75, 0x000000, 0.5);
 
     this.add([shadow, this.selectionRing, this.sprite, this.statusDot]);
     scene.add.existing(this as unknown as Phaser.GameObjects.GameObject);
 
-    this.setSize(SPRITE_W, SPRITE_H - 4);
+    // Hitbox is narrower than the full sprite frame for precision clicking
+    this.setSize(SPRITE_W * 0.6, SPRITE_H * 0.7);
     this.setInteractive();
     this.setDepth(10 + col + row);
 

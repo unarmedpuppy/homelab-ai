@@ -11,10 +11,11 @@ const BUILDING_FRAME: Record<BuildingType, number> = {
   'university':  4,
 };
 
-// Origin Y for the building sprite: positions visual floor near tile S-vertex
-const ORIGIN_Y = 0.70;
-const SPRITE_W = 96;
-const SPRITE_H = 96;
+// Origin Y: floor at y≈110/128 in sprite → local y=16 (tile S-vertex)
+// origin_y = (110 - 16) / 128 = 0.734
+const ORIGIN_Y = 0.73;
+const SPRITE_W = 128;
+const SPRITE_H = 128;
 
 export class Building extends Phaser.GameObjects.Container {
   public buildingId: string;
@@ -41,17 +42,14 @@ export class Building extends Phaser.GameObjects.Container {
     this.row = data.row;
     this.buildingName = data.name;
 
-    // Ground shadow at visual floor level (below origin)
-    const floorY = (1 - ORIGIN_Y) * SPRITE_H;
+    // Ground shadow at tile S-vertex level (local y = TILE_HALF_H = 16)
     const shadow = scene.add.graphics();
-    shadow.fillStyle(0x000000, 0.22);
-    shadow.fillEllipse(0, floorY, TILE_W * 1.1, TILE_HALF_H * 0.8);
+    shadow.fillStyle(0x000000, 0.25);
+    shadow.fillEllipse(0, TILE_HALF_H, TILE_W * 1.2, TILE_HALF_H * 0.9);
 
     // Building sprite
     this.sprite = scene.add.sprite(0, 0, 'buildings', BUILDING_FRAME[data.type]);
     this.sprite.setOrigin(0.5, ORIGIN_Y);
-    this.sprite.setDisplaySize(SPRITE_W, SPRITE_H);
-
     // Label floats above sprite top
     const labelY = -(ORIGIN_Y * SPRITE_H + 8);
     this.nameLabel = scene.add.text(0, labelY, data.name.toUpperCase(), {
