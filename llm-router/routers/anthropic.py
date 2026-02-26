@@ -379,26 +379,33 @@ async def messages(
         request_headers = build_request_headers(selection.provider)
 
         async with provider_manager.track_request(selection.provider.id):
-            async with httpx.AsyncClient(timeout=300.0) as client:
-                response = await client.post(
-                    endpoint_url,
-                    json=oai_body,
-                    headers=request_headers,
+            try:
+                async with httpx.AsyncClient(timeout=300.0) as client:
+                    response = await client.post(
+                        endpoint_url,
+                        json=oai_body,
+                        headers=request_headers,
+                    )
+            except (httpx.ConnectError, httpx.TimeoutException, httpx.ConnectTimeout) as e:
+                logger.error(f"[Anthropic] Backend unreachable {selection.provider.name}: {e}")
+                raise HTTPException(
+                    status_code=503,
+                    detail=f"Backend {selection.provider.name} unreachable: {type(e).__name__}",
                 )
 
-                if response.status_code != 200:
-                    error_detail = response.text[:500] if response.text else "Empty response"
-                    logger.error(
-                        f"[Anthropic] Backend error: HTTP {response.status_code} - {error_detail}"
-                    )
-                    raise HTTPException(
-                        status_code=502,
-                        detail=f"Backend {selection.provider.name} returned HTTP {response.status_code}",
-                    )
+            if response.status_code != 200:
+                error_detail = response.text[:500] if response.text else "Empty response"
+                logger.error(
+                    f"[Anthropic] Backend error: HTTP {response.status_code} - {error_detail}"
+                )
+                raise HTTPException(
+                    status_code=502,
+                    detail=f"Backend {selection.provider.name} returned HTTP {response.status_code}",
+                )
 
-                try:
-                    oai_response = response.json()
-                except Exception:
-                    raise HTTPException(status_code=502, detail="Backend returned invalid JSON")
+            try:
+                oai_response = response.json()
+            except Exception:
+                raise HTTPException(status_code=502, detail="Backend returned invalid JSON")
 
-                return JSONResponse(content=translate_openai_to_anthropic(oai_response, original_model))
+            return JSONResponse(content=translate_openai_to_anthropic(oai_response, original_model))
