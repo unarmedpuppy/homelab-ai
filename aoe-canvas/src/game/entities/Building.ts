@@ -68,23 +68,37 @@ export class Building extends Phaser.GameObjects.Container {
     this.base.clear();
     const hw = TILE_HALF_W;
     const hh = TILE_HALF_H;
-    const wallH = 16;
+    const wallHeights: Record<BuildingType, number> = {
+      'town-center': 30,
+      'castle': 26,
+      'university': 22,
+      'barracks': 18,
+      'market': 16,
+    };
+    const wallH = wallHeights[this.buildingType];
 
-    const darkerColor = Phaser.Display.Color.IntegerToColor(color);
-    darkerColor.darken(30);
-    const darkColor = darkerColor.color;
-
-    // Left wall (darker)
-    this.base.fillStyle(darkColor, 1);
+    // Left wall (deep shadow — darkest face)
+    const leftColor = Phaser.Display.Color.IntegerToColor(color);
+    leftColor.darken(40);
+    this.base.fillStyle(leftColor.color, 1);
     this.base.fillPoints([
       { x: -hw, y: hh }, { x: 0, y: hh * 2 }, { x: 0, y: hh * 2 + wallH }, { x: -hw, y: hh + wallH },
     ], true);
 
-    // Right wall (medium)
-    const medColor = Phaser.Display.Color.IntegerToColor(color);
-    medColor.darken(15);
-    this.base.fillStyle(medColor.color, 1);
+    // Right wall (medium shadow)
+    const rightColor = Phaser.Display.Color.IntegerToColor(color);
+    rightColor.darken(20);
+    this.base.fillStyle(rightColor.color, 1);
     this.base.fillPoints([
+      { x: 0, y: hh * 2 }, { x: hw, y: hh }, { x: hw, y: hh + wallH }, { x: 0, y: hh * 2 + wallH },
+    ], true);
+
+    // Wall outlines for crisp edges
+    this.base.lineStyle(1, 0x000000, 0.5);
+    this.base.strokePoints([
+      { x: -hw, y: hh }, { x: 0, y: hh * 2 }, { x: 0, y: hh * 2 + wallH }, { x: -hw, y: hh + wallH },
+    ], true);
+    this.base.strokePoints([
       { x: 0, y: hh * 2 }, { x: hw, y: hh }, { x: hw, y: hh + wallH }, { x: 0, y: hh * 2 + wallH },
     ], true);
   }
@@ -100,8 +114,15 @@ export class Building extends Phaser.GameObjects.Container {
       { x: 0, y: 0 }, { x: hw, y: hh }, { x: 0, y: hh * 2 }, { x: -hw, y: hh },
     ], true);
 
+    // NW + NE edge highlight (sun-lit top ridge)
+    const hiColor = Phaser.Display.Color.IntegerToColor(color);
+    hiColor.lighten(30);
+    this.roof.lineStyle(2, hiColor.color, 0.9);
+    this.roof.lineBetween(0, 0, -hw, hh);
+    this.roof.lineBetween(0, 0, hw, hh);
+
     // Outline
-    this.roof.lineStyle(1, 0x000000, 0.3);
+    this.roof.lineStyle(1, 0x000000, 0.4);
     this.roof.strokePoints([
       { x: 0, y: 0 }, { x: hw, y: hh }, { x: 0, y: hh * 2 }, { x: -hw, y: hh },
     ], true);

@@ -27,8 +27,11 @@ export class MapScene extends Phaser.Scene {
   private selectionBox!: SelectionBox;
   private selectedUnits: Set<string> = new Set();
   private selectedBuilding: string | null = null;
-  private dragStart?: { x: number; y: number };
-  private isDragging = false;
+  // Pan state — activated by Space+leftdrag or middle drag
+  private isPanning = false;
+  private panStart?: { x: number; y: number };
+  private spaceKey?: Phaser.Input.Keyboard.Key;
+  // Box select state — left drag without space
   private isBoxSelecting = false;
   private boxSelectStart?: { x: number; y: number };
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -45,11 +48,11 @@ export class MapScene extends Phaser.Scene {
     const worldH = (GRID_COLS + GRID_ROWS) * TILE_HALF_H + 200;
 
     this.cameras.main.setBounds(-worldW / 2, -100, worldW, worldH + 200);
-    this.cameras.main.setZoom(1.0);
+    this.cameras.main.setZoom(1.8);
 
-    // Center camera on map center
-    const center = tileToWorld(16, 16);
-    this.cameras.main.centerOn(center.x, center.y + 100);
+    // Center camera on map center (units cluster)
+    const center = tileToWorld(16, 15);
+    this.cameras.main.centerOn(center.x, center.y + 40);
 
     // Draw tile grid
     this.tileGraphics = this.add.graphics();
@@ -97,26 +100,38 @@ export class MapScene extends Phaser.Scene {
       for (let col = 0; col < GRID_COLS; col++) {
         const { x, y } = tileToWorld(col, row);
         const isEven = (col + row) % 2 === 0;
+        const base = isEven ? 0x4a7c34 : 0x527a3c;
 
-        // Alternate grass shades
-        const baseColor = isEven ? 0x4a7c34 : 0x527a3c;
+        // Diamond corners + center for 4-triangle directional shading
+        const cx = x;
+        const cy = y + TILE_HALF_H;
+        const N = { x, y };
+        const E = { x: x + TILE_HALF_W, y: y + TILE_HALF_H };
+        const S = { x, y: y + TILE_H };
+        const W = { x: x - TILE_HALF_W, y: y + TILE_HALF_H };
 
-        this.tileGraphics.fillStyle(baseColor, 1);
-        this.tileGraphics.fillPoints([
-          { x, y },
-          { x: x + TILE_HALF_W, y: y + TILE_HALF_H },
-          { x, y: y + TILE_H },
-          { x: x - TILE_HALF_W, y: y + TILE_HALF_H },
-        ], true);
+        // NW face — sun-lit (lightest)
+        const cNW = Phaser.Display.Color.IntegerToColor(base); cNW.lighten(10);
+        this.tileGraphics.fillStyle(cNW.color, 1);
+        this.tileGraphics.fillTriangle(cx, cy, N.x, N.y, W.x, W.y);
 
-        // Tile border
-        this.tileGraphics.lineStyle(0.5, 0x000000, 0.15);
-        this.tileGraphics.strokePoints([
-          { x, y },
-          { x: x + TILE_HALF_W, y: y + TILE_HALF_H },
-          { x, y: y + TILE_H },
-          { x: x - TILE_HALF_W, y: y + TILE_HALF_H },
-        ], true);
+        // NE face — base tone
+        this.tileGraphics.fillStyle(base, 1);
+        this.tileGraphics.fillTriangle(cx, cy, N.x, N.y, E.x, E.y);
+
+        // SE face — slight shadow
+        const cSE = Phaser.Display.Color.IntegerToColor(base); cSE.darken(10);
+        this.tileGraphics.fillStyle(cSE.color, 1);
+        this.tileGraphics.fillTriangle(cx, cy, E.x, E.y, S.x, S.y);
+
+        // SW face — deepest shadow
+        const cSW = Phaser.Display.Color.IntegerToColor(base); cSW.darken(20);
+        this.tileGraphics.fillStyle(cSW.color, 1);
+        this.tileGraphics.fillTriangle(cx, cy, S.x, S.y, W.x, W.y);
+
+        // Subtle grid border
+        this.tileGraphics.lineStyle(0.5, 0x000000, 0.1);
+        this.tileGraphics.strokePoints([N, E, S, W], true);
       }
     }
   }
@@ -124,31 +139,41 @@ export class MapScene extends Phaser.Scene {
   private setupInput() {
     const cam = this.cameras.main;
 
+    this.spaceKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+
     this.input.on('pointerdown', (ptr: Phaser.Input.Pointer) => {
-      if (ptr.middleButtonDown() || ptr.rightButtonDown()) {
-        this.dragStart = { x: ptr.x, y: ptr.y };
-        this.isDragging = true;
+      if (ptr.middleButtonDown()) {
+        this.isPanning = true;
+        this.panStart = { x: ptr.x, y: ptr.y };
+        return;
       }
 
       if (ptr.leftButtonDown()) {
-        this.boxSelectStart = { x: ptr.worldX, y: ptr.worldY };
-        this.isBoxSelecting = false;
-        this.selectionBox.start(ptr.x, ptr.y);
+        if (this.spaceKey?.isDown) {
+          // Space + left drag = pan
+          this.isPanning = true;
+          this.panStart = { x: ptr.x, y: ptr.y };
+        } else {
+          // Plain left drag = box select
+          this.boxSelectStart = { x: ptr.worldX, y: ptr.worldY };
+          this.isBoxSelecting = false;
+          this.selectionBox.start(ptr.x, ptr.y);
+        }
       }
     });
 
     this.input.on('pointermove', (ptr: Phaser.Input.Pointer) => {
       // Camera pan
-      if (this.isDragging && this.dragStart) {
-        const dx = ptr.x - this.dragStart.x;
-        const dy = ptr.y - this.dragStart.y;
+      if (this.isPanning && this.panStart) {
+        const dx = ptr.x - this.panStart.x;
+        const dy = ptr.y - this.panStart.y;
         cam.scrollX -= dx / cam.zoom;
         cam.scrollY -= dy / cam.zoom;
-        this.dragStart = { x: ptr.x, y: ptr.y };
+        this.panStart = { x: ptr.x, y: ptr.y };
       }
 
-      // Box select
-      if (ptr.leftButtonDown() && this.boxSelectStart) {
+      // Box select (only when not panning)
+      if (ptr.leftButtonDown() && !this.isPanning && this.boxSelectStart) {
         const dist = Phaser.Math.Distance.Between(ptr.worldX, ptr.worldY, this.boxSelectStart.x, this.boxSelectStart.y);
         if (dist > 10) {
           this.isBoxSelecting = true;
@@ -165,17 +190,19 @@ export class MapScene extends Phaser.Scene {
     });
 
     this.input.on('pointerup', (ptr: Phaser.Input.Pointer) => {
-      if (ptr.middleButtonReleased() || ptr.rightButtonReleased()) {
-        // Right-click context (only if not dragging far)
-        if (ptr.rightButtonReleased() && !this.isDragging) {
-          const tilePos = worldToTile(ptr.worldX, ptr.worldY - TILE_HALF_H);
-          this.handleRightClick(tilePos.col, tilePos.row);
-        }
-        this.isDragging = false;
-        this.dragStart = undefined;
+      if (ptr.middleButtonReleased()) {
+        this.isPanning = false;
+        this.panStart = undefined;
+      }
+
+      if (ptr.rightButtonReleased()) {
+        const tilePos = worldToTile(ptr.worldX, ptr.worldY - TILE_HALF_H);
+        this.handleRightClick(tilePos.col, tilePos.row);
       }
 
       if (ptr.leftButtonReleased()) {
+        this.isPanning = false;
+        this.panStart = undefined;
         this.selectionBox.end();
         this.isBoxSelecting = false;
         this.boxSelectStart = undefined;

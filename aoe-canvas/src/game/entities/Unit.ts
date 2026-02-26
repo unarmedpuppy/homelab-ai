@@ -20,6 +20,7 @@ export class Unit extends Phaser.GameObjects.Container {
   private unitLabel: Phaser.GameObjects.Text;
   private statusDot: Phaser.GameObjects.Arc;
   private selectionRing: Phaser.GameObjects.Arc;
+  private shadow!: Phaser.GameObjects.Ellipse;
   private workingTween?: Phaser.Tweens.Tween;
 
   constructor(
@@ -42,30 +43,33 @@ export class Unit extends Phaser.GameObjects.Container {
     const color = UNIT_COLORS[profile];
     const letter = UNIT_LABELS[profile];
 
+    // Drop shadow (renders first, behind everything)
+    this.shadow = scene.add.ellipse(0, 8, 26, 9, 0x000000, 0.25);
+
     // Selection ring (behind body)
-    this.selectionRing = scene.add.arc(0, 0, 14, 0, 360, false, 0xffffff, 0.5);
+    this.selectionRing = scene.add.arc(0, 0, 18, 0, 360, false, 0xffee44, 0.6);
     this.selectionRing.setVisible(false);
 
     // Body circle
-    this.unitBody = scene.add.arc(0, 0, 10, 0, 360, false, color);
-    this.unitBody.setStrokeStyle(1, 0x000000, 0.5);
+    this.unitBody = scene.add.arc(0, 0, 13, 0, 360, false, color);
+    this.unitBody.setStrokeStyle(1.5, 0x000000, 0.6);
 
     // Label text
     this.unitLabel = scene.add.text(0, 0, letter, {
-      fontSize: '10px',
+      fontSize: '11px',
       color: '#ffffff',
       fontFamily: 'Courier New',
       fontStyle: 'bold',
     }).setOrigin(0.5);
 
     // Status dot (top-right)
-    this.statusDot = scene.add.arc(8, -8, 4, 0, 360, false, 0x00ff00);
+    this.statusDot = scene.add.arc(11, -11, 5, 0, 360, false, 0x00ff00);
 
-    this.add([this.selectionRing, this.unitBody, this.unitLabel, this.statusDot]);
+    this.add([this.shadow, this.selectionRing, this.unitBody, this.unitLabel, this.statusDot]);
     scene.add.existing(this as unknown as Phaser.GameObjects.GameObject);
 
     // Make interactive
-    this.setSize(24, 24);
+    this.setSize(30, 30);
     this.setInteractive();
 
     this.on('pointerdown', (ptr: Phaser.Input.Pointer) => {
