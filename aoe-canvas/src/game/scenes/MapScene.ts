@@ -36,6 +36,7 @@ export class MapScene extends Phaser.Scene {
   private boxSelectStart?: { x: number; y: number };
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private hoveredTile: { col: number; row: number } | null = null;
+  private lastRenderedHover: { col: number; row: number } | null = null;
   private tileOverlay!: Phaser.GameObjects.Graphics;
 
   constructor() {
@@ -53,6 +54,9 @@ export class MapScene extends Phaser.Scene {
     // Center camera on map center (units cluster)
     const center = tileToWorld(16, 15);
     this.cameras.main.centerOn(center.x, center.y + 40);
+
+    // Prevent Phaser from oscillating cursor style at interactive object boundaries
+    this.input.setDefaultCursor('default');
 
     // Draw tile grid
     this.tileGraphics = this.add.graphics();
@@ -100,38 +104,23 @@ export class MapScene extends Phaser.Scene {
       for (let col = 0; col < GRID_COLS; col++) {
         const { x, y } = tileToWorld(col, row);
         const isEven = (col + row) % 2 === 0;
-        const base = isEven ? 0x4a7c34 : 0x527a3c;
+        const color = isEven ? 0x4a7c34 : 0x527a3c;
 
-        // Diamond corners + center for 4-triangle directional shading
-        const cx = x;
-        const cy = y + TILE_HALF_H;
-        const N = { x, y };
-        const E = { x: x + TILE_HALF_W, y: y + TILE_HALF_H };
-        const S = { x, y: y + TILE_H };
-        const W = { x: x - TILE_HALF_W, y: y + TILE_HALF_H };
+        this.tileGraphics.fillStyle(color, 1);
+        this.tileGraphics.fillPoints([
+          { x, y },
+          { x: x + TILE_HALF_W, y: y + TILE_HALF_H },
+          { x, y: y + TILE_H },
+          { x: x - TILE_HALF_W, y: y + TILE_HALF_H },
+        ], true);
 
-        // NW face — sun-lit (lightest)
-        const cNW = Phaser.Display.Color.IntegerToColor(base); cNW.lighten(10);
-        this.tileGraphics.fillStyle(cNW.color, 1);
-        this.tileGraphics.fillTriangle(cx, cy, N.x, N.y, W.x, W.y);
-
-        // NE face — base tone
-        this.tileGraphics.fillStyle(base, 1);
-        this.tileGraphics.fillTriangle(cx, cy, N.x, N.y, E.x, E.y);
-
-        // SE face — slight shadow
-        const cSE = Phaser.Display.Color.IntegerToColor(base); cSE.darken(10);
-        this.tileGraphics.fillStyle(cSE.color, 1);
-        this.tileGraphics.fillTriangle(cx, cy, E.x, E.y, S.x, S.y);
-
-        // SW face — deepest shadow
-        const cSW = Phaser.Display.Color.IntegerToColor(base); cSW.darken(20);
-        this.tileGraphics.fillStyle(cSW.color, 1);
-        this.tileGraphics.fillTriangle(cx, cy, S.x, S.y, W.x, W.y);
-
-        // Subtle grid border
-        this.tileGraphics.lineStyle(0.5, 0x000000, 0.1);
-        this.tileGraphics.strokePoints([N, E, S, W], true);
+        this.tileGraphics.lineStyle(0.5, 0x000000, 0.12);
+        this.tileGraphics.strokePoints([
+          { x, y },
+          { x: x + TILE_HALF_W, y: y + TILE_HALF_H },
+          { x, y: y + TILE_H },
+          { x: x - TILE_HALF_W, y: y + TILE_HALF_H },
+        ], true);
       }
     }
   }
@@ -181,12 +170,8 @@ export class MapScene extends Phaser.Scene {
         }
       }
 
-      // Tile hover
-      const tilePos = worldToTile(ptr.worldX, ptr.worldY - TILE_HALF_H);
-      if (!this.hoveredTile || this.hoveredTile.col !== tilePos.col || this.hoveredTile.row !== tilePos.row) {
-        this.hoveredTile = tilePos;
-        this.drawTileHover();
-      }
+      // Tile hover — update state only; draw happens in update() to stay in sync with render loop
+      this.hoveredTile = worldToTile(ptr.worldX, ptr.worldY - TILE_HALF_H);
     });
 
     this.input.on('pointerup', (ptr: Phaser.Input.Pointer) => {
@@ -281,6 +266,15 @@ export class MapScene extends Phaser.Scene {
       if (this.cursors.right.isDown) this.cameras.main.scrollX += speed;
       if (this.cursors.up.isDown) this.cameras.main.scrollY -= speed;
       if (this.cursors.down.isDown) this.cameras.main.scrollY += speed;
+    }
+
+    // Tile hover — drawn in update loop so it's always in sync with the render frame,
+    // preventing the 1-frame clear flash that happens when drawing inside event handlers
+    const h = this.hoveredTile;
+    const lh = this.lastRenderedHover;
+    if (h?.col !== lh?.col || h?.row !== lh?.row) {
+      this.drawTileHover();
+      this.lastRenderedHover = h ? { col: h.col, row: h.row } : null;
     }
   }
 
