@@ -269,8 +269,8 @@ function ChatView() {
 
         {/* Right history panel */}
         <div className={`chat-history-panel ${historyOpen ? 'open' : ''}`}>
-          {/* Close button — mobile only */}
-          <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--retro-border)] lg:hidden flex-shrink-0">
+          {/* Panel header — always visible */}
+          <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--retro-border)] flex-shrink-0">
             <span className="text-xs font-semibold text-[var(--retro-text-secondary)] uppercase tracking-wide">
               Conversations
             </span>

@@ -381,18 +381,20 @@ export default function ChatInterface({ conversationId, onToggleHistory, history
     <div className="flex flex-col h-full bg-[var(--retro-bg-dark)]">
       {/* Header Panel */}
       <div className="border-b-2 border-[var(--retro-border)] p-3 sm:p-4 bg-[var(--retro-bg-medium)]">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <ProviderModelSelector
-            providers={providersData?.providers || []}
-            isLoading={isLoadingProviders}
-            selectedProvider={selectedProvider}
-            selectedModel={selectedModel}
-            onProviderChange={setSelectedProvider}
-            onModelChange={setSelectedModel}
-            disabled={isStreaming}
-          />
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <ProviderModelSelector
+              providers={providersData?.providers || []}
+              isLoading={isLoadingProviders}
+              selectedProvider={selectedProvider}
+              selectedModel={selectedModel}
+              onProviderChange={setSelectedProvider}
+              onModelChange={setSelectedModel}
+              disabled={isStreaming}
+            />
+          </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             {ttsAvailable && (
               <RetroButton
                 variant={ttsEnabled ? 'primary' : 'ghost'}
