@@ -4,9 +4,14 @@ export interface ParsedContent {
   isThinkingComplete: boolean;
 }
 
+// Matches <thinking> (Claude) and <think> (Qwen/DeepSeek) tags
+const OPEN_TAG = /^<think(?:ing)?>/;
+const COMPLETE_RE = /^<think(?:ing)?>([\s\S]*?)<\/think(?:ing)?>([\s\S]*)$/;
+const PARTIAL_RE = /^<think(?:ing)?>([\s\S]*)$/;
+
 export function parseThinkingContent(raw: string): ParsedContent {
-  // Complete thinking block: <thinking>...</thinking> followed by optional response
-  const completeMatch = raw.match(/^<thinking>([\s\S]*?)<\/thinking>([\s\S]*)$/);
+  // Complete thinking block followed by optional response
+  const completeMatch = raw.match(COMPLETE_RE);
   if (completeMatch) {
     return {
       thinking: completeMatch[1].trim(),
@@ -16,13 +21,15 @@ export function parseThinkingContent(raw: string): ParsedContent {
   }
 
   // Partial: opening tag exists but closing tag not yet received (streaming)
-  const partialMatch = raw.match(/^<thinking>([\s\S]*)$/);
-  if (partialMatch) {
-    return {
-      thinking: partialMatch[1],
-      response: '',
-      isThinkingComplete: false,
-    };
+  if (OPEN_TAG.test(raw)) {
+    const partialMatch = raw.match(PARTIAL_RE);
+    if (partialMatch) {
+      return {
+        thinking: partialMatch[1],
+        response: '',
+        isThinkingComplete: false,
+      };
+    }
   }
 
   return {
