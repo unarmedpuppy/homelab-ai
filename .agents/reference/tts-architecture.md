@@ -158,11 +158,15 @@ The Chatterbox TTS Server exposes an OpenAI-compatible API:
 
 | Component | VRAM | Notes |
 |-----------|------|-------|
-| vLLM (qwen2.5-14b-awq) | ~6-8GB | Primary LLM |
-| Chatterbox Turbo | ~1.5GB | TTS |
+| vLLM (qwen3-32b-awq) | ~22GB | Primary LLM (awq_marlin, 8K context) |
+| Chatterbox Turbo | ~1.5GB | TTS (runs on port 8006) |
 | System/overhead | ~1GB | CUDA, drivers |
-| **Total Used** | **~9-11GB** | |
-| **Available** | **~13-15GB** | For gaming or other models |
+| **Total Used (LLM active)** | **~22-23GB** | qwen3-32b fills most VRAM |
+| **Available** | **~1-2GB** | TTS coexists only when LLM is stopped |
+
+> **Note (2026-02-27):** Qwen3-32B-AWQ with `awq_marlin` and 8K context uses ~22GB.
+> TTS and LLM cannot coexist on GPU simultaneously. Gaming mode stops the LLM;
+> TTS runs as a standalone container managed by `docker-compose.gaming.yml`.
 
 ### Server (RTX 3070, 8GB)
 

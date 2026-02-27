@@ -189,6 +189,7 @@ def create_vllm_container(model_id: str):
             environment={
                 "NVIDIA_VISIBLE_DEVICES": "all",
                 "HF_HOME": "/root/.cache/huggingface",
+                "VLLM_USE_V1": "0" if CPU_OFFLOAD_GB > 0 else "1",
             },
             volumes={
                 "huggingface-cache": {"bind": "/root/.cache/huggingface", "mode": "rw"}

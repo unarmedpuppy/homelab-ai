@@ -64,7 +64,8 @@ Rejected — significantly outperformed by Qwen3 on reasoning, coding, and instr
 
 ## Follow-up
 
-- [ ] Confirm Harbor has vLLM `v0.8.5` cached — pull gaming PC deploy and verify
+- [x] Confirm Harbor has vLLM `v0.8.5` cached — pull gaming PC deploy and verify
+- [x] **Performance optimization (2026-02-27):** Switched to `awq_marlin` quantization, eliminated CPU offloading, reduced context to 8K. See [ADR: vLLM AWQ-Marlin and WSL2 Optimization](2026-02-27-vllm-awq-marlin-and-wsl2-optimization.md). Result: ~19 tok/s (was ~1.6 tok/s).
 - [ ] Monitor Qwen3 thinking mode behavior in router logs — may want to add `--enable-reasoning --reasoning-parser deepseek_r1` to manager serve args for proper thinking token handling
 - [ ] Watch vLLM PR #32614 (GLM MLA fix) — swap to GLM-4.7-Flash when merged
 - [ ] Consider Qwen3-Coder-30B-A3B MoE as a second model slot for heavy agentic sessions

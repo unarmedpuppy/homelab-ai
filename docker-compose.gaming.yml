@@ -19,6 +19,7 @@ services:
       - GAMING_MODE_ENABLED=true
       - IDLE_TIMEOUT=0
       - START_TIMEOUT=600
+      - CPU_OFFLOAD_GB=0
       - VLLM_IMAGE=${HARBOR_REGISTRY:-harbor.local}/docker-hub/vllm/vllm-openai:v0.8.5
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
