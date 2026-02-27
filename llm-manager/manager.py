@@ -163,7 +163,11 @@ def create_vllm_container(model_id: str):
     # On 8GB GPUs, disable custom all-reduce to save memory
     if gpu_vram_gb <= 8:
         cmd.extend(["--disable-log-stats"])
-    
+
+    # Model-specific extra vLLM args (e.g. --enable-auto-tool-choice --tool-call-parser hermes)
+    if card.get("extra_args"):
+        cmd.extend(card["extra_args"])
+
     print(f"[{model_id}] Creating container: {container_name}")
     print(f"[{model_id}] Image: {VLLM_IMAGE}")
     print(f"[{model_id}] Network: {DOCKER_NETWORK}")

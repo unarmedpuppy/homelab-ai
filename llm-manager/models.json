@@ -28,7 +28,8 @@
       "type": "text",
       "vram_gb": 20,
       "max_context": 32768,
-      "default_context": 16384
+      "default_context": 16384,
+      "extra_args": ["--enable-auto-tool-choice", "--tool-call-parser", "hermes"]
     },
     {
       "id": "qwen2.5-32b-awq",
