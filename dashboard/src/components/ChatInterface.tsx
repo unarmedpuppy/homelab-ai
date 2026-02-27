@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { chatAPI, memoryAPI, providersAPI, imageAPI, ttsAPI, TTSError } from '../api/client';
 import type { ChatMessage, ImageRef } from '../types/api';
@@ -68,6 +68,13 @@ export default function ChatInterface({ conversationId, onToggleHistory, history
     estimated_time?: number;
   }>({ status: null });
 
+  // Context window tracking
+  const [contextInfo, setContextInfo] = useState<{
+    promptTokens: number;
+    model?: string;
+    backend?: string;
+  } | null>(null);
+
   // Image upload state
   const [pendingImages, setPendingImages] = useState<File[]>([]);
 
@@ -92,6 +99,7 @@ export default function ChatInterface({ conversationId, onToggleHistory, history
   // Update activeConversationId when conversationId prop changes (e.g., selecting from sidebar)
   useEffect(() => {
     setActiveConversationId(conversationId);
+    setContextInfo(null);
   }, [conversationId]);
 
   // Fetch providers for dynamic model selection
@@ -294,6 +302,14 @@ export default function ChatInterface({ conversationId, onToggleHistory, history
               }
             }
             
+            if (event.usage?.prompt_tokens) {
+              setContextInfo({
+                promptTokens: event.usage.prompt_tokens,
+                model: event.model,
+                backend: event.backend,
+              });
+            }
+
             setIsStreaming(false);
             setStreamingContent('');
             setStreamingTokenCount(0);
@@ -376,6 +392,17 @@ export default function ChatInterface({ conversationId, onToggleHistory, history
   };
 
   const isTtsBusy = ttsGeneratingIdx !== null || ttsPlayingIdx !== null;
+
+  const contextWindow = useMemo(() => {
+    if (!contextInfo?.model || !providersData?.providers) return null;
+    for (const provider of providersData.providers) {
+      if (provider.id === contextInfo.backend) {
+        const model = provider.models.find(m => m.id === contextInfo.model);
+        if (model?.context_window) return model.context_window;
+      }
+    }
+    return null;
+  }, [contextInfo, providersData]);
 
   return (
     <div className="flex flex-col h-full bg-[var(--retro-bg-dark)]">
@@ -711,6 +738,30 @@ export default function ChatInterface({ conversationId, onToggleHistory, history
 
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Context Window Bar */}
+      {contextInfo && contextWindow && (() => {
+        const pct = Math.min((contextInfo.promptTokens / contextWindow) * 100, 100);
+        const fmt = (n: number) => n >= 1000 ? `${(n / 1000).toFixed(1)}k` : `${n}`;
+        const barColor = pct < 50
+          ? 'var(--retro-accent-green)'
+          : pct < 80
+          ? 'var(--retro-accent-yellow)'
+          : 'var(--retro-accent-red)';
+        return (
+          <div className="px-3 sm:px-6 py-1.5 bg-[var(--retro-bg-dark)] border-t border-[var(--retro-border)] flex items-center gap-3">
+            <div className="flex-1 h-1 bg-[var(--retro-bg-light)] rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{ width: `${pct}%`, backgroundColor: barColor }}
+              />
+            </div>
+            <span className="text-[10px] font-mono text-[var(--retro-text-muted)] whitespace-nowrap flex-shrink-0">
+              {fmt(contextInfo.promptTokens)} / {fmt(contextWindow)}
+            </span>
+          </div>
+        );
+      })()}
 
       {/* Input Area */}
       <div className="border-t-2 border-[var(--retro-border)] p-3 sm:p-4 bg-[var(--retro-bg-medium)]">
