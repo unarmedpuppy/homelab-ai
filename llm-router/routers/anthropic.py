@@ -287,6 +287,10 @@ def translate_anthropic_to_openai(anthropic_body: dict) -> dict:
         "messages": messages,
         "max_tokens": anthropic_body.get("max_tokens", 4096),
         "stream": anthropic_body.get("stream", False),
+        # Disable qwen3 thinking mode — Claude Code does its own reasoning and
+        # doesn't know how to handle <think> tokens streamed as text content.
+        # Cloud backends (zai, claude-harness) ignore unknown fields.
+        "chat_template_kwargs": {"enable_thinking": False},
     }
 
     for field in ("temperature", "top_p"):
