@@ -48,7 +48,7 @@ Claude Code CLI
 ## Configuring Claude Code to Use Local Models
 
 ```bash
-export ANTHROPIC_BASE_URL=https://homelab-ai.server.unarmedpuppy.com
+export ANTHROPIC_BASE_URL=https://homelab-ai-api.server.unarmedpuppy.com
 export ANTHROPIC_API_KEY=<llm-router-api-key>
 claude  # or: claude -p "prompt"
 ```
