@@ -49,6 +49,42 @@ server {
         proxy_http_version 1.1;
     }
 
+    # Agent harness API proxy (command/aoe-canvas)
+    location /api/harness/ {
+        resolver 127.0.0.11 valid=30s;
+        set $harness_upstream https://agent-harness.server.unarmedpuppy.com;
+        rewrite ^/api/harness/(.*) /$1 break;
+        proxy_pass $harness_upstream;
+        proxy_set_header Host agent-harness.server.unarmedpuppy.com;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_ssl_server_name on;
+        proxy_ssl_verify off;
+    }
+
+    # LLM router metrics proxy (command/aoe-canvas HUD)
+    location /api/router/ {
+        resolver 127.0.0.11 valid=30s;
+        set $router_upstream https://llm-router.server.unarmedpuppy.com;
+        rewrite ^/api/router/(.*) /$1 break;
+        proxy_pass $router_upstream;
+        proxy_set_header Host llm-router.server.unarmedpuppy.com;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_ssl_server_name on;
+        proxy_ssl_verify off;
+    }
+
+    # Tasks API proxy (command/aoe-canvas)
+    location /api/tasks/ {
+        resolver 127.0.0.11 valid=30s;
+        set $tasks_upstream https://tasks-api.server.unarmedpuppy.com;
+        rewrite ^/api/tasks/(.*) /$1 break;
+        proxy_pass $tasks_upstream;
+        proxy_set_header Host tasks-api.server.unarmedpuppy.com;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_ssl_server_name on;
+        proxy_ssl_verify off;
+    }
+
     # No-cache for PWA files
     location = /manifest.json {
         add_header Cache-Control "no-cache";

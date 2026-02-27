@@ -4,6 +4,28 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  server: {
+    proxy: {
+      '/api/harness': {
+        target: 'https://agent-harness.server.unarmedpuppy.com',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api\/harness/, ''),
+      },
+      '/api/router': {
+        target: 'https://llm-router.server.unarmedpuppy.com',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api\/router/, ''),
+      },
+      '/api/tasks': {
+        target: 'https://tasks-api.server.unarmedpuppy.com',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api\/tasks/, ''),
+      },
+    },
+  },
   build: {
     rollupOptions: {
       output: {
@@ -14,6 +36,7 @@ export default defineConfig({
           'vendor-charts': ['recharts'],
           'vendor-query': ['@tanstack/react-query'],
           'vendor-markdown': ['react-markdown', 'remark-gfm'],
+          'vendor-phaser': ['phaser'],
         },
       },
     },

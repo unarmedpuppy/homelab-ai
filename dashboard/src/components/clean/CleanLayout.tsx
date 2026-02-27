@@ -3,12 +3,13 @@ import { CleanNav } from './CleanNav';
 
 interface CleanLayoutProps {
   children: ReactNode;
+  noNav?: boolean;
 }
 
-export function CleanLayout({ children }: CleanLayoutProps) {
+export function CleanLayout({ children, noNav = false }: CleanLayoutProps) {
   return (
     <div className="theme-clean">
-      <CleanNav />
+      {!noNav && <CleanNav />}
       <main className="clean-container">
         {children}
       </main>

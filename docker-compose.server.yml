@@ -125,6 +125,35 @@ services:
       - "homepage.description=Fleet status aggregator for agents"
       - "com.centurylinklabs.watchtower.enable=true"
 
+  aoe-canvas:
+    image: ${HARBOR_REGISTRY:-harbor.local}/library/aoe-canvas:latest
+    container_name: aoe-canvas
+    restart: unless-stopped
+    ports:
+      - "8017:80"
+    networks:
+      - my-network
+    labels:
+      - "traefik.enable=true"
+      # Public router (basicauth)
+      - "traefik.http.routers.aoe-canvas.rule=Host(`aoe-canvas.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.aoe-canvas.entrypoints=websecure"
+      - "traefik.http.routers.aoe-canvas.tls.certresolver=myresolver"
+      - "traefik.http.routers.aoe-canvas.priority=1"
+      - "traefik.http.routers.aoe-canvas.middlewares=basicauth@file"
+      # Local router (no auth for LAN + Tailscale)
+      - "traefik.http.routers.aoe-canvas-local.rule=Host(`aoe-canvas.${DOMAIN:-localhost}`) && (ClientIP(`192.168.86.0/24`) || ClientIP(`100.64.0.0/10`))"
+      - "traefik.http.routers.aoe-canvas-local.entrypoints=websecure"
+      - "traefik.http.routers.aoe-canvas-local.tls.certresolver=myresolver"
+      - "traefik.http.routers.aoe-canvas-local.priority=100"
+      - "traefik.http.services.aoe-canvas.loadbalancer.server.port=80"
+      - "homepage.group=AI"
+      - "homepage.name=AoE Canvas"
+      - "homepage.icon=mdi-sword-cross"
+      - "homepage.href=https://aoe-canvas.${DOMAIN:-localhost}"
+      - "homepage.description=Age of Empires-inspired agent command interface"
+      - "com.centurylinklabs.watchtower.enable=true"
+
 networks:
   my-network:
     external: true

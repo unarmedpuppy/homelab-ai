@@ -46,14 +46,16 @@ const AgentsDashboard = lazy(() => import('./components/agents/AgentsDashboard')
 
 const TradingDashboard = lazy(() => import('./components/trading/TradingDashboard'));
 const DocsPage = lazy(() => import('./pages/DocsPage'));
+const CommandPage = lazy(() => import('./command/CommandPage'));
 
 // Clean pages (lazy)
 const HomePage = lazy(() => import('./pages/HomePage'));
 const EmailsPage = lazy(() => import('./pages/reference/EmailsPage'));
 const GettingStartedPage = lazy(() => import('./pages/reference/GettingStartedPage'));
 const TroubleshootingPage = lazy(() => import('./pages/reference/TroubleshootingPage'));
+const SummaryPage = lazy(() => import('./pages/SummaryPage'));
 
-type ViewName = 'chat' | 'ralph' | 'tasks' | 'providers' | 'stats' | 'agents' | 'trading' | 'docs';
+type ViewName = 'chat' | 'ralph' | 'tasks' | 'providers' | 'stats' | 'agents' | 'trading' | 'docs' | 'command';
 
 function AppHeader() {
   return (
@@ -75,6 +77,7 @@ function AppNavigation({ currentView }: { currentView: ViewName }) {
     { to: '/agents', view: 'agents', icon: '🤖', label: 'Agents' },
     { to: '/trading', view: 'trading', icon: '📈', label: 'Trading' },
     { to: '/docs', view: 'docs', icon: '📄', label: 'Docs' },
+    { to: '/command', view: 'command', icon: '⚔️', label: 'Command' },
   ];
 
   return (
@@ -232,27 +235,63 @@ function AppLayout({
 function ChatView() {
   const { conversationId } = useParams<{ conversationId?: string }>();
   const navigate = useNavigate();
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const handleNewChat = () => {
     navigate('/chat');
+    setHistoryOpen(false);
   };
 
   const handleSelectConversation = (id: string) => {
     navigate(`/chat/${id}`);
+    setHistoryOpen(false);
   };
 
   return (
-    <AppLayout
-      currentView="chat"
-      sidebarContent={
-        <ConversationSidebar
-          selectedConversationId={conversationId || null}
-          onSelectConversation={handleSelectConversation}
-          onNewChat={handleNewChat}
-        />
-      }
-    >
-      <ChatInterface conversationId={conversationId || null} />
+    <AppLayout currentView="chat">
+      <div className="flex h-full overflow-hidden relative">
+        {/* Chat pane */}
+        <div className="flex-1 min-w-0 overflow-hidden">
+          <ChatInterface
+            conversationId={conversationId || null}
+            onToggleHistory={() => setHistoryOpen(o => !o)}
+            historyOpen={historyOpen}
+          />
+        </div>
+
+        {/* Mobile backdrop */}
+        {historyOpen && (
+          <div
+            className="lg:hidden fixed inset-0 z-20 bg-black/60 backdrop-blur-sm"
+            onClick={() => setHistoryOpen(false)}
+          />
+        )}
+
+        {/* Right history panel */}
+        <div className={`chat-history-panel ${historyOpen ? 'open' : ''}`}>
+          {/* Panel header — always visible */}
+          <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--retro-border)] flex-shrink-0">
+            <span className="text-xs font-semibold text-[var(--retro-text-secondary)] uppercase tracking-wide">
+              Conversations
+            </span>
+            <button
+              onClick={() => setHistoryOpen(false)}
+              className="w-8 h-8 flex items-center justify-center text-[var(--retro-text-muted)] hover:text-[var(--retro-text-primary)] rounded transition-colors"
+              aria-label="Close history panel"
+            >
+              ✕
+            </button>
+          </div>
+          {/* Sidebar content */}
+          <div className="chat-history-panel-inner">
+            <ConversationSidebar
+              selectedConversationId={conversationId || null}
+              onSelectConversation={handleSelectConversation}
+              onNewChat={handleNewChat}
+            />
+          </div>
+        </div>
+      </div>
     </AppLayout>
   );
 }
@@ -342,6 +381,18 @@ function DocsView() {
   );
 }
 
+function CommandView() {
+  return (
+    <AppLayout currentView="command">
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoading section="Command" />}>
+          <CommandPage />
+        </Suspense>
+      </ErrorBoundary>
+    </AppLayout>
+  );
+}
+
 function CleanPage({ children }: { children: ReactNode }) {
   return (
     <CleanLayout>
@@ -360,6 +411,16 @@ function App() {
       <Route path="/reference/emails" element={<CleanPage><EmailsPage /></CleanPage>} />
       <Route path="/reference/getting-started" element={<CleanPage><GettingStartedPage /></CleanPage>} />
       <Route path="/reference/troubleshooting" element={<CleanPage><TroubleshootingPage /></CleanPage>} />
+      <Route
+        path="/summary"
+        element={
+          <CleanLayout noNav>
+            <Suspense fallback={<div style={{ padding: '2rem', color: 'var(--clean-text-muted)' }}>Loading...</div>}>
+              <SummaryPage />
+            </Suspense>
+          </CleanLayout>
+        }
+      />
 
       {/* Retro theme routes */}
       <Route path="/chat" element={<ChatView />} />
@@ -372,6 +433,7 @@ function App() {
       <Route path="/trading" element={<TradingView />} />
       <Route path="/docs" element={<DocsView />} />
       <Route path="/docs/:repo/:slug" element={<DocsView />} />
+      <Route path="/command" element={<CommandView />} />
     </Routes>
   );
 }

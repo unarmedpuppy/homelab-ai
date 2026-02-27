@@ -144,7 +144,35 @@ OpenAI-compatible API that routes to multiple backends:
 **Key files**:
 - `router.py` - Main FastAPI application
 - `providers/` - Backend implementations
+- `routers/anthropic.py` - Anthropic Messages API compatibility layer
 - `tools/` - Agent endpoint tools
+
+**Anthropic Compatibility (`/v1/messages`)**:
+
+The router speaks both OpenAI format (`/v1/chat/completions`) and Anthropic format (`/v1/messages`). Point Claude Code here to route to local models by default.
+
+Endpoints:
+- `POST /v1/messages` — Anthropic Messages API (translates to OpenAI, routes via ProviderManager)
+- `POST /v1/messages/count_tokens` — Token counting pre-flight
+
+Auth: Accepts `x-api-key: <llm-router-key>` (Anthropic SDK default) or `Authorization: Bearer`.
+
+Routing chain (priority order):
+1. gaming-pc-3090 (`qwen3-32b-awq`) — default
+2. zai (`glm-5`) — escalation / gaming mode
+3. claude-harness (`claude-sonnet-4-5`) — last resort
+
+Claude Code config:
+```bash
+export ANTHROPIC_BASE_URL=https://homelab-ai.server.unarmedpuppy.com
+export ANTHROPIC_API_KEY=<your-llm-router-api-key>
+```
+
+Claude model names accepted by the OpenAI endpoint (via `MODEL_ALIASES`):
+- `claude-sonnet-4-6` → `qwen3-32b-awq`
+- `claude-opus-4-6` → `qwen3-32b-awq`
+- `claude-haiku-4-5` → `qwen2.5-14b-awq`
+- `claude-3-5-sonnet` → `qwen3-32b-awq`
 
 ### Dashboard (`dashboard/`)
 
@@ -158,6 +186,15 @@ React dashboard with retro/pixel-art "command center" UI for AI infrastructure m
 | `/providers` | Providers | Provider health monitoring and utilization |
 | `/stats` | Stats | Activity heatmap, model usage charts |
 | `/agents` | Agents | Agent run history and logs |
+| `/command` | Command | AoE2-style agent command interface (Phaser 3 isometric map) |
+
+**Command page** (`src/command/`) — lazy-loaded Phaser 3 game embedded in the dashboard:
+- Isometric map with named agent units (Avery, Gilfoyle, Ralph, Jobin) + villagers
+- Buildings represent projects; right-click to assign agents and dispatch jobs
+- Live job polling from agent-harness; unit animations reflect job state
+- React HUD overlay (top bar: tokens/credits/jobs, bottom panel: selected unit/job details, prompt bar)
+- Assets in `public/assets/`: `units/`, `buildings/`, `tiles/`
+- API calls proxied through nginx: `/api/harness/` → agent-harness, `/api/router/` → llm-router, `/api/tasks/` → tasks-api
 
 **Key files**:
 - `src/App.tsx` - Main application and routing

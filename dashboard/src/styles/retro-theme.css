@@ -1237,3 +1237,162 @@
     display: none !important;
   }
 }
+
+/* ============================================
+   Thinking Block
+   ============================================ */
+
+.thinking-block {
+  margin-bottom: 0.75rem;
+  border-left: 2px solid var(--retro-text-muted);
+  border-radius: 0 4px 4px 0;
+}
+
+.thinking-block-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.35rem 0.6rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--retro-text-muted);
+  font-size: 0.72rem;
+  font-style: italic;
+  transition: color 0.15s;
+  user-select: none;
+}
+
+.thinking-block-header:hover {
+  color: var(--retro-text-secondary);
+}
+
+.thinking-block-chevron {
+  display: inline-block;
+  font-size: 0.6rem;
+  transition: transform 0.2s ease;
+  line-height: 1;
+}
+
+.thinking-block-chevron.open {
+  transform: rotate(90deg);
+}
+
+.thinking-block-label {
+  letter-spacing: 0.03em;
+}
+
+.thinking-block-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--retro-accent-yellow);
+  animation: retro-pulse 1s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.thinking-block-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.25s ease-out;
+}
+
+.thinking-block-body.open {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.thinking-block-content {
+  padding: 0.4rem 0.75rem 0.5rem 0.75rem;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--retro-text-muted);
+  font-style: italic;
+  white-space: pre-wrap;
+  word-break: break-word;
+  opacity: 0.75;
+}
+
+.thinking-block-cursor {
+  display: inline-block;
+  width: 5px;
+  height: 0.85em;
+  background: var(--retro-text-muted);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: retro-blink 1s step-end infinite;
+}
+
+@keyframes retro-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ============================================
+   Chat History Panel (right collapsible)
+   ============================================ */
+
+/* Mobile-first: fixed overlay from right */
+.chat-history-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  width: 88vw;
+  max-width: 320px;
+  background: var(--retro-bg-medium);
+  border-left: 1px solid var(--retro-border);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.3s ease-out;
+  /* Respect safe area on notched devices */
+  padding-top: var(--safe-area-top);
+}
+
+.chat-history-panel.open {
+  transform: translateX(0);
+}
+
+/* Desktop (lg+): inline panel with width transition */
+@media (min-width: 1024px) {
+  .chat-history-panel {
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    z-index: auto;
+    width: 0;
+    max-width: none;
+    padding-top: 0;
+    transform: none;
+    overflow: hidden;
+    border-left: none;
+    transition: width 0.3s ease-out, border-color 0.3s ease-out;
+    flex-shrink: 0;
+  }
+
+  .chat-history-panel.open {
+    width: 288px;
+    border-left: 1px solid var(--retro-border);
+    transform: none;
+  }
+}
+
+/* Inner content: fixed width so desktop reveal looks like a slide-in */
+.chat-history-panel-inner {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .chat-history-panel-inner {
+    width: 288px;
+  }
+}

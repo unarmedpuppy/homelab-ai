@@ -302,6 +302,22 @@ def init_database():
             ON harness_sessions(event)
         """)
 
+        # Create daily_summaries table for Avery's morning summaries
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS daily_summaries (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                date TEXT NOT NULL UNIQUE,
+                content TEXT NOT NULL,
+                created_at DATETIME NOT NULL,
+                updated_at DATETIME NOT NULL
+            )
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_daily_summaries_date
+            ON daily_summaries(date)
+        """)
+
         # Migration: Add token columns to agent_steps table
         try:
             cursor.execute("SELECT prompt_tokens FROM agent_steps LIMIT 1")

@@ -1,6 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { tasksAPI } from '../../api/client';
-import type { Task, TaskStats, TaskFilters, TaskStatus, TaskPriority } from '../../types/tasks';
+import type { Task, TaskStats, TaskFilters, TaskStatus, TaskPriority, TaskType, BuildingType } from '../../types/tasks';
+
+const BUILDING_TYPE_LABELS: Record<BuildingType, string> = {
+  'town-center': 'Town Center',
+  'barracks':    'Barracks',
+  'market':      'Market',
+  'university':  'University',
+  'castle':      'Castle',
+};
 
 const STATUS_ORDER: TaskStatus[] = ['OPEN', 'IN_PROGRESS', 'BLOCKED', 'CLOSED'];
 const PRIORITY_COLORS: Record<TaskPriority, string> = {
@@ -175,9 +183,13 @@ interface FilterBarProps {
   selectedRepo: string;
   selectedLabel: string;
   selectedPriority: string;
+  selectedType: string;
+  selectedBuildingType: string;
   onRepoChange: (repo: string) => void;
   onLabelChange: (label: string) => void;
   onPriorityChange: (priority: string) => void;
+  onTypeChange: (type: string) => void;
+  onBuildingTypeChange: (buildingType: string) => void;
 }
 
 function FilterBar({
@@ -185,41 +197,49 @@ function FilterBar({
   selectedRepo,
   selectedLabel,
   selectedPriority,
+  selectedType,
+  selectedBuildingType,
   onRepoChange,
   onLabelChange,
   onPriorityChange,
+  onTypeChange,
+  onBuildingTypeChange,
 }: FilterBarProps) {
   if (!filters) return null;
 
+  const selectClass = "px-3 py-1.5 bg-[var(--retro-bg-light)] border border-[var(--retro-border)] rounded text-sm text-[var(--retro-text-primary)] focus:border-[var(--retro-border-active)] focus:outline-none";
+
   return (
     <div className="flex flex-wrap gap-3 mb-4">
-      <select
-        value={selectedRepo}
-        onChange={(e) => onRepoChange(e.target.value)}
-        className="px-3 py-1.5 bg-[var(--retro-bg-light)] border border-[var(--retro-border)] rounded text-sm text-[var(--retro-text-primary)] focus:border-[var(--retro-border-active)] focus:outline-none"
-      >
+      <select value={selectedType} onChange={(e) => onTypeChange(e.target.value)} className={selectClass}>
+        <option value="">All Types</option>
+        {filters.types.map((t) => (
+          <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
+        ))}
+      </select>
+
+      <select value={selectedBuildingType} onChange={(e) => onBuildingTypeChange(e.target.value)} className={selectClass}>
+        <option value="">All Buildings</option>
+        {filters.building_types.map((bt) => (
+          <option key={bt} value={bt}>{BUILDING_TYPE_LABELS[bt as BuildingType] ?? bt}</option>
+        ))}
+      </select>
+
+      <select value={selectedRepo} onChange={(e) => onRepoChange(e.target.value)} className={selectClass}>
         <option value="">All Repos</option>
         {filters.repos.map((repo) => (
           <option key={repo} value={repo}>{repo}</option>
         ))}
       </select>
 
-      <select
-        value={selectedLabel}
-        onChange={(e) => onLabelChange(e.target.value)}
-        className="px-3 py-1.5 bg-[var(--retro-bg-light)] border border-[var(--retro-border)] rounded text-sm text-[var(--retro-text-primary)] focus:border-[var(--retro-border-active)] focus:outline-none"
-      >
+      <select value={selectedLabel} onChange={(e) => onLabelChange(e.target.value)} className={selectClass}>
         <option value="">All Labels</option>
         {filters.labels.map((label) => (
           <option key={label} value={label}>{label}</option>
         ))}
       </select>
 
-      <select
-        value={selectedPriority}
-        onChange={(e) => onPriorityChange(e.target.value)}
-        className="px-3 py-1.5 bg-[var(--retro-bg-light)] border border-[var(--retro-border)] rounded text-sm text-[var(--retro-text-primary)] focus:border-[var(--retro-border-active)] focus:outline-none"
-      >
+      <select value={selectedPriority} onChange={(e) => onPriorityChange(e.target.value)} className={selectClass}>
         <option value="">All Priorities</option>
         {filters.priorities.map((p) => (
           <option key={p} value={p}>{p}</option>
@@ -240,16 +260,21 @@ export default function TasksDashboard() {
   const [selectedRepo, setSelectedRepo] = useState('');
   const [selectedLabel, setSelectedLabel] = useState('');
   const [selectedPriority, setSelectedPriority] = useState('');
+  const [selectedType, setSelectedType] = useState('');
+  const [selectedBuildingType, setSelectedBuildingType] = useState('');
 
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const params: Record<string, string> = {};
-      if (selectedRepo) params.repo = selectedRepo;
-      if (selectedLabel) params.label = selectedLabel;
-      if (selectedPriority) params.priority = selectedPriority;
+      const params = {
+        ...(selectedRepo && { repo: selectedRepo }),
+        ...(selectedLabel && { label: selectedLabel }),
+        ...(selectedPriority && { priority: selectedPriority as TaskPriority }),
+        ...(selectedType && { type: selectedType as TaskType }),
+        ...(selectedBuildingType && { building_type: selectedBuildingType as BuildingType }),
+      };
 
       const [tasksRes, statsRes, filtersRes] = await Promise.all([
         tasksAPI.list(params),
@@ -265,7 +290,7 @@ export default function TasksDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [selectedRepo, selectedLabel, selectedPriority]);
+  }, [selectedRepo, selectedLabel, selectedPriority, selectedType, selectedBuildingType]);
 
   useEffect(() => {
     loadData();
@@ -325,9 +350,13 @@ export default function TasksDashboard() {
           selectedRepo={selectedRepo}
           selectedLabel={selectedLabel}
           selectedPriority={selectedPriority}
+          selectedType={selectedType}
+          selectedBuildingType={selectedBuildingType}
           onRepoChange={setSelectedRepo}
           onLabelChange={setSelectedLabel}
           onPriorityChange={setSelectedPriority}
+          onTypeChange={setSelectedType}
+          onBuildingTypeChange={setSelectedBuildingType}
         />
       </div>
 

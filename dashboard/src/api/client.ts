@@ -17,6 +17,7 @@ import type {
   AgentRunRecord,
   AgentRunWithSteps,
   AgentRunsStats,
+  DailySummary,
 } from '../types/api';
 
 // API base URL - defaults to public router endpoint
@@ -697,6 +698,11 @@ export const tasksAPI = {
     if (params?.repo) searchParams.set('repo', params.repo);
     if (params?.label) searchParams.set('label', params.label);
     if (params?.epic) searchParams.set('epic', params.epic);
+    if (params?.type) searchParams.set('type', params.type);
+    if (params?.assignee) searchParams.set('assignee', params.assignee);
+    if (params?.source) searchParams.set('source', params.source);
+    if (params?.building_type) searchParams.set('building_type', params.building_type);
+    if (params?.project_id) searchParams.set('project_id', params.project_id);
 
     const url = `${TASKS_API_URL}/v1/tasks${searchParams.toString() ? `?${searchParams}` : ''}`;
     const response = await fetch(url);
@@ -1083,6 +1089,17 @@ export const mercuryAPI = {
       throw new Error(`Failed to update risk limits: ${response.statusText}`);
     }
     return response.json();
+  },
+};
+
+export const summaryAPI = {
+  getLatest: async (): Promise<DailySummary> => {
+    const response = await apiClient.get<DailySummary>('/summary/latest');
+    return response.data;
+  },
+  getByDate: async (date: string): Promise<DailySummary> => {
+    const response = await apiClient.get<DailySummary>(`/summary/${date}`);
+    return response.data;
   },
 };
 

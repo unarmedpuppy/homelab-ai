@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { chatAPI, memoryAPI, providersAPI, imageAPI, ttsAPI, TTSError } from '../api/client';
 import type { ChatMessage, ImageRef } from '../types/api';
@@ -23,7 +23,9 @@ function extractTitleFromFirstLine(text: string, maxLength: number = 50): string
 }
 import ImageUpload from './ImageUpload';
 import MarkdownContent from './MarkdownContent';
+import ThinkingBlock from './ThinkingBlock';
 import ProviderModelSelector from './ProviderModelSelector';
+import { parseThinkingContent } from '../utils/thinkingParser';
 
 interface MessageWithMetadata extends ChatMessage {
   model?: string;
@@ -37,9 +39,11 @@ interface MessageWithMetadata extends ChatMessage {
 
 interface ChatInterfaceProps {
   conversationId: string | null;
+  onToggleHistory?: () => void;
+  historyOpen?: boolean;
 }
 
-export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
+export default function ChatInterface({ conversationId, onToggleHistory, historyOpen }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<MessageWithMetadata[]>([]);
   const [input, setInput] = useState('');
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
@@ -63,6 +67,13 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
     message?: string;
     estimated_time?: number;
   }>({ status: null });
+
+  // Context window tracking
+  const [contextInfo, setContextInfo] = useState<{
+    promptTokens: number;
+    model?: string;
+    backend?: string;
+  } | null>(null);
 
   // Image upload state
   const [pendingImages, setPendingImages] = useState<File[]>([]);
@@ -88,6 +99,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   // Update activeConversationId when conversationId prop changes (e.g., selecting from sidebar)
   useEffect(() => {
     setActiveConversationId(conversationId);
+    setContextInfo(null);
   }, [conversationId]);
 
   // Fetch providers for dynamic model selection
@@ -290,6 +302,14 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
               }
             }
             
+            if (event.usage?.prompt_tokens) {
+              setContextInfo({
+                promptTokens: event.usage.prompt_tokens,
+                model: event.model,
+                backend: event.backend,
+              });
+            }
+
             setIsStreaming(false);
             setStreamingContent('');
             setStreamingTokenCount(0);
@@ -373,22 +393,35 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
 
   const isTtsBusy = ttsGeneratingIdx !== null || ttsPlayingIdx !== null;
 
+  const contextWindow = useMemo(() => {
+    if (!contextInfo?.model || !providersData?.providers) return null;
+    for (const provider of providersData.providers) {
+      if (provider.id === contextInfo.backend) {
+        const model = provider.models.find(m => m.id === contextInfo.model);
+        if (model?.context_window) return model.context_window;
+      }
+    }
+    return null;
+  }, [contextInfo, providersData]);
+
   return (
     <div className="flex flex-col h-full bg-[var(--retro-bg-dark)]">
       {/* Header Panel */}
       <div className="border-b-2 border-[var(--retro-border)] p-3 sm:p-4 bg-[var(--retro-bg-medium)]">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <ProviderModelSelector
-            providers={providersData?.providers || []}
-            isLoading={isLoadingProviders}
-            selectedProvider={selectedProvider}
-            selectedModel={selectedModel}
-            onProviderChange={setSelectedProvider}
-            onModelChange={setSelectedModel}
-            disabled={isStreaming}
-          />
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <ProviderModelSelector
+              providers={providersData?.providers || []}
+              isLoading={isLoadingProviders}
+              selectedProvider={selectedProvider}
+              selectedModel={selectedModel}
+              onProviderChange={setSelectedProvider}
+              onModelChange={setSelectedModel}
+              disabled={isStreaming}
+            />
+          </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             {ttsAvailable && (
               <RetroButton
                 variant={ttsEnabled ? 'primary' : 'ghost'}
@@ -408,6 +441,16 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
             >
               Advanced
             </RetroButton>
+            {onToggleHistory && (
+              <RetroButton
+                variant={historyOpen ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={onToggleHistory}
+                icon={<span>☰</span>}
+              >
+                Chats
+              </RetroButton>
+            )}
           </div>
         </div>
 
@@ -552,7 +595,15 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                     ))}
                   </div>
                 )}
-                <MarkdownContent content={message.content} />
+                {(() => {
+                  const parsed = parseThinkingContent(message.content);
+                  return (
+                    <>
+                      {parsed.thinking && <ThinkingBlock thinking={parsed.thinking} />}
+                      <MarkdownContent content={parsed.response} />
+                    </>
+                  );
+                })()}
 
                 {/* Metadata for all messages */}
                 <div className="mt-3 pt-3 border-t border-[var(--retro-border)] flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-[var(--retro-text-muted)]">
@@ -634,8 +685,25 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
             <div
               className="p-3 sm:p-4 rounded border bg-[var(--retro-bg-medium)] border-[var(--retro-border-active)] mr-0 sm:mr-6"
             >
-              <MarkdownContent content={streamingContent} />
-              <span className="inline-block w-2 h-4 bg-[var(--retro-accent-green)] ml-1 retro-animate-pulse"></span>
+              {(() => {
+                const parsed = parseThinkingContent(streamingContent);
+                const showCursor = parsed.isThinkingComplete || parsed.thinking === null;
+                return (
+                  <>
+                    {parsed.thinking !== null && (
+                      <ThinkingBlock
+                        thinking={parsed.thinking}
+                        isStreaming={true}
+                        isThinkingComplete={parsed.isThinkingComplete}
+                      />
+                    )}
+                    {parsed.response && <MarkdownContent content={parsed.response} />}
+                    {showCursor && (
+                      <span className="inline-block w-2 h-4 bg-[var(--retro-accent-green)] ml-1 retro-animate-pulse"></span>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           </div>
         )}
@@ -670,6 +738,30 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
 
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Context Window Bar */}
+      {contextInfo && contextWindow && (() => {
+        const pct = Math.min((contextInfo.promptTokens / contextWindow) * 100, 100);
+        const fmt = (n: number) => n >= 1000 ? `${(n / 1000).toFixed(1)}k` : `${n}`;
+        const barColor = pct < 50
+          ? 'var(--retro-accent-green)'
+          : pct < 80
+          ? 'var(--retro-accent-yellow)'
+          : 'var(--retro-accent-red)';
+        return (
+          <div className="px-3 sm:px-6 py-1.5 bg-[var(--retro-bg-dark)] border-t border-[var(--retro-border)] flex items-center gap-3">
+            <div className="flex-1 h-1 bg-[var(--retro-bg-light)] rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{ width: `${pct}%`, backgroundColor: barColor }}
+              />
+            </div>
+            <span className="text-[10px] font-mono text-[var(--retro-text-muted)] whitespace-nowrap flex-shrink-0">
+              {fmt(contextInfo.promptTokens)} / {fmt(contextWindow)}
+            </span>
+          </div>
+        );
+      })()}
 
       {/* Input Area */}
       <div className="border-t-2 border-[var(--retro-border)] p-3 sm:p-4 bg-[var(--retro-bg-medium)]">
