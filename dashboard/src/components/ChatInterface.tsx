@@ -23,7 +23,9 @@ function extractTitleFromFirstLine(text: string, maxLength: number = 50): string
 }
 import ImageUpload from './ImageUpload';
 import MarkdownContent from './MarkdownContent';
+import ThinkingBlock from './ThinkingBlock';
 import ProviderModelSelector from './ProviderModelSelector';
+import { parseThinkingContent } from '../utils/thinkingParser';
 
 interface MessageWithMetadata extends ChatMessage {
   model?: string;
@@ -552,7 +554,15 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                     ))}
                   </div>
                 )}
-                <MarkdownContent content={message.content} />
+                {(() => {
+                  const parsed = parseThinkingContent(message.content);
+                  return (
+                    <>
+                      {parsed.thinking && <ThinkingBlock thinking={parsed.thinking} />}
+                      <MarkdownContent content={parsed.response} />
+                    </>
+                  );
+                })()}
 
                 {/* Metadata for all messages */}
                 <div className="mt-3 pt-3 border-t border-[var(--retro-border)] flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-[var(--retro-text-muted)]">
@@ -634,8 +644,25 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
             <div
               className="p-3 sm:p-4 rounded border bg-[var(--retro-bg-medium)] border-[var(--retro-border-active)] mr-0 sm:mr-6"
             >
-              <MarkdownContent content={streamingContent} />
-              <span className="inline-block w-2 h-4 bg-[var(--retro-accent-green)] ml-1 retro-animate-pulse"></span>
+              {(() => {
+                const parsed = parseThinkingContent(streamingContent);
+                const showCursor = parsed.isThinkingComplete || parsed.thinking === null;
+                return (
+                  <>
+                    {parsed.thinking !== null && (
+                      <ThinkingBlock
+                        thinking={parsed.thinking}
+                        isStreaming={true}
+                        isThinkingComplete={parsed.isThinkingComplete}
+                      />
+                    )}
+                    {parsed.response && <MarkdownContent content={parsed.response} />}
+                    {showCursor && (
+                      <span className="inline-block w-2 h-4 bg-[var(--retro-accent-green)] ml-1 retro-animate-pulse"></span>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           </div>
         )}
