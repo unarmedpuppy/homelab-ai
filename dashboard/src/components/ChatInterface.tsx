@@ -39,9 +39,11 @@ interface MessageWithMetadata extends ChatMessage {
 
 interface ChatInterfaceProps {
   conversationId: string | null;
+  onToggleHistory?: () => void;
+  historyOpen?: boolean;
 }
 
-export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
+export default function ChatInterface({ conversationId, onToggleHistory, historyOpen }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<MessageWithMetadata[]>([]);
   const [input, setInput] = useState('');
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
@@ -410,6 +412,16 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
             >
               Advanced
             </RetroButton>
+            {onToggleHistory && (
+              <RetroButton
+                variant={historyOpen ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={onToggleHistory}
+                icon={<span>☰</span>}
+              >
+                Chats
+              </RetroButton>
+            )}
           </div>
         </div>
 
