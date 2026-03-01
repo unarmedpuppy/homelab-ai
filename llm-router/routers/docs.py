@@ -22,6 +22,7 @@ CONTENT_CACHE_TTL = 60  # 1 minute
 # Repos that store ADRs at a non-standard path (default: docs/adrs)
 ADR_PATH_OVERRIDES: dict[str, str] = {
     "server-agent-config": "memory",
+    "jenquist.com": "docs",
 }
 
 # In-memory caches
