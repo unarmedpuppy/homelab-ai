@@ -3,7 +3,7 @@
 - **Date:** 2026-02-18
 - **Status:** Accepted
 - **Authors:** Joshua Jenquist
-- **Impacted Repos/Services:** homelab-ai (LLM router, dashboard), all repos with docs/adrs/
+- **Impacted Repos/Services:** homelab-ai (LLM router, dashboard), all repos with docs/adrs/ (or overridden path)
 
 ## Context
 
@@ -20,6 +20,7 @@ Add a Docs page to the homelab-ai dashboard that aggregates ADRs from all repos.
 - In-memory TTL caching (5 min for index, 1 min for content) to avoid hammering Gitea
 - Dashboard gets a new lazy-loaded DocsPage with two-panel layout (repo/ADR tree + markdown viewer)
 - Deep-linkable URLs: `/docs/:repo/:slug`
+- Per-repo path overrides via `ADR_PATH_OVERRIDES` dict in `docs.py` — repos that don't follow `docs/adrs/` convention (e.g. `server-agent-config` → `memory/`, `jenquist.com` → `docs/adr/`)
 
 ## Options Considered
 
