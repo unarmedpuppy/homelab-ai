@@ -19,6 +19,11 @@ GITEA_ORG = "homelab"
 CACHE_TTL = 300  # 5 minutes
 CONTENT_CACHE_TTL = 60  # 1 minute
 
+# Repos that store ADRs at a non-standard path (default: docs/adrs)
+ADR_PATH_OVERRIDES: dict[str, str] = {
+    "server-agent-config": "memory",
+}
+
 # In-memory caches
 _repos_cache: dict = {"data": None, "expires": 0}
 _content_cache: dict[str, dict] = {}
@@ -70,9 +75,10 @@ async def _fetch_repos_with_adrs() -> list[dict]:
 
         for repo in repos:
             repo_name = repo["name"]
-            # Try to list docs/adrs directory
+            # Try to list ADR directory (per-repo path override or default)
+            adr_dir = ADR_PATH_OVERRIDES.get(repo_name, "docs/adrs")
             adrs_resp = await client.get(
-                f"{GITEA_URL}/api/v1/repos/{GITEA_ORG}/{repo_name}/contents/docs/adrs",
+                f"{GITEA_URL}/api/v1/repos/{GITEA_ORG}/{repo_name}/contents/{adr_dir}",
                 headers=_gitea_headers(),
                 params={"ref": "main"},
             )
