@@ -80,6 +80,17 @@
       "vram_gb": 4,
       "max_context": null,
       "default_context": null
+    },
+    {
+      "id": "nomic-embed-text",
+      "name": "Nomic Embed Text v1.5",
+      "hf_model": "nomic-ai/nomic-embed-text-v1.5",
+      "quantization": null,
+      "type": "embedding",
+      "vram_gb": 2,
+      "max_context": 8192,
+      "default_context": 8192,
+      "extra_args": ["--task", "embed", "--trust-remote-code"]
     }
   ]
 }
