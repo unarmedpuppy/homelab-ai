@@ -6,7 +6,7 @@ import { useVisibilityPolling } from '../../hooks/useDocumentVisibility';
 
 const POLL_INTERVAL = 30000;
 
-const MACHINES = ['mac-mini', 'server', 'gaming-pc', 'laptop'];
+const MACHINES = ['mac-mini', 'server', 'gaming-pc', 'macbook-air'];
 
 function formatDuration(startTime: string, endTime: string | null): string {
   const start = new Date(startTime).getTime();
