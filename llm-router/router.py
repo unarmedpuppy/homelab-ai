@@ -938,7 +938,7 @@ async def list_models():
 async def embeddings(request: Request):
     """OpenAI-compatible embeddings — always routed to server 3070 llm-manager."""
     body = await request.json()
-    body["model"] = "nomic-embed-text"
+    body["model"] = "bge-base-en"
 
     endpoint_url = f"{LOCAL_3070_URL}/v1/embeddings"
     async with httpx.AsyncClient(timeout=60.0) as client:
