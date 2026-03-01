@@ -80,7 +80,7 @@ services:
       - IDLE_TIMEOUT=0
       - GPU_MEMORY_UTILIZATION=0.90
       - CPU_OFFLOAD_GB=1
-      - VLLM_IMAGE=${HARBOR_REGISTRY:-harbor.local}/docker-hub/vllm/vllm-openai:v0.6.6.post1
+      - VLLM_IMAGE=${HARBOR_REGISTRY:-harbor.local}/docker-hub/vllm/vllm-openai:v0.8.5
       - DOCKER_NETWORK=my-network
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
