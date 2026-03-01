@@ -19,11 +19,13 @@ interface SessionDetailProps {
   onClose: () => void;
 }
 
-function TranscriptView({ transcript, loading, unavailable }: {
+function TranscriptView({ transcript, loading, unavailable, agentLabel }: {
   transcript: TraceTranscript | null;
   loading: boolean;
   unavailable: boolean;
+  agentLabel?: string;
 }) {
+  const senderLabel = agentLabel && agentLabel !== 'interactive' ? agentLabel : 'you';
   if (loading) {
     return (
       <div className="text-xs text-[var(--retro-text-muted)] py-4 text-center retro-animate-pulse">
@@ -70,7 +72,7 @@ function TranscriptView({ transcript, loading, unavailable }: {
             <div className={`text-[10px] font-semibold uppercase tracking-wide mb-1 ${
               msg.role === 'user' ? 'text-[var(--retro-accent-cyan)]' : 'text-[var(--retro-text-muted)]'
             }`}>
-              {msg.role === 'user' ? 'you' : 'claude'}
+              {msg.role === 'user' ? senderLabel : 'claude'}
             </div>
             {msg.text && (
               <div className="text-[var(--retro-text-secondary)] whitespace-pre-wrap break-words leading-relaxed">
@@ -269,6 +271,7 @@ export function SessionDetail({ session, onClose }: SessionDetailProps) {
               transcript={transcript}
               loading={transcriptLoading}
               unavailable={transcriptUnavailable}
+              agentLabel={session.agent_label}
             />
           </RetroPanel>
         )}

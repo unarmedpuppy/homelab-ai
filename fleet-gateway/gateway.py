@@ -935,6 +935,9 @@ async def get_session_transcript(session_id: str):
             if isinstance(content, str):
                 text = content.strip()
                 if text and not (text.startswith("[") and text.endswith("]")):
+                    # Skip hook-injected skill content (PreToolUse hook stdout)
+                    if text.startswith("Base directory for this skill:"):
+                        continue
                     messages.append({"role": entry_type, "text": text, "tool_calls": [], "timestamp": timestamp})
                 continue
 
@@ -967,6 +970,10 @@ async def get_session_transcript(session_id: str):
 
             # Skip if nothing meaningful
             if not text and not tool_calls:
+                continue
+
+            # Skip hook-injected skill content (PreToolUse hook stdout)
+            if entry_type == "user" and text.startswith("Base directory for this skill:"):
                 continue
 
             messages.append({
