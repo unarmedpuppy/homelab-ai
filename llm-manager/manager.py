@@ -328,21 +328,21 @@ async def stop_all_models():
 
 
 async def start_default_model():
-    """Start the default model (for always-on mode)."""
+    """Start the default model(s) for always-on mode. Supports comma-separated list."""
     if MODE != "always-on" or not DEFAULT_MODEL:
         return
-    
-    if DEFAULT_MODEL not in model_states:
-        print(f"WARNING: Default model '{DEFAULT_MODEL}' not available on this GPU")
-        if available_models:
-            print(f"Available models: {available_models}")
-        return
-    
-    print(f"Starting default model: {DEFAULT_MODEL}")
-    try:
-        await start_model(DEFAULT_MODEL)
-    except Exception as e:
-        print(f"Failed to start default model: {e}")
+    models = [m.strip() for m in DEFAULT_MODEL.split(",") if m.strip()]
+    for model_id in models:
+        if model_id not in model_states:
+            print(f"WARNING: Default model '{model_id}' not available on this GPU, skipping")
+            if available_models:
+                print(f"Available models: {available_models}")
+            continue
+        print(f"Starting default model: {model_id}")
+        try:
+            await start_model(model_id)
+        except Exception as e:
+            print(f"Failed to start default model '{model_id}': {e}")
 
 
 # --- Background Tasks ---
@@ -391,14 +391,15 @@ app = FastAPI(
 async def health():
     """Health check endpoint - reports degraded if expected models aren't running."""
     if MODE == "always-on" and DEFAULT_MODEL:
-        state = model_states.get(DEFAULT_MODEL)
-        if state:
-            container = get_container(state["container_name"])
-            if not (container and container.status == "running"):
-                return JSONResponse(
-                    status_code=503,
-                    content={"status": "degraded", "mode": MODE, "reason": f"Default model '{DEFAULT_MODEL}' is not running"}
-                )
+        for model_id in [m.strip() for m in DEFAULT_MODEL.split(",") if m.strip()]:
+            state = model_states.get(model_id)
+            if state:
+                container = get_container(state["container_name"])
+                if not (container and container.status == "running"):
+                    return JSONResponse(
+                        status_code=503,
+                        content={"status": "degraded", "mode": MODE, "reason": f"Model '{model_id}' is not running"}
+                    )
     return {"status": "healthy", "mode": MODE}
 
 

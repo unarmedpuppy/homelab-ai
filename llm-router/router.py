@@ -934,6 +934,22 @@ async def list_models():
     return {"object": "list", "data": models}
 
 
+@app.post("/v1/embeddings")
+async def embeddings(request: Request):
+    """OpenAI-compatible embeddings — always routed to server 3070 llm-manager."""
+    body = await request.json()
+    body["model"] = "nomic-embed-text"
+
+    endpoint_url = f"{LOCAL_3070_URL}/v1/embeddings"
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        try:
+            resp = await client.post(endpoint_url, json=body)
+            resp.raise_for_status()
+            return resp.json()
+        except Exception as e:
+            raise HTTPException(status_code=503, detail=f"Embeddings unavailable: {e}")
+
+
 @app.post("/v1/chat/completions")
 async def chat_completions(
     request: Request,
