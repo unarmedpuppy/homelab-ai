@@ -19,20 +19,11 @@ interface SessionDetailProps {
   onClose: () => void;
 }
 
-function TranscriptView({ sessionId }: { sessionId: string }) {
-  const [transcript, setTranscript] = useState<TraceTranscript | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [unavailable, setUnavailable] = useState(false);
-
-  useEffect(() => {
-    tracesAPI.getTranscript(sessionId)
-      .then(setTranscript)
-      .catch((e: Error) => {
-        if (e.message.startsWith('404')) setUnavailable(true);
-      })
-      .finally(() => setLoading(false));
-  }, [sessionId]);
-
+function TranscriptView({ transcript, loading, unavailable }: {
+  transcript: TraceTranscript | null;
+  loading: boolean;
+  unavailable: boolean;
+}) {
   if (loading) {
     return (
       <div className="text-xs text-[var(--retro-text-muted)] py-4 text-center retro-animate-pulse">
@@ -61,7 +52,7 @@ function TranscriptView({ sessionId }: { sessionId: string }) {
     <div className="space-y-3">
       {transcript.truncated && (
         <div className="text-xs text-[var(--retro-text-muted)] text-center pb-1 border-b border-[var(--retro-border)]">
-          Showing first {transcript.messages.length} messages (session was truncated)
+          Showing first {transcript.messages.length} messages (session truncated)
         </div>
       )}
       {transcript.messages.map((msg: TranscriptMessage, i: number) => (
@@ -107,19 +98,34 @@ function TranscriptView({ sessionId }: { sessionId: string }) {
 
 export function SessionDetail({ session, onClose }: SessionDetailProps) {
   const [detail, setDetail] = useState<TraceSessionDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [spansLoading, setSpansLoading] = useState(true);
+  const [spansError, setSpansError] = useState<string | null>(null);
+
+  const [transcript, setTranscript] = useState<TraceTranscript | null>(null);
+  const [transcriptLoading, setTranscriptLoading] = useState(true);
+  const [transcriptUnavailable, setTranscriptUnavailable] = useState(false);
+
   const [activeTab, setActiveTab] = useState<'spans' | 'transcript'>('spans');
+
+  const isActive = !session.end_time;
 
   useEffect(() => {
     tracesAPI
       .get(session.session_id)
       .then(setDetail)
-      .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load'))
-      .finally(() => setLoading(false));
+      .catch((e) => setSpansError(e instanceof Error ? e.message : 'Failed to load'))
+      .finally(() => setSpansLoading(false));
+
+    // Fetch transcript eagerly to get the slug for the header
+    tracesAPI.getTranscript(session.session_id)
+      .then(setTranscript)
+      .catch((e: Error) => {
+        if (e.message.startsWith('404')) setTranscriptUnavailable(true);
+      })
+      .finally(() => setTranscriptLoading(false));
   }, [session.session_id]);
 
-  const isActive = !session.end_time;
+  const slug = transcript?.slug ?? null;
 
   return (
     <div className="h-full flex flex-col bg-[var(--retro-bg-dark)] overflow-y-auto">
@@ -130,9 +136,15 @@ export function SessionDetail({ session, onClose }: SessionDetailProps) {
         </RetroButton>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-bold text-[var(--retro-text-primary)] truncate">
-              {session.session_id.slice(0, 8)}…
-            </span>
+            {slug ? (
+              <span className="text-sm font-bold text-[var(--retro-text-primary)]">
+                {slug}
+              </span>
+            ) : (
+              <span className="text-sm font-bold text-[var(--retro-text-primary)] font-mono">
+                {session.session_id.slice(0, 8)}…
+              </span>
+            )}
             {isActive && (
               <span className="text-xs px-1.5 py-0.5 rounded bg-[rgba(0,255,100,0.1)] text-[var(--retro-accent-green)] border border-[var(--retro-accent-green)]">
                 active
@@ -241,19 +253,23 @@ export function SessionDetail({ session, onClose }: SessionDetailProps) {
 
         {activeTab === 'spans' ? (
           <RetroPanel title="">
-            {loading ? (
+            {spansLoading ? (
               <div className="text-xs text-[var(--retro-text-muted)] py-4 text-center retro-animate-pulse">
                 Loading spans…
               </div>
-            ) : error ? (
-              <div className="text-xs text-[var(--retro-accent-red)] py-4 text-center">{error}</div>
+            ) : spansError ? (
+              <div className="text-xs text-[var(--retro-accent-red)] py-4 text-center">{spansError}</div>
             ) : detail ? (
               <SpanWaterfall session={session} spans={detail.spans} />
             ) : null}
           </RetroPanel>
         ) : (
           <RetroPanel title="">
-            <TranscriptView sessionId={session.session_id} />
+            <TranscriptView
+              transcript={transcript}
+              loading={transcriptLoading}
+              unavailable={transcriptUnavailable}
+            />
           </RetroPanel>
         )}
       </div>
