@@ -97,6 +97,44 @@ export function SessionDetail({ session, onClose }: SessionDetailProps) {
           </div>
         </RetroPanel>
 
+        {/* Tool breakdown summary */}
+        {detail && detail.spans.length > 0 && (() => {
+          const counts: Record<string, number> = {};
+          let failed = 0;
+          for (const span of detail.spans) {
+            const group =
+              span.tool_name === 'Bash' ? 'bash' :
+              ['Edit', 'Write', 'MultiEdit', 'NotebookEdit'].includes(span.tool_name) ? 'edits' :
+              ['Read', 'Glob', 'Grep'].includes(span.tool_name) ? 'reads' :
+              span.tool_name === 'Agent' ? 'agents' :
+              'other';
+            counts[group] = (counts[group] ?? 0) + 1;
+            if (span.status === 'failed') failed++;
+          }
+          const chips = [
+            counts.bash && { label: `${counts.bash} bash`, color: '#3b82f6' },
+            counts.edits && { label: `${counts.edits} edit${counts.edits !== 1 ? 's' : ''}`, color: '#f97316' },
+            counts.reads && { label: `${counts.reads} read${counts.reads !== 1 ? 's' : ''}`, color: '#6b7280' },
+            counts.agents && { label: `${counts.agents} agent${counts.agents !== 1 ? 's' : ''}`, color: '#a855f7' },
+            counts.other && { label: `${counts.other} other`, color: 'var(--retro-text-muted)' },
+            failed > 0 && { label: `${failed} failed`, color: 'var(--retro-accent-red)' },
+          ].filter(Boolean) as { label: string; color: string }[];
+
+          return (
+            <div className="flex flex-wrap gap-2">
+              {chips.map((chip) => (
+                <span
+                  key={chip.label}
+                  className="text-xs px-2 py-0.5 rounded"
+                  style={{ background: chip.color + '20', color: chip.color }}
+                >
+                  {chip.label}
+                </span>
+              ))}
+            </div>
+          );
+        })()}
+
         {/* Span waterfall */}
         <RetroPanel title={`Tool Calls (${session.span_count})`}>
           {loading ? (

@@ -8,6 +8,12 @@ const POLL_INTERVAL = 30000;
 
 const MACHINES = ['mac-mini', 'server', 'gaming-pc', 'macbook-air'];
 
+function extractProjectName(cwd: string | null): string | null {
+  if (!cwd) return null;
+  const parts = cwd.replace(/\/$/, '').split('/');
+  return parts[parts.length - 1] || null;
+}
+
 function formatDuration(startTime: string, endTime: string | null): string {
   const start = new Date(startTime).getTime();
   const end = endTime ? new Date(endTime).getTime() : Date.now();
@@ -168,9 +174,10 @@ export function SessionsList({ onSelect }: SessionsListProps) {
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono text-[var(--retro-text-secondary)]">
-                            {session.session_id.slice(0, 8)}
+                        {/* Title row: project name + badges */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-semibold text-[var(--retro-text-primary)] truncate">
+                            {extractProjectName(session.cwd) ?? session.session_id.slice(0, 8)}
                           </span>
                           <span className="text-xs text-[var(--retro-text-muted)]">
                             {session.machine_id}
@@ -194,8 +201,9 @@ export function SessionsList({ onSelect }: SessionsListProps) {
                             </span>
                           )}
                         </div>
+                        {/* Full path as secondary line */}
                         {session.cwd && (
-                          <div className="text-xs text-[var(--retro-text-muted)] truncate mt-0.5 font-mono">
+                          <div className="text-xs text-[var(--retro-text-muted)] truncate mt-0.5 font-mono opacity-60">
                             {session.cwd}
                           </div>
                         )}
