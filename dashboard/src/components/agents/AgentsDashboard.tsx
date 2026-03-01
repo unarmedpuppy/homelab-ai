@@ -7,6 +7,7 @@ import { FleetOverview } from './FleetOverview';
 import { AgentCard } from './AgentCard';
 import { AgentDetailPanel } from './AgentDetailPanel';
 import { JobQueuePanel, CreateJobModal } from '../jobs';
+import { SessionsOverviewCards } from '../sessions';
 
 const POLL_INTERVAL = 30000; // 30 seconds
 
@@ -165,6 +166,11 @@ export function AgentsDashboard() {
         {/* Fleet Overview Stats */}
         <RetroPanel title="Fleet Status">
           <FleetOverview stats={stats} loading={loading} />
+        </RetroPanel>
+
+        {/* Session Traces Summary */}
+        <RetroPanel title="Session Traces">
+          <SessionsOverviewCards />
         </RetroPanel>
 
         {/* Server Agents */}

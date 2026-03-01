@@ -127,3 +127,74 @@ class JobListResponse(BaseModel):
     """Response for job listing."""
     jobs: list[Job]
     total: int = 0
+
+
+# =============================================================================
+# Trace Models
+# =============================================================================
+
+class TraceSession(BaseModel):
+    """A recorded Claude Code session."""
+    session_id: str
+    machine_id: str
+    agent_label: str = "interactive"
+    interactive: bool = True
+    model: Optional[str] = None
+    cwd: Optional[str] = None
+    start_time: str
+    end_time: Optional[str] = None
+    span_count: int = 0
+
+
+class TraceSpan(BaseModel):
+    """A single tool call within a session."""
+    span_id: str
+    session_id: str
+    parent_span_id: Optional[str] = None
+    tool_name: str
+    event_type: str
+    input_json: Optional[str] = None
+    output_summary: Optional[str] = None
+    status: str = "in_progress"
+    start_time: str
+    end_time: Optional[str] = None
+    agent_id: Optional[str] = None
+    agent_transcript_path: Optional[str] = None
+
+
+class TraceSessionDetail(TraceSession):
+    """Session with all spans included."""
+    spans: list[TraceSpan] = Field(default_factory=list)
+
+
+class TraceMachineDay(BaseModel):
+    machine_id: str
+    day: str
+    count: int
+
+
+class TraceStatsResponse(BaseModel):
+    """Fleet-wide trace statistics."""
+    by_machine_day: list[TraceMachineDay] = Field(default_factory=list)
+    active_sessions: int = 0
+    sessions_today: int = 0
+
+
+class TraceEventPayload(BaseModel):
+    """Inbound Claude Code hook payload."""
+    type: str
+    session_id: str
+    # SessionStart fields
+    transcript_path: Optional[str] = None
+    cwd: Optional[str] = None
+    model: Optional[str] = None
+    # PreToolUse / PostToolUse fields
+    tool_name: Optional[str] = None
+    tool_input: Optional[dict] = None
+    tool_response: Optional[str] = None
+    # PostToolUseFailure
+    error: Optional[str] = None
+    # SubagentStart / SubagentStop
+    agent_id: Optional[str] = None
+    # Stop
+    stop_reason: Optional[str] = None

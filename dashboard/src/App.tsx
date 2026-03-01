@@ -47,6 +47,7 @@ const AgentsDashboard = lazy(() => import('./components/agents/AgentsDashboard')
 const TradingDashboard = lazy(() => import('./components/trading/TradingDashboard'));
 const DocsPage = lazy(() => import('./pages/DocsPage'));
 const CommandPage = lazy(() => import('./command/CommandPage'));
+const SessionsPage = lazy(() => import('./pages/SessionsPage'));
 
 // Clean pages (lazy)
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -55,7 +56,7 @@ const GettingStartedPage = lazy(() => import('./pages/reference/GettingStartedPa
 const TroubleshootingPage = lazy(() => import('./pages/reference/TroubleshootingPage'));
 const SummaryPage = lazy(() => import('./pages/SummaryPage'));
 
-type ViewName = 'chat' | 'ralph' | 'tasks' | 'providers' | 'stats' | 'agents' | 'trading' | 'docs' | 'command';
+type ViewName = 'chat' | 'ralph' | 'tasks' | 'providers' | 'stats' | 'agents' | 'trading' | 'docs' | 'command' | 'sessions';
 
 function AppHeader() {
   return (
@@ -75,6 +76,7 @@ function AppNavigation({ currentView }: { currentView: ViewName }) {
     { to: '/providers', view: 'providers', icon: '🔌', label: 'Providers' },
     { to: '/stats', view: 'stats', icon: '📊', label: 'Stats' },
     { to: '/agents', view: 'agents', icon: '🤖', label: 'Agents' },
+    { to: '/sessions', view: 'sessions', icon: '⚡', label: 'Sessions' },
     { to: '/trading', view: 'trading', icon: '📈', label: 'Trading' },
     { to: '/docs', view: 'docs', icon: '📄', label: 'Docs' },
     { to: '/command', view: 'command', icon: '⚔️', label: 'Command' },
@@ -357,6 +359,18 @@ function AgentsView() {
   );
 }
 
+function SessionsView() {
+  return (
+    <AppLayout currentView="sessions">
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoading section="Sessions" />}>
+          <SessionsPage />
+        </Suspense>
+      </ErrorBoundary>
+    </AppLayout>
+  );
+}
+
 function TradingView() {
   return (
     <AppLayout currentView="trading">
@@ -430,6 +444,7 @@ function App() {
       <Route path="/providers" element={<ProvidersView />} />
       <Route path="/stats" element={<StatsView />} />
       <Route path="/agents" element={<AgentsView />} />
+      <Route path="/sessions" element={<SessionsView />} />
       <Route path="/trading" element={<TradingView />} />
       <Route path="/docs" element={<DocsView />} />
       <Route path="/docs/:repo/:slug" element={<DocsView />} />

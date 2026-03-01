@@ -1,4 +1,5 @@
 """Agent Gateway - FastAPI application for fleet monitoring."""
+import json
 import logging
 import os
 from contextlib import asynccontextmanager
@@ -6,13 +7,17 @@ from datetime import datetime, timezone
 from typing import Optional
 
 import httpx
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header, HTTPException, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from config import load_config
 from health import HealthMonitor
-from models import Agent, AgentDetails, AgentStatus, FleetStats, Job, JobCreateRequest, JobListResponse, JobStatus
+from models import (
+    Agent, AgentDetails, AgentStatus, FleetStats, Job, JobCreateRequest, JobListResponse, JobStatus,
+    TraceEventPayload, TraceSession, TraceSessionDetail, TraceStatsResponse,
+)
+import traces as trace_db
 
 
 class ContextResponse(BaseModel):
@@ -57,6 +62,9 @@ logger = logging.getLogger(__name__)
 health_monitor: Optional[HealthMonitor] = None
 
 
+TRACES_DB_PATH = os.getenv("TRACES_DB_PATH", "/app/data/traces.db")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize and cleanup resources on app startup/shutdown."""
@@ -69,6 +77,14 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Failed to load config: {e}")
         raise
+
+    # Initialize traces DB
+    try:
+        os.makedirs(os.path.dirname(TRACES_DB_PATH), exist_ok=True)
+        await trace_db.init_db(TRACES_DB_PATH)
+        logger.info(f"Traces DB initialized at {TRACES_DB_PATH}")
+    except Exception as e:
+        logger.warning(f"Failed to initialize traces DB: {e}")
 
     # Start health monitor
     health_monitor = HealthMonitor(config)
@@ -661,6 +677,200 @@ async def cancel_job(job_id: str, agent_id: Optional[str] = None):
                 continue
 
     raise HTTPException(status_code=404, detail=f"Job '{job_id}' not found")
+
+
+# =============================================================================
+# Trace Ingestion + Query Endpoints
+# =============================================================================
+
+_INPUT_MAX = 2000
+_OUTPUT_MAX = 500
+
+
+def _truncate(s: str, limit: int) -> str:
+    return s[:limit] if s and len(s) > limit else s
+
+
+@app.post("/traces/events", status_code=204)
+async def ingest_trace_event(
+    payload: TraceEventPayload,
+    x_machine_id: str = Header(default="unknown"),
+    x_agent_label: str = Header(default="interactive"),
+):
+    """Ingest a Claude Code hook event payload."""
+    now = datetime.now(timezone.utc).isoformat()
+    event_type = payload.type
+    session_id = payload.session_id
+
+    try:
+        if event_type == "SessionStart":
+            interactive = x_agent_label.lower() == "interactive"
+            await trace_db.upsert_session(
+                db_path=TRACES_DB_PATH,
+                session_id=session_id,
+                machine_id=x_machine_id,
+                agent_label=x_agent_label,
+                interactive=interactive,
+                model=payload.model,
+                cwd=payload.cwd,
+                start_time=now,
+            )
+
+        elif event_type == "PreToolUse" and payload.tool_name:
+            input_str = _truncate(json.dumps(payload.tool_input or {}), _INPUT_MAX)
+            await trace_db.insert_span(
+                db_path=TRACES_DB_PATH,
+                session_id=session_id,
+                tool_name=payload.tool_name,
+                event_type="PreToolUse",
+                input_json=input_str,
+                start_time=now,
+            )
+
+        elif event_type == "PostToolUse" and payload.tool_name:
+            response_str = payload.tool_response or ""
+            summary = _truncate(response_str if isinstance(response_str, str) else json.dumps(response_str), _OUTPUT_MAX)
+            await trace_db.update_span(
+                db_path=TRACES_DB_PATH,
+                session_id=session_id,
+                tool_name=payload.tool_name,
+                output_summary=summary,
+                status="completed",
+                end_time=now,
+            )
+
+        elif event_type == "PostToolUseFailure" and payload.tool_name:
+            await trace_db.update_span(
+                db_path=TRACES_DB_PATH,
+                session_id=session_id,
+                tool_name=payload.tool_name,
+                output_summary=_truncate(payload.error or "unknown error", _OUTPUT_MAX),
+                status="failed",
+                end_time=now,
+            )
+
+        elif event_type == "SubagentStart":
+            await trace_db.insert_span(
+                db_path=TRACES_DB_PATH,
+                session_id=session_id,
+                tool_name="Agent",
+                event_type="SubagentStart",
+                input_json=None,
+                start_time=now,
+                agent_id=payload.agent_id,
+                agent_transcript_path=payload.transcript_path,
+            )
+
+        elif event_type == "SubagentStop":
+            await trace_db.update_span(
+                db_path=TRACES_DB_PATH,
+                session_id=session_id,
+                tool_name="Agent",
+                output_summary=None,
+                status="completed",
+                end_time=now,
+            )
+
+        elif event_type in ("Stop", "SessionEnd"):
+            await trace_db.update_session_end(
+                db_path=TRACES_DB_PATH,
+                session_id=session_id,
+                end_time=now,
+            )
+
+    except Exception:
+        logger.exception(f"Failed to process trace event {event_type} for session {session_id}")
+
+    return Response(status_code=204)
+
+
+@app.get("/traces", response_model=list[TraceSession])
+async def list_trace_sessions(
+    machine_id: Optional[str] = Query(None),
+    agent_label: Optional[str] = Query(None),
+    interactive: Optional[bool] = Query(None),
+    from_time: Optional[str] = Query(None),
+    to_time: Optional[str] = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+):
+    """List recorded sessions with optional filters."""
+    rows = await trace_db.query_sessions(
+        db_path=TRACES_DB_PATH,
+        machine_id=machine_id,
+        agent_label=agent_label,
+        interactive=interactive,
+        from_time=from_time,
+        to_time=to_time,
+        limit=limit,
+        offset=offset,
+    )
+    return [
+        TraceSession(
+            session_id=r["session_id"],
+            machine_id=r["machine_id"],
+            agent_label=r["agent_label"],
+            interactive=bool(r["interactive"]),
+            model=r.get("model"),
+            cwd=r.get("cwd"),
+            start_time=r["start_time"],
+            end_time=r.get("end_time"),
+            span_count=r.get("span_count", 0),
+        )
+        for r in rows
+    ]
+
+
+@app.get("/traces/stats", response_model=TraceStatsResponse)
+async def get_trace_stats():
+    """Get fleet-wide session statistics."""
+    stats = await trace_db.get_stats(TRACES_DB_PATH)
+    return TraceStatsResponse(
+        by_machine_day=[
+            {"machine_id": d["machine_id"], "day": d["day"], "count": d["count"]}
+            for d in stats["by_machine_day"]
+        ],
+        active_sessions=stats["active_sessions"],
+        sessions_today=stats["sessions_today"],
+    )
+
+
+@app.get("/traces/{session_id}", response_model=TraceSessionDetail)
+async def get_trace_session(session_id: str):
+    """Get a session with all its spans."""
+    detail = await trace_db.get_session_detail(TRACES_DB_PATH, session_id)
+    if not detail:
+        raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
+
+    from models import TraceSpan
+    return TraceSessionDetail(
+        session_id=detail["session_id"],
+        machine_id=detail["machine_id"],
+        agent_label=detail["agent_label"],
+        interactive=bool(detail["interactive"]),
+        model=detail.get("model"),
+        cwd=detail.get("cwd"),
+        start_time=detail["start_time"],
+        end_time=detail.get("end_time"),
+        span_count=detail.get("span_count", 0),
+        spans=[
+            TraceSpan(
+                span_id=s["span_id"],
+                session_id=s["session_id"],
+                parent_span_id=s.get("parent_span_id"),
+                tool_name=s["tool_name"],
+                event_type=s["event_type"],
+                input_json=s.get("input_json"),
+                output_summary=s.get("output_summary"),
+                status=s["status"],
+                start_time=s["start_time"],
+                end_time=s.get("end_time"),
+                agent_id=s.get("agent_id"),
+                agent_transcript_path=s.get("agent_transcript_path"),
+            )
+            for s in detail["spans"]
+        ],
+    )
 
 
 if __name__ == "__main__":
