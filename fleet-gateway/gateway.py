@@ -63,6 +63,7 @@ health_monitor: Optional[HealthMonitor] = None
 
 
 TRACES_DB_PATH = os.getenv("TRACES_DB_PATH", "/app/data/traces.db")
+CLAUDE_SESSIONS_PATH = os.getenv("CLAUDE_SESSIONS_PATH", "/claude-sessions")
 
 
 @asynccontextmanager
@@ -871,6 +872,116 @@ async def get_trace_session(session_id: str):
             for s in detail["spans"]
         ],
     )
+
+
+@app.get("/traces/{session_id}/transcript")
+async def get_session_transcript(session_id: str):
+    """Read the Claude Code JSONL session file and return conversation messages.
+
+    Only available for sessions whose JSONL file is on the mounted claude-sessions volume.
+    Returns 404 for sessions from other machines.
+    """
+    from pathlib import Path
+
+    projects_dir = Path(CLAUDE_SESSIONS_PATH) / "projects"
+    if not projects_dir.exists():
+        raise HTTPException(status_code=404, detail="Transcripts not available (volume not mounted)")
+
+    # Scan all project dirs for the session JSONL
+    jsonl_file = None
+    for project_dir in projects_dir.iterdir():
+        if not project_dir.is_dir():
+            continue
+        candidate = project_dir / f"{session_id}.jsonl"
+        if candidate.exists():
+            jsonl_file = candidate
+            break
+
+    if not jsonl_file:
+        raise HTTPException(status_code=404, detail="Transcript not found for this session")
+
+    messages = []
+    slug = None
+    lines_read = 0
+    MAX_LINES = 100_000  # safety cap for huge files
+    MAX_MESSAGES = 300
+
+    with open(jsonl_file, "r", errors="replace") as f:
+        for raw_line in f:
+            lines_read += 1
+            if lines_read > MAX_LINES or len(messages) >= MAX_MESSAGES:
+                break
+
+            raw_line = raw_line.strip()
+            if not raw_line:
+                continue
+
+            try:
+                entry = json.loads(raw_line)
+            except json.JSONDecodeError:
+                continue
+
+            # Grab slug from first entry that has it
+            if not slug and entry.get("slug"):
+                slug = entry["slug"]
+
+            entry_type = entry.get("type")
+            if entry_type not in ("user", "assistant"):
+                continue
+
+            content = entry.get("message", {}).get("content", [])
+            timestamp = entry.get("timestamp")
+
+            if isinstance(content, str):
+                text = content.strip()
+                if text and not (text.startswith("[") and text.endswith("]")):
+                    messages.append({"role": entry_type, "text": text, "tool_calls": [], "timestamp": timestamp})
+                continue
+
+            if not isinstance(content, list):
+                continue
+
+            text_parts = []
+            tool_calls = []
+            has_only_tool_results = all(
+                b.get("type") == "tool_result" for b in content if isinstance(b, dict)
+            )
+
+            if has_only_tool_results:
+                continue  # skip noise — tool results are already in spans
+
+            for block in content:
+                if not isinstance(block, dict):
+                    continue
+                btype = block.get("type")
+                if btype == "text":
+                    text = block.get("text", "").strip()
+                    # Skip system-injected bracket messages
+                    if text and not (text.startswith("[") and text.endswith("]")):
+                        text_parts.append(text)
+                elif btype == "tool_use":
+                    tool_calls.append({"name": block.get("name", ""), "id": block.get("id", "")})
+                # skip: thinking, tool_result, other
+
+            text = "\n\n".join(text_parts)
+
+            # Skip if nothing meaningful
+            if not text and not tool_calls:
+                continue
+
+            messages.append({
+                "role": entry_type,
+                "text": text,
+                "tool_calls": tool_calls,
+                "timestamp": timestamp,
+            })
+
+    return {
+        "session_id": session_id,
+        "slug": slug,
+        "messages": messages,
+        "truncated": lines_read > MAX_LINES or len(messages) >= MAX_MESSAGES,
+    }
 
 
 if __name__ == "__main__":

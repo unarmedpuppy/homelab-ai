@@ -41,6 +41,20 @@ export interface TraceStatsResponse {
   sessions_today: number;
 }
 
+export interface TranscriptMessage {
+  role: 'user' | 'assistant';
+  text: string;
+  tool_calls: { name: string; id: string }[];
+  timestamp: string | null;
+}
+
+export interface TraceTranscript {
+  session_id: string;
+  slug: string | null;
+  messages: TranscriptMessage[];
+  truncated: boolean;
+}
+
 export interface TraceListParams {
   machine_id?: string;
   agent_label?: string;

@@ -3,6 +3,7 @@ import type {
   TraceSessionDetail,
   TraceStatsResponse,
   TraceListParams,
+  TraceTranscript,
 } from '../types/traces';
 
 const FLEET_GATEWAY_URL =
@@ -36,6 +37,12 @@ export const tracesAPI = {
   stats: async (): Promise<TraceStatsResponse> => {
     const response = await fetch(`${FLEET_GATEWAY_URL}/traces/stats`);
     if (!response.ok) throw new Error(`Failed to get trace stats: ${response.statusText}`);
+    return response.json();
+  },
+
+  getTranscript: async (sessionId: string): Promise<TraceTranscript> => {
+    const response = await fetch(`${FLEET_GATEWAY_URL}/traces/${sessionId}/transcript`);
+    if (!response.ok) throw new Error(`${response.status}`);
     return response.json();
   },
 };

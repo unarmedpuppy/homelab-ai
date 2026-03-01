@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { TraceSession, TraceSessionDetail } from '../../types/traces';
+import type { TraceSession, TraceSessionDetail, TraceTranscript, TranscriptMessage } from '../../types/traces';
 import { tracesAPI } from '../../api/traces';
 import { RetroButton, RetroPanel } from '../ui';
 import { SpanWaterfall } from './SpanWaterfall';
@@ -19,10 +19,97 @@ interface SessionDetailProps {
   onClose: () => void;
 }
 
+function TranscriptView({ sessionId }: { sessionId: string }) {
+  const [transcript, setTranscript] = useState<TraceTranscript | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [unavailable, setUnavailable] = useState(false);
+
+  useEffect(() => {
+    tracesAPI.getTranscript(sessionId)
+      .then(setTranscript)
+      .catch((e: Error) => {
+        if (e.message.startsWith('404')) setUnavailable(true);
+      })
+      .finally(() => setLoading(false));
+  }, [sessionId]);
+
+  if (loading) {
+    return (
+      <div className="text-xs text-[var(--retro-text-muted)] py-4 text-center retro-animate-pulse">
+        Loading transcript…
+      </div>
+    );
+  }
+
+  if (unavailable) {
+    return (
+      <div className="text-xs text-[var(--retro-text-muted)] py-4 text-center">
+        Transcript not available — only server/Ralph sessions are accessible
+      </div>
+    );
+  }
+
+  if (!transcript || transcript.messages.length === 0) {
+    return (
+      <div className="text-xs text-[var(--retro-text-muted)] py-4 text-center">
+        No conversation messages found
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {transcript.truncated && (
+        <div className="text-xs text-[var(--retro-text-muted)] text-center pb-1 border-b border-[var(--retro-border)]">
+          Showing first {transcript.messages.length} messages (session was truncated)
+        </div>
+      )}
+      {transcript.messages.map((msg: TranscriptMessage, i: number) => (
+        <div
+          key={i}
+          className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+        >
+          <div
+            className={`max-w-[85%] rounded-lg px-3 py-2 text-xs space-y-1 ${
+              msg.role === 'user'
+                ? 'bg-[rgba(0,200,255,0.08)] border border-[rgba(0,200,255,0.2)]'
+                : 'bg-[var(--retro-bg-light)] border border-[var(--retro-border)]'
+            }`}
+          >
+            <div className={`text-[10px] font-semibold uppercase tracking-wide mb-1 ${
+              msg.role === 'user' ? 'text-[var(--retro-accent-cyan)]' : 'text-[var(--retro-text-muted)]'
+            }`}>
+              {msg.role === 'user' ? 'you' : 'claude'}
+            </div>
+            {msg.text && (
+              <div className="text-[var(--retro-text-secondary)] whitespace-pre-wrap break-words leading-relaxed">
+                {msg.text}
+              </div>
+            )}
+            {msg.tool_calls.length > 0 && (
+              <div className="flex flex-wrap gap-1 pt-1">
+                {msg.tool_calls.map((tc, j) => (
+                  <span
+                    key={j}
+                    className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--retro-bg-dark)] text-[var(--retro-text-muted)] font-mono"
+                  >
+                    {tc.name}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function SessionDetail({ session, onClose }: SessionDetailProps) {
   const [detail, setDetail] = useState<TraceSessionDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'spans' | 'transcript'>('spans');
 
   useEffect(() => {
     tracesAPI
@@ -42,7 +129,7 @@ export function SessionDetail({ session, onClose }: SessionDetailProps) {
           ← Back
         </RetroButton>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm font-bold text-[var(--retro-text-primary)] truncate">
               {session.session_id.slice(0, 8)}…
             </span>
@@ -135,18 +222,40 @@ export function SessionDetail({ session, onClose }: SessionDetailProps) {
           );
         })()}
 
-        {/* Span waterfall */}
-        <RetroPanel title={`Tool Calls (${session.span_count})`}>
-          {loading ? (
-            <div className="text-xs text-[var(--retro-text-muted)] py-4 text-center retro-animate-pulse">
-              Loading spans…
-            </div>
-          ) : error ? (
-            <div className="text-xs text-[var(--retro-accent-red)] py-4 text-center">{error}</div>
-          ) : detail ? (
-            <SpanWaterfall session={session} spans={detail.spans} />
-          ) : null}
-        </RetroPanel>
+        {/* Tabs */}
+        <div className="flex gap-1 border-b border-[var(--retro-border)]">
+          {(['spans', 'transcript'] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 text-xs font-medium capitalize transition-colors ${
+                activeTab === tab
+                  ? 'text-[var(--retro-text-primary)] border-b-2 border-[var(--retro-accent-green)] -mb-px'
+                  : 'text-[var(--retro-text-muted)] hover:text-[var(--retro-text-secondary)]'
+              }`}
+            >
+              {tab === 'spans' ? `Tool Calls (${session.span_count})` : 'Conversation'}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === 'spans' ? (
+          <RetroPanel title="">
+            {loading ? (
+              <div className="text-xs text-[var(--retro-text-muted)] py-4 text-center retro-animate-pulse">
+                Loading spans…
+              </div>
+            ) : error ? (
+              <div className="text-xs text-[var(--retro-accent-red)] py-4 text-center">{error}</div>
+            ) : detail ? (
+              <SpanWaterfall session={session} spans={detail.spans} />
+            ) : null}
+          </RetroPanel>
+        ) : (
+          <RetroPanel title="">
+            <TranscriptView sessionId={session.session_id} />
+          </RetroPanel>
+        )}
       </div>
     </div>
   );
