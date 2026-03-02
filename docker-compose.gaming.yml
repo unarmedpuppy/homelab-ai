@@ -72,6 +72,21 @@ services:
               count: 1
               capabilities: [gpu]
 
+  # Deploy webhook - accepts POST /deploy to pull new images and recreate containers
+  deploy-webhook:
+    image: ${HARBOR_REGISTRY:-harbor.local}/library/deploy-webhook:latest
+    container_name: deploy-webhook
+    restart: unless-stopped
+    ports:
+      - "8007:8000"
+    environment:
+      - DEPLOY_SECRET=${DEPLOY_SECRET}
+      - KNOWN_SERVICES=llm-manager,image-server,tts-server,gaming-dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - ai-network
+
   # Optional: Web dashboard for gaming mode control
   gaming-dashboard:
     image: ${HARBOR_REGISTRY:-harbor.local}/library/local-ai-dashboard:latest
