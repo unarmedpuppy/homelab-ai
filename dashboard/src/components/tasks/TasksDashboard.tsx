@@ -83,7 +83,7 @@ function TaskCard({ task, onStatusChange, onClose, onUpdate }: TaskCardProps) {
               {task.id}
             </span>
           </div>
-          <h4 className="text-sm font-medium text-[var(--retro-text-primary)] truncate">
+          <h4 className={`text-sm font-medium text-[var(--retro-text-primary)] ${expanded ? 'break-words' : 'truncate'}`}>
             {task.title}
           </h4>
           <div className="flex flex-wrap gap-1 mt-1">
@@ -117,7 +117,7 @@ function TaskCard({ task, onStatusChange, onClose, onUpdate }: TaskCardProps) {
       {expanded && (
         <div className="mt-3 pt-3 border-t border-[var(--retro-border)]" onClick={(e) => e.stopPropagation()}>
           {task.description && (
-            <p className="text-xs text-[var(--retro-text-secondary)] mb-3 whitespace-pre-wrap">
+            <p className="text-xs text-[var(--retro-text-secondary)] mb-3 whitespace-pre-wrap break-words">
               {task.description}
             </p>
           )}
