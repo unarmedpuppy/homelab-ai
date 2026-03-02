@@ -186,6 +186,7 @@ React dashboard with retro/pixel-art "command center" UI for AI infrastructure m
 | `/providers` | Providers | Provider health monitoring and utilization |
 | `/stats` | Stats | Activity heatmap, model usage charts |
 | `/agents` | Agents | Agent run history and logs |
+| `/sessions` | Sessions | Claude Code session traces — tool calls, spans, transcripts |
 | `/command` | Command | AoE2-style agent command interface (Phaser 3 isometric map) |
 
 **Command page** (`src/command/`) — lazy-loaded Phaser 3 game embedded in the dashboard:
@@ -247,6 +248,36 @@ Diffusers-based image generation (FLUX).
 ### TTS Server (`tts-server/`)
 
 Chatterbox Turbo text-to-speech.
+
+### Fleet Gateway (`fleet-gateway/`)
+
+Agent fleet status aggregator and LLM trace pipeline. Provides:
+- Agent registry + health monitoring (all agents: Ralph, Avery, Jobin, Gilfoyle)
+- Trace ingestion from Claude Code hooks (POST /traces/events)
+- Session and span storage in SQLite (`traces.db`)
+- Transcript reading from Claude Code JSONL session files
+- REST API for dashboard queries
+
+**Key files**:
+- `gateway.py` - Main FastAPI application (agents API + traces API)
+- `traces.py` - SQLite schema + query functions for session/span storage
+- `config.yaml` - Agent registry with endpoints
+- `health.py` - Background health monitor
+
+**Trace API Endpoints**:
+- `POST /traces/events` — Ingest hook payload (called by claude-trace-forwarder.sh)
+- `GET /traces` — List sessions with filters (machine_id, agent_label, from/to date)
+- `GET /traces/{session_id}` — Session detail + all spans
+- `GET /traces/stats` — Counts by machine/day, active sessions
+- `GET /traces/{session_id}/transcript` — Parsed conversation from JSONL (server sessions only)
+
+**Volume mounts** (in `home-server/apps/homelab-ai/docker-compose.yml`):
+- `./fleet-gateway-data:/app/data` — SQLite traces.db persisted on host
+- `homelab-ai_claude-credentials:/claude-sessions:ro` — Claude Code session files for transcript reading
+
+**Port**: 8016 (host: 8017)
+
+**Full reference**: `home-server/agents/reference/agent-trace-pipeline.md`
 
 ### Agent Gateway (`agent-gateway/`)
 
