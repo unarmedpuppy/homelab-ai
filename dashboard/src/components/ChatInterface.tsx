@@ -422,17 +422,16 @@ export default function ChatInterface({ conversationId, onToggleHistory, history
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
-            {ttsAvailable && (
-              <RetroButton
-                variant={ttsEnabled ? 'primary' : 'ghost'}
-                size="sm"
-                onClick={() => setTtsEnabled(!ttsEnabled)}
-                disabled={isTtsBusy}
-                icon={<span>🔊</span>}
-              >
-                Auto
-              </RetroButton>
-            )}
+            <RetroButton
+              variant={ttsEnabled && ttsAvailable ? 'primary' : 'ghost'}
+              size="sm"
+              onClick={() => ttsAvailable && setTtsEnabled(!ttsEnabled)}
+              disabled={isTtsBusy || !ttsAvailable}
+              title={ttsAvailable ? 'Toggle TTS auto-play' : 'TTS service unavailable'}
+              icon={<span>🔊</span>}
+            >
+              Auto
+            </RetroButton>
             <RetroButton
               variant={showAdvanced ? 'secondary' : 'ghost'}
               size="sm"

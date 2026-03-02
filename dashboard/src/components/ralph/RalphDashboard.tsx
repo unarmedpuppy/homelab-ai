@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import type { RalphStatus, RalphStartParams } from '../../types/ralph';
 import { ralphAPI } from '../../api/client';
 import {
@@ -75,6 +75,16 @@ export function RalphDashboard() {
     enabled: status?.running ?? false,
     immediate: true,
   });
+
+  // Fetch logs one final time when Ralph stops running, to capture tail output
+  const wasRunning = useRef(false);
+  useEffect(() => {
+    const running = status?.running ?? false;
+    if (wasRunning.current && !running) {
+      fetchLogs();
+    }
+    wasRunning.current = running;
+  }, [status?.running, fetchLogs]);
 
   const handleStart = async () => {
     if (!formLabel) {

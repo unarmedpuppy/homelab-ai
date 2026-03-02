@@ -113,7 +113,7 @@ function CustomDropdown({
   const displayText = selectedOption ? selectedOption.label : placeholder;
 
   return (
-    <div ref={dropdownRef} className="relative">
+    <div ref={dropdownRef} className="relative flex-1 min-w-0">
       <button
         type="button"
         onClick={() => !disabled && !isLoading && setIsOpen(!isOpen)}
@@ -308,8 +308,8 @@ const modelOptions = useMemo(() => {
 }, [availableModels]);
 
   return (
-    <div className="flex items-center gap-3">
-      <div className="flex items-center gap-2 min-w-0">
+    <div className="flex items-center gap-3 min-w-0 w-full">
+      <div className="flex items-center gap-2 min-w-0 flex-1 max-w-[280px]">
         <label className="text-xs text-gray-500 whitespace-nowrap">
           Provider:
         </label>
@@ -324,7 +324,7 @@ const modelOptions = useMemo(() => {
       </div>
 
       {selectedProvider && currentProvider && (
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center gap-2 min-w-0 flex-1 max-w-[240px]">
           <label className="text-xs text-gray-500 whitespace-nowrap">
             Model:
           </label>
