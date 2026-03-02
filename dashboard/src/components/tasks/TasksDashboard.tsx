@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { tasksAPI } from '../../api/client';
-import type { Task, TaskStats, TaskFilters, TaskStatus, TaskPriority, TaskType, BuildingType } from '../../types/tasks';
+import type { Task, TaskStats, TaskFilters, TaskStatus, TaskPriority, TaskType, BuildingType, TaskUpdate } from '../../types/tasks';
 
 const BUILDING_TYPE_LABELS: Record<BuildingType, string> = {
   'town-center': 'Town Center',
@@ -28,17 +28,49 @@ const STATUS_COLORS: Record<TaskStatus, string> = {
 interface TaskCardProps {
   task: Task;
   onStatusChange: (taskId: string, newStatus: TaskStatus) => void;
+  onClose: (taskId: string) => void;
+  onUpdate: (taskId: string, update: TaskUpdate) => void;
 }
 
-function TaskCard({ task, onStatusChange }: TaskCardProps) {
+function TaskCard({ task, onStatusChange, onClose, onUpdate }: TaskCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [labelInput, setLabelInput] = useState('');
+  const [epicInput, setEpicInput] = useState(task.epic ?? '');
+  const [projectInput, setProjectInput] = useState(task.project_id ?? '');
+
+  useEffect(() => { setEpicInput(task.epic ?? ''); }, [task.epic]);
+  useEffect(() => { setProjectInput(task.project_id ?? ''); }, [task.project_id]);
+
+  const addLabel = () => {
+    const trimmed = labelInput.trim();
+    if (!trimmed || task.labels.includes(trimmed)) return;
+    onUpdate(task.id, { labels: [...task.labels, trimmed] });
+    setLabelInput('');
+  };
+
+  const removeLabel = (label: string) => {
+    onUpdate(task.id, { labels: task.labels.filter((l) => l !== label) });
+  };
+
+  const handleEpicSave = () => {
+    if (epicInput !== (task.epic ?? '')) {
+      onUpdate(task.id, { epic: epicInput || undefined });
+    }
+  };
+
+  const handleProjectSave = () => {
+    if (projectInput !== (task.project_id ?? '')) {
+      onUpdate(task.id, { project_id: projectInput || undefined });
+    }
+  };
+
+  const inputClass = "w-full text-xs px-2 py-1 bg-[var(--retro-bg-dark)] border border-[var(--retro-border)] rounded text-[var(--retro-text-primary)] placeholder-[var(--retro-text-secondary)] focus:outline-none focus:border-[var(--retro-border-active)]";
+  const selectClass = "w-full text-xs px-2 py-1 bg-[var(--retro-bg-dark)] border border-[var(--retro-border)] rounded text-[var(--retro-text-primary)] focus:outline-none focus:border-[var(--retro-border-active)]";
+  const labelClass = "text-xs text-[var(--retro-text-secondary)] block mb-1";
 
   return (
     <div
-      className={`
-        bg-[var(--retro-bg-light)] border-l-4 ${STATUS_COLORS[task.status]}
-        rounded p-3 mb-2 cursor-pointer hover:bg-[var(--retro-bg-medium)] transition-colors
-      `}
+      className={`group bg-[var(--retro-bg-light)] border-l-4 ${STATUS_COLORS[task.status]} rounded p-3 mb-2 cursor-pointer hover:bg-[var(--retro-bg-medium)] transition-colors`}
       onClick={() => setExpanded(!expanded)}
     >
       <div className="flex items-start justify-between gap-2">
@@ -73,21 +105,118 @@ function TaskCard({ task, onStatusChange }: TaskCardProps) {
             )}
           </div>
         </div>
+        <button
+          onClick={(e) => { e.stopPropagation(); onClose(task.id); }}
+          title="Close task"
+          className="opacity-0 group-hover:opacity-100 flex-shrink-0 text-[var(--retro-text-secondary)] hover:text-red-400 transition-opacity text-sm leading-none p-0.5 rounded"
+        >
+          ✕
+        </button>
       </div>
 
       {expanded && (
         <div className="mt-3 pt-3 border-t border-[var(--retro-border)]" onClick={(e) => e.stopPropagation()}>
           {task.description && (
-            <p className="text-xs text-[var(--retro-text-secondary)] mb-2 whitespace-pre-wrap">
+            <p className="text-xs text-[var(--retro-text-secondary)] mb-3 whitespace-pre-wrap">
               {task.description}
             </p>
           )}
-          {task.epic && (
-            <p className="text-xs text-[var(--retro-accent-green)] mb-2">
-              Epic: {task.epic}
-            </p>
-          )}
-          <div className="flex flex-wrap gap-1 mt-2">
+
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            <div>
+              <label className={labelClass}>Priority</label>
+              <select
+                value={task.priority}
+                onChange={(e) => onUpdate(task.id, { priority: e.target.value as TaskPriority })}
+                className={selectClass}
+              >
+                {(['P0', 'P1', 'P2', 'P3'] as TaskPriority[]).map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className={labelClass}>Building</label>
+              <select
+                value={task.building_type ?? ''}
+                onChange={(e) => onUpdate(task.id, { building_type: (e.target.value as BuildingType) || undefined })}
+                className={selectClass}
+              >
+                <option value="">None</option>
+                {(Object.keys(BUILDING_TYPE_LABELS) as BuildingType[]).map((bt) => (
+                  <option key={bt} value={bt}>{BUILDING_TYPE_LABELS[bt]}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className={labelClass}>Epic</label>
+              <input
+                type="text"
+                value={epicInput}
+                onChange={(e) => setEpicInput(e.target.value)}
+                onBlur={handleEpicSave}
+                onKeyDown={(e) => e.key === 'Enter' && handleEpicSave()}
+                placeholder="No epic"
+                className={inputClass}
+              />
+            </div>
+
+            <div>
+              <label className={labelClass}>Project</label>
+              <input
+                type="text"
+                value={projectInput}
+                onChange={(e) => setProjectInput(e.target.value)}
+                onBlur={handleProjectSave}
+                onKeyDown={(e) => e.key === 'Enter' && handleProjectSave()}
+                placeholder="No project"
+                className={inputClass}
+              />
+            </div>
+          </div>
+
+          <div className="mb-3">
+            <label className={labelClass}>Labels</label>
+            <div className="flex flex-wrap gap-1 mb-1.5">
+              {task.labels.map((label) => (
+                <span
+                  key={label}
+                  className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 bg-[var(--retro-accent-purple)]/20 rounded text-[var(--retro-accent-purple)]"
+                >
+                  {label}
+                  <button
+                    onClick={() => removeLabel(label)}
+                    className="hover:text-red-400 leading-none"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+              {task.labels.length === 0 && (
+                <span className="text-xs text-[var(--retro-text-secondary)]">No labels</span>
+              )}
+            </div>
+            <div className="flex gap-1">
+              <input
+                type="text"
+                value={labelInput}
+                onChange={(e) => setLabelInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && addLabel()}
+                placeholder="Add label..."
+                className="flex-1 text-xs px-2 py-1 bg-[var(--retro-bg-dark)] border border-[var(--retro-border)] rounded text-[var(--retro-text-primary)] placeholder-[var(--retro-text-secondary)] focus:outline-none focus:border-[var(--retro-border-active)]"
+              />
+              <button
+                onClick={addLabel}
+                className="text-xs px-2 py-1 bg-[var(--retro-bg-dark)] border border-[var(--retro-border)] rounded text-[var(--retro-text-secondary)] hover:border-[var(--retro-border-active)] hover:text-[var(--retro-text-primary)] transition-colors"
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-1">
             {STATUS_ORDER.filter((s) => s !== task.status).map((status) => (
               <button
                 key={status}
@@ -108,9 +237,11 @@ interface TaskColumnProps {
   status: TaskStatus;
   tasks: Task[];
   onStatusChange: (taskId: string, newStatus: TaskStatus) => void;
+  onClose: (taskId: string) => void;
+  onUpdate: (taskId: string, update: TaskUpdate) => void;
 }
 
-function TaskColumn({ status, tasks, onStatusChange }: TaskColumnProps) {
+function TaskColumn({ status, tasks, onStatusChange, onClose, onUpdate }: TaskColumnProps) {
   return (
     <div className="flex-1 min-w-[280px] max-w-[350px] flex flex-col">
       <div className={`border-t-4 ${STATUS_COLORS[status]} bg-[var(--retro-bg-medium)] rounded-t p-3 flex-shrink-0`}>
@@ -125,7 +256,13 @@ function TaskColumn({ status, tasks, onStatusChange }: TaskColumnProps) {
       </div>
       <div className="bg-[var(--retro-bg-dark)] rounded-b p-2 min-h-[200px] flex-1 overflow-y-auto">
         {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} onStatusChange={onStatusChange} />
+          <TaskCard
+            key={task.id}
+            task={task}
+            onStatusChange={onStatusChange}
+            onClose={onClose}
+            onUpdate={onUpdate}
+          />
         ))}
         {tasks.length === 0 && (
           <div className="text-center py-8 text-[var(--retro-text-secondary)] text-sm">
@@ -256,7 +393,6 @@ export default function TasksDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Filter state
   const [selectedRepo, setSelectedRepo] = useState('');
   const [selectedLabel, setSelectedLabel] = useState('');
   const [selectedPriority, setSelectedPriority] = useState('');
@@ -299,6 +435,24 @@ export default function TasksDashboard() {
   const handleStatusChange = async (taskId: string, newStatus: TaskStatus) => {
     try {
       await tasksAPI.update(taskId, { status: newStatus });
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update task');
+    }
+  };
+
+  const handleClose = async (taskId: string) => {
+    try {
+      await tasksAPI.close(taskId);
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to close task');
+    }
+  };
+
+  const handleUpdate = async (taskId: string, update: TaskUpdate) => {
+    try {
+      await tasksAPI.update(taskId, update);
       await loadData();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update task');
@@ -368,6 +522,8 @@ export default function TasksDashboard() {
               status={status}
               tasks={tasksByStatus[status]}
               onStatusChange={handleStatusChange}
+              onClose={handleClose}
+              onUpdate={handleUpdate}
             />
           ))}
         </div>
