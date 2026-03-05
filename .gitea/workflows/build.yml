@@ -87,6 +87,16 @@ jobs:
       context: deploy-webhook
     secrets: inherit
 
+  # Build-only — not deployed to server, pulled on gaming PC on demand
+  build-obliteratus:
+    uses: unarmedpuppy/workflows/.gitea/workflows/docker-build.yml@main
+    with:
+      image_name: library/obliteratus
+      app_path: apps/homelab-ai
+      dockerfile: abliteration/Dockerfile
+      context: abliteration
+    secrets: inherit
+
   deploy:
     needs: [build-llm-router, build-dashboard, build-llm-manager, build-image-server, build-tts-server, build-agent-harness, build-fleet-gateway, build-aoe-canvas, build-deploy-webhook]
     runs-on: ubuntu-latest
