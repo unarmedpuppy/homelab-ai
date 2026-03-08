@@ -35,13 +35,15 @@ docker_client = docker.from_env()
 model_cards = {}  # Model definitions from models.json
 model_states = {}  # Runtime state for each model
 available_models = []  # Models that fit in GPU VRAM
-gpu_vram_gb = 0  # Detected GPU VRAM
+gpu_vram_gb = 0  # Detected GPU VRAM (primary)
+num_gpus = 1  # Number of GPUs detected
 gaming_mode = False
 gaming_mode_lock = None
 
 
 def detect_gpu_vram() -> int:
     """Detect available GPU VRAM in GB using nvidia-smi."""
+    global num_gpus
     try:
         result = subprocess.run(
             ["nvidia-smi", "--query-gpu=memory.total", "--format=csv,noheader,nounits"],
@@ -50,15 +52,18 @@ def detect_gpu_vram() -> int:
             timeout=10
         )
         if result.returncode == 0:
-            # nvidia-smi returns memory in MiB
-            vram_mib = int(result.stdout.strip().split("\n")[0])
+            lines = [l.strip() for l in result.stdout.strip().split("\n") if l.strip()]
+            num_gpus = len(lines)
+            # Primary GPU VRAM (used for single-GPU model filtering)
+            vram_mib = int(lines[0])
             vram_gb = vram_mib // 1024
-            print(f"Detected GPU VRAM: {vram_gb}GB ({vram_mib}MiB)")
+            print(f"Detected {num_gpus} GPU(s), primary VRAM: {vram_gb}GB ({vram_mib}MiB)")
             return vram_gb
     except Exception as e:
         print(f"Warning: Could not detect GPU VRAM: {e}")
-    
+
     # Fallback: assume 8GB (RTX 3070 tier)
+    num_gpus = 1
     print("Falling back to 8GB VRAM assumption")
     return 8
 
@@ -83,12 +88,21 @@ def load_models():
     # Convert list to dict keyed by id
     model_cards = {m["id"]: m for m in models_list}
     
-    # Filter models that fit in GPU VRAM (with 1GB headroom)
+    # Filter models that fit in GPU VRAM (with 1GB headroom per GPU)
     usable_vram = gpu_vram_gb - 1
-    available_models = [
-        m["id"] for m in models_list
-        if m.get("vram_gb", 0) <= usable_vram
-    ]
+    available_models = []
+    for m in models_list:
+        model_gpu_count = m.get("gpu_count", 1)
+        if model_gpu_count > num_gpus:
+            continue  # Not enough GPUs
+        if model_gpu_count > 1:
+            # Multi-GPU: model VRAM is split across GPUs
+            total_usable = usable_vram * model_gpu_count
+            if m.get("vram_gb", 0) <= total_usable:
+                available_models.append(m["id"])
+        else:
+            if m.get("vram_gb", 0) <= usable_vram:
+                available_models.append(m["id"])
     
     # Initialize runtime state for available models
     model_states = {
@@ -164,6 +178,11 @@ def create_vllm_container(model_id: str):
     if gpu_vram_gb <= 8:
         cmd.extend(["--disable-log-stats"])
 
+    # Multi-GPU tensor parallelism
+    gpu_count = card.get("gpu_count", 1)
+    if gpu_count > 1:
+        cmd.extend(["--tensor-parallel-size", str(gpu_count)])
+
     # Model-specific extra vLLM args (e.g. --enable-auto-tool-choice --tool-call-parser hermes)
     if card.get("extra_args"):
         cmd.extend(card["extra_args"])
@@ -182,23 +201,29 @@ def create_vllm_container(model_id: str):
         print(f"[{model_id}] Image pulled successfully")
 
     try:
+        gpu_count = card.get("gpu_count", 1)
         container = docker_client.containers.create(
             image=VLLM_IMAGE,
             name=container_name,
             command=cmd,
             detach=True,
             device_requests=[
-                DeviceRequest(count=1, capabilities=[['gpu']])
+                DeviceRequest(count=gpu_count, capabilities=[['gpu']])
             ],
             environment={
                 "NVIDIA_VISIBLE_DEVICES": "all",
+                "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
                 "HF_HOME": "/root/.cache/huggingface",
                 "VLLM_USE_V1": "0" if CPU_OFFLOAD_GB > 0 else "1",
+                # Per-model env overrides (e.g. BNB quantization needs VLLM_USE_V1=0)
+                **{k: str(v) for k, v in card.get("env_overrides", {}).items()},
             },
             volumes={
                 "huggingface-cache": {"bind": "/root/.cache/huggingface", "mode": "rw"}
             },
             network=DOCKER_NETWORK,
+            # Shared memory needed for multi-GPU NCCL communication
+            ipc_mode="host" if gpu_count > 1 else None,
             labels={
                 "managed-by": "vllm-manager",
                 "model-id": model_id,

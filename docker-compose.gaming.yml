@@ -15,12 +15,13 @@ services:
       - "8000:8000"
     environment:
       - MODE=always-on
-      - DEFAULT_MODEL=qwen3-32b-awq
+      - DEFAULT_MODEL=qwen3.5-27b-awq
       - GAMING_MODE_ENABLED=true
       - IDLE_TIMEOUT=0
       - START_TIMEOUT=600
+      - GPU_MEMORY_UTILIZATION=0.90
       - CPU_OFFLOAD_GB=0
-      - VLLM_IMAGE=${HARBOR_REGISTRY:-harbor.local}/docker-hub/vllm/vllm-openai:v0.8.5
+      - VLLM_IMAGE=vllm/vllm-openai:nightly
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - huggingface-cache:/root/.cache/huggingface
@@ -31,7 +32,7 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              count: 1
+              count: all
               capabilities: [gpu]
 
   image-server:
