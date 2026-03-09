@@ -103,7 +103,15 @@ export function ResponsiveLayout({
           aria-expanded={!isCollapsed}
         >
           <span className="retro-hamburger-icon">
-            {isCollapsed ? '☰' : '✕'}
+            {isCollapsed ? (
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true">
+                <path d="M2 4h12M2 8h12M2 12h12"/>
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true">
+                <path d="M3 3l10 10M13 3L3 13"/>
+              </svg>
+            )}
           </span>
         </button>
       )}
@@ -149,7 +157,9 @@ export function ResponsiveLayout({
               onClick={handleToggle}
               aria-label="Close sidebar"
             >
-              ✕
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true">
+                <path d="M2 2l10 10M12 2L2 12"/>
+              </svg>
             </button>
           )}
         </aside>

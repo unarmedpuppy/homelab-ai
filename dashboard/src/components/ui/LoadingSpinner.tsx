@@ -113,9 +113,8 @@ export function Skeleton({
   return (
     <div
       className={`
-        bg-[var(--retro-bg-light)]
-        retro-animate-pulse
-        ${rounded ? 'rounded-full' : 'rounded'}
+        retro-skeleton
+        ${rounded ? '!rounded-full' : ''}
         ${className}
       `}
       style={{ width, height }}

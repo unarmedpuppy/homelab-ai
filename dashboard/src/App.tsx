@@ -60,51 +60,129 @@ type ViewName = 'chat' | 'ralph' | 'tasks' | 'providers' | 'stats' | 'agents' | 
 
 function AppHeader() {
   return (
-    <div className="p-6 border-b border-[var(--retro-border)]">
-      <h1 className="text-xl font-bold text-[var(--retro-text-primary)]">
-        Local AI Dashboard
+    <div className="px-5 py-4 border-b border-[var(--retro-border)]">
+      <p className="text-[0.6rem] font-semibold tracking-[0.12em] uppercase text-[var(--retro-text-muted)]">
+        homelab
+      </p>
+      <h1 className="text-sm font-bold text-[var(--retro-text-primary)] mt-0.5 tracking-tight">
+        AI Dashboard
       </h1>
     </div>
   );
 }
 
+// Minimal 15×15 SVG nav icons
+const NAV_ICONS: Record<string, ReactNode> = {
+  home: (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M7.5 1L1 6.5V14h4.5V10h4v4H14V6.5L7.5 1z"/>
+    </svg>
+  ),
+  chat: (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M13 1H2a1 1 0 00-1 1v8a1 1 0 001 1h3.5l2 2 2-2H13a1 1 0 001-1V2a1 1 0 00-1-1z"/>
+    </svg>
+  ),
+  tasks: (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M2 4h2M6 4h7M2 7.5h2M6 7.5h7M2 11h2M6 11h5"/>
+    </svg>
+  ),
+  ralph: (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M13 7.5A5.5 5.5 0 002 7.5"/>
+      <path d="M13 7.5L11 5M13 7.5L11 10"/>
+    </svg>
+  ),
+  providers: (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="4.5" y="6.5" width="6" height="5" rx="0.5"/>
+      <path d="M6.5 6.5V4M8.5 6.5V4M4.5 11.5v1.5M10.5 11.5v1.5"/>
+    </svg>
+  ),
+  stats: (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M1.5 13V8H5v5M5.5 13V4H9v9M9.5 13V7H13v6"/>
+    </svg>
+  ),
+  agents: (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="5.5" cy="4.5" r="2"/>
+      <path d="M1 13c0-2.5 2-4.5 4.5-4.5"/>
+      <circle cx="10" cy="4.5" r="2"/>
+      <path d="M10 8.5c2.5 0 4.5 2 4.5 4.5"/>
+    </svg>
+  ),
+  sessions: (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M8.5 1L4 8H8.5L5.5 14.5 12.5 7H8L8.5 1z"/>
+    </svg>
+  ),
+  trading: (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M1.5 12L5 8l3 3 5.5-7"/>
+      <path d="M10.5 4H14v3.5"/>
+    </svg>
+  ),
+  docs: (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 1h6.5L12 3.5V14H3V1z"/>
+      <path d="M9.5 1v3H12"/>
+      <path d="M5.5 6.5h4M5.5 8.5h4M5.5 10.5h2.5"/>
+    </svg>
+  ),
+  command: (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M7.5 1L13.5 4.5v6L7.5 14 1.5 10.5v-6L7.5 1z"/>
+    </svg>
+  ),
+};
+
 function AppNavigation({ currentView }: { currentView: ViewName }) {
-  const navItems: { to: string; view: ViewName; icon: string; label: string }[] = [
-    { to: '/chat', view: 'chat', icon: '💬', label: 'Chat' },
-    { to: '/tasks', view: 'tasks', icon: '📋', label: 'Tasks' },
-    { to: '/ralph', view: 'ralph', icon: '🔄', label: 'Ralph' },
-    { to: '/providers', view: 'providers', icon: '🔌', label: 'Providers' },
-    { to: '/stats', view: 'stats', icon: '📊', label: 'Stats' },
-    { to: '/agents', view: 'agents', icon: '🤖', label: 'Agents' },
-    { to: '/sessions', view: 'sessions', icon: '⚡', label: 'Sessions' },
-    { to: '/trading', view: 'trading', icon: '📈', label: 'Trading' },
-    { to: '/docs', view: 'docs', icon: '📄', label: 'Docs' },
-    { to: '/command', view: 'command', icon: '⚔️', label: 'Command' },
+  const navItems: { to: string; view: ViewName; iconKey: string; label: string }[] = [
+    { to: '/chat', view: 'chat', iconKey: 'chat', label: 'Chat' },
+    { to: '/tasks', view: 'tasks', iconKey: 'tasks', label: 'Tasks' },
+    { to: '/ralph', view: 'ralph', iconKey: 'ralph', label: 'Ralph' },
+    { to: '/providers', view: 'providers', iconKey: 'providers', label: 'Providers' },
+    { to: '/stats', view: 'stats', iconKey: 'stats', label: 'Stats' },
+    { to: '/agents', view: 'agents', iconKey: 'agents', label: 'Agents' },
+    { to: '/sessions', view: 'sessions', iconKey: 'sessions', label: 'Sessions' },
+    { to: '/trading', view: 'trading', iconKey: 'trading', label: 'Trading' },
+    { to: '/docs', view: 'docs', iconKey: 'docs', label: 'Docs' },
+    { to: '/command', view: 'command', iconKey: 'command', label: 'Command' },
   ];
 
+  const linkBase = 'flex items-center gap-2.5 w-full pl-[18px] pr-4 py-[7px] border-l-2 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--retro-border-active)]';
+  const linkActive = 'border-[var(--retro-border-active)] bg-[var(--retro-bg-light)] text-[var(--retro-text-primary)]';
+  const linkInactive = 'border-transparent text-[var(--retro-text-secondary)] hover:bg-[var(--retro-bg-light)] hover:text-[var(--retro-text-primary)]';
+
   return (
-    <nav className="p-4 border-b border-[var(--retro-border)] space-y-2">
+    <nav className="py-2 border-b border-[var(--retro-border)]" aria-label="Main navigation">
       <Link
         to="/"
-        className="block w-full px-4 py-2 rounded text-sm font-medium transition-colors text-left text-[var(--retro-text-secondary)] hover:text-[var(--retro-text-primary)] hover:bg-[var(--retro-bg-light)]"
+        className={`${linkBase} ${linkInactive}`}
+        aria-label="Home"
       >
-        🏠 Home
+        {NAV_ICONS.home}
+        <span>Home</span>
       </Link>
-      {navItems.map((item) => (
-        <Link
-          key={item.view}
-          to={item.to}
-          className={`
-            block w-full px-4 py-2 rounded text-sm font-medium transition-colors text-left
-            ${currentView === item.view
-              ? 'bg-[var(--retro-bg-light)] text-[var(--retro-text-primary)] border border-[var(--retro-border-active)]'
-              : 'text-[var(--retro-text-secondary)] hover:text-[var(--retro-text-primary)] hover:bg-[var(--retro-bg-light)]'
-            }
-          `}
-        >
-          {item.icon} {item.label}
-        </Link>
-      ))}
+      <div className="pl-[20px] pr-4 pb-1 pt-3">
+        <span className="text-[0.6rem] font-semibold tracking-[0.12em] uppercase text-[var(--retro-text-muted)]">Views</span>
+      </div>
+      {navItems.map((item) => {
+        const isActive = currentView === item.view;
+        return (
+          <Link
+            key={item.view}
+            to={item.to}
+            className={`${linkBase} ${isActive ? linkActive : linkInactive}`}
+            aria-current={isActive ? 'page' : undefined}
+          >
+            {NAV_ICONS[item.iconKey]}
+            <span>{item.label}</span>
+          </Link>
+        );
+      })}
     </nav>
   );
 }
@@ -167,15 +245,24 @@ function AppLayout({
             <div className="flex items-center justify-between p-4">
               <button
                 onClick={toggleMenu}
-                className="w-10 h-10 flex items-center justify-center text-xl bg-[var(--retro-bg-light)] border border-[var(--retro-border)] rounded transition-colors hover:border-[var(--retro-border-active)]"
+                className="w-10 h-10 flex items-center justify-center bg-[var(--retro-bg-light)] border border-[var(--retro-border)] rounded transition-colors hover:border-[var(--retro-border-active)] text-[var(--retro-text-secondary)] hover:text-[var(--retro-text-primary)]"
                 aria-label={menuOpen ? 'Close menu' : 'Open menu'}
                 aria-expanded={menuOpen}
               >
-                {menuOpen ? '✕' : '☰'}
+                {menuOpen ? (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true">
+                    <path d="M3 3l10 10M13 3L3 13"/>
+                  </svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true">
+                    <path d="M2 4h12M2 8h12M2 12h12"/>
+                  </svg>
+                )}
               </button>
-              <h1 className="text-lg font-bold text-[var(--retro-text-primary)]">
-                Local AI Dashboard
-              </h1>
+              <div className="flex flex-col items-center">
+                <span className="text-[0.55rem] font-semibold tracking-[0.12em] uppercase text-[var(--retro-text-muted)] leading-none">homelab</span>
+                <h1 className="text-sm font-bold text-[var(--retro-text-primary)] tracking-tight leading-tight">AI Dashboard</h1>
+              </div>
               <div className="w-10" aria-hidden="true" />
             </div>
           </div>
@@ -281,7 +368,9 @@ function ChatView() {
               className="w-8 h-8 flex items-center justify-center text-[var(--retro-text-muted)] hover:text-[var(--retro-text-primary)] rounded transition-colors"
               aria-label="Close history panel"
             >
-              ✕
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true">
+                <path d="M2 2l10 10M12 2L2 12"/>
+              </svg>
             </button>
           </div>
           {/* Sidebar content */}
