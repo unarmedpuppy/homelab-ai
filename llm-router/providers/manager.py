@@ -50,6 +50,12 @@ class ProviderManager:
         self.models: Dict[str, Model] = {}
         self.settings: Dict = {}
         self._lock = asyncio.Lock()
+
+        # Queue state: waiters blocked on a busy provider
+        self._slot_event = asyncio.Event()
+        self._queue_depth = 0
+        self.max_queue_depth = int(os.getenv("QUEUE_MAX_DEPTH", "20"))
+        self.queue_timeout = float(os.getenv("QUEUE_TIMEOUT_SECONDS", "120"))
         
         # Model state tracker for warm/cold detection
         self.model_state_tracker = ModelStateTracker(
@@ -370,6 +376,95 @@ class ProviderManager:
                     logger.debug(
                         f"Provider {provider_id}: {provider.current_requests}/{provider.max_concurrent}"
                     )
+            # Pulse the slot event — wake any queued waiters
+            self._slot_event.set()
+            self._slot_event.clear()
+
+    async def acquire_provider_slot(
+        self,
+        requested_model: str,
+        *,
+        priority: int = 1,
+        request: Optional[Any] = None,
+        timeout: Optional[float] = None,
+        **kwargs,
+    ) -> "ProviderSelection":
+        """
+        Select a provider slot, waiting if all providers are currently busy.
+
+        Wraps select_provider_and_model with:
+        - Immediate return if a slot is available (fast path)
+        - Queue depth cap — returns 503 if queue is full
+        - Slot-freed notification via asyncio.Event
+        - Client disconnect detection (pass FastAPI Request as `request`)
+        - Configurable timeout (QUEUE_TIMEOUT_SECONDS env, default 120s)
+
+        Priority is informational for logging; wakeup order is not strictly
+        enforced (asyncio scheduling determines which waiter wins the slot race).
+        """
+        timeout = timeout if timeout is not None else self.queue_timeout
+
+        # Fast path: slot available right now
+        try:
+            return await self.select_provider_and_model(requested_model, **kwargs)
+        except ValueError:
+            pass
+
+        # Check queue capacity before enqueuing
+        if self._queue_depth >= self.max_queue_depth:
+            raise ValueError(
+                f"Request queue full ({self._queue_depth}/{self.max_queue_depth}). "
+                "Try again later."
+            )
+
+        self._queue_depth += 1
+        logger.info(
+            f"Provider busy — queuing request (priority={priority}, model={requested_model}, "
+            f"depth={self._queue_depth}/{self.max_queue_depth})"
+        )
+
+        loop = asyncio.get_event_loop()
+        deadline = loop.time() + timeout
+        poll_interval = 2.0  # max seconds between retries (slot event shortens this)
+
+        try:
+            while True:
+                # Check client disconnect
+                if request is not None:
+                    try:
+                        if await request.is_disconnected():
+                            raise ValueError("Client disconnected while waiting in queue")
+                    except Exception:
+                        pass  # is_disconnected can fail; don't abort the request
+
+                remaining = deadline - loop.time()
+                if remaining <= 0:
+                    raise ValueError(
+                        f"Request timed out after {timeout}s waiting for a provider slot"
+                    )
+
+                # Wait for a slot-freed signal or poll interval, whichever comes first
+                try:
+                    await asyncio.wait_for(
+                        self._slot_event.wait(),
+                        timeout=min(remaining, poll_interval),
+                    )
+                except asyncio.TimeoutError:
+                    pass  # poll interval elapsed; loop and retry
+
+                # Attempt to acquire a slot now
+                try:
+                    selection = await self.select_provider_and_model(requested_model, **kwargs)
+                    logger.info(
+                        f"Queued request acquired slot "
+                        f"(provider={selection.provider.id}, priority={priority}, "
+                        f"waited={round(timeout - remaining, 1)}s)"
+                    )
+                    return selection
+                except ValueError:
+                    continue  # Still busy — wait for the next slot signal
+        finally:
+            self._queue_depth -= 1
 
     def get_provider(self, provider_id: str) -> Optional[Provider]:
         """Get provider by ID."""
@@ -405,6 +500,14 @@ class ProviderManager:
                 "priority": p.priority,
             }
             for pid, p in self.providers.items()
+        }
+
+    def get_queue_status(self) -> Dict[str, Any]:
+        """Return current queue state for monitoring."""
+        return {
+            "depth": self._queue_depth,
+            "max_depth": self.max_queue_depth,
+            "timeout_seconds": self.queue_timeout,
         }
 
     def reload_config(self):

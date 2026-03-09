@@ -201,6 +201,8 @@ class HealthResponse(BaseModel):
     gaming_mode: Optional[bool] = None
     gaming_pc_reachable: Optional[bool] = None
     gaming_cache_age: Optional[float] = None
+    queue_depth: int = 0
+    queue_max_depth: int = 0
 
 
 class ClaudeAgentRequest(BaseModel):
@@ -398,11 +400,13 @@ async def route_request(request: Request, body: dict, priority: int = 1, api_key
                 logger.info(f"Context override: routing to GLM-5 (tokens={token_estimate} > 16K)")
 
     try:
-        # Select provider using ProviderManager (it's async)
-        selection = await provider_manager.select_provider_and_model(
+        # Select provider, waiting in queue if all providers are currently busy
+        selection = await provider_manager.acquire_provider_slot(
             requested_model,
+            priority=priority,
+            request=request,
             provider_id=requested_provider,
-            model_id=requested_model_id
+            model_id=requested_model_id,
         )
 
         if not selection:
@@ -747,12 +751,16 @@ async def health_check() -> HealthResponse:
             consecutive_failures=status.get("consecutive_failures", 0),
         )
 
+    queue_info = provider_manager.get_queue_status()
+
     return HealthResponse(
         status="healthy" if any(s["healthy"] for s in backend_status.values()) else "degraded",
         backends=backend_status,
         gaming_mode=gaming_status.gaming_mode if gaming_status else None,
         gaming_pc_reachable=gaming_pc_reachable,
         gaming_cache_age=cache_age,
+        queue_depth=queue_info["depth"],
+        queue_max_depth=queue_info["max_depth"],
     )
 
 
