@@ -399,6 +399,42 @@ AGENT_SHELL_TIMEOUT=30      # Shell command timeout (seconds)
 AGENT_SKILLS_DIR=/app/.agents/skills  # Skills directory (mounted from host)
 ```
 
+## Claude Code Integration Notes
+
+### Attribution Header — KV Cache Fix
+
+Claude Code prepends an attribution header to every request that **invalidates the KV cache on vLLM**, causing ~90% slower inference. This must be disabled in `~/.claude/settings.json` (a shell export does NOT work):
+
+```json
+{
+  "env": {
+    "CLAUDE_CODE_ATTRIBUTION_HEADER": "0"
+  }
+}
+```
+
+Reference: https://unsloth.ai/docs/basics/claude-code
+
+### Compaction Behavior with vLLM
+
+When Claude Code compacts a session it calls the same model endpoint (`ANTHROPIC_BASE_URL`) with a summarization request — there is no separate small/fast model. With the llm-router pointing at vLLM:
+
+- **Compaction goes to vLLM** — the same model that handles normal requests handles the summarization. No cloud fallback.
+- **Trigger is context-window-percentage-based** — Claude Code fires compaction at ~95% of the context window reported by the model. This comes from the `context_length` field in the `/v1/models` response.
+- **vLLM context window reporting matters** — If vLLM reports a large context window (e.g. 32k) but the model was loaded with a smaller `--max-model-len`, actual OOM or truncation can occur before compaction fires. Ensure `--max-model-len` matches what vLLM advertises.
+- **Early compaction** — Set `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70` (env var on the Claude Code side) to compact earlier and reduce the risk of hitting vLLM's actual limit.
+- **CLAUDE.md survives compaction** — Re-read from disk and re-injected after every compact. Instructions given only in conversation are lost.
+- **PreCompact hook** — innie-engine installs a PreCompact hook that fires before compaction, prompting the assistant to write working state to CONTEXT.md first.
+
+**vLLM setup checklist for Claude Code use:**
+
+| Item | Why |
+|------|-----|
+| Set `--max-model-len` explicitly | Prevents mismatch between advertised and actual context |
+| Disable attribution header in `~/.claude/settings.json` | Fixes KV cache invalidation (~90% inference slowdown) |
+| Set `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70` | Compact before hitting vLLM's real limit |
+| Verify `/v1/models` returns correct `context_length` | Claude Code uses this to calculate compaction threshold |
+
 ## Force-Big Signals
 
 Override gaming mode restrictions:
