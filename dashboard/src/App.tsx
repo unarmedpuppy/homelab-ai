@@ -40,7 +40,6 @@ import ConversationSidebar from './components/ConversationSidebar';
 // Heavy components are lazy-loaded to improve initial bundle size
 const Dashboard = lazy(() => import('./components/Dashboard'));
 const ProviderMonitoring = lazy(() => import('./components/ProviderMonitoring'));
-const RalphDashboard = lazy(() => import('./components/ralph/RalphDashboard'));
 const TasksDashboard = lazy(() => import('./components/tasks/TasksDashboard'));
 const AgentsDashboard = lazy(() => import('./components/agents/AgentsDashboard'));
 
@@ -56,7 +55,7 @@ const GettingStartedPage = lazy(() => import('./pages/reference/GettingStartedPa
 const TroubleshootingPage = lazy(() => import('./pages/reference/TroubleshootingPage'));
 const SummaryPage = lazy(() => import('./pages/SummaryPage'));
 
-type ViewName = 'chat' | 'ralph' | 'tasks' | 'providers' | 'stats' | 'agents' | 'trading' | 'docs' | 'command' | 'sessions';
+type ViewName = 'chat' | 'tasks' | 'providers' | 'stats' | 'agents' | 'trading' | 'docs' | 'command' | 'sessions';
 
 function AppHeader() {
   return (
@@ -86,12 +85,6 @@ const NAV_ICONS: Record<string, ReactNode> = {
   tasks: (
     <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M2 4h2M6 4h7M2 7.5h2M6 7.5h7M2 11h2M6 11h5"/>
-    </svg>
-  ),
-  ralph: (
-    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M13 7.5A5.5 5.5 0 002 7.5"/>
-      <path d="M13 7.5L11 5M13 7.5L11 10"/>
     </svg>
   ),
   providers: (
@@ -142,7 +135,6 @@ function AppNavigation({ currentView }: { currentView: ViewName }) {
   const navItems: { to: string; view: ViewName; iconKey: string; label: string }[] = [
     { to: '/chat', view: 'chat', iconKey: 'chat', label: 'Chat' },
     { to: '/tasks', view: 'tasks', iconKey: 'tasks', label: 'Tasks' },
-    { to: '/ralph', view: 'ralph', iconKey: 'ralph', label: 'Ralph' },
     { to: '/providers', view: 'providers', iconKey: 'providers', label: 'Providers' },
     { to: '/stats', view: 'stats', iconKey: 'stats', label: 'Stats' },
     { to: '/agents', view: 'agents', iconKey: 'agents', label: 'Agents' },
@@ -399,18 +391,6 @@ function TasksView() {
   );
 }
 
-function RalphView() {
-  return (
-    <AppLayout currentView="ralph">
-      <ErrorBoundary>
-        <Suspense fallback={<PageLoading section="Ralph" />}>
-          <RalphDashboard />
-        </Suspense>
-      </ErrorBoundary>
-    </AppLayout>
-  );
-}
-
 function ProvidersView() {
   return (
     <AppLayout currentView="providers" scrollable withContainer>
@@ -529,7 +509,6 @@ function App() {
       <Route path="/chat" element={<ChatView />} />
       <Route path="/chat/:conversationId" element={<ChatView />} />
       <Route path="/tasks" element={<TasksView />} />
-      <Route path="/ralph" element={<RalphView />} />
       <Route path="/providers" element={<ProvidersView />} />
       <Route path="/stats" element={<StatsView />} />
       <Route path="/agents" element={<AgentsView />} />
