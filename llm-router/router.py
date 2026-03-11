@@ -155,8 +155,9 @@ MODEL_ALIASES = {
     # Manual 3070 access (explicit only)
     "3070": "qwen2.5-7b-awq",
     "server": "qwen2.5-7b-awq",
-    # Qwopus - Claude Opus 4.6 reasoning distilled into Qwen3.5-27B
-    "qwopus": "qwopus-27b",
+    # Qwopus - Claude Opus 4.6 reasoning distilled into Qwen3.5-27B (abliterated, AWQ)
+    "qwopus": "qwopus-27b-awq",
+    "qwopus-awq": "qwopus-27b-awq",
     # Claude model name aliases (for direct OpenAI endpoint access with Claude model names)
     "claude-sonnet-4-6": DEFAULT_3090_MODEL,
     "claude-opus-4-6": DEFAULT_3090_MODEL,
@@ -941,6 +942,7 @@ async def list_models():
         {"id": "medium", "object": "model", "owned_by": "router"},
         {"id": "big", "object": "model", "owned_by": "router"},
         {"id": "qwopus", "object": "model", "owned_by": "router"},
+        {"id": "qwopus-awq", "object": "model", "owned_by": "router"},
     ])
 
     return {"object": "list", "data": models}

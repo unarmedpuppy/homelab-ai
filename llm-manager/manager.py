@@ -220,7 +220,8 @@ def create_vllm_container(model_id: str):
                 **{k: str(v) for k, v in card.get("env_overrides", {}).items()},
             },
             volumes={
-                "huggingface-cache": {"bind": "/root/.cache/huggingface", "mode": "rw"}
+                "huggingface-cache": {"bind": "/root/.cache/huggingface", "mode": "rw"},
+                "local-models": {"bind": "/models", "mode": "ro"},
             },
             network=DOCKER_NETWORK,
             # Shared memory needed for multi-GPU NCCL communication
