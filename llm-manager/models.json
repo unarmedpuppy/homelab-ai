@@ -60,6 +60,22 @@
       "tags": ["large", "reasoning", "thinking", "tool-calling", "primary"]
     },
     {
+      "id": "qwen3.5-27b-abliterated",
+      "name": "Qwen3.5 27B Abliterated",
+      "hf_model": "/models/qwen3.5-27b-abliterated",
+      "quantization": "bitsandbytes",
+      "type": "text",
+      "vram_gb": 19,
+      "max_context": 65536,
+      "default_context": 32768,
+      "extra_args": ["--load-format", "bitsandbytes"],
+      "env_overrides": {"VLLM_USE_V1": "0"},
+      "description": "Qwen3.5-27B abliterated (refusal direction removed). Hybrid SSM-transformer. BNB NF4 4-bit, 256K native context. Basic abliteration method, refusal_rate=0.167.",
+      "architecture": "Qwen3.5 (hybrid SSM+transformer, abliterated)",
+      "license": "Apache-2.0",
+      "tags": ["reasoning", "thinking", "abliterated", "uncensored", "hybrid-ssm"]
+    },
+    {
       "id": "qwopus-27b",
       "name": "Qwopus 27B BNB (Opus Distilled)",
       "hf_model": "Jackrong/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled",
