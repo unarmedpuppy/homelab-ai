@@ -1274,6 +1274,9 @@ async def chat_completions(
     priority = get_request_priority(api_key)
     logger.info(f"Request from '{api_key.name}' (priority={priority})")
 
+    # Track whether this was auto-routed (before body["model"] is overwritten)
+    was_auto = body.get("model", "auto") == "auto"
+
     # Route using ProviderManager
     selection = await route_request(request, body, priority=priority, api_key=api_key)
 
@@ -1289,19 +1292,19 @@ async def chat_completions(
         else:
             logger.warning(f"Model {selection.model.id} doesn't support vision, images will be ignored")
 
-    # Build endpoint URL and request headers (handles cloud provider auth)
-    endpoint_url = build_chat_completions_url(selection.provider)
-    request_headers = build_request_headers(selection.provider)
+    stream = body.get("stream", False)
 
-    logger.info(
-        f"Routing to {selection.provider.name} ({selection.provider.endpoint}) "
-        f"with model {selection.model.id}"
-    )
+    if stream:
+        # Streaming: single provider selection, no execution-level fallback possible
+        endpoint_url = build_chat_completions_url(selection.provider)
+        request_headers = build_request_headers(selection.provider)
 
-    async with provider_manager.track_request(selection.provider.id):
-        stream = body.get("stream", False)
+        logger.info(
+            f"Routing to {selection.provider.name} ({selection.provider.endpoint}) "
+            f"with model {selection.model.id}"
+        )
 
-        if stream:
+        async with provider_manager.track_request(selection.provider.id):
             enhanced_streaming = request.headers.get("X-Enhanced-Streaming", "").lower() == "true"
             accumulator = StreamAccumulator()
             passthrough_content = []
@@ -1350,7 +1353,7 @@ async def chat_completions(
                             'provider': selection.provider.id,
                             'provider_name': selection.provider.name,
                         }
-                    
+
                     if provider_manager:
                         usage = response_data.get("usage", {})
                         response_data["cost_usd"] = provider_manager.calculate_cost(
@@ -1359,7 +1362,7 @@ async def chat_completions(
                             duration_ms=tracker.get_duration_ms(),
                             total_tokens=usage.get("total_tokens"),
                         )
-                    
+
                     log_chat_completion(tracker, body, response_data, error=None)
                     logger.info(f"Logged streaming response (conversation: {tracker.conversation_id})")
                 except Exception as e:
@@ -1379,82 +1382,127 @@ async def chat_completions(
                 media_type="text/event-stream",
                 headers=response_headers,
             )
-        else:
-            async with httpx.AsyncClient(timeout=300.0) as client:
-                # Non-streaming response
-                error = None
-                response_data = None
-
+    else:
+        # Non-streaming: build execution-level fallback chain for auto-routed requests
+        execution_candidates = [selection]
+        if was_auto:
+            for fb_model in ["glm-5", "claude-sonnet"]:
                 try:
-                    response = await client.post(
-                        endpoint_url,
-                        json=body,
-                        headers=request_headers,
-                    )
+                    fb_sel = await provider_manager.select_provider_and_model(fb_model)
+                    if fb_sel and fb_sel.provider.id != selection.provider.id:
+                        execution_candidates.append(fb_sel)
+                except Exception:
+                    pass
 
-                    if response.status_code != 200:
-                        error_detail = response.text[:500] if response.text else "Empty response"
-                        logger.error(
-                            f"Backend error from {selection.provider.name}: "
-                            f"HTTP {response.status_code} - {error_detail}"
-                        )
-                        raise HTTPException(
-                            status_code=502,
-                            detail=f"Backend {selection.provider.name} returned HTTP {response.status_code}: {error_detail}"
-                        )
+        last_error = None
+        for candidate in execution_candidates:
+            endpoint_url = build_chat_completions_url(candidate.provider)
+            request_headers = build_request_headers(candidate.provider)
+            body["model"] = candidate.model.id
 
-                    try:
-                        response_data = response.json()
-                    except Exception:
-                        logger.error(f"Backend {selection.provider.name} returned non-JSON response: {response.text[:200]}")
-                        raise HTTPException(
-                            status_code=502,
-                            detail=f"Backend {selection.provider.name} returned invalid response"
-                        )
+            logger.info(
+                f"Routing to {candidate.provider.name} ({candidate.provider.endpoint}) "
+                f"with model {candidate.model.id}"
+            )
 
-                    response_data["provider"] = selection.provider.id
-                    response_data["provider_name"] = selection.provider.name
-                    
-                    if provider_manager:
-                        usage = response_data.get("usage", {})
-                        response_data["cost_usd"] = provider_manager.calculate_cost(
-                            provider_id=selection.provider.id,
-                            model_id=selection.model.id,
-                            duration_ms=tracker.get_duration_ms(),
-                            total_tokens=usage.get("total_tokens"),
+            try:
+                async with provider_manager.track_request(candidate.provider.id):
+                    async with httpx.AsyncClient(timeout=300.0) as client:
+                        response = await client.post(
+                            endpoint_url,
+                            json=body,
+                            headers=request_headers,
                         )
 
-                    background_tasks.add_task(
-                        log_chat_completion,
-                        tracker,
-                        body,
-                        response_data,
-                        error=None
-                    )
+                        if response.status_code >= 500:
+                            error_detail = response.text[:500] if response.text else "Empty response"
+                            logger.warning(
+                                f"Backend {candidate.provider.name} returned HTTP {response.status_code} "
+                                f"- {error_detail}, trying next candidate..."
+                            )
+                            last_error = f"HTTP {response.status_code}: {error_detail}"
+                            continue
 
-                    # Return with conversation ID header for client tracking
-                    response_headers = {}
-                    if tracker.conversation_id:
-                        response_headers["X-Conversation-ID"] = tracker.conversation_id
-                    if selection.complexity_tier:
-                        response_headers["X-Complexity-Tier"] = selection.complexity_tier
+                        if response.status_code != 200:
+                            error_detail = response.text[:500] if response.text else "Empty response"
+                            logger.error(
+                                f"Backend error from {candidate.provider.name}: "
+                                f"HTTP {response.status_code} - {error_detail}"
+                            )
+                            raise HTTPException(
+                                status_code=502,
+                                detail=f"Backend {candidate.provider.name} returned HTTP {response.status_code}: {error_detail}"
+                            )
 
-                    return JSONResponse(content=response_data, headers=response_headers)
+                        try:
+                            response_data = response.json()
+                        except Exception:
+                            logger.error(f"Backend {candidate.provider.name} returned non-JSON response: {response.text[:200]}")
+                            raise HTTPException(
+                                status_code=502,
+                                detail=f"Backend {candidate.provider.name} returned invalid response"
+                            )
 
-                except Exception as e:
-                    error = str(e)
-                    logger.error(f"Chat completion error: {error}")
+                        response_data["provider"] = candidate.provider.id
+                        response_data["provider_name"] = candidate.provider.name
 
-                    # Log error metric in background
-                    background_tasks.add_task(
-                        log_chat_completion,
-                        tracker,
-                        body,
-                        response_data=None,
-                        error=error
-                    )
+                        if provider_manager:
+                            usage = response_data.get("usage", {})
+                            response_data["cost_usd"] = provider_manager.calculate_cost(
+                                provider_id=candidate.provider.id,
+                                model_id=candidate.model.id,
+                                duration_ms=tracker.get_duration_ms(),
+                                total_tokens=usage.get("total_tokens"),
+                            )
 
-                    raise
+                        background_tasks.add_task(
+                            log_chat_completion,
+                            tracker,
+                            body,
+                            response_data,
+                            error=None
+                        )
+
+                        # Return with conversation ID header for client tracking
+                        response_headers = {}
+                        if tracker.conversation_id:
+                            response_headers["X-Conversation-ID"] = tracker.conversation_id
+                        if candidate.complexity_tier:
+                            response_headers["X-Complexity-Tier"] = candidate.complexity_tier
+
+                        return JSONResponse(content=response_data, headers=response_headers)
+
+            except (httpx.TimeoutException, httpx.ConnectError) as e:
+                logger.warning(
+                    f"Execution failed for {candidate.provider.name}: {type(e).__name__}: {e}, "
+                    f"trying next candidate..."
+                )
+                last_error = str(e)
+                continue
+            except HTTPException:
+                raise
+            except Exception as e:
+                last_error = str(e)
+                logger.error(f"Chat completion error: {last_error}")
+                background_tasks.add_task(
+                    log_chat_completion,
+                    tracker,
+                    body,
+                    response_data=None,
+                    error=last_error
+                )
+                raise
+
+        # All candidates exhausted
+        logger.error(f"All execution candidates failed. Last error: {last_error}")
+        background_tasks.add_task(
+            log_chat_completion,
+            tracker,
+            body,
+            response_data=None,
+            error=f"All providers failed: {last_error}"
+        )
+        raise HTTPException(status_code=503, detail=f"All providers failed: {last_error}")
 
 
 @app.get("/gaming-pc/status")
