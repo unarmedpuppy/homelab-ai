@@ -54,7 +54,7 @@ export function ModelDetailPanel({
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {/* Status & Badges */}
-        <RetroPanel>
+        <RetroPanel title="Status">
           <div className="flex flex-wrap gap-2 mb-3">
             <RetroBadge variant={model.status === 'running' ? 'status-done' : model.status === 'stopped' ? 'status-open' : 'status-blocked'}>
               {model.status}
@@ -70,8 +70,7 @@ export function ModelDetailPanel({
         </RetroPanel>
 
         {/* Specs */}
-        <RetroPanel>
-          <h3 className="text-sm font-bold text-[var(--retro-text-primary)] mb-3">Specifications</h3>
+        <RetroPanel title="Specifications">
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
               <span className="text-[var(--retro-text-muted)]">Provider</span>
@@ -129,8 +128,7 @@ export function ModelDetailPanel({
         </RetroPanel>
 
         {/* Capabilities */}
-        <RetroPanel>
-          <h3 className="text-sm font-bold text-[var(--retro-text-primary)] mb-3">Capabilities</h3>
+        <RetroPanel title="Capabilities">
           <div className="flex flex-wrap gap-2">
             {model.capabilities.streaming && <RetroBadge variant="label">Streaming</RetroBadge>}
             {model.capabilities.function_calling && <RetroBadge variant="label">Function Calling</RetroBadge>}
@@ -141,8 +139,7 @@ export function ModelDetailPanel({
 
         {/* Tags */}
         {model.tags.length > 0 && (
-          <RetroPanel>
-            <h3 className="text-sm font-bold text-[var(--retro-text-primary)] mb-3">Tags</h3>
+          <RetroPanel title="Tags">
             <div className="flex flex-wrap gap-2">
               {model.tags.map(tag => (
                 <span key={tag} className="text-xs px-2 py-1 rounded bg-[var(--retro-bg-light)] text-[var(--retro-text-secondary)] border border-[var(--retro-border)]">
@@ -155,8 +152,7 @@ export function ModelDetailPanel({
 
         {/* References */}
         {(model.hf_model || model.harbor_ref) && (
-          <RetroPanel>
-            <h3 className="text-sm font-bold text-[var(--retro-text-primary)] mb-3">Source</h3>
+          <RetroPanel title="Source">
             <div className="space-y-2 text-sm">
               {model.hf_model && (
                 <div>

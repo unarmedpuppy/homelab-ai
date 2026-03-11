@@ -210,7 +210,7 @@ export function ModelGardenDashboard() {
 
       <div className="flex-1 p-4 space-y-4 max-w-6xl">
         {/* Stats */}
-        <RetroPanel>
+        <RetroPanel title="Overview">
           <div className="grid grid-cols-4 gap-4 text-center">
             <div>
               <div className="text-2xl font-bold text-[var(--retro-text-primary)]">{summary.total}</div>
@@ -236,7 +236,7 @@ export function ModelGardenDashboard() {
 
         {/* Model Grid */}
         {filtered.length === 0 ? (
-          <RetroPanel>
+          <RetroPanel title="Models">
             <div className="text-center py-8 text-[var(--retro-text-muted)]">
               {models.length === 0 ? 'No models available' : 'No models match filters'}
             </div>
