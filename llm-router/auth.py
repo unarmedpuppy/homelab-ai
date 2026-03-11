@@ -33,13 +33,12 @@ class ApiKey:
     metadata: Optional[dict]
 
 
-def generate_api_key(prefix: str = "lai") -> Tuple[str, str, str]:
+def generate_api_key(prefix: str = "sk-ant-api03") -> Tuple[str, str, str]:
     """
     Generate a new API key.
 
     Args:
-        prefix: Key prefix without trailing underscore (default "lai").
-                Use "sk-ant-api" to generate Claude Code-compatible keys.
+        prefix: Key prefix (default "sk-ant-api03" for Claude Code compatibility).
 
     Returns:
         Tuple of (full_key, key_hash, key_prefix)
@@ -48,7 +47,7 @@ def generate_api_key(prefix: str = "lai") -> Tuple[str, str, str]:
         - key_prefix: First N chars for display
     """
     random_part = secrets.token_hex(16)
-    full_key = f"{prefix}_{random_part}"
+    full_key = f"{prefix}-{random_part}"
     key_hash = hashlib.sha256(full_key.encode()).hexdigest()
     key_prefix = full_key[:12]
     return full_key, key_hash, key_prefix
@@ -163,7 +162,7 @@ def create_api_key(
         The full_key is only returned once at creation time.
         Store it securely - it cannot be retrieved later.
     """
-    key_prefix_str = metadata.get("prefix", "lai") if metadata else "lai"
+    key_prefix_str = metadata.get("prefix", "sk-ant-api03") if metadata else "sk-ant-api03"
     full_key, key_hash, key_prefix = generate_api_key(prefix=key_prefix_str)
     
     with get_db_connection() as conn:
