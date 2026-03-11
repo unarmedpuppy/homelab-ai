@@ -7,6 +7,7 @@ from complexity import (
     classify_request,
     ComplexityTier,
     TIER_MODEL_MAP,
+    DEFAULT_3090_MODEL,
     _score_heuristics,
     _get_caller_tier,
     _score_to_tier,
@@ -28,9 +29,9 @@ class FakeApiKey:
 # ============================================================================
 
 def test_tier_model_map():
-    assert TIER_MODEL_MAP[ComplexityTier.ROUTINE] == "qwen2.5-7b-awq"
-    assert TIER_MODEL_MAP[ComplexityTier.MODERATE] == "qwen2.5-14b-awq"
-    assert TIER_MODEL_MAP[ComplexityTier.COMPLEX] == "qwen2.5-14b-awq"
+    assert TIER_MODEL_MAP[ComplexityTier.ROUTINE] == DEFAULT_3090_MODEL
+    assert TIER_MODEL_MAP[ComplexityTier.MODERATE] == DEFAULT_3090_MODEL
+    assert TIER_MODEL_MAP[ComplexityTier.COMPLEX] == DEFAULT_3090_MODEL
 
 
 # ============================================================================
@@ -451,11 +452,11 @@ def test_coding_with_tools_routes_to_3090():
         "tools": [{"type": "function", "function": {"name": "read_file"}}],
     }
     result = classify_request(FakeRequest(), body)
-    assert TIER_MODEL_MAP[result.tier] == "qwen2.5-14b-awq"
+    assert TIER_MODEL_MAP[result.tier] == DEFAULT_3090_MODEL
 
 
 def test_agent_harness_source_routes_to_3090():
     body = {"messages": [{"role": "user", "content": "Quick task"}]}
     req = FakeRequest({"x-source": "agent-harness"})
     result = classify_request(req, body)
-    assert TIER_MODEL_MAP[result.tier] == "qwen2.5-14b-awq"
+    assert TIER_MODEL_MAP[result.tier] == DEFAULT_3090_MODEL

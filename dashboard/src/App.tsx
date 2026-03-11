@@ -43,6 +43,7 @@ const ProviderMonitoring = lazy(() => import('./components/ProviderMonitoring'))
 const TasksDashboard = lazy(() => import('./components/tasks/TasksDashboard'));
 const AgentsDashboard = lazy(() => import('./components/agents/AgentsDashboard'));
 
+const ModelGardenDashboard = lazy(() => import('./components/models/ModelGardenDashboard'));
 const TradingDashboard = lazy(() => import('./components/trading/TradingDashboard'));
 const DocsPage = lazy(() => import('./pages/DocsPage'));
 const CommandPage = lazy(() => import('./command/CommandPage'));
@@ -55,7 +56,7 @@ const GettingStartedPage = lazy(() => import('./pages/reference/GettingStartedPa
 const TroubleshootingPage = lazy(() => import('./pages/reference/TroubleshootingPage'));
 const SummaryPage = lazy(() => import('./pages/SummaryPage'));
 
-type ViewName = 'chat' | 'tasks' | 'providers' | 'stats' | 'agents' | 'trading' | 'docs' | 'command' | 'sessions';
+type ViewName = 'chat' | 'tasks' | 'providers' | 'stats' | 'agents' | 'models' | 'trading' | 'docs' | 'command' | 'sessions';
 
 function AppHeader() {
   return (
@@ -124,6 +125,12 @@ const NAV_ICONS: Record<string, ReactNode> = {
       <path d="M5.5 6.5h4M5.5 8.5h4M5.5 10.5h2.5"/>
     </svg>
   ),
+  models: (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M7.5 1C5 1 3 3 3 5.5c0 1.5.5 2.5 1.5 3.5L3 14h9l-1.5-5c1-1 1.5-2 1.5-3.5C12 3 10 1 7.5 1z"/>
+      <path d="M5.5 5.5h4"/>
+    </svg>
+  ),
   command: (
     <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M7.5 1L13.5 4.5v6L7.5 14 1.5 10.5v-6L7.5 1z"/>
@@ -138,6 +145,7 @@ function AppNavigation({ currentView }: { currentView: ViewName }) {
     { to: '/providers', view: 'providers', iconKey: 'providers', label: 'Providers' },
     { to: '/stats', view: 'stats', iconKey: 'stats', label: 'Stats' },
     { to: '/agents', view: 'agents', iconKey: 'agents', label: 'Agents' },
+    { to: '/models', view: 'models', iconKey: 'models', label: 'Models' },
     { to: '/sessions', view: 'sessions', iconKey: 'sessions', label: 'Sessions' },
     { to: '/trading', view: 'trading', iconKey: 'trading', label: 'Trading' },
     { to: '/docs', view: 'docs', iconKey: 'docs', label: 'Docs' },
@@ -428,6 +436,18 @@ function AgentsView() {
   );
 }
 
+function ModelsView() {
+  return (
+    <AppLayout currentView="models">
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoading section="Models" />}>
+          <ModelGardenDashboard />
+        </Suspense>
+      </ErrorBoundary>
+    </AppLayout>
+  );
+}
+
 function SessionsView() {
   return (
     <AppLayout currentView="sessions">
@@ -512,6 +532,7 @@ function App() {
       <Route path="/providers" element={<ProvidersView />} />
       <Route path="/stats" element={<StatsView />} />
       <Route path="/agents" element={<AgentsView />} />
+      <Route path="/models" element={<ModelsView />} />
       <Route path="/sessions" element={<SessionsView />} />
       <Route path="/trading" element={<TradingView />} />
       <Route path="/docs" element={<DocsView />} />

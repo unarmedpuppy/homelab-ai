@@ -11,6 +11,7 @@ import httpx
 import json
 import os
 import subprocess
+import threading
 import time
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException
@@ -556,6 +557,151 @@ async def stop_model_endpoint(model_id: str):
     if await stop_model(model_id):
         return {"status": "stopped", "model": model_id}
     raise HTTPException(status_code=404, detail=f"Model '{model_id}' not found or not running")
+
+
+# --- Model Garden: Cache Detection & Prefetch ---
+
+def _check_model_cached(hf_model: str) -> tuple[bool, float | None]:
+    """Check if a HuggingFace model is cached locally."""
+    cache_dir_name = f"models--{hf_model.replace('/', '--')}"
+    cache_path = os.path.join(HF_CACHE_PATH, "hub", cache_dir_name)
+
+    if not os.path.isdir(cache_path):
+        return False, None
+
+    total_size = 0
+    for dirpath, _, filenames in os.walk(cache_path):
+        for f in filenames:
+            total_size += os.path.getsize(os.path.join(dirpath, f))
+
+    return True, round(total_size / (1024 ** 3), 2)
+
+
+@app.get("/v1/models/cache")
+async def cache_summary():
+    """List cached models in the HuggingFace cache volume."""
+    hub_path = os.path.join(HF_CACHE_PATH, "hub")
+    cached_models = []
+    total_size = 0
+
+    if os.path.isdir(hub_path):
+        for entry in os.listdir(hub_path):
+            if not entry.startswith("models--"):
+                continue
+            dir_path = os.path.join(hub_path, entry)
+            if not os.path.isdir(dir_path):
+                continue
+            size = sum(
+                os.path.getsize(os.path.join(dp, f))
+                for dp, _, fnames in os.walk(dir_path)
+                for f in fnames
+            )
+            hf_name = entry.replace("models--", "").replace("--", "/", 1)
+            cached_models.append({"hf_model": hf_name, "size_gb": round(size / (1024**3), 2)})
+            total_size += size
+
+    return {
+        "total_cached_gb": round(total_size / (1024**3), 2),
+        "cached_models": cached_models,
+    }
+
+
+@app.get("/v1/models/cards")
+async def model_cards_endpoint():
+    """Full model card listing with live status and cache info."""
+    models = []
+    for model_id, card in model_cards.items():
+        hf_model = card.get("hf_model", "")
+        cached, cache_size = _check_model_cached(hf_model) if hf_model else (False, None)
+
+        state = model_states.get(model_id)
+        if state:
+            container = get_container(state["container_name"])
+            status = "running" if container and container.status == "running" else "stopped"
+            idle_seconds = int(time.time() - state["last_used"]) if state["last_used"] > 0 else None
+        else:
+            status = "unavailable"
+            idle_seconds = None
+
+        models.append({
+            "id": model_id,
+            "name": card.get("name", model_id),
+            "hf_model": hf_model,
+            "type": card.get("type", "text"),
+            "quantization": card.get("quantization"),
+            "vram_gb": card.get("vram_gb", 0),
+            "max_context": card.get("max_context"),
+            "default_context": card.get("default_context"),
+            "gpu_count": card.get("gpu_count", 1),
+            "description": card.get("description", ""),
+            "architecture": card.get("architecture", ""),
+            "license": card.get("license", ""),
+            "tags": card.get("tags", []),
+            "status": status,
+            "cached": cached,
+            "cache_size_gb": cache_size,
+            "idle_seconds": idle_seconds,
+        })
+
+    return {
+        "models": models,
+        "gpu_vram_gb": gpu_vram_gb,
+        "num_gpus": num_gpus,
+        "mode": MODE,
+        "gaming_mode_active": gaming_mode,
+        "summary": {
+            "total": len(model_cards),
+            "available": len(available_models),
+            "running": sum(1 for m in models if m["status"] == "running"),
+            "cached": sum(1 for m in models if m["cached"]),
+        },
+    }
+
+
+# Prefetch state tracking
+_prefetch_tasks: dict[str, dict] = {}
+
+
+@app.post("/v1/models/{model_id}/prefetch")
+async def prefetch_model(model_id: str):
+    """Download model weights in the background without starting vLLM."""
+    if model_id not in model_cards:
+        raise HTTPException(status_code=404, detail=f"Unknown model: {model_id}")
+
+    if model_id in _prefetch_tasks and _prefetch_tasks[model_id]["status"] == "downloading":
+        return {"status": "already_downloading", "model": model_id}
+
+    card = model_cards[model_id]
+    hf_model = card["hf_model"]
+
+    def do_prefetch():
+        _prefetch_tasks[model_id] = {"status": "downloading", "progress": "starting"}
+        try:
+            result = subprocess.run(
+                ["huggingface-cli", "download", hf_model],
+                capture_output=True, text=True, timeout=7200,
+                env={**os.environ, "HF_HOME": HF_CACHE_PATH},
+            )
+            if result.returncode == 0:
+                _prefetch_tasks[model_id] = {"status": "completed", "progress": "done"}
+            else:
+                _prefetch_tasks[model_id] = {"status": "failed", "progress": result.stderr[:500]}
+        except Exception as e:
+            _prefetch_tasks[model_id] = {"status": "failed", "progress": str(e)}
+
+    thread = threading.Thread(target=do_prefetch, daemon=True)
+    thread.start()
+
+    _prefetch_tasks[model_id] = {"status": "downloading", "progress": "starting"}
+    return {"status": "downloading", "model": model_id}
+
+
+@app.get("/v1/models/{model_id}/prefetch")
+async def prefetch_status(model_id: str):
+    """Check prefetch status for a model."""
+    if model_id in _prefetch_tasks:
+        return {**_prefetch_tasks[model_id], "model": model_id}
+    return {"status": "idle", "model": model_id}
 
 
 @app.api_route("/v1/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])

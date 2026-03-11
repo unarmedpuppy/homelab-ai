@@ -3,3 +3,4 @@ uvicorn
 docker
 httpx
 python-dotenv
+huggingface_hub

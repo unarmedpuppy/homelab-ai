@@ -8,7 +8,11 @@
       "type": "text",
       "vram_gb": 5,
       "max_context": 8192,
-      "default_context": 4096
+      "default_context": 4096,
+      "description": "Fast 7B instruction-tuned model with AWQ-Marlin quantization. Good for simple chat and lookups.",
+      "architecture": "Qwen2",
+      "license": "Apache-2.0",
+      "tags": ["fast", "small", "quantized", "always-on"]
     },
     {
       "id": "qwen2.5-14b-awq",
@@ -18,7 +22,11 @@
       "type": "text",
       "vram_gb": 10,
       "max_context": 16384,
-      "default_context": 8192
+      "default_context": 8192,
+      "description": "Mid-size instruction-tuned model. Good balance of quality and speed for coding and analysis.",
+      "architecture": "Qwen2",
+      "license": "Apache-2.0",
+      "tags": ["medium", "quantized", "coding"]
     },
     {
       "id": "qwen3.5-27b-awq",
@@ -30,7 +38,11 @@
       "gpu_count": 2,
       "max_context": 65536,
       "default_context": 32768,
-      "extra_args": ["--disable-custom-all-reduce", "--reasoning-parser", "qwen3"]
+      "extra_args": ["--disable-custom-all-reduce", "--reasoning-parser", "qwen3"],
+      "description": "Dense 27B model with native thinking mode. Dual-GPU tensor parallel for 32K+ context.",
+      "architecture": "Qwen3.5",
+      "license": "Apache-2.0",
+      "tags": ["large", "reasoning", "thinking", "dual-gpu"]
     },
     {
       "id": "qwen3-32b-awq",
@@ -41,7 +53,11 @@
       "vram_gb": 20,
       "max_context": 32768,
       "default_context": 8192,
-      "extra_args": ["--enable-auto-tool-choice", "--tool-call-parser", "hermes"]
+      "extra_args": ["--enable-auto-tool-choice", "--tool-call-parser", "hermes"],
+      "description": "Primary reasoning model with thinking mode and tool calling. Single GPU, 8K default context.",
+      "architecture": "Qwen3",
+      "license": "Apache-2.0",
+      "tags": ["large", "reasoning", "thinking", "tool-calling", "primary"]
     },
     {
       "id": "qwopus-27b",
@@ -53,7 +69,11 @@
       "max_context": 32768,
       "default_context": 8192,
       "extra_args": ["--reasoning-parser", "qwen3", "--load-format", "bitsandbytes"],
-      "env_overrides": {"VLLM_USE_V1": "0"}
+      "env_overrides": {"VLLM_USE_V1": "0"},
+      "description": "Claude Opus 4.6 reasoning distilled into Qwen3.5-27B. Optimized for autonomous coding agents with native thinking mode.",
+      "architecture": "Qwen3.5 (Opus distilled)",
+      "license": "Apache-2.0",
+      "tags": ["reasoning", "distilled", "thinking", "coding-agent", "opus"]
     },
     {
       "id": "qwen2.5-32b-awq",
@@ -63,7 +83,11 @@
       "type": "text",
       "vram_gb": 20,
       "max_context": 32768,
-      "default_context": 16384
+      "default_context": 16384,
+      "description": "Large instruction-tuned model. Strong at complex reasoning and long context tasks.",
+      "architecture": "Qwen2",
+      "license": "Apache-2.0",
+      "tags": ["large", "quantized", "reasoning"]
     },
     {
       "id": "llama3-8b",
@@ -73,7 +97,11 @@
       "type": "text",
       "vram_gb": 16,
       "max_context": 8192,
-      "default_context": 4096
+      "default_context": 4096,
+      "description": "Meta's Llama 3 8B instruction-tuned. Full precision, general purpose.",
+      "architecture": "Llama3",
+      "license": "Llama 3 Community",
+      "tags": ["general", "full-precision"]
     },
     {
       "id": "deepseek-coder-7b",
@@ -83,7 +111,11 @@
       "type": "text",
       "vram_gb": 14,
       "max_context": 16384,
-      "default_context": 8192
+      "default_context": 8192,
+      "description": "Specialized code generation model. Strong at code completion and understanding.",
+      "architecture": "DeepSeek",
+      "license": "DeepSeek License",
+      "tags": ["coding", "full-precision", "specialized"]
     },
     {
       "id": "flux-schnell",
@@ -93,7 +125,11 @@
       "type": "image",
       "vram_gb": 12,
       "max_context": null,
-      "default_context": null
+      "default_context": null,
+      "description": "Fast image generation model by Black Forest Labs. Optimized for speed.",
+      "architecture": "FLUX",
+      "license": "Apache-2.0",
+      "tags": ["image-generation", "fast"]
     },
     {
       "id": "chatterbox-turbo",
@@ -103,7 +139,11 @@
       "type": "tts",
       "vram_gb": 4,
       "max_context": null,
-      "default_context": null
+      "default_context": null,
+      "description": "Text-to-speech model by Resemble AI. Natural sounding voice synthesis.",
+      "architecture": "Chatterbox",
+      "license": "MIT",
+      "tags": ["tts", "voice", "audio"]
     },
     {
       "id": "bge-base-en",
@@ -114,7 +154,11 @@
       "vram_gb": 1,
       "max_context": 512,
       "default_context": 512,
-      "extra_args": ["--task", "embed"]
+      "extra_args": ["--task", "embed"],
+      "description": "Text embedding model for semantic search and RAG. Always-on for vector operations.",
+      "architecture": "BERT",
+      "license": "MIT",
+      "tags": ["embedding", "search", "rag", "always-on"]
     }
   ]
 }

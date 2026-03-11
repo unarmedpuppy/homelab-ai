@@ -5,12 +5,15 @@ Analyzes request content, headers, and caller signals to determine
 which tier of model should handle the request. Pure functions, no I/O.
 """
 import logging
+import os
 import re
 from dataclasses import dataclass, field
 from enum import IntEnum
 from typing import Optional
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_3090_MODEL = os.getenv("DEFAULT_3090_MODEL", "qwen3-32b-awq")
 
 
 class ComplexityTier(IntEnum):
@@ -20,9 +23,9 @@ class ComplexityTier(IntEnum):
 
 
 TIER_MODEL_MAP = {
-    ComplexityTier.ROUTINE: "qwen3-32b-awq",     # gaming PC 3090 — primary for all local requests
-    ComplexityTier.MODERATE: "qwen3-32b-awq",    # gaming PC 3090 — Qwen3 thinking mode
-    ComplexityTier.COMPLEX: "qwen3-32b-awq",     # gaming PC 3090 — Qwen3 thinking mode
+    ComplexityTier.ROUTINE: DEFAULT_3090_MODEL,     # gaming PC 3090 — primary for all local requests
+    ComplexityTier.MODERATE: DEFAULT_3090_MODEL,    # gaming PC 3090 — Qwen3 thinking mode
+    ComplexityTier.COMPLEX: DEFAULT_3090_MODEL,     # gaming PC 3090 — Qwen3 thinking mode
 }
 
 

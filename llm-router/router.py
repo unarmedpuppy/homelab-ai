@@ -124,6 +124,7 @@ GAMING_PC_STALE_THRESHOLD = int(os.getenv("GAMING_PC_STALE_THRESHOLD", "180"))  
 LOCAL_3070_URL = os.getenv("LOCAL_3070_URL", "http://llm-manager:8000")
 OPENCODE_URL = os.getenv("OPENCODE_URL", "http://opencode-service:8002")
 TTS_ENDPOINT = os.getenv("TTS_ENDPOINT", GAMING_PC_URL)  # TTS runs on Gaming PC
+DEFAULT_3090_MODEL = os.getenv("DEFAULT_3090_MODEL", "qwen3-32b-awq")  # Default model for 3090 routing
 
 # Token thresholds for context-aware routing
 SMALL_TOKEN_THRESHOLD = int(os.getenv("SMALL_TOKEN_THRESHOLD", "2000"))
@@ -157,10 +158,10 @@ MODEL_ALIASES = {
     # Qwopus - Claude Opus 4.6 reasoning distilled into Qwen3.5-27B
     "qwopus": "qwopus-27b",
     # Claude model name aliases (for direct OpenAI endpoint access with Claude model names)
-    "claude-sonnet-4-6": "qwen3-32b-awq",
-    "claude-opus-4-6": "qwen3-32b-awq",
-    "claude-haiku-4-5": "qwen2.5-14b-awq",
-    "claude-3-5-sonnet": "qwen3-32b-awq",
+    "claude-sonnet-4-6": DEFAULT_3090_MODEL,
+    "claude-opus-4-6": DEFAULT_3090_MODEL,
+    "claude-haiku-4-5": DEFAULT_3090_MODEL,
+    "claude-3-5-sonnet": DEFAULT_3090_MODEL,
 }
 
 # Backend configurations
@@ -351,7 +352,7 @@ async def route_request(request: Request, body: dict, priority: int = 1, api_key
     if requested_model in MODEL_ALIASES:
         alias_target = MODEL_ALIASES[requested_model]
         if alias_target == "3090":
-            requested_model = "qwen2.5-14b-awq"
+            requested_model = DEFAULT_3090_MODEL
         elif alias_target == "qwen2.5-7b-awq":
             requested_model = "qwen2.5-7b-awq"
         elif alias_target == "glm-5":
@@ -943,6 +944,298 @@ async def list_models():
     ])
 
     return {"object": "list", "data": models}
+
+
+# ==========================================================================
+# MODEL GARDEN ENDPOINTS
+# ==========================================================================
+
+# Custom models registry path (alongside providers.yaml)
+_CUSTOM_MODELS_PATH = os.path.join(os.path.dirname(os.getenv("CONFIG_PATH", "/app/config/providers.yaml")), "custom_models.json")
+
+
+def _load_custom_models() -> list[dict]:
+    """Load custom models from JSON file."""
+    try:
+        if os.path.exists(_CUSTOM_MODELS_PATH):
+            with open(_CUSTOM_MODELS_PATH) as f:
+                data = json.load(f)
+                return data.get("models", [])
+    except Exception as e:
+        logger.warning(f"Failed to load custom models: {e}")
+    return []
+
+
+def _save_custom_models(models: list[dict]):
+    """Save custom models to JSON file."""
+    with open(_CUSTOM_MODELS_PATH, "w") as f:
+        json.dump({"models": models}, f, indent=2)
+
+
+def _get_manager_url_for_provider(provider_id: str) -> str | None:
+    """Map a provider ID to its llm-manager endpoint."""
+    if provider_id == "gaming-pc-3090":
+        return GAMING_PC_URL
+    elif provider_id == "server-3070":
+        return LOCAL_3070_URL
+    return None
+
+
+async def _fetch_manager_cache(manager_url: str) -> dict[str, dict]:
+    """Fetch cache info from an llm-manager, keyed by hf_model."""
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get(f"{manager_url}/v1/models/cache")
+            if resp.status_code == 200:
+                data = resp.json()
+                return {m["hf_model"]: m for m in data.get("cached_models", [])}
+    except Exception as e:
+        logger.debug(f"Could not fetch cache from {manager_url}: {e}")
+    return {}
+
+
+async def _fetch_manager_status(manager_url: str) -> dict[str, dict]:
+    """Fetch model status from an llm-manager, keyed by model id."""
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get(f"{manager_url}/status")
+            if resp.status_code == 200:
+                data = resp.json()
+                result = {}
+                for m in data.get("running", []):
+                    result[m["id"]] = {"status": "running", "idle_seconds": m.get("idle_seconds")}
+                for m in data.get("stopped", []):
+                    result[m["id"]] = {"status": "stopped", "idle_seconds": None}
+                return result
+    except Exception as e:
+        logger.debug(f"Could not fetch status from {manager_url}: {e}")
+    return {}
+
+
+@app.get("/v1/model-garden")
+async def model_garden():
+    """Model Garden: list all models with enriched metadata, cache, and status."""
+    if not provider_manager:
+        raise HTTPException(status_code=503, detail="Provider manager not initialized")
+
+    # Fetch cache + status from each local manager in parallel
+    manager_urls: dict[str, str] = {}
+    for provider in provider_manager.get_all_providers():
+        url = _get_manager_url_for_provider(provider.id)
+        if url:
+            manager_urls[provider.id] = url
+
+    # Parallel fetch
+    cache_tasks = {pid: _fetch_manager_cache(url) for pid, url in manager_urls.items()}
+    status_tasks = {pid: _fetch_manager_status(url) for pid, url in manager_urls.items()}
+
+    cache_results = {}
+    status_results = {}
+    for pid, task in cache_tasks.items():
+        cache_results[pid] = await task
+    for pid, task in status_tasks.items():
+        status_results[pid] = await task
+
+    # Build model cards from providers.yaml models
+    models = []
+    for model in provider_manager.get_all_models():
+        provider = provider_manager.get_provider(model.provider_id)
+        provider_name = provider.name if provider else "Unknown"
+
+        # Look up cache info by matching hf_model (from models.json metadata if available)
+        cache_info = cache_results.get(model.provider_id, {})
+        status_info = status_results.get(model.provider_id, {})
+
+        model_status = status_info.get(model.id, {})
+        status = model_status.get("status", "stopped")
+        idle_seconds = model_status.get("idle_seconds")
+
+        # Try to find cache match — we don't have hf_model in providers.yaml,
+        # so we mark cached as None for cloud/harness providers
+        is_local = provider and provider.type.value == "local" and model.provider_id in manager_urls
+        cached = None  # unknown for cloud
+        cache_size = None
+
+        models.append({
+            "id": model.id,
+            "name": model.name,
+            "provider_id": model.provider_id,
+            "provider_name": provider_name,
+            "description": model.description or "",
+            "type": "text",  # Default; providers.yaml doesn't store type
+            "quantization": None,  # Not in providers.yaml
+            "vram_gb": None,  # Not in providers.yaml
+            "context_window": model.context_window,
+            "max_tokens": model.max_tokens,
+            "capabilities": {
+                "streaming": model.capabilities.streaming,
+                "function_calling": model.capabilities.function_calling,
+                "vision": model.capabilities.vision,
+                "json_mode": model.capabilities.json_mode,
+            },
+            "tags": model.tags,
+            "is_default": model.is_default,
+            "status": status if is_local else "stopped",
+            "cached": cached,
+            "cache_size_gb": cache_size,
+            "idle_seconds": idle_seconds,
+            "source": "huggingface",
+            "is_local": is_local,
+        })
+
+    # Merge custom models
+    for custom in _load_custom_models():
+        custom["source"] = "custom"
+        custom.setdefault("status", "stopped")
+        custom.setdefault("cached", False)
+        custom.setdefault("is_local", True)
+        models.append(custom)
+
+    summary = {
+        "total": len(models),
+        "running": sum(1 for m in models if m.get("status") == "running"),
+        "cached": sum(1 for m in models if m.get("cached") is True),
+        "available": sum(1 for m in models if m.get("is_local")),
+    }
+
+    return {"models": models, "summary": summary}
+
+
+@app.post("/v1/model-garden/{model_id}/start")
+async def model_garden_start(model_id: str):
+    """Start a model via its llm-manager."""
+    if not provider_manager:
+        raise HTTPException(status_code=503, detail="Provider manager not initialized")
+
+    model = provider_manager.get_model(model_id)
+    if not model:
+        raise HTTPException(status_code=404, detail=f"Model not found: {model_id}")
+
+    manager_url = _get_manager_url_for_provider(model.provider_id)
+    if not manager_url:
+        raise HTTPException(status_code=400, detail=f"No manager for provider: {model.provider_id}")
+
+    async with httpx.AsyncClient(timeout=300.0) as client:
+        resp = await client.post(f"{manager_url}/start/{model_id}")
+        return resp.json()
+
+
+@app.post("/v1/model-garden/{model_id}/stop")
+async def model_garden_stop(model_id: str):
+    """Stop a model via its llm-manager."""
+    if not provider_manager:
+        raise HTTPException(status_code=503, detail="Provider manager not initialized")
+
+    model = provider_manager.get_model(model_id)
+    if not model:
+        raise HTTPException(status_code=404, detail=f"Model not found: {model_id}")
+
+    manager_url = _get_manager_url_for_provider(model.provider_id)
+    if not manager_url:
+        raise HTTPException(status_code=400, detail=f"No manager for provider: {model.provider_id}")
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        resp = await client.post(f"{manager_url}/stop/{model_id}")
+        return resp.json()
+
+
+@app.post("/v1/model-garden/{model_id}/prefetch")
+async def model_garden_prefetch(model_id: str):
+    """Prefetch model weights via its llm-manager."""
+    if not provider_manager:
+        raise HTTPException(status_code=503, detail="Provider manager not initialized")
+
+    model = provider_manager.get_model(model_id)
+    if not model:
+        raise HTTPException(status_code=404, detail=f"Model not found: {model_id}")
+
+    manager_url = _get_manager_url_for_provider(model.provider_id)
+    if not manager_url:
+        raise HTTPException(status_code=400, detail=f"No manager for provider: {model.provider_id}")
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        resp = await client.post(f"{manager_url}/v1/models/{model_id}/prefetch")
+        return resp.json()
+
+
+@app.get("/v1/model-garden/{model_id}/prefetch")
+async def model_garden_prefetch_status(model_id: str):
+    """Check prefetch status via its llm-manager."""
+    if not provider_manager:
+        raise HTTPException(status_code=503, detail="Provider manager not initialized")
+
+    model = provider_manager.get_model(model_id)
+    if not model:
+        raise HTTPException(status_code=404, detail=f"Model not found: {model_id}")
+
+    manager_url = _get_manager_url_for_provider(model.provider_id)
+    if not manager_url:
+        return {"status": "idle", "model": model_id}
+
+    async with httpx.AsyncClient(timeout=5.0) as client:
+        try:
+            resp = await client.get(f"{manager_url}/v1/models/{model_id}/prefetch")
+            return resp.json()
+        except Exception:
+            return {"status": "idle", "model": model_id}
+
+
+@app.post("/v1/model-garden/custom")
+async def register_custom_model(request: Request):
+    """Register a custom model in the garden."""
+    body = await request.json()
+
+    required = ["id", "name", "type"]
+    for field in required:
+        if field not in body:
+            raise HTTPException(status_code=400, detail=f"Missing required field: {field}")
+
+    models = _load_custom_models()
+
+    # Check for duplicate ID
+    if any(m["id"] == body["id"] for m in models):
+        raise HTTPException(status_code=409, detail=f"Model already registered: {body['id']}")
+
+    # Build model entry with defaults
+    entry = {
+        "id": body["id"],
+        "name": body["name"],
+        "provider_id": body.get("provider_id", "gaming-pc-3090"),
+        "provider_name": body.get("provider_name", "Custom"),
+        "description": body.get("description", ""),
+        "type": body.get("type", "text"),
+        "quantization": body.get("quantization"),
+        "vram_gb": body.get("vram_gb"),
+        "context_window": body.get("context_window"),
+        "max_tokens": body.get("max_tokens"),
+        "capabilities": body.get("capabilities", {"streaming": True, "function_calling": False, "vision": False, "json_mode": False}),
+        "tags": body.get("tags", []),
+        "architecture": body.get("architecture", ""),
+        "license": body.get("license", ""),
+        "harbor_ref": body.get("harbor_ref", ""),
+        "hf_model": body.get("hf_model", ""),
+        "source": "custom",
+        "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    }
+
+    models.append(entry)
+    _save_custom_models(models)
+
+    return {"status": "registered", "model": entry}
+
+
+@app.delete("/v1/model-garden/custom/{model_id}")
+async def unregister_custom_model(model_id: str):
+    """Unregister a custom model from the garden."""
+    models = _load_custom_models()
+    original_count = len(models)
+    models = [m for m in models if m["id"] != model_id]
+
+    if len(models) == original_count:
+        raise HTTPException(status_code=404, detail=f"Custom model not found: {model_id}")
+
+    _save_custom_models(models)
+    return {"status": "unregistered", "model_id": model_id}
 
 
 @app.post("/v1/embeddings")

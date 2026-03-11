@@ -52,7 +52,7 @@ Thumbs.db
 .docker/
 
 # Model cache (large files)
-models/
+/models/
 cache/
 *.gguf
 *.bin

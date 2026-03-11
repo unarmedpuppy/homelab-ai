@@ -1103,4 +1103,69 @@ export const summaryAPI = {
   },
 };
 
+// Model Garden API
+import type { ModelGardenResponse, PrefetchStatus, CustomModelCreate } from '../types/models';
+
+const API_BASE = '/api';
+
+export const modelGardenAPI = {
+  getModels: async (): Promise<ModelGardenResponse> => {
+    const response = await fetch(`${API_BASE}/v1/model-garden`);
+    if (!response.ok) throw new Error(`Failed to fetch model garden: ${response.statusText}`);
+    return response.json();
+  },
+
+  startModel: async (modelId: string) => {
+    const response = await fetch(`${API_BASE}/v1/model-garden/${modelId}/start`, { method: 'POST' });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ detail: response.statusText }));
+      throw new Error(err.detail || response.statusText);
+    }
+    return response.json();
+  },
+
+  stopModel: async (modelId: string) => {
+    const response = await fetch(`${API_BASE}/v1/model-garden/${modelId}/stop`, { method: 'POST' });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ detail: response.statusText }));
+      throw new Error(err.detail || response.statusText);
+    }
+    return response.json();
+  },
+
+  prefetchModel: async (modelId: string) => {
+    const response = await fetch(`${API_BASE}/v1/model-garden/${modelId}/prefetch`, { method: 'POST' });
+    if (!response.ok) throw new Error(`Failed to prefetch: ${response.statusText}`);
+    return response.json();
+  },
+
+  getPrefetchStatus: async (modelId: string): Promise<PrefetchStatus> => {
+    const response = await fetch(`${API_BASE}/v1/model-garden/${modelId}/prefetch`);
+    if (!response.ok) throw new Error(`Failed to get prefetch status: ${response.statusText}`);
+    return response.json();
+  },
+
+  registerCustom: async (model: CustomModelCreate) => {
+    const response = await fetch(`${API_BASE}/v1/model-garden/custom`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(model),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ detail: response.statusText }));
+      throw new Error(err.detail || response.statusText);
+    }
+    return response.json();
+  },
+
+  deleteCustom: async (modelId: string) => {
+    const response = await fetch(`${API_BASE}/v1/model-garden/custom/${modelId}`, { method: 'DELETE' });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ detail: response.statusText }));
+      throw new Error(err.detail || response.statusText);
+    }
+    return response.json();
+  },
+};
+
 export { apiClient };
