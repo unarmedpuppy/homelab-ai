@@ -214,11 +214,11 @@ models:
       - chat
       - coding
 
-  - id: qwopus-27b-awq
-    name: "Qwopus 27B AWQ (Opus Abliterated)"
+  - id: qwopus-27b
+    name: "Qwopus 27B (Opus Distilled)"
     providerId: gaming-pc-3090
-    description: "Claude Opus 4.6 reasoning distilled into Qwen3.5-27B, abliterated, AWQ-Marlin quantized. Dual-GPU TP=2 with 128K context."
-    contextWindow: 131072
+    description: "Claude Opus 4.6 reasoning distilled into Qwen3.5-27B. BNB 4-bit, dual-GPU TP=2."
+    contextWindow: 32768
     maxTokens: 8192
     isDefault: false
 

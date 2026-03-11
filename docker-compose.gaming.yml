@@ -15,7 +15,7 @@ services:
       - "8000:8000"
     environment:
       - MODE=always-on
-      - DEFAULT_MODEL=qwopus-27b-awq
+      - DEFAULT_MODEL=qwen3.5-27b-awq
       - GAMING_MODE_ENABLED=true
       - IDLE_TIMEOUT=0
       - START_TIMEOUT=600
