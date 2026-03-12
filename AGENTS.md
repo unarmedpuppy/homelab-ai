@@ -158,7 +158,7 @@ Endpoints:
 Auth: Accepts `x-api-key: <llm-router-key>` (Anthropic SDK default) or `Authorization: Bearer`.
 
 Routing chain (priority order):
-1. gaming-pc-3090 (`qwen3-32b-awq`) — default
+1. gaming-pc-3090 (`qwen3.5-27b-abliterated`) — default (dual-GPU TP=2, 65K context)
 2. zai (`glm-5`) — escalation / gaming mode
 3. claude-harness (`claude-sonnet-4-5`) — last resort
 
@@ -169,10 +169,10 @@ export ANTHROPIC_API_KEY=<your-llm-router-api-key>
 ```
 
 Claude model names accepted by the OpenAI endpoint (via `MODEL_ALIASES`):
-- `claude-sonnet-4-6` → `qwen3-32b-awq`
-- `claude-opus-4-6` → `qwen3-32b-awq`
+- `claude-sonnet-4-6` → `qwen3.5-27b-abliterated`
+- `claude-opus-4-6` → `qwen3.5-27b-abliterated`
 - `claude-haiku-4-5` → `qwen2.5-14b-awq`
-- `claude-3-5-sonnet` → `qwen3-32b-awq`
+- `claude-3-5-sonnet` → `qwen3.5-27b-abliterated`
 
 ### Dashboard (`dashboard/`)
 
@@ -222,6 +222,15 @@ Reusable UI component library with pixel-art styling:
 | `ResponsiveLayout` | Mobile-first layout wrapper with sidebar support |
 
 See `dashboard/src/components/ui/README.md` for component documentation.
+
+### Hardware
+
+| Host | GPU | VRAM | Role |
+|------|-----|------|------|
+| Gaming PC (192.168.86.63) | 2x RTX 3090 | 48GB total | Primary inference (dual-GPU TP=2) |
+| Home Server | RTX 3070 | 8GB | Always-on small models (manual access only) |
+
+**Gaming PC GPU note**: `llm-manager` reports `gpu_vram_gb: 24` — this is the **primary GPU only**. Total VRAM is 48GB. Models with `gpu_count: 2` use tensor parallel across both cards and get `ipc_mode=host`. Always use `gpu_count: 2` for large models on the gaming PC.
 
 ### LLM Manager (`llm-manager/`)
 
