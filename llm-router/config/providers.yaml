@@ -130,10 +130,10 @@ models:
   - id: qwen3.5-27b-awq
     name: "Qwen3.5 27B AWQ"
     providerId: gaming-pc-3090
-    description: "Primary model - Qwen3.5 27B dense with thinking mode, dual-GPU tensor parallel, 32K context"
+    description: "Qwen3.5 27B dense with thinking mode, 32K context"
     contextWindow: 32768
     maxTokens: 8192
-    isDefault: true
+    isDefault: false
 
     # Capabilities
     capabilities:
@@ -217,10 +217,10 @@ models:
   - id: qwen3.5-27b-abliterated
     name: "Qwen3.5 27B Abliterated"
     providerId: gaming-pc-3090
-    description: "Qwen3.5-27B with refusal direction removed. Hybrid SSM-transformer. BNB NF4 4-bit. Refusal rate 16.7%, KL divergence 0.012."
+    description: "Qwen3.5-27B with refusal direction removed. BNB NF4 4-bit. 65K context, large KV cache."
     contextWindow: 65536
     maxTokens: 8192
-    isDefault: false
+    isDefault: true
 
     capabilities:
       streaming: true
