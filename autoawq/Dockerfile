@@ -11,15 +11,11 @@ RUN pip uninstall -y torchvision torchaudio 2>/dev/null; true
 # Replace deprecated pynvml to avoid CUDA init warnings
 RUN pip install --no-cache-dir nvidia-ml-py
 
-# NOTE: qwen3_5 architecture (Qwen3.5-27B) requires transformers>=5.0.0 for quantization,
-# but llm-compressor 0.10.0 caps at transformers<=4.57.6, and the git version requires
-# torch>=2.9.0. As of 2026-03-11, this toolchain cannot quantize qwen3_5 models.
-# This Dockerfile will be updated when llm-compressor adds qwen3_5 support.
-#
-# For supported architectures (qwen2, qwen3, llama, etc.), this builds a working image.
+# autoawq 0.2.9+ supports qwen3, qwen3_5, llama, mistral, etc.
+# transformers 5.x required for qwen3_5_text architecture (Qwen3.5 models)
 RUN pip install --no-cache-dir \
-    llmcompressor \
-    "transformers>=4.56.1,<=4.57.6" \
+    autoawq \
+    transformers \
     accelerate \
     sentencepiece \
     protobuf
