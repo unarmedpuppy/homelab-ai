@@ -25,10 +25,10 @@ homelab-ai/
 │   ├── Dockerfile
 │   ├── manager.py          # Main application
 │   └── models.json         # Model cards with VRAM requirements
-├── agent-gateway/          # Agent fleet status aggregator
+├── dashboard-api/          # Dashboard backend — traces, jobs, agent context
 │   ├── Dockerfile
 │   ├── gateway.py          # Main FastAPI application
-│   ├── config.yaml         # Agent registry configuration
+│   ├── config.yaml         # Agent registry configuration (stale — superseded by innie fleet-gateway)
 │   └── health.py           # Background health monitor
 ├── image-server/           # Diffusers image inference
 ├── tts-server/             # Chatterbox TTS inference
@@ -258,33 +258,37 @@ Diffusers-based image generation (FLUX).
 
 Chatterbox Turbo text-to-speech.
 
-### Fleet Gateway (`fleet-gateway/`)
+### Dashboard API (`dashboard-api/`)
 
-Agent fleet status aggregator and LLM trace pipeline. Provides:
-- Agent registry + health monitoring (all agents: Ralph, Avery, Jobin, Gilfoyle)
-- Trace ingestion from Claude Code hooks (POST /traces/events)
+Backend API for the homelab-ai React dashboard. Provides:
+- Trace ingestion from Claude Code hooks (`POST /traces/events`)
 - Session and span storage in SQLite (`traces.db`)
 - Transcript reading from Claude Code JSONL session files
-- REST API for dashboard queries
+- Job proxying to agents (`/api/jobs`)
+- Agent context R/W proxy (`/api/agents/{id}/context`)
+- Agent health monitoring (stale config.yaml — agent registry is authoritative in innie fleet-gateway)
+
+**Domain**: `dashboard-api.server.unarmedpuppy.com` | **Port**: 8016
 
 **Key files**:
-- `gateway.py` - Main FastAPI application (agents API + traces API)
-- `traces.py` - SQLite schema + query functions for session/span storage
-- `config.yaml` - Agent registry with endpoints
-- `health.py` - Background health monitor
+- `gateway.py` - Main FastAPI application
+- `traces.py` - SQLite schema + query functions
+- `config.yaml` - Legacy agent registry (not source of truth — see `home-server/apps/fleet-gateway/fleet.yaml`)
 
 **Trace API Endpoints**:
 - `POST /traces/events` — Ingest hook payload (called by claude-trace-forwarder.sh)
-- `GET /traces` — List sessions with filters (machine_id, agent_label, from/to date)
+- `GET /traces` — List sessions with filters
 - `GET /traces/{session_id}` — Session detail + all spans
-- `GET /traces/stats` — Counts by machine/day, active sessions
+- `GET /traces/stats` — Counts by machine/day
 - `GET /traces/{session_id}/transcript` — Parsed conversation from JSONL (server sessions only)
 
 **Volume mounts** (in `home-server/apps/homelab-ai/docker-compose.yml`):
-- `./fleet-gateway-data:/app/data` — SQLite traces.db persisted on host
+- `./dashboard-api-data:/app/data` — SQLite traces.db
 - `homelab-ai_claude-credentials:/claude-sessions:ro` — Claude Code session files for transcript reading
 
-**Port**: 8016 (host: 8017)
+**Trace forwarder env var**: `FLEET_GATEWAY_URL=https://dashboard-api.server.unarmedpuppy.com`
+
+**Note**: Agent fleet health/registry lives in the innie fleet-gateway (`fleet-gateway.server.unarmedpuppy.com`), not here. See `home-server/apps/fleet-gateway/`.
 
 **Full reference**: `home-server/agents/reference/agent-trace-pipeline.md`
 
@@ -318,7 +322,7 @@ All 6 images are built via CI/CD:
 | `llm-router:latest` | LLM Router |
 | `local-ai-dashboard:latest` | Dashboard |
 | `llm-manager:latest` | LLM Manager |
-| `agent-gateway:latest` | Agent Gateway |
+| `dashboard-api:latest` | Dashboard API (traces, jobs, context) |
 | `image-server:latest` | Image Server |
 | `tts-server:latest` | TTS Server |
 
