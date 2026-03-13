@@ -155,8 +155,12 @@ MODEL_ALIASES = {
     # Manual 3070 access (explicit only)
     "3070": "qwen2.5-7b-awq",
     "server": "qwen2.5-7b-awq",
-    # Qwopus - Claude Opus 4.6 reasoning distilled into Qwen3.5-27B
+    # Qwopus - Claude Opus 4.6 reasoning distilled into Qwen3.5-27B (BNB 4-bit, TP=2)
     "qwopus": "qwopus-27b",
+    "qwopus-awq": "qwopus-27b",
+    # Abliterated Qwen3.5-27B (refusal direction removed, BNB NF4 4-bit)
+    "abliterated": "qwen3.5-27b-abliterated",
+    "qwen3.5-abliterated": "qwen3.5-27b-abliterated",
     # Claude model name aliases (for direct OpenAI endpoint access with Claude model names)
     "claude-sonnet-4-6": DEFAULT_3090_MODEL,
     "claude-opus-4-6": DEFAULT_3090_MODEL,

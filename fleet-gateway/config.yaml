@@ -52,6 +52,19 @@ agents:
       - workstation
       - finance
 
+  hal:
+    name: "HAL"
+    description: "GPU infrastructure agent on gaming PC (RTX 3090 x2, vLLM stack)"
+    endpoint: "http://100.120.11.90:8021"
+    tailscale_dns: "unarmedpuppy-pc.taild41b2.ts.net"
+    agent_type: server
+    expected_online: true
+    tags:
+      - interactive
+      - workstation
+      - gpu
+      - inference
+
   jobin:
     name: "Jobin"
     description: "Dev buddy, runs locally via Claude Code"
