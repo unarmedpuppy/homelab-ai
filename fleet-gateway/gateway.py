@@ -1,4 +1,5 @@
 """Agent Gateway - FastAPI application for fleet monitoring."""
+import base64
 import json
 import logging
 import os
@@ -64,6 +65,11 @@ health_monitor: Optional[HealthMonitor] = None
 
 TRACES_DB_PATH = os.getenv("TRACES_DB_PATH", "/app/data/traces.db")
 CLAUDE_SESSIONS_PATH = os.getenv("CLAUDE_SESSIONS_PATH", "/claude-sessions")
+
+# Gitea knowledge base config
+GITEA_URL = os.getenv("GITEA_URL", "https://gitea.server.unarmedpuppy.com")
+GITEA_TOKEN = os.getenv("GITEA_TOKEN", "")
+KNOWLEDGE_REPO = os.getenv("KNOWLEDGE_REPO", "homelab/agent-memory")
 
 
 @asynccontextmanager
@@ -989,6 +995,127 @@ async def get_session_transcript(session_id: str):
         "messages": messages,
         "truncated": lines_read > MAX_LINES or len(messages) >= MAX_MESSAGES,
     }
+
+
+# ---------------------------------------------------------------------------
+# Knowledge base endpoints (agent-memory repo via Gitea)
+# ---------------------------------------------------------------------------
+
+class KnowledgeFile(BaseModel):
+    path: str
+    name: str
+    kind: str  # "agents_md" | "skill"
+    skill_name: Optional[str] = None
+
+
+class KnowledgeFileContent(BaseModel):
+    path: str
+    content: str
+    sha: str
+    size: int
+
+
+class KnowledgeUpdateRequest(BaseModel):
+    path: str
+    content: str
+    sha: str
+    message: Optional[str] = None
+
+
+def _gitea_headers() -> dict:
+    headers = {"Accept": "application/json"}
+    if GITEA_TOKEN:
+        headers["Authorization"] = f"token {GITEA_TOKEN}"
+    return headers
+
+
+@app.get("/api/knowledge/tree", response_model=list[KnowledgeFile])
+async def get_knowledge_tree():
+    """List AGENTS.md and all skills from the agent-memory repo."""
+    files: list[KnowledgeFile] = []
+
+    async with httpx.AsyncClient(timeout=15) as client:
+        # Always include AGENTS.md at the top
+        files.append(KnowledgeFile(path="AGENTS.md", name="AGENTS.md", kind="agents_md"))
+
+        # List skills/ directory
+        skills_url = f"{GITEA_URL}/api/v1/repos/{KNOWLEDGE_REPO}/contents/skills"
+        resp = await client.get(skills_url, headers=_gitea_headers())
+        if resp.status_code == 200:
+            entries = resp.json()
+            for entry in sorted(entries, key=lambda e: e.get("name", "")):
+                if entry.get("type") == "dir":
+                    skill_name = entry["name"]
+                    files.append(KnowledgeFile(
+                        path=f"skills/{skill_name}/SKILL.md",
+                        name=f"{skill_name}",
+                        kind="skill",
+                        skill_name=skill_name,
+                    ))
+        elif resp.status_code not in (404, 200):
+            logger.warning(f"Gitea skills listing returned {resp.status_code}")
+
+    return files
+
+
+@app.get("/api/knowledge/file", response_model=KnowledgeFileContent)
+async def get_knowledge_file(path: str = Query(..., description="File path in repo")):
+    """Fetch a file's content and SHA from the agent-memory repo."""
+    url = f"{GITEA_URL}/api/v1/repos/{KNOWLEDGE_REPO}/contents/{path}"
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.get(url, headers=_gitea_headers())
+
+    if resp.status_code == 404:
+        raise HTTPException(status_code=404, detail=f"File not found: {path}")
+    if resp.status_code != 200:
+        raise HTTPException(status_code=502, detail=f"Gitea returned {resp.status_code}")
+
+    data = resp.json()
+    raw_content = data.get("content", "")
+    # Gitea returns base64-encoded content with possible newlines
+    decoded = base64.b64decode(raw_content.replace("\n", "")).decode("utf-8")
+
+    return KnowledgeFileContent(
+        path=path,
+        content=decoded,
+        sha=data.get("sha", ""),
+        size=data.get("size", len(decoded)),
+    )
+
+
+@app.put("/api/knowledge/file", response_model=KnowledgeFileContent)
+async def update_knowledge_file(req: KnowledgeUpdateRequest):
+    """Commit a file update to the agent-memory repo via Gitea."""
+    url = f"{GITEA_URL}/api/v1/repos/{KNOWLEDGE_REPO}/contents/{req.path}"
+    message = req.message or f"Update {req.path} via fleet gateway"
+    encoded_content = base64.b64encode(req.content.encode("utf-8")).decode("ascii")
+
+    payload = {
+        "message": message,
+        "content": encoded_content,
+        "sha": req.sha,
+    }
+
+    headers = _gitea_headers()
+    headers["Content-Type"] = "application/json"
+
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.put(url, json=payload, headers=headers)
+
+    if resp.status_code == 409:
+        raise HTTPException(status_code=409, detail="Conflict: SHA mismatch. Reload and try again.")
+    if resp.status_code not in (200, 201):
+        detail = resp.text[:500] if resp.text else f"Gitea returned {resp.status_code}"
+        raise HTTPException(status_code=502, detail=detail)
+
+    data = resp.json()
+    file_data = data.get("content", {})
+    return KnowledgeFileContent(
+        path=req.path,
+        content=req.content,
+        sha=file_data.get("sha", req.sha),
+        size=file_data.get("size", len(req.content)),
+    )
 
 
 if __name__ == "__main__":

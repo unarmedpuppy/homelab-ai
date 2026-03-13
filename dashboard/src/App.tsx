@@ -46,6 +46,7 @@ const AgentsDashboard = lazy(() => import('./components/agents/AgentsDashboard')
 const ModelGardenDashboard = lazy(() => import('./components/models/ModelGardenDashboard'));
 const TradingDashboard = lazy(() => import('./components/trading/TradingDashboard'));
 const DocsPage = lazy(() => import('./pages/DocsPage'));
+const KnowledgePage = lazy(() => import('./pages/KnowledgePage'));
 const CommandPage = lazy(() => import('./command/CommandPage'));
 const SessionsPage = lazy(() => import('./pages/SessionsPage'));
 
@@ -56,7 +57,7 @@ const GettingStartedPage = lazy(() => import('./pages/reference/GettingStartedPa
 const TroubleshootingPage = lazy(() => import('./pages/reference/TroubleshootingPage'));
 const SummaryPage = lazy(() => import('./pages/SummaryPage'));
 
-type ViewName = 'chat' | 'tasks' | 'providers' | 'stats' | 'agents' | 'models' | 'trading' | 'docs' | 'command' | 'sessions';
+type ViewName = 'chat' | 'tasks' | 'providers' | 'stats' | 'agents' | 'models' | 'trading' | 'docs' | 'command' | 'sessions' | 'knowledge';
 
 function AppHeader() {
   return (
@@ -136,6 +137,12 @@ const NAV_ICONS: Record<string, ReactNode> = {
       <path d="M7.5 1L13.5 4.5v6L7.5 14 1.5 10.5v-6L7.5 1z"/>
     </svg>
   ),
+  knowledge: (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M2 2h4.5c1 0 1.5.5 1.5 1.5V13c0-1-.5-1.5-1.5-1.5H2V2z"/>
+      <path d="M13 2H8.5C7.5 2 7 2.5 7 3.5V13c0-1 .5-1.5 1.5-1.5H13V2z"/>
+    </svg>
+  ),
 };
 
 function AppNavigation({ currentView }: { currentView: ViewName }) {
@@ -148,6 +155,7 @@ function AppNavigation({ currentView }: { currentView: ViewName }) {
     { to: '/models', view: 'models', iconKey: 'models', label: 'Models' },
     { to: '/sessions', view: 'sessions', iconKey: 'sessions', label: 'Sessions' },
     { to: '/trading', view: 'trading', iconKey: 'trading', label: 'Trading' },
+    { to: '/knowledge', view: 'knowledge', iconKey: 'knowledge', label: 'Knowledge' },
     { to: '/docs', view: 'docs', iconKey: 'docs', label: 'Docs' },
     { to: '/command', view: 'command', iconKey: 'command', label: 'Command' },
   ];
@@ -484,6 +492,18 @@ function DocsView() {
   );
 }
 
+function KnowledgeView() {
+  return (
+    <AppLayout currentView="knowledge">
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoading section="Knowledge" />}>
+          <KnowledgePage />
+        </Suspense>
+      </ErrorBoundary>
+    </AppLayout>
+  );
+}
+
 function CommandView() {
   return (
     <AppLayout currentView="command">
@@ -535,6 +555,7 @@ function App() {
       <Route path="/models" element={<ModelsView />} />
       <Route path="/sessions" element={<SessionsView />} />
       <Route path="/trading" element={<TradingView />} />
+      <Route path="/knowledge" element={<KnowledgeView />} />
       <Route path="/docs" element={<DocsView />} />
       <Route path="/docs/:repo/:slug" element={<DocsView />} />
       <Route path="/command" element={<CommandView />} />

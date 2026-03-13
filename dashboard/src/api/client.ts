@@ -960,6 +960,48 @@ export const jobsAPI = {
   },
 };
 
+// Knowledge base API (agent-memory repo via fleet-gateway)
+export interface KnowledgeFile {
+  path: string;
+  name: string;
+  kind: 'agents_md' | 'skill';
+  skill_name?: string;
+}
+
+export interface KnowledgeFileContent {
+  path: string;
+  content: string;
+  sha: string;
+  size: number;
+}
+
+export const knowledgeAPI = {
+  tree: async (): Promise<KnowledgeFile[]> => {
+    const response = await fetch(`${FLEET_GATEWAY_URL}/api/knowledge/tree`);
+    if (!response.ok) throw new Error(`Failed to load knowledge tree: ${response.statusText}`);
+    return response.json();
+  },
+
+  getFile: async (path: string): Promise<KnowledgeFileContent> => {
+    const response = await fetch(`${FLEET_GATEWAY_URL}/api/knowledge/file?path=${encodeURIComponent(path)}`);
+    if (!response.ok) throw new Error(`Failed to load file: ${response.statusText}`);
+    return response.json();
+  },
+
+  updateFile: async (path: string, content: string, sha: string, message?: string): Promise<KnowledgeFileContent> => {
+    const response = await fetch(`${FLEET_GATEWAY_URL}/api/knowledge/file`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path, content, sha, message }),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ detail: response.statusText }));
+      throw new Error(err.detail || `Failed to save: ${response.statusText}`);
+    }
+    return response.json();
+  },
+};
+
 // Mercury Trading API
 import type {
   MercuryStatus,
