@@ -60,13 +60,13 @@ jobs:
       context: claude-harness
     secrets: inherit
 
-  build-fleet-gateway:
+  build-dashboard-api:
     uses: unarmedpuppy/workflows/.gitea/workflows/docker-build.yml@main
     with:
-      image_name: library/fleet-gateway
+      image_name: library/dashboard-api
       app_path: apps/homelab-ai
-      dockerfile: fleet-gateway/Dockerfile
-      context: fleet-gateway
+      dockerfile: dashboard-api/Dockerfile
+      context: dashboard-api
     secrets: inherit
 
   build-aoe-canvas:
@@ -108,7 +108,7 @@ jobs:
     secrets: inherit
 
   deploy:
-    needs: [build-llm-router, build-dashboard, build-llm-manager, build-image-server, build-tts-server, build-agent-harness, build-fleet-gateway, build-aoe-canvas, build-deploy-webhook]
+    needs: [build-llm-router, build-dashboard, build-llm-manager, build-image-server, build-tts-server, build-agent-harness, build-dashboard-api, build-aoe-canvas, build-deploy-webhook]
     runs-on: ubuntu-latest
     steps:
       - name: Setup SSH
