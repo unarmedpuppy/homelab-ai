@@ -814,7 +814,8 @@ import type {
   JobListParams,
 } from '../types/jobs';
 
-const FLEET_GATEWAY_URL = import.meta.env.VITE_FLEET_GATEWAY_URL || 'https://fleet-gateway.server.unarmedpuppy.com';
+const DASHBOARD_API_URL = import.meta.env.VITE_DASHBOARD_API_URL || 'https://dashboard-api.server.unarmedpuppy.com';
+const INNIE_FLEET_URL = import.meta.env.VITE_INNIE_FLEET_URL || 'https://fleet-gateway.server.unarmedpuppy.com';
 
 export const agentsAPI = {
   list: async (params?: { status?: string; tag?: string }): Promise<Agent[]> => {
@@ -822,7 +823,7 @@ export const agentsAPI = {
     if (params?.status) searchParams.set('status', params.status);
     if (params?.tag) searchParams.set('tag', params.tag);
 
-    const url = `${FLEET_GATEWAY_URL}/api/agents${searchParams.toString() ? `?${searchParams}` : ''}`;
+    const url = `${DASHBOARD_API_URL}/api/agents${searchParams.toString() ? `?${searchParams}` : ''}`;
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to list agents: ${response.statusText}`);
@@ -831,7 +832,7 @@ export const agentsAPI = {
   },
 
   get: async (agentId: string): Promise<AgentDetails> => {
-    const response = await fetch(`${FLEET_GATEWAY_URL}/api/agents/${agentId}`);
+    const response = await fetch(`${DASHBOARD_API_URL}/api/agents/${agentId}`);
     if (!response.ok) {
       throw new Error(`Failed to get agent: ${response.statusText}`);
     }
@@ -839,7 +840,7 @@ export const agentsAPI = {
   },
 
   getStats: async (): Promise<FleetStats> => {
-    const response = await fetch(`${FLEET_GATEWAY_URL}/api/agents/stats`);
+    const response = await fetch(`${DASHBOARD_API_URL}/api/agents/stats`);
     if (!response.ok) {
       throw new Error(`Failed to get fleet stats: ${response.statusText}`);
     }
@@ -847,7 +848,7 @@ export const agentsAPI = {
   },
 
   forceCheck: async (agentId: string): Promise<{ agent_id: string; status: string; last_check: string | null; error: string | null }> => {
-    const response = await fetch(`${FLEET_GATEWAY_URL}/api/agents/${agentId}/check`, {
+    const response = await fetch(`${DASHBOARD_API_URL}/api/agents/${agentId}/check`, {
       method: 'POST',
     });
     if (!response.ok) {
@@ -857,7 +858,7 @@ export const agentsAPI = {
   },
 
   getContext: async (agentId: string): Promise<{ content: string; last_modified: string | null; size_bytes: number }> => {
-    const response = await fetch(`${FLEET_GATEWAY_URL}/api/agents/${agentId}/context`);
+    const response = await fetch(`${DASHBOARD_API_URL}/api/agents/${agentId}/context`);
     if (!response.ok) {
       throw new Error(`Failed to get agent context: ${response.statusText}`);
     }
@@ -865,7 +866,7 @@ export const agentsAPI = {
   },
 
   updateContext: async (agentId: string, content: string): Promise<{ content: string; last_modified: string | null; size_bytes: number }> => {
-    const response = await fetch(`${FLEET_GATEWAY_URL}/api/agents/${agentId}/context`, {
+    const response = await fetch(`${DASHBOARD_API_URL}/api/agents/${agentId}/context`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content }),
@@ -895,7 +896,7 @@ export const agentsAPI = {
     if (params?.limit) searchParams.set('limit', String(params.limit));
     if (params?.offset) searchParams.set('offset', String(params.offset));
 
-    const url = `${FLEET_GATEWAY_URL}/api/agents/${agentId}/sessions${searchParams.toString() ? `?${searchParams}` : ''}`;
+    const url = `${DASHBOARD_API_URL}/api/agents/${agentId}/sessions${searchParams.toString() ? `?${searchParams}` : ''}`;
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to get agent sessions: ${response.statusText}`);
@@ -907,7 +908,7 @@ export const agentsAPI = {
 // Jobs API - Agent job management
 export const jobsAPI = {
   create: async (request: JobCreateRequest): Promise<Job> => {
-    const response = await fetch(`${FLEET_GATEWAY_URL}/api/jobs`, {
+    const response = await fetch(`${DASHBOARD_API_URL}/api/jobs`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(request),
@@ -925,7 +926,7 @@ export const jobsAPI = {
     if (params?.status) searchParams.set('status', params.status);
     if (params?.limit) searchParams.set('limit', String(params.limit));
 
-    const url = `${FLEET_GATEWAY_URL}/api/jobs${searchParams.toString() ? `?${searchParams}` : ''}`;
+    const url = `${DASHBOARD_API_URL}/api/jobs${searchParams.toString() ? `?${searchParams}` : ''}`;
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to list jobs: ${response.statusText}`);
@@ -937,7 +938,7 @@ export const jobsAPI = {
     const searchParams = new URLSearchParams();
     if (agentId) searchParams.set('agent_id', agentId);
 
-    const url = `${FLEET_GATEWAY_URL}/api/jobs/${jobId}${searchParams.toString() ? `?${searchParams}` : ''}`;
+    const url = `${DASHBOARD_API_URL}/api/jobs/${jobId}${searchParams.toString() ? `?${searchParams}` : ''}`;
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to get job: ${response.statusText}`);
@@ -949,7 +950,7 @@ export const jobsAPI = {
     const searchParams = new URLSearchParams();
     if (agentId) searchParams.set('agent_id', agentId);
 
-    const url = `${FLEET_GATEWAY_URL}/api/jobs/${jobId}${searchParams.toString() ? `?${searchParams}` : ''}`;
+    const url = `${DASHBOARD_API_URL}/api/jobs/${jobId}${searchParams.toString() ? `?${searchParams}` : ''}`;
     const response = await fetch(url, {
       method: 'DELETE',
     });
@@ -960,7 +961,7 @@ export const jobsAPI = {
   },
 };
 
-// Knowledge base API (agent-memory repo via fleet-gateway)
+// Knowledge base API (agent-memory repo via innie fleet-gateway)
 export interface KnowledgeFile {
   path: string;
   name: string;
@@ -977,19 +978,19 @@ export interface KnowledgeFileContent {
 
 export const knowledgeAPI = {
   tree: async (): Promise<KnowledgeFile[]> => {
-    const response = await fetch(`${FLEET_GATEWAY_URL}/api/knowledge/tree`);
+    const response = await fetch(`${INNIE_FLEET_URL}/api/knowledge/tree`);
     if (!response.ok) throw new Error(`Failed to load knowledge tree: ${response.statusText}`);
     return response.json();
   },
 
   getFile: async (path: string): Promise<KnowledgeFileContent> => {
-    const response = await fetch(`${FLEET_GATEWAY_URL}/api/knowledge/file?path=${encodeURIComponent(path)}`);
+    const response = await fetch(`${INNIE_FLEET_URL}/api/knowledge/file?path=${encodeURIComponent(path)}`);
     if (!response.ok) throw new Error(`Failed to load file: ${response.statusText}`);
     return response.json();
   },
 
   updateFile: async (path: string, content: string, sha: string, message?: string): Promise<KnowledgeFileContent> => {
-    const response = await fetch(`${FLEET_GATEWAY_URL}/api/knowledge/file`, {
+    const response = await fetch(`${INNIE_FLEET_URL}/api/knowledge/file`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path, content, sha, message }),

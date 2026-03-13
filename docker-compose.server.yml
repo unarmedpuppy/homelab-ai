@@ -103,9 +103,9 @@ services:
       - "homepage.href=http://${SERVER_IP:-localhost}:8015/status"
       - "homepage.description=Always-on LLM on RTX 3070"
 
-  fleet-gateway:
-    image: ${HARBOR_REGISTRY:-harbor.local}/library/fleet-gateway:latest
-    container_name: fleet-gateway
+  dashboard-api:
+    image: ${HARBOR_REGISTRY:-harbor.local}/library/dashboard-api:latest
+    container_name: dashboard-api
     restart: unless-stopped
     ports:
       - "8016:8016"
@@ -116,15 +116,15 @@ services:
       - my-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.fleet-gateway.rule=Host(`fleet-gateway.${DOMAIN:-localhost}`)"
-      - "traefik.http.routers.fleet-gateway.entrypoints=websecure"
-      - "traefik.http.routers.fleet-gateway.tls.certresolver=myresolver"
-      - "traefik.http.services.fleet-gateway.loadbalancer.server.port=8016"
+      - "traefik.http.routers.dashboard-api.rule=Host(`dashboard-api.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.dashboard-api.entrypoints=websecure"
+      - "traefik.http.routers.dashboard-api.tls.certresolver=myresolver"
+      - "traefik.http.services.dashboard-api.loadbalancer.server.port=8016"
       - "homepage.group=AI"
-      - "homepage.name=Fleet Gateway"
-      - "homepage.icon=mdi-robot"
-      - "homepage.href=https://fleet-gateway.${DOMAIN:-localhost}/health"
-      - "homepage.description=Fleet status aggregator for agents"
+      - "homepage.name=Dashboard API"
+      - "homepage.icon=mdi-api"
+      - "homepage.href=https://dashboard-api.${DOMAIN:-localhost}/health"
+      - "homepage.description=Homelab dashboard backend — traces, jobs, agent context"
       - "com.centurylinklabs.watchtower.enable=true"
 
   aoe-canvas:
