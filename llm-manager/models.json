@@ -82,7 +82,7 @@
       "hf_model": "Jackrong/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled",
       "quantization": "bitsandbytes",
       "type": "text",
-      "vram_gb": 8,
+      "vram_gb": 16,
       "gpu_count": 2,
       "max_context": 32768,
       "default_context": 16384,
