@@ -65,16 +65,15 @@
       "hf_model": "/models/qwen3.5-27b-abliterated",
       "quantization": "bitsandbytes",
       "type": "text",
-      "vram_gb": 19,
-      "gpu_count": 2,
-      "max_context": 65536,
-      "default_context": 65536,
-      "extra_args": ["--load-format", "bitsandbytes", "--disable-custom-all-reduce", "--reasoning-parser", "qwen3"],
-      "env_overrides": {"VLLM_USE_V1": "0"},
-      "description": "Qwen3.5-27B abliterated (refusal direction removed). Hybrid SSM-transformer. BNB NF4 4-bit, 256K native context. Basic abliteration method, refusal_rate=0.167.",
+      "vram_gb": 14,
+      "gpu_count": 1,
+      "max_context": 4096,
+      "default_context": 4096,
+      "extra_args": ["--load-format", "bitsandbytes", "--reasoning-parser", "qwen3", "--enforce-eager"],
+      "description": "Qwen3.5-27B abliterated (refusal direction removed). Hybrid SSM-transformer. BNB NF4 4-bit on single GPU. TP=2 produces NaN due to BNB quant_state sharding bug in vLLM — TP=1 only.",
       "architecture": "Qwen3.5 (hybrid SSM+transformer, abliterated)",
       "license": "Apache-2.0",
-      "tags": ["reasoning", "thinking", "abliterated", "uncensored", "hybrid-ssm"]
+      "tags": ["reasoning", "thinking", "abliterated", "uncensored", "hybrid-ssm", "single-gpu"]
     },
     {
       "id": "qwopus-27b",
