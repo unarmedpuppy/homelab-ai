@@ -18,7 +18,7 @@ services:
       - DEFAULT_MODEL=qwen3.5-27b-abliterated
       - GAMING_MODE_ENABLED=true
       - IDLE_TIMEOUT=0
-      - START_TIMEOUT=600
+      - START_TIMEOUT=1200
       - GPU_MEMORY_UTILIZATION=0.90
       - CPU_OFFLOAD_GB=0
       - VLLM_IMAGE=${HARBOR_REGISTRY:-harbor.local}/library/vllm-custom:latest
