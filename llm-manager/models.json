@@ -85,8 +85,8 @@
       "gpu_count": 2,
       "max_context": 65536,
       "default_context": 32768,
-      "extra_args": ["--disable-custom-all-reduce", "--reasoning-parser", "qwen3", "--enable-auto-tool-choice", "--tool-call-parser", "hermes", "--enforce-eager", "--gpu-memory-utilization", "0.75"],
-      "description": "Qwen3.5-27B abliterated (refusal direction removed). AWQ-Marlin 4-bit, dual-GPU TP=2. enforce-eager: torch.compile profiling OOM at 0.90 GPU util (GDN hybrid model activation overhead). 0.75 gives ~11GB KV budget across both GPUs.",
+      "extra_args": ["--disable-custom-all-reduce", "--reasoning-parser", "qwen3", "--enable-auto-tool-choice", "--tool-call-parser", "hermes", "--enforce-eager", "--gpu-memory-utilization", "0.90", "--max-num-batched-tokens", "4096"],
+      "description": "Qwen3.5-27B abliterated (refusal direction removed). AWQ-Marlin 4-bit, dual-GPU TP=2. enforce-eager: profiling OOM without it. max-num-batched-tokens 4096: caps profile forward pass batch to avoid 22GiB SSM activation explosion (default would use max_model_len=65536 tokens).",
       "architecture": "Qwen3.5 (hybrid SSM+transformer, abliterated)",
       "license": "Apache-2.0",
       "tags": ["reasoning", "thinking", "abliterated", "uncensored", "hybrid-ssm", "dual-gpu", "fast"]
