@@ -1,0 +1,5 @@
+name: tool_use_focused
+description: "All tool use and thinking token cases — run when adding new tool-calling models."
+tags: [tool_use, thinking]
+exclude_tags: []
+pass_threshold: 0.80

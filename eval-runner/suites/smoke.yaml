@@ -1,0 +1,5 @@
+name: smoke
+description: "Fast pre-deploy sanity check (~12 cases, <3 minutes). Fails CI if pass rate < 80%."
+tags: [smoke]
+exclude_tags: []
+pass_threshold: 0.80

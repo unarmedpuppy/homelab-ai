@@ -156,6 +156,29 @@ services:
       - "homepage.description=Age of Empires-inspired agent command interface"
       - "com.centurylinklabs.watchtower.enable=true"
 
+  eval-runner:
+    image: ${HARBOR_REGISTRY:-harbor.local}/library/eval-runner:latest
+    container_name: eval-runner
+    restart: unless-stopped
+    ports:
+      - "8020:8020"
+    environment:
+      - ROUTER_URL=http://llm-router:8000
+      - ROUTER_API_KEY=${LLM_ROUTER_API_KEY:-}
+      - EVAL_API_KEY=${EVAL_API_KEY:-}
+      - JUDGE_MODEL=${JUDGE_MODEL:-qwen3-32b-awq}
+      - LOG_LEVEL=INFO
+    volumes:
+      - eval-runner-data:/app/data
+    networks:
+      - my-network
+    labels:
+      - "homepage.group=AI"
+      - "homepage.name=Eval Runner"
+      - "homepage.icon=mdi-clipboard-check-outline"
+      - "homepage.href=http://${SERVER_IP:-localhost}:8020/health"
+      - "homepage.description=Model eval framework — compare models by more than vibes"
+
   tts-server:
     image: ${HARBOR_REGISTRY:-harbor.local}/library/tts-server:latest
     container_name: tts-server
@@ -188,4 +211,6 @@ volumes:
   huggingface-cache:
     external: true
   router-data:
+    external: true
+  eval-runner-data:
     external: true

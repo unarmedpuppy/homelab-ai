@@ -1,0 +1,5 @@
+name: full
+description: "All eval cases across all categories. Use for thorough model comparison."
+tags: []
+exclude_tags: []
+pass_threshold: 0.70

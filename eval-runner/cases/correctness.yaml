@@ -1,0 +1,118 @@
+# Correctness Eval Cases
+# Factual, math, and code generation with known correct answers.
+
+- id: correct.math.multiplication
+  description: "Model computes correct product"
+  category: correctness
+  tags: [smoke, correctness, math]
+  messages:
+    - role: user
+      content: "What is 47 times 83? Give only the number."
+  scorers:
+    - type: contains
+      text: "3901"
+    - type: no_think_tags
+
+- id: correct.math.multi_step
+  description: "Model computes multi-step arithmetic correctly"
+  category: correctness
+  tags: [correctness, math]
+  messages:
+    - role: user
+      content: "What is (144 / 12) + (7 * 8) - 3? Show the final answer."
+  scorers:
+    - type: contains
+      text: "65"
+    - type: no_think_tags
+
+- id: correct.math.dual_gpu_vram
+  description: "Model knows 2x RTX 3090 = 48GB VRAM"
+  category: correctness
+  tags: [smoke, correctness, homelab]
+  messages:
+    - role: user
+      content: "How much VRAM total do two NVIDIA RTX 3090 GPUs provide? Answer in GB."
+  scorers:
+    - type: contains
+      text: "48"
+    - type: no_think_tags
+
+- id: correct.factual.linux_gpu_command
+  description: "Model knows nvidia-smi for GPU monitoring"
+  category: correctness
+  tags: [smoke, correctness, homelab]
+  messages:
+    - role: user
+      content: "What is the standard NVIDIA CLI tool for monitoring GPU utilization and VRAM usage?"
+  scorers:
+    - type: contains
+      text: "nvidia-smi"
+      case_sensitive: false
+    - type: no_think_tags
+
+- id: correct.factual.docker_detach_flag
+  description: "Model knows -d flag for detached Docker containers"
+  category: correctness
+  tags: [correctness, homelab]
+  messages:
+    - role: user
+      content: "What flag do you pass to 'docker run' to start a container in detached (background) mode? Answer with just the flag."
+  scorers:
+    - type: contains
+      text: "-d"
+    - type: no_think_tags
+
+- id: correct.code.fizzbuzz
+  description: "Model generates working Python FizzBuzz"
+  category: correctness
+  tags: [correctness, code]
+  messages:
+    - role: user
+      content: "Write a Python function fizzbuzz(n) that returns 'Fizz' for multiples of 3, 'Buzz' for multiples of 5, 'FizzBuzz' for both, and the number as a string otherwise."
+  scorers:
+    - type: contains
+      text: "def fizzbuzz"
+    - type: contains
+      text: "FizzBuzz"
+    - type: contains
+      text: "Fizz"
+    - type: no_think_tags
+
+- id: correct.code.fibonacci
+  description: "Model generates correct fibonacci and knows fib(10)=55"
+  category: correctness
+  tags: [correctness, code]
+  messages:
+    - role: user
+      content: "Write a Python function fibonacci(n) that returns the nth Fibonacci number (0-indexed, so fibonacci(0)=0, fibonacci(1)=1). What does fibonacci(10) return?"
+  scorers:
+    - type: contains
+      text: "55"
+    - type: no_think_tags
+
+- id: correct.code.bash_find_large_files
+  description: "Model generates correct bash to find files over 100MB"
+  category: correctness
+  tags: [correctness, code]
+  messages:
+    - role: user
+      content: "Write a bash one-liner to find all files larger than 100MB in the current directory tree."
+  scorers:
+    - type: contains
+      text: "find"
+    - type: regex
+      pattern: "100[Mm]|\\+100"
+    - type: no_think_tags
+
+- id: correct.factual.context_window
+  description: "Model knows what a context window/token limit is"
+  category: correctness
+  tags: [correctness]
+  messages:
+    - role: user
+      content: "In one sentence, what is a 'context window' in the context of large language models?"
+  scorers:
+    - type: llm_judge
+      rubric: "The response should correctly describe a context window as the maximum amount of text (tokens) a model can process at once / in a single inference call. Score 1.0 if correct, 0.0 if wrong or misleading."
+      threshold: 0.6
+    - type: no_think_tags

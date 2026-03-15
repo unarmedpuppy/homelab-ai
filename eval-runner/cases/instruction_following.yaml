@@ -1,0 +1,117 @@
+# Instruction Following Eval Cases
+# Tests model ability to follow format, length, structure, and negation instructions.
+
+- id: instruct.json_output.strict
+  description: "Model returns valid JSON with correct keys when explicitly instructed"
+  category: instruction_following
+  tags: [smoke, instruct, json]
+  messages:
+    - role: system
+      content: "Always respond with valid JSON only. No prose, no markdown fences."
+    - role: user
+      content: "Return a JSON object with keys: name (string), age (integer), active (boolean). Use: Alice, 30, true."
+  scorers:
+    - type: json_schema
+      schema:
+        type: object
+        required: [name, age, active]
+        properties:
+          name:
+            type: string
+          age:
+            type: integer
+          active:
+            type: boolean
+
+- id: instruct.word_limit.under_20
+  description: "Model answers in 20 words or fewer when instructed"
+  category: instruction_following
+  tags: [smoke, instruct]
+  messages:
+    - role: user
+      content: "What is Docker? Answer in 20 words or fewer."
+  scorers:
+    - type: word_count
+      max_words: 20
+
+- id: instruct.word_limit.under_50
+  description: "Model explains a concept in 50 words or fewer"
+  category: instruction_following
+  tags: [instruct]
+  messages:
+    - role: user
+      content: "Explain what a GPU does. Keep your answer under 50 words."
+  scorers:
+    - type: word_count
+      max_words: 50
+
+- id: instruct.format.numbered_list
+  description: "Model produces a numbered list when asked"
+  category: instruction_following
+  tags: [smoke, instruct]
+  messages:
+    - role: user
+      content: "List exactly 3 Linux commands for monitoring system resources. Use a numbered list (1. 2. 3.)."
+  scorers:
+    - type: regex
+      pattern: "1\\."
+    - type: regex
+      pattern: "2\\."
+    - type: regex
+      pattern: "3\\."
+
+- id: instruct.format.code_block
+  description: "Model wraps code in a markdown code block"
+  category: instruction_following
+  tags: [instruct]
+  messages:
+    - role: user
+      content: "Show me a Python hello world program. Put it in a Python code block."
+  scorers:
+    - type: regex
+      pattern: "```python"
+    - type: contains
+      text: "Hello"
+      case_sensitive: false
+
+- id: instruct.negation.no_word
+  description: "Model explains containers without using the word 'container'"
+  category: instruction_following
+  tags: [instruct]
+  messages:
+    - role: user
+      content: "Explain Docker in one sentence. Do NOT use the word 'container'."
+  scorers:
+    - type: regex
+      pattern: "\\bcontainer\\b"
+      negate: true
+    - type: word_count
+      max_words: 50
+
+- id: instruct.yes_no.single_word
+  description: "Model answers yes/no with a single-word answer when asked"
+  category: instruction_following
+  tags: [instruct]
+  messages:
+    - role: user
+      content: "Answer with ONLY 'yes' or 'no': Is Python an interpreted language?"
+  scorers:
+    - type: word_count
+      max_words: 3
+    - type: regex
+      pattern: "(?i)^(yes|no)[.!]?$"
+
+- id: instruct.persona.stays_technical
+  description: "With a technical system prompt, model gives technical not casual answers"
+  category: instruction_following
+  tags: [instruct, persona]
+  messages:
+    - role: system
+      content: "You are a senior infrastructure engineer. Be terse and technical. No pleasantries."
+    - role: user
+      content: "How do I check disk usage on Linux?"
+  scorers:
+    - type: contains
+      text: "df"
+      case_sensitive: false
+    - type: no_think_tags

@@ -1,0 +1,93 @@
+# Homelab Knowledge Eval Cases
+# Tests whether a model has relevant knowledge about the tools and concepts
+# in this homelab stack: vLLM, Docker, CUDA, WSL2, quantization, etc.
+
+- id: homelab.vllm.tensor_parallel
+  description: "Model explains tensor parallel correctly"
+  category: homelab_knowledge
+  tags: [homelab, vllm]
+  messages:
+    - role: user
+      content: "In one sentence, what does the --tensor-parallel-size flag do in vLLM?"
+  scorers:
+    - type: llm_judge
+      rubric: "Response should mention splitting/distributing model weights across multiple GPUs. Score 1.0 if correct, 0.0 if wrong."
+      threshold: 0.6
+    - type: no_think_tags
+
+- id: homelab.vllm.paged_attention
+  description: "Model correctly explains PagedAttention"
+  category: homelab_knowledge
+  tags: [homelab, vllm]
+  messages:
+    - role: user
+      content: "In one sentence, what problem does PagedAttention solve in vLLM?"
+  scorers:
+    - type: llm_judge
+      rubric: "Response should mention KV cache fragmentation, efficient memory management for KV cache, or reducing GPU memory waste from pre-allocated buffers. Score 1.0 if core concept correct, 0.0 if not."
+      threshold: 0.6
+    - type: no_think_tags
+
+- id: homelab.quantization.awq_vs_bnb
+  description: "Model correctly explains AWQ vs BitsAndBytes tradeoffs"
+  category: homelab_knowledge
+  tags: [homelab]
+  messages:
+    - role: user
+      content: "What is the main performance difference between AWQ quantization and BitsAndBytes 4-bit for inference with vLLM?"
+  scorers:
+    - type: llm_judge
+      rubric: "Response should mention AWQ being faster at inference (Marlin kernels / pre-packed weights) while BitsAndBytes is slower but works on-the-fly without pre-quantized models. Score 1.0 for clear explanation, 0.5 for partial, 0.0 for wrong."
+      threshold: 0.5
+    - type: no_think_tags
+
+- id: homelab.docker.gpu_flag
+  description: "Model knows how to pass GPU to Docker container"
+  category: homelab_knowledge
+  tags: [smoke, homelab, docker]
+  messages:
+    - role: user
+      content: "What docker run flag do you use to give a container access to all NVIDIA GPUs?"
+  scorers:
+    - type: regex
+      pattern: "--gpus|--device"
+      case_sensitive: false
+    - type: no_think_tags
+
+- id: homelab.cuda.oom_cause
+  description: "Model explains what causes CUDA OOM errors"
+  category: homelab_knowledge
+  tags: [homelab, cuda]
+  messages:
+    - role: user
+      content: "What is the most common cause of CUDA out of memory (OOM) errors when loading LLMs?"
+  scorers:
+    - type: llm_judge
+      rubric: "Response should mention model weights/parameters being too large for available VRAM, or not enough GPU memory for the model size. Score 1.0 for VRAM/memory-focused answer, 0.0 for unrelated answer."
+      threshold: 0.6
+    - type: no_think_tags
+
+- id: homelab.wsl2.port_forwarding
+  description: "Model knows WSL2 networking requires portproxy for LAN access"
+  category: homelab_knowledge
+  tags: [homelab, wsl2]
+  messages:
+    - role: user
+      content: "Why do services running inside WSL2 require Windows portproxy (netsh interface portproxy) to be accessible from other machines on the LAN?"
+  scorers:
+    - type: llm_judge
+      rubric: "Response should mention that WSL2 has its own virtual network/IP address separate from the Windows host, so LAN machines cannot directly reach WSL2 services — they need portproxy to forward traffic from the Windows IP to the WSL2 IP. Score 1.0 for this explanation."
+      threshold: 0.6
+    - type: no_think_tags
+
+- id: homelab.openai_api.tool_call_format
+  description: "Model knows OpenAI tool call response format"
+  category: homelab_knowledge
+  tags: [homelab]
+  messages:
+    - role: user
+      content: "In the OpenAI chat completions API response, what JSON field in the message contains the tool calls when a model decides to use a function?"
+  scorers:
+    - type: contains
+      text: "tool_calls"
+    - type: no_think_tags

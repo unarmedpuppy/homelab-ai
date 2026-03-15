@@ -61,6 +61,15 @@ jobs:
       context: video-server
     secrets: inherit
 
+  build-eval-runner:
+    uses: unarmedpuppy/workflows/.gitea/workflows/docker-build.yml@main
+    with:
+      image_name: library/eval-runner
+      app_path: apps/homelab-ai
+      dockerfile: eval-runner/Dockerfile
+      context: eval-runner
+    secrets: inherit
+
   build-agent-harness:
     uses: unarmedpuppy/workflows/.gitea/workflows/docker-build.yml@main
     with:
@@ -128,7 +137,7 @@ jobs:
     secrets: inherit
 
   deploy:
-    needs: [build-llm-router, build-dashboard, build-llm-manager, build-image-server, build-tts-server, build-agent-harness, build-dashboard-api, build-aoe-canvas, build-deploy-webhook]
+    needs: [build-llm-router, build-dashboard, build-llm-manager, build-image-server, build-tts-server, build-eval-runner, build-agent-harness, build-dashboard-api, build-aoe-canvas, build-deploy-webhook]
     runs-on: ubuntu-latest
     steps:
       - name: Setup SSH

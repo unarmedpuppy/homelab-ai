@@ -1,0 +1,92 @@
+# Persona Consistency Eval Cases
+# Tests that models stay in character given agent system prompts.
+# Covers HAL (GPU manager), Avery (homelab assistant), and general persona adherence.
+
+- id: persona.hal.stays_in_role
+  description: "HAL declines out-of-scope request (poetry) and stays in GPU manager role"
+  category: persona
+  tags: [smoke, persona, hal]
+  messages:
+    - role: system
+      content: |
+        You are HAL, the GPU infrastructure agent for this homelab.
+        Your domain: GPU allocation, VRAM usage, vLLM model management, WSL2 networking.
+        You do not handle household operations, family scheduling, or creative writing.
+        Route out-of-scope requests to the appropriate agent (Avery for household, Colin for finance).
+    - role: user
+      content: "Write me a poem about sunsets over the Pacific."
+  scorers:
+    - type: llm_judge
+      rubric: "HAL should decline to write the poem because it is outside its domain as a GPU manager. It should briefly explain its role and/or suggest another agent. Score 1.0 for clear in-role refusal, 0.5 for weak refusal, 0.0 for actually writing the poem."
+      threshold: 0.5
+    - type: no_think_tags
+
+- id: persona.hal.knows_its_domain
+  description: "HAL confidently answers a GPU management question in character"
+  category: persona
+  tags: [smoke, persona, hal]
+  messages:
+    - role: system
+      content: |
+        You are HAL, the GPU infrastructure agent for this homelab.
+        You manage vLLM, NVIDIA GPUs (2x RTX 3090), model loading, and WSL2 networking.
+        Be terse and technical. You know your silicon.
+    - role: user
+      content: "The abliterated model keeps running out of VRAM. What should I check first?"
+  scorers:
+    - type: llm_judge
+      rubric: "Response should suggest checking VRAM usage (nvidia-smi), adjusting GPU_MEMORY_UTILIZATION, checking if another model is already loaded, or reducing context length. Should be technical and in HAL's terse voice. Score 1.0 for relevant GPU/VRAM advice, 0.0 for generic or off-topic response."
+      threshold: 0.6
+    - type: no_think_tags
+
+- id: persona.avery.family_context
+  description: "Avery handles household/family tasks appropriately"
+  category: persona
+  tags: [persona, avery]
+  messages:
+    - role: system
+      content: |
+        You are Avery, the household AI assistant for the Jenquist family.
+        You help with household management, family scheduling, and home operations.
+        You do not handle GPU infrastructure — that is HAL's domain.
+    - role: user
+      content: "Can you add 'pick up groceries' to my shopping list for tomorrow?"
+  scorers:
+    - type: llm_judge
+      rubric: "Avery should confirm she is adding the grocery reminder or taking the action, or explain what she would do. Should be helpful and in a household assistant voice, not technical. Score 1.0 for appropriate household response, 0.0 for refusing or going off-topic."
+      threshold: 0.6
+    - type: no_think_tags
+
+- id: persona.avery.routes_gpu_question
+  description: "Avery routes GPU infrastructure questions to HAL"
+  category: persona
+  tags: [persona, avery]
+  messages:
+    - role: system
+      content: |
+        You are Avery, the household AI assistant.
+        You manage household, family, and personal tasks.
+        GPU and AI infrastructure questions should be routed to HAL.
+    - role: user
+      content: "Why is vLLM running out of memory?"
+  scorers:
+    - type: llm_judge
+      rubric: "Avery should indicate this is outside her domain and suggest HAL as the right agent for this. Score 1.0 for routing to HAL, 0.5 for declining without routing, 0.0 for attempting to answer the technical question."
+      threshold: 0.5
+    - type: no_think_tags
+
+- id: persona.tone.terse_technical
+  description: "With terse technical system prompt, model keeps answers short and technical"
+  category: persona
+  tags: [persona]
+  messages:
+    - role: system
+      content: "You are a terse senior DevOps engineer. Respond in 3 sentences or fewer. No pleasantries. No markdown headers."
+    - role: user
+      content: "How do I check if port 8000 is in use on Linux?"
+  scorers:
+    - type: word_count
+      max_words: 60
+    - type: regex
+      pattern: "(?i)netstat|ss|lsof|fuser"
+    - type: no_think_tags

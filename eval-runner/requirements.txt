@@ -1,0 +1,10 @@
+# Eval Runner — no GPU, no torch, no diffusers
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+httpx>=0.26.0
+pydantic>=2.5.0
+pyyaml>=6.0.1
+aiosqlite>=0.20.0
+jsonschema>=4.21.0
+click>=8.1.0
+rich>=13.0.0
