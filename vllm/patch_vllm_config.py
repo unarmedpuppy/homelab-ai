@@ -702,19 +702,26 @@ def patch_g_clamp(qwen3_next_path: Path):
         print(f"HAL_G_CLAMP already patched: {qwen3_next_path}")
         return
 
-    old = "        g, beta = fused_gdn_gating(self.A_log, a, b, self.dt_bias)\n"
+    # Use surrounding if-block for uniqueness and correct 12-space indentation.
+    # The call is inside `if attn_metadata.num_prefills > 0:` (8 spaces),
+    # so the gating call itself is at 12 spaces.
+    old = (
+        "        if attn_metadata.num_prefills > 0:\n"
+        "            g, beta = fused_gdn_gating(self.A_log, a, b, self.dt_bias)\n"
+    )
     new = (
-        "        g, beta = fused_gdn_gating(self.A_log, a, b, self.dt_bias)\n"
-        "        g = g.clamp(min=-88.0)  # HAL_G_CLAMP: prevent -inf→NaN in cumsum\n"
+        "        if attn_metadata.num_prefills > 0:\n"
+        "            g, beta = fused_gdn_gating(self.A_log, a, b, self.dt_bias)\n"
+        "            g = g.clamp(min=-88.0)  # HAL_G_CLAMP: prevent -inf→NaN in cumsum\n"
     )
 
     if old not in src:
         raise ValueError(
-            f"fused_gdn_gating call not found in {qwen3_next_path}. "
-            "vLLM version may have changed."
+            f"fused_gdn_gating call (inside if attn_metadata.num_prefills > 0) "
+            f"not found in {qwen3_next_path}. vLLM version may have changed."
         )
 
-    patched = src.replace(old, new)
+    patched = src.replace(old, new, 1)
     qwen3_next_path.write_text(patched)
     print(f"Patched {qwen3_next_path}: HAL_G_CLAMP applied after fused_gdn_gating")
 
