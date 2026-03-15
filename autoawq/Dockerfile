@@ -21,6 +21,13 @@ RUN pip install --no-cache-dir \
     protobuf
 
 COPY quantize.py /app/quantize.py
+COPY patch_catcher.py /app/patch_catcher.py
+
+# Patch AutoAWQ's Catcher class to proxy attribute lookups to the wrapped module.
+# Qwen3.5 has a hybrid attention architecture that reads decoder_layer.layer_type
+# during forward. AutoAWQ's Catcher hook doesn't forward unknown attributes, causing
+# AttributeError during calibration. This sed adds __getattr__ to the Catcher class.
+RUN python /app/patch_catcher.py
 
 VOLUME ["/input", "/output"]
 

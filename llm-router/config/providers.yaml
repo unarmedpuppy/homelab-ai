@@ -217,9 +217,9 @@ models:
   - id: qwen3.5-27b-abliterated
     name: "Qwen3.5 27B Abliterated"
     providerId: gaming-pc-3090
-    description: "Qwen3.5-27B with refusal direction removed. BNB NF4 4-bit. 65K context, large KV cache."
-    contextWindow: 65536
-    maxTokens: 8192
+    description: "Qwen3.5-27B with refusal direction removed. BNB NF4 4-bit, TP=1 single GPU. 4K context."
+    contextWindow: 4096
+    maxTokens: 4096
     isDefault: true
 
     capabilities:

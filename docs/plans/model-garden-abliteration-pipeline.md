@@ -1,7 +1,8 @@
 # Model Garden — Abliteration & Quantization Pipeline
 
 **Created:** 2026-03-12
-**Status:** 🟡 In Progress — Option 1 active
+**Updated:** 2026-03-14
+**Status:** 🟡 In Progress — Option 1, Attempt 5 (vLLM + transformers v5 + BNB)
 
 The goal is to build a garden of high-quality, abliterated (and/or distilled) models served by
 vLLM nightly on the gaming PC (2x RTX 3090, 48GB VRAM, 64GB RAM / 54GB WSL).
@@ -12,242 +13,165 @@ vLLM nightly on the gaming PC (2x RTX 3090, 48GB VRAM, 64GB RAM / 54GB WSL).
 
 | # | Model | Status | Priority |
 |---|-------|--------|----------|
-| 1 | Qwen3.5-27B Abliterated → AWQ | 🟡 In Progress | First |
+| 1 | Qwen3.5-27B Abliterated → vLLM (BNB or AWQ) | 🟡 In Progress | First |
 | 2 | Qwopus-27B Abliterated → AWQ | ⬜ Pending | Second |
 | 3 | Qwen3-32B Abliterated → AWQ | ⬜ Pending | Third |
 | 4 | Qwen3-72B AWQ (no abliteration) | ⬜ Pending | Anytime |
 
 ---
 
-## Option 1 — Qwen3.5-27B Abliterated + AWQ
+## Option 1 — Qwen3.5-27B Abliterated
 
-**Why first:** Abliterated FP16 weights already exist in the local-models volume.
-Only the quantization step is needed. Could be done today.
+### What we have (as of 2026-03-14)
 
-**Why it works:** vLLM nightly's AWQ path supports `qwen3_5_text` (proven by
-QuantTrio/Qwen3.5-27B-AWQ running successfully). The autoawq container already has
-`autoawq 0.2.9` and `transformers 5.3.0` — just the quantize.py script needs to be
-rewritten to use AutoAWQ directly instead of llmcompressor (which isn't installed).
+- **BF16 abliterated model**: `/mnt/c/models/abliterated/qwen3.5-27b-abliterated-bf16/`
+  - 51GB, 28 safetensors shards, `model_type: qwen3_5_text`
+  - Abliterated via obliteratus `--method basic --dtype bfloat16`
+  - 186/851 tensors used original weights (meta device VRAM overflow workaround)
+  - Produced by patched obliteratus image (`obliteratus:meta-patch`)
 
-### Step 1 — Fix quantize.py ✅ / ⬜
+### Attempt History
 
-Rewrite `/homelab-ai/autoawq/quantize.py` to use `AutoAWQForCausalLM` instead of
-`llmcompressor`. The container already has everything needed.
+#### Attempt 1 — BNB 4-bit load in vLLM (original abliterated weights) ❌
+- **What:** Previous BNB 4-bit abliterated model (`/models/qwen3.5-27b-abliterated`) via `--load-format bitsandbytes`
+- **Failure:** `qwen3_5_text` not in transformers 4.57.6 (pinned by vLLM nightly). Architecture not recognized.
 
-**Risk:** autoawq 0.2.9 has `qwen3` and `qwen3_moe` in its registry but not `qwen3_5`.
-May fall back to generic implementation — test and verify output is valid.
+#### Attempt 2 — AWQ quantization via llmcompressor ❌
+- **What:** `llmcompressor` to quantize BF16 → AWQ
+- **Failure:** llmcompressor pins transformers ≤ 4.57.6, killing qwen3_5_text support immediately.
 
-### Step 2 — Build & push new autoawq image ⬜
+#### Attempt 3 — AWQ quantization via AutoAWQ 0.2.9 (direct) ❌
+- **What:** Rewrote `autoawq/quantize.py` to use `AutoAWQForCausalLM` directly with `qwen3_5_text → qwen3` registry patch
+- **Failure 3a:** `TypeError: qwen3_5_text isn't supported yet` — registry not patched at load time
+- **Failure 3b (Catcher crash):** `AttributeError: 'Catcher' object has no attribute 'layer_type'`
+  - AutoAWQ wraps layer 0 in a Catcher hook; Qwen3.5's hybrid forward reads `layer_type` from it
+  - Fixed by patching `awq/quantize/quantizer.py` at build time to add `__getattr__` to Catcher
+  - The `__getattr__` fix itself had a bug: defining `__getattr__` on `nn.Module` overrides PyTorch's
+    own `__getattr__` which resolves `_modules`. Fixed by calling `super().__getattr__()` first,
+    then falling back to `self.__dict__['_modules']['module']` to avoid recursion.
+- **Failure 3c (get_layers_for_scaling):** `AttributeError: 'Qwen3_5DecoderLayer' has no attribute 'self_attn'`
+  - Qwen3.5 is a **hybrid architecture** — some decoder layers use linear attention (GLA-style)
+    with different attribute names than standard self-attention
+  - AutoAWQ's `qwen3.py` hardcodes `module.self_attn.q_proj` etc. for all layers
+  - **Root cause:** `qwen3_5_text → qwen3` registry mapping gets past the type check but the
+    layer structure is fundamentally different. AWQ quantization of Qwen3.5 requires a dedicated
+    AWQ model implementation, not a Qwen3 alias.
+  - **Status: Abandoned.** AWQ of Qwen3.5 hybrid architecture is not viable without significant
+    AutoAWQ modifications.
 
-```bash
-# Tag new release to trigger CI build
-cd /mnt/c/Users/micro/repos/homelab-ai
-GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_claude -p 2223" git tag v1.10.58
-GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_claude -p 2223" git push origin v1.10.58
+#### Attempt 4 (Current) — vLLM + transformers v5 + BNB 4-bit ⬜
+- **What:** Build custom vLLM image that upgrades transformers to v5 after install.
+  vLLM nightly pins transformers 4.x, but pip doesn't enforce this at runtime.
+  With transformers v5, `qwen3_5_text` is natively supported.
+  Load the 51GB BF16 model using `--load-format bitsandbytes --quantization bitsandbytes`
+  (vLLM quantizes on-the-fly to ~13GB, fits in 48GB VRAM).
+- **Reference:** https://github.com/vllm-project/vllm/issues/35395
+- **Files:** `homelab-ai/vllm/Dockerfile`
+- **Status:** 🟡 Testing
+
+### Current Attempt — Attempt 4
+
+#### Step 1 — Build custom vLLM image ✅
+
+```dockerfile
+# homelab-ai/vllm/Dockerfile
+FROM vllm/vllm-openai:nightly
+RUN pip install --no-cache-dir --upgrade transformers
 ```
 
-### Step 3 — Run quantization ⬜
+```bash
+cd /mnt/c/Users/micro/repos/homelab-ai/vllm
+docker build -t vllm-tf5:local .
+```
+
+#### Step 2 — Test direct load ⬜
 
 ```bash
-# From Git Bash on Windows
-mkdir -p C:/models/quantized/qwen3.5-27b-abliterated-awq
-
 docker run --rm --gpus all \
-  -v C:/models/abliterated/qwen3.5-27b-abliterated:/input \
-  -v C:/models/quantized/qwen3.5-27b-abliterated-awq:/output \
-  harbor.server.unarmedpuppy.com/library/autoawq:latest \
-  --model-path /input --output-path /output --group-size 128
+  -v /mnt/c/models/abliterated/qwen3.5-27b-abliterated-bf16:/model:ro \
+  -v huggingface-cache:/root/.cache/huggingface \
+  vllm-tf5:local \
+  --model /model \
+  --load-format bitsandbytes \
+  --quantization bitsandbytes \
+  --tensor-parallel-size 2 \
+  --max-model-len 65536 \
+  --gpu-memory-utilization 0.90 \
+  --disable-custom-all-reduce \
+  --reasoning-parser qwen3 \
+  --port 8000
 ```
 
-Expected duration: 1-3 hours (GPU-accelerated AWQ calibration).
+Expected: vLLM loads, quantizes to ~13GB across both GPUs, serves on port 8000.
 
-### Step 4 — Verify output ⬜
+#### Step 3 — If successful: update compose and deploy ⬜
 
-```bash
-# Confirm model_type is still qwen3_5_text (vLLM AWQ path handles it)
-docker run --rm \
-  -v C:/models/quantized/qwen3.5-27b-abliterated-awq:/output \
-  --entrypoint="" harbor.server.unarmedpuppy.com/library/autoawq:latest \
-  python3 -c "import json; cfg=json.load(open('/output/config.json')); print(cfg['model_type'], cfg['quantization_config'])"
+In `docker-compose.gaming.yml`:
+```yaml
+- VLLM_IMAGE=vllm-tf5:local
 ```
 
-### Step 5 — Add to local-models volume ⬜
+Or push to Harbor and reference the tagged image.
 
-```bash
-docker run --rm \
-  -v C:/models/quantized/qwen3.5-27b-abliterated-awq:/src \
-  -v local-models:/models \
-  alpine sh -c "cp -r /src /models/qwen3.5-27b-abliterated-awq"
-```
-
-### Step 6 — Add to models.json and deploy ⬜
-
-Add to `llm-manager/models.json`:
+Update `llm-manager/models.json` abliterated entry:
 ```json
 {
   "id": "qwen3.5-27b-abliterated",
-  "name": "Qwen3.5 27B Abliterated AWQ",
-  "hf_model": "/models/qwen3.5-27b-abliterated-awq",
-  "quantization": "awq_marlin",
-  "type": "text",
-  "vram_gb": 14,
-  "gpu_count": 2,
-  "max_context": 65536,
-  "default_context": 65536,
-  "extra_args": ["--disable-custom-all-reduce", "--reasoning-parser", "qwen3"],
-  "description": "Qwen3.5-27B abliterated (refusal direction removed). AWQ 4-bit, dual-GPU TP=2, 65K context.",
-  "architecture": "Qwen3.5",
-  "license": "Apache-2.0",
-  "tags": ["reasoning", "thinking", "abliterated", "uncensored", "primary", "dual-gpu"]
+  "hf_model": "/model-bf16",
+  "quantization": "bitsandbytes",
+  "extra_args": [
+    "--load-format", "bitsandbytes",
+    "--tensor-parallel-size", "2",
+    "--max-model-len", "65536",
+    "--disable-custom-all-reduce",
+    "--reasoning-parser", "qwen3"
+  ]
 }
 ```
 
-Update `docker-compose.gaming.yml`:
-```yaml
-- DEFAULT_MODEL=qwen3.5-27b-abliterated
-```
+Add volume mount for BF16 model path to llm-manager + spawned vLLM containers.
 
-Deploy:
-```bash
-cd /mnt/c/Users/micro/repos/homelab-ai
-git add llm-manager/models.json docker-compose.gaming.yml
-git commit -m "feat: add Qwen3.5-27B abliterated AWQ as primary model"
-GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_claude -p 2223" git tag v1.10.59
-GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_claude -p 2223" git push origin v1.10.59
-```
+#### Step 4 — If transformers v5 breaks vLLM internals ⬜
 
-Then trigger deploy-webhook on gaming PC:
-```bash
-curl -X POST http://localhost:8007/deploy \
-  -H "Authorization: Bearer V2d06TKJCtsAnv6lYZjrv6OaW6_5brqVMlGWx2skvHU" \
-  -H "Content-Type: application/json" \
-  -d '{"service": "llm-manager"}'
-```
+Fall back to Option 1b: Qwen3-32B Abliterated (standard architecture, proven AWQ pipeline).
+`model_type: qwen3`, supported by AutoAWQ 0.2.9 without any patching.
+
+---
+
+### Blocker: vLLM + Qwen3.5 native support
+
+**PR to watch:** https://github.com/vllm-project/vllm/pull/30566
+Once merged into vLLM nightly, `qwen3_5_text` is natively supported and this Dockerfile
+hack is no longer needed. Check every session.
+
+**Status 2026-03-13:** Open, 0 approvals, active rebasing. Not imminent.
 
 ---
 
 ## Option 2 — Qwopus-27B Abliterated + AWQ
 
 **Model:** `Jackrong/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled`
-Claude Opus 4.6 reasoning distilled into Qwen3.5-27B. Same architecture as Option 1.
-Potentially the most capable 27B model we can run — Opus reasoning patterns baked into weights, then refusal removed.
-
-**Depends on:** Option 1 toolchain working (same architecture, same AWQ path).
-
-### Step 1 — Run obliteratus ⬜
-
-```bash
-# From Git Bash on Windows, in homelab-ai repo
-./abliteration/run.sh \
-  Jackrong/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled \
-  advanced \
-  qwopus-27b-abliterated
-```
-
-Output: `C:/models/abliterated/qwopus-27b-abliterated`
-Expected duration: several hours.
-
-### Step 2 — Run quantization ⬜
-
-```bash
-mkdir -p C:/models/quantized/qwopus-27b-abliterated-awq
-
-docker run --rm --gpus all \
-  -v C:/models/abliterated/qwopus-27b-abliterated:/input \
-  -v C:/models/quantized/qwopus-27b-abliterated-awq:/output \
-  harbor.server.unarmedpuppy.com/library/autoawq:latest \
-  --model-path /input --output-path /output --group-size 128
-```
-
-### Steps 3-5 — Volume, models.json, deploy ⬜
-
-Same pattern as Option 1. Model ID: `qwopus-27b-abliterated`, vram_gb: 14, gpu_count: 2.
+Same hybrid Qwen3.5 architecture as Option 1. AWQ quantization has the same blockers.
+**Depends on:** Option 1 toolchain resolution.
 
 ---
 
 ## Option 3 — Qwen3-32B Abliterated + AWQ
 
 **Model:** `Qwen/Qwen3-32B`
-Fully proven pipeline. `model_type: qwen3` — supported by autoawq, vLLM, transformers 4.57.6+.
-More parameters than Options 1/2 but older architecture.
+Fully proven pipeline. `model_type: qwen3` — natively supported by AutoAWQ 0.2.9, no patching.
+More parameters than 27B but older architecture (no hybrid attention).
+**Fallback plan if Option 1 continues to fail.**
 
-**Hardware during abliteration:** Qwen3-32B FP16 = ~64GB.
-With 48GB VRAM + 54GB WSL RAM = 102GB total — fits comfortably via `device_map=auto`.
-
-### Step 1 — Run obliteratus ⬜
-
-```bash
-# From Git Bash on Windows, in homelab-ai repo
-./abliteration/run.sh Qwen/Qwen3-32B advanced qwen3-32b-abliterated
-```
-
-Output: `C:/models/abliterated/qwen3-32b-abliterated`
-Expected duration: several hours (larger model than 27B).
-
-### Step 2 — Run quantization ⬜
-
-```bash
-mkdir -p C:/models/quantized/qwen3-32b-abliterated-awq
-
-docker run --rm --gpus all \
-  -v C:/models/abliterated/qwen3-32b-abliterated:/input \
-  -v C:/models/quantized/qwen3-32b-abliterated-awq:/output \
-  harbor.server.unarmedpuppy.com/library/autoawq:latest \
-  --model-path /input --output-path /output --group-size 128
-```
-
-### Steps 3-5 — Volume, models.json, deploy ⬜
-
-Model ID: `qwen3-32b-abliterated`, vram_gb: 20, gpu_count: 2, max_context: 65536.
-
-Extra args: `["--enable-auto-tool-choice", "--tool-call-parser", "hermes", "--reasoning-parser", "qwen3", "--disable-custom-all-reduce"]`
+FP16 = ~64GB. With 48GB VRAM + 54GB WSL RAM = fits via `device_map=auto` for abliteration.
+AWQ quantized output: ~20GB, runs on dual-GPU TP=2.
 
 ---
 
 ## Option 4 — Qwen3-72B AWQ (No Abliteration)
 
-**Model:** `Qwen/Qwen3-72B` (pre-quantized AWQ from HuggingFace)
-Largest model that fits in 48GB VRAM at AWQ 4-bit (~36GB weights, ~12GB KV cache).
-No abliteration possible on this hardware (FP16 = 144GB >> 102GB total).
-Refusal behavior intact — but raw capability is far ahead of any 27-32B model.
-
-### Step 1 — Pull model to local-models volume ⬜
-
-```bash
-# Pull into huggingface cache then copy to volume, or use vLLM to pre-download
-docker run --rm --gpus all \
-  -v huggingface-cache:/root/.cache/huggingface \
-  -v local-models:/models \
-  vllm/vllm-openai:nightly \
-  python3 -c "
-from huggingface_hub import snapshot_download
-import shutil
-path = snapshot_download('Qwen/Qwen3-72B-AWQ')
-shutil.copytree(path, '/models/qwen3-72b-awq')
-print('Done:', path)
-"
-```
-
-### Step 2 — Add to models.json ⬜
-
-```json
-{
-  "id": "qwen3-72b-awq",
-  "name": "Qwen3 72B AWQ",
-  "hf_model": "/models/qwen3-72b-awq",
-  "quantization": "awq_marlin",
-  "type": "text",
-  "vram_gb": 36,
-  "gpu_count": 2,
-  "max_context": 32768,
-  "default_context": 16384,
-  "extra_args": ["--enable-auto-tool-choice", "--tool-call-parser", "hermes", "--reasoning-parser", "qwen3", "--disable-custom-all-reduce"],
-  "description": "Qwen3-72B AWQ 4-bit. Largest model on hardware. Dual-GPU TP=2. No abliteration.",
-  "architecture": "Qwen3",
-  "license": "Apache-2.0",
-  "tags": ["reasoning", "thinking", "tool-calling", "large", "dual-gpu"]
-}
-```
+**Model:** `Qwen/Qwen3-72B-AWQ` (pre-quantized from HuggingFace)
+Largest model that fits in 48GB VRAM at AWQ 4-bit (~36GB). No abliteration possible.
 
 ---
 
@@ -255,14 +179,13 @@ print('Done:', path)
 
 - **GPUs:** 2x RTX 3090 (48GB VRAM total, PCIe x8/x8, no NVLink)
 - **RAM:** 64GB physical, 54GB WSL
-- **Total addressable:** 102GB (abliteration), 48GB (inference)
-- **vLLM image:** `vllm/vllm-openai:nightly` (transformers 4.57.6, supports qwen3 + qwen3_5 AWQ)
-- **autoawq image:** `harbor.server.unarmedpuppy.com/library/autoawq:latest` (autoawq 0.2.9, transformers 5.3.0)
-- **Deploy secret:** in `.env` and `deploy-webhook` container env
+- **Total addressable:** ~102GB (abliteration on CPU+GPU), 48GB (inference)
+- **vLLM image:** `vllm/vllm-openai:nightly` (transformers 4.57.6, supports qwen3 + qwen3_5 AWQ path only)
+- **Custom vLLM image:** `vllm-tf5:local` (nightly + transformers v5, supports qwen3_5_text natively)
+- **autoawq image:** `harbor.server.unarmedpuppy.com/library/autoawq:latest` (autoawq 0.2.9)
 
-## Next Tag Sequence
+## Tag Sequence
 
-- v1.10.57 — llm-manager with abliterated model configs (deployed)
-- v1.10.58 — autoawq script fix (Option 1 toolchain)
-- v1.10.59 — models.json + DEFAULT_MODEL after Option 1 quantization
+- v1.10.55–v1.10.58 — various llm-manager and config fixes (deployed)
+- v1.10.59 — pending: models.json update after Option 1 resolution
 - v1.10.60+ — subsequent model additions
