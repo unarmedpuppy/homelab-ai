@@ -107,6 +107,16 @@ jobs:
       context: autoawq
     secrets: inherit
 
+  # Custom vLLM image with BNB NF4 + Qwen3.5 patches — used by llm-manager on gaming PC
+  build-vllm:
+    uses: unarmedpuppy/workflows/.gitea/workflows/docker-build.yml@main
+    with:
+      image_name: library/vllm-custom
+      app_path: apps/homelab-ai
+      dockerfile: vllm/Dockerfile
+      context: vllm
+    secrets: inherit
+
   deploy:
     needs: [build-llm-router, build-dashboard, build-llm-manager, build-image-server, build-tts-server, build-agent-harness, build-dashboard-api, build-aoe-canvas, build-deploy-webhook]
     runs-on: ubuntu-latest
