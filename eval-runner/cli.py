@@ -302,6 +302,107 @@ def cmd_compare(run_a, run_b, json_out):
         console.print(f"  B wins ({len(data['cases_b_wins'])}): {', '.join(data['cases_b_wins'][:5])}")
 
 
+@cli.command("temp-sweep")
+@click.option("--model", "-m", required=True, help="Model ID (as known to llm-router)")
+@click.option("--temps", default="0.0,0.5,0.7,0.9", show_default=True, help="Comma-separated temperatures")
+@click.option("--suite", "-s", default=None, help="Suite name")
+@click.option("--tags", "-t", default=None, help="Comma-separated tags filter")
+@click.option("--cases", "-c", default=None, help="Comma-separated case IDs")
+@click.option("--concurrency", default=1, show_default=True)
+@click.option("--timeout", default=60, show_default=True, help="Per-case timeout (seconds)")
+@click.option("--wait-timeout", default=600, show_default=True, help="Max wait seconds per run")
+@click.option("--json-out", is_flag=True)
+def cmd_temp_sweep(model, temps, suite, tags, cases, concurrency, timeout, wait_timeout, json_out):
+    """Run the same cases at multiple temperatures and compare pass rates."""
+    temperature_list = [float(t.strip()) for t in temps.split(",")]
+
+    # Build shared case selector
+    selector: dict = {"model": model, "concurrency": concurrency, "timeout_seconds": timeout}
+    if suite:
+        selector["suite"] = suite
+    if tags:
+        selector["tags"] = [t.strip() for t in tags.split(",")]
+    if cases:
+        selector["case_ids"] = [c.strip() for c in cases.split(",")]
+    if not suite and not tags and not cases:
+        selector["tags"] = []
+
+    # Fire one run per temperature
+    console.print(f"\n  [bold]Temperature Sweep[/bold] — {model}  |  {suite or tags or 'all'}")
+    run_ids: dict[float, str] = {}
+    for temp in temperature_list:
+        body = {**selector, "temperature_override": temp}
+        run = _post("/runs", body)
+        run_ids[temp] = run["run_id"]
+        console.print(f"  T={temp}: run [cyan]{run['run_id'][:8]}[/cyan] ({run['total_cases']} cases)")
+
+    # Poll all runs to completion
+    console.print()
+    runs_done: dict[float, dict] = {}
+    for temp, run_id in run_ids.items():
+        with console.status(f"[cyan]Waiting for T={temp} ({run_id[:8]})…[/cyan]", spinner="dots"):
+            runs_done[temp] = _poll_run(run_id, timeout=wait_timeout)
+
+    # Fetch results per run
+    results_by_temp: dict[float, dict[str, dict]] = {}
+    for temp, run_id in run_ids.items():
+        data = _get(f"/runs/{run_id}/results", params={"limit": 500})
+        results_by_temp[temp] = {r["case_id"]: r for r in data["results"]}
+
+    if json_out:
+        out = {
+            str(temp): {
+                "run_id": run_ids[temp],
+                "pass_rate": runs_done[temp].get("pass_rate"),
+                "results": {cid: r["status"] for cid, r in results_by_temp[temp].items()},
+            }
+            for temp in temperature_list
+        }
+        print(json.dumps(out, indent=2))
+        return
+
+    # Build matrix: rows=cases, cols=temperatures
+    all_case_ids = sorted(set(cid for res in results_by_temp.values() for cid in res))
+
+    table = Table(box=box.SIMPLE, show_header=True, header_style="bold", title=f"{model}")
+    table.add_column("Case", max_width=45)
+    for temp in temperature_list:
+        table.add_column(f"T={temp}", justify="center", width=8)
+
+    for case_id in all_case_ids:
+        row: list = [f"[dim]{case_id}[/dim]"]
+        for temp in temperature_list:
+            r = results_by_temp[temp].get(case_id)
+            if r is None:
+                row.append("[dim]—[/dim]")
+            elif r["status"] == "pass":
+                row.append("[green]pass[/green]")
+            elif r["status"] == "fail":
+                row.append("[red]fail[/red]")
+            else:
+                row.append("[yellow]err[/yellow]")
+        table.add_row(*row)
+
+    console.print(table)
+
+    # Summary line
+    console.print("  Overall pass rate: ", end="")
+    for temp in temperature_list:
+        run = runs_done[temp]
+        pr = run.get("pass_rate") or 0
+        color = "green" if pr >= 0.8 else "yellow" if pr >= 0.6 else "red"
+        console.print(f"T={temp} [{color}]{pr * 100:.0f}%[/{color}]  ", end="")
+    console.print()
+
+    # Flag the sweet spot: highest temp that still passes everything
+    passing_temps = [t for t in temperature_list if (runs_done[t].get("pass_rate") or 0) >= 0.8]
+    if passing_temps:
+        sweet = max(passing_temps)
+        console.print(f"\n  [green]Sweet spot:[/green] T={sweet} (highest temp with ≥80% pass rate)")
+    else:
+        console.print("\n  [red]No temperature reached 80% pass rate[/red]")
+
+
 @cli.command("cases")
 @click.option("--category", "-c", default=None)
 @click.option("--tag", "-t", default=None)

@@ -160,6 +160,7 @@ class RunRequest(BaseModel):
     router_url: Optional[str] = None
     concurrency: int = Field(default=1, ge=1, le=10)
     timeout_seconds: int = Field(default=30, ge=5, le=300)
+    temperature_override: Optional[float] = None  # overrides per-case temperature
 
     @model_validator(mode="after")
     def must_specify_cases(self) -> "RunRequest":
@@ -192,6 +193,7 @@ class CaseResult(BaseModel):
     category: str
     tags: list[str]
     model: str
+    temperature: float = 0.0
     status: Literal["pass", "fail", "error"]
     scorer_results: list[ScorerResult]
     messages: list[dict]

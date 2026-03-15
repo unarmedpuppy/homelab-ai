@@ -38,6 +38,7 @@ Build a first-class eval framework as a server-side service (port 8020) with:
 | `persona` | 5 | HAL/Avery role fidelity, out-of-scope routing |
 | `thinking_tokens` | 7 | `<think>` absence across simple/complex/tool responses |
 | `homelab_knowledge` | 7 | vLLM concepts, Docker GPU, CUDA, WSL2, quantization |
+| `character` | 2 | Emotional nuance, honest pushback on flawed claims, genuine self-reflection on own nature — no system prompt |
 
 ## Scorer Design
 
@@ -87,6 +88,16 @@ eval stats
 - Adding a new model to the garden should be followed by `eval run --model <new-model> --suite full`
 - New eval cases should be added when new failure modes are discovered (regression-driven test writing)
 - The judge model consumes tokens on every `llm_judge` scorer — keep judge cases targeted, not exhaustive
+
+## Temperature Sweep
+
+`RunRequest` accepts `temperature_override: Optional[float]` — overrides the per-case default for a single run. The CLI `temp-sweep` command fires N runs (one per temperature), polls them all, and renders a case × temperature matrix:
+
+```bash
+eval temp-sweep -m qwen3.5-27b -s character --temps 0.0,0.5,0.7,0.9
+```
+
+Output identifies the sweet spot: the highest temperature that still clears 80% pass rate. Useful for understanding where a model opens up vs. becomes incoherent. `temperature` is stored on each `CaseResult` in the DB.
 
 ## Follow-up
 

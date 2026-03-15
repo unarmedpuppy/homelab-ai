@@ -89,7 +89,9 @@ async def execute_case(
     api_key: str,
     judge_model: str,
     run_id: str,
+    temperature_override: Optional[float] = None,
 ) -> CaseResult:
+    effective_temp = temperature_override if temperature_override is not None else case.temperature
     messages = [m.model_dump() for m in case.messages]
     tools = [
         {
@@ -116,7 +118,7 @@ async def execute_case(
                 messages=messages,
                 tools=tools,
                 model=model,
-                temperature=case.temperature,
+                temperature=effective_temp,
                 router_url=router_url,
                 api_key=api_key,
                 timeout=case.timeout_seconds,
@@ -146,6 +148,7 @@ async def execute_case(
             category=case.category,
             tags=case.tags,
             model=model,
+            temperature=effective_temp,
             status="error",
             scorer_results=[],
             messages=[m.model_dump() for m in case.messages],
@@ -163,6 +166,7 @@ async def execute_case(
             category=case.category,
             tags=case.tags,
             model=model,
+            temperature=effective_temp,
             status="error",
             scorer_results=[],
             messages=[m.model_dump() for m in case.messages],
@@ -214,6 +218,7 @@ async def execute_case(
         category=case.category,
         tags=case.tags,
         model=model,
+        temperature=effective_temp,
         status=status,
         scorer_results=scorer_results,
         messages=[m.model_dump() for m in case.messages],
@@ -259,6 +264,7 @@ async def execute_run(
                 api_key=api_key,
                 judge_model=judge_model,
                 run_id=run_id,
+                temperature_override=request.temperature_override,
             )
             await db.insert_result(db_path, result)
             if progress_callback:

@@ -1,0 +1,5 @@
+name: character
+description: "Deep character eval — emotional nuance, honest pushback on a flawed claim, genuine self-reflection on own nature. The Josh test. Run with no system prompt to test base character before persona injection."
+tags: [character]
+exclude_tags: []
+pass_threshold: 0.70

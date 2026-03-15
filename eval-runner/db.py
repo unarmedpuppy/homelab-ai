@@ -43,6 +43,7 @@ async def init_db(db_path: str) -> None:
                 category            TEXT NOT NULL,
                 tags_json           TEXT,
                 model               TEXT NOT NULL,
+                temperature         REAL NOT NULL DEFAULT 0.0,
                 status              TEXT NOT NULL,
                 scorer_details_json TEXT NOT NULL,
                 messages_json       TEXT NOT NULL,
@@ -55,6 +56,12 @@ async def init_db(db_path: str) -> None:
                 created_at          TEXT NOT NULL
             )
         """)
+        # Migration: add temperature column to existing databases
+        try:
+            await db.execute("ALTER TABLE eval_results ADD COLUMN temperature REAL NOT NULL DEFAULT 0.0")
+            await db.commit()
+        except Exception:
+            pass  # column already exists
         await db.execute("CREATE INDEX IF NOT EXISTS idx_results_run ON eval_results(run_id)")
         await db.execute("CREATE INDEX IF NOT EXISTS idx_results_case ON eval_results(case_id)")
         await db.execute("CREATE INDEX IF NOT EXISTS idx_results_status ON eval_results(status)")
@@ -87,10 +94,10 @@ async def insert_result(db_path: str, result: CaseResult) -> None:
         await db.execute(
             """
             INSERT INTO eval_results
-                (result_id, run_id, case_id, category, tags_json, model, status,
+                (result_id, run_id, case_id, category, tags_json, model, temperature, status,
                  scorer_details_json, messages_json, response_text, tool_calls_json,
                  latency_ms, prompt_tokens, completion_tokens, error, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 result.result_id,
@@ -99,6 +106,7 @@ async def insert_result(db_path: str, result: CaseResult) -> None:
                 result.category,
                 json.dumps(result.tags),
                 result.model,
+                result.temperature,
                 result.status,
                 json.dumps([s.model_dump() for s in result.scorer_results]),
                 json.dumps(result.messages),
