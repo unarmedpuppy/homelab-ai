@@ -78,7 +78,7 @@
     {
       "id": "qwen3.5-27b-abliterated-awq",
       "name": "Qwen3.5 27B Abliterated AWQ",
-      "hf_model": "/models/qwen3.5-27b-abliterated-awq",
+      "hf_model": "/models/qwen3.5-27b-abliterated-awq-v2",
       "quantization": "awq_marlin",
       "type": "text",
       "vram_gb": 14,
@@ -86,7 +86,7 @@
       "max_context": 65536,
       "default_context": 32768,
       "extra_args": ["--disable-custom-all-reduce", "--reasoning-parser", "qwen3", "--enable-auto-tool-choice", "--tool-call-parser", "hermes", "--enforce-eager", "--gpu-memory-utilization", "0.90", "--max-num-batched-tokens", "4096"],
-      "description": "Qwen3.5-27B abliterated (refusal direction removed). AWQ-Marlin 4-bit, dual-GPU TP=2. enforce-eager: profiling OOM without it. max-num-batched-tokens 4096: caps profile forward pass batch to avoid 22GiB SSM activation explosion (default would use max_model_len=65536 tokens).",
+      "description": "Qwen3.5-27B abliterated (refusal direction removed). AWQ-Marlin 4-bit, dual-GPU TP=2. -v2 checkpoint: merged in_proj_qkvz (fused, AWQ) + dequantized out_proj.weight (BF16) to match vLLM Qwen3.5 hybrid model expectations. max-num-batched-tokens 4096 prevents SSM profiling OOM.",
       "architecture": "Qwen3.5 (hybrid SSM+transformer, abliterated)",
       "license": "Apache-2.0",
       "tags": ["reasoning", "thinking", "abliterated", "uncensored", "hybrid-ssm", "dual-gpu", "fast"]
