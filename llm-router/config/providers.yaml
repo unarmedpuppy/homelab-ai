@@ -214,13 +214,36 @@ models:
       - chat
       - coding
 
+  - id: qwen3.5-27b-abliterated-awq
+    name: "Qwen3.5 27B Abliterated AWQ"
+    providerId: gaming-pc-3090
+    description: "Qwen3.5-27B abliterated, AWQ-Marlin 4-bit. Dual-GPU TP=2, 65K context. ~15-20 t/s."
+    contextWindow: 65536
+    maxTokens: 32768
+    isDefault: true
+
+    capabilities:
+      streaming: true
+      functionCalling: true
+      vision: false
+      jsonMode: true
+
+    tags:
+      - chat
+      - reasoning
+      - abliterated
+      - uncensored
+      - thinking
+      - fast
+      - dual-gpu
+
   - id: qwen3.5-27b-abliterated
     name: "Qwen3.5 27B Abliterated"
     providerId: gaming-pc-3090
     description: "Qwen3.5-27B with refusal direction removed. BNB NF4 4-bit, TP=1 single GPU. 4K context."
     contextWindow: 4096
     maxTokens: 4096
-    isDefault: true
+    isDefault: false
 
     capabilities:
       streaming: true

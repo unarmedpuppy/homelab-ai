@@ -76,6 +76,22 @@
       "tags": ["reasoning", "thinking", "abliterated", "uncensored", "hybrid-ssm", "single-gpu"]
     },
     {
+      "id": "qwen3.5-27b-abliterated-awq",
+      "name": "Qwen3.5 27B Abliterated AWQ",
+      "hf_model": "/models/quantized/qwen3.5-27b-abliterated-awq",
+      "quantization": "awq_marlin",
+      "type": "text",
+      "vram_gb": 14,
+      "gpu_count": 2,
+      "max_context": 65536,
+      "default_context": 32768,
+      "extra_args": ["--disable-custom-all-reduce", "--reasoning-parser", "qwen3", "--enable-auto-tool-choice", "--tool-call-parser", "hermes"],
+      "description": "Qwen3.5-27B abliterated (refusal direction removed). AWQ-Marlin 4-bit, dual-GPU TP=2. ~15-20 t/s vs 1-2 t/s for BNB NF4. Full 65K context. Locally quantized with AutoAWQ.",
+      "architecture": "Qwen3.5 (hybrid SSM+transformer, abliterated)",
+      "license": "Apache-2.0",
+      "tags": ["reasoning", "thinking", "abliterated", "uncensored", "hybrid-ssm", "dual-gpu", "fast"]
+    },
+    {
       "id": "qwopus-27b",
       "name": "Qwopus 27B BNB (Opus Distilled)",
       "hf_model": "Jackrong/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled",
