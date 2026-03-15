@@ -78,7 +78,7 @@
     {
       "id": "qwen3.5-27b-abliterated-awq",
       "name": "Qwen3.5 27B Abliterated AWQ",
-      "hf_model": "/models/quantized/qwen3.5-27b-abliterated-awq",
+      "hf_model": "/models/qwen3.5-27b-abliterated-awq",
       "quantization": "awq_marlin",
       "type": "text",
       "vram_gb": 14,
