@@ -74,6 +74,27 @@ services:
               count: 1
               capabilities: [gpu]
 
+  video-server:
+    image: ${HARBOR_REGISTRY:-harbor.local}/library/video-server:latest
+    container_name: video-server
+    restart: unless-stopped
+    ports:
+      - "8008:8000"
+    environment:
+      - MODEL_ID=tencent/HunyuanVideo-1.5
+      - GPU_COUNT=1
+    volumes:
+      - huggingface-cache:/root/.cache/huggingface
+    networks:
+      - ai-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
   # Deploy webhook - accepts POST /deploy to pull new images and recreate containers
   deploy-webhook:
     image: ${HARBOR_REGISTRY:-harbor.local}/library/deploy-webhook:latest
@@ -83,7 +104,7 @@ services:
       - "8007:8000"
     environment:
       - DEPLOY_SECRET=${DEPLOY_SECRET}
-      - KNOWN_SERVICES=llm-manager,image-server,tts-server,gaming-dashboard
+      - KNOWN_SERVICES=llm-manager,image-server,tts-server,video-server,gaming-dashboard
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:

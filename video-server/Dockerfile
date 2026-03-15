@@ -1,0 +1,31 @@
+# Dockerfile for video generation inference server
+# Uses HuggingFace Diffusers with FastAPI
+# PyTorch base image - large layers are pre-cached in registries
+
+FROM harbor.server.unarmedpuppy.com/library/pytorch-base:2.2.0-cuda12.1
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies (ffmpeg for video encoding)
+RUN apt-get update && apt-get install -y \
+    curl \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python packages (torch/torchvision come from base image)
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY app/ ./app/
+
+# Expose port
+EXPOSE 8000
+
+# Health check — longer start-period for large video models
+HEALTHCHECK --interval=30s --timeout=10s --start-period=180s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Run the server
+CMD ["python3", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

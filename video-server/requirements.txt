@@ -1,0 +1,25 @@
+# Video inference server requirements
+# Supports HunyuanVideo-1.5, HunyuanVideo, and Wan T2V models
+#
+# PyTorch with CUDA - PROVIDED BY BASE IMAGE (pytorch/pytorch:2.2.0-cuda12.1-cudnn8-runtime)
+# Do NOT add torch or torchvision here - they come pre-installed
+
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+
+# Diffusers >= 0.32.0 for HunyuanVideoPipeline + WanPipeline support
+diffusers>=0.32.0
+transformers>=4.51.3,<5.0.0
+accelerate>=0.30.0
+pillow>=10.1.0
+numpy>=1.24.3
+httpx==0.25.1
+pydantic==2.5.0
+huggingface-hub>=0.20.2
+
+# Sentence tokenization (required by some video model text encoders)
+sentencepiece>=0.1.99
+
+# Video encoding — requires ffmpeg system package (installed in Dockerfile)
+imageio>=2.34.0
+imageio-ffmpeg>=0.5.0

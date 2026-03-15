@@ -51,6 +51,16 @@ jobs:
       context: tts-server
     secrets: inherit
 
+  # Build-only — gaming PC only, not deployed to server
+  build-video-server:
+    uses: unarmedpuppy/workflows/.gitea/workflows/docker-build.yml@main
+    with:
+      image_name: library/video-server
+      app_path: apps/homelab-ai
+      dockerfile: video-server/Dockerfile
+      context: video-server
+    secrets: inherit
+
   build-agent-harness:
     uses: unarmedpuppy/workflows/.gitea/workflows/docker-build.yml@main
     with:
