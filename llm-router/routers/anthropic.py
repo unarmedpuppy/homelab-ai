@@ -293,9 +293,15 @@ def translate_anthropic_to_openai(anthropic_body: dict) -> dict:
         "chat_template_kwargs": {"enable_thinking": False},
     }
 
-    for field in ("temperature", "top_p"):
-        if field in anthropic_body:
-            oai_body[field] = anthropic_body[field]
+    # Inject Qwen3.5 optimal sampling defaults when client doesn't specify.
+    # Claude Code sends no sampling params — without defaults, vLLM uses its own.
+    # Unsloth recommendation for agentic coding (https://unsloth.ai/docs/basics/claude-code):
+    #   temp=0.6, top_p=0.95, top_k=20, min_p=0.0
+    # Cloud backends (zai, claude-harness) ignore unknown fields.
+    oai_body["temperature"] = anthropic_body.get("temperature", 0.6)
+    oai_body["top_p"] = anthropic_body.get("top_p", 0.95)
+    oai_body["top_k"] = anthropic_body.get("top_k", 20)
+    oai_body["min_p"] = anthropic_body.get("min_p", 0.0)
 
     if "stop_sequences" in anthropic_body:
         oai_body["stop"] = anthropic_body["stop_sequences"]

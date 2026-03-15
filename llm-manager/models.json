@@ -163,6 +163,92 @@
       "tags": ["tts", "voice", "audio"]
     },
     {
+      "id": "glm-4.7-flash",
+      "name": "GLM-4.7-Flash 30B MoE",
+      "hf_model": "zai-org/GLM-4.7-Flash",
+      "quantization": "bitsandbytes",
+      "type": "text",
+      "vram_gb": 16,
+      "gpu_count": 1,
+      "max_context": 65536,
+      "default_context": 32768,
+      "extra_args": [
+        "--load-format", "bitsandbytes",
+        "--enable-auto-tool-choice",
+        "--tool-call-parser", "glm47",
+        "--reasoning-parser", "glm45",
+        "--enforce-eager"
+      ],
+      "description": "GLM-4.7-Flash: 30B total / 3B active MoE. Fast inference, strong tool calling, interleaved thinking. Recommended by Unsloth for Claude Code agentic tasks. BNB 4-bit for single-GPU. Avoid AWQ variants — community AWQs calibrated without tool calling data.",
+      "architecture": "GLM-4.7 (MoE)",
+      "license": "Apache-2.0",
+      "tags": ["fast", "tool-calling", "moe", "claude-code", "thinking", "glm"]
+    },
+    {
+      "id": "glm-z1-9b",
+      "name": "GLM-Z1-9B",
+      "hf_model": "THUDM/GLM-Z1-9B-0414",
+      "quantization": null,
+      "type": "text",
+      "vram_gb": 18,
+      "gpu_count": 1,
+      "max_context": 32768,
+      "default_context": 16384,
+      "extra_args": [
+        "--enable-auto-tool-choice",
+        "--tool-call-parser", "glm4",
+        "--reasoning-parser", "glm4"
+      ],
+      "description": "GLM-Z1-9B: 9B dense reasoning model with thinking mode. Native BF16 — fits single RTX 3090 (18GB). Strong at math and coding. No AWQ available; native precision preferred.",
+      "architecture": "GLM-Z1 (dense)",
+      "license": "Apache-2.0",
+      "tags": ["small", "reasoning", "thinking", "tool-calling", "glm"]
+    },
+    {
+      "id": "glm-z1-32b",
+      "name": "GLM-Z1-32B",
+      "hf_model": "THUDM/GLM-Z1-32B-0414",
+      "quantization": "bitsandbytes",
+      "type": "text",
+      "vram_gb": 17,
+      "gpu_count": 1,
+      "max_context": 32768,
+      "default_context": 16384,
+      "extra_args": [
+        "--load-format", "bitsandbytes",
+        "--enable-auto-tool-choice",
+        "--tool-call-parser", "glm4",
+        "--reasoning-parser", "glm4",
+        "--enforce-eager"
+      ],
+      "description": "GLM-Z1-32B: 32B dense model with deep thinking. Strong coding and analysis. BNB 4-bit for single-GPU (~17GB). No community AWQ available.",
+      "architecture": "GLM-Z1 (dense)",
+      "license": "Apache-2.0",
+      "tags": ["large", "reasoning", "thinking", "tool-calling", "glm"]
+    },
+    {
+      "id": "glm-z1-rumination-32b",
+      "name": "GLM-Z1-Rumination-32B",
+      "hf_model": "THUDM/GLM-Z1-Rumination-32B-0414",
+      "quantization": "bitsandbytes",
+      "type": "text",
+      "vram_gb": 17,
+      "gpu_count": 1,
+      "max_context": 32768,
+      "default_context": 16384,
+      "extra_args": [
+        "--load-format", "bitsandbytes",
+        "--enable-auto-tool-choice",
+        "--tool-call-parser", "glm4",
+        "--reasoning-parser", "glm4",
+        "--enforce-eager"
+      ],
+      "description": "GLM-Z1-Rumination-32B: 32B dense with extended deep thinking (rumination). Designed for long research tasks with retrieval-augmented reasoning. Slower than Z1-32B but more thorough. BNB 4-bit for single-GPU.",
+      "architecture": "GLM-Z1 (Rumination)",
+      "license": "Apache-2.0",
+      "tags": ["large", "reasoning", "deep-thinking", "research", "glm"]
+    },
+    {
       "id": "bge-base-en",
       "name": "BGE Base EN v1.5",
       "hf_model": "BAAI/bge-base-en-v1.5",
