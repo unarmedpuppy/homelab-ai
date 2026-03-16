@@ -26,6 +26,7 @@ IDLE_TIMEOUT = int(os.getenv("IDLE_TIMEOUT", "600"))
 START_TIMEOUT = int(os.getenv("START_TIMEOUT", "180"))
 MODELS_CONFIG_PATH = os.getenv("MODELS_CONFIG_PATH", "/app/models.json")
 VLLM_IMAGE = os.getenv("VLLM_IMAGE", "vllm/vllm-openai:latest")
+LLAMA_IMAGE = os.getenv("LLAMA_IMAGE", "ghcr.io/ggerganov/llama.cpp:server-cuda")
 HF_CACHE_PATH = os.getenv("HF_CACHE_PATH", "/root/.cache/huggingface")
 DOCKER_NETWORK = os.getenv("DOCKER_NETWORK", "ai-network")  # Network for spawned containers
 GPU_MEMORY_UTILIZATION = float(os.getenv("GPU_MEMORY_UTILIZATION", "0.95"))  # vLLM gpu-memory-utilization
@@ -37,13 +38,14 @@ model_cards = {}  # Model definitions from models.json
 model_states = {}  # Runtime state for each model
 available_models = []  # Models that fit in GPU VRAM
 gpu_vram_gb = 0  # Detected GPU VRAM (primary)
+total_vram_gb = 0      # Sum of all GPU VRAM
 num_gpus = 1  # Number of GPUs detected
 gaming_mode = False
 gaming_mode_lock = None
 
 
-def detect_gpu_vram() -> int:
-    """Detect available GPU VRAM in GB using nvidia-smi."""
+def detect_gpu_vram() -> list[int]:
+    """Detect VRAM per GPU in GB. Returns list ordered by GPU index."""
     global num_gpus
     try:
         result = subprocess.run(
@@ -55,25 +57,23 @@ def detect_gpu_vram() -> int:
         if result.returncode == 0:
             lines = [l.strip() for l in result.stdout.strip().split("\n") if l.strip()]
             num_gpus = len(lines)
-            # Primary GPU VRAM (used for single-GPU model filtering)
-            vram_mib = int(lines[0])
-            vram_gb = vram_mib // 1024
-            print(f"Detected {num_gpus} GPU(s), primary VRAM: {vram_gb}GB ({vram_mib}MiB)")
-            return vram_gb
+            per_gpu = [int(l) // 1024 for l in lines]
+            print(f"Detected {num_gpus} GPU(s): {per_gpu}GB each, {sum(per_gpu)}GB total")
+            return per_gpu
     except Exception as e:
         print(f"Warning: Could not detect GPU VRAM: {e}")
-
-    # Fallback: assume 8GB (RTX 3070 tier)
     num_gpus = 1
     print("Falling back to 8GB VRAM assumption")
-    return 8
+    return [8]
 
 
 def load_models():
     """Load model definitions and filter by GPU capability."""
-    global model_cards, model_states, available_models, gpu_vram_gb
-    
-    gpu_vram_gb = detect_gpu_vram()
+    global model_cards, model_states, available_models, gpu_vram_gb, total_vram_gb
+
+    per_gpu = detect_gpu_vram()
+    gpu_vram_gb = per_gpu[0]
+    total_vram_gb = sum(per_gpu)
     
     try:
         with open(MODELS_CONFIG_PATH) as f:
@@ -106,9 +106,10 @@ def load_models():
                 available_models.append(m["id"])
     
     # Initialize runtime state for available models
+    runtime_prefix = lambda mid: "llamacpp" if model_cards[mid].get("runtime") == "llamacpp" else "vllm"
     model_states = {
         model_id: {
-            "container_name": f"vllm-{model_id}",
+            "container_name": f"{runtime_prefix(model_id)}-{model_id}",
             "last_used": 0,
             "lock": asyncio.Lock(),
             "status": "stopped"
@@ -116,7 +117,7 @@ def load_models():
         for model_id in available_models
     }
     
-    print(f"GPU VRAM: {gpu_vram_gb}GB (usable: {usable_vram}GB)")
+    print(f"GPU VRAM: {gpu_vram_gb}GB primary, {total_vram_gb}GB total (usable per GPU: {usable_vram}GB)")
     print(f"Available models ({len(available_models)}/{len(models_list)}): {available_models}")
     
     excluded = [m["id"] for m in models_list if m["id"] not in available_models]
@@ -238,6 +239,82 @@ def create_vllm_container(model_id: str):
         raise
 
 
+def create_llamacpp_container(model_id: str):
+    """Create a llama.cpp server container for the given GGUF model."""
+    if model_id not in model_cards:
+        raise ValueError(f"Unknown model: {model_id}")
+
+    card = model_cards[model_id]
+    state = model_states[model_id]
+    container_name = state["container_name"]
+
+    gguf_filename = card.get("gguf_filename")
+    if not gguf_filename:
+        raise ValueError(f"Model {model_id} has no gguf_filename in model card")
+
+    existing = get_container(container_name)
+    if existing:
+        if existing.status == "running":
+            return existing
+        print(f"[{model_id}] Removing dead container ({existing.status})")
+        existing.remove(force=True)
+
+    gpu_count = card.get("gpu_count", 1)
+    context_len = card.get("default_context", 65536)
+
+    cmd = [
+        "--model", f"/models/{gguf_filename}",
+        "--host", "0.0.0.0",
+        "--port", "8000",
+        "--n-gpu-layers", "99",
+        "--ctx-size", str(context_len),
+        "--served-model-name", model_id,
+        "--parallel", "1",
+    ]
+
+    if card.get("extra_args"):
+        cmd.extend(card["extra_args"])
+
+    print(f"[{model_id}] Creating llama.cpp container: {container_name}")
+    print(f"[{model_id}] Image: {LLAMA_IMAGE}, GPUs: {gpu_count}, Context: {context_len}")
+    print(f"[{model_id}] Command: {' '.join(cmd)}")
+
+    try:
+        docker_client.images.get(LLAMA_IMAGE)
+    except docker.errors.ImageNotFound:
+        print(f"[{model_id}] Pulling llama.cpp image {LLAMA_IMAGE}...")
+        docker_client.images.pull(LLAMA_IMAGE)
+
+    try:
+        container = docker_client.containers.create(
+            image=LLAMA_IMAGE,
+            name=container_name,
+            command=cmd,
+            detach=True,
+            device_requests=[
+                DeviceRequest(count=gpu_count, capabilities=[["gpu"]])
+            ],
+            environment={
+                "NVIDIA_VISIBLE_DEVICES": "all",
+            },
+            volumes={
+                "gguf-models": {"bind": "/models", "mode": "ro"},
+            },
+            network=DOCKER_NETWORK,
+            ipc_mode="host" if gpu_count > 1 else None,
+            labels={
+                "managed-by": "llm-manager",
+                "model-id": model_id,
+                "runtime": "llamacpp",
+            }
+        )
+        print(f"[{model_id}] Container created: {container.id[:12]}")
+        return container
+    except Exception as e:
+        print(f"[{model_id}] Failed to create container: {e}")
+        raise
+
+
 async def wait_for_ready(model_id: str, timeout: int = None) -> bool:
     """Wait for a model container to become healthy."""
     if timeout is None:
@@ -299,7 +376,11 @@ async def start_model(model_id: str) -> bool:
 
         # Create container if it doesn't exist
         if not container:
-            container = create_vllm_container(model_id)
+            runtime = model_cards[model_id].get("runtime", "vllm")
+            if runtime == "llamacpp":
+                container = create_llamacpp_container(model_id)
+            else:
+                container = create_vllm_container(model_id)
 
         # Start if not running
         if container.status != "running":
@@ -443,6 +524,7 @@ async def list_models():
                 "owned_by": "vllm-manager",
                 "type": model_cards[model_id].get("type", "text"),
                 "vram_gb": model_cards[model_id].get("vram_gb", 0),
+                "runtime": model_cards[model_id].get("runtime", "vllm"),
             }
             for model_id in available_models
         ]
@@ -464,6 +546,7 @@ async def status():
             "name": card.get("name", model_id),
             "type": card.get("type", "text"),
             "vram_gb": card.get("vram_gb", 0),
+            "runtime": card.get("runtime", "vllm"),
             "container": state["container_name"],
             "status": "running" if container and container.status == "running" else "stopped",
             "last_used": state["last_used"],
@@ -703,6 +786,23 @@ async def prefetch_status(model_id: str):
     if model_id in _prefetch_tasks:
         return {**_prefetch_tasks[model_id], "model": model_id}
     return {"status": "idle", "model": model_id}
+
+
+@app.post("/swap/{model_id}")
+async def swap_model(model_id: str):
+    """Stop all running models and start the specified one."""
+    if model_id not in model_states:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Model '{model_id}' not available. Available: {available_models}"
+        )
+    stopped = await stop_all_models()
+    await start_model(model_id)
+    return {
+        "active_model": model_id,
+        "stopped_models": stopped,
+        "message": f"Swapped to {model_id}"
+    }
 
 
 @app.api_route("/v1/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])

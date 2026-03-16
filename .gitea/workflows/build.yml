@@ -136,6 +136,22 @@ jobs:
       context: vllm
     secrets: inherit
 
+  # Mirror external images to Harbor
+  mirror-llama-cpp:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to Harbor
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.HARBOR_REGISTRY }}
+          username: ${{ secrets.HARBOR_USER }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+      - name: Mirror llama.cpp server-cuda to Harbor
+        run: |
+          docker pull ghcr.io/ggerganov/llama.cpp:server-cuda
+          docker tag ghcr.io/ggerganov/llama.cpp:server-cuda ${{ secrets.HARBOR_REGISTRY }}/library/llama.cpp-server:cuda
+          docker push ${{ secrets.HARBOR_REGISTRY }}/library/llama.cpp-server:cuda
+
   deploy:
     needs: [build-llm-router, build-dashboard, build-llm-manager, build-image-server, build-tts-server, build-eval-runner, build-agent-harness, build-dashboard-api, build-aoe-canvas, build-deploy-webhook]
     runs-on: ubuntu-latest

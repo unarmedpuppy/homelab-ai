@@ -283,6 +283,90 @@ models:
       - abliterated
       - dual-gpu
 
+  - id: huihui-qwen3.5-27b-abliterated
+    name: "Qwen3.5 27B Abliterated (huihui-ai Opus distill)"
+    providerId: gaming-pc-3090
+    description: "huihui-ai 27B abliterated via Claude Opus reasoning distill - BNB NF4, single 3090, vLLM"
+    contextWindow: 16384
+    maxTokens: 8192
+    isDefault: false
+    runtime: vllm
+
+    capabilities:
+      streaming: true
+      functionCalling: true
+      vision: false
+      jsonMode: true
+
+    tags:
+      - chat
+      - uncensored
+      - reasoning
+
+  - id: huihui-qwen3.5-4b-abliterated
+    name: "Qwen3.5 4B Abliterated (huihui-ai Opus distill)"
+    providerId: gaming-pc-3090
+    description: "huihui-ai 4B abliterated via Claude Opus reasoning distill - fast, uncensored, vLLM native BF16"
+    contextWindow: 16384
+    maxTokens: 4096
+    isDefault: false
+    runtime: vllm
+
+    capabilities:
+      streaming: true
+      functionCalling: true
+      vision: false
+      jsonMode: true
+
+    tags:
+      - chat
+      - uncensored
+      - fast
+      - small
+
+  - id: qwen3.5-35b-a3b-uncensored-q5km
+    name: "Qwen3.5 35B-A3B Uncensored Q5_K_M"
+    providerId: gaming-pc-3090
+    description: "Abliterated MoE (3B active) via llama.cpp - single 3090, 65K context"
+    contextWindow: 65536
+    maxTokens: 8192
+    isDefault: false
+    runtime: llamacpp
+
+    capabilities:
+      streaming: true
+      functionCalling: false
+      vision: false
+      jsonMode: true
+
+    tags:
+      - chat
+      - uncensored
+      - moe
+      - llamacpp
+
+  - id: qwen3.5-35b-a3b-uncensored-q8
+    name: "Qwen3.5 35B-A3B Uncensored Q8_0"
+    providerId: gaming-pc-3090
+    description: "Abliterated MoE (3B active) via llama.cpp - dual 3090, 65K context, max quality"
+    contextWindow: 65536
+    maxTokens: 8192
+    isDefault: false
+    runtime: llamacpp
+
+    capabilities:
+      streaming: true
+      functionCalling: false
+      vision: false
+      jsonMode: true
+
+    tags:
+      - chat
+      - uncensored
+      - moe
+      - llamacpp
+      - dual-gpu
+
   - id: qwen-image-edit
     name: "Qwen Image Edit 2509"
     providerId: gaming-pc-3090

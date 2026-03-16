@@ -22,6 +22,7 @@ services:
       - GPU_MEMORY_UTILIZATION=0.90
       - CPU_OFFLOAD_GB=0
       - VLLM_IMAGE=${HARBOR_REGISTRY:-harbor.local}/library/vllm-custom:latest
+      - LLAMA_IMAGE=${HARBOR_REGISTRY:-harbor.local}/library/llama.cpp-server:cuda
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - huggingface-cache:/root/.cache/huggingface
@@ -131,4 +132,6 @@ volumes:
   huggingface-cache:
     external: true
   local-models:
+    external: true
+  gguf-models:
     external: true
