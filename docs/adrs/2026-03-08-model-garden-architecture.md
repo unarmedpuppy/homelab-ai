@@ -103,6 +103,30 @@ Route added at `/models` in `App.tsx` with lazy loading and `🌿 Models` nav it
 - **llm-manager unreachable:** If a manager is down, its models show as "unavailable". The API handles this gracefully with try/catch on manager calls.
 - **Stale cache data:** Cache detection scans the filesystem on each call. For very large caches, this could be slow. Mitigated by 30s polling interval.
 
+## Amendment — 2026-03-16: llama.cpp Runtime Support (v1.10.79)
+
+llm-manager now supports a second container runtime alongside vLLM: **llama.cpp** (`llama-server`). This was added to support GGUF-format models (e.g. HauhauCS 35B-A3B uncensored) which cannot be loaded by vLLM.
+
+### New model card fields
+- `runtime: "vllm" | "llamacpp"` — selects container runtime (default: vllm)
+- `gguf_filename` — required for llamacpp models; path relative to `/models` volume
+- `num_gpus` renamed to `gpu_count` for consistency (already in upstream)
+
+### New infrastructure
+- `LLAMA_IMAGE` env var in llm-manager: defaults to `ghcr.io/ggerganov/llama.cpp:server-cuda`, mirrored to Harbor at `library/llama.cpp-server:cuda` via CI
+- `gguf-models` Docker volume (external) mounted at `/models` in llama-server containers
+- Container naming: `vllm-{model_id}` or `llamacpp-{model_id}` based on runtime
+- New endpoint: `POST /swap/{model_id}` — stops all running models and starts specified one
+
+### Models added (45 total)
+- `huihui-qwen3.5-27b-abliterated` — vLLM BNB NF4, 18GB, HuggingFace safetensors
+- `huihui-qwen3.5-4b-abliterated` — vLLM BF16, 10GB, HuggingFace safetensors
+- `qwen3.5-35b-a3b-uncensored-q5km` — llama.cpp Q5_K_M, 24GB, 1x GPU
+- `qwen3.5-35b-a3b-uncensored-q8` — llama.cpp Q8_0, 35GB, 2x GPU
+
+### GGUF model bootstrap
+GGUF files don't auto-download — they must be placed in the `gguf-models` volume manually before starting. vLLM models continue to pull from HuggingFace on first use as before.
+
 ## Follow-up
 
 - [ ] Harbor auto-push after first HuggingFace download
@@ -111,3 +135,4 @@ Route added at `/models` in `App.tsx` with lazy loading and `🌿 Models` nav it
 - [ ] Model benchmarking/performance tracking (tok/s history)
 - [ ] Sync custom model registry with llm-manager's models.json
 - [ ] Prefetch progress indicator in UI (polling prefetch status endpoint)
+- [ ] GGUF model prefetch endpoint (huggingface-cli download into gguf-models volume)
