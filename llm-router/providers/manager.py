@@ -214,6 +214,23 @@ class ProviderManager:
                     raise ValueError(f"Model {model_id} not found on provider {provider_id}")
                 return ProviderSelection(provider=provider, model=model, reason="explicit selection")
 
+            # "auto" routing: provider-first by priority.
+            # Iterates providers in priority order, picks first healthy+available one,
+            # then selects that provider's default model. This correctly handles the case
+            # where the top-priority provider is unhealthy — it falls through to the next
+            # tier rather than failing immediately.
+            if requested_model == "auto" and not provider_id:
+                result = self._select_auto(capabilities_required)
+                if result:
+                    model, provider = result
+                    reason = (
+                        f"Auto-routed to {provider.id} (priority {provider.priority}), "
+                        f"{provider.current_requests}/{provider.max_concurrent} requests"
+                    )
+                    logger.info(f"Auto-routing: {provider.id}/{model.id}")
+                    return ProviderSelection(provider=provider, model=model, reason=reason)
+                raise ValueError("No healthy providers available for auto routing")
+
             # 1. Resolve model
             resolved_model_id = model_id or self._resolve_model(requested_model)
             if not resolved_model_id:
@@ -253,38 +270,64 @@ class ProviderManager:
                         provider=provider, model=model, reason=reason
                     )
 
-            # 5. All providers busy - check fallback settings
-            enable_cloud_fallback = self.settings.get("enableCloudFallback", True)
-
-            if enable_cloud_fallback:
-                # Try fallback chain: GLM-5 (zai) → Claude Sonnet (claude-harness)
-                # This respects the new priority order from the 2026-02-22 routing redesign
-                fallback_models = ["glm-5", "claude-sonnet"]
-
-                for fallback_model_id in fallback_models:
-                    fallback_model = self.models.get(fallback_model_id)
-                    if not fallback_model:
-                        continue
-
-                    fallback_provider = self.providers.get(fallback_model.provider_id)
-                    if not fallback_provider:
-                        continue
-
-                    if fallback_provider.enabled and fallback_provider.is_healthy:
-                        if fallback_provider.current_requests < fallback_provider.max_concurrent:
-                            reason = f"Cloud fallback to {fallback_model_id} (local busy)"
-                            logger.info(f"Fallback chain: selected {fallback_model_id}")
-                            return ProviderSelection(
-                                provider=fallback_provider,
-                                model=fallback_model,
-                                reason=reason
-                            )
-
-            # No providers available
+            # 5. All providers at capacity — no fallback for explicit model requests
             raise ValueError(
-                f"All providers for {model_id} are at capacity. "
+                f"All providers for {resolved_model_id} are at capacity. "
                 f"Current loads: {[(p.id, p.current_requests, p.max_concurrent) for p in candidates]}"
             )
+
+    def _select_auto(
+        self,
+        capabilities_required: Optional[Dict[str, bool]] = None,
+    ) -> Optional[Tuple["Model", "Provider"]]:
+        """
+        Provider-first auto-routing.
+
+        Iterates providers in priority order (skipping manual-only ones with
+        priority >= 99). For each provider that is enabled, healthy, and has
+        an open concurrency slot, picks that provider's default model (or first
+        model if no default is set). Returns the first viable (model, provider)
+        pair, or None if no provider is available.
+
+        This is the correct algorithm for "auto" — it degrades gracefully when
+        any tier is unhealthy rather than failing on the first resolved model.
+        """
+        sorted_providers = sorted(
+            [p for p in self.providers.values() if p.enabled and p.priority < 99],
+            key=lambda p: p.priority,
+        )
+
+        for provider in sorted_providers:
+            if not provider.is_healthy:
+                logger.debug(f"Auto-routing: skipping {provider.id} (unhealthy)")
+                continue
+            if provider.current_requests >= provider.max_concurrent:
+                logger.debug(f"Auto-routing: skipping {provider.id} (at capacity)")
+                continue
+
+            provider_models = [
+                m for m in self.models.values() if m.provider_id == provider.id
+            ]
+            if not provider_models:
+                continue
+
+            # Check capabilities if required
+            if capabilities_required:
+                provider_models = [
+                    m for m in provider_models
+                    if all(
+                        getattr(m.capabilities, cap, False)
+                        for cap, required in capabilities_required.items()
+                        if required
+                    )
+                ]
+                if not provider_models:
+                    continue
+
+            model = next((m for m in provider_models if m.is_default), provider_models[0])
+            return model, provider
+
+        return None
 
     def _resolve_model(self, requested: str) -> Optional[str]:
         """
