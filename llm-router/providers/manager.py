@@ -458,6 +458,21 @@ class ProviderManager:
         except ValueError:
             pass
 
+        # Fail fast if the model's provider is unhealthy (not just busy).
+        # Only queue when providers exist and are healthy but at capacity.
+        resolved = self._resolve_model(requested_model)
+        if resolved:
+            model = self.models.get(resolved)
+            if model:
+                provider = self.providers.get(model.provider_id)
+                if provider and (not provider.enabled or not provider.is_healthy):
+                    raise ValueError(
+                        f"Provider '{provider.id}' is {'disabled' if not provider.enabled else 'unhealthy'} "
+                        f"for model '{resolved}' — not queuing"
+                    )
+        else:
+            raise ValueError(f"Model not found: {requested_model}")
+
         # Check queue capacity before enqueuing
         if self._queue_depth >= self.max_queue_depth:
             raise ValueError(
