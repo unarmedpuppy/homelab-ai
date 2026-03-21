@@ -161,6 +161,27 @@ class HealthChecker:
                 # Check if response is healthy (2xx status code)
                 is_healthy = response.status_code // 100 == 2
 
+                # For providers that need running-model validation (e.g. llm-manager),
+                # a 200 from the health endpoint is not enough — the response body must
+                # contain a non-empty "running" list.  This catches the case where
+                # llm-manager is up but all vLLM containers are stopped.
+                if is_healthy and provider.health_check_validate_running:
+                    try:
+                        body = response.json()
+                        running = body.get("running", [])
+                        if not running:
+                            is_healthy = False
+                            logger.warning(
+                                f"Provider {provider.id} health check: "
+                                "endpoint returned 200 but no running models"
+                            )
+                    except Exception:
+                        is_healthy = False
+                        logger.warning(
+                            f"Provider {provider.id} health check: "
+                            "failed to parse JSON response body"
+                        )
+
                 if is_healthy:
                     logger.debug(f"Provider {provider.id} health check passed ({response_time_ms:.0f}ms)")
                     return HealthCheckResult(

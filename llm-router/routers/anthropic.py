@@ -388,6 +388,7 @@ async def translate_openai_stream_to_anthropic(
     oai_body: dict,
     original_model: str,
     input_token_estimate: int,
+    on_failure=None,
 ) -> AsyncGenerator[str, None]:
     """Stream from OpenAI backend, translate each chunk to Anthropic SSE format.
 
@@ -550,6 +551,16 @@ async def translate_openai_stream_to_anthropic(
                                     "delta": {"type": "input_json_delta", "partial_json": args_chunk},
                                 })
 
+    except (httpx.ConnectError, httpx.ConnectTimeout) as e:
+        logger.error(f"[Anthropic] Stream connect error: {e}")
+        if on_failure:
+            on_failure()
+        if not sent_message_start:
+            yield _sse_event("error", {
+                "type": "error",
+                "error": {"type": "api_error", "message": f"Backend unreachable: {type(e).__name__}"},
+            })
+            return
     except Exception as e:
         logger.error(f"[Anthropic] Stream error: {e}")
         if not sent_message_start:
@@ -680,9 +691,13 @@ async def messages(
             input_tokens += len(enc.encode(json.dumps(tool)))
 
         async with provider_manager.track_request(selection.provider.id):
+            def _on_stream_failure():
+                provider_manager.record_inference_failure(selection.provider.id)
+
             async def stream_gen():
                 async for chunk in translate_openai_stream_to_anthropic(
-                    selection, oai_body, original_model, input_tokens
+                    selection, oai_body, original_model, input_tokens,
+                    on_failure=_on_stream_failure,
                 ):
                     yield chunk
 

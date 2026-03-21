@@ -27,7 +27,11 @@ providers:
     # Health Check Configuration
     healthCheckInterval: 30  # seconds
     healthCheckTimeout: 5    # seconds
-    healthCheckPath: "/v1/models"  # LM Studio uses /v1/models (no /health endpoint)
+    # /status is llm-manager's status endpoint — returns {"running": [...], "stopped": [...]}
+    # healthCheckValidateRunning ensures the 200 is only trusted when vLLM containers are
+    # actually running (llm-manager returns 200 for /status even when all containers stopped).
+    healthCheckPath: "/status"
+    healthCheckValidateRunning: true
 
     # Authentication (null for local vLLM)
     authType: null

@@ -55,6 +55,7 @@ class Provider(BaseModel):
     health_check_interval: int = 30
     health_check_timeout: int = 5
     health_check_path: str = "/health"
+    health_check_validate_running: bool = False
     auth_type: Optional[AuthType] = None
     auth_secret: Optional[str] = None
     power_watts: Optional[int] = None
