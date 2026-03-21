@@ -56,6 +56,11 @@ class ProviderManager:
         self._queue_depth = 0
         self.max_queue_depth = int(os.getenv("QUEUE_MAX_DEPTH", "20"))
         self.queue_timeout = float(os.getenv("QUEUE_TIMEOUT_SECONDS", "120"))
+
+        # Circuit breaker: track consecutive inference failures (timeout/connect)
+        # Distinct from health check failures — this fires on actual request failures.
+        self._inference_failures: Dict[str, int] = {}
+        self.inference_failure_threshold = int(os.getenv("INFERENCE_FAILURE_THRESHOLD", "2"))
         
         # Model state tracker for warm/cold detection
         self.model_state_tracker = ModelStateTracker(
@@ -552,6 +557,40 @@ class ProviderManager:
             "max_depth": self.max_queue_depth,
             "timeout_seconds": self.queue_timeout,
         }
+
+    def record_inference_failure(self, provider_id: str) -> None:
+        """
+        Record a consecutive inference failure (timeout or connect error) for a provider.
+
+        After inference_failure_threshold consecutive failures the provider is marked
+        unhealthy so that auto-routing falls through to the next tier immediately.
+        The health checker restores is_healthy once the provider's health endpoint
+        recovers, which also resets the inference failure counter.
+        """
+        failures = self._inference_failures.get(provider_id, 0) + 1
+        self._inference_failures[provider_id] = failures
+
+        provider = self.providers.get(provider_id)
+        if not provider:
+            return
+
+        logger.warning(
+            f"Inference failure on {provider_id} "
+            f"({failures}/{self.inference_failure_threshold})"
+        )
+
+        if failures >= self.inference_failure_threshold and provider.is_healthy:
+            logger.warning(
+                f"Circuit breaker: marking {provider_id} unhealthy after "
+                f"{failures} consecutive inference failures"
+            )
+            provider.is_healthy = False
+
+    def record_inference_success(self, provider_id: str) -> None:
+        """Reset the inference failure counter for a provider after a successful request."""
+        if self._inference_failures.get(provider_id, 0) > 0:
+            logger.debug(f"Inference success: resetting failure counter for {provider_id}")
+            self._inference_failures[provider_id] = 0
 
     def reload_config(self):
         """Reload configuration from YAML file."""

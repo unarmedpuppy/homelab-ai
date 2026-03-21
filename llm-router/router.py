@@ -1315,7 +1315,12 @@ async def chat_completions(
 
             if enhanced_streaming:
                 async def stream_generator():
-                    async for event_str in stream_chat_completion(selection, body, conversation_id=tracker.conversation_id):
+                    async for event_str in stream_chat_completion(
+                        selection, body,
+                        conversation_id=tracker.conversation_id,
+                        on_failure=lambda: provider_manager.record_inference_failure(selection.provider.id),
+                        on_success=lambda: provider_manager.record_inference_success(selection.provider.id),
+                    ):
                         yield event_str
                         if event_str.startswith('data: ') and event_str[6:].strip() != '[DONE]':
                             try:
@@ -1459,6 +1464,7 @@ async def chat_completions(
                                 total_tokens=usage.get("total_tokens"),
                             )
 
+                        provider_manager.record_inference_success(candidate.provider.id)
                         background_tasks.add_task(
                             log_chat_completion,
                             tracker,
@@ -1481,6 +1487,7 @@ async def chat_completions(
                     f"Execution failed for {candidate.provider.name}: {type(e).__name__}: {e}, "
                     f"trying next candidate..."
                 )
+                provider_manager.record_inference_failure(candidate.provider.id)
                 last_error = str(e)
                 continue
             except HTTPException:

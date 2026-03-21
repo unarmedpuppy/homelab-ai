@@ -51,6 +51,8 @@ async def stream_chat_completion(
     body: dict,
     conversation_id: Optional[str] = None,
     timeout: float = 300.0,
+    on_failure=None,
+    on_success=None,
 ) -> AsyncGenerator[str, None]:
     """
     Stream chat completion with status events.
@@ -122,7 +124,9 @@ async def stream_chat_completion(
                     if not first_chunk_received:
                         first_chunk_received = True
                         time_to_first = time.time() - request_start
-                        
+                        if on_success:
+                            on_success()
+
                         if time_to_first > 5.0:
                             yield format_sse(create_stream_event(
                                 status=StreamStatus.LOADING,
@@ -185,17 +189,21 @@ async def stream_chat_completion(
         error_occurred = True
         error_message = "Request timed out"
         logger.error(f"Timeout calling {endpoint_url}")
+        if on_failure:
+            on_failure()
         yield format_sse(create_stream_event(
             status=StreamStatus.ERROR,
             message="Request timed out",
             error_detail=f"Timeout after {timeout}s",
             backend=selection.provider.id,
         ).model_dump())
-        
+
     except httpx.ConnectError as e:
         error_occurred = True
         error_message = f"Connection failed: {e}"
         logger.error(f"Connection error to {endpoint_url}: {e}")
+        if on_failure:
+            on_failure()
         yield format_sse(create_stream_event(
             status=StreamStatus.ERROR,
             message="Failed to connect to backend",
