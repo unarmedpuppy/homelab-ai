@@ -44,7 +44,8 @@ class RequestTracker:
         self.username = request.headers.get("X-Username")
         self.source = request.headers.get("X-Source")
         self.display_name = request.headers.get("X-Display-Name")
-        self.enable_memory = request.headers.get("X-Enable-Memory", "").lower() == "true"
+        self.enable_memory = True  # memory on by default; disabled per-key via no_tracking
+        self.no_tracking = False   # set True for keys that opt out of all persistence
 
     def get_duration_ms(self) -> int:
         """Get request duration in milliseconds."""
@@ -57,20 +58,22 @@ async def get_request_tracker(
 ) -> RequestTracker:
     """Dependency to create a request tracker.
 
-    Applies memory defaults from API key metadata when X-* headers are absent,
-    then validates that X-User-ID is present if memory is enabled.
-
-    FastAPI deduplicates validate_api_key_header — it won't be called twice
-    even if the route handler also depends on it.
+    Memory is enabled by default for all requests. Keys with
+    {"no_tracking": true} in metadata skip all persistence (metrics + memory).
+    API key name is used as fallback user_id when no X-User-ID header is set.
     """
     tracker = RequestTracker(request)
+
+    # Per-key tracking exclusion — skips all metrics and memory
+    if api_key and api_key.metadata and api_key.metadata.get("no_tracking"):
+        tracker.no_tracking = True
+        tracker.enable_memory = False
+        return tracker
 
     # Apply memory defaults from API key metadata (fills in missing X-* headers)
     if api_key and api_key.metadata:
         defaults = api_key.metadata.get("memory_defaults", {})
         if defaults:
-            if not tracker.enable_memory and defaults.get("enable_memory"):
-                tracker.enable_memory = True
             if not tracker.user_id:
                 tracker.user_id = defaults.get("user_id")
             if not tracker.source:
@@ -80,13 +83,9 @@ async def get_request_tracker(
             if not tracker.display_name:
                 tracker.display_name = defaults.get("display_name")
 
-    # Require X-User-ID when memory is enabled
-    if tracker.enable_memory and not tracker.user_id:
-        raise HTTPException(
-            status_code=400,
-            detail="X-User-ID header is required when X-Enable-Memory is true. "
-                   "This ensures all stored conversations have proper user attribution."
-        )
+    # Fall back to API key name as user_id so all requests are attributable
+    if not tracker.user_id and api_key:
+        tracker.user_id = api_key.name
 
     return tracker
 
@@ -120,6 +119,9 @@ def log_chat_completion(
     to both the request body and response data.
     """
     if not (ENABLE_METRICS or ENABLE_MEMORY):
+        return
+
+    if tracker.no_tracking:
         return
 
     try:
