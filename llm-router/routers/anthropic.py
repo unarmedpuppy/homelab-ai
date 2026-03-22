@@ -24,7 +24,8 @@ Response (streaming):
 
 Auth: Accepts x-api-key header (Anthropic SDK default) or Authorization: Bearer.
 Model: Always uses "auto" routing so the full fallback chain applies:
-       gaming-pc-3090 (qwen3-32b-awq) → zai (glm-5) → claude-harness
+       gaming-pc-3090 (qwen3-32b-awq) → zai (glm-5) → 503
+       Claude API access is now via claude-proxy (averys-mac-mini:8099), not llm-router.
 """
 import json
 import logging
