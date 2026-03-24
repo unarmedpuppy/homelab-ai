@@ -141,16 +141,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Login to Harbor
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ secrets.HARBOR_REGISTRY }}
-          username: ${{ secrets.HARBOR_USER }}
-          password: ${{ secrets.HARBOR_PASSWORD }}
+        run: echo '${{ secrets.HARBOR_PASSWORD }}' | docker login harbor.server.unarmedpuppy.com -u '${{ secrets.HARBOR_USERNAME }}' --password-stdin
       - name: Mirror llama.cpp server-cuda to Harbor
         run: |
           docker pull ghcr.io/ggerganov/llama.cpp:server-cuda
-          docker tag ghcr.io/ggerganov/llama.cpp:server-cuda ${{ secrets.HARBOR_REGISTRY }}/library/llama.cpp-server:cuda
-          docker push ${{ secrets.HARBOR_REGISTRY }}/library/llama.cpp-server:cuda
+          docker tag ghcr.io/ggerganov/llama.cpp:server-cuda harbor.server.unarmedpuppy.com/library/llama.cpp-server:cuda
+          docker push harbor.server.unarmedpuppy.com/library/llama.cpp-server:cuda
 
   deploy:
     needs: [build-llm-router, build-dashboard, build-llm-manager, build-image-server, build-tts-server, build-eval-runner, build-agent-harness, build-dashboard-api, build-aoe-canvas, build-deploy-webhook]
