@@ -673,6 +673,13 @@ async def messages(
     selection = await route_request(request, oai_body, priority=priority, api_key=api_key)
     oai_body["model"] = selection.model.id
 
+    # Strip vLLM-specific fields when routing to cloud backends — Z.ai and
+    # claude-harness reject unknown fields with HTTP 400.
+    from providers.models import ProviderType  # noqa: PLC0415
+    if selection.provider.type == ProviderType.CLOUD:
+        for field in ("chat_template_kwargs", "top_k", "min_p"):
+            oai_body.pop(field, None)
+
     logger.info(
         f"[Anthropic] '{original_model}' → {selection.provider.name} ({selection.model.id})"
         f", stream={is_stream}, tools={len(body.get('tools', []))}"
