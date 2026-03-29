@@ -36,7 +36,7 @@ agents:
     name: "Elm"
     description: "Sysadmin — Docker, Gitea, OS-level access on home server"
     endpoint: "http://host.docker.internal:8018"
-    direct_url: null  # TODO: set to http://<server-tailscale-ip>:8018 — run `tailscale ip -4` on server
+    direct_url: "http://100.80.223.7:8018"
     agent_type: server
     expected_online: true
     tags:
