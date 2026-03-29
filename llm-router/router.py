@@ -669,6 +669,25 @@ async def get_activity_feed(limit: int = 20, before: Optional[str] = None):
     }
 
 
+@app.get("/api/immich/thumbnail/{asset_id}")
+async def immich_thumbnail(asset_id: str, size: str = "thumbnail"):
+    """Proxy Immich asset thumbnail — keeps API key server-side."""
+    immich_url = os.getenv("IMMICH_URL", "http://immich-server:2283")
+    api_key = os.getenv("IMMICH_API_KEY", "")
+    if not api_key:
+        raise HTTPException(status_code=503, detail="Immich not configured")
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        resp = await client.get(
+            f"{immich_url}/api/assets/{asset_id}/thumbnail",
+            params={"size": size},
+            headers={"x-api-key": api_key},
+        )
+        if resp.status_code != 200:
+            raise HTTPException(status_code=resp.status_code, detail="Thumbnail not found")
+        content_type = resp.headers.get("content-type", "image/jpeg")
+        return Response(content=resp.content, media_type=content_type)
+
+
 @app.get("/api/dashboard")
 async def get_dashboard(feed_limit: int = 20, feed_before: Optional[str] = None):
     """Aggregated dashboard: server health + meal plan + activity feed."""
