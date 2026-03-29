@@ -28,6 +28,23 @@ export interface Agent {
 
 export type AgentDetails = Agent;
 
+export interface AgentSkill {
+  name: string;
+  description: string;
+}
+
+export interface ScheduleJob {
+  name: string;
+  enabled: boolean;
+  cron: string | null;
+  interval_hours: number | null;
+  action: string;
+  prompt_preview: string | null;
+  deliver_to: { channel: string; contact: string } | null;
+  reply_to: string | null;
+  next_run: string | null;
+}
+
 export interface FleetStats {
   total_agents: number;
   online_count: number;

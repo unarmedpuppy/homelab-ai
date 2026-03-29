@@ -430,6 +430,84 @@ async def get_agent_sessions(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/api/agents/{agent_id}/skills")
+async def get_agent_skills(agent_id: str):
+    """
+    Fetch skill list from an agent.
+
+    Proxies the request to the agent's /v1/agent/skills endpoint.
+    Requires agent to be online.
+    """
+    if not health_monitor:
+        raise HTTPException(status_code=503, detail="Health monitor not initialized")
+
+    agent = health_monitor.get_agent(agent_id)
+    if not agent:
+        raise HTTPException(status_code=404, detail=f"Agent '{agent_id}' not found in registry")
+
+    if agent.health.status != AgentStatus.ONLINE:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Agent '{agent_id}' is offline. Cannot fetch skills.",
+        )
+
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            response = await client.get(f"{agent.endpoint}/v1/agent/skills")
+            if response.status_code == 200:
+                return response.json()
+            elif response.status_code == 404:
+                return {"agent": agent_id, "skills": [], "count": 0}
+            else:
+                raise HTTPException(status_code=response.status_code, detail=f"Agent returned error: {response.text}")
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=504, detail="Request to agent timed out")
+    except httpx.ConnectError:
+        raise HTTPException(status_code=503, detail="Failed to connect to agent")
+    except Exception as e:
+        logger.exception(f"Error fetching skills from agent {agent_id}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/agents/{agent_id}/schedule")
+async def get_agent_schedule(agent_id: str):
+    """
+    Fetch schedule from an agent.
+
+    Proxies the request to the agent's /v1/agent/schedule endpoint.
+    Requires agent to be online.
+    """
+    if not health_monitor:
+        raise HTTPException(status_code=503, detail="Health monitor not initialized")
+
+    agent = health_monitor.get_agent(agent_id)
+    if not agent:
+        raise HTTPException(status_code=404, detail=f"Agent '{agent_id}' not found in registry")
+
+    if agent.health.status != AgentStatus.ONLINE:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Agent '{agent_id}' is offline. Cannot fetch schedule.",
+        )
+
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            response = await client.get(f"{agent.endpoint}/v1/agent/schedule")
+            if response.status_code == 200:
+                return response.json()
+            elif response.status_code == 404:
+                return {"agent": agent_id, "jobs": [], "count": 0}
+            else:
+                raise HTTPException(status_code=response.status_code, detail=f"Agent returned error: {response.text}")
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=504, detail="Request to agent timed out")
+    except httpx.ConnectError:
+        raise HTTPException(status_code=503, detail="Failed to connect to agent")
+    except Exception as e:
+        logger.exception(f"Error fetching schedule from agent {agent_id}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # =============================================================================
 # Job Proxy Endpoints
 # =============================================================================

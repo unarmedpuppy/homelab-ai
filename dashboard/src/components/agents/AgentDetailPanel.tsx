@@ -3,9 +3,11 @@ import type { Agent } from '../../types/agents';
 import { RetroButton } from '../ui';
 import { AgentContextViewer } from './AgentContextViewer';
 import { AgentSessionHistory } from './AgentSessionHistory';
+import { AgentSkillsTab } from './AgentSkillsTab';
+import { AgentScheduleTab } from './AgentScheduleTab';
 import { QuickInteract } from '../jobs';
 
-type TabId = 'context' | 'sessions' | 'interact';
+type TabId = 'context' | 'sessions' | 'skills' | 'schedule' | 'interact';
 
 interface Tab {
   id: TabId;
@@ -27,6 +29,8 @@ export function AgentDetailPanel({ agent, onClose }: AgentDetailPanelProps) {
   const tabs: Tab[] = [
     { id: 'context', label: 'Context' },
     { id: 'sessions', label: 'Sessions' },
+    { id: 'skills', label: 'Skills', disabled: !isOnline },
+    { id: 'schedule', label: 'Schedule', disabled: !isOnline || isCLI },
     { id: 'interact', label: 'Interact', disabled: !canInteract },
   ];
 
@@ -125,6 +129,12 @@ export function AgentDetailPanel({ agent, onClose }: AgentDetailPanelProps) {
         )}
         {activeTab === 'sessions' && (
           <AgentSessionHistory agent={agent} />
+        )}
+        {activeTab === 'skills' && (
+          <AgentSkillsTab agent={agent} />
+        )}
+        {activeTab === 'schedule' && (
+          <AgentScheduleTab agent={agent} />
         )}
         {activeTab === 'interact' && (
           <QuickInteract agent={agent} />

@@ -877,6 +877,32 @@ export const agentsAPI = {
     return response.json();
   },
 
+  getSkills: async (agentId: string): Promise<{ agent: string; skills: Array<{ name: string; description: string }>; count: number }> => {
+    const response = await fetch(`${DASHBOARD_API_URL}/api/agents/${agentId}/skills`);
+    if (!response.ok) {
+      throw new Error(`Failed to get agent skills: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  getSchedule: async (agentId: string): Promise<{ agent: string; jobs: Array<{
+    name: string;
+    enabled: boolean;
+    cron: string | null;
+    interval_hours: number | null;
+    action: string;
+    prompt_preview: string | null;
+    deliver_to: { channel: string; contact: string } | null;
+    reply_to: string | null;
+    next_run: string | null;
+  }>; count: number }> => {
+    const response = await fetch(`${DASHBOARD_API_URL}/api/agents/${agentId}/schedule`);
+    if (!response.ok) {
+      throw new Error(`Failed to get agent schedule: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
   getSessions: async (agentId: string, params?: { limit?: number; offset?: number }): Promise<{
     sessions: Array<{
       id: string;
