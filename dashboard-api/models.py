@@ -31,6 +31,7 @@ class AgentConfig(BaseModel):
     name: str
     description: str = ""
     endpoint: str = ""
+    direct_url: Optional[str] = None  # Tailscale-routable URL for cross-machine A2A
     agent_type: AgentType = AgentType.CLI
     expected_online: bool = False
     tags: list[str] = Field(default_factory=list)
@@ -53,6 +54,7 @@ class Agent(BaseModel):
     name: str
     description: str = ""
     endpoint: str = ""
+    direct_url: Optional[str] = None  # Tailscale-routable URL for cross-machine A2A
     agent_type: AgentType = AgentType.CLI
     expected_online: bool = False
     tags: list[str] = Field(default_factory=list)

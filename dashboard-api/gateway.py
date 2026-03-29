@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 import httpx
-from fastapi import FastAPI, Header, HTTPException, Query, Response
+from fastapi import FastAPI, Header, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -222,6 +222,7 @@ async def get_agent(agent_id: str):
         name=agent.name,
         description=agent.description,
         endpoint=agent.endpoint,
+        direct_url=agent.direct_url,
         agent_type=agent.agent_type,
         expected_online=agent.expected_online,
         tags=agent.tags,
@@ -466,6 +467,80 @@ async def get_agent_skills(agent_id: str):
         raise HTTPException(status_code=503, detail="Failed to connect to agent")
     except Exception as e:
         logger.exception(f"Error fetching skills from agent {agent_id}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.patch("/api/agents/{agent_id}/schedule/{job_name}")
+async def patch_agent_schedule_job(agent_id: str, job_name: str, request: Request):
+    """
+    Update a single scheduled job on an agent (toggle enabled, edit cron, etc.).
+
+    Proxies to the agent's PATCH /v1/schedule/{job_name} endpoint.
+    Reloads APScheduler in-process — no agent restart required.
+    """
+    if not health_monitor:
+        raise HTTPException(status_code=503, detail="Health monitor not initialized")
+
+    agent = health_monitor.get_agent(agent_id)
+    if not agent:
+        raise HTTPException(status_code=404, detail=f"Agent '{agent_id}' not found in registry")
+
+    if agent.health.status != AgentStatus.ONLINE:
+        raise HTTPException(status_code=503, detail=f"Agent '{agent_id}' is offline.")
+
+    body = await request.json()
+
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            response = await client.patch(
+                f"{agent.endpoint}/v1/schedule/{job_name}",
+                json=body,
+            )
+            if response.status_code == 200:
+                return response.json()
+            else:
+                raise HTTPException(status_code=response.status_code, detail=f"Agent returned error: {response.text}")
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=504, detail="Request to agent timed out")
+    except httpx.ConnectError:
+        raise HTTPException(status_code=503, detail="Failed to connect to agent")
+    except Exception as e:
+        logger.exception(f"Error patching schedule job {job_name} on agent {agent_id}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/agents/{agent_id}/schedule/{job_name}/trigger")
+async def trigger_agent_schedule_job(agent_id: str, job_name: str):
+    """
+    Manually trigger a scheduled job on an agent.
+
+    Proxies to the agent's POST /v1/schedule/{job_name}/trigger endpoint.
+    """
+    if not health_monitor:
+        raise HTTPException(status_code=503, detail="Health monitor not initialized")
+
+    agent = health_monitor.get_agent(agent_id)
+    if not agent:
+        raise HTTPException(status_code=404, detail=f"Agent '{agent_id}' not found in registry")
+
+    if agent.health.status != AgentStatus.ONLINE:
+        raise HTTPException(status_code=503, detail=f"Agent '{agent_id}' is offline.")
+
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            response = await client.post(f"{agent.endpoint}/v1/schedule/{job_name}/trigger")
+            if response.status_code == 200:
+                return response.json()
+            elif response.status_code == 404:
+                raise HTTPException(status_code=404, detail=f"Job '{job_name}' not found or disabled")
+            else:
+                raise HTTPException(status_code=response.status_code, detail=f"Agent returned error: {response.text}")
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=504, detail="Request to agent timed out")
+    except httpx.ConnectError:
+        raise HTTPException(status_code=503, detail="Failed to connect to agent")
+    except Exception as e:
+        logger.exception(f"Error triggering schedule job {job_name} on agent {agent_id}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

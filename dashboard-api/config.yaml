@@ -12,6 +12,7 @@ agents:
     name: "Ash"
     description: "Family coordinator — iMessage, Mattermost, morning briefings, household workflows"
     endpoint: "http://100.92.176.74:8019"
+    direct_url: "http://100.92.176.74:8019"
     agent_type: server
     expected_online: true
     tags:
@@ -23,6 +24,7 @@ agents:
     name: "Oak"
     description: "Technical partner — coding, infra, interactive dev sessions"
     endpoint: "http://100.92.176.74:8014"
+    direct_url: "http://100.92.176.74:8014"
     agent_type: server
     expected_online: true
     tags:
@@ -34,6 +36,7 @@ agents:
     name: "Elm"
     description: "Sysadmin — Docker, Gitea, OS-level access on home server"
     endpoint: "http://host.docker.internal:8018"
+    direct_url: null  # TODO: set to http://<server-tailscale-ip>:8018 — run `tailscale ip -4` on server
     agent_type: server
     expected_online: true
     tags:
@@ -45,6 +48,7 @@ agents:
     name: "Ralph"
     description: "Autonomous task loop — works through Tasks API unattended"
     endpoint: "http://host.docker.internal:8025"
+    direct_url: null  # TODO: set to http://<server-tailscale-ip>:8025 — run `tailscale ip -4` on server
     agent_type: server
     expected_online: true
     tags:
@@ -56,6 +60,7 @@ agents:
     name: "Birch"
     description: "GPU infrastructure — vLLM stack and local model management on gaming PC"
     endpoint: "http://unarmedpuppy-pc.taild41b2.ts.net:8021"
+    direct_url: "http://unarmedpuppy-pc.taild41b2.ts.net:8021"
     agent_type: server
     expected_online: true
     tags:
