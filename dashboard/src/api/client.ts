@@ -877,6 +877,28 @@ export const agentsAPI = {
     return response.json();
   },
 
+  patchScheduleJob: async (agentId: string, jobName: string, patch: Record<string, unknown>): Promise<{ status: string; job: string; changes: Record<string, unknown> }> => {
+    const response = await fetch(`${DASHBOARD_API_URL}/api/agents/${agentId}/schedule/${jobName}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to update schedule job: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  triggerScheduleJob: async (agentId: string, jobName: string): Promise<{ status: string; job: string }> => {
+    const response = await fetch(`${DASHBOARD_API_URL}/api/agents/${agentId}/schedule/${jobName}/trigger`, {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to trigger schedule job: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
   getSkills: async (agentId: string): Promise<{ agent: string; skills: Array<{ name: string; description: string }>; count: number }> => {
     const response = await fetch(`${DASHBOARD_API_URL}/api/agents/${agentId}/skills`);
     if (!response.ok) {

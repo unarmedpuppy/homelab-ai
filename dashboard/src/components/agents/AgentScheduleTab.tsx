@@ -23,13 +23,15 @@ function formatNextRun(nextRun: string | null): string {
 function formatCadence(job: ScheduleJob): string {
   if (job.cron) return `cron: ${job.cron}`;
   if (job.interval_hours) return `every ${job.interval_hours}h`;
-  return job.action;
+  return job.action ?? '—';
 }
 
 export function AgentScheduleTab({ agent }: AgentScheduleTabProps) {
   const [jobs, setJobs] = useState<ScheduleJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [togglingJob, setTogglingJob] = useState<string | null>(null);
+  const [triggeringJob, setTriggeringJob] = useState<string | null>(null);
 
   const isOnline = agent.health.status === 'online';
 
@@ -54,6 +56,30 @@ export function AgentScheduleTab({ agent }: AgentScheduleTabProps) {
   useEffect(() => {
     fetchSchedule();
   }, [fetchSchedule]);
+
+  const handleToggle = async (job: ScheduleJob) => {
+    setTogglingJob(job.name);
+    try {
+      await agentsAPI.patchScheduleJob(agent.id, job.name, { enabled: !job.enabled });
+      // Optimistic update
+      setJobs((prev) => prev.map((j) => j.name === job.name ? { ...j, enabled: !j.enabled } : j));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to toggle job');
+    } finally {
+      setTogglingJob(null);
+    }
+  };
+
+  const handleTrigger = async (job: ScheduleJob) => {
+    setTriggeringJob(job.name);
+    try {
+      await agentsAPI.triggerScheduleJob(agent.id, job.name);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to trigger job');
+    } finally {
+      setTriggeringJob(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -100,38 +126,67 @@ export function AgentScheduleTab({ agent }: AgentScheduleTabProps) {
               className={`p-3 border rounded ${
                 job.enabled
                   ? 'bg-[var(--retro-bg-medium)] border-[var(--retro-border)]'
-                  : 'bg-[var(--retro-bg-dark)] border-[var(--retro-border)] opacity-50'
+                  : 'bg-[var(--retro-bg-dark)] border-[var(--retro-border)] opacity-60'
               }`}
             >
+              {/* Header row */}
               <div className="flex items-center justify-between mb-1.5">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs font-bold text-[var(--retro-text-primary)]">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="font-mono text-xs font-bold text-[var(--retro-text-primary)] truncate">
                     {job.name}
                   </span>
-                  <span className={`text-xs font-bold uppercase ${job.enabled ? 'text-[var(--retro-accent-green)]' : 'text-[var(--retro-text-muted)]'}`}>
+                  <span className={`text-xs font-bold uppercase shrink-0 ${job.enabled ? 'text-[var(--retro-accent-green)]' : 'text-[var(--retro-text-muted)]'}`}>
                     {job.enabled ? 'active' : 'disabled'}
                   </span>
                 </div>
                 {job.next_run && job.enabled && (
-                  <span className="text-xs text-[var(--retro-accent-yellow)]">
+                  <span className="text-xs text-[var(--retro-accent-yellow)] shrink-0 ml-2">
                     {formatNextRun(job.next_run)}
                   </span>
                 )}
               </div>
-              <div className="text-xs text-[var(--retro-text-muted)] font-mono mb-1">
+
+              {/* Cadence */}
+              <div className="text-xs text-[var(--retro-text-muted)] font-mono mb-1.5">
                 {formatCadence(job)}
               </div>
+
+              {/* Prompt preview */}
               {job.prompt_preview && (
-                <div className="text-xs text-[var(--retro-text-muted)] italic truncate">
+                <div className="text-xs text-[var(--retro-text-muted)] italic truncate mb-2">
                   {job.prompt_preview}
                 </div>
               )}
+
+              {/* Deliver-to */}
               {job.deliver_to && (
-                <div className="text-xs text-[var(--retro-text-muted)] mt-1">
+                <div className="text-xs text-[var(--retro-text-muted)] mb-2">
                   → {job.deliver_to.channel}
                   {job.deliver_to.contact ? ` / ${job.deliver_to.contact}` : ''}
                 </div>
               )}
+
+              {/* Actions */}
+              <div className="flex items-center gap-2 mt-2">
+                <RetroButton
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleToggle(job)}
+                  disabled={togglingJob === job.name}
+                >
+                  {togglingJob === job.name ? '...' : job.enabled ? 'Disable' : 'Enable'}
+                </RetroButton>
+                {job.enabled && (
+                  <RetroButton
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => handleTrigger(job)}
+                    disabled={triggeringJob === job.name}
+                  >
+                    {triggeringJob === job.name ? 'Firing...' : 'Run Now'}
+                  </RetroButton>
+                )}
+              </div>
             </div>
           ))
         )}
