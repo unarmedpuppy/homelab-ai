@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 FRIGATE_URL = os.getenv("FRIGATE_URL", "http://frigate:5000")
 IMMICH_URL = os.getenv("IMMICH_URL", "http://immich-server:2283")
+IMMICH_EXTERNAL_URL = os.getenv("IMMICH_EXTERNAL_URL", "https://photos.server.unarmedpuppy.com")
 IMMICH_API_KEY = os.getenv("IMMICH_API_KEY", "")
 MEALIE_URL = os.getenv("MEALIE_URL", "http://mealie:9000")
 
@@ -122,7 +123,7 @@ async def fetch_immich_recent(limit: int = 10) -> list[dict]:
                 "title": "Video added" if is_video else "Photo added",
                 "description": filename,
                 "timestamp": ts,
-                "deepLink": "jenquisthome://service/immich",
+                "deepLink": f"{IMMICH_EXTERNAL_URL}/photos/{asset.get('id', '')}",
                 "status": "completed",
             })
 
