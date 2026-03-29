@@ -8,8 +8,8 @@ health_check:
   failure_threshold: 3
 
 agents:
-  avery:
-    name: "Avery"
+  ash:
+    name: "Ash"
     description: "Family coordinator — iMessage, Mattermost, morning briefings, household workflows"
     endpoint: "http://100.92.176.74:8019"
     agent_type: server
@@ -30,8 +30,8 @@ agents:
       - interactive
       - coding
 
-  gilfoyle:
-    name: "Gilfoyle"
+  elm:
+    name: "Elm"
     description: "Sysadmin — Docker, Gitea, OS-level access on home server"
     endpoint: "http://host.docker.internal:8018"
     agent_type: server
@@ -52,8 +52,8 @@ agents:
       - autonomous
       - tasks
 
-  hal:
-    name: "HAL"
+  birch:
+    name: "Birch"
     description: "GPU infrastructure — vLLM stack and local model management on gaming PC"
     endpoint: "http://unarmedpuppy-pc.taild41b2.ts.net:8021"
     agent_type: server
