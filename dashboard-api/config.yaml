@@ -1,74 +1,64 @@
 # Agent Gateway Configuration
 # Defines the fleet of agents to monitor
+# Source of truth: ~/workspace/upgrade-agent/CONSOLIDATION-PLAN.md
 
-# Health check settings (applies to server agents only)
 health_check:
   interval_seconds: 30
   timeout_seconds: 10
-  # Mark agent as offline after this many consecutive failures
   failure_threshold: 3
 
-# Agent registry
 agents:
-  ralph:
-    name: "Ralph Wiggum"
-    description: "Autonomous task processor on server"
-    endpoint: "http://agent-harness:8013"
+  avery:
+    name: "Avery"
+    description: "Family coordinator — iMessage, Mattermost, morning briefings, household workflows"
+    endpoint: "http://100.92.176.74:8019"
     agent_type: server
     expected_online: true
     tags:
-      - autonomous
-      - server
+      - channels
+      - family
+      - scheduler
+
+  oak:
+    name: "Oak"
+    description: "Technical partner — coding, infra, interactive dev sessions"
+    endpoint: "http://100.92.176.74:8014"
+    agent_type: server
+    expected_online: true
+    tags:
+      - engineering
+      - interactive
+      - coding
 
   gilfoyle:
     name: "Gilfoyle"
-    description: "Server operations and diagnostics (native systemd)"
+    description: "Sysadmin — Docker, Gitea, OS-level access on home server"
     endpoint: "http://host.docker.internal:8018"
     agent_type: server
     expected_online: true
     tags:
-      - ops
-      - server
+      - sysadmin
+      - docker
+      - infra
 
-  avery:
-    name: "Avery"
-    description: "Family coordinator on Mac Mini (OpenClaw + agent-harness)"
-    endpoint: "http://averys-mac-mini:8013"
+  ralph:
+    name: "Ralph"
+    description: "Autonomous task loop — works through Tasks API unattended"
+    endpoint: "http://host.docker.internal:8025"
     agent_type: server
     expected_online: true
     tags:
-      - interactive
-      - workstation
-      - openclaw
-
-  colin:
-    name: "Colin"
-    description: "Finance agent on Mac Mini — shua-ledger, spending, FIRE tracking"
-    endpoint: "http://averys-mac-mini:8014"
-    agent_type: server
-    expected_online: true
-    tags:
-      - interactive
-      - workstation
-      - finance
+      - engineering
+      - autonomous
+      - tasks
 
   hal:
     name: "HAL"
-    description: "GPU infrastructure agent on gaming PC (RTX 3090 x2, vLLM stack)"
-    endpoint: "http://100.120.11.90:8021"
-    tailscale_dns: "unarmedpuppy-pc.taild41b2.ts.net"
+    description: "GPU infrastructure — vLLM stack and local model management on gaming PC"
+    endpoint: "http://unarmedpuppy-pc.taild41b2.ts.net:8021"
     agent_type: server
     expected_online: true
     tags:
-      - interactive
-      - workstation
       - gpu
-      - inference
-
-  jobin:
-    name: "Jobin"
-    description: "Dev buddy, runs locally via Claude Code"
-    agent_type: cli
-    tags:
-      - interactive
-      - workstation
+      - vllm
+      - infrastructure
