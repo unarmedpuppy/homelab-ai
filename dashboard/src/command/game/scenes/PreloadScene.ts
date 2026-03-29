@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import type { UnitProfile } from '../../types/game';
 
-const SHEET_PROFILES: Exclude<UnitProfile, 'colin'>[] = ['avery', 'gilfoyle', 'ralph', 'jobin', 'villager'];
+const SHEET_PROFILES: Exclude<UnitProfile, 'birch'>[] = ['ash', 'elm', 'ralph', 'oak', 'villager'];
 
 const ANIM_DEFS = [
   { suffix: 'idle',      start: 0,  end: 3,  fps: 5,  repeat: -1 },
@@ -31,17 +31,17 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   create() {
-    // Colin has no dedicated sheet — reuses villager
+    // Birch has no dedicated sheet — reuses villager
     const profileToSheet: Record<UnitProfile, string> = {
-      avery:    'unit-avery',
-      gilfoyle: 'unit-gilfoyle',
+      ash:      'unit-ash',
+      elm:      'unit-elm',
       ralph:    'unit-ralph',
-      jobin:    'unit-jobin',
-      colin:    'unit-villager',
+      oak:      'unit-oak',
+      birch:    'unit-villager',
       villager: 'unit-villager',
     };
 
-    const allProfiles: UnitProfile[] = ['avery', 'gilfoyle', 'ralph', 'jobin', 'colin', 'villager'];
+    const allProfiles: UnitProfile[] = ['ash', 'elm', 'ralph', 'oak', 'birch', 'villager'];
     for (const profile of allProfiles) {
       const sheetKey = profileToSheet[profile];
       for (const anim of ANIM_DEFS) {

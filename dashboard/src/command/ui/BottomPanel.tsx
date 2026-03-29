@@ -6,11 +6,11 @@ import { UNIT_COLORS, UNIT_LABELS, BUILDING_COLORS, BUILDING_LABELS } from '../t
 import type { BuildingType, Task } from '../types/game';
 
 const PROFILE_NAMES: Record<string, string> = {
-  avery: 'Avery',
-  gilfoyle: 'Gilfoyle',
+  ash: 'Ash',
+  elm: 'Elm',
   ralph: 'Ralph',
-  jobin: 'Jobin',
-  colin: 'Colin',
+  oak: 'Oak',
+  birch: 'Birch',
   villager: 'Villager',
 };
 
@@ -31,11 +31,11 @@ const BUILDING_DESC: Record<BuildingType, string> = {
 };
 
 const BUILDING_AGENT: Record<BuildingType, string> = {
-  'town-center': 'avery',
-  'castle': 'gilfoyle',
+  'town-center': 'ash',
+  'castle': 'elm',
   'barracks': 'ralph',
   'market': 'ralph',
-  'university': 'jobin',
+  'university': 'oak',
 };
 
 const PRIORITY_COLOR: Record<string, string> = {

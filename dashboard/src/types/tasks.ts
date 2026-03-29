@@ -5,8 +5,8 @@
 export type TaskStatus = 'OPEN' | 'IN_PROGRESS' | 'BLOCKED' | 'CLOSED';
 export type TaskPriority = 'P0' | 'P1' | 'P2' | 'P3';
 export type TaskType = 'engineering' | 'personal' | 'home' | 'family' | 'research';
-export type TaskAssignee = 'unassigned' | 'human' | 'avery' | 'gilfoyle' | 'ralph' | 'jobin';
-export type TaskSource = 'human' | 'avery' | 'claude-code' | 'agent-harness' | 'import';
+export type TaskAssignee = 'unassigned' | 'human' | 'ash' | 'elm' | 'ralph' | 'oak';
+export type TaskSource = 'human' | 'ash' | 'oak' | 'claude-code' | 'grove' | 'import';
 // Maps to aoe-canvas BuildingType for visual organization
 export type BuildingType = 'town-center' | 'barracks' | 'market' | 'university' | 'castle';
 

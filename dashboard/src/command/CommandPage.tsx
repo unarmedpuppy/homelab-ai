@@ -25,11 +25,11 @@ const BUILDING_POSITIONS: Record<BuildingType, { col: number; row: number }> = {
 
 // Which agent to route dispatch to based on building type
 const BUILDING_AGENT: Record<BuildingType, UnitProfile> = {
-  'town-center': 'avery',
-  'castle':      'gilfoyle',
+  'town-center': 'ash',
+  'castle':      'elm',
   'barracks':    'ralph',
   'market':      'ralph',
-  'university':  'jobin',
+  'university':  'oak',
 };
 
 const BUILDING_DISPLAY_NAMES: Record<BuildingType, string> = {

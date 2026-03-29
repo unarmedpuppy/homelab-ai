@@ -65,11 +65,11 @@ export class MapScene extends Phaser.Scene {
     this.selectionBox = new SelectionBox(this);
 
     // Place initial units — clustered north of the town center
-    this.spawnNamedUnit('avery-1', 'avery', 13, 14);
-    this.spawnNamedUnit('gilfoyle-1', 'gilfoyle', 15, 13);
+    this.spawnNamedUnit('ash-1', 'ash', 13, 14);
+    this.spawnNamedUnit('elm-1', 'elm', 15, 13);
     this.spawnNamedUnit('ralph-1', 'ralph', 17, 13);
-    this.spawnNamedUnit('jobin-1', 'jobin', 19, 14);
-    this.spawnNamedUnit('colin-1', 'colin', 21, 14);
+    this.spawnNamedUnit('oak-1', 'oak', 19, 14);
+    this.spawnNamedUnit('birch-1', 'birch', 21, 14);
 
     // Place default Town Center building
     this.placeBuilding({

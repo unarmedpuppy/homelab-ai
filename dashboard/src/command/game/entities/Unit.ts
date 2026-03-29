@@ -52,7 +52,7 @@ export class Unit extends Phaser.GameObjects.Container {
     this.selectionRing.setVisible(false);
 
     // Character sprite
-    this.sprite = scene.add.sprite(0, 0, `unit-${profile === 'colin' ? 'villager' : profile}`, 0);
+    this.sprite = scene.add.sprite(0, 0, `unit-${profile === 'birch' ? 'villager' : profile}`, 0);
     this.sprite.setOrigin(0.5, ORIGIN_Y);
     this.sprite.setDisplaySize(SPRITE_W, SPRITE_H);
     this.sprite.play(`${profile}-idle`);
