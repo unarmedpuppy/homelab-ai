@@ -194,11 +194,20 @@ BACKENDS = {
 
 
 class GamingModeStatus(BaseModel):
-    """Gaming mode status from Windows PC."""
-    gaming_mode: bool
-    safe_to_game: bool
-    running_models: list
-    stopped_models: list
+    """Gaming mode status from Windows PC (llm-manager /status response)."""
+    model_config = {"extra": "ignore"}  # Ignore extra fields from llm-manager
+
+    mode: str = "always-on"
+    gaming_mode_enabled: bool = False
+    gaming_mode_active: bool = False
+    default_model: Optional[str] = None
+    running: list = []
+    stopped: list = []
+
+    @property
+    def gaming_mode(self) -> bool:
+        """Whether gaming mode is currently active (GPU reclaimed for games)."""
+        return self.gaming_mode_active
 
 
 class HealthResponse(BaseModel):
@@ -1557,7 +1566,7 @@ async def toggle_gaming_mode(enable: bool = True):
             result = response.json()
             # Update cache immediately so routing reflects the change before next poll
             if _gaming_cache["status"] is not None:
-                updated = _gaming_cache["status"].model_copy(update={"gaming_mode": enable})
+                updated = _gaming_cache["status"].model_copy(update={"gaming_mode_active": enable})
                 _gaming_cache["status"] = updated
                 _gaming_cache["updated_at"] = time.time()
             return result
