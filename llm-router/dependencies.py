@@ -70,6 +70,12 @@ async def get_request_tracker(
         tracker.enable_memory = False
         return tracker
 
+    # Per-request tracing toggle via header
+    tracing_header = request.headers.get("X-Enable-Tracing", "").lower().strip()
+    if tracing_header == "false":
+        tracker.no_tracking = True
+        tracker.enable_memory = False
+
     # Apply memory defaults from API key metadata (fills in missing X-* headers)
     if api_key and api_key.metadata:
         defaults = api_key.metadata.get("memory_defaults", {})
@@ -247,25 +253,26 @@ def log_chat_completion(
                 logger.error(f"Failed to log metric: {e}")
 
         # Record Prometheus metrics
-        try:
-            duration_seconds = tracker.get_duration_ms() / 1000.0
-            status = "200" if error is None else "500"
-            provider = backend or "unknown"
+        if not tracker.no_tracking:
+            try:
+                duration_seconds = tracker.get_duration_ms() / 1000.0
+                status = "200" if error is None else "500"
+                provider = backend or "unknown"
 
-            prom.record_request(
-                endpoint="/v1/chat/completions",
-                model=model_used or model_requested,
-                provider=provider,
-                status=status,
-                duration_seconds=duration_seconds,
-                prompt_tokens=prompt_tokens or 0,
-                completion_tokens=completion_tokens or 0
-            )
+                prom.record_request(
+                    endpoint="/v1/chat/completions",
+                    model=model_used or model_requested,
+                    provider=provider,
+                    status=status,
+                    duration_seconds=duration_seconds,
+                    prompt_tokens=prompt_tokens or 0,
+                    completion_tokens=completion_tokens or 0
+                )
 
-            if error:
-                prom.record_error("/v1/chat/completions", "request_failed")
-        except Exception as e:
-            logger.debug(f"Failed to record Prometheus metrics: {e}")
+                if error:
+                    prom.record_error("/v1/chat/completions", "request_failed")
+            except Exception as e:
+                logger.debug(f"Failed to record Prometheus metrics: {e}")
 
     except Exception as e:
         logger.error(f"Failed to log chat completion: {e}")

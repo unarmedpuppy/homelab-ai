@@ -70,13 +70,13 @@ providers:
     location: "home-server"
     powerWatts: 180
 
-  # Cloud Provider - Z.ai (Coding Plan) - ESCALATION for large context
+  # Cloud Provider - Z.ai (Coding Plan) - FALLBACK when 3090 unavailable
   - id: zai
     name: "Z.ai Coding Plan"
     type: cloud
-    description: "Z.ai cloud API (GLM models) - escalation for 16K-100K context"
+    description: "Z.ai cloud API (GLM models) - Fallback when gaming-pc-3090 unavailable"
     endpoint: "https://api.z.ai/api/coding/paas/v4"
-    priority: 2  # ESCALATION - for large context (16K-100K tokens)
+    priority: 2  # FALLBACK - auto-routing falls here when 3090 is down/busy
     enabled: true
 
     # Concurrency Control
@@ -95,10 +95,21 @@ providers:
     location: "cloud"
     notes: "OpenAI-compatible API. No rate limits or cost concerns."
 
-  # Claude Harness removed 2026-03-22.
-  # Claude API access is now handled by claude-proxy (averys-mac-mini:8099).
-  # Use the `use-claude` shell function to route a session to Claude directly.
-  # See ADR: docs/adrs/2026-03-22-claude-oauth-proxy.md
+  - id: willow
+    name: "Willow (Claude Subscription)"
+    type: job
+    description: "Containerized Claude Code subscription — explicit proxy only, not in chat completions chain"
+    endpoint: "http://willow:8013"
+    priority: 99
+    enabled: true
+    explicit_only: true
+    maxConcurrent: 10
+    healthCheckInterval: 60
+    healthCheckTimeout: 5
+    healthCheckPath: "/health"
+    authType: null
+    authSecret: null
+    location: "home-server"
 
 
 # ============================================================================
@@ -513,7 +524,7 @@ models:
       - cloud
       - large-context
 
-  # Claude models removed 2026-03-22 — use `use-claude` shell function instead.
+  # Claude models removed 2026-03-22 — Claude access now via Willow (explicit_only provider).
   # See ADR: docs/adrs/2026-03-22-claude-oauth-proxy.md
 
 

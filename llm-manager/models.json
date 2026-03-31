@@ -53,9 +53,9 @@
       "vram_gb": 20,
       "gpu_count": 2,
       "max_context": 65536,
-      "default_context": 32768,
+      "default_context": 65536,
       "extra_args": ["--enable-auto-tool-choice", "--tool-call-parser", "hermes", "--reasoning-parser", "qwen3", "--enforce-eager", "--disable-custom-all-reduce"],
-      "description": "Primary reasoning model with thinking mode and tool calling. Dual-GPU TP=2, 32K default context.",
+      "description": "Primary reasoning model with thinking mode and tool calling. Dual-GPU TP=2, 65K context.",
       "architecture": "Qwen3",
       "license": "Apache-2.0",
       "tags": ["large", "reasoning", "thinking", "tool-calling", "primary"]

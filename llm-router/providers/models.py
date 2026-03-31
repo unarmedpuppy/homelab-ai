@@ -10,6 +10,7 @@ class ProviderType(str, Enum):
     """Provider type enum."""
     LOCAL = "local"
     CLOUD = "cloud"
+    JOB = "job"
 
 
 class AuthType(str, Enum):
@@ -51,6 +52,7 @@ class Provider(BaseModel):
     endpoint: str
     priority: int = 10
     enabled: bool = True
+    explicit_only: bool = False
     max_concurrent: int = 1
     health_check_interval: int = 30
     health_check_timeout: int = 5

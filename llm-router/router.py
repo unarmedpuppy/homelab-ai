@@ -20,10 +20,11 @@ from dependencies import get_request_tracker, log_chat_completion, RequestTracke
 from memory import generate_conversation_id
 from providers import ProviderManager, HealthChecker, ProviderSelection, build_chat_completions_url, build_request_headers
 from stream import stream_chat_completion, stream_chat_completion_passthrough, StreamAccumulator
-from complexity import classify_request, ComplexityTier, TIER_MODEL_MAP
+from complexity import is_agent_request
 import prometheus_metrics as prom
 from routers.docs import router as docs_router
 from routers.anthropic import router as anthropic_router
+from routers.willow import router as willow_router
 from summary import router as summary_router
 # from middleware import MemoryMetricsMiddleware  # Replaced with dependency injection
 
@@ -115,6 +116,7 @@ app.add_middleware(
 app.include_router(docs_router, prefix="/docs", tags=["docs"])
 app.include_router(summary_router, prefix="/summary", tags=["summary"])
 app.include_router(anthropic_router, prefix="/v1", tags=["anthropic-compat"])
+app.include_router(willow_router)
 
 
 # Configuration from environment
@@ -122,14 +124,11 @@ GAMING_PC_URL = os.getenv("GAMING_PC_URL", "http://gaming-pc.local:8000")
 GAMING_PC_POLL_INTERVAL = int(os.getenv("GAMING_PC_POLL_INTERVAL", "30"))   # seconds
 GAMING_PC_STALE_THRESHOLD = int(os.getenv("GAMING_PC_STALE_THRESHOLD", "180"))  # seconds (6 missed polls)
 LOCAL_3070_URL = os.getenv("LOCAL_3070_URL", "http://llm-manager:8000")
-OPENCODE_URL = os.getenv("OPENCODE_URL", "http://opencode-service:8002")
 TTS_ENDPOINT = os.getenv("TTS_ENDPOINT", GAMING_PC_URL)  # TTS runs on Gaming PC
 DEFAULT_3090_MODEL = os.getenv("DEFAULT_3090_MODEL", "qwen3-32b-awq")  # Default model for 3090 routing
 
-# Token thresholds for context-aware routing
-SMALL_TOKEN_THRESHOLD = int(os.getenv("SMALL_TOKEN_THRESHOLD", "2000"))
-MEDIUM_TOKEN_THRESHOLD = int(os.getenv("MEDIUM_TOKEN_THRESHOLD", "16000"))  # 3090 limit (32K context / 2)
-LARGE_TOKEN_THRESHOLD = int(os.getenv("LARGE_TOKEN_THRESHOLD", "100000"))   # GLM-5 limit (205K context / 2)
+# Dynamic context capping: agent requests get reduced context to allow concurrency
+AGENT_CONTEXT_CAP = int(os.getenv("AGENT_CONTEXT_CAP", "16384"))  # 16K for agent requests
 
 # Tiktoken tokenizer (lazy loaded)
 _tokenizer = None
@@ -142,55 +141,24 @@ def get_tokenizer():
     return _tokenizer
 
 # Model aliases for routing
-# NOTE: 3070 removed from auto-routing aliases - now manual only
 MODEL_ALIASES = {
-    "small": "3090",      # was 3070 - now routes to 3090
-    "fast": "3090",       # was 3070 - now routes to 3090
+    "small": "3090",
+    "fast": "3090",
     "medium": "3090",
-    "big": "glm-5",       # was 3090 - now routes to GLM-5 for large context
+    "big": "glm-5",
     "large": "glm-5",
     "gaming-pc": "3090",
-    "glm": "glm-5",       # updated to GLM-5
-    "claude": "claude-sonnet",
+    "glm": "glm-5",
     # Manual 3070 access (explicit only)
     "3070": "qwen2.5-7b-awq",
     "server": "qwen2.5-7b-awq",
-    # Qwopus - Claude Opus 4.6 reasoning distilled into Qwen3.5-27B (BNB 4-bit, TP=2)
+    # Named models
     "qwopus": "qwopus-27b",
     "qwopus-awq": "qwopus-27b",
-    # Abliterated Qwen3.5-27B (refusal direction removed, BNB NF4 4-bit)
     "abliterated": "qwen3.5-27b-abliterated",
     "qwen3.5-abliterated": "qwen3.5-27b-abliterated",
-    # Claude model name aliases (for direct OpenAI endpoint access with Claude model names)
-    "claude-sonnet-4-6": DEFAULT_3090_MODEL,
-    "claude-opus-4-6": DEFAULT_3090_MODEL,
-    "claude-haiku-4-5": DEFAULT_3090_MODEL,
-    "claude-3-5-sonnet": DEFAULT_3090_MODEL,
 }
 
-# Backend configurations
-BACKENDS = {
-    "3070": {
-        "url": LOCAL_3070_URL,
-        "name": "Home Server (3070)",
-        "available": True,
-    },
-    "3090": {
-        "url": GAMING_PC_URL,
-        "name": "Gaming PC (3090)",
-        "available": True,
-    },
-    "opencode-glm": {
-        "url": OPENCODE_URL,
-        "name": "OpenCode (GLM-4.7)",
-        "available": False,
-    },
-    "opencode-claude": {
-        "url": OPENCODE_URL,
-        "name": "OpenCode (Claude)",
-        "available": False,
-    },
-}
 
 
 class GamingModeStatus(BaseModel):
@@ -219,20 +187,6 @@ class HealthResponse(BaseModel):
     gaming_cache_age: Optional[float] = None
     queue_depth: int = 0
     queue_max_depth: int = 0
-
-
-class ClaudeAgentRequest(BaseModel):
-    """Request for Claude agent - simple passthrough to Claude Harness."""
-    task: str
-    working_directory: str = "/tmp"
-    timeout: float = 300.0  # 5 minutes default
-
-
-class ClaudeAgentResponse(BaseModel):
-    """Response from Claude agent."""
-    success: bool
-    response: str
-    error: Optional[str] = None
 
 
 async def get_gaming_pc_status() -> Optional[GamingModeStatus]:
@@ -277,25 +231,6 @@ async def _gaming_status_poller() -> None:
         await _poll_gaming_pc_status()
 
 
-async def check_backend_health(backend_id: str) -> bool:
-    """Check if a backend is healthy."""
-    backend = BACKENDS.get(backend_id)
-    if not backend or not backend["available"]:
-        return False
-
-    try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            # Try OpenAI-compatible health endpoint
-            response = await client.get(f"{backend['url']}/health")
-            if response.status_code == 200:
-                return True
-            # Try status endpoint (gaming PC uses this)
-            response = await client.get(f"{backend['url']}/status")
-            return response.status_code == 200
-    except Exception:
-        return False
-
-
 def estimate_tokens(messages: list) -> int:
     """Accurate token estimation using tiktoken (cl100k_base encoding)."""
     enc = get_tokenizer()
@@ -313,48 +248,59 @@ def estimate_tokens(messages: list) -> int:
     return total
 
 
-def has_force_big_signal(request: Request, body: dict) -> bool:
-    """Check if request has force-big override."""
-    # Header check
-    if request.headers.get("X-Force-Big", "").lower() == "true":
-        return True
-
-    # Model name check
-    model = body.get("model", "")
-    if model in ["big", "3090", "gaming-pc"]:
-        return True
-
-    # Prompt tag check
-    messages = body.get("messages", [])
-    for msg in messages:
-        if isinstance(msg, dict):
-            content = msg.get("content", "") or ""
-            if "#force_big" in content:
-                return True
-
-    return False
-
-
 async def route_request(request: Request, body: dict, priority: int = 1, api_key=None) -> ProviderSelection:
     """
-    Determine which provider and model to route to using ProviderManager.
+    Route request to the best provider and model.
 
-    Routing logic (2026-02-22 redesign with gaming mode + complexity classification):
+    Routing logic (2026-03-31 redesign — simplified):
 
-    1. Explicit model/provider requests are ALWAYS honored (even in gaming mode)
-    2. Gaming mode check determines local GPU availability
-    3. When gaming mode OFF: use complexity classification for smart routing
-    4. When gaming mode ON: skip local GPUs, use cloud only
-    5. Fallback chain: 3090 → GLM-5 → Claude Sonnet
+    1. X-Provider header → explicit provider selection (even explicit_only like willow)
+    2. X-Model header → explicit model on that provider (or provider default)
+    3. model=auto → 3090 default model, fallback to Z.ai ONLY if 3090 unavailable
+    4. model=<specific> → resolve alias, route to that model's provider
+    5. Gaming mode ON + auto → Z.ai (glm-5) only
+    6. No complexity classification, no context-based escalation
     """
     if not provider_manager:
         raise HTTPException(status_code=503, detail="Provider manager not initialized")
 
     requested_model = body.get("model", "auto")
+
+    # --- Phase 3: X-Provider / X-Model header routing (highest precedence) ---
+    header_provider = request.headers.get("X-Provider", "").strip()
+    header_model = request.headers.get("X-Model", "").strip()
+
+    if header_provider:
+        provider = provider_manager.get_provider(header_provider)
+        if not provider:
+            raise HTTPException(status_code=400, detail=f"Unknown provider: {header_provider}")
+        if not provider.enabled:
+            raise HTTPException(status_code=503, detail=f"Provider '{header_provider}' is disabled")
+
+        if header_model:
+            model = provider_manager.get_model(header_model)
+            if not model or model.provider_id != header_provider:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Model '{header_model}' not available on provider '{header_provider}'"
+                )
+        else:
+            provider_models = [m for m in provider_manager.get_all_models() if m.provider_id == header_provider]
+            model = next((m for m in provider_models if m.is_default), provider_models[0] if provider_models else None)
+            if not model:
+                raise HTTPException(status_code=400, detail=f"No models configured for provider '{header_provider}'")
+
+        logger.info(f"Header routing: X-Provider={header_provider}, X-Model={model.id}")
+        return ProviderSelection(
+            provider=provider, model=model,
+            reason=f"Explicit header: X-Provider={header_provider}, X-Model={model.id}",
+        )
+
+    # --- Standard routing ---
     requested_provider = body.get("provider")
     requested_model_id = body.get("modelId")
 
-    # Handle provider/model format: "provider/model"
+    # Handle "provider/model" format
     if "/" in requested_model:
         parts = requested_model.split("/", 1)
         requested_provider = parts[0]
@@ -364,59 +310,22 @@ async def route_request(request: Request, body: dict, priority: int = 1, api_key
     # Resolve model aliases
     if requested_model in MODEL_ALIASES:
         alias_target = MODEL_ALIASES[requested_model]
-        if alias_target == "3090":
-            requested_model = DEFAULT_3090_MODEL
-        elif alias_target == "qwen2.5-7b-awq":
-            requested_model = "qwen2.5-7b-awq"
-        elif alias_target == "glm-5":
-            requested_model = "glm-5"
-        elif alias_target == "claude-sonnet":
-            requested_model = "claude-sonnet"
-        else:
-            # Pass-through: alias_target is already a direct model ID
-            requested_model = alias_target
+        requested_model = DEFAULT_3090_MODEL if alias_target == "3090" else alias_target
 
-    # Auto routing logic
+    # Auto routing: 3090 default → Z.ai fallback
     is_auto = requested_model == "auto" and not requested_provider
-    classification = None
 
     if is_auto:
-        # Check gaming mode status first
         gaming_status = await get_gaming_pc_status()
         gaming_mode_on = gaming_status and gaming_status.gaming_mode
 
-        # Token estimation for context-aware routing
-        token_estimate = estimate_tokens(body.get("messages", []))
-
         if gaming_mode_on:
-            # Gaming mode ON → skip local GPUs, use cloud only
-            if token_estimate < LARGE_TOKEN_THRESHOLD:  # < 100K
-                requested_model = "glm-5"
-                logger.info(f"Gaming mode ON: routing to GLM-5 (cloud), tokens={token_estimate}")
-            else:
-                requested_model = "claude-sonnet"
-                logger.info(f"Gaming mode ON: routing to Claude (very large context), tokens={token_estimate}")
-        else:
-            # Gaming mode OFF → use complexity classification
-            classification = classify_request(request, body, api_key)
-            requested_model = TIER_MODEL_MAP[classification.tier]
-            primary_signal = classification.signals[0] if classification.signals else "default"
-            logger.info(
-                f"Classified: tier={classification.tier.name}, score={classification.score:.2f}, "
-                f"signals={classification.signals}"
-            )
-            prom.record_complexity_classification(classification.tier.name, primary_signal)
-
-            # Override for very large context (>16K → GLM-5, >100K → Claude)
-            if token_estimate >= LARGE_TOKEN_THRESHOLD:
-                requested_model = "claude-sonnet"
-                logger.info(f"Context override: routing to Claude (tokens={token_estimate} > 100K)")
-            elif token_estimate >= MEDIUM_TOKEN_THRESHOLD:
-                requested_model = "glm-5"
-                logger.info(f"Context override: routing to GLM-5 (tokens={token_estimate} > 16K)")
+            requested_model = "glm-5"
+            logger.info("Gaming mode ON: routing to GLM-5 (cloud)")
+        # else: leave as "auto" — ProviderManager._select_auto() handles
+        # priority-based provider selection (3090 first, Z.ai fallback)
 
     try:
-        # Select provider, waiting in queue if all providers are currently busy
         selection = await provider_manager.acquire_provider_slot(
             requested_model,
             priority=priority,
@@ -428,16 +337,10 @@ async def route_request(request: Request, body: dict, priority: int = 1, api_key
         if not selection:
             raise ValueError(f"No healthy provider available for model '{requested_model}'")
 
-        if classification:
-            selection.complexity_tier = classification.tier.name.lower()
-            selection.complexity_score = round(classification.score, 3)
-
         logger.info(
-            f"Routed to provider '{selection.provider.name}' "
-            f"with model '{selection.model.name}' "
-            f"(requested: model='{requested_model}', provider='{requested_provider}', modelId='{requested_model_id}')"
+            f"Routed to '{selection.provider.name}' / '{selection.model.id}' "
+            f"(requested: {body.get('model', 'auto')})"
         )
-
         return selection
 
     except (ValueError, Exception) as e:
@@ -445,30 +348,17 @@ async def route_request(request: Request, body: dict, priority: int = 1, api_key
             logger.error(f"Routing error: {e}")
             raise HTTPException(status_code=503, detail=f"Failed to route request: {str(e)}")
 
-        # Auto mode: try fallback chain (GLM-5 → Claude)
-        logger.warning(f"Primary auto route failed ({e}), trying fallback chain...")
-        fallback_chain = ["glm-5", "claude-sonnet"]
-        for fallback_model in fallback_chain:
-            try:
-                selection = await provider_manager.select_provider_and_model(fallback_model)
-                if selection:
-                    logger.info(f"Fallback to {fallback_model} succeeded")
-                    return selection
-            except Exception:
-                continue
+        # Auto mode: explicit fallback to Z.ai (glm-5)
+        logger.warning(f"Primary auto route failed ({e}), falling back to Z.ai...")
+        try:
+            selection = await provider_manager.select_provider_and_model("glm-5")
+            if selection:
+                logger.info("Fallback to GLM-5 (Z.ai) succeeded")
+                return selection
+        except Exception:
+            pass
 
-        # All fallbacks failed - try any available provider
-        all_providers = sorted(provider_manager.providers.values(), key=lambda p: p.priority)
-        for provider in all_providers:
-            if not provider.enabled or not provider.is_healthy:
-                continue
-            provider_models = [m for m in provider_manager.models.values() if m.provider_id == provider.id]
-            default_model = next((m for m in provider_models if m.is_default), None) or (provider_models[0] if provider_models else None)
-            if default_model:
-                logger.info(f"Last resort fallback: routing to {provider.name} with {default_model.name}")
-                return ProviderSelection(provider=provider, model=default_model, reason="last resort fallback")
-
-        logger.error("Auto routing: no providers available after all fallbacks")
+        logger.error("Auto routing: no providers available after Z.ai fallback")
         raise HTTPException(status_code=503, detail="No healthy providers available")
 
 
@@ -482,9 +372,10 @@ async def root():
         "endpoints": {
             "health": "/health",
             "chat": "/v1/chat/completions",
+            "routing_config": "/v1/routing/config",
+            "willow_jobs": "/v1/willow/jobs",
             "tts": "/v1/audio/speech",
             "agent_local": "/agent/run",
-            "agent_claude": "/agent/run/claude",
             "agent_tools": "/agent/tools",
             "providers": "/providers",
             "models": "/v1/models",
@@ -978,6 +869,77 @@ async def list_models():
     return {"object": "list", "data": models}
 
 
+@app.get("/v1/routing/config")
+async def routing_config():
+    """
+    Return all valid providers, models, headers, and aliases for client configuration.
+
+    Clients should call this endpoint to discover:
+    - Available providers and which are explicit-only (e.g. willow)
+    - Valid model IDs per provider
+    - Supported routing headers (X-Provider, X-Model, X-Enable-Tracing)
+    - Model aliases (e.g. "fast" → 3090 default)
+    """
+    if not provider_manager:
+        raise HTTPException(status_code=503, detail="Provider manager not initialized")
+
+    providers = []
+    for p in provider_manager.get_all_providers():
+        p_models = [
+            {
+                "id": m.id,
+                "name": m.name,
+                "is_default": m.is_default,
+                "context_window": m.context_window,
+                "max_tokens": m.max_tokens,
+                "tags": m.tags,
+            }
+            for m in provider_manager.get_all_models()
+            if m.provider_id == p.id
+        ]
+        providers.append({
+            "id": p.id,
+            "name": p.name,
+            "type": p.type.value,
+            "enabled": p.enabled,
+            "healthy": p.is_healthy,
+            "explicit_only": p.explicit_only,
+            "priority": p.priority,
+            "models": p_models,
+        })
+
+    return {
+        "providers": providers,
+        "aliases": MODEL_ALIASES,
+        "headers": {
+            "X-Provider": {
+                "description": "Route to a specific provider (e.g. gaming-pc-3090, zai, willow)",
+                "valid_values": [p.id for p in provider_manager.get_all_providers()],
+            },
+            "X-Model": {
+                "description": "Select a specific model on the chosen provider",
+                "valid_values": [m.id for m in provider_manager.get_all_models()],
+            },
+            "X-Enable-Tracing": {
+                "description": "Set to 'false' to disable all logging/tracing for this request",
+                "valid_values": ["true", "false"],
+                "default": "true",
+            },
+        },
+        "auto_routing": {
+            "description": "model=auto routes to gaming-pc-3090 default model, falls back to Z.ai (glm-5) if unavailable",
+            "primary_provider": "gaming-pc-3090",
+            "fallback_provider": "zai",
+            "default_model": DEFAULT_3090_MODEL,
+        },
+        "context_capping": {
+            "interactive_max": 65536,
+            "agent_max": AGENT_CONTEXT_CAP,
+            "description": "Agent requests (priority 0) are capped to allow concurrency on local GPUs",
+        },
+    }
+
+
 # ==========================================================================
 # MODEL GARDEN ENDPOINTS
 # ==========================================================================
@@ -1312,6 +1274,14 @@ async def chat_completions(
     # Route using ProviderManager
     selection = await route_request(request, body, priority=priority, api_key=api_key)
 
+    # Dynamic context capping: agent requests get reduced context for concurrency
+    is_agent = is_agent_request(request, api_key)
+    if is_agent and selection.provider.type.value == "local":
+        # Cap max_tokens for agent requests on local providers
+        current_max = body.get("max_tokens") or selection.model.max_tokens
+        body["max_tokens"] = min(current_max, AGENT_CONTEXT_CAP)
+        logger.info(f"Agent context cap: max_tokens={body['max_tokens']} (was {current_max})")
+
     # Update body with selected model ID
     body["model"] = selection.model.id
 
@@ -1408,11 +1378,12 @@ async def chat_completions(
             background_tasks.add_task(log_stream_completion)
 
             # Build response headers
-            response_headers = {}
+            response_headers = {
+                "X-Provider": selection.provider.id,
+                "X-Model": selection.model.id,
+            }
             if tracker.conversation_id:
                 response_headers["X-Conversation-ID"] = tracker.conversation_id
-            if selection.complexity_tier:
-                response_headers["X-Complexity-Tier"] = selection.complexity_tier
 
             return StreamingResponse(
                 stream_generator(),
@@ -1423,7 +1394,7 @@ async def chat_completions(
         # Non-streaming: build execution-level fallback chain for auto-routed requests
         execution_candidates = [selection]
         if was_auto:
-            for fb_model in ["glm-5", "claude-sonnet"]:
+            for fb_model in ["glm-5"]:
                 try:
                     fb_sel = await provider_manager.select_provider_and_model(fb_model)
                     if fb_sel and fb_sel.provider.id != selection.provider.id:
@@ -1501,12 +1472,13 @@ async def chat_completions(
                             error=None
                         )
 
-                        # Return with conversation ID header for client tracking
-                        response_headers = {}
+                        # Response headers: provider/model transparency
+                        response_headers = {
+                            "X-Provider": candidate.provider.id,
+                            "X-Model": candidate.model.id,
+                        }
                         if tracker.conversation_id:
                             response_headers["X-Conversation-ID"] = tracker.conversation_id
-                        if candidate.complexity_tier:
-                            response_headers["X-Complexity-Tier"] = candidate.complexity_tier
 
                         return JSONResponse(content=response_data, headers=response_headers)
 
@@ -1842,16 +1814,16 @@ async def call_llm_for_agent(
 ) -> dict:
     """Call the LLM through the router for agent use.
 
-    Uses complexity classification for routing. Agent calls with tools
-    floor at MODERATE (tools always present), so they route to 3090 —
-    but now it's data-driven instead of hardcoded.
+    Routes via ProviderManager (auto → 3090 default, fallback to Z.ai).
+    Agent context capped at AGENT_CONTEXT_CAP.
 
     Returns the response with additional _routing_info for tracking.
     """
-    token_estimate = estimate_tokens(messages)
+    if not provider_manager:
+        raise HTTPException(status_code=503, detail="Provider manager not initialized")
 
-    context_window = 8192
-    max_tokens = max(512, min(2048, context_window - token_estimate - 500))
+    token_estimate = estimate_tokens(messages)
+    max_tokens = min(AGENT_CONTEXT_CAP, max(512, 8192 - token_estimate - 500))
 
     body = {
         "model": model,
@@ -1861,55 +1833,39 @@ async def call_llm_for_agent(
         "max_tokens": max_tokens,
     }
 
-    # Use complexity classification — agent calls with tools will score MODERATE+
-    # because tools present adds +0.1 per tool (max 0.4), clearing the 0.25 threshold
-    class _FakeRequest:
-        headers = {}
-    classification = classify_request(_FakeRequest(), body)
-    actual_model = TIER_MODEL_MAP[classification.tier]
-    backend_id = "3090" if classification.tier >= ComplexityTier.MODERATE else "3070"
-
-    logger.info(f"Agent classification: tier={classification.tier.name}, score={classification.score:.2f}")
-
     if token_estimate > 6000:
-        logger.warning(f"Agent context very large (~{token_estimate} tokens in messages + ~3000 tool tokens), may approach limit")
+        logger.warning(f"Agent context large (~{token_estimate} tokens)")
 
-    # Check backend availability with fallback
-    backend = BACKENDS.get(backend_id)
-    if not backend or not backend["available"]:
-        # Try 3070 as fallback, but warn that it will likely fail
-        fallback = BACKENDS.get("3070")
-        if fallback and fallback["available"]:
-            logger.warning(f"3090 unavailable for agent call - falling back to 3070. This will likely fail due to context size!")
-            backend_id = "3070"
-            backend = fallback
-            actual_model = "qwen2.5-7b-awq"
-        else:
-            raise HTTPException(status_code=503, detail="No backend available for agent (3090 required for tool-heavy agent calls)")
+    # Use ProviderManager auto-routing
+    try:
+        selection = await provider_manager.acquire_provider_slot(model, priority=0)
+    except ValueError as e:
+        raise HTTPException(status_code=503, detail=f"No backend available for agent: {e}")
 
-    body["model"] = actual_model
-    logger.info(f"Agent LLM call: model={actual_model}, backend={backend_id}, tokens~{token_estimate}, messages={len(messages)}")
+    body["model"] = selection.model.id
+    endpoint_url = build_chat_completions_url(selection.provider)
+    request_headers = build_request_headers(selection.provider)
 
-    async with httpx.AsyncClient(timeout=300.0) as client:
-        response = await client.post(
-            f"{backend['url']}/v1/chat/completions",
-            json=body,
-        )
+    logger.info(f"Agent LLM call: model={selection.model.id}, provider={selection.provider.id}, tokens~{token_estimate}")
 
-        if response.status_code != 200:
-            raise HTTPException(
-                status_code=response.status_code,
-                detail=f"Backend error: {response.text}"
-            )
+    async with provider_manager.track_request(selection.provider.id):
+        async with httpx.AsyncClient(timeout=300.0) as client:
+            response = await client.post(endpoint_url, json=body, headers=request_headers)
 
-        result = response.json()
-        # Add routing info for agent tracking
-        result["_routing_info"] = {
-            "model": actual_model,
-            "backend": backend_id,
-            "backend_name": backend["name"],
-        }
-        return result
+            if response.status_code != 200:
+                raise HTTPException(
+                    status_code=response.status_code,
+                    detail=f"Backend error: {response.text}"
+                )
+
+            result = response.json()
+            result["_routing_info"] = {
+                "model": selection.model.id,
+                "backend": selection.provider.id,
+                "backend_name": selection.provider.name,
+            }
+            provider_manager.record_inference_success(selection.provider.id)
+            return result
 
 
 @app.post("/agent/run", response_model=AgentResponse)
@@ -1953,77 +1909,45 @@ async def list_agent_tools():
     }
 
 
-@app.post("/agent/run/claude", response_model=ClaudeAgentResponse)
-async def run_claude_agent(request: ClaudeAgentRequest):
+@app.post("/agent/run/claude")
+async def run_claude_agent(request: Request):
     """
-    Run a task using Claude Code CLI (passthrough to Claude Harness).
-    
-    This is a simple passthrough to Claude Harness - Claude CLI handles all
-    agent logic internally (tools, loop, context, etc.). Unlike /agent/run,
-    which uses our custom agent loop with local models, this endpoint
-    delegates everything to Claude.
-    
-    Example:
-        curl -X POST http://localhost:8012/agent/run/claude \\
-            -H "Content-Type: application/json" \\
-            -d '{"task": "Analyze the codebase and suggest improvements"}'
+    Run a task using Willow (containerized Claude Code subscription).
+
+    Submits a job to Willow and returns the job ID for polling.
+    Use GET /v1/willow/jobs/{id} to check status.
     """
-    logger.info(f"Claude agent task: {request.task[:100]}...")
-    
-    # Build prompt with working directory context
-    prompt = request.task
-    if request.working_directory != "/tmp":
-        prompt = f"Working directory: {request.working_directory}\n\n{request.task}"
-    
+    WILLOW_URL = os.getenv("WILLOW_URL", "http://willow:8013")
+    body = await request.json()
+
+    task = body.get("task", "")
+    working_directory = body.get("working_directory", "/tmp")
+    timeout = body.get("timeout", 300.0)
+
+    if not task:
+        raise HTTPException(status_code=400, detail="Missing required field: task")
+
+    logger.info(f"Willow agent task: {task[:100]}...")
+
     try:
-        # Simple passthrough to Claude Harness
-        async with httpx.AsyncClient(timeout=request.timeout) as client:
+        async with httpx.AsyncClient(timeout=timeout) as client:
             response = await client.post(
-                "http://host.docker.internal:8013/v1/chat/completions",
-                json={
-                    "messages": [{"role": "user", "content": prompt}],
-                    "model": "claude-sonnet",
-                }
+                f"{WILLOW_URL}/v1/jobs",
+                json={"prompt": task, "working_directory": working_directory},
             )
-            
-            if response.status_code != 200:
-                logger.error(f"Claude Harness error: {response.status_code} - {response.text}")
-                return ClaudeAgentResponse(
-                    success=False,
-                    response="",
-                    error=f"Claude Harness error ({response.status_code}): {response.text[:500]}"
+
+            if response.status_code >= 400:
+                raise HTTPException(
+                    status_code=response.status_code,
+                    detail=f"Willow error: {response.text[:500]}"
                 )
-            
-            result = response.json()
-            content = result["choices"][0]["message"]["content"]
-            
-            logger.info(f"Claude agent completed successfully ({len(content)} chars)")
-            return ClaudeAgentResponse(
-                success=True,
-                response=content
-            )
-            
-    except httpx.TimeoutException:
-        logger.error(f"Claude agent timeout after {request.timeout}s")
-        return ClaudeAgentResponse(
-            success=False,
-            response="",
-            error=f"Request timed out after {request.timeout} seconds"
-        )
+
+            return response.json()
+
     except httpx.ConnectError as e:
-        logger.error(f"Claude Harness connection error: {e}")
-        return ClaudeAgentResponse(
-            success=False,
-            response="",
-            error="Cannot connect to Claude Harness. Is the service running? (systemctl status claude-harness)"
-        )
-    except Exception as e:
-        logger.error(f"Claude agent error: {e}")
-        return ClaudeAgentResponse(
-            success=False,
-            response="",
-            error=str(e)
-        )
+        raise HTTPException(status_code=503, detail=f"Cannot connect to Willow: {e}")
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=504, detail=f"Willow request timed out after {timeout}s")
 
 
 # ============================================================================
@@ -2219,8 +2143,8 @@ async def api_get_dashboard():
 # ============================================================================
 
 class HarnessMetric(BaseModel):
-    """Metric from Claude Code CLI / Ralph Wiggum."""
-    source: str  # 'ralph', 'api', 'interactive'
+    """Metric from Claude Code CLI / Willow."""
+    source: str  # 'willow', 'api', 'interactive'
     event: str  # 'session_started', 'task_started', 'task_completed', 'task_failed', 'session_completed'
     label: Optional[str] = None
     task_id: Optional[str] = None

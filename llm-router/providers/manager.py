@@ -298,7 +298,8 @@ class ProviderManager:
         any tier is unhealthy rather than failing on the first resolved model.
         """
         sorted_providers = sorted(
-            [p for p in self.providers.values() if p.enabled and p.priority < 99],
+            [p for p in self.providers.values()
+             if p.enabled and p.priority < 99 and not p.explicit_only],
             key=lambda p: p.priority,
         )
 

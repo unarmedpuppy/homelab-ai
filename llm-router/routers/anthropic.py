@@ -658,14 +658,14 @@ async def messages(
 ):
     """Anthropic Messages API — routes to local/cloud LLMs via ProviderManager.
 
-    Routing chain: gaming-pc-3090 (qwen3-32b-awq) → zai (glm-5) → claude-harness
+    Routing chain: gaming-pc-3090 (qwen3-32b-awq) → zai (glm-5)
     Full tool use translation: Anthropic tool_use/tool_result ↔ OpenAI tool_calls/role:tool
     """
     # Lazy imports to avoid circular dependency with router.py
     from router import route_request, provider_manager  # noqa: PLC0415
 
     body = await request.json()
-    original_model = body.get("model", "claude-sonnet-4-6")
+    original_model = body.get("model", "auto")
     is_stream = body.get("stream", False)
 
     oai_body = translate_anthropic_to_openai(body)
