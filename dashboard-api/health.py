@@ -10,6 +10,7 @@ from models import (
     Agent,
     AgentConfig,
     AgentHealth,
+    AgentProfile,
     AgentStatus,
     AgentType,
     FleetStats,
@@ -119,6 +120,8 @@ class HealthMonitor:
                 if response.status_code == 200:
                     # Success
                     data = response.json()
+                    profile_data = data.get("profile")
+                    profile = AgentProfile(**profile_data) if profile_data else None
                     agent.health = AgentHealth(
                         status=AgentStatus.ONLINE,
                         last_check=now,
@@ -127,6 +130,7 @@ class HealthMonitor:
                         consecutive_failures=0,
                         error=None,
                         version=data.get("version"),
+                        profile=profile,
                     )
                     logger.debug(
                         f"Agent {agent_id} healthy ({response_time_ms:.0f}ms)"
@@ -170,6 +174,7 @@ class HealthMonitor:
             consecutive_failures=failures,
             error=error,
             version=agent.health.version,
+            profile=agent.health.profile,
         )
 
         logger.debug(

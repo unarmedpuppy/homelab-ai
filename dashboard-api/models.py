@@ -37,6 +37,13 @@ class AgentConfig(BaseModel):
     tags: list[str] = Field(default_factory=list)
 
 
+class AgentProfile(BaseModel):
+    """Agent profile data from profile.yaml."""
+    role: Optional[str] = None
+    model: Optional[str] = None
+    permissions: Optional[str] = None
+
+
 class AgentHealth(BaseModel):
     """Health check result for an agent."""
     status: AgentStatus = AgentStatus.UNKNOWN
@@ -46,6 +53,7 @@ class AgentHealth(BaseModel):
     consecutive_failures: int = 0
     error: Optional[str] = None
     version: Optional[str] = None
+    profile: Optional[AgentProfile] = None
 
 
 class Agent(BaseModel):

@@ -35,7 +35,7 @@ agents:
   elm:
     name: "Elm"
     description: "Sysadmin — Docker, Gitea, OS-level access on home server"
-    endpoint: "http://host.docker.internal:8018"
+    endpoint: "http://100.80.223.7:8018"
     direct_url: "http://100.80.223.7:8018"
     agent_type: server
     expected_online: true
@@ -44,13 +44,13 @@ agents:
       - docker
       - infra
 
-  ralph:
-    name: "Ralph"
-    description: "Autonomous task loop — works through Tasks API unattended"
+  willow:
+    name: "Willow"
+    description: "Autonomous task executor — executes Tasks API tasks unattended. Does not touch server infrastructure."
     endpoint: "http://host.docker.internal:8025"
-    direct_url: null  # TODO: set to http://<server-tailscale-ip>:8025 — run `tailscale ip -4` on server
+    direct_url: null  # TODO: set after willow grove migration — run `tailscale ip -4` on server for IP
     agent_type: server
-    expected_online: true
+    expected_online: false  # not grove serve yet — migration pending (willow-grove-001/002/003)
     tags:
       - engineering
       - autonomous
@@ -62,7 +62,7 @@ agents:
     endpoint: "http://unarmedpuppy-pc.taild41b2.ts.net:8021"
     direct_url: "http://unarmedpuppy-pc.taild41b2.ts.net:8021"
     agent_type: server
-    expected_online: true
+    expected_online: false  # not migrated to grove serve yet — still on old local-ai stack
     tags:
       - gpu
       - vllm
