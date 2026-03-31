@@ -1,6 +1,6 @@
 # Local AI Router
 
-Intelligent OpenAI-compatible API router for multi-backend LLM inference.
+OpenAI-compatible API router for multi-backend LLM inference. Routes requests across local GPUs, cloud providers, and job-based services.
 
 ## URLs
 
@@ -13,51 +13,40 @@ Intelligent OpenAI-compatible API router for multi-backend LLM inference.
 ## Features
 
 - **OpenAI-compatible API** - Drop-in replacement for OpenAI endpoints
-- **Intelligent routing** - Routes based on token count, task complexity, and backend availability
+- **Simplified auto-routing** - 3090 default, Z.ai fallback. No complexity classification.
+- **X-Provider / X-Model headers** - Explicit provider and model selection
+- **X-Enable-Tracing** - Per-request tracking toggle
+- **Willow proxy** - Job-based Claude Code subscription access
+- **Rolling conversation compaction** - Context window management
+- **Dynamic context capping** - Agent vs interactive context limits
+- **/v1/routing/config** - Client discovery endpoint
 - **Gaming mode aware** - Respects gaming mode on Windows PC
-- **Force-big override** - Explicit routing with headers or model names
 - **Health checks** - Monitors all backends
 - **Streaming support** - Full SSE streaming for chat completions
 - **Agent endpoint** - Host-controlled agent loop for autonomous task execution
 
 ## Backends
 
-### Local GPU
-
-| Backend | Hardware | Status | Use Case |
-|---------|----------|--------|----------|
-| `gaming-pc-3090` | RTX 3090 | ✅ Active | Medium models, coding tasks |
-| `server-3070` | RTX 3070 | ⏳ Pending | Small models, fast routing |
-
-### Cloud
-
-| Backend | Service | Status | Use Case |
-|---------|---------|--------|----------|
-| `zai` | Z.ai Coding Plan | ✅ Active | GLM-4.7, unlimited usage |
-| `claude-harness` | Claude Max (via CLI) | ✅ Active | Claude Sonnet, subscription-based |
-| `anthropic` | Anthropic API | ❌ Disabled | Requires API key |
-
-### Claude Harness
-
-The router can use Claude models via **Claude Harness** - a FastAPI service wrapping Claude Code CLI.
-
-- Runs as systemd service on host (port 8013)
-- Uses Claude Max subscription (no API key)
-- Management: `apps/claude-harness/manage.sh`
-- Docs: [apps/claude-harness/README.md](../claude-harness/README.md)
+| Backend | Hardware/Service | Type | Status | Use Case |
+|---------|------------------|------|--------|----------|
+| `gaming-pc-3090` | RTX 3090 + 3090 Ti (48GB) | local | Active | Primary for all auto-routing |
+| `server-3070` | RTX 3070 (8GB) | local | Active | Manual only (model=3070) |
+| `zai` | Z.ai Coding Plan (GLM models) | cloud | Active | Fallback when 3090 unavailable |
+| `willow` | Containerized Claude Code subscription | job | Active | Explicit only (X-Provider: willow) |
 
 ## Routing Logic
 
-1. **Explicit model request** → Route to requested backend
-2. **Token estimate < 2K** → 3070 (fast path)
-3. **Gaming mode ON** → 3070 only (unless force-big)
-4. **Token 2K-16K + 3090 available** → 3090
-5. **Complex/long context** → Z.ai or Claude Harness
-6. **Fallback** → 3070 → 3090 → Cloud
+1. **X-Provider header** → Explicit provider selection (highest precedence)
+2. **X-Model header** → Explicit model on that provider
+3. **model=auto** → gaming-pc-3090 default (qwen3-32b-awq), fallback to Z.ai (glm-5) if 3090 unavailable
+4. **model=\<alias\>** → Resolve alias, route to target model's provider
+5. **Gaming mode ON + auto** → Z.ai only (skip local GPUs)
+6. No complexity classification. No context-based escalation.
 
 ## API Endpoints
 
 ### Chat Completions
+
 ```bash
 curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
   -H "Content-Type: application/json" \
@@ -67,14 +56,70 @@ curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
   }'
 ```
 
-### Force to 3090
+### Explicit Provider Routing
+
+Use `X-Provider` and `X-Model` headers to bypass auto-routing and target a specific backend and model.
+
+```bash
+# Route to Z.ai with a specific model
+curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "X-Provider: zai" \
+  -H "X-Model: glm-5" \
+  -d '{
+    "model": "auto",
+    "messages": [{"role": "user", "content": "Complex coding task..."}]
+  }'
+
+# Route to the 3070 explicitly
+curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "X-Provider: server-3070" \
+  -d '{
+    "model": "auto",
+    "messages": [{"role": "user", "content": "Quick question"}]
+  }'
+```
+
+### Routing Config Discovery
+
+Clients can query the router for available providers, models, and aliases:
+
+```bash
+curl https://local-ai-api.server.unarmedpuppy.com/v1/routing/config
+```
+
+### Willow Jobs
+
+Willow provides job-based access to a containerized Claude Code subscription. Jobs are submitted and polled asynchronously.
+
+```bash
+# Submit a job
+curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/willow/jobs \
+  -H "Content-Type: application/json" \
+  -d '{
+    "task": "Analyze the error in server.py and suggest a fix",
+    "working_directory": "/home/user/project"
+  }'
+
+# Poll job status
+curl https://local-ai-api.server.unarmedpuppy.com/v1/willow/jobs/{id}
+
+# Willow health check
+curl https://local-ai-api.server.unarmedpuppy.com/v1/willow/health
+```
+
+### Tracing Toggle
+
+Disable all logging and tracking for a request by setting `X-Enable-Tracing: false`:
+
 ```bash
 curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -H "X-Force-Big: true" \
+  -H "X-Enable-Tracing: false" \
   -d '{
-    "model": "big",
-    "messages": [{"role": "user", "content": "Complex coding task..."}]
+    "model": "auto",
+    "messages": [{"role": "user", "content": "Hello"}]
   }'
 ```
 
@@ -127,6 +172,154 @@ curl -X POST https://local-ai-api.server.unarmedpuppy.com/gaming-mode?enable=fal
 # Stop all models
 curl -X POST https://local-ai-api.server.unarmedpuppy.com/stop-all
 ```
+
+## Headers Reference
+
+| Header | Direction | Purpose |
+|--------|-----------|---------|
+| `X-Provider` | Request | Route to specific provider (`gaming-pc-3090`, `zai`, `willow`, `server-3070`) |
+| `X-Model` | Request | Select specific model on the provider |
+| `X-Enable-Tracing` | Request | Set to `false` to disable all logging/tracking |
+| `X-Provider` | Response | Which provider served the request |
+| `X-Model` | Response | Which model served the request |
+| `X-Conversation-ID` | Both | Conversation ID for session continuity |
+| `X-Enhanced-Streaming` | Request | Enable enhanced streaming mode (dashboard) |
+
+## Model Aliases
+
+| Alias | Routes To |
+|-------|-----------|
+| `auto` | 3090 default, Z.ai fallback |
+| `small`, `fast` | 3090 default |
+| `big`, `large` | GLM-5 (Z.ai) |
+| `gaming-pc`, `medium` | 3090 default |
+| `glm` | GLM-5 |
+| `3070`, `server` | qwen2.5-7b-awq (manual only) |
+| `qwopus` | qwopus-27b |
+| `abliterated` | qwen3.5-27b-abliterated |
+
+## Context Capping
+
+Dynamic context allocation based on API key priority:
+
+- **Interactive users** (priority 1, default): Full 65K context on local GPUs
+- **Agent requests** (priority 0, `agent-*` keys): Capped at 16K `max_tokens` on local GPUs
+
+This allows concurrency on the 3090 -- 3 concurrent requests with 16K each fits in the 97K KV cache.
+
+## Metrics and Memory System
+
+The router maintains **two separate systems** for tracking and storing data:
+
+### 1. Metrics System (Always On)
+
+**Purpose**: Logs all API requests for analytics and monitoring
+
+**Storage**: SQLite database (`data/local-ai-router.db` - metrics table)
+
+**Behavior**:
+- Always enabled by default
+- Logs every request automatically
+- No headers required
+- Captures: model usage, tokens, duration, errors, backend routing
+
+**Use Case**: Dashboard analytics, usage statistics, performance monitoring
+
+### 2. Memory System (Opt-In)
+
+**Purpose**: Stores conversation history for context and retrieval
+
+**Storage**: SQLite database (`data/local-ai-router.db` - conversations/messages tables)
+
+**Behavior**:
+- Opt-in via headers -- NOT enabled by default for API requests
+- Requires explicit request headers to save conversations
+- `X-User-ID` is REQUIRED when memory is enabled (returns HTTP 400 if missing)
+- Supports conversation threading and RAG search
+- Auto-generates conversation IDs if not provided
+
+**Enable Memory for a Request:**
+
+```bash
+# Enable memory with header (X-User-ID is REQUIRED)
+curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "X-Enable-Memory: true" \
+  -H "X-User-ID: user123" \
+  -d '{
+    "model": "auto",
+    "messages": [{"role": "user", "content": "Remember this conversation"}]
+  }'
+
+# Or use a specific conversation ID (X-User-ID still required for new conversations)
+curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "X-Conversation-ID: my-conversation-123" \
+  -H "X-User-ID: user123" \
+  -d '{
+    "model": "auto",
+    "messages": [{"role": "user", "content": "Continue our chat"}]
+  }'
+```
+
+**Memory Headers:**
+
+| Header | Purpose | Required |
+|--------|---------|----------|
+| `X-Enable-Memory: true` | Save this conversation to memory | To enable memory |
+| `X-User-ID: <id>` | Associate with user | **REQUIRED** when memory enabled |
+| `X-Conversation-ID: <id>` | Continue existing conversation | Optional (auto-generated) |
+| `X-Session-ID: <id>` | Group conversations by session | Optional |
+| `X-Project: <name>` | Tag with project name | Optional |
+
+**Key Differences:**
+
+| Feature | Metrics | Memory |
+|---------|---------|--------|
+| **Enabled by default** | Yes | No (opt-in) |
+| **Requires headers** | No | Yes (`X-Enable-Memory` + `X-User-ID`) |
+| **Stores messages** | No | Yes (full conversation) |
+| **Used for analytics** | Yes | No |
+| **Used for RAG search** | No | Yes |
+| **Conversation threading** | No | Yes |
+
+**Why Two Systems?**
+
+- **Privacy**: Not all API calls should be permanently stored
+- **Control**: Clients opt-in to memory storage
+- **Performance**: Metrics are lightweight, memory is verbose
+- **Use case separation**: Analytics vs. conversation history
+
+### Memory API Endpoints
+
+```bash
+# List conversations
+curl https://local-ai-api.server.unarmedpuppy.com/memory/conversations?limit=10
+
+# Get specific conversation with messages
+curl https://local-ai-api.server.unarmedpuppy.com/memory/conversations/{id}
+
+# Search conversations (RAG)
+curl -X POST https://local-ai-api.server.unarmedpuppy.com/memory/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "What did we discuss about Python?",
+    "limit": 5,
+    "similarity_threshold": 0.3
+  }'
+
+# Memory statistics
+curl https://local-ai-api.server.unarmedpuppy.com/memory/stats
+```
+
+### Dashboard Integration
+
+The [Local AI Dashboard](../local-ai-dashboard/README.md) displays:
+- **Metrics** -> Main dashboard (total messages, model usage, activity)
+- **Memory** -> Conversations tab (browsable conversation history)
+- **RAG Search** -> Semantic search across stored conversations
+
+## Agent Endpoints
 
 ### Agent Endpoint (Skill-Based Autonomous Tasks)
 
@@ -191,184 +384,22 @@ curl https://local-ai-api.server.unarmedpuppy.com/agent/tools
 
 See [agent-endpoint-usage skill](../../.agents/skills/agent-endpoint-usage/SKILL.md) for complete documentation.
 
-### Claude Agent Endpoint (Passthrough)
+### Willow Agent Endpoint
 
-A simple passthrough to Claude Code CLI via Claude Harness. Unlike `/agent/run` which uses our custom agent loop with local models, this endpoint delegates everything to Claude - it handles its own tools, context, and execution.
+The `/agent/run/claude` endpoint proxies to Willow, the containerized Claude Code subscription service. Unlike `/agent/run` which uses a custom agent loop with local models, this submits a job to Willow and returns a job ID for polling.
 
 ```bash
-# Run a task with Claude
+# Submit a job to Willow
 curl -X POST https://local-ai-api.server.unarmedpuppy.com/agent/run/claude \
   -H "Content-Type: application/json" \
   -d '{
     "task": "Analyze the error in server.py and suggest a fix",
     "working_directory": "/home/user/project"
   }'
+
+# Poll job status using the returned job ID
+curl https://local-ai-api.server.unarmedpuppy.com/v1/willow/jobs/{job_id}
 ```
-
-**Request Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `task` | string | (required) | The task for Claude to accomplish |
-| `working_directory` | string | `/tmp` | Working directory hint for Claude |
-| `timeout` | float | 300.0 | Request timeout in seconds |
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "response": "I analyzed server.py and found...",
-  "error": null
-}
-```
-
-**Comparison: `/agent/run` vs `/agent/run/claude`**
-
-| Aspect | `/agent/run` (Local) | `/agent/run/claude` |
-|--------|---------------------|---------------------|
-| **Backend** | 3090 vLLM (qwen2.5-14b) | Claude Harness → Claude CLI |
-| **Agent Loop** | Our implementation (host-controlled) | Claude's implementation |
-| **Tools** | Our 19 skills-based tools | Claude's built-in tools |
-| **Step Tracking** | Yes (in our DB) | No (Claude handles internally) |
-| **Cost** | $0 (local GPU) | Claude Max subscription |
-| **Complexity** | High (we manage everything) | Low (passthrough) |
-
-**When to Use Which:**
-
-| Use `/agent/run` | Use `/agent/run/claude` |
-|------------------|-------------------------|
-| Need step-by-step tracking | Just need the answer |
-| Using our skills system | General coding questions |
-| Want to see tool calls | Complex reasoning tasks |
-| Cost-sensitive | Quality-critical |
-| Integration with dashboard | Quick one-off tasks |
-
-**Prerequisites:**
-- Claude Harness service running: `systemctl status claude-harness`
-- See [Claude Harness README](../claude-harness/README.md) for setup
-
-## Model Aliases
-
-| Alias | Routes To |
-|-------|-----------|
-| `auto` | Intelligent routing |
-| `small`, `fast` | 3070 |
-| `big`, `medium`, `3090`, `gaming-pc` | 3090 |
-| `glm` | OpenCode (GLM-4.7) |
-| `claude` | OpenCode (Claude) |
-
-## Metrics and Memory System
-
-The router maintains **two separate systems** for tracking and storing data:
-
-### 1. Metrics System (Always On)
-
-**Purpose**: Logs all API requests for analytics and monitoring
-
-**Storage**: SQLite database (`data/local-ai-router.db` - metrics table)
-
-**Behavior**:
-- ✅ **Always enabled** by default
-- ✅ Logs every request automatically
-- ✅ No headers required
-- ✅ Captures: model usage, tokens, duration, errors, backend routing
-
-**Use Case**: Dashboard analytics, usage statistics, performance monitoring
-
-### 2. Memory System (Opt-In)
-
-**Purpose**: Stores conversation history for context and retrieval
-
-**Storage**: SQLite database (`data/local-ai-router.db` - conversations/messages tables)
-
-**Behavior**:
-- ⚠️ **Opt-in via headers** - NOT enabled by default for API requests
-- ⚠️ Requires explicit request headers to save conversations
-- ⚠️ **X-User-ID is REQUIRED** when memory is enabled (returns HTTP 400 if missing)
-- ✅ Supports conversation threading and RAG search
-- ✅ Auto-generates conversation IDs if not provided
-
-**Enable Memory for a Request:**
-
-```bash
-# Enable memory with header (X-User-ID is REQUIRED)
-curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -H "X-Enable-Memory: true" \
-  -H "X-User-ID: user123" \
-  -d '{
-    "model": "auto",
-    "messages": [{"role": "user", "content": "Remember this conversation"}]
-  }'
-
-# Or use a specific conversation ID (X-User-ID still required for new conversations)
-curl -X POST https://local-ai-api.server.unarmedpuppy.com/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -H "X-Conversation-ID: my-conversation-123" \
-  -H "X-User-ID: user123" \
-  -d '{
-    "model": "auto",
-    "messages": [{"role": "user", "content": "Continue our chat"}]
-  }'
-```
-
-**Memory Headers:**
-
-| Header | Purpose | Required |
-|--------|---------|----------|
-| `X-Enable-Memory: true` | Save this conversation to memory | To enable memory |
-| `X-User-ID: <id>` | Associate with user | **REQUIRED** when memory enabled |
-| `X-Conversation-ID: <id>` | Continue existing conversation | Optional (auto-generated) |
-| `X-Session-ID: <id>` | Group conversations by session | Optional |
-| `X-Project: <name>` | Tag with project name | Optional |
-
-**Key Differences:**
-
-| Feature | Metrics | Memory |
-|---------|---------|--------|
-| **Enabled by default** | ✅ Yes | ❌ No (opt-in) |
-| **Requires headers** | ❌ No | ✅ Yes (`X-Enable-Memory` + `X-User-ID`) |
-| **Stores messages** | ❌ No | ✅ Yes (full conversation) |
-| **Used for analytics** | ✅ Yes | ❌ No |
-| **Used for RAG search** | ❌ No | ✅ Yes |
-| **Conversation threading** | ❌ No | ✅ Yes |
-
-**Why Two Systems?**
-
-- **Privacy**: Not all API calls should be permanently stored
-- **Control**: Clients opt-in to memory storage
-- **Performance**: Metrics are lightweight, memory is verbose
-- **Use case separation**: Analytics vs. conversation history
-
-### Memory API Endpoints
-
-```bash
-# List conversations
-curl https://local-ai-api.server.unarmedpuppy.com/memory/conversations?limit=10
-
-# Get specific conversation with messages
-curl https://local-ai-api.server.unarmedpuppy.com/memory/conversations/{id}
-
-# Search conversations (RAG)
-curl -X POST https://local-ai-api.server.unarmedpuppy.com/memory/search \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "What did we discuss about Python?",
-    "limit": 5,
-    "similarity_threshold": 0.3
-  }'
-
-# Memory statistics
-curl https://local-ai-api.server.unarmedpuppy.com/memory/stats
-```
-
-### Dashboard Integration
-
-The [Local AI Dashboard](../local-ai-dashboard/README.md) displays:
-- **Metrics** → Main dashboard (total messages, model usage, activity)
-- **Memory** → Conversations tab (browsable conversation history)
-- **RAG Search** → Semantic search across stored conversations
 
 ## Configuration
 
@@ -378,11 +409,10 @@ Environment variables:
 # Backend endpoints (configure with your network IPs/hostnames)
 GAMING_PC_URL=http://gaming-pc.local:8000  # Your Gaming PC IP/hostname
 LOCAL_3070_URL=http://local-ai-server:8000
-OPENCODE_URL=http://opencode-service:8002
+WILLOW_URL=http://willow:8013
 
-# Routing thresholds
-SMALL_TOKEN_THRESHOLD=2000
-MEDIUM_TOKEN_THRESHOLD=16000
+# Context capping
+AGENT_CONTEXT_CAP=16384
 
 # Feature flags
 ENABLE_METRICS=1            # Default: 1 (enabled)
@@ -401,7 +431,7 @@ AGENT_SKILLS_DIR=/app/.agents/skills  # Skills directory (mounted from host)
 
 ## Claude Code Integration Notes
 
-### Attribution Header — KV Cache Fix
+### Attribution Header -- KV Cache Fix
 
 Claude Code prepends an attribution header to every request that **invalidates the KV cache on vLLM**, causing ~90% slower inference. This must be disabled in `~/.claude/settings.json` (a shell export does NOT work):
 
@@ -417,14 +447,14 @@ Reference: https://unsloth.ai/docs/basics/claude-code
 
 ### Compaction Behavior with vLLM
 
-When Claude Code compacts a session it calls the same model endpoint (`ANTHROPIC_BASE_URL`) with a summarization request — there is no separate small/fast model. With the llm-router pointing at vLLM:
+The `compaction.py` module manages rolling conversation compaction for context window management. When Claude Code compacts a session it calls the same model endpoint (`ANTHROPIC_BASE_URL`) with a summarization request -- there is no separate small/fast model. With the llm-router pointing at vLLM:
 
-- **Compaction goes to vLLM** — the same model that handles normal requests handles the summarization. No cloud fallback.
-- **Trigger is context-window-percentage-based** — Claude Code fires compaction at ~95% of the context window reported by the model. This comes from the `context_length` field in the `/v1/models` response.
-- **vLLM context window reporting matters** — If vLLM reports a large context window (e.g. 32k) but the model was loaded with a smaller `--max-model-len`, actual OOM or truncation can occur before compaction fires. Ensure `--max-model-len` matches what vLLM advertises.
-- **Early compaction** — Set `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70` (env var on the Claude Code side) to compact earlier and reduce the risk of hitting vLLM's actual limit.
-- **CLAUDE.md survives compaction** — Re-read from disk and re-injected after every compact. Instructions given only in conversation are lost.
-- **PreCompact hook** — innie-engine installs a PreCompact hook that fires before compaction, prompting the assistant to write working state to CONTEXT.md first.
+- **Compaction goes to vLLM** -- the same model that handles normal requests handles the summarization. No cloud fallback.
+- **Trigger is context-window-percentage-based** -- Claude Code fires compaction at ~95% of the context window reported by the model. This comes from the `context_length` field in the `/v1/models` response.
+- **vLLM context window reporting matters** -- If vLLM reports a large context window (e.g. 32k) but the model was loaded with a smaller `--max-model-len`, actual OOM or truncation can occur before compaction fires. Ensure `--max-model-len` matches what vLLM advertises.
+- **Early compaction** -- Set `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70` (env var on the Claude Code side) to compact earlier and reduce the risk of hitting vLLM's actual limit.
+- **CLAUDE.md survives compaction** -- Re-read from disk and re-injected after every compact. Instructions given only in conversation are lost.
+- **PreCompact hook** -- innie-engine installs a PreCompact hook that fires before compaction, prompting the assistant to write working state to CONTEXT.md first.
 
 **vLLM setup checklist for Claude Code use:**
 
@@ -435,16 +465,8 @@ When Claude Code compacts a session it calls the same model endpoint (`ANTHROPIC
 | Set `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70` | Compact before hitting vLLM's real limit |
 | Verify `/v1/models` returns correct `context_length` | Claude Code uses this to calculate compaction threshold |
 
-## Force-Big Signals
-
-Override gaming mode restrictions:
-
-1. **Header**: `X-Force-Big: true`
-2. **Model name**: `model = "big"` or `model = "3090"`
-3. **Prompt tag**: Include `#force_big` in message
-
 ## Related
 
-- [Local AI Unified Architecture](../../.agents/plans/local-ai-unified-architecture.md) - Full architecture plan
-- [Gaming PC Local AI](../../local-ai/README.md) - 3090 backend
 - [Local AI Dashboard](../local-ai-dashboard/README.md) - Web dashboard UI
+- [Willow](../willow/README.md) - Containerized Claude Code subscription service
+- [Gaming PC vLLM](../../local-ai/README.md) - 3090 backend

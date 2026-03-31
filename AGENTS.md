@@ -157,22 +157,23 @@ Endpoints:
 
 Auth: Accepts `x-api-key: <llm-router-key>` (Anthropic SDK default) or `Authorization: Bearer`.
 
-Routing chain (priority order):
-1. gaming-pc-3090 (`qwen3.5-27b-abliterated`) — default (dual-GPU TP=2, 65K context)
-2. zai (`glm-5`) — escalation / gaming mode
-3. claude-harness (`claude-sonnet-4-5`) — last resort
+Routing chain (auto mode):
+1. gaming-pc-3090 (`qwen3-32b-awq`) — primary (dual-GPU TP=2, 65K context)
+2. zai (`glm-5`) — fallback when 3090 unavailable
+3. willow — explicit only via `X-Provider: willow` header (not in auto chain)
+
+Explicit provider routing via headers:
+- `X-Provider: gaming-pc-3090` / `X-Provider: zai` / `X-Provider: willow`
+- `X-Model: <model-id>` (optional, defaults to provider's default model)
+- `X-Enable-Tracing: false` to bypass all logging
+
+Discovery: `GET /v1/routing/config` returns all valid providers, models, aliases, headers.
 
 Claude Code config:
 ```bash
 export ANTHROPIC_BASE_URL=https://homelab-ai.server.unarmedpuppy.com
 export ANTHROPIC_API_KEY=<your-llm-router-api-key>
 ```
-
-Claude model names accepted by the OpenAI endpoint (via `MODEL_ALIASES`):
-- `claude-sonnet-4-6` → `qwen3.5-27b-abliterated`
-- `claude-opus-4-6` → `qwen3.5-27b-abliterated`
-- `claude-haiku-4-5` → `qwen2.5-14b-awq`
-- `claude-3-5-sonnet` → `qwen3.5-27b-abliterated`
 
 ### Dashboard (`dashboard/`)
 

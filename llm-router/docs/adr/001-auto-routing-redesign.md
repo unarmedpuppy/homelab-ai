@@ -1,7 +1,7 @@
 # ADR 004: LLM Router Auto-Routing Redesign
 
 **Date:** 2026-02-22
-**Status:** Accepted
+**Status:** Superseded by [2026-03-31-routing-redesign-v2-simplified](../../../docs/adrs/2026-03-31-routing-redesign-v2-simplified.md)
 **Context:** llm-router auto-routing
 
 ## Decision

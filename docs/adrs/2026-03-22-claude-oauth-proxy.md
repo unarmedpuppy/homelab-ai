@@ -1,7 +1,7 @@
 # ADR: Claude OAuth Proxy — Single Auth Point for Multi-Machine Claude Code
 
 - **Date:** 2026-03-22
-- **Status:** Accepted
+- **Status:** Superseded — claude-proxy replaced by Willow (containerized Claude Code subscription). See [2026-03-31-routing-redesign-v2-simplified](2026-03-31-routing-redesign-v2-simplified.md)
 - **Repos/Services affected:** `claude-proxy` (new), `homelab-ai/llm-router/config/providers.yaml`
 - **Related:**
   - [2026-03-15-claude-code-local-routing-optimization.md](2026-03-15-claude-code-local-routing-optimization.md)

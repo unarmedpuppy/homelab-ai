@@ -1,7 +1,7 @@
 # Complexity-Based Auto-Routing for LLM Router
 
 - **Date:** 2026-02-18
-- **Status:** Accepted
+- **Status:** Superseded by [2026-03-31-routing-redesign-v2-simplified](2026-03-31-routing-redesign-v2-simplified.md)
 - **Authors:** Joshua Jenquist
 - **Impacted Repos/Services:** homelab-ai (LLM router)
 - **Supersedes:** Routing logic section of [Local-First AI with Cloud Failover](2025-12-29-local-first-ai-with-cloud-failover.md)
