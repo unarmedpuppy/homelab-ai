@@ -144,7 +144,8 @@ OpenAI-compatible API that routes to multiple backends:
 **Key files**:
 - `router.py` - Main FastAPI application
 - `providers/` - Backend implementations
-- `routers/anthropic.py` - Anthropic Messages API compatibility layer
+- `routers/anthropic.py` - Anthropic Messages API router (thin glue — imports from bridge/)
+- `bridge/` - Standalone Anthropic↔OpenAI translation module (zero router deps)
 - `tools/` - Agent endpoint tools
 
 **Anthropic Compatibility (`/v1/messages`)**:
@@ -347,6 +348,14 @@ Agent-discoverable workflow guides in `agents/skills/`:
 | [local-ai-router-metrics.md](agents/reference/local-ai-router-metrics.md) | Metrics and memory system |
 | [local-ai-implementation-details.md](agents/reference/local-ai-implementation-details.md) | Implementation details |
 | [local-ai-architecture-audit.md](agents/reference/local-ai-architecture-audit.md) | Architecture audit |
+
+## Reference Documentation
+
+| Document | Purpose |
+|----------|---------|
+| [claude-code-local-routing.md](docs/claude-code-local-routing.md) | End-to-end reference: Claude Code → llm-router → vLLM. Request lifecycle, format translation, tool calling, streaming, grove agent flow |
+| [ADR: Tool Use Translation](docs/adrs/2026-02-27-anthropic-proxy-tool-use-translation.md) | Decision + format mapping for tool use translation |
+| [ADR: Claude Code Routing Optimization](docs/adrs/2026-03-15-claude-code-local-routing-optimization.md) | Attribution header, sampling defaults, context window sizing |
 
 ## Related Repositories
 
