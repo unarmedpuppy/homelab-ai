@@ -107,9 +107,15 @@ async def update_span(
     output_summary: Optional[str],
     status: str,
     end_time: str,
+    input_json: Optional[str] = None,
 ) -> None:
+    """Update the most recent in-progress span for this session+tool.
+
+    If no in-progress span exists (e.g. PostToolUse arrived without a prior
+    PreToolUse, as happens with grove agents), insert a completed span directly.
+    """
     async with aiosqlite.connect(db_path) as db:
-        await db.execute(
+        cursor = await db.execute(
             """
             UPDATE trace_spans
             SET output_summary = ?, status = ?, end_time = ?
@@ -122,6 +128,23 @@ async def update_span(
             """,
             (output_summary, status, end_time, session_id, tool_name),
         )
+        if cursor.rowcount == 0:
+            # No in-progress span — insert a completed one directly
+            span_id = str(uuid.uuid4())
+            await db.execute(
+                """
+                INSERT INTO trace_spans
+                    (span_id, session_id, tool_name, event_type, input_json,
+                     output_summary, start_time, end_time, status)
+                VALUES (?, ?, ?, 'PostToolUse', ?, ?, ?, ?, ?)
+                """,
+                (span_id, session_id, tool_name, input_json, output_summary,
+                 end_time, end_time, status),
+            )
+            await db.execute(
+                "UPDATE trace_sessions SET span_count = span_count + 1 WHERE session_id = ?",
+                (session_id,),
+            )
         await db.commit()
 
 

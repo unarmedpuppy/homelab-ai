@@ -79,6 +79,21 @@ export function AgentDetailPanel({ agent, onClose }: AgentDetailPanelProps) {
           </div>
         </div>
 
+        {/* Profile metadata — model + version */}
+        {!isCLI && (agent.health.profile?.model || agent.health.version) && (
+          <div className="flex items-center gap-4 mb-3 text-xs text-[var(--retro-text-muted)]">
+            {agent.health.profile?.model && (
+              <span className="font-mono">{agent.health.profile.model}</span>
+            )}
+            {agent.health.version && (
+              <span>grove <span className="font-mono text-[var(--retro-accent-cyan)]">v{agent.health.version}</span></span>
+            )}
+            {agent.health.profile?.role && (
+              <span className="truncate">{agent.health.profile.role}</span>
+            )}
+          </div>
+        )}
+
         {/* Offline Banner - only for server agents */}
         {!isCLI && !isOnline && (
           <div className="mb-3 p-2 bg-[rgba(255,200,100,0.1)] border border-[var(--retro-accent-yellow)] rounded text-xs text-[var(--retro-accent-yellow)]">

@@ -5,6 +5,12 @@
 export type AgentType = 'server' | 'cli';
 export type AgentStatus = 'online' | 'offline' | 'degraded' | 'unknown';
 
+export interface AgentProfile {
+  role: string | null;
+  model: string | null;
+  permissions: string | null;
+}
+
 export interface AgentHealth {
   status: AgentStatus;
   last_check: string | null;
@@ -13,6 +19,7 @@ export interface AgentHealth {
   consecutive_failures: number;
   error: string | null;
   version: string | null;
+  profile: AgentProfile | null;
 }
 
 export interface Agent {

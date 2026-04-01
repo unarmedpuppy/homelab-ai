@@ -884,6 +884,7 @@ async def ingest_trace_event(
         elif event_type == "PostToolUse" and payload.tool_name:
             response_str = payload.tool_response or ""
             summary = _truncate(response_str if isinstance(response_str, str) else json.dumps(response_str), _OUTPUT_MAX)
+            input_str = _truncate(json.dumps(payload.tool_input or {}), _INPUT_MAX) if payload.tool_input else None
             await trace_db.update_span(
                 db_path=TRACES_DB_PATH,
                 session_id=session_id,
@@ -891,6 +892,7 @@ async def ingest_trace_event(
                 output_summary=summary,
                 status="completed",
                 end_time=now,
+                input_json=input_str,
             )
 
         elif event_type == "PostToolUseFailure" and payload.tool_name:

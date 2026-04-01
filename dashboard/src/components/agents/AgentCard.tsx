@@ -167,9 +167,16 @@ function ServerAgentCard({ agent, onForceCheck, isChecking, onClick }: AgentCard
           </div>
         </div>
 
-        {health.version && (
-          <div className="text-xs text-[var(--retro-text-muted)] mb-3">
-            Version: <span className="font-mono text-[var(--retro-accent-cyan)]">{health.version}</span>
+        {(health.version || health.profile?.model) && (
+          <div className="flex items-center gap-3 text-xs text-[var(--retro-text-muted)] mb-3">
+            {health.version && (
+              <span>v<span className="font-mono text-[var(--retro-accent-cyan)]">{health.version}</span></span>
+            )}
+            {health.profile?.model && (
+              <span className="font-mono text-[var(--retro-text-muted)] truncate" title={health.profile.model}>
+                {health.profile.model}
+              </span>
+            )}
           </div>
         )}
 
