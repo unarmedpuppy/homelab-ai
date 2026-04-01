@@ -353,10 +353,12 @@ Agent-discoverable workflow guides in `agents/skills/`:
 
 | Document | Purpose |
 |----------|---------|
-| [claude-code-local-routing.md](docs/claude-code-local-routing.md) | End-to-end reference: Claude Code → llm-router → vLLM. Request lifecycle, format translation, tool calling, streaming, grove agent flow |
+| [claude-code-local-routing.md](docs/claude-code-local-routing.md) | Full system reference: Claude Code → llm-router → vLLM, two-layer fallback architecture, grove circuit breaker, grove-proxy, format translation, tool calling, streaming |
+| [grove-proxy-architecture.md](docs/grove-proxy-architecture.md) | grove-proxy design, host deployment, Ollama on 3070, bootstrap-safe fallback ops |
 | [ADR: Tool Use Translation](docs/adrs/2026-02-27-anthropic-proxy-tool-use-translation.md) | Decision + format mapping for tool use translation |
 | [ADR: Claude Code Routing Optimization](docs/adrs/2026-03-15-claude-code-local-routing-optimization.md) | Attribution header, sampling defaults, context window sizing |
 
 ## Related Repositories
 
 - **home-server**: Can optionally reference this repo for deployment, but homelab-ai is now self-contained with docker-compose files
+- **grove-proxy** (`homelab/grove-proxy`): Bootstrap-safe Anthropic→Ollama fallback proxy — runs as host systemd service on server, independent of Docker stack
