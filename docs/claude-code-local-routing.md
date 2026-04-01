@@ -8,40 +8,84 @@ Covers the full request lifecycle, format translation, tool calling, streaming, 
 ## System Overview
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                     Mac Mini / Dev Machine                      │
-│                                                                 │
-│  ┌──────────────┐   Anthropic format    ┌─────────────────────┐ │
-│  │  Claude Code │ ─────────────────────▶│                     │ │
-│  │  (CLI)       │◀─────────────────────│   llm-router        │ │
-│  └──────────────┘   Anthropic format    │   /v1/messages      │ │
-│                                         │   (FastAPI)         │ │
-│  ┌──────────────┐                       │                     │ │
-│  │  grove serve │                       │   bridge/           │ │
-│  │  (oak:8014)  │──spawns──▶ Claude     │   translate.py      │ │
-│  │  (ash:8019)  │            Code       │   stream.py         │ │
-│  └──────────────┘                       └──────────┬──────────┘ │
-│                                                     │           │
-└─────────────────────────────────────────────────────┼───────────┘
-                                    OpenAI format      │
-                                    ┌──────────────────┘
-                                    │
-                    ┌───────────────▼──────────────────┐
-                    │         ProviderManager            │
-                    │         (routing chain)            │
-                    └───────┬───────────────┬───────────┘
-                            │               │
-               Primary      │               │  Fallback
-                            ▼               ▼
-              ┌─────────────────┐   ┌──────────────────┐
-              │  Gaming PC      │   │  Z.ai (cloud)    │
-              │  vLLM           │   │  GLM-5           │
-              │  qwen3-32b-awq  │   │                  │
-              │  2× RTX 3090    │   │                  │
-              └─────────────────┘   └──────────────────┘
+╔══════════════════════════════════════════════════════════════════╗
+║                       Mac Mini                                   ║
+║                                                                  ║
+║  ┌──────────────┐  Anthropic fmt   ┌──────────────────────────┐  ║
+║  │  Claude Code │ ────────────────▶│  llm-router (Docker)     │  ║
+║  │  (CLI)       │◀────────────────│  /v1/messages            │  ║
+║  └──────────────┘  Anthropic fmt   │  bridge/ (translate)     │  ║
+║                                    └────────────┬─────────────┘  ║
+║  ┌──────────────┐                               │ OpenAI fmt     ║
+║  │ grove serve  │  spawns                       │                ║
+║  │ oak   :8014  │──────────▶ Claude Code        │                ║
+║  │ ash   :8019  │            (ANTHROPIC_BASE_URL)│                ║
+║  └──────────────┘                               │                ║
+║                    ┌──── circuit breaker ────┐  │                ║
+║                    │ primary healthy?        │  │                ║
+║                    │   yes → llm-router URL  │  │                ║
+║                    │   no  → grove-proxy URL │  │                ║
+║                    └─────────────────────────┘  │                ║
+╚════════════════════════════════════════════════╪═════════════════╝
+                                                 │
+           ┌─────────────────────────────────────┘
+           ▼
+╔══════════════════════════════════════════════════════════════════╗
+║                       Home Server                                ║
+║                                                                  ║
+║  ┌─────────────────────────────────┐   ┌──────────────────────┐  ║
+║  │  llm-router (Docker)            │   │  grove serve (host)  │  ║
+║  │  local-ai-api.server.*  :80/443 │   │  elm   :8018         │  ║
+║  │  ProviderManager                │   │                      │  ║
+║  │    primary → gaming-pc-3090     │   │  ANTHROPIC_BASE_URL  │  ║
+║  │    fallback → Z.ai (cloud)      │   │  = llm-router        │  ║
+║  └────────────────┬────────────────┘   │                      │  ║
+║                   │ OpenAI fmt         │  ANTHROPIC_FALLBACK   │  ║
+║  ┌────────────────┘                   │  _BASE_URL           │  ║
+║  │ [DOWN? circuit breaker trips]       │  = grove-proxy       │  ║
+║  │                                     └──────────┬───────────┘  ║
+║  ▼                                                │              ║
+║  ┌──────────────────────────────────────────────┐ │ fallback     ║
+║  │  grove-proxy (host systemd) :9117            │◀┘ path        ║
+║  │  Anthropic fmt in → OpenAI fmt out           │               ║
+║  │  bridge/ (same translation module)           │               ║
+║  └──────────────────┬───────────────────────────┘               ║
+║                     │ OpenAI fmt                                  ║
+║  ┌──────────────────▼───────────────────────────┐               ║
+║  │  Ollama (host systemd) :11434                │               ║
+║  │  qwen2.5:7b-instruct-q4_K_M                  │               ║
+║  │  RTX 3070 (8GB VRAM, ~4.5GB used)            │               ║
+║  └──────────────────────────────────────────────┘               ║
+╚══════════════════════════════════════════════════════════════════╝
+           │
+           │ OpenAI fmt (primary path, via llm-router)
+           ▼
+╔══════════════════════════════════════════════════════════════════╗
+║                       Gaming PC                                  ║
+║                                                                  ║
+║  ┌──────────────────────────────────────────────┐               ║
+║  │  vLLM                                        │               ║
+║  │  qwen3-32b-awq                               │               ║
+║  │  2× RTX 3090 (48GB VRAM total)               │               ║
+║  │  --enable-auto-tool-choice                   │               ║
+║  │  --tool-call-parser hermes                   │               ║
+║  └──────────────────────────────────────────────┘               ║
+╚══════════════════════════════════════════════════════════════════╝
+                        │ (if gaming PC down)
+                        ▼
+                 ┌──────────────┐
+                 │  Z.ai cloud  │
+                 │  GLM-5       │
+                 │  (last resort│
+                 │   before 503)│
+                 └──────────────┘
 ```
 
-Claude Code speaks only Anthropic's API format. vLLM (and every open-source inference server) speaks OpenAI format. The llm-router's `bridge/` module is the translation layer between them — it has zero dependencies on the router itself and can be used anywhere.
+Claude Code speaks only Anthropic's API format. vLLM (and every open-source inference server) speaks OpenAI format. The `bridge/` module is the translation layer between them — extracted from llm-router, zero dependencies, copyable anywhere (grove-proxy uses the same code).
+
+The system has two distinct fallback layers at different levels:
+- **llm-router level**: gaming PC 3090 → Z.ai → 503 (handles model unavailability)
+- **grove agent level**: llm-router → grove-proxy+Ollama (handles llm-router itself being down)
 
 ---
 
@@ -394,6 +438,133 @@ Cloud-specific field stripping happens after provider selection — if the selec
 
 ---
 
+## Inference Resilience — Bootstrap-Safe Fallback
+
+### The Bootstrap Problem
+
+Grove agents depend on llm-router for inference. Elm is the server sysadmin agent. If llm-router goes down on the server:
+
+- Elm tries to process a job → calls `collect_stream()` → spawns Claude Code subprocess
+- Claude Code subprocess hits `ANTHROPIC_BASE_URL` (llm-router) → connection refused
+- Elm cannot reason → cannot diagnose or restart the container it depends on
+
+This is a hard circular dependency. The fix lives at two levels.
+
+### Level 1 — Grove Circuit Breaker (`serve/claude.py`)
+
+Before spawning each Claude Code subprocess, grove calls `_choose_base_url()`:
+
+```
+_choose_base_url()
+    │
+    ├── ANTHROPIC_FALLBACK_BASE_URL not set?
+    │       └── return ANTHROPIC_BASE_URL unchanged (no overhead)
+    │
+    ├── probe cache fresh? (< check_interval seconds old)
+    │       └── return cached result (primary or fallback URL)
+    │
+    └── probe cache stale → async GET primary_url/health (2s timeout)
+            ├── 200-4xx → primary healthy → cache, return primary URL
+            └── 5xx / connection error → primary unhealthy → cache, return fallback URL
+                    → logs: "[claude] primary inference URL unreachable — switching to fallback"
+```
+
+Recovery is automatic: the probe runs every `check_interval` seconds. When primary comes back healthy, the next probe switches back and logs the recovery.
+
+State is module-level within the grove serve process — one circuit breaker per agent. Concurrent job requests share the cached health state via `asyncio.Lock`.
+
+### Level 2 — grove-proxy + Ollama (bootstrap-safe infrastructure)
+
+The fallback URL points to `grove-proxy`, a minimal FastAPI service running as a **host systemd service** — not in Docker. It uses the same `bridge/` translation module as llm-router.
+
+```
+grove agent (Elm)
+    │  ANTHROPIC_FALLBACK_BASE_URL = http://localhost:9117/v1
+    ▼
+grove-proxy (host systemd, :9117)
+    │  translate_request()   Anthropic → OpenAI
+    ▼
+Ollama (host systemd, :11434)
+    │  qwen2.5:7b-instruct-q4_K_M on RTX 3070
+    ▼
+grove-proxy
+    │  translate_response() / translate_stream()   OpenAI → Anthropic
+    ▼
+grove agent — receives Anthropic-format response, session continues
+```
+
+**Why host systemd, not Docker**: grove-proxy and Ollama must survive Docker stack failures, CI deploy restarts, and compose errors. Running them outside Docker means they're only affected by host-level failures (kernel panic, hard reboot) — in which case no agent can work anyway.
+
+### Model tradeoff
+
+The fallback model (`qwen2.5:7b-instruct-q4_K_M`, 4-bit, ~4.5GB VRAM) is significantly less capable than the primary (`qwen3-32b-awq`). This is intentional — the fallback is for **recovery tasks**, not general agentic work:
+
+| | Primary (qwen3-32b) | Fallback (qwen2.5-7b) |
+|---|---|---|
+| VRAM | 48GB (2× 3090) | 4.5GB (3070) |
+| Reasoning | Excellent | Good |
+| Tool calling | Strong | Adequate |
+| Best for | All tasks | Docker ops, log inspection, restarts |
+| Throughput | ~60 tok/s | ~30 tok/s |
+
+When the fallback activates, Elm can still: check container status, read logs, restart services, diagnose basic issues, and restore the primary stack.
+
+### Diagnostics
+
+```bash
+# Check active inference URL and health
+curl http://localhost:8018/v1/agent/inference
+
+# Response:
+{
+  "primary_url": "https://local-ai-api.server.unarmedpuppy.com/v1",
+  "fallback_url": "http://localhost:9117/v1",
+  "active_url": "http://localhost:9117/v1",   # ← on fallback
+  "primary_healthy": false,
+  "last_probe_ago_seconds": 18,
+  "check_interval_seconds": 30,
+  "primary_reachable_now": false,
+  "fallback_reachable_now": true
+}
+```
+
+### Configuration
+
+**grove agent `.env`** (server agents):
+```bash
+ANTHROPIC_BASE_URL=https://local-ai-api.server.unarmedpuppy.com/v1
+ANTHROPIC_FALLBACK_BASE_URL=http://localhost:9117/v1
+GROVE_FALLBACK_CHECK_INTERVAL=30    # optional, default 30s
+```
+
+**`~/.grove/config.toml`** (alternative to env vars):
+```toml
+[serve]
+fallback_base_url = "http://localhost:9117/v1"
+fallback_check_interval = 30
+```
+
+Env vars override config. If `ANTHROPIC_FALLBACK_BASE_URL` is not set, the circuit breaker is completely inactive — no overhead for agents that don't need it.
+
+**grove-proxy** (`/etc/systemd/system/grove-proxy.service`):
+```ini
+[Service]
+ExecStart=/opt/grove-proxy/venv/bin/uvicorn proxy:app --host 127.0.0.1 --port 9117
+Environment=OLLAMA_BASE_URL=http://localhost:11434
+Environment=OLLAMA_MODEL=qwen2.5:7b-instruct-q4_K_M
+```
+
+**Ollama** is installed as a host service via `curl -fsSL https://ollama.ai/install.sh | sh`.
+
+### grove-proxy repo
+
+Source: `homelab/grove-proxy` on Gitea
+Install: `bash install.sh` (creates venv, installs service, pulls Ollama model)
+Update: `bash update.sh` (git pull + restart)
+Health: `curl http://localhost:9117/health`
+
+---
+
 ## Auth
 
 The llm-router accepts two auth formats from the Anthropic SDK:
@@ -544,6 +715,7 @@ If routing ever shifts back to Anthropic's API directly, caching would work nati
 | Images in tool messages | Split into follow-up user message | Works but non-standard |
 | Cache token fields | Always zero | Claude Code token counter is accurate but shows no savings |
 | Birch grove migration | Pending | Gaming PC agent not yet on grove serve |
+| grove-proxy + Ollama on server | Pending install | bootstrap fallback configured in code, not yet on server |
 
 ---
 
@@ -567,13 +739,25 @@ export ANTHROPIC_API_KEY="<llm-router-api-key>"   # not an Anthropic key
 }
 ```
 
-### grove agent .env
+### grove agent .env (Mac Mini — oak, ash)
 
 ```bash
-ANTHROPIC_BASE_URL=https://homelab-ai-api.server.unarmedpuppy.com
+ANTHROPIC_BASE_URL=https://local-ai-api.server.unarmedpuppy.com/v1
 ANTHROPIC_API_KEY=<llm-router-key>
-GROVE_AGENT=oak                    # or ash, elm, etc.
+GROVE_AGENT=oak
 GROVE_HOME=/Users/aijenquist/.grove
+GROVE_TRACES_URL=https://dashboard-api.server.unarmedpuppy.com
+```
+
+### grove agent .env (Home Server — elm)
+
+```bash
+ANTHROPIC_BASE_URL=https://local-ai-api.server.unarmedpuppy.com/v1
+ANTHROPIC_FALLBACK_BASE_URL=http://localhost:9117/v1   # grove-proxy
+ANTHROPIC_API_KEY=<llm-router-key>
+GROVE_AGENT=elm
+GROVE_HOME=/home/josh/.grove
+GROVE_TRACES_URL=https://dashboard-api.server.unarmedpuppy.com
 ```
 
 ### vLLM launch flags (gaming PC)
@@ -598,3 +782,5 @@ vllm serve qwen3-32b-awq \
 | [ADR: Claude Code Routing Optimization (2026-03-15)](adrs/2026-03-15-claude-code-local-routing-optimization.md) | Attribution header, sampling defaults, context window |
 | [ADR: Anthropic Proxy Initial (2026-02-26)](adrs/2026-02-26-anthropic-compatible-proxy.md) | Original proxy implementation decision |
 | [llm-router/bridge/](../llm-router/bridge/) | The translation module — read the source for exact behavior |
+| [grove-proxy-architecture.md](grove-proxy-architecture.md) | grove-proxy design, deployment, and ops |
+| [ADR: grove bootstrap-safe fallback](../../home-server/docs/adrs/2026-03-31-grove-bootstrap-safe-llm-fallback.md) | Decision record: why grove-proxy+Ollama over API key or OAuth |
