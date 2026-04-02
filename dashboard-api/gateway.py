@@ -388,26 +388,30 @@ async def get_agent_sessions(
     try:
         async with httpx.AsyncClient(timeout=30) as client:
             response = await client.get(
-                f"{agent.endpoint}/v1/sessions",
+                f"{agent.endpoint}/v1/traces",
                 params={"limit": limit, "offset": offset},
             )
 
             if response.status_code == 200:
                 data = response.json()
-                sessions = [
-                    SessionInfo(
-                        id=s.get("id", ""),
-                        started_at=s.get("started_at", ""),
-                        ended_at=s.get("ended_at"),
-                        duration_seconds=s.get("duration_seconds"),
-                        status=s.get("status", "unknown"),
+                sessions = []
+                for s in data.get("sessions", []):
+                    start = s.get("start_time") or 0
+                    end = s.get("end_time")
+                    dur = int(end - start) if end and start else None
+                    inp = s.get("input_tokens") or 0
+                    out = s.get("output_tokens") or 0
+                    sessions.append(SessionInfo(
+                        id=s.get("session_id", ""),
+                        started_at=__import__("datetime").datetime.utcfromtimestamp(start).isoformat() + "Z" if start else "",
+                        ended_at=__import__("datetime").datetime.utcfromtimestamp(end).isoformat() + "Z" if end else None,
+                        duration_seconds=dur,
+                        status="completed" if end else "running",
                         task_id=s.get("task_id"),
                         task_title=s.get("task_title"),
-                        turns=s.get("turns", 0),
-                        tokens_used=s.get("tokens_used"),
-                    )
-                    for s in data.get("sessions", [])
-                ]
+                        turns=s.get("num_turns") or 0,
+                        tokens_used=(inp + out) if (inp or out) else None,
+                    ))
                 return SessionsResponse(
                     sessions=sessions,
                     total=data.get("total", len(sessions)),
