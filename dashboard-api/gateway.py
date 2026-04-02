@@ -954,81 +954,156 @@ async def list_trace_sessions(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
 ):
-    """List recorded sessions with optional filters."""
-    rows = await trace_db.query_sessions(
-        db_path=TRACES_DB_PATH,
-        machine_id=machine_id,
-        agent_label=agent_label,
-        interactive=interactive,
-        from_time=from_time,
-        to_time=to_time,
-        limit=limit,
-        offset=offset,
-    )
-    return [
-        TraceSession(
-            session_id=r["session_id"],
-            machine_id=r["machine_id"],
-            agent_label=r["agent_label"],
-            interactive=bool(r["interactive"]),
-            model=r.get("model"),
-            cwd=r.get("cwd"),
-            start_time=r["start_time"],
-            end_time=r.get("end_time"),
-            span_count=r.get("span_count", 0),
-        )
-        for r in rows
-    ]
+    """List sessions aggregated from all online agents' /v1/traces endpoints."""
+    import asyncio as _asyncio
+    from datetime import datetime as _dt
+
+    def _ts(val) -> Optional[str]:
+        if val is None:
+            return None
+        try:
+            return _dt.utcfromtimestamp(float(val)).isoformat() + "Z"
+        except Exception:
+            return str(val)
+
+    async def _fetch_agent(agent) -> list[TraceSession]:
+        try:
+            async with httpx.AsyncClient(timeout=5) as client:
+                resp = await client.get(f"{agent.endpoint}/v1/traces", params={"limit": limit})
+                if resp.status_code != 200:
+                    return []
+                data = resp.json()
+                return [
+                    TraceSession(
+                        session_id=s.get("session_id", ""),
+                        machine_id=s.get("machine_id", agent.id),
+                        agent_label=s.get("agent_name", agent.id),
+                        interactive=bool(s.get("interactive", True)),
+                        model=s.get("model"),
+                        cwd=s.get("cwd"),
+                        start_time=_ts(s.get("start_time")) or "",
+                        end_time=_ts(s.get("end_time")),
+                        span_count=s.get("span_count", 0),
+                    )
+                    for s in data.get("sessions", [])
+                ]
+        except Exception:
+            return []
+
+    if not health_monitor:
+        return []
+
+    online_agents = [a for a in health_monitor.get_all_agents() if a.health.status == AgentStatus.ONLINE]
+    results = await _asyncio.gather(*[_fetch_agent(a) for a in online_agents])
+    sessions = [s for agent_sessions in results for s in agent_sessions]
+    sessions.sort(key=lambda s: s.start_time, reverse=True)
+    return sessions[offset: offset + limit]
 
 
 @app.get("/traces/stats", response_model=TraceStatsResponse)
 async def get_trace_stats():
-    """Get fleet-wide session statistics."""
-    stats = await trace_db.get_stats(TRACES_DB_PATH)
+    """Get fleet-wide session statistics aggregated from all online agents."""
+    import asyncio as _asyncio
+    from datetime import datetime as _dt
+
+    today = _dt.utcnow().strftime("%Y-%m-%d")
+
+    async def _fetch_stats(agent) -> dict:
+        try:
+            async with httpx.AsyncClient(timeout=5) as client:
+                resp = await client.get(f"{agent.endpoint}/v1/traces/stats")
+                if resp.status_code != 200:
+                    return {}
+                return resp.json()
+        except Exception:
+            return {}
+
+    if not health_monitor:
+        return TraceStatsResponse()
+
+    online_agents = [a for a in health_monitor.get_all_agents() if a.health.status == AgentStatus.ONLINE]
+    results = await _asyncio.gather(*[_fetch_stats(a) for a in online_agents])
+
+    active = 0
+    today_count = 0
+    by_machine_day: dict[tuple, int] = {}
+    for agent, stats in zip(online_agents, results):
+        active += stats.get("active_sessions", 0)
+        by_day = stats.get("sessions_by_day", {})
+        today_count += by_day.get(today, 0)
+        for day, cnt in by_day.items():
+            key = (agent.id, day)
+            by_machine_day[key] = by_machine_day.get(key, 0) + cnt
+
     return TraceStatsResponse(
         by_machine_day=[
-            {"machine_id": d["machine_id"], "day": d["day"], "count": d["count"]}
-            for d in stats["by_machine_day"]
+            TraceMachineDay(machine_id=mid, day=day, count=cnt)
+            for (mid, day), cnt in sorted(by_machine_day.items(), key=lambda x: x[0][1], reverse=True)
         ],
-        active_sessions=stats["active_sessions"],
-        sessions_today=stats["sessions_today"],
+        active_sessions=active,
+        sessions_today=today_count,
     )
 
 
 @app.get("/traces/{session_id}", response_model=TraceSessionDetail)
 async def get_trace_session(session_id: str):
-    """Get a session with all its spans."""
-    detail = await trace_db.get_session_detail(TRACES_DB_PATH, session_id)
+    """Get a session with all its spans — fans out to online agents to find it."""
+    import asyncio as _asyncio
+    from datetime import datetime as _dt
+    from models import TraceSpan
+
+    def _ts(val) -> Optional[str]:
+        if val is None:
+            return None
+        try:
+            return _dt.utcfromtimestamp(float(val)).isoformat() + "Z"
+        except Exception:
+            return str(val)
+
+    async def _fetch_from(agent) -> Optional[dict]:
+        try:
+            async with httpx.AsyncClient(timeout=5) as client:
+                resp = await client.get(f"{agent.endpoint}/v1/traces/{session_id}")
+                if resp.status_code == 200:
+                    return resp.json()
+        except Exception:
+            pass
+        return None
+
+    if not health_monitor:
+        raise HTTPException(status_code=503, detail="Health monitor not initialized")
+
+    online_agents = [a for a in health_monitor.get_all_agents() if a.health.status == AgentStatus.ONLINE]
+    results = await _asyncio.gather(*[_fetch_from(a) for a in online_agents])
+    detail = next((r for r in results if r), None)
+
     if not detail:
         raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
 
-    from models import TraceSpan
     return TraceSessionDetail(
-        session_id=detail["session_id"],
-        machine_id=detail["machine_id"],
-        agent_label=detail["agent_label"],
-        interactive=bool(detail["interactive"]),
+        session_id=detail.get("session_id", session_id),
+        machine_id=detail.get("machine_id", "unknown"),
+        agent_label=detail.get("agent_name", "unknown"),
+        interactive=bool(detail.get("interactive", True)),
         model=detail.get("model"),
         cwd=detail.get("cwd"),
-        start_time=detail["start_time"],
-        end_time=detail.get("end_time"),
-        span_count=detail.get("span_count", 0),
+        start_time=_ts(detail.get("start_time")) or "",
+        end_time=_ts(detail.get("end_time")),
+        span_count=len(detail.get("spans", [])),
         spans=[
             TraceSpan(
-                span_id=s["span_id"],
-                session_id=s["session_id"],
+                span_id=s.get("span_id", ""),
+                session_id=session_id,
                 parent_span_id=s.get("parent_span_id"),
-                tool_name=s["tool_name"],
-                event_type=s["event_type"],
+                tool_name=s.get("tool_name", "unknown"),
+                event_type=s.get("event_type", "tool_use"),
                 input_json=s.get("input_json"),
                 output_summary=s.get("output_summary"),
-                status=s["status"],
-                start_time=s["start_time"],
-                end_time=s.get("end_time"),
-                agent_id=s.get("agent_id"),
-                agent_transcript_path=s.get("agent_transcript_path"),
+                status=s.get("status", "ok"),
+                start_time=_ts(s.get("start_time")) or "",
+                end_time=_ts(s.get("end_time")),
             )
-            for s in detail["spans"]
+            for s in detail.get("spans", [])
         ],
     )
 
