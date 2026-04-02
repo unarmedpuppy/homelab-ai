@@ -12,6 +12,7 @@ COPY *.py .
 COPY routers/ ./routers/
 COPY providers/ ./providers/
 COPY tools/ ./tools/
+COPY bridge/ ./bridge/
 COPY config/ ./config/
 COPY scripts/ ./scripts/
 COPY alembic/ ./alembic/
