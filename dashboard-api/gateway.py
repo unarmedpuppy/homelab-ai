@@ -1112,26 +1112,58 @@ async def get_trace_session(session_id: str):
 async def get_session_transcript(session_id: str):
     """Read the Claude Code JSONL session file and return conversation messages.
 
-    Only available for sessions whose JSONL file is on the mounted claude-sessions volume.
-    Returns 404 for sessions from other machines.
+    First checks the locally mounted claude-sessions volume. If not found, fans out to
+    online agents' /v1/traces/{session_id}/transcript endpoints.
     """
+    import asyncio as _asyncio
     from pathlib import Path
 
     projects_dir = Path(CLAUDE_SESSIONS_PATH) / "projects"
-    if not projects_dir.exists():
-        raise HTTPException(status_code=404, detail="Transcripts not available (volume not mounted)")
-
-    # Scan all project dirs for the session JSONL
     jsonl_file = None
-    for project_dir in projects_dir.iterdir():
-        if not project_dir.is_dir():
-            continue
-        candidate = project_dir / f"{session_id}.jsonl"
-        if candidate.exists():
-            jsonl_file = candidate
-            break
+    if projects_dir.exists():
+        for project_dir in projects_dir.iterdir():
+            if not project_dir.is_dir():
+                continue
+            candidate = project_dir / f"{session_id}.jsonl"
+            if candidate.exists():
+                jsonl_file = candidate
+                break
 
+    # If not found locally, fan out to agents
     if not jsonl_file:
+        online_agents = [a for a in health_monitor.get_all_agents() if a.health.status == AgentStatus.ONLINE]
+
+        async def _fetch_transcript(agent):
+            try:
+                async with httpx.AsyncClient(timeout=5) as client:
+                    resp = await client.get(f"{agent.endpoint}/v1/traces/{session_id}/transcript")
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        # Normalize grove serve format → dashboard-api format
+                        normalized = []
+                        for msg in data.get("messages", []):
+                            text = msg.get("content") or msg.get("text", "")
+                            normalized.append({
+                                "role": msg.get("role", ""),
+                                "text": text,
+                                "tool_calls": msg.get("tool_calls", []),
+                                "timestamp": msg.get("timestamp"),
+                            })
+                        return {
+                            "session_id": session_id,
+                            "slug": data.get("slug"),
+                            "messages": normalized,
+                            "truncated": data.get("truncated", False),
+                        }
+            except Exception:
+                pass
+            return None
+
+        results = await _asyncio.gather(*[_fetch_transcript(a) for a in online_agents])
+        for result in results:
+            if result is not None:
+                return result
+
         raise HTTPException(status_code=404, detail="Transcript not found for this session")
 
     messages = []
