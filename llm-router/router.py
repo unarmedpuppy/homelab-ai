@@ -323,15 +323,19 @@ async def route_request(request: Request, body: dict, priority: int = 1, api_key
             requested_model = "glm-5"
             logger.info("Gaming mode ON: routing to GLM-5 (cloud)")
         elif estimated_tokens > 0:
-            # Context gate: if estimated input exceeds the primary model's context window,
-            # skip the 3090 and go directly to Z.ai (GLM-5, 205K context).
+            # Context gate: if estimated input + max_tokens exceeds the primary model's
+            # context window, skip the 3090 and route to Z.ai (GLM-5, 205K context).
+            # vLLM rejects requests where input + max_tokens > max_model_len with a 400.
             primary_model = provider_manager.models.get(DEFAULT_3090_MODEL)
             context_window = primary_model.context_window if primary_model else 0
-            if context_window > 0 and estimated_tokens > context_window:
+            max_tokens = body.get("max_tokens", 4096)
+            total_required = estimated_tokens + max_tokens
+            if context_window > 0 and total_required > context_window:
                 requested_model = "glm-5"
                 logger.info(
-                    f"Context gate: {estimated_tokens} tokens > {DEFAULT_3090_MODEL} "
-                    f"window ({context_window}), routing to GLM-5 (cloud)"
+                    f"Context gate: {estimated_tokens} input + {max_tokens} max_tokens "
+                    f"= {total_required} > {DEFAULT_3090_MODEL} window ({context_window}), "
+                    f"routing to GLM-5 (cloud)"
                 )
         # else: leave as "auto" — ProviderManager._select_auto() handles
         # priority-based provider selection (3090 first, Z.ai fallback)
