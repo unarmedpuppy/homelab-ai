@@ -143,6 +143,38 @@ async def get_docs_repos():
     return data
 
 
+@router.get("/apps/repos")
+async def get_apps_repos():
+    """List all repos in the Gitea org with metadata."""
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        resp = await client.get(
+            f"{GITEA_URL}/api/v1/orgs/{GITEA_ORG}/repos",
+            headers=_gitea_headers(),
+            params={"limit": 50},
+        )
+        if resp.status_code != 200:
+            logger.error(f"Gitea repos list failed: {resp.status_code}")
+            raise HTTPException(status_code=502, detail="Failed to fetch repos from Gitea")
+
+        repos = resp.json()
+        return [
+            {
+                "name": r["name"],
+                "description": r.get("description") or "",
+                "html_url": r.get("html_url", f"{GITEA_URL}/{GITEA_ORG}/{r['name']}"),
+                "updated_at": r.get("updated"),
+                "stars": r.get("stars_count", 0),
+                "forks": r.get("forks_count", 0),
+                "language": r.get("language") or "",
+                "private": r.get("private", False),
+                "open_issues": r.get("open_issues_count", 0),
+                "topics": r.get("topics") or [],
+                "default_branch": r.get("default_branch", "main"),
+            }
+            for r in repos
+        ]
+
+
 @router.get("/content/{repo}/{path:path}")
 async def get_doc_content(repo: str, path: str):
     """Return raw markdown content for a single ADR."""

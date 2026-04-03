@@ -1009,6 +1009,28 @@ export const jobsAPI = {
   },
 };
 
+// Apps API - Gitea repos in the homelab org
+export interface GiteaRepo {
+  name: string;
+  description: string;
+  html_url: string;
+  updated_at: string | null;
+  stars: number;
+  forks: number;
+  language: string;
+  private: boolean;
+  open_issues: number;
+  topics: string[];
+  default_branch: string;
+}
+
+export const appsAPI = {
+  listRepos: async (): Promise<GiteaRepo[]> => {
+    const response = await apiClient.get<GiteaRepo[]>('/docs/apps/repos');
+    return response.data;
+  },
+};
+
 // Knowledge base API (agent-memory repo via innie fleet-gateway)
 export interface KnowledgeFile {
   path: string;

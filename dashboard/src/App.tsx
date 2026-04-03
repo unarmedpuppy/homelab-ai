@@ -50,6 +50,7 @@ const DocsPage = lazy(() => import('./pages/DocsPage'));
 const KnowledgePage = lazy(() => import('./pages/KnowledgePage'));
 const CommandPage = lazy(() => import('./command/CommandPage'));
 const SessionsPage = lazy(() => import('./pages/SessionsPage'));
+const AppsPage = lazy(() => import('./pages/AppsPage'));
 
 // Clean pages (lazy)
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -58,7 +59,7 @@ const GettingStartedPage = lazy(() => import('./pages/reference/GettingStartedPa
 const TroubleshootingPage = lazy(() => import('./pages/reference/TroubleshootingPage'));
 const SummaryPage = lazy(() => import('./pages/SummaryPage'));
 
-type ViewName = 'chat' | 'tasks' | 'roots' | 'providers' | 'stats' | 'agents' | 'models' | 'trading' | 'docs' | 'command' | 'sessions' | 'knowledge';
+type ViewName = 'chat' | 'tasks' | 'roots' | 'providers' | 'stats' | 'agents' | 'models' | 'trading' | 'docs' | 'command' | 'sessions' | 'knowledge' | 'apps';
 
 function AppHeader() {
   return (
@@ -154,6 +155,13 @@ const NAV_ICONS: Record<string, ReactNode> = {
       <circle cx="11" cy="12" r="1.5"/>
     </svg>
   ),
+  apps: (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 1h6.5L12 3.5V14H3V1z"/>
+      <path d="M9.5 1v3H12"/>
+      <path d="M5.5 6.5h4M5.5 8.5h4M5.5 10.5h2.5"/>
+    </svg>
+  ),
 };
 
 function AppNavigation({ currentView }: { currentView: ViewName }) {
@@ -167,6 +175,7 @@ function AppNavigation({ currentView }: { currentView: ViewName }) {
     { to: '/models', view: 'models', iconKey: 'models', label: 'Models' },
     { to: '/sessions', view: 'sessions', iconKey: 'sessions', label: 'Sessions' },
     { to: '/trading', view: 'trading', iconKey: 'trading', label: 'Trading' },
+    { to: '/apps', view: 'apps', iconKey: 'apps', label: 'Apps' },
     { to: '/knowledge', view: 'knowledge', iconKey: 'knowledge', label: 'Knowledge' },
     { to: '/docs', view: 'docs', iconKey: 'docs', label: 'Docs' },
     { to: '/command', view: 'command', iconKey: 'command', label: 'Command' },
@@ -528,6 +537,18 @@ function KnowledgeView() {
   );
 }
 
+function AppsView() {
+  return (
+    <AppLayout currentView="apps">
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoading section="Apps" />}>
+          <AppsPage />
+        </Suspense>
+      </ErrorBoundary>
+    </AppLayout>
+  );
+}
+
 function CommandView() {
   return (
     <AppLayout currentView="command">
@@ -580,6 +601,7 @@ function App() {
       <Route path="/models" element={<ModelsView />} />
       <Route path="/sessions" element={<SessionsView />} />
       <Route path="/trading" element={<TradingView />} />
+      <Route path="/apps" element={<AppsView />} />
       <Route path="/knowledge" element={<KnowledgeView />} />
       <Route path="/docs" element={<DocsView />} />
       <Route path="/docs/:repo/:slug" element={<DocsView />} />
