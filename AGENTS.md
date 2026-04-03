@@ -185,6 +185,8 @@ React dashboard with retro/pixel-art "command center" UI for AI infrastructure m
 |-------|------|-------------|
 | `/` | Chat | Streaming chat with provider selection, TTS toggle, image upload |
 | `/chat/:conversationId` | Chat | Resume existing conversation |
+| `/tasks` | Tasks | Kanban board for Tasks API (OPEN/IN_PROGRESS/BLOCKED/CLOSED) |
+| `/roots` | Roots | Fleet-wide `g roots` workstream view (reads Tasks API metadata) |
 | `/providers` | Providers | Provider health monitoring and utilization |
 | `/stats` | Stats | Activity heatmap, model usage charts |
 | `/agents` | Agents | Agent run history and logs |
