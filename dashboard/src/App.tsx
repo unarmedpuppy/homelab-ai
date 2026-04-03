@@ -43,6 +43,7 @@ const ProviderMonitoring = lazy(() => import('./components/ProviderMonitoring'))
 const TasksDashboard = lazy(() => import('./components/tasks/TasksDashboard'));
 const AgentsDashboard = lazy(() => import('./components/agents/AgentsDashboard'));
 
+const RootsDashboard = lazy(() => import('./components/roots/RootsDashboard'));
 const ModelGardenDashboard = lazy(() => import('./components/models/ModelGardenDashboard'));
 const TradingDashboard = lazy(() => import('./components/trading/TradingDashboard'));
 const DocsPage = lazy(() => import('./pages/DocsPage'));
@@ -57,7 +58,7 @@ const GettingStartedPage = lazy(() => import('./pages/reference/GettingStartedPa
 const TroubleshootingPage = lazy(() => import('./pages/reference/TroubleshootingPage'));
 const SummaryPage = lazy(() => import('./pages/SummaryPage'));
 
-type ViewName = 'chat' | 'tasks' | 'providers' | 'stats' | 'agents' | 'models' | 'trading' | 'docs' | 'command' | 'sessions' | 'knowledge';
+type ViewName = 'chat' | 'tasks' | 'roots' | 'providers' | 'stats' | 'agents' | 'models' | 'trading' | 'docs' | 'command' | 'sessions' | 'knowledge';
 
 function AppHeader() {
   return (
@@ -143,12 +144,23 @@ const NAV_ICONS: Record<string, ReactNode> = {
       <path d="M13 2H8.5C7.5 2 7 2.5 7 3.5V13c0-1 .5-1.5 1.5-1.5H13V2z"/>
     </svg>
   ),
+  roots: (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="7.5" cy="2.5" r="1.5"/>
+      <path d="M7.5 4v3"/>
+      <path d="M7.5 7L4 10.5"/>
+      <path d="M7.5 7L11 10.5"/>
+      <circle cx="4" cy="12" r="1.5"/>
+      <circle cx="11" cy="12" r="1.5"/>
+    </svg>
+  ),
 };
 
 function AppNavigation({ currentView }: { currentView: ViewName }) {
   const navItems: { to: string; view: ViewName; iconKey: string; label: string }[] = [
     { to: '/chat', view: 'chat', iconKey: 'chat', label: 'Chat' },
     { to: '/tasks', view: 'tasks', iconKey: 'tasks', label: 'Tasks' },
+    { to: '/roots', view: 'roots', iconKey: 'roots', label: 'Roots' },
     { to: '/providers', view: 'providers', iconKey: 'providers', label: 'Providers' },
     { to: '/stats', view: 'stats', iconKey: 'stats', label: 'Stats' },
     { to: '/agents', view: 'agents', iconKey: 'agents', label: 'Agents' },
@@ -407,6 +419,18 @@ function TasksView() {
   );
 }
 
+function RootsView() {
+  return (
+    <AppLayout currentView="roots">
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoading section="Roots" />}>
+          <RootsDashboard />
+        </Suspense>
+      </ErrorBoundary>
+    </AppLayout>
+  );
+}
+
 function ProvidersView() {
   return (
     <AppLayout currentView="providers" scrollable withContainer>
@@ -549,6 +573,7 @@ function App() {
       <Route path="/chat" element={<ChatView />} />
       <Route path="/chat/:conversationId" element={<ChatView />} />
       <Route path="/tasks" element={<TasksView />} />
+      <Route path="/roots" element={<RootsView />} />
       <Route path="/providers" element={<ProvidersView />} />
       <Route path="/stats" element={<StatsView />} />
       <Route path="/agents" element={<AgentsView />} />
