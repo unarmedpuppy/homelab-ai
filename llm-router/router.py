@@ -248,7 +248,7 @@ def estimate_tokens(messages: list) -> int:
     return total
 
 
-async def route_request(request: Request, body: dict, priority: int = 1, api_key=None) -> ProviderSelection:
+async def route_request(request: Request, body: dict, priority: int = 1, api_key=None, estimated_tokens: int = 0) -> ProviderSelection:
     """
     Route request to the best provider and model.
 
@@ -322,6 +322,17 @@ async def route_request(request: Request, body: dict, priority: int = 1, api_key
         if gaming_mode_on:
             requested_model = "glm-5"
             logger.info("Gaming mode ON: routing to GLM-5 (cloud)")
+        elif estimated_tokens > 0:
+            # Context gate: if estimated input exceeds the primary model's context window,
+            # skip the 3090 and go directly to Z.ai (GLM-5, 205K context).
+            primary_model = provider_manager.models.get(DEFAULT_3090_MODEL)
+            context_window = primary_model.context_window if primary_model else 0
+            if context_window > 0 and estimated_tokens > context_window:
+                requested_model = "glm-5"
+                logger.info(
+                    f"Context gate: {estimated_tokens} tokens > {DEFAULT_3090_MODEL} "
+                    f"window ({context_window}), routing to GLM-5 (cloud)"
+                )
         # else: leave as "auto" — ProviderManager._select_auto() handles
         # priority-based provider selection (3090 first, Z.ai fallback)
 

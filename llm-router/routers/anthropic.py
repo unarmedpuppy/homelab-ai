@@ -109,7 +109,8 @@ async def messages(
 
     oai_body = translate_request(body)
     priority = get_request_priority(api_key)
-    selection = await route_request(request, oai_body, priority=priority, api_key=api_key)
+    estimated_tokens = count_message_tokens(body)
+    selection = await route_request(request, oai_body, priority=priority, api_key=api_key, estimated_tokens=estimated_tokens)
     oai_body["model"] = selection.model.id
 
     # Strip vLLM-specific fields when routing to cloud backends — Z.ai and
@@ -128,15 +129,13 @@ async def messages(
     request_headers = build_request_headers(selection.provider)
 
     if is_stream:
-        input_tokens = count_message_tokens(body)
-
         async with provider_manager.track_request(selection.provider.id):
             def _on_stream_failure():
                 provider_manager.record_inference_failure(selection.provider.id)
 
             async def stream_gen():
                 async for chunk in translate_stream(
-                    endpoint_url, request_headers, oai_body, original_model, input_tokens,
+                    endpoint_url, request_headers, oai_body, original_model, estimated_tokens,
                     on_failure=_on_stream_failure,
                 ):
                     yield chunk
