@@ -191,6 +191,9 @@ React dashboard with retro/pixel-art "command center" UI for AI infrastructure m
 | `/stats` | Stats | Activity heatmap, model usage charts |
 | `/agents` | Agents | Agent run history and logs |
 | `/sessions` | Sessions | Claude Code session traces — tool calls, spans, transcripts |
+| `/apps` | Apps | App launcher |
+| `/knowledge` | Knowledge | Knowledge wiki |
+| `/docs` | Docs | Reference documentation |
 | `/command` | Command | AoE2-style agent command interface (Phaser 3 isometric map) |
 
 **Command page** (`src/command/`) — lazy-loaded Phaser 3 game embedded in the dashboard:

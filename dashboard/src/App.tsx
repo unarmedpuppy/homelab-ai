@@ -45,7 +45,6 @@ const AgentsDashboard = lazy(() => import('./components/agents/AgentsDashboard')
 
 const RootsDashboard = lazy(() => import('./components/roots/RootsDashboard'));
 const ModelGardenDashboard = lazy(() => import('./components/models/ModelGardenDashboard'));
-const TradingDashboard = lazy(() => import('./components/trading/TradingDashboard'));
 const DocsPage = lazy(() => import('./pages/DocsPage'));
 const KnowledgePage = lazy(() => import('./pages/KnowledgePage'));
 const CommandPage = lazy(() => import('./command/CommandPage'));
@@ -59,7 +58,7 @@ const GettingStartedPage = lazy(() => import('./pages/reference/GettingStartedPa
 const TroubleshootingPage = lazy(() => import('./pages/reference/TroubleshootingPage'));
 const SummaryPage = lazy(() => import('./pages/SummaryPage'));
 
-type ViewName = 'chat' | 'tasks' | 'roots' | 'providers' | 'stats' | 'agents' | 'models' | 'trading' | 'docs' | 'command' | 'sessions' | 'knowledge' | 'apps';
+type ViewName = 'chat' | 'tasks' | 'roots' | 'providers' | 'stats' | 'agents' | 'models' | 'docs' | 'command' | 'sessions' | 'knowledge' | 'apps';
 
 function AppHeader() {
   return (
@@ -115,12 +114,6 @@ const NAV_ICONS: Record<string, ReactNode> = {
       <path d="M8.5 1L4 8H8.5L5.5 14.5 12.5 7H8L8.5 1z"/>
     </svg>
   ),
-  trading: (
-    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M1.5 12L5 8l3 3 5.5-7"/>
-      <path d="M10.5 4H14v3.5"/>
-    </svg>
-  ),
   docs: (
     <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M3 1h6.5L12 3.5V14H3V1z"/>
@@ -174,7 +167,6 @@ function AppNavigation({ currentView }: { currentView: ViewName }) {
     { to: '/agents', view: 'agents', iconKey: 'agents', label: 'Agents' },
     { to: '/models', view: 'models', iconKey: 'models', label: 'Models' },
     { to: '/sessions', view: 'sessions', iconKey: 'sessions', label: 'Sessions' },
-    { to: '/trading', view: 'trading', iconKey: 'trading', label: 'Trading' },
     { to: '/apps', view: 'apps', iconKey: 'apps', label: 'Apps' },
     { to: '/knowledge', view: 'knowledge', iconKey: 'knowledge', label: 'Knowledge' },
     { to: '/docs', view: 'docs', iconKey: 'docs', label: 'Docs' },
@@ -501,18 +493,6 @@ function SessionsView() {
   );
 }
 
-function TradingView() {
-  return (
-    <AppLayout currentView="trading">
-      <ErrorBoundary>
-        <Suspense fallback={<PageLoading section="Trading" />}>
-          <TradingDashboard />
-        </Suspense>
-      </ErrorBoundary>
-    </AppLayout>
-  );
-}
-
 function DocsView() {
   return (
     <AppLayout currentView="docs">
@@ -600,7 +580,6 @@ function App() {
       <Route path="/agents" element={<AgentsView />} />
       <Route path="/models" element={<ModelsView />} />
       <Route path="/sessions" element={<SessionsView />} />
-      <Route path="/trading" element={<TradingView />} />
       <Route path="/apps" element={<AppsView />} />
       <Route path="/knowledge" element={<KnowledgeView />} />
       <Route path="/docs" element={<DocsView />} />
