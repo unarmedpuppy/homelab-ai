@@ -10,10 +10,11 @@ services:
   llm-manager:
     image: ${HARBOR_REGISTRY:-harbor.local}/library/llm-manager:latest
     container_name: llm-manager
-    restart: unless-stopped
+    restart: always
     ports:
       - "8000:8000"
     environment:
+      - PYTHONUNBUFFERED=1
       - MODE=always-on
       - DEFAULT_MODEL=qwen3-32b-awq
       - GAMING_MODE_ENABLED=true
@@ -26,7 +27,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - huggingface-cache:/root/.cache/huggingface
-      - local-models:/models
+      - /mnt/c/models/quantized:/models
       - ./llm-manager/models.json:/app/models.json:ro
     networks:
       - ai-network
@@ -131,8 +132,6 @@ networks:
 
 volumes:
   huggingface-cache:
-    external: true
-  local-models:
     external: true
   gguf-models:
     external: true

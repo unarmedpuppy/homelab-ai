@@ -1,4 +1,5 @@
 """Local AI Router - Intelligent routing to multiple LLM backends."""
+
 import os
 import json
 import logging
@@ -7,7 +8,15 @@ import httpx
 import tiktoken
 from pathlib import Path
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, HTTPException, Depends, BackgroundTasks, UploadFile, File
+from fastapi import (
+    FastAPI,
+    Request,
+    HTTPException,
+    Depends,
+    BackgroundTasks,
+    UploadFile,
+    File,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, FileResponse, JSONResponse, Response
 from pydantic import BaseModel
@@ -18,8 +27,18 @@ from agent import AgentRequest, AgentResponse, run_agent_loop, AGENT_TOOLS
 from auth import ApiKey, validate_api_key_header, get_request_priority
 from dependencies import get_request_tracker, log_chat_completion, RequestTracker
 from memory import generate_conversation_id
-from providers import ProviderManager, HealthChecker, ProviderSelection, build_chat_completions_url, build_request_headers
-from stream import stream_chat_completion, stream_chat_completion_passthrough, StreamAccumulator
+from providers import (
+    ProviderManager,
+    HealthChecker,
+    ProviderSelection,
+    build_chat_completions_url,
+    build_request_headers,
+)
+from stream import (
+    stream_chat_completion,
+    stream_chat_completion_passthrough,
+    StreamAccumulator,
+)
 from complexity import is_agent_request
 import prometheus_metrics as prom
 from routers.docs import router as docs_router
@@ -56,8 +75,10 @@ async def lifespan(app: FastAPI):
 
     try:
         provider_manager = ProviderManager(config_path=str(config_path))
-        logger.info(f"Loaded {len(provider_manager.providers)} providers, "
-                   f"{len(provider_manager.get_all_models())} models")
+        logger.info(
+            f"Loaded {len(provider_manager.providers)} providers, "
+            f"{len(provider_manager.get_all_models())} models"
+        )
 
         # Start health checker
         health_checker = HealthChecker(provider_manager, check_interval=30)
@@ -95,7 +116,7 @@ app = FastAPI(
     title="Local AI Router",
     description="OpenAI-compatible API router for multi-backend LLM inference",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Enable CORS for dashboard access
@@ -105,7 +126,7 @@ app.add_middleware(
         "https://homelab-ai.server.unarmedpuppy.com",
         "https://local-ai-dashboard.server.unarmedpuppy.com",  # Legacy alias
         "http://localhost:5173",  # Vite dev server
-        "http://localhost:3000",   # Common dev port
+        "http://localhost:3000",  # Common dev port
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -121,17 +142,24 @@ app.include_router(willow_router)
 
 # Configuration from environment
 GAMING_PC_URL = os.getenv("GAMING_PC_URL", "http://gaming-pc.local:8000")
-GAMING_PC_POLL_INTERVAL = int(os.getenv("GAMING_PC_POLL_INTERVAL", "30"))   # seconds
-GAMING_PC_STALE_THRESHOLD = int(os.getenv("GAMING_PC_STALE_THRESHOLD", "180"))  # seconds (6 missed polls)
+GAMING_PC_POLL_INTERVAL = int(os.getenv("GAMING_PC_POLL_INTERVAL", "30"))  # seconds
+GAMING_PC_STALE_THRESHOLD = int(
+    os.getenv("GAMING_PC_STALE_THRESHOLD", "180")
+)  # seconds (6 missed polls)
 LOCAL_3070_URL = os.getenv("LOCAL_3070_URL", "http://llm-manager:8000")
 TTS_ENDPOINT = os.getenv("TTS_ENDPOINT", GAMING_PC_URL)  # TTS runs on Gaming PC
-DEFAULT_3090_MODEL = os.getenv("DEFAULT_3090_MODEL", "qwen3-32b-awq")  # Default model for 3090 routing
+DEFAULT_3090_MODEL = os.getenv(
+    "DEFAULT_3090_MODEL", "qwopus3.5-27b-v3"
+)  # Default model for 3090 routing
 
 # Dynamic context capping: agent requests get reduced context to allow concurrency
-AGENT_CONTEXT_CAP = int(os.getenv("AGENT_CONTEXT_CAP", "16384"))  # 16K for agent requests
+AGENT_CONTEXT_CAP = int(
+    os.getenv("AGENT_CONTEXT_CAP", "16384")
+)  # 16K for agent requests
 
 # Tiktoken tokenizer (lazy loaded)
 _tokenizer = None
+
 
 def get_tokenizer():
     """Get or initialize tiktoken tokenizer (cl100k_base for GPT-4/Claude compatibility)."""
@@ -139,6 +167,7 @@ def get_tokenizer():
     if _tokenizer is None:
         _tokenizer = tiktoken.get_encoding("cl100k_base")
     return _tokenizer
+
 
 # Model aliases for routing
 MODEL_ALIASES = {
@@ -160,9 +189,9 @@ MODEL_ALIASES = {
 }
 
 
-
 class GamingModeStatus(BaseModel):
     """Gaming mode status from Windows PC (llm-manager /status response)."""
+
     model_config = {"extra": "ignore"}  # Ignore extra fields from llm-manager
 
     mode: str = "always-on"
@@ -180,6 +209,7 @@ class GamingModeStatus(BaseModel):
 
 class HealthResponse(BaseModel):
     """Health check response."""
+
     status: str
     backends: dict
     gaming_mode: Optional[bool] = None
@@ -224,7 +254,9 @@ async def _poll_gaming_pc_status() -> None:
 
 async def _gaming_status_poller() -> None:
     """Background task: keep gaming PC status cache fresh."""
-    logger.info(f"Gaming PC status poller started (interval={GAMING_PC_POLL_INTERVAL}s, url={GAMING_PC_URL})")
+    logger.info(
+        f"Gaming PC status poller started (interval={GAMING_PC_POLL_INTERVAL}s, url={GAMING_PC_URL})"
+    )
     await _poll_gaming_pc_status()  # warm cache immediately on startup
     while True:
         await asyncio.sleep(GAMING_PC_POLL_INTERVAL)
@@ -248,7 +280,13 @@ def estimate_tokens(messages: list) -> int:
     return total
 
 
-async def route_request(request: Request, body: dict, priority: int = 1, api_key=None, estimated_tokens: int = 0) -> ProviderSelection:
+async def route_request(
+    request: Request,
+    body: dict,
+    priority: int = 1,
+    api_key=None,
+    estimated_tokens: int = 0,
+) -> ProviderSelection:
     """
     Route request to the best provider and model.
 
@@ -273,26 +311,41 @@ async def route_request(request: Request, body: dict, priority: int = 1, api_key
     if header_provider:
         provider = provider_manager.get_provider(header_provider)
         if not provider:
-            raise HTTPException(status_code=400, detail=f"Unknown provider: {header_provider}")
+            raise HTTPException(
+                status_code=400, detail=f"Unknown provider: {header_provider}"
+            )
         if not provider.enabled:
-            raise HTTPException(status_code=503, detail=f"Provider '{header_provider}' is disabled")
+            raise HTTPException(
+                status_code=503, detail=f"Provider '{header_provider}' is disabled"
+            )
 
         if header_model:
             model = provider_manager.get_model(header_model)
             if not model or model.provider_id != header_provider:
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Model '{header_model}' not available on provider '{header_provider}'"
+                    detail=f"Model '{header_model}' not available on provider '{header_provider}'",
                 )
         else:
-            provider_models = [m for m in provider_manager.get_all_models() if m.provider_id == header_provider]
-            model = next((m for m in provider_models if m.is_default), provider_models[0] if provider_models else None)
+            provider_models = [
+                m
+                for m in provider_manager.get_all_models()
+                if m.provider_id == header_provider
+            ]
+            model = next(
+                (m for m in provider_models if m.is_default),
+                provider_models[0] if provider_models else None,
+            )
             if not model:
-                raise HTTPException(status_code=400, detail=f"No models configured for provider '{header_provider}'")
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"No models configured for provider '{header_provider}'",
+                )
 
         logger.info(f"Header routing: X-Provider={header_provider}, X-Model={model.id}")
         return ProviderSelection(
-            provider=provider, model=model,
+            provider=provider,
+            model=model,
             reason=f"Explicit header: X-Provider={header_provider}, X-Model={model.id}",
         )
 
@@ -350,7 +403,9 @@ async def route_request(request: Request, body: dict, priority: int = 1, api_key
         )
 
         if not selection:
-            raise ValueError(f"No healthy provider available for model '{requested_model}'")
+            raise ValueError(
+                f"No healthy provider available for model '{requested_model}'"
+            )
 
         logger.info(
             f"Routed to '{selection.provider.name}' / '{selection.model.id}' "
@@ -361,7 +416,9 @@ async def route_request(request: Request, body: dict, priority: int = 1, api_key
     except (ValueError, Exception) as e:
         if not is_auto:
             logger.error(f"Routing error: {e}")
-            raise HTTPException(status_code=503, detail=f"Failed to route request: {str(e)}")
+            raise HTTPException(
+                status_code=503, detail=f"Failed to route request: {str(e)}"
+            )
 
         # Auto mode: explicit fallback to Z.ai (glm-5)
         logger.warning(f"Primary auto route failed ({e}), falling back to Z.ai...")
@@ -398,8 +455,8 @@ async def root():
             "memory": "/memory/*",
             "metrics": "/metrics/*",
             "rag": "/rag/*",
-            "docs": "/docs"
-        }
+            "docs": "/docs",
+        },
     }
 
 
@@ -408,28 +465,204 @@ async def get_services():
     """Return homelab service definitions for dashboard and iOS app."""
     return {
         "services": [
-            {"id": "plex", "name": "Movies & TV", "appName": "Plex", "url": "https://plex.server.unarmedpuppy.com", "category": "media", "icon": "film", "description": "Watch movies and TV shows"},
-            {"id": "overseerr", "name": "Request Media", "appName": "Overseerr", "url": "https://overseerr.server.unarmedpuppy.com", "category": "media", "icon": "plus.circle", "description": "Request new movies and shows"},
-            {"id": "mealie", "name": "Recipes", "appName": "Mealie", "url": "https://recipes.server.unarmedpuppy.com", "category": "home", "icon": "fork.knife", "description": "Meal planning and recipes"},
-            {"id": "homeassistant", "name": "Smart Home", "appName": "Home Assistant", "url": "https://homeassistant.server.unarmedpuppy.com", "category": "home", "icon": "house", "description": "Lights, automations, and more"},
-            {"id": "frigate", "name": "Security Cameras", "appName": "Frigate", "url": "https://frigate.server.unarmedpuppy.com", "category": "home", "icon": "video", "description": "Live feeds and motion detection"},
-            {"id": "immich", "name": "Photos", "appName": "Immich", "url": "https://photos.server.unarmedpuppy.com", "category": "docs", "icon": "photo", "description": "Photo backup and browsing"},
-            {"id": "paperless", "name": "Documents", "appName": "Paperless", "url": "https://paperless.server.unarmedpuppy.com", "category": "docs", "icon": "doc.text", "description": "Scanned document management"},
-            {"id": "jellyfin", "name": "Jellyfin", "appName": "Jellyfin", "url": "https://jellyfin.server.unarmedpuppy.com", "category": "media", "icon": "play.tv", "description": "Media streaming server"},
-            {"id": "kavita", "name": "Kavita", "appName": "Kavita", "url": "https://kavita.server.unarmedpuppy.com", "category": "media", "icon": "books.vertical", "description": "Ebook and comic reader"},
-            {"id": "sonarr", "name": "Sonarr", "appName": "Sonarr", "url": "https://sonarr.server.unarmedpuppy.com", "category": "media", "icon": "tv", "description": "TV show collection manager"},
-            {"id": "radarr", "name": "Radarr", "appName": "Radarr", "url": "https://radarr.server.unarmedpuppy.com", "category": "media", "icon": "film", "description": "Movie collection manager"},
-            {"id": "lidarr", "name": "Lidarr", "appName": "Lidarr", "url": "https://lidarr.server.unarmedpuppy.com", "category": "media", "icon": "music.note.list", "description": "Music collection manager"},
-            {"id": "spotdl", "name": "SpotDL", "appName": "SpotDL", "url": "https://spotifydl.server.unarmedpuppy.com", "category": "media", "icon": "arrow.down.circle", "description": "Spotify downloader"},
-            {"id": "metube", "name": "MeTube", "appName": "MeTube", "url": "https://metube.server.unarmedpuppy.com", "category": "media", "icon": "arrow.down.circle", "description": "YouTube downloader"},
-            {"id": "vaultwarden", "name": "Passwords", "appName": "Vaultwarden", "url": "https://vaultwarden.server.unarmedpuppy.com", "category": "productivity", "icon": "lock.shield", "description": "Password manager"},
-            {"id": "excalidraw", "name": "Excalidraw", "appName": "Excalidraw", "url": "https://excalidraw.server.unarmedpuppy.com", "category": "productivity", "icon": "scribble", "description": "Collaborative whiteboard"},
-            {"id": "maptapdat", "name": "MaptapDat", "appName": "MaptapDat", "url": "https://maptapdat.server.unarmedpuppy.com", "category": "productivity", "icon": "chart.bar", "description": "Maptap score analytics"},
-            {"id": "ai-chat", "name": "AI Chat", "appName": "homelab-ai", "url": "/chat", "category": "ai", "icon": "brain", "description": "Chat with AI models"},
-            {"id": "gitea", "name": "Gitea", "appName": "Gitea", "url": "https://gitea.server.unarmedpuppy.com", "category": "productivity", "icon": "chevron.left.forwardslash.chevron.right", "description": "Self-hosted git repos"},
-            {"id": "pokedex", "name": "Pokédex", "appName": "Pokedex", "url": "https://pokedex.server.unarmedpuppy.com", "category": "productivity", "icon": "sparkles", "description": "Pokémon reference database"},
-            {"id": "grafana", "name": "Grafana", "appName": "Grafana", "url": "https://grafana.server.unarmedpuppy.com", "category": "monitoring", "icon": "chart.line.uptrend.xyaxis", "description": "Metrics and dashboards"},
-            {"id": "uptime-kuma", "name": "Uptime Kuma", "appName": "Uptime Kuma", "url": "https://uptime.server.unarmedpuppy.com", "category": "monitoring", "icon": "checkmark.circle", "description": "Service uptime monitoring"},
+            {
+                "id": "plex",
+                "name": "Movies & TV",
+                "appName": "Plex",
+                "url": "https://plex.server.unarmedpuppy.com",
+                "category": "media",
+                "icon": "film",
+                "description": "Watch movies and TV shows",
+            },
+            {
+                "id": "overseerr",
+                "name": "Request Media",
+                "appName": "Overseerr",
+                "url": "https://overseerr.server.unarmedpuppy.com",
+                "category": "media",
+                "icon": "plus.circle",
+                "description": "Request new movies and shows",
+            },
+            {
+                "id": "mealie",
+                "name": "Recipes",
+                "appName": "Mealie",
+                "url": "https://recipes.server.unarmedpuppy.com",
+                "category": "home",
+                "icon": "fork.knife",
+                "description": "Meal planning and recipes",
+            },
+            {
+                "id": "homeassistant",
+                "name": "Smart Home",
+                "appName": "Home Assistant",
+                "url": "https://homeassistant.server.unarmedpuppy.com",
+                "category": "home",
+                "icon": "house",
+                "description": "Lights, automations, and more",
+            },
+            {
+                "id": "frigate",
+                "name": "Security Cameras",
+                "appName": "Frigate",
+                "url": "https://frigate.server.unarmedpuppy.com",
+                "category": "home",
+                "icon": "video",
+                "description": "Live feeds and motion detection",
+            },
+            {
+                "id": "immich",
+                "name": "Photos",
+                "appName": "Immich",
+                "url": "https://photos.server.unarmedpuppy.com",
+                "category": "docs",
+                "icon": "photo",
+                "description": "Photo backup and browsing",
+            },
+            {
+                "id": "paperless",
+                "name": "Documents",
+                "appName": "Paperless",
+                "url": "https://paperless.server.unarmedpuppy.com",
+                "category": "docs",
+                "icon": "doc.text",
+                "description": "Scanned document management",
+            },
+            {
+                "id": "jellyfin",
+                "name": "Jellyfin",
+                "appName": "Jellyfin",
+                "url": "https://jellyfin.server.unarmedpuppy.com",
+                "category": "media",
+                "icon": "play.tv",
+                "description": "Media streaming server",
+            },
+            {
+                "id": "kavita",
+                "name": "Kavita",
+                "appName": "Kavita",
+                "url": "https://kavita.server.unarmedpuppy.com",
+                "category": "media",
+                "icon": "books.vertical",
+                "description": "Ebook and comic reader",
+            },
+            {
+                "id": "sonarr",
+                "name": "Sonarr",
+                "appName": "Sonarr",
+                "url": "https://sonarr.server.unarmedpuppy.com",
+                "category": "media",
+                "icon": "tv",
+                "description": "TV show collection manager",
+            },
+            {
+                "id": "radarr",
+                "name": "Radarr",
+                "appName": "Radarr",
+                "url": "https://radarr.server.unarmedpuppy.com",
+                "category": "media",
+                "icon": "film",
+                "description": "Movie collection manager",
+            },
+            {
+                "id": "lidarr",
+                "name": "Lidarr",
+                "appName": "Lidarr",
+                "url": "https://lidarr.server.unarmedpuppy.com",
+                "category": "media",
+                "icon": "music.note.list",
+                "description": "Music collection manager",
+            },
+            {
+                "id": "spotdl",
+                "name": "SpotDL",
+                "appName": "SpotDL",
+                "url": "https://spotifydl.server.unarmedpuppy.com",
+                "category": "media",
+                "icon": "arrow.down.circle",
+                "description": "Spotify downloader",
+            },
+            {
+                "id": "metube",
+                "name": "MeTube",
+                "appName": "MeTube",
+                "url": "https://metube.server.unarmedpuppy.com",
+                "category": "media",
+                "icon": "arrow.down.circle",
+                "description": "YouTube downloader",
+            },
+            {
+                "id": "vaultwarden",
+                "name": "Passwords",
+                "appName": "Vaultwarden",
+                "url": "https://vaultwarden.server.unarmedpuppy.com",
+                "category": "productivity",
+                "icon": "lock.shield",
+                "description": "Password manager",
+            },
+            {
+                "id": "excalidraw",
+                "name": "Excalidraw",
+                "appName": "Excalidraw",
+                "url": "https://excalidraw.server.unarmedpuppy.com",
+                "category": "productivity",
+                "icon": "scribble",
+                "description": "Collaborative whiteboard",
+            },
+            {
+                "id": "maptapdat",
+                "name": "MaptapDat",
+                "appName": "MaptapDat",
+                "url": "https://maptapdat.server.unarmedpuppy.com",
+                "category": "productivity",
+                "icon": "chart.bar",
+                "description": "Maptap score analytics",
+            },
+            {
+                "id": "ai-chat",
+                "name": "AI Chat",
+                "appName": "homelab-ai",
+                "url": "/chat",
+                "category": "ai",
+                "icon": "brain",
+                "description": "Chat with AI models",
+            },
+            {
+                "id": "gitea",
+                "name": "Gitea",
+                "appName": "Gitea",
+                "url": "https://gitea.server.unarmedpuppy.com",
+                "category": "productivity",
+                "icon": "chevron.left.forwardslash.chevron.right",
+                "description": "Self-hosted git repos",
+            },
+            {
+                "id": "pokedex",
+                "name": "Pokédex",
+                "appName": "Pokedex",
+                "url": "https://pokedex.server.unarmedpuppy.com",
+                "category": "productivity",
+                "icon": "sparkles",
+                "description": "Pokémon reference database",
+            },
+            {
+                "id": "grafana",
+                "name": "Grafana",
+                "appName": "Grafana",
+                "url": "https://grafana.server.unarmedpuppy.com",
+                "category": "monitoring",
+                "icon": "chart.line.uptrend.xyaxis",
+                "description": "Metrics and dashboards",
+            },
+            {
+                "id": "uptime-kuma",
+                "name": "Uptime Kuma",
+                "appName": "Uptime Kuma",
+                "url": "https://uptime.server.unarmedpuppy.com",
+                "category": "monitoring",
+                "icon": "checkmark.circle",
+                "description": "Service uptime monitoring",
+            },
         ],
         "categories": [
             {"id": "media", "name": "Media & Entertainment", "order": 1},
@@ -478,12 +711,14 @@ async def register_push_token(req: PushTokenRequest):
         existing["bundle_id"] = req.bundle_id
         existing["platform"] = req.platform
     else:
-        tokens.append({
-            "token": req.token,
-            "platform": req.platform,
-            "device_name": req.device_name,
-            "bundle_id": req.bundle_id,
-        })
+        tokens.append(
+            {
+                "token": req.token,
+                "platform": req.platform,
+                "device_name": req.device_name,
+                "bundle_id": req.bundle_id,
+            }
+        )
     _save_push_tokens(tokens)
     return {"status": "ok", "total_tokens": len(tokens)}
 
@@ -518,55 +753,84 @@ async def get_activity_feed(limit: int = 20, before: Optional[str] = None):
             feed_limit = min(limit, 50)
 
             # Agent runs
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT id, task, status, started_at, completed_at, duration_ms, source, total_steps
                 FROM agent_runs
                 WHERE started_at < ?
                 ORDER BY started_at DESC LIMIT ?
-            """, [cutoff, feed_limit])
+            """,
+                [cutoff, feed_limit],
+            )
             for row in cursor.fetchall():
                 r = dict(row)
-                status_emoji = {"completed": "done", "failed": "error", "running": "active"}.get(r["status"], r["status"])
+                status_emoji = {
+                    "completed": "done",
+                    "failed": "error",
+                    "running": "active",
+                }.get(r["status"], r["status"])
                 task_preview = (r["task"] or "")[:80]
-                items.append({
-                    "id": f"agent-{r['id']}",
-                    "service": "agent",
-                    "icon": "brain",
-                    "title": f"Agent: {task_preview}" if task_preview else "Agent Run",
-                    "description": f"{status_emoji} — {r['total_steps']} steps" + (f" in {r['duration_ms'] // 1000}s" if r.get('duration_ms') else ""),
-                    "timestamp": r["started_at"],
-                    "deepLink": "jenquisthome://service/ai-chat",
-                    "status": r["status"],
-                })
+                items.append(
+                    {
+                        "id": f"agent-{r['id']}",
+                        "service": "agent",
+                        "icon": "brain",
+                        "title": f"Agent: {task_preview}"
+                        if task_preview
+                        else "Agent Run",
+                        "description": f"{status_emoji} — {r['total_steps']} steps"
+                        + (
+                            f" in {r['duration_ms'] // 1000}s"
+                            if r.get("duration_ms")
+                            else ""
+                        ),
+                        "timestamp": r["started_at"],
+                        "deepLink": "jenquisthome://service/ai-chat",
+                        "status": r["status"],
+                    }
+                )
 
             # Harness sessions (Ralph loops, task completions)
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT id, source, event, label, task_title, timestamp, duration_ms, success
                 FROM harness_sessions
                 WHERE timestamp < ? AND event IN ('task_completed', 'task_failed', 'session_completed')
                 ORDER BY timestamp DESC LIMIT ?
-            """, [cutoff, feed_limit])
+            """,
+                [cutoff, feed_limit],
+            )
             for row in cursor.fetchall():
                 r = dict(row)
-                title = r.get("task_title") or r.get("label") or r["event"].replace("_", " ").title()
+                title = (
+                    r.get("task_title")
+                    or r.get("label")
+                    or r["event"].replace("_", " ").title()
+                )
                 source_label = r.get("source", "harness").title()
                 if r["event"] == "task_completed":
                     desc = f"{source_label} completed task"
                 elif r["event"] == "task_failed":
                     desc = f"{source_label} task failed"
                 else:
-                    dur = f" in {r['duration_ms'] // 1000}s" if r.get("duration_ms") else ""
+                    dur = (
+                        f" in {r['duration_ms'] // 1000}s"
+                        if r.get("duration_ms")
+                        else ""
+                    )
                     desc = f"{source_label} session finished{dur}"
-                items.append({
-                    "id": f"harness-{r['id']}",
-                    "service": "agent",
-                    "icon": "terminal",
-                    "title": title,
-                    "description": desc,
-                    "timestamp": r["timestamp"],
-                    "deepLink": "jenquisthome://service/ai-chat",
-                    "status": "completed" if r.get("success", True) else "failed",
-                })
+                items.append(
+                    {
+                        "id": f"harness-{r['id']}",
+                        "service": "agent",
+                        "icon": "terminal",
+                        "title": title,
+                        "description": desc,
+                        "timestamp": r["timestamp"],
+                        "deepLink": "jenquisthome://service/ai-chat",
+                        "status": "completed" if r.get("success", True) else "failed",
+                    }
+                )
 
     except Exception as e:
         logger.warning(f"Activity feed DB error: {e}")
@@ -598,7 +862,9 @@ async def immich_thumbnail(asset_id: str, size: str = "thumbnail"):
             headers={"x-api-key": api_key},
         )
         if resp.status_code != 200:
-            raise HTTPException(status_code=resp.status_code, detail="Thumbnail not found")
+            raise HTTPException(
+                status_code=resp.status_code, detail="Thumbnail not found"
+            )
         content_type = resp.headers.get("content-type", "image/jpeg")
         return Response(content=resp.content, media_type=content_type)
 
@@ -606,7 +872,11 @@ async def immich_thumbnail(asset_id: str, size: str = "thumbnail"):
 @app.get("/api/dashboard")
 async def get_dashboard(feed_limit: int = 20, feed_before: Optional[str] = None):
     """Aggregated dashboard: server health + meal plan + activity feed."""
-    from service_feeds import fetch_frigate_events, fetch_immich_recent, fetch_mealie_today
+    from service_feeds import (
+        fetch_frigate_events,
+        fetch_immich_recent,
+        fetch_mealie_today,
+    )
 
     # Parallel fetch everything
     health_coro = health_check()
@@ -616,7 +886,11 @@ async def get_dashboard(feed_limit: int = 20, feed_before: Optional[str] = None)
     mealie_coro = fetch_mealie_today()
 
     results = await asyncio.gather(
-        health_coro, feed_coro, frigate_coro, immich_coro, mealie_coro,
+        health_coro,
+        feed_coro,
+        frigate_coro,
+        immich_coro,
+        mealie_coro,
         return_exceptions=True,
     )
 
@@ -661,7 +935,12 @@ async def health_check() -> HealthResponse:
     if not provider_manager:
         return HealthResponse(
             status="unhealthy",
-            backends={"error": {"healthy": False, "reason": "Provider manager not initialized"}},
+            backends={
+                "error": {
+                    "healthy": False,
+                    "reason": "Provider manager not initialized",
+                }
+            },
         )
 
     backend_status = {}
@@ -679,8 +958,14 @@ async def health_check() -> HealthResponse:
 
     # Gaming PC status — derive from cache directly so health check is always fast
     gaming_status = await get_gaming_pc_status()
-    cache_age = round(time.time() - _gaming_cache["updated_at"], 1) if _gaming_cache["updated_at"] else None
-    gaming_pc_reachable = _gaming_cache["consecutive_failures"] == 0 and _gaming_cache["updated_at"] > 0
+    cache_age = (
+        round(time.time() - _gaming_cache["updated_at"], 1)
+        if _gaming_cache["updated_at"]
+        else None
+    )
+    gaming_pc_reachable = (
+        _gaming_cache["consecutive_failures"] == 0 and _gaming_cache["updated_at"] > 0
+    )
 
     # Update Prometheus metrics for providers
     for provider_id, status in provider_statuses.items():
@@ -695,7 +980,9 @@ async def health_check() -> HealthResponse:
     queue_info = provider_manager.get_queue_status()
 
     return HealthResponse(
-        status="healthy" if any(s["healthy"] for s in backend_status.values()) else "degraded",
+        status="healthy"
+        if any(s["healthy"] for s in backend_status.values())
+        else "degraded",
         backends=backend_status,
         gaming_mode=gaming_status.gaming_mode if gaming_status else None,
         gaming_pc_reachable=gaming_pc_reachable,
@@ -709,26 +996,24 @@ async def health_check() -> HealthResponse:
 async def prometheus_metrics():
     """
     Prometheus metrics endpoint.
-    
+
     Returns metrics in Prometheus text format for scraping.
     """
     from fastapi.responses import Response
-    
+
     # Update memory metrics
     try:
         from memory import get_conversation_stats
+
         stats = get_conversation_stats()
         prom.update_memory_metrics(
             conversations=stats.get("total_conversations", 0),
-            messages=stats.get("total_messages", 0)
+            messages=stats.get("total_messages", 0),
         )
     except Exception as e:
         logger.warning(f"Failed to update memory metrics: {e}")
-    
-    return Response(
-        content=prom.get_metrics(),
-        media_type=prom.get_content_type()
-    )
+
+    return Response(content=prom.get_metrics(), media_type=prom.get_content_type())
 
 
 @app.get("/providers")
@@ -746,16 +1031,24 @@ async def get_providers():
     providers_list = []
 
     for provider in provider_manager.get_all_providers():
-        providers_list.append({
-            "id": provider.id,
-            "name": provider.name,
-            "type": provider.type.value,
-            "status": "online" if provider.is_healthy else "offline",
-            "priority": provider.priority,
-            "gpu": provider.metadata.get("gpu") if provider.metadata else None,
-            "location": provider.metadata.get("location") if provider.metadata else None,
-            "lastHealthCheck": datetime.fromtimestamp(provider.last_health_check).isoformat() if provider.last_health_check else None,
-        })
+        providers_list.append(
+            {
+                "id": provider.id,
+                "name": provider.name,
+                "type": provider.type.value,
+                "status": "online" if provider.is_healthy else "offline",
+                "priority": provider.priority,
+                "gpu": provider.metadata.get("gpu") if provider.metadata else None,
+                "location": provider.metadata.get("location")
+                if provider.metadata
+                else None,
+                "lastHealthCheck": datetime.fromtimestamp(
+                    provider.last_health_check
+                ).isoformat()
+                if provider.last_health_check
+                else None,
+            }
+        )
 
     return {"providers": providers_list}
 
@@ -805,10 +1098,15 @@ async def list_providers():
             if provider.id in health_status:
                 health_result = health_status[provider.id]
                 from datetime import datetime
+
                 health_info = {
                     "is_healthy": health_result.is_healthy,
                     "response_time_ms": health_result.response_time_ms,
-                    "checked_at": datetime.fromtimestamp(health_result.timestamp).isoformat() if health_result.timestamp else None,
+                    "checked_at": datetime.fromtimestamp(
+                        health_result.timestamp
+                    ).isoformat()
+                    if health_result.timestamp
+                    else None,
                     "error": health_result.error,
                 }
 
@@ -816,39 +1114,51 @@ async def list_providers():
         health_data = {
             "is_healthy": provider.is_healthy,
             "consecutive_failures": provider.consecutive_failures,
-            "response_time_ms": health_info.get("response_time_ms") if health_info else None,
+            "response_time_ms": health_info.get("response_time_ms")
+            if health_info
+            else None,
             "checked_at": health_info.get("checked_at") if health_info else None,
             "error": health_info.get("error") if health_info else None,
         }
 
-        providers_info.append({
-            "id": provider.id,
-            "name": provider.name,
-            "type": provider.type.value,
-            "description": provider.description,
-            "endpoint": provider.endpoint,
-            "priority": provider.priority,
-            "enabled": provider.enabled,
-            "health": health_data,
-            "load": {
-                "current_requests": provider.current_requests,
-                "max_concurrent": provider.max_concurrent,
-                "utilization": round((provider.current_requests / provider.max_concurrent) * 100, 1) if provider.max_concurrent > 0 else 0,
-            },
-            "models": provider_models,
-            "config": {
-                "health_check_interval": provider.health_check_interval,
-                "health_check_timeout": provider.health_check_timeout,
-                "health_check_path": provider.health_check_path,
-                "auth_type": provider.auth_type.value if provider.auth_type else None,
-            },
-            "metadata": provider.metadata,
-        })
+        providers_info.append(
+            {
+                "id": provider.id,
+                "name": provider.name,
+                "type": provider.type.value,
+                "description": provider.description,
+                "endpoint": provider.endpoint,
+                "priority": provider.priority,
+                "enabled": provider.enabled,
+                "health": health_data,
+                "load": {
+                    "current_requests": provider.current_requests,
+                    "max_concurrent": provider.max_concurrent,
+                    "utilization": round(
+                        (provider.current_requests / provider.max_concurrent) * 100, 1
+                    )
+                    if provider.max_concurrent > 0
+                    else 0,
+                },
+                "models": provider_models,
+                "config": {
+                    "health_check_interval": provider.health_check_interval,
+                    "health_check_timeout": provider.health_check_timeout,
+                    "health_check_path": provider.health_check_path,
+                    "auth_type": provider.auth_type.value
+                    if provider.auth_type
+                    else None,
+                },
+                "metadata": provider.metadata,
+            }
+        )
 
     return {
         "providers": providers_info,
         "total_providers": len(providers_info),
-        "healthy_providers": sum(1 for p in providers_info if p["health"]["is_healthy"]),
+        "healthy_providers": sum(
+            1 for p in providers_info if p["health"]["is_healthy"]
+        ),
     }
 
 
@@ -863,23 +1173,27 @@ async def list_models():
     # Add all configured models
     for model in provider_manager.get_all_models():
         provider = provider_manager.get_provider(model.provider_id)
-        models.append({
-            "id": model.id,
-            "object": "model",
-            "owned_by": provider.type.value if provider else "unknown",
-            "created": 0,  # Not tracked
-            "provider": provider.name if provider else "unknown",
-        })
+        models.append(
+            {
+                "id": model.id,
+                "object": "model",
+                "owned_by": provider.type.value if provider else "unknown",
+                "created": 0,  # Not tracked
+                "provider": provider.name if provider else "unknown",
+            }
+        )
 
     # Add routing aliases for backward compatibility
-    models.extend([
-        {"id": "auto", "object": "model", "owned_by": "router"},
-        {"id": "small", "object": "model", "owned_by": "router"},
-        {"id": "fast", "object": "model", "owned_by": "router"},
-        {"id": "medium", "object": "model", "owned_by": "router"},
-        {"id": "big", "object": "model", "owned_by": "router"},
-        {"id": "qwopus", "object": "model", "owned_by": "router"},
-    ])
+    models.extend(
+        [
+            {"id": "auto", "object": "model", "owned_by": "router"},
+            {"id": "small", "object": "model", "owned_by": "router"},
+            {"id": "fast", "object": "model", "owned_by": "router"},
+            {"id": "medium", "object": "model", "owned_by": "router"},
+            {"id": "big", "object": "model", "owned_by": "router"},
+            {"id": "qwopus", "object": "model", "owned_by": "router"},
+        ]
+    )
 
     return {"object": "list", "data": models}
 
@@ -912,16 +1226,18 @@ async def routing_config():
             for m in provider_manager.get_all_models()
             if m.provider_id == p.id
         ]
-        providers.append({
-            "id": p.id,
-            "name": p.name,
-            "type": p.type.value,
-            "enabled": p.enabled,
-            "healthy": p.is_healthy,
-            "explicit_only": p.explicit_only,
-            "priority": p.priority,
-            "models": p_models,
-        })
+        providers.append(
+            {
+                "id": p.id,
+                "name": p.name,
+                "type": p.type.value,
+                "enabled": p.enabled,
+                "healthy": p.is_healthy,
+                "explicit_only": p.explicit_only,
+                "priority": p.priority,
+                "models": p_models,
+            }
+        )
 
     return {
         "providers": providers,
@@ -960,7 +1276,10 @@ async def routing_config():
 # ==========================================================================
 
 # Custom models registry path (alongside providers.yaml)
-_CUSTOM_MODELS_PATH = os.path.join(os.path.dirname(os.getenv("CONFIG_PATH", "/app/config/providers.yaml")), "custom_models.json")
+_CUSTOM_MODELS_PATH = os.path.join(
+    os.path.dirname(os.getenv("CONFIG_PATH", "/app/config/providers.yaml")),
+    "custom_models.json",
+)
 
 
 def _load_custom_models() -> list[dict]:
@@ -1012,7 +1331,10 @@ async def _fetch_manager_status(manager_url: str) -> dict[str, dict]:
                 data = resp.json()
                 result = {}
                 for m in data.get("running", []):
-                    result[m["id"]] = {"status": "running", "idle_seconds": m.get("idle_seconds")}
+                    result[m["id"]] = {
+                        "status": "running",
+                        "idle_seconds": m.get("idle_seconds"),
+                    }
                 for m in data.get("stopped", []):
                     result[m["id"]] = {"status": "stopped", "idle_seconds": None}
                 return result
@@ -1036,7 +1358,9 @@ async def model_garden():
 
     # Parallel fetch
     cache_tasks = {pid: _fetch_manager_cache(url) for pid, url in manager_urls.items()}
-    status_tasks = {pid: _fetch_manager_status(url) for pid, url in manager_urls.items()}
+    status_tasks = {
+        pid: _fetch_manager_status(url) for pid, url in manager_urls.items()
+    }
 
     cache_results = {}
     status_results = {}
@@ -1061,36 +1385,42 @@ async def model_garden():
 
         # Try to find cache match — we don't have hf_model in providers.yaml,
         # so we mark cached as None for cloud/harness providers
-        is_local = provider and provider.type.value == "local" and model.provider_id in manager_urls
+        is_local = (
+            provider
+            and provider.type.value == "local"
+            and model.provider_id in manager_urls
+        )
         cached = None  # unknown for cloud
         cache_size = None
 
-        models.append({
-            "id": model.id,
-            "name": model.name,
-            "provider_id": model.provider_id,
-            "provider_name": provider_name,
-            "description": model.description or "",
-            "type": "text",  # Default; providers.yaml doesn't store type
-            "quantization": None,  # Not in providers.yaml
-            "vram_gb": None,  # Not in providers.yaml
-            "context_window": model.context_window,
-            "max_tokens": model.max_tokens,
-            "capabilities": {
-                "streaming": model.capabilities.streaming,
-                "function_calling": model.capabilities.function_calling,
-                "vision": model.capabilities.vision,
-                "json_mode": model.capabilities.json_mode,
-            },
-            "tags": model.tags,
-            "is_default": model.is_default,
-            "status": status if is_local else "stopped",
-            "cached": cached,
-            "cache_size_gb": cache_size,
-            "idle_seconds": idle_seconds,
-            "source": "huggingface",
-            "is_local": is_local,
-        })
+        models.append(
+            {
+                "id": model.id,
+                "name": model.name,
+                "provider_id": model.provider_id,
+                "provider_name": provider_name,
+                "description": model.description or "",
+                "type": "text",  # Default; providers.yaml doesn't store type
+                "quantization": None,  # Not in providers.yaml
+                "vram_gb": None,  # Not in providers.yaml
+                "context_window": model.context_window,
+                "max_tokens": model.max_tokens,
+                "capabilities": {
+                    "streaming": model.capabilities.streaming,
+                    "function_calling": model.capabilities.function_calling,
+                    "vision": model.capabilities.vision,
+                    "json_mode": model.capabilities.json_mode,
+                },
+                "tags": model.tags,
+                "is_default": model.is_default,
+                "status": status if is_local else "stopped",
+                "cached": cached,
+                "cache_size_gb": cache_size,
+                "idle_seconds": idle_seconds,
+                "source": "huggingface",
+                "is_local": is_local,
+            }
+        )
 
     # Merge custom models
     for custom in _load_custom_models():
@@ -1122,7 +1452,9 @@ async def model_garden_start(model_id: str):
 
     manager_url = _get_manager_url_for_provider(model.provider_id)
     if not manager_url:
-        raise HTTPException(status_code=400, detail=f"No manager for provider: {model.provider_id}")
+        raise HTTPException(
+            status_code=400, detail=f"No manager for provider: {model.provider_id}"
+        )
 
     async with httpx.AsyncClient(timeout=300.0) as client:
         resp = await client.post(f"{manager_url}/start/{model_id}")
@@ -1141,7 +1473,9 @@ async def model_garden_stop(model_id: str):
 
     manager_url = _get_manager_url_for_provider(model.provider_id)
     if not manager_url:
-        raise HTTPException(status_code=400, detail=f"No manager for provider: {model.provider_id}")
+        raise HTTPException(
+            status_code=400, detail=f"No manager for provider: {model.provider_id}"
+        )
 
     async with httpx.AsyncClient(timeout=30.0) as client:
         resp = await client.post(f"{manager_url}/stop/{model_id}")
@@ -1160,7 +1494,9 @@ async def model_garden_prefetch(model_id: str):
 
     manager_url = _get_manager_url_for_provider(model.provider_id)
     if not manager_url:
-        raise HTTPException(status_code=400, detail=f"No manager for provider: {model.provider_id}")
+        raise HTTPException(
+            status_code=400, detail=f"No manager for provider: {model.provider_id}"
+        )
 
     async with httpx.AsyncClient(timeout=30.0) as client:
         resp = await client.post(f"{manager_url}/v1/models/{model_id}/prefetch")
@@ -1197,13 +1533,17 @@ async def register_custom_model(request: Request):
     required = ["id", "name", "type"]
     for field in required:
         if field not in body:
-            raise HTTPException(status_code=400, detail=f"Missing required field: {field}")
+            raise HTTPException(
+                status_code=400, detail=f"Missing required field: {field}"
+            )
 
     models = _load_custom_models()
 
     # Check for duplicate ID
     if any(m["id"] == body["id"] for m in models):
-        raise HTTPException(status_code=409, detail=f"Model already registered: {body['id']}")
+        raise HTTPException(
+            status_code=409, detail=f"Model already registered: {body['id']}"
+        )
 
     # Build model entry with defaults
     entry = {
@@ -1217,7 +1557,15 @@ async def register_custom_model(request: Request):
         "vram_gb": body.get("vram_gb"),
         "context_window": body.get("context_window"),
         "max_tokens": body.get("max_tokens"),
-        "capabilities": body.get("capabilities", {"streaming": True, "function_calling": False, "vision": False, "json_mode": False}),
+        "capabilities": body.get(
+            "capabilities",
+            {
+                "streaming": True,
+                "function_calling": False,
+                "vision": False,
+                "json_mode": False,
+            },
+        ),
         "tags": body.get("tags", []),
         "architecture": body.get("architecture", ""),
         "license": body.get("license", ""),
@@ -1241,7 +1589,9 @@ async def unregister_custom_model(model_id: str):
     models = [m for m in models if m["id"] != model_id]
 
     if len(models) == original_count:
-        raise HTTPException(status_code=404, detail=f"Custom model not found: {model_id}")
+        raise HTTPException(
+            status_code=404, detail=f"Custom model not found: {model_id}"
+        )
 
     _save_custom_models(models)
     return {"status": "unregistered", "model_id": model_id}
@@ -1268,7 +1618,7 @@ async def chat_completions(
     request: Request,
     background_tasks: BackgroundTasks,
     tracker: RequestTracker = Depends(get_request_tracker),
-    api_key: ApiKey = Depends(validate_api_key_header)
+    api_key: ApiKey = Depends(validate_api_key_header),
 ):
     """OpenAI-compatible chat completions with intelligent routing."""
     body = await request.json()
@@ -1277,7 +1627,9 @@ async def chat_completions(
     # This ensures the streaming response includes the conversation_id in the 'done' event
     if tracker.enable_memory and not tracker.conversation_id:
         tracker.conversation_id = generate_conversation_id()
-        logger.info(f"Generated conversation ID early for streaming: {tracker.conversation_id}")
+        logger.info(
+            f"Generated conversation ID early for streaming: {tracker.conversation_id}"
+        )
 
     # Calculate request priority based on API key
     priority = get_request_priority(api_key)
@@ -1295,7 +1647,9 @@ async def chat_completions(
         # Cap max_tokens for agent requests on local providers
         current_max = body.get("max_tokens") or selection.model.max_tokens
         body["max_tokens"] = min(current_max, AGENT_CONTEXT_CAP)
-        logger.info(f"Agent context cap: max_tokens={body['max_tokens']} (was {current_max})")
+        logger.info(
+            f"Agent context cap: max_tokens={body['max_tokens']} (was {current_max})"
+        )
 
     # Update body with selected model ID
     body["model"] = selection.model.id
@@ -1307,14 +1661,27 @@ async def chat_completions(
             body["messages"] = format_messages_for_vision(messages, IMAGE_DATA_DIR)
             logger.info(f"Formatted {len(messages)} messages for vision model")
         else:
-            logger.warning(f"Model {selection.model.id} doesn't support vision, images will be ignored")
+            logger.warning(
+                f"Model {selection.model.id} doesn't support vision, images will be ignored"
+            )
 
     stream = body.get("stream", False)
 
     if stream:
         # Streaming: single provider selection, no execution-level fallback possible
         endpoint_url = build_chat_completions_url(selection.provider)
-        request_headers = build_request_headers(selection.provider)
+        _forward_headers = {}
+        if tracker.user_id:
+            _forward_headers["X-User-ID"] = tracker.user_id
+        if tracker.username:
+            _forward_headers["X-Username"] = tracker.username
+        if tracker.display_name:
+            _forward_headers["X-Display-Name"] = tracker.display_name
+        if tracker.source:
+            _forward_headers["X-Source"] = tracker.source
+        request_headers = build_request_headers(
+            selection.provider, extra_headers=_forward_headers or None
+        )
 
         logger.info(
             f"Routing to {selection.provider.name} ({selection.provider.endpoint}) "
@@ -1322,37 +1689,54 @@ async def chat_completions(
         )
 
         async with provider_manager.track_request(selection.provider.id):
-            enhanced_streaming = request.headers.get("X-Enhanced-Streaming", "").lower() == "true"
+            enhanced_streaming = (
+                request.headers.get("X-Enhanced-Streaming", "").lower() == "true"
+            )
             accumulator = StreamAccumulator()
             passthrough_content = []
 
             if enhanced_streaming:
+
                 async def stream_generator():
                     async for event_str in stream_chat_completion(
-                        selection, body,
+                        selection,
+                        body,
                         conversation_id=tracker.conversation_id,
-                        on_failure=lambda: provider_manager.record_inference_failure(selection.provider.id),
-                        on_success=lambda: provider_manager.record_inference_success(selection.provider.id),
+                        on_failure=lambda: provider_manager.record_inference_failure(
+                            selection.provider.id
+                        ),
+                        on_success=lambda: provider_manager.record_inference_success(
+                            selection.provider.id
+                        ),
                     ):
                         yield event_str
-                        if event_str.startswith('data: ') and event_str[6:].strip() != '[DONE]':
+                        if (
+                            event_str.startswith("data: ")
+                            and event_str[6:].strip() != "[DONE]"
+                        ):
                             try:
                                 event_data = json.loads(event_str[6:])
                                 accumulator.add_chunk(event_data)
                             except json.JSONDecodeError:
                                 pass
             else:
+
                 async def stream_generator():
-                    async for event_str in stream_chat_completion_passthrough(selection, body):
+                    async for event_str in stream_chat_completion_passthrough(
+                        selection, body
+                    ):
                         yield event_str
-                        for line in event_str.split('\n'):
+                        for line in event_str.split("\n"):
                             line = line.strip()
-                            if line.startswith('data: ') and line[6:].strip() not in ('[DONE]', ''):
+                            if line.startswith("data: ") and line[6:].strip() not in (
+                                "[DONE]",
+                                "",
+                            ):
                                 try:
                                     chunk = json.loads(line[6:])
-                                    choices = chunk.get('choices', [])
-                                    if choices and 'delta' in choices[0]:
-                                        content = choices[0]['delta'].get('content', '')
+                                    choices = chunk.get("choices", [])
+                                    if choices and "delta" in choices[0]:
+                                        content = choices[0]["delta"].get("content", "")
                                         if content:
                                             passthrough_content.append(content)
                                 except json.JSONDecodeError:
@@ -1364,16 +1748,21 @@ async def chat_completions(
                         response_data = accumulator.to_response_data(body)
                     else:
                         response_data = {
-                            'id': 'stream-passthrough',
-                            'object': 'chat.completion',
-                            'model': selection.model.id,
-                            'choices': [{
-                                'index': 0,
-                                'message': {'role': 'assistant', 'content': ''.join(passthrough_content)},
-                                'finish_reason': 'stop',
-                            }],
-                            'provider': selection.provider.id,
-                            'provider_name': selection.provider.name,
+                            "id": "stream-passthrough",
+                            "object": "chat.completion",
+                            "model": selection.model.id,
+                            "choices": [
+                                {
+                                    "index": 0,
+                                    "message": {
+                                        "role": "assistant",
+                                        "content": "".join(passthrough_content),
+                                    },
+                                    "finish_reason": "stop",
+                                }
+                            ],
+                            "provider": selection.provider.id,
+                            "provider_name": selection.provider.name,
                         }
 
                     if provider_manager:
@@ -1386,7 +1775,9 @@ async def chat_completions(
                         )
 
                     log_chat_completion(tracker, body, response_data, error=None)
-                    logger.info(f"Logged streaming response (conversation: {tracker.conversation_id})")
+                    logger.info(
+                        f"Logged streaming response (conversation: {tracker.conversation_id})"
+                    )
                 except Exception as e:
                     logger.error(f"Failed to log streaming completion: {e}")
 
@@ -1417,10 +1808,22 @@ async def chat_completions(
                 except Exception:
                     pass
 
+        _forward_headers = {}
+        if tracker.user_id:
+            _forward_headers["X-User-ID"] = tracker.user_id
+        if tracker.username:
+            _forward_headers["X-Username"] = tracker.username
+        if tracker.display_name:
+            _forward_headers["X-Display-Name"] = tracker.display_name
+        if tracker.source:
+            _forward_headers["X-Source"] = tracker.source
+
         last_error = None
         for candidate in execution_candidates:
             endpoint_url = build_chat_completions_url(candidate.provider)
-            request_headers = build_request_headers(candidate.provider)
+            request_headers = build_request_headers(
+                candidate.provider, extra_headers=_forward_headers or None
+            )
             body["model"] = candidate.model.id
 
             logger.info(
@@ -1438,7 +1841,11 @@ async def chat_completions(
                         )
 
                         if response.status_code >= 500:
-                            error_detail = response.text[:500] if response.text else "Empty response"
+                            error_detail = (
+                                response.text[:500]
+                                if response.text
+                                else "Empty response"
+                            )
                             logger.warning(
                                 f"Backend {candidate.provider.name} returned HTTP {response.status_code} "
                                 f"- {error_detail}, trying next candidate..."
@@ -1447,23 +1854,29 @@ async def chat_completions(
                             continue
 
                         if response.status_code != 200:
-                            error_detail = response.text[:500] if response.text else "Empty response"
+                            error_detail = (
+                                response.text[:500]
+                                if response.text
+                                else "Empty response"
+                            )
                             logger.error(
                                 f"Backend error from {candidate.provider.name}: "
                                 f"HTTP {response.status_code} - {error_detail}"
                             )
                             raise HTTPException(
                                 status_code=502,
-                                detail=f"Backend {candidate.provider.name} returned HTTP {response.status_code}: {error_detail}"
+                                detail=f"Backend {candidate.provider.name} returned HTTP {response.status_code}: {error_detail}",
                             )
 
                         try:
                             response_data = response.json()
                         except Exception:
-                            logger.error(f"Backend {candidate.provider.name} returned non-JSON response: {response.text[:200]}")
+                            logger.error(
+                                f"Backend {candidate.provider.name} returned non-JSON response: {response.text[:200]}"
+                            )
                             raise HTTPException(
                                 status_code=502,
-                                detail=f"Backend {candidate.provider.name} returned invalid response"
+                                detail=f"Backend {candidate.provider.name} returned invalid response",
                             )
 
                         response_data["provider"] = candidate.provider.id
@@ -1484,7 +1897,7 @@ async def chat_completions(
                             tracker,
                             body,
                             response_data,
-                            error=None
+                            error=None,
                         )
 
                         # Response headers: provider/model transparency
@@ -1493,9 +1906,13 @@ async def chat_completions(
                             "X-Model": candidate.model.id,
                         }
                         if tracker.conversation_id:
-                            response_headers["X-Conversation-ID"] = tracker.conversation_id
+                            response_headers["X-Conversation-ID"] = (
+                                tracker.conversation_id
+                            )
 
-                        return JSONResponse(content=response_data, headers=response_headers)
+                        return JSONResponse(
+                            content=response_data, headers=response_headers
+                        )
 
             except (httpx.TimeoutException, httpx.ConnectError) as e:
                 logger.warning(
@@ -1515,7 +1932,7 @@ async def chat_completions(
                     tracker,
                     body,
                     response_data=None,
-                    error=last_error
+                    error=last_error,
                 )
                 raise
 
@@ -1526,9 +1943,11 @@ async def chat_completions(
             tracker,
             body,
             response_data=None,
-            error=f"All providers failed: {last_error}"
+            error=f"All providers failed: {last_error}",
         )
-        raise HTTPException(status_code=503, detail=f"All providers failed: {last_error}")
+        raise HTTPException(
+            status_code=503, detail=f"All providers failed: {last_error}"
+        )
 
 
 @app.get("/gaming-pc/status")
@@ -1553,12 +1972,16 @@ async def toggle_gaming_mode(enable: bool = True):
             result = response.json()
             # Update cache immediately so routing reflects the change before next poll
             if _gaming_cache["status"] is not None:
-                updated = _gaming_cache["status"].model_copy(update={"gaming_mode_active": enable})
+                updated = _gaming_cache["status"].model_copy(
+                    update={"gaming_mode_active": enable}
+                )
                 _gaming_cache["status"] = updated
                 _gaming_cache["updated_at"] = time.time()
             return result
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"Failed to toggle gaming mode: {e}")
+        raise HTTPException(
+            status_code=503, detail=f"Failed to toggle gaming mode: {e}"
+        )
 
 
 @app.post("/stop-all")
@@ -1571,22 +1994,25 @@ async def stop_all_models():
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Failed to stop models: {e}")
 
+
 # ============================================================================
 # TTS (Text-to-Speech) Endpoint
 # ============================================================================
 
+
 class TTSSpeechRequest(BaseModel):
     """OpenAI-compatible TTS speech request."""
+
     model: str = "tts-1"
     input: str  # The text to synthesize
     voice: str = "alloy"  # Voice to use (alloy, echo, fable, onyx, nova, shimmer)
     response_format: str = "mp3"  # Format: mp3, opus, aac, flac, wav, pcm
     speed: float = 1.0  # Speed: 0.25 to 4.0
 
+
 @app.post("/v1/audio/speech")
 async def text_to_speech(
-    request: Request,
-    api_key: ApiKey = Depends(validate_api_key_header)
+    request: Request, api_key: ApiKey = Depends(validate_api_key_header)
 ):
     """
     OpenAI-compatible text-to-speech endpoint.
@@ -1608,41 +2034,48 @@ async def text_to_speech(
     """
     try:
         body = await request.json()
-        
+
         # Validate required field
         if "input" not in body:
             raise HTTPException(status_code=400, detail="Missing required field: input")
-        
+
         # Ensure model is set to our TTS model
         body["model"] = "chatterbox-turbo"
-        
-        logger.info(f"TTS request: input='{body['input'][:50]}...', voice={body.get('voice', 'alloy')}")
-        
+
+        logger.info(
+            f"TTS request: input='{body['input'][:50]}...', voice={body.get('voice', 'alloy')}"
+        )
+
         async with httpx.AsyncClient(timeout=120.0) as client:
             response = await client.post(
                 f"{TTS_ENDPOINT}/v1/audio/speech",
                 json=body,
             )
-            
+
             if response.status_code != 200:
                 error_msg = f"TTS generation failed: {response.text}"
                 logger.error(error_msg)
                 raise HTTPException(status_code=response.status_code, detail=error_msg)
-            
+
             # Return audio data with headers from upstream
             response_headers = {}
-            
+
             # Copy relevant headers from TTS service
-            for header in ["content-type", "content-length", "x-audio-duration", "x-generation-time"]:
+            for header in [
+                "content-type",
+                "content-length",
+                "x-audio-duration",
+                "x-generation-time",
+            ]:
                 if header in response.headers:
                     response_headers[header] = response.headers[header]
-            
+
             return Response(
                 content=response.content,
                 headers=response_headers,
-                media_type=response.headers.get("content-type", "audio/mpeg")
+                media_type=response.headers.get("content-type", "audio/mpeg"),
             )
-            
+
     except httpx.TimeoutException:
         error_msg = "TTS generation timed out"
         logger.error(error_msg)
@@ -1670,10 +2103,10 @@ ALLOWED_IMAGE_TYPES = {"image/png", "image/jpeg", "image/gif", "image/webp"}
 def format_messages_for_vision(messages: list, image_data_dir: Path) -> list:
     """
     Convert messages with image_refs to OpenAI vision format.
-    
+
     Transforms messages like:
         {"role": "user", "content": "What's in this image?", "image_refs": [...]}
-    
+
     Into vision format:
         {"role": "user", "content": [
             {"type": "text", "text": "What's in this image?"},
@@ -1681,52 +2114,54 @@ def format_messages_for_vision(messages: list, image_data_dir: Path) -> list:
         ]}
     """
     import base64
-    
+
     formatted = []
     for msg in messages:
         if not isinstance(msg, dict):
             formatted.append(msg)
             continue
-            
+
         image_refs = msg.get("image_refs", [])
         if not image_refs:
             formatted.append(msg)
             continue
-        
+
         content_parts = []
         text_content = msg.get("content", "")
         if text_content:
             content_parts.append({"type": "text", "text": text_content})
-        
+
         for ref in image_refs:
             try:
                 filepath = image_data_dir.parent / ref.get("path", "")
                 if not filepath.exists():
                     logger.warning(f"Image not found: {filepath}")
                     continue
-                    
+
                 with open(filepath, "rb") as f:
                     image_data = f.read()
-                
+
                 b64_data = base64.b64encode(image_data).decode("utf-8")
                 mime_type = ref.get("mimeType", "image/png")
-                
-                content_parts.append({
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f"data:{mime_type};base64,{b64_data}"
+
+                content_parts.append(
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": f"data:{mime_type};base64,{b64_data}"},
                     }
-                })
-                logger.debug(f"Added image to message: {ref.get('filename', 'unknown')}")
+                )
+                logger.debug(
+                    f"Added image to message: {ref.get('filename', 'unknown')}"
+                )
             except Exception as e:
                 logger.error(f"Failed to encode image {ref}: {e}")
-        
+
         if content_parts:
             new_msg = {"role": msg.get("role", "user"), "content": content_parts}
             formatted.append(new_msg)
         else:
             formatted.append(msg)
-    
+
     return formatted
 
 
@@ -1752,14 +2187,14 @@ async def upload_image(
     if file.content_type not in ALLOWED_IMAGE_TYPES:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid file type. Allowed: {', '.join(ALLOWED_IMAGE_TYPES)}"
+            detail=f"Invalid file type. Allowed: {', '.join(ALLOWED_IMAGE_TYPES)}",
         )
 
     content = await file.read()
     if len(content) > MAX_IMAGE_SIZE:
         raise HTTPException(
             status_code=400,
-            detail=f"Image too large. Max size: {MAX_IMAGE_SIZE // (1024*1024)}MB"
+            detail=f"Image too large. Max size: {MAX_IMAGE_SIZE // (1024 * 1024)}MB",
         )
 
     image_dir = IMAGE_DATA_DIR / conversation_id / message_id
@@ -1769,7 +2204,7 @@ async def upload_image(
     if len(existing_images) >= MAX_IMAGES_PER_MESSAGE:
         raise HTTPException(
             status_code=400,
-            detail=f"Maximum {MAX_IMAGES_PER_MESSAGE} images per message"
+            detail=f"Maximum {MAX_IMAGES_PER_MESSAGE} images per message",
         )
 
     sequence = f"{len(existing_images) + 1:03d}"
@@ -1821,11 +2256,9 @@ async def get_image(
 # Agent Endpoint - Host-Controlled Agent Loop
 # ============================================================================
 
+
 async def call_llm_for_agent(
-    messages: list,
-    model: str = "auto",
-    tools: list = None,
-    tool_choice: str = "auto"
+    messages: list, model: str = "auto", tools: list = None, tool_choice: str = "auto"
 ) -> dict:
     """Call the LLM through the router for agent use.
 
@@ -1855,22 +2288,28 @@ async def call_llm_for_agent(
     try:
         selection = await provider_manager.acquire_provider_slot(model, priority=0)
     except ValueError as e:
-        raise HTTPException(status_code=503, detail=f"No backend available for agent: {e}")
+        raise HTTPException(
+            status_code=503, detail=f"No backend available for agent: {e}"
+        )
 
     body["model"] = selection.model.id
     endpoint_url = build_chat_completions_url(selection.provider)
     request_headers = build_request_headers(selection.provider)
 
-    logger.info(f"Agent LLM call: model={selection.model.id}, provider={selection.provider.id}, tokens~{token_estimate}")
+    logger.info(
+        f"Agent LLM call: model={selection.model.id}, provider={selection.provider.id}, tokens~{token_estimate}"
+    )
 
     async with provider_manager.track_request(selection.provider.id):
         async with httpx.AsyncClient(timeout=300.0) as client:
-            response = await client.post(endpoint_url, json=body, headers=request_headers)
+            response = await client.post(
+                endpoint_url, json=body, headers=request_headers
+            )
 
             if response.status_code != 200:
                 raise HTTPException(
                     status_code=response.status_code,
-                    detail=f"Backend error: {response.text}"
+                    detail=f"Backend error: {response.text}",
                 )
 
             result = response.json()
@@ -1908,7 +2347,9 @@ async def run_agent(request: AgentRequest):
 
     try:
         result = await run_agent_loop(request, call_llm_for_agent)
-        logger.info(f"Agent completed: success={result.success}, steps={result.total_steps}")
+        logger.info(
+            f"Agent completed: success={result.success}, steps={result.total_steps}"
+        )
         return result
     except Exception as e:
         logger.error(f"Agent error: {e}")
@@ -1920,7 +2361,7 @@ async def list_agent_tools():
     """List available agent tools and their schemas."""
     return {
         "tools": AGENT_TOOLS,
-        "description": "Tools available to the agent for task completion"
+        "description": "Tools available to the agent for task completion",
     }
 
 
@@ -1954,7 +2395,7 @@ async def run_claude_agent(request: Request):
             if response.status_code >= 400:
                 raise HTTPException(
                     status_code=response.status_code,
-                    detail=f"Willow error: {response.text[:500]}"
+                    detail=f"Willow error: {response.text[:500]}",
                 )
 
             return response.json()
@@ -1962,7 +2403,9 @@ async def run_claude_agent(request: Request):
     except httpx.ConnectError as e:
         raise HTTPException(status_code=503, detail=f"Cannot connect to Willow: {e}")
     except httpx.TimeoutException:
-        raise HTTPException(status_code=504, detail=f"Willow request timed out after {timeout}s")
+        raise HTTPException(
+            status_code=504, detail=f"Willow request timed out after {timeout}s"
+        )
 
 
 # ============================================================================
@@ -2157,8 +2600,10 @@ async def api_get_dashboard():
 # Harness Metrics API Endpoints (Claude Code CLI observability)
 # ============================================================================
 
+
 class HarnessMetric(BaseModel):
     """Metric from Claude Code CLI / Willow."""
+
     source: str  # 'willow', 'api', 'interactive'
     event: str  # 'session_started', 'task_started', 'task_completed', 'task_failed', 'session_completed'
     label: Optional[str] = None
@@ -2190,27 +2635,32 @@ async def log_harness_metric(metric: HarnessMetric):
 
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO harness_sessions
                 (timestamp, source, event, label, task_id, task_title,
                  duration_ms, success, error, completed_tasks, failed_tasks)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                timestamp,
-                metric.source,
-                metric.event,
-                metric.label,
-                metric.task_id,
-                metric.task_title,
-                metric.duration_ms,
-                metric.success,
-                metric.error,
-                metric.completed_tasks,
-                metric.failed_tasks,
-            ))
+            """,
+                (
+                    timestamp,
+                    metric.source,
+                    metric.event,
+                    metric.label,
+                    metric.task_id,
+                    metric.task_title,
+                    metric.duration_ms,
+                    metric.success,
+                    metric.error,
+                    metric.completed_tasks,
+                    metric.failed_tasks,
+                ),
+            )
             conn.commit()
 
-        logger.info(f"Harness metric logged: {metric.source}/{metric.event} task={metric.task_id}")
+        logger.info(
+            f"Harness metric logged: {metric.source}/{metric.event} task={metric.task_id}"
+        )
         return {"status": "ok", "event": metric.event}
 
     except Exception as e:
@@ -2286,7 +2736,8 @@ async def get_harness_stats(days: int = 7):
             cutoff = (datetime.utcnow() - timedelta(days=days)).isoformat()
 
             # Get task completion stats
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT
                     COUNT(*) as total_events,
                     SUM(CASE WHEN event = 'task_completed' THEN 1 ELSE 0 END) as tasks_completed,
@@ -2297,12 +2748,15 @@ async def get_harness_stats(days: int = 7):
                     SUM(CASE WHEN event IN ('task_completed', 'task_failed') THEN duration_ms ELSE 0 END) as total_duration_ms
                 FROM harness_sessions
                 WHERE timestamp >= ?
-            """, (cutoff,))
+            """,
+                (cutoff,),
+            )
 
             row = cursor.fetchone()
 
             # Get per-label breakdown
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT
                     label,
                     COUNT(*) as events,
@@ -2312,7 +2766,9 @@ async def get_harness_stats(days: int = 7):
                 WHERE timestamp >= ? AND label IS NOT NULL
                 GROUP BY label
                 ORDER BY events DESC
-            """, (cutoff,))
+            """,
+                (cutoff,),
+            )
 
             labels = [dict(r) for r in cursor.fetchall()]
 
@@ -2320,7 +2776,9 @@ async def get_harness_stats(days: int = 7):
             tasks_completed = row["tasks_completed"] or 0
             tasks_failed = row["tasks_failed"] or 0
             total_tasks = tasks_completed + tasks_failed
-            success_rate = (tasks_completed / total_tasks * 100) if total_tasks > 0 else 0
+            success_rate = (
+                (tasks_completed / total_tasks * 100) if total_tasks > 0 else 0
+            )
 
             return {
                 "days": days,
@@ -2410,4 +2868,5 @@ async def api_rag_context(
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)
