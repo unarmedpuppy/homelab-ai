@@ -11,7 +11,7 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_3090_MODEL = os.getenv("DEFAULT_3090_MODEL", "qwopus3.5-27b-v3")
+DEFAULT_3090_MODEL = os.getenv("DEFAULT_3090_MODEL", "qwen3-32b-awq")
 
 # Source headers that identify agent-like callers
 _AGENT_SOURCES = {"n8n", "agent", "agent-harness", "willow"}

@@ -149,7 +149,7 @@ GAMING_PC_STALE_THRESHOLD = int(
 LOCAL_3070_URL = os.getenv("LOCAL_3070_URL", "http://llm-manager:8000")
 TTS_ENDPOINT = os.getenv("TTS_ENDPOINT", GAMING_PC_URL)  # TTS runs on Gaming PC
 DEFAULT_3090_MODEL = os.getenv(
-    "DEFAULT_3090_MODEL", "qwopus3.5-27b-v3"
+    "DEFAULT_3090_MODEL", "qwen3-32b-awq"
 )  # Default model for 3090 routing
 
 # Dynamic context capping: agent requests get reduced context to allow concurrency
