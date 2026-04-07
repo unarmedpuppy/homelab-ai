@@ -12,7 +12,12 @@
       "description": "Fast 7B instruction-tuned model with AWQ-Marlin quantization. Good for simple chat and lookups.",
       "architecture": "Qwen2",
       "license": "Apache-2.0",
-      "tags": ["fast", "small", "quantized", "always-on"]
+      "tags": [
+        "fast",
+        "small",
+        "quantized",
+        "always-on"
+      ]
     },
     {
       "id": "qwen2.5-14b-awq",
@@ -26,7 +31,11 @@
       "description": "Mid-size instruction-tuned model. Good balance of quality and speed for coding and analysis.",
       "architecture": "Qwen2",
       "license": "Apache-2.0",
-      "tags": ["medium", "quantized", "coding"]
+      "tags": [
+        "medium",
+        "quantized",
+        "coding"
+      ]
     },
     {
       "id": "qwen3.5-27b-awq",
@@ -38,11 +47,25 @@
       "gpu_count": 2,
       "max_context": 32768,
       "default_context": 8192,
-      "extra_args": ["--disable-custom-all-reduce", "--reasoning-parser", "qwen3", "--enforce-eager", "--max-num-batched-tokens", "4096", "--gpu-memory-utilization", "0.85"],
+      "extra_args": [
+        "--disable-custom-all-reduce",
+        "--reasoning-parser",
+        "qwen3",
+        "--enforce-eager",
+        "--max-num-batched-tokens",
+        "4096",
+        "--gpu-memory-utilization",
+        "0.85"
+      ],
       "description": "Dense 27B model with native thinking mode. Dual-GPU tensor parallel. enforce-eager for WSL stability.",
       "architecture": "Qwen3.5",
       "license": "Apache-2.0",
-      "tags": ["large", "reasoning", "thinking", "dual-gpu"]
+      "tags": [
+        "large",
+        "reasoning",
+        "thinking",
+        "dual-gpu"
+      ]
     },
     {
       "id": "qwen3-32b-awq",
@@ -54,11 +77,25 @@
       "gpu_count": 2,
       "max_context": 40960,
       "default_context": 40960,
-      "extra_args": ["--enable-auto-tool-choice", "--tool-call-parser", "hermes", "--reasoning-parser", "qwen3", "--enforce-eager", "--disable-custom-all-reduce"],
+      "extra_args": [
+        "--enable-auto-tool-choice",
+        "--tool-call-parser",
+        "hermes",
+        "--reasoning-parser",
+        "qwen3",
+        "--enforce-eager",
+        "--disable-custom-all-reduce"
+      ],
       "description": "Primary reasoning model with thinking mode and tool calling. Dual-GPU TP=2, 40K context (max_position_embeddings limit).",
       "architecture": "Qwen3",
       "license": "Apache-2.0",
-      "tags": ["large", "reasoning", "thinking", "tool-calling", "primary"]
+      "tags": [
+        "large",
+        "reasoning",
+        "thinking",
+        "tool-calling",
+        "primary"
+      ]
     },
     {
       "id": "qwen3.5-27b-abliterated",
@@ -70,11 +107,24 @@
       "gpu_count": 1,
       "max_context": 4096,
       "default_context": 4096,
-      "extra_args": ["--load-format", "bitsandbytes", "--reasoning-parser", "qwen3", "--enforce-eager"],
-      "description": "Qwen3.5-27B abliterated (refusal direction removed). Hybrid SSM-transformer. BNB NF4 4-bit on single GPU. TP=2 produces NaN due to BNB quant_state sharding bug in vLLM — TP=1 only.",
+      "extra_args": [
+        "--load-format",
+        "bitsandbytes",
+        "--reasoning-parser",
+        "qwen3",
+        "--enforce-eager"
+      ],
+      "description": "Qwen3.5-27B abliterated (refusal direction removed). Hybrid SSM-transformer. BNB NF4 4-bit on single GPU. TP=2 produces NaN due to BNB quant_state sharding bug in vLLM \u2014 TP=1 only.",
       "architecture": "Qwen3.5 (hybrid SSM+transformer, abliterated)",
       "license": "Apache-2.0",
-      "tags": ["reasoning", "thinking", "abliterated", "uncensored", "hybrid-ssm", "single-gpu"]
+      "tags": [
+        "reasoning",
+        "thinking",
+        "abliterated",
+        "uncensored",
+        "hybrid-ssm",
+        "single-gpu"
+      ]
     },
     {
       "id": "qwen3.5-27b-abliterated-awq",
@@ -86,11 +136,31 @@
       "gpu_count": 2,
       "max_context": 65536,
       "default_context": 32768,
-      "extra_args": ["--disable-custom-all-reduce", "--reasoning-parser", "qwen3", "--enable-auto-tool-choice", "--tool-call-parser", "hermes", "--enforce-eager", "--gpu-memory-utilization", "0.90", "--max-num-batched-tokens", "4096"],
+      "extra_args": [
+        "--disable-custom-all-reduce",
+        "--reasoning-parser",
+        "qwen3",
+        "--enable-auto-tool-choice",
+        "--tool-call-parser",
+        "hermes",
+        "--enforce-eager",
+        "--gpu-memory-utilization",
+        "0.90",
+        "--max-num-batched-tokens",
+        "4096"
+      ],
       "description": "Qwen3.5-27B abliterated (refusal direction removed). AWQ-Marlin 4-bit, dual-GPU TP=2. -v2 checkpoint: merged in_proj_qkvz (fused, AWQ) + dequantized out_proj.weight (BF16) to match vLLM Qwen3.5 hybrid model expectations. max-num-batched-tokens 4096 prevents SSM profiling OOM.",
       "architecture": "Qwen3.5 (hybrid SSM+transformer, abliterated)",
       "license": "Apache-2.0",
-      "tags": ["reasoning", "thinking", "abliterated", "uncensored", "hybrid-ssm", "dual-gpu", "fast"]
+      "tags": [
+        "reasoning",
+        "thinking",
+        "abliterated",
+        "uncensored",
+        "hybrid-ssm",
+        "dual-gpu",
+        "fast"
+      ]
     },
     {
       "id": "qwopus-27b",
@@ -102,12 +172,27 @@
       "gpu_count": 2,
       "max_context": 32768,
       "default_context": 16384,
-      "extra_args": ["--load-format", "bitsandbytes", "--disable-custom-all-reduce", "--reasoning-parser", "qwen3"],
-      "env_overrides": {"VLLM_USE_V1": "0"},
+      "extra_args": [
+        "--load-format",
+        "bitsandbytes",
+        "--disable-custom-all-reduce",
+        "--reasoning-parser",
+        "qwen3"
+      ],
+      "env_overrides": {
+        "VLLM_USE_V1": "0"
+      },
       "description": "Claude Opus 4.6 reasoning distilled into Qwen3.5-27B. BNB 4-bit, dual-GPU TP=2 test. AWQ quantization pending qwen3_5 transformers support.",
       "architecture": "Qwen3.5 (Opus distilled)",
       "license": "Apache-2.0",
-      "tags": ["reasoning", "distilled", "thinking", "coding-agent", "opus", "dual-gpu"]
+      "tags": [
+        "reasoning",
+        "distilled",
+        "thinking",
+        "coding-agent",
+        "opus",
+        "dual-gpu"
+      ]
     },
     {
       "id": "qwopus3.5-27b-v3",
@@ -121,11 +206,52 @@
       "gpu_count": 2,
       "max_context": 262144,
       "default_context": 32768,
-      "extra_args": ["--jinja", "--mmproj", "/models/mmproj.gguf"],
-      "description": "Qwopus3.5-27B v3 — Claude Opus 4.6 reasoning distilled into Qwen3.5-27B with SFT+LoRA. Process-level reasoning, strong tool calling (97.56% HumanEval), multimodal vision via mmproj. Q8_0 near-lossless GGUF via llama.cpp, dual-GPU. 256K native context.",
+      "extra_args": [
+        "--jinja",
+        "--mmproj",
+        "/models/mmproj.gguf"
+      ],
+      "description": "Qwopus3.5-27B v3 \u2014 Claude Opus 4.6 reasoning distilled into Qwen3.5-27B with SFT+LoRA. Process-level reasoning, strong tool calling (97.56% HumanEval), multimodal vision via mmproj. Q8_0 near-lossless GGUF via llama.cpp, dual-GPU. 256K native context.",
       "architecture": "Qwen3.5 (Opus distilled, vision)",
       "license": "Apache-2.0",
-      "tags": ["reasoning", "distilled", "thinking", "tool-calling", "opus", "vision", "llamacpp", "dual-gpu", "primary"]
+      "tags": [
+        "reasoning",
+        "distilled",
+        "thinking",
+        "tool-calling",
+        "opus",
+        "vision",
+        "llamacpp",
+        "dual-gpu",
+        "primary"
+      ]
+    },
+    {
+      "id": "huihui-qwopus3.5-27b-v3-abliterated-q5",
+      "name": "Huihui Qwopus3.5 27B v3 Abliterated PolarQuant Q5",
+      "hf_model": "caiovicentino1/Huihui-Qwopus3.5-27B-v3-abliterated-PolarQuant-Q5",
+      "quantization": "compressed-tensors",
+      "type": "text",
+      "vram_gb": 14,
+      "gpu_count": 1,
+      "max_context": 32768,
+      "default_context": 16384,
+      "extra_args": [
+        "--language-model-only"
+      ],
+      "description": "Huihui Qwopus3.5-27B-v3 (Opus distilled) abliterated, quantized by caiovicentino1 with PolarQuant INT4 symmetric (group_size=128, CompressedTensors format). ~14GB VRAM, fits single RTX 3090. 168 tok/s on A100 with Marlin kernel. cos_sim > 0.998 vs BF16. vLLM only (not llama.cpp). 48-layer dense Qwen3.5 architecture.",
+      "architecture": "Qwen3.5 27B (dense, abliterated, Opus distilled)",
+      "license": "Apache-2.0",
+      "tags": [
+        "reasoning",
+        "distilled",
+        "abliterated",
+        "uncensored",
+        "opus",
+        "polarquant",
+        "single-gpu",
+        "fast"
+      ]
     },
     {
       "id": "qwen2.5-32b-awq",
@@ -139,7 +265,11 @@
       "description": "Large instruction-tuned model. Strong at complex reasoning and long context tasks.",
       "architecture": "Qwen2",
       "license": "Apache-2.0",
-      "tags": ["large", "quantized", "reasoning"]
+      "tags": [
+        "large",
+        "quantized",
+        "reasoning"
+      ]
     },
     {
       "id": "llama3-8b",
@@ -153,7 +283,10 @@
       "description": "Meta's Llama 3 8B instruction-tuned. Full precision, general purpose.",
       "architecture": "Llama3",
       "license": "Llama 3 Community",
-      "tags": ["general", "full-precision"]
+      "tags": [
+        "general",
+        "full-precision"
+      ]
     },
     {
       "id": "deepseek-coder-7b",
@@ -167,7 +300,11 @@
       "description": "Specialized code generation model. Strong at code completion and understanding.",
       "architecture": "DeepSeek",
       "license": "DeepSeek License",
-      "tags": ["coding", "full-precision", "specialized"]
+      "tags": [
+        "coding",
+        "full-precision",
+        "specialized"
+      ]
     },
     {
       "id": "flux-schnell",
@@ -178,10 +315,14 @@
       "vram_gb": 12,
       "max_context": null,
       "default_context": null,
-      "description": "FLUX.1 Schnell — previous generation fast image model. Superseded by FLUX.2-dev. Kept as fallback.",
+      "description": "FLUX.1 Schnell \u2014 previous generation fast image model. Superseded by FLUX.2-dev. Kept as fallback.",
       "architecture": "FLUX",
       "license": "Apache-2.0",
-      "tags": ["image-generation", "fast", "legacy"]
+      "tags": [
+        "image-generation",
+        "fast",
+        "legacy"
+      ]
     },
     {
       "id": "flux-2-dev",
@@ -192,10 +333,15 @@
       "vram_gb": 16,
       "max_context": null,
       "default_context": null,
-      "description": "FLUX.2-dev (Nov 2025) — current SOTA open image generation. Multi-reference (up to 10 images), 60% typography accuracy, up to 4MP output. Needs 16GB VRAM at FP8 (40% faster than FP16). Served by image-server on gaming PC (RTX 3090). This is the active model in docker-compose.gaming.yml.",
+      "description": "FLUX.2-dev (Nov 2025) \u2014 current SOTA open image generation. Multi-reference (up to 10 images), 60% typography accuracy, up to 4MP output. Needs 16GB VRAM at FP8 (40% faster than FP16). Served by image-server on gaming PC (RTX 3090). This is the active model in docker-compose.gaming.yml.",
       "architecture": "FLUX",
       "license": "FLUX-1-dev-non-commercial",
-      "tags": ["image-generation", "sota", "multi-reference", "3090"]
+      "tags": [
+        "image-generation",
+        "sota",
+        "multi-reference",
+        "3090"
+      ]
     },
     {
       "id": "sd-3.5-large",
@@ -206,10 +352,14 @@
       "vram_gb": 11,
       "max_context": null,
       "default_context": null,
-      "description": "SD 3.5 Large at FP8 with TensorRT: 11GB VRAM (40% reduction from 18GB FP16). Three text encoders, MMDiT architecture, excellent prompt adherence. Competitive with FLUX.2 for photorealism. Served by image-server — swap MODEL_ID to activate.",
+      "description": "SD 3.5 Large at FP8 with TensorRT: 11GB VRAM (40% reduction from 18GB FP16). Three text encoders, MMDiT architecture, excellent prompt adherence. Competitive with FLUX.2 for photorealism. Served by image-server \u2014 swap MODEL_ID to activate.",
       "architecture": "SD3.5",
       "license": "Stability AI Community",
-      "tags": ["image-generation", "sota", "3090"]
+      "tags": [
+        "image-generation",
+        "sota",
+        "3090"
+      ]
     },
     {
       "id": "sd-3.5-medium",
@@ -220,10 +370,14 @@
       "vram_gb": 6,
       "max_context": null,
       "default_context": null,
-      "description": "SD 3.5 Medium — 6GB VRAM. Fits 3070 or 3090. Good quality at reduced compute. Best option when gaming PC is occupied or for lower-priority generation tasks.",
+      "description": "SD 3.5 Medium \u2014 6GB VRAM. Fits 3070 or 3090. Good quality at reduced compute. Best option when gaming PC is occupied or for lower-priority generation tasks.",
       "architecture": "SD3.5",
       "license": "Stability AI Community",
-      "tags": ["image-generation", "3070", "3090"]
+      "tags": [
+        "image-generation",
+        "3070",
+        "3090"
+      ]
     },
     {
       "id": "ltx-video",
@@ -234,10 +388,16 @@
       "vram_gb": 6,
       "max_context": null,
       "default_context": null,
-      "description": "LTX-Video by Lightricks. Best open-source video model for consumer hardware. 30fps at 1216x704, real-time generation speed. Int8 mode: 6GB VRAM (fits 3070). Full precision: 12GB. Text-to-video and image-to-video. ComfyUI integration. Requires video-server container (not yet deployed — see task).",
+      "description": "LTX-Video by Lightricks. Best open-source video model for consumer hardware. 30fps at 1216x704, real-time generation speed. Int8 mode: 6GB VRAM (fits 3070). Full precision: 12GB. Text-to-video and image-to-video. ComfyUI integration. Requires video-server container (not yet deployed \u2014 see task).",
       "architecture": "LTX",
       "license": "Apache-2.0",
-      "tags": ["video-generation", "real-time", "3070", "3090", "needs-video-server"]
+      "tags": [
+        "video-generation",
+        "real-time",
+        "3070",
+        "3090",
+        "needs-video-server"
+      ]
     },
     {
       "id": "cogvideox-5b",
@@ -248,10 +408,14 @@
       "vram_gb": 16,
       "max_context": null,
       "default_context": null,
-      "description": "CogVideoX-5B (Zhipu/Tsinghua). Text-to-video, 6-second clips at 720x480. Fits single RTX 3090. Strong Diffusers support, good image-to-video quality. Requires video-server container (not yet deployed — see task).",
+      "description": "CogVideoX-5B (Zhipu/Tsinghua). Text-to-video, 6-second clips at 720x480. Fits single RTX 3090. Strong Diffusers support, good image-to-video quality. Requires video-server container (not yet deployed \u2014 see task).",
       "architecture": "CogVideoX",
       "license": "Apache-2.0",
-      "tags": ["video-generation", "3090", "needs-video-server"]
+      "tags": [
+        "video-generation",
+        "3090",
+        "needs-video-server"
+      ]
     },
     {
       "id": "hunyuanvideo",
@@ -263,10 +427,17 @@
       "gpu_count": 2,
       "max_context": null,
       "default_context": null,
-      "description": "Tencent HunyuanVideo — 13B transformer video model, SOTA open-source video gen. 540p FP8 ~40GB fits dual RTX 3090. Multi-GPU via xDiT Unified Sequence Parallelism. Supports text-to-video and image-to-video. 720p FP8 is ~50GB (too tight for 48GB). Requires video-server with xDiT support.",
+      "description": "Tencent HunyuanVideo \u2014 13B transformer video model, SOTA open-source video gen. 540p FP8 ~40GB fits dual RTX 3090. Multi-GPU via xDiT Unified Sequence Parallelism. Supports text-to-video and image-to-video. 720p FP8 is ~50GB (too tight for 48GB). Requires video-server with xDiT support.",
       "architecture": "HunyuanVideo",
       "license": "HunyuanVideo Community License",
-      "tags": ["video-generation", "sota", "dual-gpu", "xdit", "needs-video-server", "48gb"]
+      "tags": [
+        "video-generation",
+        "sota",
+        "dual-gpu",
+        "xdit",
+        "needs-video-server",
+        "48gb"
+      ]
     },
     {
       "id": "hunyuanvideo-1.5",
@@ -278,10 +449,15 @@
       "gpu_count": 1,
       "max_context": null,
       "default_context": null,
-      "description": "HunyuanVideo 1.5 — improved quality over v1.0. FP16 at 14-15GB fits single RTX 3090. Supports 720p to 1080p generation. Significantly better motion quality than base. Requires video-server container.",
+      "description": "HunyuanVideo 1.5 \u2014 improved quality over v1.0. FP16 at 14-15GB fits single RTX 3090. Supports 720p to 1080p generation. Significantly better motion quality than base. Requires video-server container.",
       "architecture": "HunyuanVideo",
       "license": "HunyuanVideo Community License",
-      "tags": ["video-generation", "sota", "3090", "needs-video-server"]
+      "tags": [
+        "video-generation",
+        "sota",
+        "3090",
+        "needs-video-server"
+      ]
     },
     {
       "id": "wan-2.2-t2v-14b",
@@ -293,10 +469,15 @@
       "gpu_count": 2,
       "max_context": null,
       "default_context": null,
-      "description": "Wan 2.2 Text-to-Video 14B — strong open-source T2V at 720p. ~24GB BF16 for dual-GPU FSDP+xDiT. Strong motion dynamics and prompt adherence. Also supports image-to-video. Requires video-server with FSDP support.",
+      "description": "Wan 2.2 Text-to-Video 14B \u2014 strong open-source T2V at 720p. ~24GB BF16 for dual-GPU FSDP+xDiT. Strong motion dynamics and prompt adherence. Also supports image-to-video. Requires video-server with FSDP support.",
       "architecture": "Wan",
       "license": "Apache-2.0",
-      "tags": ["video-generation", "sota", "dual-gpu", "needs-video-server"]
+      "tags": [
+        "video-generation",
+        "sota",
+        "dual-gpu",
+        "needs-video-server"
+      ]
     },
     {
       "id": "hunyuanimage-3.0-nf4",
@@ -308,10 +489,18 @@
       "gpu_count": 2,
       "max_context": null,
       "default_context": null,
-      "description": "Tencent HunyuanImage 3.0 — 80B MoE image generation model. NF4 community quant by EricRollei (~48GB). Marginal fit on dual RTX 3090 (48GB total). SOTA image quality, text rendering, photorealism. Chinese → English instruction support. Requires diffusers image-server; NF4 loading via BitsAndBytes.",
+      "description": "Tencent HunyuanImage 3.0 \u2014 80B MoE image generation model. NF4 community quant by EricRollei (~48GB). Marginal fit on dual RTX 3090 (48GB total). SOTA image quality, text rendering, photorealism. Chinese \u2192 English instruction support. Requires diffusers image-server; NF4 loading via BitsAndBytes.",
       "architecture": "HunyuanImage MoE",
       "license": "HunyuanImage Community License",
-      "tags": ["image-generation", "sota", "dual-gpu", "moe", "needs-video-server", "48gb", "marginal"]
+      "tags": [
+        "image-generation",
+        "sota",
+        "dual-gpu",
+        "moe",
+        "needs-video-server",
+        "48gb",
+        "marginal"
+      ]
     },
     {
       "id": "chatterbox-turbo",
@@ -322,10 +511,16 @@
       "vram_gb": 4,
       "max_context": null,
       "default_context": null,
-      "description": "Chatterbox Turbo (350M) by Resemble AI. Paralinguistic tags ([cough], [laugh]), zero-shot voice cloning, Perth watermarking. v0.1.2 (June 2025) — current deployed TTS. Fast 1-step inference.",
+      "description": "Chatterbox Turbo (350M) by Resemble AI. Paralinguistic tags ([cough], [laugh]), zero-shot voice cloning, Perth watermarking. v0.1.2 (June 2025) \u2014 current deployed TTS. Fast 1-step inference.",
       "architecture": "Chatterbox",
       "license": "MIT",
-      "tags": ["tts", "voice", "cloning", "audio", "active"]
+      "tags": [
+        "tts",
+        "voice",
+        "cloning",
+        "audio",
+        "active"
+      ]
     },
     {
       "id": "chatterbox-multilingual",
@@ -336,10 +531,15 @@
       "vram_gb": 4,
       "max_context": null,
       "default_context": null,
-      "description": "Chatterbox Multilingual (500M) — 23+ languages, zero-shot voice cloning. Same Resemble AI v0.1.2 release. Swap model variant in tts-server to activate. Not yet deployed alongside Turbo.",
+      "description": "Chatterbox Multilingual (500M) \u2014 23+ languages, zero-shot voice cloning. Same Resemble AI v0.1.2 release. Swap model variant in tts-server to activate. Not yet deployed alongside Turbo.",
       "architecture": "Chatterbox",
       "license": "MIT",
-      "tags": ["tts", "multilingual", "cloning", "audio"]
+      "tags": [
+        "tts",
+        "multilingual",
+        "cloning",
+        "audio"
+      ]
     },
     {
       "id": "kokoro-82m",
@@ -350,10 +550,16 @@
       "vram_gb": 1,
       "max_context": null,
       "default_context": null,
-      "description": "Kokoro-82M — fastest open TTS. Sub-300ms latency, <1GB VRAM. Quality comparable to much larger models. No voice cloning. Ideal always-on TTS for agent responses and real-time use. Requires tts-server model-switching support (see task).",
+      "description": "Kokoro-82M \u2014 fastest open TTS. Sub-300ms latency, <1GB VRAM. Quality comparable to much larger models. No voice cloning. Ideal always-on TTS for agent responses and real-time use. Requires tts-server model-switching support (see task).",
       "architecture": "Kokoro",
       "license": "Apache-2.0",
-      "tags": ["tts", "ultra-fast", "ultra-light", "always-on", "needs-tts-switching"]
+      "tags": [
+        "tts",
+        "ultra-fast",
+        "ultra-light",
+        "always-on",
+        "needs-tts-switching"
+      ]
     },
     {
       "id": "f5-tts",
@@ -367,7 +573,13 @@
       "description": "F5-TTS by OpenVoiceAI. Diffusion-based, zero-shot voice cloning, 33x real-time with fast variant. Better expressiveness than Chatterbox Turbo. MIT license. Requires tts-server model-switching support (see task).",
       "architecture": "F5-TTS",
       "license": "MIT",
-      "tags": ["tts", "cloning", "expressive", "fast", "needs-tts-switching"]
+      "tags": [
+        "tts",
+        "cloning",
+        "expressive",
+        "fast",
+        "needs-tts-switching"
+      ]
     },
     {
       "id": "qwen3-tts",
@@ -378,10 +590,16 @@
       "vram_gb": 8,
       "max_context": null,
       "default_context": null,
-      "description": "Qwen3-TTS (Jan 2026). Best speaker similarity (0.789) — outperforms ElevenLabs Multilingual v2. 3-second rapid voice cloning, streaming support. 7-9GB VRAM. FlashAttention 2 gives 30-40% speedup. Note: slight Chinese accent artifacts on some English voices. Requires tts-server model-switching support.",
+      "description": "Qwen3-TTS (Jan 2026). Best speaker similarity (0.789) \u2014 outperforms ElevenLabs Multilingual v2. 3-second rapid voice cloning, streaming support. 7-9GB VRAM. FlashAttention 2 gives 30-40% speedup. Note: slight Chinese accent artifacts on some English voices. Requires tts-server model-switching support.",
       "architecture": "Qwen3",
       "license": "Apache-2.0",
-      "tags": ["tts", "cloning", "sota", "streaming", "needs-tts-switching"]
+      "tags": [
+        "tts",
+        "cloning",
+        "sota",
+        "streaming",
+        "needs-tts-switching"
+      ]
     },
     {
       "id": "orpheus-tts",
@@ -395,7 +613,13 @@
       "description": "Orpheus TTS 3B (late 2025). New category: emotional speech generation that rivals premium cloud services. 6-8GB VRAM. Human-like expressiveness with natural prosody and emotion. Requires tts-server model-switching support.",
       "architecture": "Orpheus",
       "license": "Apache-2.0",
-      "tags": ["tts", "emotional", "human-like", "cloning", "needs-tts-switching"]
+      "tags": [
+        "tts",
+        "emotional",
+        "human-like",
+        "cloning",
+        "needs-tts-switching"
+      ]
     },
     {
       "id": "qwen2.5-0.5b",
@@ -406,11 +630,20 @@
       "vram_gb": 1,
       "max_context": 8192,
       "default_context": 4096,
-      "extra_args": ["--enable-auto-tool-choice", "--tool-call-parser", "hermes"],
+      "extra_args": [
+        "--enable-auto-tool-choice",
+        "--tool-call-parser",
+        "hermes"
+      ],
       "description": "Qwen2.5 0.5B instruction-tuned. Ultra-lightweight, ~1GB VRAM. Always-on candidate for simple lookups, classification, and quick tool calls. Native BF16.",
       "architecture": "Qwen2",
       "license": "Apache-2.0",
-      "tags": ["ultra-light", "always-on", "tool-calling", "3070"]
+      "tags": [
+        "ultra-light",
+        "always-on",
+        "tool-calling",
+        "3070"
+      ]
     },
     {
       "id": "qwen2.5-1.5b-awq",
@@ -421,11 +654,21 @@
       "vram_gb": 2,
       "max_context": 8192,
       "default_context": 4096,
-      "extra_args": ["--enable-auto-tool-choice", "--tool-call-parser", "hermes"],
-      "description": "Qwen2.5 1.5B AWQ-Marlin quantized. ~2GB VRAM — good always-on candidate for the 3070. Strong tool calling at minimal resource cost.",
+      "extra_args": [
+        "--enable-auto-tool-choice",
+        "--tool-call-parser",
+        "hermes"
+      ],
+      "description": "Qwen2.5 1.5B AWQ-Marlin quantized. ~2GB VRAM \u2014 good always-on candidate for the 3070. Strong tool calling at minimal resource cost.",
       "architecture": "Qwen2",
       "license": "Apache-2.0",
-      "tags": ["small", "quantized", "tool-calling", "always-on", "3070"]
+      "tags": [
+        "small",
+        "quantized",
+        "tool-calling",
+        "always-on",
+        "3070"
+      ]
     },
     {
       "id": "qwen2.5-3b-awq",
@@ -436,11 +679,20 @@
       "vram_gb": 3,
       "max_context": 16384,
       "default_context": 8192,
-      "extra_args": ["--enable-auto-tool-choice", "--tool-call-parser", "hermes"],
-      "description": "Qwen2.5 3B AWQ-Marlin. Sweet spot for the RTX 3070 — noticeably smarter than 1.5B at only 3GB VRAM. Solid tool calling, good for coding and analysis.",
+      "extra_args": [
+        "--enable-auto-tool-choice",
+        "--tool-call-parser",
+        "hermes"
+      ],
+      "description": "Qwen2.5 3B AWQ-Marlin. Sweet spot for the RTX 3070 \u2014 noticeably smarter than 1.5B at only 3GB VRAM. Solid tool calling, good for coding and analysis.",
       "architecture": "Qwen2",
       "license": "Apache-2.0",
-      "tags": ["small", "quantized", "tool-calling", "3070"]
+      "tags": [
+        "small",
+        "quantized",
+        "tool-calling",
+        "3070"
+      ]
     },
     {
       "id": "phi-4-mini",
@@ -452,14 +704,21 @@
       "max_context": 16384,
       "default_context": 8192,
       "extra_args": [
-        "--load-format", "bitsandbytes",
+        "--load-format",
+        "bitsandbytes",
         "--enable-auto-tool-choice",
         "--enforce-eager"
       ],
-      "description": "Microsoft Phi-4-mini 3.8B. Best-in-class instruction following at small size. BNB 4-bit for 3070 compatibility (~3GB). Tool call parser needs verification on vLLM v0.17.1 — add --tool-call-parser once confirmed. Requires vLLM >= 0.7.3.",
+      "description": "Microsoft Phi-4-mini 3.8B. Best-in-class instruction following at small size. BNB 4-bit for 3070 compatibility (~3GB). Tool call parser needs verification on vLLM v0.17.1 \u2014 add --tool-call-parser once confirmed. Requires vLLM >= 0.7.3.",
       "architecture": "Phi",
       "license": "MIT",
-      "tags": ["small", "instruction-following", "tool-calling", "3070", "microsoft"]
+      "tags": [
+        "small",
+        "instruction-following",
+        "tool-calling",
+        "3070",
+        "microsoft"
+      ]
     },
     {
       "id": "gemma3-2b",
@@ -470,11 +729,18 @@
       "vram_gb": 4,
       "max_context": 8192,
       "default_context": 4096,
-      "extra_args": ["--enable-auto-tool-choice"],
-      "description": "Google Gemma 3 2B instruction-tuned. Native BF16, 4GB VRAM. Well-rounded capability — good for dialogue, coding, and prompt-based tool calling. No dedicated vLLM tool parser; uses auto-tool-choice with prompt format.",
+      "extra_args": [
+        "--enable-auto-tool-choice"
+      ],
+      "description": "Google Gemma 3 2B instruction-tuned. Native BF16, 4GB VRAM. Well-rounded capability \u2014 good for dialogue, coding, and prompt-based tool calling. No dedicated vLLM tool parser; uses auto-tool-choice with prompt format.",
       "architecture": "Gemma3",
       "license": "Gemma",
-      "tags": ["small", "google", "tool-calling", "3070"]
+      "tags": [
+        "small",
+        "google",
+        "tool-calling",
+        "3070"
+      ]
     },
     {
       "id": "gemma3-1b",
@@ -485,11 +751,19 @@
       "vram_gb": 2,
       "max_context": 8192,
       "default_context": 4096,
-      "extra_args": ["--enable-auto-tool-choice"],
-      "description": "Google Gemma 3 1B instruction-tuned. Native BF16, ~2GB VRAM. Ultra-light — suitable for simple tasks, on-device-style workloads, or as a fast fallback. Also available as QAT GGUF for mobile deployment.",
+      "extra_args": [
+        "--enable-auto-tool-choice"
+      ],
+      "description": "Google Gemma 3 1B instruction-tuned. Native BF16, ~2GB VRAM. Ultra-light \u2014 suitable for simple tasks, on-device-style workloads, or as a fast fallback. Also available as QAT GGUF for mobile deployment.",
       "architecture": "Gemma3",
       "license": "Gemma",
-      "tags": ["ultra-light", "google", "always-on", "3070", "mobile-ready"]
+      "tags": [
+        "ultra-light",
+        "google",
+        "always-on",
+        "3070",
+        "mobile-ready"
+      ]
     },
     {
       "id": "gemma4-e2b",
@@ -501,11 +775,21 @@
       "gpu_count": 1,
       "max_context": 131072,
       "default_context": 8192,
-      "extra_args": ["--enable-auto-tool-choice", "--enforce-eager"],
-      "description": "Google Gemma 4 E2B — 5.1B total, 2.3B active params. Dense multimodal (text+image+audio). 128K context. Smallest Gemma 4, good for lightweight tasks.",
+      "extra_args": [
+        "--enable-auto-tool-choice",
+        "--enforce-eager"
+      ],
+      "description": "Google Gemma 4 E2B \u2014 5.1B total, 2.3B active params. Dense multimodal (text+image+audio). 128K context. Smallest Gemma 4, good for lightweight tasks.",
       "architecture": "Gemma4 (dense)",
       "license": "Gemma",
-      "tags": ["small", "google", "multimodal", "vision", "audio", "3070"]
+      "tags": [
+        "small",
+        "google",
+        "multimodal",
+        "vision",
+        "audio",
+        "3070"
+      ]
     },
     {
       "id": "gemma4-e4b",
@@ -517,11 +801,21 @@
       "gpu_count": 1,
       "max_context": 131072,
       "default_context": 16384,
-      "extra_args": ["--enable-auto-tool-choice", "--enforce-eager"],
-      "description": "Google Gemma 4 E4B — 8B total, 4.5B active params. Dense multimodal (text+image+audio). 128K context. Strong mid-size model, fits single RTX 3090 at BF16.",
+      "extra_args": [
+        "--enable-auto-tool-choice",
+        "--enforce-eager"
+      ],
+      "description": "Google Gemma 4 E4B \u2014 8B total, 4.5B active params. Dense multimodal (text+image+audio). 128K context. Strong mid-size model, fits single RTX 3090 at BF16.",
       "architecture": "Gemma4 (dense)",
       "license": "Gemma",
-      "tags": ["medium", "google", "multimodal", "vision", "audio", "3090"]
+      "tags": [
+        "medium",
+        "google",
+        "multimodal",
+        "vision",
+        "audio",
+        "3090"
+      ]
     },
     {
       "id": "gemma4-26b-a4b",
@@ -533,11 +827,24 @@
       "gpu_count": 1,
       "max_context": 262144,
       "default_context": 32768,
-      "extra_args": ["--load-format", "bitsandbytes", "--enforce-eager", "--enable-auto-tool-choice"],
-      "description": "Google Gemma 4 26B-A4B — 26B total, only 4B active params (MoE). Near-31B quality at fraction of compute. BNB 4-bit ~14GB fits single RTX 3090. 256K context. Multimodal (text+image). Best efficiency-to-quality ratio in the Gemma 4 family.",
+      "extra_args": [
+        "--load-format",
+        "bitsandbytes",
+        "--enforce-eager",
+        "--enable-auto-tool-choice"
+      ],
+      "description": "Google Gemma 4 26B-A4B \u2014 26B total, only 4B active params (MoE). Near-31B quality at fraction of compute. BNB 4-bit ~14GB fits single RTX 3090. 256K context. Multimodal (text+image). Best efficiency-to-quality ratio in the Gemma 4 family.",
       "architecture": "Gemma4 (MoE)",
       "license": "Gemma",
-      "tags": ["large", "google", "moe", "multimodal", "vision", "efficient", "3090"]
+      "tags": [
+        "large",
+        "google",
+        "moe",
+        "multimodal",
+        "vision",
+        "efficient",
+        "3090"
+      ]
     },
     {
       "id": "gemma4-31b",
@@ -549,11 +856,23 @@
       "gpu_count": 1,
       "max_context": 262144,
       "default_context": 32768,
-      "extra_args": ["--load-format", "bitsandbytes", "--enforce-eager", "--enable-auto-tool-choice"],
-      "description": "Google Gemma 4 31B — strongest in the family. Dense 31B, BNB 4-bit ~17GB fits single RTX 3090. 256K context. Multimodal (text+image). MMLU Pro 85.2%, AIME 2026 89.2%, LiveCodeBench 80%. No AWQ yet — switch when available.",
+      "extra_args": [
+        "--load-format",
+        "bitsandbytes",
+        "--enforce-eager",
+        "--enable-auto-tool-choice"
+      ],
+      "description": "Google Gemma 4 31B \u2014 strongest in the family. Dense 31B, BNB 4-bit ~17GB fits single RTX 3090. 256K context. Multimodal (text+image). MMLU Pro 85.2%, AIME 2026 89.2%, LiveCodeBench 80%. No AWQ yet \u2014 switch when available.",
       "architecture": "Gemma4 (dense)",
       "license": "Gemma",
-      "tags": ["large", "google", "multimodal", "vision", "reasoning", "3090"]
+      "tags": [
+        "large",
+        "google",
+        "multimodal",
+        "vision",
+        "reasoning",
+        "3090"
+      ]
     },
     {
       "id": "smollm2-1.7b",
@@ -564,10 +883,16 @@
       "vram_gb": 3,
       "max_context": 8192,
       "default_context": 4096,
-      "description": "HuggingFace SmolLM2 1.7B. Trained on 11T tokens (FineMath + Stack-Edu). Designed for on-device use — also fine-tunable with minimal data. Available in GGUF/ONNX/MLC for mobile deployment. Exports cleanly to GGUF for Godot (GDLlama).",
+      "description": "HuggingFace SmolLM2 1.7B. Trained on 11T tokens (FineMath + Stack-Edu). Designed for on-device use \u2014 also fine-tunable with minimal data. Available in GGUF/ONNX/MLC for mobile deployment. Exports cleanly to GGUF for Godot (GDLlama).",
       "architecture": "SmolLM2",
       "license": "Apache-2.0",
-      "tags": ["small", "fine-tunable", "mobile-ready", "godot-ready", "3070"]
+      "tags": [
+        "small",
+        "fine-tunable",
+        "mobile-ready",
+        "godot-ready",
+        "3070"
+      ]
     },
     {
       "id": "smollm2-360m",
@@ -581,7 +906,13 @@
       "description": "HuggingFace SmolLM2 360M. ~680MB native, ~450MB at Q6 GGUF. Designed for on-device/edge. Fine-tunable for specific game dialogue or task schemas. Primary use case is GGUF export for GDLlama (Godot) or MLC-LLM (mobile). vLLM entry allows prefetch to huggingface-cache.",
       "architecture": "SmolLM2",
       "license": "Apache-2.0",
-      "tags": ["ultra-light", "fine-tunable", "mobile-ready", "godot-ready", "edge"]
+      "tags": [
+        "ultra-light",
+        "fine-tunable",
+        "mobile-ready",
+        "godot-ready",
+        "edge"
+      ]
     },
     {
       "id": "smollm2-135m",
@@ -595,7 +926,13 @@
       "description": "HuggingFace SmolLM2 135M. ~260MB native, ~160MB at Q6 GGUF. Smallest usable instruction-following model. Suitable for Godot NPC dialogue with domain fine-tuning, or mobile app bundle where size is critical.",
       "architecture": "SmolLM2",
       "license": "Apache-2.0",
-      "tags": ["ultra-light", "fine-tunable", "mobile-ready", "godot-ready", "edge"]
+      "tags": [
+        "ultra-light",
+        "fine-tunable",
+        "mobile-ready",
+        "godot-ready",
+        "edge"
+      ]
     },
     {
       "id": "gemma3-270m",
@@ -606,10 +943,17 @@
       "vram_gb": 1,
       "max_context": 4096,
       "default_context": 2048,
-      "description": "Google Gemma 3 270M — FunctionGemma variant specifically optimized for on-device tool/function calling (released Jan 2026). ~320MB at Q4 GGUF. Ideal for game agents (Godot via GDLlama) that need to call game APIs. Fine-tune on your tool schema for tight mobile bundling. Verify exact HF ID — may be google/functiongemma-270m.",
+      "description": "Google Gemma 3 270M \u2014 FunctionGemma variant specifically optimized for on-device tool/function calling (released Jan 2026). ~320MB at Q4 GGUF. Ideal for game agents (Godot via GDLlama) that need to call game APIs. Fine-tune on your tool schema for tight mobile bundling. Verify exact HF ID \u2014 may be google/functiongemma-270m.",
       "architecture": "Gemma3",
       "license": "Gemma",
-      "tags": ["ultra-light", "tool-calling", "mobile-ready", "godot-ready", "fine-tunable", "edge"]
+      "tags": [
+        "ultra-light",
+        "tool-calling",
+        "mobile-ready",
+        "godot-ready",
+        "fine-tunable",
+        "edge"
+      ]
     },
     {
       "id": "glm-4.7-flash",
@@ -622,16 +966,26 @@
       "max_context": 65536,
       "default_context": 32768,
       "extra_args": [
-        "--load-format", "bitsandbytes",
+        "--load-format",
+        "bitsandbytes",
         "--enable-auto-tool-choice",
-        "--tool-call-parser", "glm47",
-        "--reasoning-parser", "glm45",
+        "--tool-call-parser",
+        "glm47",
+        "--reasoning-parser",
+        "glm45",
         "--enforce-eager"
       ],
-      "description": "GLM-4.7-Flash: 30B total / 3B active MoE. Fast inference, strong tool calling, interleaved thinking. Recommended by Unsloth for Claude Code agentic tasks. BNB 4-bit for single-GPU. Avoid AWQ variants — community AWQs calibrated without tool calling data.",
+      "description": "GLM-4.7-Flash: 30B total / 3B active MoE. Fast inference, strong tool calling, interleaved thinking. Recommended by Unsloth for Claude Code agentic tasks. BNB 4-bit for single-GPU. Avoid AWQ variants \u2014 community AWQs calibrated without tool calling data.",
       "architecture": "GLM-4.7 (MoE)",
       "license": "Apache-2.0",
-      "tags": ["fast", "tool-calling", "moe", "claude-code", "thinking", "glm"]
+      "tags": [
+        "fast",
+        "tool-calling",
+        "moe",
+        "claude-code",
+        "thinking",
+        "glm"
+      ]
     },
     {
       "id": "glm-z1-9b",
@@ -645,13 +999,21 @@
       "default_context": 16384,
       "extra_args": [
         "--enable-auto-tool-choice",
-        "--tool-call-parser", "glm4",
-        "--reasoning-parser", "glm4"
+        "--tool-call-parser",
+        "glm4",
+        "--reasoning-parser",
+        "glm4"
       ],
-      "description": "GLM-Z1-9B: 9B dense reasoning model with thinking mode. Native BF16 — fits single RTX 3090 (18GB). Strong at math and coding. No AWQ available; native precision preferred.",
+      "description": "GLM-Z1-9B: 9B dense reasoning model with thinking mode. Native BF16 \u2014 fits single RTX 3090 (18GB). Strong at math and coding. No AWQ available; native precision preferred.",
       "architecture": "GLM-Z1 (dense)",
       "license": "Apache-2.0",
-      "tags": ["small", "reasoning", "thinking", "tool-calling", "glm"]
+      "tags": [
+        "small",
+        "reasoning",
+        "thinking",
+        "tool-calling",
+        "glm"
+      ]
     },
     {
       "id": "glm-z1-32b",
@@ -664,16 +1026,25 @@
       "max_context": 32768,
       "default_context": 16384,
       "extra_args": [
-        "--load-format", "bitsandbytes",
+        "--load-format",
+        "bitsandbytes",
         "--enable-auto-tool-choice",
-        "--tool-call-parser", "glm4",
-        "--reasoning-parser", "glm4",
+        "--tool-call-parser",
+        "glm4",
+        "--reasoning-parser",
+        "glm4",
         "--enforce-eager"
       ],
       "description": "GLM-Z1-32B: 32B dense model with deep thinking. Strong coding and analysis. BNB 4-bit for single-GPU (~17GB). No community AWQ available.",
       "architecture": "GLM-Z1 (dense)",
       "license": "Apache-2.0",
-      "tags": ["large", "reasoning", "thinking", "tool-calling", "glm"]
+      "tags": [
+        "large",
+        "reasoning",
+        "thinking",
+        "tool-calling",
+        "glm"
+      ]
     },
     {
       "id": "glm-z1-rumination-32b",
@@ -686,16 +1057,25 @@
       "max_context": 32768,
       "default_context": 16384,
       "extra_args": [
-        "--load-format", "bitsandbytes",
+        "--load-format",
+        "bitsandbytes",
         "--enable-auto-tool-choice",
-        "--tool-call-parser", "glm4",
-        "--reasoning-parser", "glm4",
+        "--tool-call-parser",
+        "glm4",
+        "--reasoning-parser",
+        "glm4",
         "--enforce-eager"
       ],
       "description": "GLM-Z1-Rumination-32B: 32B dense with extended deep thinking (rumination). Designed for long research tasks with retrieval-augmented reasoning. Slower than Z1-32B but more thorough. BNB 4-bit for single-GPU.",
       "architecture": "GLM-Z1 (Rumination)",
       "license": "Apache-2.0",
-      "tags": ["large", "reasoning", "deep-thinking", "research", "glm"]
+      "tags": [
+        "large",
+        "reasoning",
+        "deep-thinking",
+        "research",
+        "glm"
+      ]
     },
     {
       "id": "huihui-qwen3.5-27b-abliterated",
@@ -708,11 +1088,21 @@
       "gpu_count": 1,
       "max_context": 32768,
       "default_context": 16384,
-      "extra_args": ["--load-format", "bitsandbytes", "--enforce-eager"],
+      "extra_args": [
+        "--load-format",
+        "bitsandbytes",
+        "--enforce-eager"
+      ],
       "description": "Qwen3.5-27B abliterated by huihui-ai using Claude Opus 4.6 reasoning distillation. BNB NF4 4-bit on single GPU. HuggingFace safetensors (55GB BF16, quantized on load).",
       "architecture": "Qwen3.5 (dense, abliterated)",
       "license": "Apache-2.0",
-      "tags": ["reasoning", "abliterated", "uncensored", "distilled", "single-gpu"]
+      "tags": [
+        "reasoning",
+        "abliterated",
+        "uncensored",
+        "distilled",
+        "single-gpu"
+      ]
     },
     {
       "id": "huihui-qwen3.5-4b-abliterated",
@@ -728,7 +1118,13 @@
       "description": "Qwen3.5-4B abliterated by huihui-ai using Claude Opus 4.6 reasoning distillation. Native BF16 safetensors (~9.3GB). Note: smaller variants in this series show more hallucinations than 35B.",
       "architecture": "Qwen3.5 (dense, abliterated)",
       "license": "Apache-2.0",
-      "tags": ["small", "abliterated", "uncensored", "distilled", "fast"]
+      "tags": [
+        "small",
+        "abliterated",
+        "uncensored",
+        "distilled",
+        "fast"
+      ]
     },
     {
       "id": "qwen3.5-35b-a3b-uncensored-q5km",
@@ -742,11 +1138,20 @@
       "gpu_count": 1,
       "max_context": 131072,
       "default_context": 65536,
-      "extra_args": ["--jinja"],
-      "description": "Qwen3.5 35B MoE (3B active params) abliterated by HauhauCS. Q5_K_M GGUF via llama.cpp — single RTX 3090. 262K native context. Hybrid DeltaNet+attention architecture. Best 35B quality-per-VRAM option.",
+      "extra_args": [
+        "--jinja"
+      ],
+      "description": "Qwen3.5 35B MoE (3B active params) abliterated by HauhauCS. Q5_K_M GGUF via llama.cpp \u2014 single RTX 3090. 262K native context. Hybrid DeltaNet+attention architecture. Best 35B quality-per-VRAM option.",
       "architecture": "Qwen3.5 35B-A3B (MoE, abliterated)",
       "license": "Apache-2.0",
-      "tags": ["moe", "abliterated", "uncensored", "llamacpp", "single-gpu", "large-context"]
+      "tags": [
+        "moe",
+        "abliterated",
+        "uncensored",
+        "llamacpp",
+        "single-gpu",
+        "large-context"
+      ]
     },
     {
       "id": "qwen3.5-35b-a3b-uncensored-q8",
@@ -760,11 +1165,106 @@
       "gpu_count": 2,
       "max_context": 131072,
       "default_context": 65536,
-      "extra_args": ["--jinja"],
-      "description": "Qwen3.5 35B MoE (3B active params) abliterated by HauhauCS. Q8_0 GGUF via llama.cpp — dual RTX 3090 (35GB). Maximum quality, near-lossless quantization. 262K native context.",
+      "extra_args": [
+        "--jinja"
+      ],
+      "description": "Qwen3.5 35B MoE (3B active params) abliterated by HauhauCS. Q8_0 GGUF via llama.cpp \u2014 dual RTX 3090 (35GB). Maximum quality, near-lossless quantization. 262K native context.",
       "architecture": "Qwen3.5 35B-A3B (MoE, abliterated)",
       "license": "Apache-2.0",
-      "tags": ["moe", "abliterated", "uncensored", "llamacpp", "dual-gpu", "max-quality", "large-context"]
+      "tags": [
+        "moe",
+        "abliterated",
+        "uncensored",
+        "llamacpp",
+        "dual-gpu",
+        "max-quality",
+        "large-context"
+      ]
+    },
+    {
+      "id": "qwopus-moe-35b-q4km",
+      "name": "Qwopus MoE 35B-A3B Q4_K_M",
+      "runtime": "llamacpp",
+      "hf_model": "samuelcardillo/Qwopus-MoE-35B-A3B-GGUF",
+      "gguf_filename": "Qwopus-MoE-35B-A3B-Q4_K_M.gguf",
+      "quantization": "Q4_K_M",
+      "type": "text",
+      "vram_gb": 21,
+      "gpu_count": 1,
+      "max_context": 131072,
+      "default_context": 65536,
+      "extra_args": [
+        "--jinja"
+      ],
+      "description": "Qwen3.5-35B-A3B MoE (3B active params) fine-tuned with Opus reasoning distillation via QLoRA by samuelcardillo. Q4_K_M GGUF (~21GB) fits single RTX 3090. 128K native context. Same base architecture as HauhauCS uncensored variant.",
+      "architecture": "Qwen3.5 35B-A3B (MoE, Opus distilled)",
+      "license": "Apache-2.0",
+      "tags": [
+        "moe",
+        "reasoning",
+        "distilled",
+        "opus",
+        "llamacpp",
+        "single-gpu",
+        "large-context"
+      ]
+    },
+    {
+      "id": "qwopus-moe-35b-q5km",
+      "name": "Qwopus MoE 35B-A3B Q5_K_M",
+      "runtime": "llamacpp",
+      "hf_model": "samuelcardillo/Qwopus-MoE-35B-A3B-GGUF",
+      "gguf_filename": "Qwopus-MoE-35B-A3B-Q5_K_M.gguf",
+      "quantization": "Q5_K_M",
+      "type": "text",
+      "vram_gb": 25,
+      "gpu_count": 2,
+      "max_context": 131072,
+      "default_context": 65536,
+      "extra_args": [
+        "--jinja"
+      ],
+      "description": "Qwen3.5-35B-A3B MoE (3B active params) fine-tuned with Opus reasoning distillation via QLoRA by samuelcardillo. Q5_K_M GGUF (~25GB) \u2014 dual RTX 3090 (just over single 24GB limit). Better quality than Q4_K_M.",
+      "architecture": "Qwen3.5 35B-A3B (MoE, Opus distilled)",
+      "license": "Apache-2.0",
+      "tags": [
+        "moe",
+        "reasoning",
+        "distilled",
+        "opus",
+        "llamacpp",
+        "dual-gpu",
+        "large-context"
+      ]
+    },
+    {
+      "id": "qwopus-moe-35b-q8",
+      "name": "Qwopus MoE 35B-A3B Q8_0",
+      "runtime": "llamacpp",
+      "hf_model": "samuelcardillo/Qwopus-MoE-35B-A3B-GGUF",
+      "gguf_filename": "Qwopus-MoE-35B-A3B-Q8_0.gguf",
+      "quantization": "Q8_0",
+      "type": "text",
+      "vram_gb": 37,
+      "gpu_count": 2,
+      "max_context": 131072,
+      "default_context": 98304,
+      "extra_args": [
+        "--jinja"
+      ],
+      "description": "Qwen3.5-35B-A3B MoE (3B active params) fine-tuned with Opus reasoning distillation via QLoRA by samuelcardillo. Q8_0 GGUF (~35GB) \u2014 dual RTX 3090 (48GB total). Model weights use ~43.8GB VRAM leaving ~2.7GB for KV cache; 98K context uses ~1.9GB KV cache (safe). Near-lossless quality.",
+      "architecture": "Qwen3.5 35B-A3B (MoE, Opus distilled)",
+      "license": "Apache-2.0",
+      "tags": [
+        "moe",
+        "reasoning",
+        "distilled",
+        "opus",
+        "llamacpp",
+        "dual-gpu",
+        "max-quality",
+        "large-context"
+      ]
     },
     {
       "id": "bge-base-en",
@@ -775,11 +1275,19 @@
       "vram_gb": 1,
       "max_context": 512,
       "default_context": 512,
-      "extra_args": ["--task", "embed"],
+      "extra_args": [
+        "--task",
+        "embed"
+      ],
       "description": "Text embedding model for semantic search and RAG. Always-on for vector operations.",
       "architecture": "BERT",
       "license": "MIT",
-      "tags": ["embedding", "search", "rag", "always-on"]
+      "tags": [
+        "embedding",
+        "search",
+        "rag",
+        "always-on"
+      ]
     }
   ]
 }

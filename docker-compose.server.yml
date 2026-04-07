@@ -26,6 +26,7 @@ services:
       - TTS_ENDPOINT=http://tts-server:8000
       - ENABLE_METRICS=1
       - ENABLE_MEMORY=1
+      - REQUIRE_API_KEY=${REQUIRE_API_KEY:-1}
       - LOG_LEVEL=INFO
       - GITEA_URL=https://gitea.server.unarmedpuppy.com
       - GITEA_TOKEN=${GITEA_TOKEN:-}

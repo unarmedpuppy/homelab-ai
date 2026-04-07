@@ -7,6 +7,7 @@ Keys are stored as SHA-256 hashes - the full key is never stored after generatio
 import hashlib
 import json
 import logging
+import os
 import secrets
 from dataclasses import dataclass
 from datetime import datetime
@@ -15,6 +16,9 @@ from typing import Optional, Tuple, List
 from fastapi import Header, HTTPException
 
 from database import get_db_connection
+
+# When False, any key (or no key) is accepted — useful for local/trusted deployments
+REQUIRE_API_KEY = bool(int(os.getenv("REQUIRE_API_KEY", "1")))
 
 logger = logging.getLogger(__name__)
 
@@ -381,37 +385,64 @@ def update_api_key_metadata(key_id: int, metadata: dict) -> bool:
 # FastAPI Authentication Dependency
 # =============================================================================
 
+_ANONYMOUS_KEY = ApiKey(
+    id=0,
+    name="anonymous",
+    key_prefix="(none)",
+    enabled=True,
+    created_at=datetime.utcnow(),
+    last_used_at=None,
+    expires_at=None,
+    scopes=None,
+    metadata=None,
+)
+
+
 async def validate_api_key_header(
     authorization: Optional[str] = Header(None, alias="Authorization")
 ) -> ApiKey:
     """
     FastAPI dependency to validate API key from Authorization header.
-    
+
     Accepts:
-        - 'Authorization: Bearer lai_...'
-        - 'Authorization: lai_...'
-    
+        - 'Authorization: Bearer <key>'
+        - 'Authorization: <key>'
+
+    When REQUIRE_API_KEY=0, any key (or no key) is accepted and an anonymous
+    ApiKey is returned. This is useful for local/trusted deployments where
+    clients may send Anthropic-format keys or no key at all.
+
     Returns:
         ApiKey object if valid
-        
+
     Raises:
-        HTTPException 401 if key is missing, invalid, or disabled
+        HTTPException 401 if key is missing or invalid (only when REQUIRE_API_KEY=1)
     """
+    if not REQUIRE_API_KEY:
+        # Auth disabled — extract key prefix for logging but don't validate
+        if authorization:
+            key = authorization[7:] if authorization.lower().startswith("bearer ") else authorization
+            key = key.strip()
+            logger.debug(f"Auth disabled, accepting key: {key[:12]}...")
+        else:
+            logger.debug("Auth disabled, accepting anonymous request")
+        return _ANONYMOUS_KEY
+
     if not authorization:
         logger.warning("Missing Authorization header")
         raise HTTPException(
             status_code=401,
-            detail="Missing Authorization header. Use 'Authorization: Bearer lai_...'",
+            detail="Missing Authorization header. Use 'Authorization: Bearer <key>'",
             headers={"WWW-Authenticate": "Bearer"}
         )
-    
-    # Extract key from header (support both "Bearer lai_..." and "lai_...")
+
+    # Extract key from header (support both "Bearer <key>" and "<key>")
     key = authorization
     if authorization.lower().startswith("bearer "):
-        key = authorization[7:]  # Remove "Bearer " prefix
-    
+        key = authorization[7:]
+
     key = key.strip()
-    
+
     if not key:
         logger.warning("Empty API key in Authorization header")
         raise HTTPException(
@@ -419,10 +450,10 @@ async def validate_api_key_header(
             detail="Empty API key",
             headers={"WWW-Authenticate": "Bearer"}
         )
-    
-    # Validate the key
+
+    # Validate the key against the database
     api_key = await validate_api_key(key)
-    
+
     if api_key is None:
         logger.warning(f"Invalid or disabled API key: {key[:8]}...")
         raise HTTPException(
@@ -430,7 +461,7 @@ async def validate_api_key_header(
             detail="Invalid or disabled API key",
             headers={"WWW-Authenticate": "Bearer"}
         )
-    
+
     logger.debug(f"Authenticated: {api_key.name} ({api_key.key_prefix}...)")
     return api_key
 
