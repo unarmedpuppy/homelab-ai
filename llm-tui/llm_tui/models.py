@@ -88,13 +88,37 @@ class RequestMetric:
     username: str = ""
     display_name: str = ""
     source: str = ""
+    project: str = ""
 
     @property
     def display_user(self) -> str:
-        return self.display_name or self.username or self.user_id or "unknown"
+        return self.display_name or self.username or self.user_id or self.project or "unknown"
 
     @property
     def tokens_per_sec(self) -> float:
         if self.duration_ms <= 0 or self.completion_tokens <= 0:
             return 0
         return self.completion_tokens / (self.duration_ms / 1000)
+
+    @classmethod
+    def from_api(cls, data: dict) -> RequestMetric:
+        """Build from router or manager API response, ignoring unknown fields."""
+        return cls(
+            id=data.get("id", 0),
+            timestamp=data.get("timestamp", ""),
+            model_requested=data.get("model_requested", ""),
+            model_used=data.get("model_used", ""),
+            backend=data.get("backend", ""),
+            endpoint=data.get("endpoint", ""),
+            prompt_tokens=data.get("prompt_tokens") or 0,
+            completion_tokens=data.get("completion_tokens") or 0,
+            total_tokens=data.get("total_tokens") or 0,
+            duration_ms=data.get("duration_ms") or 0,
+            success=data.get("success", True),
+            streaming=data.get("streaming", False),
+            user_id=data.get("user_id", ""),
+            username=data.get("username", ""),
+            display_name=data.get("display_name", ""),
+            source=data.get("source", ""),
+            project=data.get("project", ""),
+        )
