@@ -49,6 +49,7 @@ services:
       - MODEL_ID=black-forest-labs/FLUX.1-dev
       - MODEL_NAME=black-forest-labs/FLUX.1-dev
       - HF_TOKEN=${HF_TOKEN}
+      - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
     volumes:
       - huggingface-cache:/root/.cache/huggingface
     networks:
