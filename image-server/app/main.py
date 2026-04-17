@@ -72,8 +72,16 @@ def load_model():
                 device_map="cuda" if device == "cuda" else None,
                 trust_remote_code=True,
             )
+        elif "flux" in model_name.lower():
+            print("Using DiffusionPipeline with CPU offload for FLUX")
+            model_pipeline = DiffusionPipeline.from_pretrained(
+                model_name,
+                torch_dtype=torch.bfloat16 if device == "cuda" else torch.float32,
+                trust_remote_code=True,
+            )
+            if device == "cuda":
+                model_pipeline.enable_model_cpu_offload()
         else:
-            # Use auto-detection for other models or if Qwen pipeline not available
             print("Using DiffusionPipeline auto-detection")
             model_pipeline = DiffusionPipeline.from_pretrained(
                 model_name,
@@ -81,13 +89,11 @@ def load_model():
                 device_map="balanced" if device == "cuda" else None,
                 trust_remote_code=True,
             )
-        
-        # Move to device if not already on it (device_map should handle this, but ensure it)
-        if device == "cuda" and hasattr(model_pipeline, 'to'):
-            try:
-                model_pipeline = model_pipeline.to(device)
-            except Exception as e:
-                print(f"Note: Could not move pipeline to device (may already be there): {e}")
+            if device == "cuda" and hasattr(model_pipeline, 'to'):
+                try:
+                    model_pipeline = model_pipeline.to(device)
+                except Exception as e:
+                    print(f"Note: Could not move pipeline to device (may already be there): {e}")
         print(f"Model loaded successfully")
         return model_pipeline
     except Exception as e:
