@@ -77,8 +77,8 @@ def load_model():
             print("Using DiffusionPipeline auto-detection")
             model_pipeline = DiffusionPipeline.from_pretrained(
                 model_name,
-                torch_dtype=torch.float16 if device == "cuda" else torch.float32,
-                device_map="cuda" if device == "cuda" else None,
+                torch_dtype=torch.bfloat16 if device == "cuda" else torch.float32,
+                device_map="balanced" if device == "cuda" else None,
                 trust_remote_code=True,
             )
         
