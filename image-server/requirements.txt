@@ -15,4 +15,6 @@ numpy>=1.24.3
 httpx==0.25.1
 pydantic==2.5.0
 huggingface-hub>=0.20.2
+sentencepiece>=0.2.0
+protobuf>=4.25.0
 
