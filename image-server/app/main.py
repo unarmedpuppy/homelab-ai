@@ -33,7 +33,7 @@ app = FastAPI(title="Image Inference Server", version="0.1.0")
 
 # Global model state
 model_pipeline = None
-model_name = os.getenv("MODEL_NAME", "Qwen/Qwen-Image-Edit-2509")
+model_name = os.getenv("MODEL_ID", "Qwen/Qwen-Image-Edit-2509")
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 class ImageGenerationRequest(BaseModel):
