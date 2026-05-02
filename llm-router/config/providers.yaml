@@ -144,13 +144,36 @@ models:
       - large-context
       - dual-gpu
 
+  - id: qwen3.6-27b-q8
+    name: "Qwen3.6 27B Q8_0"
+    providerId: gaming-pc-3090
+    description: "Qwen3.6-27B dense Q8_0 via llama.cpp, dual RTX 3090. Flagship-level coding, 131K context, 28.7GB VRAM."
+    contextWindow: 131072
+    maxTokens: 32768
+    isDefault: true
+
+    # Capabilities
+    capabilities:
+      streaming: true
+      functionCalling: true
+      vision: false
+      jsonMode: true
+
+    # Tags for filtering/discovery
+    tags:
+      - chat
+      - reasoning
+      - coding
+      - large-context
+      - dual-gpu
+
   - id: qwopus-moe-35b-q8
     name: "Qwopus MoE 35B-A3B Q8"
     providerId: gaming-pc-3090
     description: "Qwopus MoE 35B-A3B Q8_0 (Opus distill, 3B active params) - 98K context, 107 t/s, dual-GPU"
     contextWindow: 98304
     maxTokens: 32768
-    isDefault: true
+    isDefault: false
 
     # Capabilities
     capabilities:

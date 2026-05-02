@@ -1267,6 +1267,33 @@
       ]
     },
     {
+      "id": "qwen3.6-27b-q8",
+      "name": "Qwen3.6 27B Q8_0",
+      "runtime": "llamacpp",
+      "hf_model": "bartowski/Qwen_Qwen3.6-27B-GGUF",
+      "gguf_filename": "Qwen_Qwen3.6-27B-Q8_0.gguf",
+      "quantization": "Q8_0",
+      "type": "text",
+      "vram_gb": 29,
+      "gpu_count": 2,
+      "max_context": 131072,
+      "default_context": 131072,
+      "extra_args": [
+        "--jinja"
+      ],
+      "description": "Qwen3.6-27B dense model at Q8_0 — 28.67GB, flagship-level coding on dual RTX 3090. ~19GB VRAM headroom for KV cache at 131K context.",
+      "architecture": "Qwen3.6 27B dense",
+      "license": "Apache-2.0",
+      "tags": [
+        "coding",
+        "llamacpp",
+        "dual-gpu",
+        "max-quality",
+        "large-context",
+        "dense"
+      ]
+    },
+    {
       "id": "bge-base-en",
       "name": "BGE Base EN v1.5",
       "hf_model": "BAAI/bge-base-en-v1.5",
