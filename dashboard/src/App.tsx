@@ -47,6 +47,7 @@ const RootsDashboard = lazy(() => import('./components/roots/RootsDashboard'));
 const ModelGardenDashboard = lazy(() => import('./components/models/ModelGardenDashboard'));
 const DocsPage = lazy(() => import('./pages/DocsPage'));
 const KnowledgePage = lazy(() => import('./pages/KnowledgePage'));
+const KnowledgeBasePage = lazy(() => import('./pages/KnowledgeBasePage'));
 const CommandPage = lazy(() => import('./command/CommandPage'));
 const SessionsPage = lazy(() => import('./pages/SessionsPage'));
 const AppsPage = lazy(() => import('./pages/AppsPage'));
@@ -58,7 +59,7 @@ const GettingStartedPage = lazy(() => import('./pages/reference/GettingStartedPa
 const TroubleshootingPage = lazy(() => import('./pages/reference/TroubleshootingPage'));
 const SummaryPage = lazy(() => import('./pages/SummaryPage'));
 
-type ViewName = 'chat' | 'tasks' | 'roots' | 'providers' | 'stats' | 'agents' | 'models' | 'docs' | 'command' | 'sessions' | 'knowledge' | 'apps';
+type ViewName = 'chat' | 'tasks' | 'roots' | 'providers' | 'stats' | 'agents' | 'models' | 'docs' | 'command' | 'sessions' | 'knowledge' | 'knowledge-base' | 'apps';
 
 function AppHeader() {
   return (
@@ -169,6 +170,7 @@ function AppNavigation({ currentView }: { currentView: ViewName }) {
     { to: '/sessions', view: 'sessions', iconKey: 'sessions', label: 'Sessions' },
     { to: '/apps', view: 'apps', iconKey: 'apps', label: 'Apps' },
     { to: '/knowledge', view: 'knowledge', iconKey: 'knowledge', label: 'Knowledge' },
+    { to: '/kb', view: 'knowledge-base', iconKey: 'knowledge', label: 'My KB' },
     { to: '/docs', view: 'docs', iconKey: 'docs', label: 'Docs' },
     { to: '/command', view: 'command', iconKey: 'command', label: 'Command' },
   ];
@@ -517,6 +519,18 @@ function KnowledgeView() {
   );
 }
 
+function KnowledgeBaseView() {
+  return (
+    <AppLayout currentView="knowledge-base">
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoading section="Knowledge Base" />}>
+          <KnowledgeBasePage />
+        </Suspense>
+      </ErrorBoundary>
+    </AppLayout>
+  );
+}
+
 function AppsView() {
   return (
     <AppLayout currentView="apps">
@@ -582,6 +596,7 @@ function App() {
       <Route path="/sessions" element={<SessionsView />} />
       <Route path="/apps" element={<AppsView />} />
       <Route path="/knowledge" element={<KnowledgeView />} />
+      <Route path="/kb" element={<KnowledgeBaseView />} />
       <Route path="/docs" element={<DocsView />} />
       <Route path="/docs/:repo/:slug" element={<DocsView />} />
       <Route path="/command" element={<CommandView />} />

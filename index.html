@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homelab AI - Cron Job Dashboard</title>
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Homelab AI Dashboard</h1>
+            <p>Cron Job Monitoring</p>
+        </header>
+        
+        <main>
+            <section class="stats">
+                <div class="stat-card">
+                    <h3>Total Jobs</h3>
+                    <span id="total-jobs">0</span>
+                </div>
+                <div class="stat-card">
+                    <h3>Active</h3>
+                    <span id="active-jobs">0</span>
+                </div>
+                <div class="stat-card">
+                    <h3>Paused</h3>
+                    <span id="paused-jobs">0</span>
+                </div>
+            </section>
+            
+            <section class="jobs-list">
+                <h2>Cron Jobs</h2>
+                <div id="jobs-container"></div>
+            </section>
+        </main>
+        
+        <footer>
+            <p>Last updated: <span id="last-update"></span></p>
+        </footer>
+    </div>
+    
+    <script src="assets/js/dashboard.js"></script>
+</body>
+</html>

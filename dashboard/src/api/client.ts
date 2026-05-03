@@ -1281,4 +1281,88 @@ export const modelGardenAPI = {
   },
 };
 
+// Knowledge Base API
+export const knowledgeAPI = {
+  getInfo: async () => {
+    const response = await fetch('/api/kb/');
+    if (!response.ok) throw new Error(`Failed to get KB info: ${response.statusText}`);
+    return response.json();
+  },
+
+  listCategories: async () => {
+    const response = await fetch('/api/kb/categories');
+    if (!response.ok) throw new Error(`Failed to list categories: ${response.statusText}`);
+    return response.json();
+  },
+
+  listFiles: async (category?: string) => {
+    const cat = category ? `/${category}` : '';
+    const response = await fetch(`/api/kb/categories${cat}/files`);
+    if (!response.ok) throw new Error(`Failed to list files: ${response.statusText}`);
+    return response.json();
+  },
+
+  getCategoryStats: async (category: string) => {
+    const response = await fetch(`/api/kb/categories/${category}/stats`);
+    if (!response.ok) throw new Error(`Failed to get stats: ${response.statusText}`);
+    return response.json();
+  },
+
+  getFile: async (file_path: string) => {
+    const response = await fetch(`/api/kb/files/${encodeURIComponent(file_path)}`);
+    if (!response.ok) throw new Error(`Failed to get file: ${response.statusText}`);
+    return response.json();
+  },
+
+  search: async (q: string, category?: string) => {
+    const params = new URLSearchParams({ q });
+    if (category) params.append('category', category);
+    const response = await fetch(`/api/kb/search?${params}`);
+    if (!response.ok) throw new Error(`Failed to search: ${response.statusText}`);
+    return response.json();
+  },
+
+  getRecent: async (limit: number = 10) => {
+    const response = await fetch(`/api/kb/recent?limit=${limit}`);
+    if (!response.ok) throw new Error(`Failed to get recent: ${response.statusText}`);
+    return response.json();
+  },
+
+  addContent: async (item: {
+    id: string;
+    title: string;
+    content: string;
+    category: string;
+    tags: string[];
+    created_at: string;
+    url?: string;
+    source?: string;
+    author?: string;
+  }) => {
+    const response = await fetch('/api/kb/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(item),
+    });
+    if (!response.ok) throw new Error(`Failed to add content: ${response.statusText}`);
+    return response.json();
+  },
+
+  createCategory: async (name: string) => {
+    const response = await fetch('/api/kb/categories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+    });
+    if (!response.ok) throw new Error(`Failed to create category: ${response.statusText}`);
+    return response.json();
+  },
+
+  deleteCategory: async (category: string) => {
+    const response = await fetch(`/api/kb/categories/${category}`, { method: 'DELETE' });
+    if (!response.ok) throw new Error(`Failed to delete category: ${response.statusText}`);
+    return response.json();
+  },
+};
+
 export { apiClient };

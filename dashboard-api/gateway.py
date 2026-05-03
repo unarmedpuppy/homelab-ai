@@ -18,6 +18,7 @@ from models import (
     TraceEventPayload, TraceSession, TraceSessionDetail, TraceStatsResponse,
 )
 import traces as trace_db
+import knowledge_base as kb_api
 
 
 class ContextResponse(BaseModel):
@@ -106,6 +107,9 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+# Include knowledge base router
+app.include_router(kb_api.router)
 
 # Enable CORS for dashboard access
 app.add_middleware(
