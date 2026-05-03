@@ -226,6 +226,7 @@ export const chatAPI = {
       model: string;
       messages: ChatMessage[];
       stream: boolean;
+      stream_options?: { include_usage: boolean };
       temperature?: number;
       max_tokens?: number;
       top_p?: number;
@@ -235,6 +236,7 @@ export const chatAPI = {
       model,
       messages,
       stream: true,
+      stream_options: { include_usage: true },
     };
 
     if (temperature !== undefined) requestBody.temperature = temperature;
@@ -325,7 +327,8 @@ export const chatAPI = {
     const requestBody: Record<string, unknown> = {
       model,
       messages,
-      stream: true, // Enable streaming
+      stream: true,
+      stream_options: { include_usage: true },
     };
 
     if (temperature !== undefined) requestBody.temperature = temperature;

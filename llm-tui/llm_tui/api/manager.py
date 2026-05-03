@@ -81,7 +81,7 @@ class ManagerClient:
             r.raise_for_status()
             data = r.json()
             rows = data if isinstance(data, list) else data.get("metrics", [])
-            return [RequestMetric(**m) for m in rows]
+            return [RequestMetric.from_api(m) for m in rows]
         except (httpx.HTTPError, Exception):
             return []
 

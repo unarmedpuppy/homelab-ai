@@ -31,6 +31,7 @@ MODELS_CONFIG_PATH = os.getenv("MODELS_CONFIG_PATH", "/app/models.json")
 VLLM_IMAGE = os.getenv("VLLM_IMAGE", "vllm/vllm-openai:latest")
 LLAMA_IMAGE = os.getenv("LLAMA_IMAGE", "ghcr.io/ggerganov/llama.cpp:server-cuda")
 HF_CACHE_PATH = os.getenv("HF_CACHE_PATH", "/root/.cache/huggingface")
+GGUF_MODELS_PATH = os.getenv("GGUF_MODELS_PATH", "gguf-models")  # host path or named volume
 DOCKER_NETWORK = os.getenv(
     "DOCKER_NETWORK", "ai-network"
 )  # Network for spawned containers
@@ -331,7 +332,7 @@ def create_llamacpp_container(model_id: str):
                 "NVIDIA_VISIBLE_DEVICES": "all",
             },
             volumes={
-                "gguf-models": {"bind": "/models", "mode": "ro"},
+                GGUF_MODELS_PATH: {"bind": "/models", "mode": "ro"},
             },
             network=DOCKER_NETWORK,
             ipc_mode="host" if gpu_count > 1 else None,
