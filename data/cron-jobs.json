@@ -13,6 +13,20 @@
       "documentation": "docs/cron-jobs/sync-x-bookmarks.md",
       "logs": "/tmp/6a6511cbbad9.log",
       "created_at": "2026-05-03T18:30:00Z"
+    },
+    {
+      "job_id": "b2f59efd652d",
+      "name": "morning_briefing",
+      "description": "Daily morning market briefing that fetches real-time data from TradingView via MCP and posts to Mattermost Coins channel. Includes price action, technicals, and sentiment analysis.",
+      "schedule": "30 8 * * 1-5",
+      "schedule_human": "Weekdays at 8:30 AM CST",
+      "enabled": true,
+      "last_run_at": null,
+      "last_status": null,
+      "next_run_at": "2026-05-04T08:30:00-05:00",
+      "documentation": "docs/cron-jobs/morning_briefing.md",
+      "logs": "/tmp/b2f59efd652d.log",
+      "created_at": "2026-05-03T22:29:00Z"
     }
   ]
 }
