@@ -32,6 +32,7 @@ VLLM_IMAGE = os.getenv("VLLM_IMAGE", "vllm/vllm-openai:latest")
 LLAMA_IMAGE = os.getenv("LLAMA_IMAGE", "ghcr.io/ggerganov/llama.cpp:server-cuda")
 HF_CACHE_PATH = os.getenv("HF_CACHE_PATH", "/root/.cache/huggingface")
 GGUF_MODELS_PATH = os.getenv("GGUF_MODELS_PATH", "gguf-models")  # host path or named volume
+PATCHES_HOST_PATH = os.getenv("PATCHES_HOST_PATH", "")  # Host path to patches dir (for kernel/template mounts)
 DOCKER_NETWORK = os.getenv(
     "DOCKER_NETWORK", "ai-network"
 )  # Network for spawned containers
@@ -218,23 +219,39 @@ def create_vllm_container(model_id: str):
     if card.get("extra_args"):
         cmd.extend(card["extra_args"])
 
+    # Per-model image override (e.g. pinned nightly for specific quantization support)
+    image = card.get("vllm_image", VLLM_IMAGE)
+
     print(f"[{model_id}] Creating container: {container_name}")
-    print(f"[{model_id}] Image: {VLLM_IMAGE}")
+    print(f"[{model_id}] Image: {image}")
     print(f"[{model_id}] Network: {DOCKER_NETWORK}")
     print(f"[{model_id}] Command: {' '.join(cmd)}")
 
     # Pull image if not present
     try:
-        docker_client.images.get(VLLM_IMAGE)
+        docker_client.images.get(image)
     except docker.errors.ImageNotFound:
-        print(f"[{model_id}] Pulling image {VLLM_IMAGE}...")
-        docker_client.images.pull(VLLM_IMAGE)
+        print(f"[{model_id}] Pulling image {image}...")
+        docker_client.images.pull(image)
         print(f"[{model_id}] Image pulled successfully")
+
+    # Build volumes — base mounts + per-model patch/template mounts
+    volumes = {
+        "huggingface-cache": {"bind": "/root/.cache/huggingface", "mode": "rw"},
+        "local-models": {"bind": "/models", "mode": "ro"},
+    }
+    if card.get("volume_mounts") and PATCHES_HOST_PATH:
+        for mount in card["volume_mounts"]:
+            host_path = os.path.join(PATCHES_HOST_PATH, mount["host_subpath"])
+            volumes[host_path] = {"bind": mount["container_path"], "mode": mount.get("mode", "ro")}
+        print(f"[{model_id}] Extra volume mounts: {[m['host_subpath'] for m in card['volume_mounts']]}")
+    elif card.get("volume_mounts") and not PATCHES_HOST_PATH:
+        print(f"[{model_id}] WARNING: model has volume_mounts but PATCHES_HOST_PATH is not set — skipping")
 
     try:
         gpu_count = card.get("gpu_count", 1)
         container = docker_client.containers.create(
-            image=VLLM_IMAGE,
+            image=image,
             name=container_name,
             command=cmd,
             detach=True,
@@ -247,10 +264,7 @@ def create_vllm_container(model_id: str):
                 # Per-model env overrides (e.g. BNB quantization needs VLLM_USE_V1=0)
                 **{k: str(v) for k, v in card.get("env_overrides", {}).items()},
             },
-            volumes={
-                "huggingface-cache": {"bind": "/root/.cache/huggingface", "mode": "rw"},
-                "local-models": {"bind": "/models", "mode": "ro"},
-            },
+            volumes=volumes,
             network=DOCKER_NETWORK,
             # Shared memory needed for multi-GPU NCCL communication
             ipc_mode="host" if gpu_count > 1 else None,

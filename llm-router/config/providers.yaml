@@ -144,13 +144,37 @@ models:
       - large-context
       - dual-gpu
 
+  - id: carnice-bf16mtp
+    name: "Carnice V2 27B (Hermes agentic, BF16 MTP)"
+    providerId: gaming-pc-3090
+    description: "Hermes-style agentic fine-tune of Qwen3.6-27B. AutoRound INT4 + BF16 MTP head. 262K context, 2 streams, fp8 KV, TP=2. ~72 narr / 80 code TPS."
+    contextWindow: 262144
+    maxTokens: 32768
+    isDefault: true
+
+    capabilities:
+      streaming: true
+      functionCalling: true
+      vision: false
+      jsonMode: true
+
+    tags:
+      - chat
+      - reasoning
+      - coding
+      - agentic
+      - tool-calling
+      - large-context
+      - dual-gpu
+      - primary
+
   - id: qwen3.6-27b-q8
     name: "Qwen3.6 27B Q8_0"
     providerId: gaming-pc-3090
     description: "Qwen3.6-27B dense Q8_0 via llama.cpp, dual RTX 3090. Flagship-level coding, 131K context, 28.7GB VRAM."
     contextWindow: 131072
     maxTokens: 32768
-    isDefault: true
+    isDefault: false
 
     # Capabilities
     capabilities:
