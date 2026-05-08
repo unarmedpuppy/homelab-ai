@@ -1281,7 +1281,7 @@
       "extra_args": [
         "--jinja"
       ],
-      "description": "Qwen3.6-27B dense model at Q8_0 — 28.67GB, flagship-level coding on dual RTX 3090. ~19GB VRAM headroom for KV cache at 131K context.",
+      "description": "Qwen3.6-27B dense model at Q8_0 \u2014 28.67GB, flagship-level coding on dual RTX 3090. ~19GB VRAM headroom for KV cache at 131K context.",
       "architecture": "Qwen3.6 27B dense",
       "license": "Apache-2.0",
       "tags": [
@@ -1346,19 +1346,26 @@
       ],
       "extra_args": [
         "--disable-custom-all-reduce",
-        "--dtype", "float16",
-        "--max-num-seqs", "2",
-        "--max-num-batched-tokens", "8192",
-        "--kv-cache-dtype", "fp8_e5m2",
+        "--dtype",
+        "float16",
+        "--max-num-seqs",
+        "2",
+        "--max-num-batched-tokens",
+        "8192",
+        "--kv-cache-dtype",
+        "fp8_e5m2",
         "--trust-remote-code",
-        "--reasoning-parser", "qwen3",
         "--enable-auto-tool-choice",
-        "--tool-call-parser", "qwen3_xml",
+        "--tool-call-parser",
+        "qwen3_xml",
         "--enable-prefix-caching",
         "--enable-chunked-prefill",
-        "--speculative-config", "{\"method\":\"mtp\",\"num_speculative_tokens\":3}",
-        "--chat-template", "/patches/carnice-chat-template.jinja",
-        "--gpu-memory-utilization", "0.92"
+        "--speculative-config",
+        "{\"method\":\"mtp\",\"num_speculative_tokens\":3}",
+        "--chat-template",
+        "/patches/carnice-chat-template.jinja",
+        "--gpu-memory-utilization",
+        "0.92"
       ],
       "env_overrides": {
         "VLLM_WORKER_MULTIPROC_METHOD": "spawn",
@@ -1368,7 +1375,7 @@
         "OMP_NUM_THREADS": "1",
         "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True,max_split_size_mb:512"
       },
-      "description": "Carnice V2 — Hermes-style agentic fine-tune of Qwen3.6-27B. AutoRound INT4 with BF16 MTP head grafted back. 262K context, 2 concurrent streams, fp8 KV, TP=2 PCIe. ~72 narr / 80 code TPS. Requires vllm-nightly-carnice image and Marlin pad patch.",
+      "description": "Carnice V2 \u2014 Hermes-style agentic fine-tune of Qwen3.6-27B. AutoRound INT4 with BF16 MTP head grafted back. 262K context, 2 concurrent streams, fp8 KV, TP=2 PCIe. ~72 narr / 80 code TPS. Requires vllm-nightly-carnice image and Marlin pad patch.",
       "architecture": "Qwen3.6-27B (Hermes agentic fine-tune, AutoRound INT4 + BF16 MTP)",
       "license": "Apache-2.0",
       "tags": [
