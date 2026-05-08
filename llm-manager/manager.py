@@ -441,9 +441,15 @@ async def start_model(model_id: str) -> bool:
                 container = create_vllm_container(model_id)
 
         # Start if not running
-        if container.status != "running":
+        already_running = container.status == "running"
+        if not already_running:
             print(f"[{model_id}] Starting container...")
             container.start()
+
+        # Skip readiness poll if container was already up and state is known good
+        if already_running and state.get("status") == "running":
+            state["last_used"] = time.time()
+            return True
 
         # Wait for ready
         if await wait_for_ready(model_id):
@@ -1063,10 +1069,18 @@ async def proxy(request: Request, path: str):
                     usage = rdata.get("usage", {})
                     completion_chunks = usage.get("completion_tokens", 0)
                     prompt_tokens_actual = usage.get("prompt_tokens", prompt_tokens)
+
+                    # Normalize: vLLM qwen3 reasoning parser bug puts all content into
+                    # the reasoning field with content=null in non-streaming responses.
+                    # Promote reasoning → content when content is absent.
+                    for choice in rdata.get("choices", []):
+                        msg = choice.get("message", {})
+                        if msg.get("content") is None and msg.get("reasoning"):
+                            msg["content"] = msg.pop("reasoning")
                 except Exception:
                     pass
                 _finish_request(success=resp.status_code < 400)
-                return JSONResponse(content=resp.json(), status_code=resp.status_code)
+                return JSONResponse(content=rdata if rdata else resp.json(), status_code=resp.status_code)
             except Exception as e:
                 _finish_request(success=False)
                 raise HTTPException(status_code=502, detail=f"Backend error: {e}")
