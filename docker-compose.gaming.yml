@@ -17,6 +17,7 @@ services:
       - PYTHONUNBUFFERED=1
       - MODE=always-on
       - DEFAULT_MODEL=qwopus-moe-35b-q8
+      - MODEL_ALIASES=carnice-bf16mtp=qwopus-moe-35b-q8
       - GAMING_MODE_ENABLED=true
       - IDLE_TIMEOUT=0
       - START_TIMEOUT=2400
