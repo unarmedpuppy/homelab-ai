@@ -150,7 +150,7 @@ models:
     description: "Hermes-style agentic fine-tune of Qwen3.6-27B. AutoRound INT4 + BF16 MTP head. 262K context, 2 streams, fp8 KV, TP=2. ~72 narr / 80 code TPS."
     contextWindow: 262144
     maxTokens: 32768
-    isDefault: true
+    isDefault: false
 
     capabilities:
       streaming: true
@@ -197,7 +197,7 @@ models:
     description: "Qwopus MoE 35B-A3B Q8_0 (Opus distill, 3B active params) - 98K context, 107 t/s, dual-GPU"
     contextWindow: 98304
     maxTokens: 32768
-    isDefault: false
+    isDefault: true
 
     # Capabilities
     capabilities:
