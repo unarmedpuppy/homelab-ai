@@ -981,6 +981,8 @@ async def proxy(request: Request, path: str):
 
     print(f"[{model_id}] Proxying {request.method} /v1/{path}")
 
+    card = model_cards.get(model_id, {})
+
     # Count prompt tokens (rough estimate from message content)
     prompt_tokens = 0
     messages = body.get("messages", [])
@@ -1054,33 +1056,105 @@ async def proxy(request: Request, path: str):
 
         return StreamingResponse(stream_response(), media_type="text/event-stream")
     else:
-        # Non-streaming: proxy synchronously and log immediately
-        async with httpx.AsyncClient(timeout=300) as client:
+        # Non-streaming: stream internally and aggregate to bypass vLLM's broken
+        # non-streaming aggregation path (qwen3 reasoning parser bug).
+        if card.get("stream_aggregate") and request.method == "POST":
+            stream_body = {**body, "stream": True}
+            stream_bytes = json.dumps(stream_body).encode()
+            agg_content = ""
+            agg_reasoning = ""
+            agg_tool_calls = []
+            finish_reason = None
+            response_id = None
+            response_model = None
+            completion_tokens = 0
+            prompt_tokens_resp = prompt_tokens
             try:
-                resp = await client.request(
-                    request.method,
-                    backend_url,
-                    headers=request_headers,
-                    content=request_body,
-                )
-                # Try to extract completion tokens from response
-                try:
-                    rdata = resp.json()
-                    usage = rdata.get("usage", {})
-                    completion_chunks = usage.get("completion_tokens", 0)
-                    prompt_tokens_actual = usage.get("prompt_tokens", prompt_tokens)
-
-                    # Normalize: vLLM qwen3 reasoning parser bug puts all content into
-                    # the reasoning field with content=null in non-streaming responses.
-                    # Promote reasoning → content when content is absent.
-                    for choice in rdata.get("choices", []):
-                        msg = choice.get("message", {})
-                        if msg.get("content") is None and msg.get("reasoning"):
-                            msg["content"] = msg.pop("reasoning")
-                except Exception:
-                    pass
-                _finish_request(success=resp.status_code < 400)
-                return JSONResponse(content=rdata if rdata else resp.json(), status_code=resp.status_code)
+                async with httpx.AsyncClient(timeout=300) as client:
+                    async with client.stream(
+                        "POST",
+                        backend_url,
+                        headers=request_headers,
+                        content=stream_bytes,
+                    ) as resp:
+                        if resp.status_code != 200:
+                            error_text = await resp.aread()
+                            _finish_request(success=False)
+                            raise HTTPException(status_code=resp.status_code, detail=error_text.decode())
+                        async for line in resp.aiter_lines():
+                            if not line.startswith("data: ") or line == "data: [DONE]":
+                                continue
+                            try:
+                                chunk = json.loads(line[6:])
+                            except Exception:
+                                continue
+                            if not response_id:
+                                response_id = chunk.get("id")
+                                response_model = chunk.get("model")
+                            for choice in chunk.get("choices", []):
+                                delta = choice.get("delta", {})
+                                agg_content += delta.get("content") or ""
+                                agg_reasoning += delta.get("reasoning") or ""
+                                finish_reason = choice.get("finish_reason") or finish_reason
+                            usage = chunk.get("usage") or {}
+                            if usage.get("completion_tokens"):
+                                completion_tokens = usage["completion_tokens"]
+                                prompt_tokens_resp = usage.get("prompt_tokens", prompt_tokens)
+            except HTTPException:
+                raise
             except Exception as e:
                 _finish_request(success=False)
                 raise HTTPException(status_code=502, detail=f"Backend error: {e}")
+
+            if not completion_tokens:
+                completion_tokens = len(agg_content.split())
+            completion_chunks = completion_tokens
+            rdata = {
+                "id": response_id or f"chatcmpl-agg",
+                "object": "chat.completion",
+                "created": int(time.time()),
+                "model": response_model or model_id,
+                "choices": [{
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": agg_content or None,
+                        **({"reasoning": agg_reasoning} if agg_reasoning else {}),
+                        "tool_calls": [],
+                    },
+                    "finish_reason": finish_reason or "stop",
+                }],
+                "usage": {
+                    "prompt_tokens": prompt_tokens_resp,
+                    "completion_tokens": completion_tokens,
+                    "total_tokens": prompt_tokens_resp + completion_tokens,
+                },
+            }
+            _finish_request(success=True)
+            return JSONResponse(content=rdata)
+        else:
+            # Standard non-streaming proxy
+            async with httpx.AsyncClient(timeout=300) as client:
+                try:
+                    resp = await client.request(
+                        request.method,
+                        backend_url,
+                        headers=request_headers,
+                        content=request_body,
+                    )
+                    try:
+                        rdata = resp.json()
+                        usage = rdata.get("usage", {})
+                        completion_chunks = usage.get("completion_tokens", 0)
+                        # Normalize: promote reasoning → content when content is absent
+                        for choice in rdata.get("choices", []):
+                            msg = choice.get("message", {})
+                            if msg.get("content") is None and msg.get("reasoning"):
+                                msg["content"] = msg.pop("reasoning")
+                    except Exception:
+                        rdata = None
+                    _finish_request(success=resp.status_code < 400)
+                    return JSONResponse(content=rdata if rdata else {}, status_code=resp.status_code)
+                except Exception as e:
+                    _finish_request(success=False)
+                    raise HTTPException(status_code=502, detail=f"Backend error: {e}")
