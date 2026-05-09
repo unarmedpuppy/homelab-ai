@@ -16,7 +16,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - MODE=always-on
-      - DEFAULT_MODEL=carnice-bf16mtp
+      - DEFAULT_MODEL=qwopus-moe-35b-q8
       - GAMING_MODE_ENABLED=true
       - IDLE_TIMEOUT=0
       - START_TIMEOUT=2400
