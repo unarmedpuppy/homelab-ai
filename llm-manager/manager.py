@@ -963,6 +963,14 @@ async def proxy(request: Request, path: str):
     if model_id == "default" and DEFAULT_MODEL:
         model_id = DEFAULT_MODEL.split(",")[0].strip()
 
+    # Model aliases: redirect requests for a model to the actual running default.
+    # Used during rollbacks when the router still references the old model name.
+    MODEL_ALIASES = {k: v for k, v in (
+        a.split("=", 1) for a in os.getenv("MODEL_ALIASES", "").split(",") if "=" in a
+    )}
+    if model_id in MODEL_ALIASES:
+        model_id = MODEL_ALIASES[model_id]
+
     if model_id not in model_states:
         raise HTTPException(
             status_code=400,
