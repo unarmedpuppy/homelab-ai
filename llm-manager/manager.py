@@ -1033,15 +1033,50 @@ async def proxy(request: Request, path: str):
                         headers=request_headers,
                         content=request_body,
                     ) as resp:
-                        async for chunk in resp.aiter_raw():
-                            if chunk:
-                                for line in chunk.split(b"\n"):
-                                    if (
-                                        line.startswith(b"data: ")
-                                        and b'"content"' in line
-                                    ):
+                        if card.get("stream_aggregate"):
+                            # For reasoning models (qwen3 reasoning parser): parse each SSE
+                            # chunk and promote delta.reasoning → delta.content so clients
+                            # that don't handle the reasoning field always see content.
+                            buf = b""
+                            async for raw_chunk in resp.aiter_raw():
+                                buf += raw_chunk
+                                while b"\n" in buf:
+                                    line, buf = buf.split(b"\n", 1)
+                                    line = line.rstrip(b"\r")
+                                    if line.startswith(b"data: ") and line != b"data: [DONE]":
+                                        try:
+                                            chunk = json.loads(line[6:])
+                                            modified = False
+                                            for choice in chunk.get("choices", []):
+                                                delta = choice.get("delta", {})
+                                                reasoning = delta.get("reasoning")
+                                                content = delta.get("content")
+                                                if reasoning and not content:
+                                                    delta["content"] = reasoning
+                                                    del delta["reasoning"]
+                                                    modified = True
+                                                elif reasoning:
+                                                    del delta["reasoning"]
+                                                    modified = True
+                                            if modified:
+                                                line = b"data: " + json.dumps(chunk).encode()
+                                        except (json.JSONDecodeError, KeyError):
+                                            pass
+                                    if b'"content"' in line:
                                         completion_chunks += 1
-                            yield chunk
+                                    yield line + b"\n"
+                            if buf:
+                                yield buf
+                        else:
+                            async for chunk in resp.aiter_raw():
+                                if chunk:
+                                    for line in chunk.split(b"\n"):
+                                        if (
+                                            line.startswith(b"data: ")
+                                            and b'"content"' in line
+                                        ):
+                                            completion_chunks += 1
+                                yield chunk
                 except httpx.ConnectError as e:
                     error = {"error": f"Could not connect to model backend: {e}"}
                     yield f"data: {json.dumps(error)}\n\n".encode()
