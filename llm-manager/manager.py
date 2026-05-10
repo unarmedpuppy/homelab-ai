@@ -43,6 +43,22 @@ CPU_OFFLOAD_GB = float(
     os.getenv("CPU_OFFLOAD_GB", "0")
 )  # vLLM cpu-offload-gb (0 = disabled)
 
+# Model aliases: redirect requests for a model name to another.
+# Used during rollbacks when the router still references the old model name.
+# Format: MODEL_ALIASES=old-name=new-name,other-old=other-new
+MODEL_ALIASES: dict[str, str] = {
+    k: v
+    for k, v in (
+        a.split("=", 1) for a in os.getenv("MODEL_ALIASES", "").split(",") if "=" in a
+    )
+}
+
+
+def resolve_model_alias(model_id: str) -> str:
+    """Resolve a model ID through MODEL_ALIASES. Returns the canonical ID."""
+    return MODEL_ALIASES.get(model_id, model_id)
+
+
 # --- Global State ---
 docker_client = docker.from_env()
 model_cards = {}  # Model definitions from models.json
@@ -701,6 +717,7 @@ async def stop_all():
 @app.post("/start/{model_id}")
 async def start_model_endpoint(model_id: str):
     """Explicitly start a model."""
+    model_id = resolve_model_alias(model_id)
     await start_model(model_id)
     return {"status": "running", "model": model_id}
 
@@ -963,13 +980,7 @@ async def proxy(request: Request, path: str):
     if model_id == "default" and DEFAULT_MODEL:
         model_id = DEFAULT_MODEL.split(",")[0].strip()
 
-    # Model aliases: redirect requests for a model to the actual running default.
-    # Used during rollbacks when the router still references the old model name.
-    MODEL_ALIASES = {k: v for k, v in (
-        a.split("=", 1) for a in os.getenv("MODEL_ALIASES", "").split(",") if "=" in a
-    )}
-    if model_id in MODEL_ALIASES:
-        model_id = MODEL_ALIASES[model_id]
+    model_id = resolve_model_alias(model_id)
 
     if model_id not in model_states:
         raise HTTPException(
