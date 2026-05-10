@@ -6,6 +6,7 @@ Provides CRUD operations, search, and categorization management.
 
 from fastapi import APIRouter, HTTPException, Query, UploadFile, File
 from typing import List, Optional, Dict, Any
+from pydantic import BaseModel
 from datetime import datetime
 import os
 import json
