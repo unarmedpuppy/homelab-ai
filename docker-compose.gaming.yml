@@ -1,36 +1,51 @@
-# Gaming PC deployment - LLM Manager, Image Server, TTS Server
+# Gaming PC deployment - AI Manager, Image Server, TTS Server
 #
-# Usage:
-#   docker compose -f docker-compose.yml -f docker-compose.gaming.yml up -d
+# Standalone compose for gaming PC (2x RTX 3090).
+# Run from this repo root:
+#   docker compose -f docker-compose.gaming.yml up -d
 #
 # Environment variables (set in .env):
 #   HARBOR_REGISTRY - Harbor registry URL
+#
+# PATCHES_HOST_PATH must be the HOST path to the patches directory so that
+# Docker Desktop can resolve bind mounts for sibling containers correctly.
+# Using ${PWD} (expanded by docker compose to the project dir) avoids the
+# /app/patches container-internal path bug that causes stale WSL bind mount
+# hashes after Docker Desktop / WSL restarts.
 
 services:
-  llm-manager:
-    image: ${HARBOR_REGISTRY:-harbor.local}/library/llm-manager:latest
-    container_name: llm-manager
+  ai-manager:
+    image: ${HARBOR_REGISTRY:-harbor.local}/library/ai-manager:latest
+    container_name: ai-manager
     restart: always
     ports:
       - "8000:8000"
     environment:
       - PYTHONUNBUFFERED=1
+      - TZ=America/Chicago
       - MODE=always-on
       - DEFAULT_MODEL=qwopus-moe-35b-q8
-      - MODEL_ALIASES=carnice-bf16mtp=qwopus-moe-35b-q8
       - GAMING_MODE_ENABLED=true
       - IDLE_TIMEOUT=0
       - START_TIMEOUT=2400
       - GPU_MEMORY_UTILIZATION=0.90
       - CPU_OFFLOAD_GB=0
+      - MODELS_CONFIG_PATH=/app/models.json
       - VLLM_IMAGE=${HARBOR_REGISTRY:-harbor.local}/library/vllm-custom:latest
-      - PATCHES_HOST_PATH=${PWD}/llm-manager/patches
       - LLAMA_IMAGE=${HARBOR_REGISTRY:-harbor.local}/library/llama.cpp-server:cuda
+      - VLLM_CARNICE_IMAGE=${HARBOR_REGISTRY:-harbor.local}/library/vllm-nightly-carnice:latest
       - GGUF_MODELS_PATH=/mnt/c/models/gguf
+      - DOCKER_NETWORK=ai-network
+      # HOST path - docker compose expands ${PWD} to the project directory so
+      # sibling containers receive a real WSL path, not a container-internal one.
+      # Never set this to /app/patches (container path) - that generates stale
+      # WSL bind mount hashes that break after every Docker Desktop restart.
+      - PATCHES_HOST_PATH=${PWD}/llm-manager/patches
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - huggingface-cache:/root/.cache/huggingface
       - /mnt/c/models/quantized:/models
+      - /mnt/c/models/gguf:/gguf-models
       - ./llm-manager/models.json:/app/models.json:ro
       - ./llm-manager/patches:/app/patches:ro
     networks:
@@ -84,28 +99,6 @@ services:
               count: 1
               capabilities: [gpu]
 
-  video-server:
-    image: ${HARBOR_REGISTRY:-harbor.local}/library/video-server:latest
-    container_name: video-server
-    restart: unless-stopped
-    ports:
-      - "8008:8000"
-    environment:
-      - MODEL_ID=tencent/HunyuanVideo-1.5
-      - GPU_COUNT=1
-    volumes:
-      - huggingface-cache:/root/.cache/huggingface
-    networks:
-      - ai-network
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-
-  # Deploy webhook - accepts POST /deploy to pull new images and recreate containers
   deploy-webhook:
     image: ${HARBOR_REGISTRY:-harbor.local}/library/deploy-webhook:latest
     container_name: deploy-webhook
@@ -114,22 +107,9 @@ services:
       - "8007:8000"
     environment:
       - DEPLOY_SECRET=${DEPLOY_SECRET}
-      - KNOWN_SERVICES=llm-manager,image-server,tts-server,video-server,gaming-dashboard
+      - KNOWN_SERVICES=ai-manager,image-server,tts-server
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    networks:
-      - ai-network
-
-  # Optional: Web dashboard for gaming mode control
-  gaming-dashboard:
-    image: ${HARBOR_REGISTRY:-harbor.local}/library/local-ai-dashboard:latest
-    container_name: gaming-dashboard
-    restart: unless-stopped
-    ports:
-      - "8080:80"
-    environment:
-      - LLM_API_UPSTREAM=http://llm-manager:8000
-      - LOCAL_AI_API_KEY=${LLM_ROUTER_API_KEY:-}
     networks:
       - ai-network
 
@@ -139,6 +119,4 @@ networks:
 
 volumes:
   huggingface-cache:
-    external: true
-  gguf-models:
     external: true
